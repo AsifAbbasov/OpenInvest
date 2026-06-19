@@ -1,0 +1,1 @@
+"""OpenInvest analytics service."""

@@ -1,0 +1,23 @@
+.DS_Store
+.env
+.idea/
+.vscode/
+
+# Go
+backend-go/bin/
+backend-go/coverage.out
+
+# Node
+frontend-react/node_modules/
+frontend-react/dist/
+frontend-react/*.local
+
+# Python
+microservice-python/.venv/
+microservice-python/.pytest_cache/
+microservice-python/__pycache__/
+microservice-python/**/*.py[cod]
+microservice-python/*.egg-info/
+
+# Local infrastructure
+infrastructure/data/
