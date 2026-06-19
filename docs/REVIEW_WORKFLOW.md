@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-REVIEW-001 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Status | Approved / Mandatory |
 | Owner | Principal Architect |
 | Supersedes | Informal review and push process |
@@ -110,6 +110,19 @@ An ADR is mandatory when a change affects a frozen architecture decision, introd
 A routine, well-scoped library does not automatically require an ADR. It still requires dependency rationale, license/security review, maintenance assessment, alternatives considered, and removal/rollback notes in the PR. This distinction prevents governance from becoming ceremony that hides real risk.
 
 ## CI gate
+
+### Bootstrap-required checks
+
+The minimum pull-request CI baseline is:
+
+- Go tests;
+- Python tests from the locked environment;
+- frontend type checking and production build from the frozen lockfile;
+- Docker Compose configuration validation with an explicit CI-only development password.
+
+These checks are required for the Stage 1 Bootstrap transition and remain mandatory in later stages. Stage-specific checks are added as the affected surfaces appear; the baseline is not evidence that unimplemented database, contract, security, financial, or performance behavior was tested.
+
+The initial `openapi/openapi.yaml` file is an operational skeleton, not the Stage 2 MVP contract freeze. Adding business paths or domain schemas requires Stage 2 contract review before implementation.
 
 Required checks are proportional to affected surfaces and may include:
 

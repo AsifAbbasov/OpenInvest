@@ -1,0 +1,39 @@
+openapi: 3.1.0
+info:
+  title: OpenInvest API
+  version: 0.1.0
+  description: >-
+    Operational bootstrap contract. MVP business operations and domain schemas
+    remain out of scope until the Stage 2 OpenAPI Freeze.
+servers:
+  - url: http://localhost:8080
+    description: Local development
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Check API process health
+      security: []
+      tags:
+        - Operations
+      responses:
+        "200":
+          description: The API process is healthy.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          const: ok
+tags:
+  - name: Operations
+    description: Non-business operational endpoints.

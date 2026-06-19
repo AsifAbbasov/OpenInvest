@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.2.0 |
+| Version | 1.2.1 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -15,8 +15,9 @@
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 1 — Documentation Consolidation**
-**Next approved planning target: Stage 2 — OpenAPI Freeze**
+**Last completed implementation stage: Stage 1 — Documentation Consolidation (approved)**
+**Current approved transition: Stage 1 Bootstrap — basic CI and non-business OpenAPI skeleton**
+**Next gated planning target: Stage 2 — OpenAPI Freeze**
 
 ## Document priority
 
@@ -45,6 +46,12 @@ OpenInvest is a **Personal Capital Operating System**. It is not a broker, bank,
 - Client: no external market-data calls and no LocalStorage for business data
 - Delivery: no automatic commit or push without user review and approval
 - Review: mandatory feature branch → Draft PR → CI → independent Review Agent evidence → human approval → squash merge; see `REVIEW_WORKFLOW.md`
+
+## Bootstrap delivery baseline
+
+Before Stage 2 begins, every pull request must pass the repository CI baseline: Go tests, Python tests, frontend build and type checking, and Docker Compose configuration validation. The canonical API contract location is `openapi/openapi.yaml`.
+
+The bootstrap OpenAPI document may describe operational endpoints only. MVP business paths, domain schemas, authorization contracts, financial calculations, and generated clients remain Stage 2 work and require contract review before implementation.
 
 ## MVP scope
 
