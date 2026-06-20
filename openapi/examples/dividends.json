@@ -1,0 +1,56 @@
+{
+  "calendarResponse": {
+    "summary": "Official dividend events for the user's holdings",
+    "value": {
+      "data": {
+        "items": [
+          {
+            "id": "01977a31-6db7-7ba6-b5b4-65a183ba5401",
+            "ticker": "SBER",
+            "status": "APPROVED",
+            "amountPerUnit": { "amount": "34.84000000", "currency": "RUB" },
+            "registryDate": "2026-07-18",
+            "paymentDate": "2026-08-05",
+            "settlementDate": null,
+            "source": { "code": "MOEX_CORPORATE_ACTIONS", "observedAt": "2026-06-19T17:10:00Z" }
+          }
+        ],
+        "pagination": { "nextCursor": null, "hasMore": false, "limit": 50 }
+      },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5402",
+        "traceId": "bf4a3d2c1b0e4987a6f5e4d3c2b1a109",
+        "generatedAt": "2026-06-20T13:00:00Z"
+      }
+    }
+  },
+  "calculateRequest": {
+    "summary": "Calculate gross dividend income",
+    "value": {
+      "ticker": "SBER",
+      "quantity": "1000.00000000",
+      "dividendPerUnit": { "amount": "34.84000000", "currency": "RUB" },
+      "positionCost": { "amount": "280000.00000000", "currency": "RUB" }
+    }
+  },
+  "calculateResponse": {
+    "summary": "Gross dividend calculation without tax export",
+    "value": {
+      "data": {
+        "ticker": "SBER",
+        "quantity": "1000.00000000",
+        "dividendPerUnit": { "amount": "34.84000000", "currency": "RUB" },
+        "grossDividend": { "amount": "34840.00000000", "currency": "RUB" },
+        "positionCost": { "amount": "280000.00000000", "currency": "RUB" },
+        "grossYield": "0.12442857",
+        "taxIncluded": false,
+        "methodologyVersion": "dividend-calculator-v1"
+      },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5403",
+        "traceId": "cf4a3d2c1b0e4987a6f5e4d3c2b1a110",
+        "generatedAt": "2026-06-20T13:01:00Z"
+      }
+    }
+  }
+}

@@ -1,0 +1,195 @@
+{
+  "listResponse": {
+    "summary": "User portfolios",
+    "value": {
+      "data": {
+        "items": [
+          {
+            "id": "01977a31-6db7-7ba6-b5b4-65a183ba5201",
+            "name": "Long-term capital",
+            "baseCurrency": "RUB",
+            "version": 3,
+            "createdAt": "2026-01-10T09:00:00Z",
+            "updatedAt": "2026-06-19T18:00:00Z"
+          }
+        ],
+        "pagination": { "nextCursor": null, "hasMore": false, "limit": 20 }
+      },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5202",
+        "traceId": "0f4a3d2c1b0e4987a6f5e4d3c2b1a098",
+        "generatedAt": "2026-06-20T11:00:00Z"
+      }
+    }
+  },
+  "createRequest": {
+    "summary": "Create a RUB portfolio",
+    "value": { "name": "Long-term capital", "baseCurrency": "RUB" }
+  },
+  "createResponse": {
+    "summary": "Created portfolio",
+    "value": {
+      "data": {
+        "id": "01977a31-6db7-7ba6-b5b4-65a183ba5201",
+        "name": "Long-term capital",
+        "baseCurrency": "RUB",
+        "version": 1,
+        "createdAt": "2026-06-20T11:01:00Z",
+        "updatedAt": "2026-06-20T11:01:00Z"
+      },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5203",
+        "traceId": "1f4a3d2c1b0e4987a6f5e4d3c2b1a099",
+        "generatedAt": "2026-06-20T11:01:00Z"
+      }
+    }
+  },
+  "detailResponse": {
+    "summary": "Portfolio detail",
+    "value": {
+      "data": {
+        "id": "01977a31-6db7-7ba6-b5b4-65a183ba5201",
+        "name": "Long-term capital",
+        "baseCurrency": "RUB",
+        "version": 3,
+        "createdAt": "2026-01-10T09:00:00Z",
+        "updatedAt": "2026-06-19T18:00:00Z"
+      },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5204",
+        "traceId": "2f4a3d2c1b0e4987a6f5e4d3c2b1a100",
+        "generatedAt": "2026-06-20T11:02:00Z"
+      }
+    }
+  },
+  "patchRequest": {
+    "summary": "Rename a portfolio using optimistic concurrency",
+    "value": { "name": "Financial independence", "expectedVersion": 3 }
+  },
+  "patchResponse": {
+    "summary": "Updated portfolio metadata",
+    "value": {
+      "data": {
+        "id": "01977a31-6db7-7ba6-b5b4-65a183ba5201",
+        "name": "Financial independence",
+        "baseCurrency": "RUB",
+        "version": 4,
+        "createdAt": "2026-01-10T09:00:00Z",
+        "updatedAt": "2026-06-20T11:03:00Z"
+      },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5205",
+        "traceId": "3f4a3d2c1b0e4987a6f5e4d3c2b1a101",
+        "generatedAt": "2026-06-20T11:03:00Z"
+      }
+    }
+  },
+  "deleteResponse": {
+    "summary": "Portfolio scheduled for privacy-safe deletion",
+    "value": {
+      "data": {
+        "deleted": true,
+        "financialHistoryRetained": true,
+        "effectiveAt": "2026-06-20T11:04:00Z"
+      },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5206",
+        "traceId": "4f4a3d2c1b0e4987a6f5e4d3c2b1a102",
+        "generatedAt": "2026-06-20T11:04:00Z"
+      }
+    }
+  },
+  "summaryResponse": {
+    "summary": "Explainable portfolio summary",
+    "value": {
+      "data": {
+        "portfolioId": "01977a31-6db7-7ba6-b5b4-65a183ba5201",
+        "asOfDate": "2026-06-19",
+        "totalValue": { "amount": "2430000.00000000", "currency": "RUB" },
+        "cashValue": { "amount": "130000.00000000", "currency": "RUB" },
+        "stockValue": { "amount": "1900000.00000000", "currency": "RUB" },
+        "bondValue": { "amount": "400000.00000000", "currency": "RUB" },
+        "investedCapital": { "amount": "2100000.00000000", "currency": "RUB" },
+        "dividendsReceived": { "amount": "84000.00000000", "currency": "RUB" },
+        "couponsReceived": { "amount": "31000.00000000", "currency": "RUB" },
+        "nominalReturnRate": "0.15714286",
+        "xirr": "0.14273125",
+        "realReturn": {
+          "nominalReturnRate": "0.15714286",
+          "inflationRate": "0.08700000",
+          "realReturnRate": "0.06452885",
+          "nominalGain": { "amount": "330000.00000000", "currency": "RUB" },
+          "realGain": { "amount": "135510.59000000", "currency": "RUB" },
+          "fromDate": "2025-06-19",
+          "toDate": "2026-06-19",
+          "methodologyVersion": "real-return-v1"
+        },
+        "purchasingPower": {
+          "portfolioValue": { "amount": "2430000.00000000", "currency": "RUB" },
+          "asOfDate": "2026-06-19",
+          "equivalents": [
+            {
+              "category": "AVERAGE_SALARY",
+              "label": "Average monthly salary",
+              "unitPrice": { "amount": "52826.09000000", "currency": "RUB" },
+              "quantity": "46.00000000",
+              "source": { "code": "ROSSTAT_AVERAGE_SALARY", "observedAt": "2026-06-15T07:00:00Z" }
+            }
+          ]
+        },
+        "positions": [
+          {
+            "ticker": "SBER",
+            "assetType": "STOCK",
+            "quantity": "1000.00000000",
+            "weightedAverageCost": { "amount": "280.00000000", "currency": "RUB" },
+            "marketPrice": { "amount": "315.42000000", "currency": "RUB" },
+            "marketValue": { "amount": "315420.00000000", "currency": "RUB" },
+            "unrealizedGain": { "amount": "35420.00000000", "currency": "RUB" },
+            "weight": "0.12980247"
+          }
+        ],
+        "calculation": {
+          "methodologyVersion": "portfolio-summary-v1",
+          "calculatedAt": "2026-06-20T11:05:00Z",
+          "inputsAsOf": "2026-06-19"
+        }
+      },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5207",
+        "traceId": "5f4a3d2c1b0e4987a6f5e4d3c2b1a103",
+        "generatedAt": "2026-06-20T11:05:00Z"
+      }
+    }
+  },
+  "snapshotsResponse": {
+    "summary": "Versioned rebuildable snapshots",
+    "value": {
+      "data": {
+        "items": [
+          {
+            "id": "01977a31-6db7-7ba6-b5b4-65a183ba5210",
+            "portfolioId": "01977a31-6db7-7ba6-b5b4-65a183ba5201",
+            "snapshotDate": "2026-06-19",
+            "totalValue": { "amount": "2430000.00000000", "currency": "RUB" },
+            "cashValue": { "amount": "130000.00000000", "currency": "RUB" },
+            "stockValue": { "amount": "1900000.00000000", "currency": "RUB" },
+            "bondValue": { "amount": "400000.00000000", "currency": "RUB" },
+            "investedCapital": { "amount": "2100000.00000000", "currency": "RUB" },
+            "nominalReturnRate": "0.15714286",
+            "realReturnRate": "0.06452885",
+            "snapshotVersion": 1,
+            "methodologyVersion": "portfolio-snapshot-v1",
+            "calculatedAt": "2026-06-20T02:00:00Z"
+          }
+        ],
+        "pagination": { "nextCursor": null, "hasMore": false, "limit": 30 }
+      },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5211",
+        "traceId": "6f4a3d2c1b0e4987a6f5e4d3c2b1a104",
+        "generatedAt": "2026-06-20T11:06:00Z"
+      }
+    }
+  }
+}

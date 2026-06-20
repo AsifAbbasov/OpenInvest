@@ -1,0 +1,595 @@
+openapi: 3.1.0
+jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
+info:
+  title: OpenInvest API
+  version: 1.0.0-stage.2
+  summary: Frozen MVP web contract for the Personal Capital Operating System
+  description: >-
+    Contract-first API for the OpenInvest MVP. All product paths are versioned under
+    /api/v1. Successful responses use BaseResponse semantics (data + meta), failures use
+    ErrorResponse (error + meta), and financial decimal values are JSON strings rather
+    than binary floating-point numbers. X-Request-ID and X-Trace-ID are returned as
+    response headers and mirrored in meta. A valid inbound X-Request-ID may be propagated;
+    otherwise the server creates one. W3C traceparent is accepted for distributed tracing.
+    Browser refresh sessions use a rotated Secure, HttpOnly, SameSite=Strict cookie and
+    CSRF header. No external provider endpoint is exposed to clients.
+  contact:
+    name: OpenInvest Engineering
+  license:
+    name: Proprietary
+servers:
+  - url: http://localhost:8080
+    description: Local development
+tags:
+  - name: Operations
+    description: Non-business process health and dependency readiness.
+  - name: Auth
+    description: MVP web registration and rotating session contract.
+  - name: Assets
+    description: Public MOEX stock and bond discovery through the OpenInvest backend.
+  - name: Portfolios
+    description: Authenticated portfolio metadata and server-calculated summaries.
+  - name: Transactions
+    description: Append-only portfolio financial history and correction/reversal operations.
+  - name: Dividends
+    description: Official dividend events and gross dividend calculations.
+  - name: Dashboard
+    description: Fifteen-second capital overview composed by the backend.
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/v1/health:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+    get:
+      operationId: getHealth
+      summary: Check API process health
+      tags: [Operations]
+      security: []
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/Health" }
+        "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
+
+  /api/v1/ready:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+    get:
+      operationId: getReadiness
+      summary: Check required backend dependencies
+      tags: [Operations]
+      security: []
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/Ready" }
+        "503":
+          description: One or more required dependencies are unavailable.
+          headers:
+            X-Request-ID: { $ref: "./components/responses.yaml#/headers/RequestId" }
+            X-Trace-ID: { $ref: "./components/responses.yaml#/headers/TraceId" }
+          content:
+            application/json:
+              schema: { $ref: "./components/schemas.yaml#/ErrorResponse" }
+              examples:
+                default: { $ref: "./examples/errors.json#/serviceUnavailableError" }
+
+  /api/v1/auth/register:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+    post:
+      operationId: register
+      summary: Register a privacy-first account
+      description: >-
+        Creates an account with Privacy Mode enabled, tax profile disabled, notifications
+        disabled, and anonymous analytics. Passport, INN, phone, and address are not accepted.
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "./components/schemas.yaml#/RegisterRequest" }
+            examples:
+              default: { $ref: "./examples/auth.json#/registerRequest" }
+      responses:
+        "201": { $ref: "./components/responses.yaml#/responses/Register" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "409": { $ref: "./components/responses.yaml#/responses/Conflict" }
+        "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
+
+  /api/v1/auth/login:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+    post:
+      operationId: login
+      summary: Start an authenticated web session
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "./components/schemas.yaml#/LoginRequest" }
+            examples:
+              default: { $ref: "./examples/auth.json#/loginRequest" }
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/Login" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
+
+  /api/v1/auth/refresh:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+      - $ref: "#/components/parameters/CsrfToken"
+    post:
+      operationId: refreshSession
+      summary: Rotate refresh session and issue an access token
+      tags: [Auth]
+      security:
+        - refreshCookie: []
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/Refresh" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
+
+  /api/v1/auth/logout:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+      - $ref: "#/components/parameters/CsrfToken"
+    post:
+      operationId: logout
+      summary: Revoke the current or all refresh sessions
+      tags: [Auth]
+      security:
+        - refreshCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "./components/schemas.yaml#/LogoutRequest" }
+            examples:
+              default: { $ref: "./examples/auth.json#/logoutRequest" }
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/Logout" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+
+  /api/v1/assets/search:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+    get:
+      operationId: searchAssets
+      summary: Search MOEX stocks and bonds
+      tags: [Assets]
+      security: []
+      parameters:
+        - name: query
+          in: query
+          required: true
+          description: Ticker prefix or case-insensitive instrument name fragment.
+          schema: { type: string, minLength: 1, maxLength: 100 }
+          example: SBER
+        - name: assetType
+          in: query
+          required: false
+          schema: { $ref: "./components/schemas.yaml#/AssetType" }
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/AssetSearch" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
+
+  /api/v1/assets/{ticker}:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+      - $ref: "#/components/parameters/Ticker"
+    get:
+      operationId: getAsset
+      summary: Get a MOEX stock or bond card
+      tags: [Assets]
+      security: []
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/Asset" }
+        "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
+        "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
+
+  /api/v1/portfolios:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+    get:
+      operationId: listPortfolios
+      summary: List the current user's portfolios
+      tags: [Portfolios]
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/PortfolioList" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
+    post:
+      operationId: createPortfolio
+      summary: Create a RUB portfolio
+      tags: [Portfolios]
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "./components/schemas.yaml#/CreatePortfolioRequest" }
+            examples:
+              default: { $ref: "./examples/portfolios.json#/createRequest" }
+      responses:
+        "201": { $ref: "./components/responses.yaml#/responses/PortfolioCreated" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "409": { $ref: "./components/responses.yaml#/responses/IdempotencyConflict" }
+        "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
+
+  /api/v1/portfolios/{portfolioId}:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+      - $ref: "#/components/parameters/PortfolioId"
+    get:
+      operationId: getPortfolio
+      summary: Get portfolio metadata
+      tags: [Portfolios]
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/Portfolio" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
+    patch:
+      operationId: updatePortfolio
+      summary: Update mutable portfolio metadata
+      tags: [Portfolios]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "./components/schemas.yaml#/UpdatePortfolioRequest" }
+            examples:
+              default: { $ref: "./examples/portfolios.json#/patchRequest" }
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/PortfolioUpdated" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
+        "409": { $ref: "./components/responses.yaml#/responses/Conflict" }
+    delete:
+      operationId: deletePortfolio
+      summary: Remove a portfolio from active use
+      description: >-
+        Deletes mutable portfolio identity/metadata from active use. Immutable financial history
+        remains retained according to the privacy and retention model and is never physically deleted.
+      tags: [Portfolios]
+      parameters:
+        - name: expectedVersion
+          in: query
+          required: true
+          schema: { type: integer, minimum: 1 }
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/PortfolioDeleted" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
+        "409": { $ref: "./components/responses.yaml#/responses/Conflict" }
+
+  /api/v1/portfolios/{portfolioId}/summary:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+      - $ref: "#/components/parameters/PortfolioId"
+    get:
+      operationId: getPortfolioSummary
+      summary: Get calculated capital, return, and purchasing-power summary
+      tags: [Portfolios]
+      parameters:
+        - $ref: "#/components/parameters/AsOfDate"
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/PortfolioSummary" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
+
+  /api/v1/portfolios/{portfolioId}/snapshots:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+      - $ref: "#/components/parameters/PortfolioId"
+    get:
+      operationId: listPortfolioSnapshots
+      summary: List versioned rebuildable portfolio snapshots
+      tags: [Portfolios]
+      parameters:
+        - $ref: "#/components/parameters/FromDate"
+        - $ref: "#/components/parameters/ToDate"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/SnapshotList" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
+
+  /api/v1/portfolios/{portfolioId}/transactions:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+      - $ref: "#/components/parameters/PortfolioId"
+    get:
+      operationId: listTransactions
+      summary: List immutable portfolio transaction history
+      tags: [Transactions]
+      parameters:
+        - name: transactionType
+          in: query
+          required: false
+          schema: { $ref: "./components/schemas.yaml#/TransactionType" }
+        - $ref: "#/components/parameters/FromDate"
+        - $ref: "#/components/parameters/ToDate"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/TransactionList" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
+    post:
+      operationId: createTransaction
+      summary: Append a financial transaction
+      tags: [Transactions]
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "./components/schemas.yaml#/CreateTransactionRequest" }
+            examples:
+              default: { $ref: "./examples/transactions.json#/createRequest" }
+      responses:
+        "201": { $ref: "./components/responses.yaml#/responses/TransactionCreated" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
+        "409": { $ref: "./components/responses.yaml#/responses/IdempotencyConflict" }
+
+  /api/v1/portfolios/{portfolioId}/transactions/{transactionId}:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+      - $ref: "#/components/parameters/PortfolioId"
+      - $ref: "#/components/parameters/TransactionId"
+    patch:
+      operationId: correctTransaction
+      summary: Append a correction revision
+      description: The original transaction and prior revisions remain immutable and auditable.
+      tags: [Transactions]
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "./components/schemas.yaml#/UpdateTransactionRequest" }
+            examples:
+              default: { $ref: "./examples/transactions.json#/patchRequest" }
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/TransactionCorrected" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
+        "409": { $ref: "./components/responses.yaml#/responses/Conflict" }
+    delete:
+      operationId: reverseTransaction
+      summary: Append a reversal transaction
+      description: DELETE is a command semantic only; no financial row is physically removed.
+      tags: [Transactions]
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "./components/schemas.yaml#/ReverseTransactionRequest" }
+            examples:
+              default: { $ref: "./examples/transactions.json#/deleteRequest" }
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/TransactionReversed" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
+        "409": { $ref: "./components/responses.yaml#/responses/Conflict" }
+
+  /api/v1/dividends/calendar:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+    get:
+      operationId: getDividendCalendar
+      summary: List official dividend events
+      description: Forecast-only events are excluded from the MVP contract.
+      tags: [Dividends]
+      parameters:
+        - name: portfolioId
+          in: query
+          required: false
+          schema: { type: string, format: uuid }
+        - name: ticker
+          in: query
+          required: false
+          schema: { type: string, pattern: "^[A-Z0-9]{1,32}$" }
+        - $ref: "#/components/parameters/FromDate"
+        - $ref: "#/components/parameters/ToDate"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/DividendCalendar" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+
+  /api/v1/dividends/calculate:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+      - $ref: "#/components/parameters/IdempotencyKey"
+    post:
+      operationId: calculateDividend
+      summary: Calculate gross dividend income and yield
+      description: Does not calculate tax, export tax data, or provide investment advice.
+      tags: [Dividends]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "./components/schemas.yaml#/DividendCalculationRequest" }
+            examples:
+              default: { $ref: "./examples/dividends.json#/calculateRequest" }
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/DividendCalculation" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "409": { $ref: "./components/responses.yaml#/responses/IdempotencyConflict" }
+        "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
+
+  /api/v1/dashboard:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+    get:
+      operationId: getDashboard
+      summary: Get the current user's capital dashboard
+      tags: [Dashboard]
+      parameters:
+        - $ref: "#/components/parameters/AsOfDate"
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/Dashboard" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Short-lived access token. Browser clients keep it in memory only.
+    refreshCookie:
+      type: apiKey
+      in: cookie
+      name: oi_refresh
+      description: Rotating Secure, HttpOnly, SameSite=Strict refresh cookie for MVP web sessions.
+
+  parameters:
+    RequestId:
+      name: X-Request-ID
+      in: header
+      required: false
+      description: Optional caller-generated UUID. Invalid values are replaced by the server.
+      schema: { type: string, format: uuid }
+    Traceparent:
+      name: traceparent
+      in: header
+      required: false
+      description: >-
+        W3C Trace Context header. The server rejects all-zero trace IDs and parent IDs as invalid.
+        The resulting trace ID is returned as X-Trace-ID.
+      schema:
+        type: string
+        pattern: "^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$"
+    CsrfToken:
+      name: X-CSRF-Token
+      in: header
+      required: true
+      description: Session-bound CSRF token returned with the current access session.
+      schema: { type: string, minLength: 20, maxLength: 512 }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: >-
+        Unique key for a financial write. Replays with the identical authenticated principal,
+        endpoint, and canonical payload return the original result; a different payload returns 409.
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 128
+        pattern: "^[A-Za-z0-9._:-]+$"
+      example: 01977a31-6db7-7ba6-b5b4-65a183ba5999
+    PortfolioId:
+      name: portfolioId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    TransactionId:
+      name: transactionId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    Ticker:
+      name: ticker
+      in: path
+      required: true
+      schema: { type: string, pattern: "^[A-Z0-9]{1,32}$" }
+      example: SBER
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: Opaque continuation cursor returned by the previous page.
+      schema: { type: string, minLength: 1, maxLength: 512 }
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    FromDate:
+      name: fromDate
+      in: query
+      required: false
+      schema: { $ref: "./components/schemas.yaml#/BusinessDate" }
+    ToDate:
+      name: toDate
+      in: query
+      required: false
+      schema: { $ref: "./components/schemas.yaml#/BusinessDate" }
+    AsOfDate:
+      name: asOfDate
+      in: query
+      required: false
+      description: Defaults to the latest completed MOEX business date.
+      schema: { $ref: "./components/schemas.yaml#/BusinessDate" }
+
+  schemas:
+    Money: { $ref: "./components/schemas.yaml#/Money" }
+    Decimal: { $ref: "./components/schemas.yaml#/Decimal" }
+    BusinessDate: { $ref: "./components/schemas.yaml#/BusinessDate" }
+    SystemTimestamp: { $ref: "./components/schemas.yaml#/SystemTimestamp" }
+    Asset: { $ref: "./components/schemas.yaml#/Asset" }
+    AssetType: { $ref: "./components/schemas.yaml#/AssetType" }
+    Portfolio: { $ref: "./components/schemas.yaml#/Portfolio" }
+    Transaction: { $ref: "./components/schemas.yaml#/Transaction" }
+    TransactionType: { $ref: "./components/schemas.yaml#/TransactionType" }
+    PortfolioSummary: { $ref: "./components/schemas.yaml#/PortfolioSummary" }
+    PortfolioSnapshot: { $ref: "./components/schemas.yaml#/PortfolioSnapshot" }
+    DividendEvent: { $ref: "./components/schemas.yaml#/DividendEvent" }
+    DividendCalculation: { $ref: "./components/schemas.yaml#/DividendCalculation" }
+    RealReturn: { $ref: "./components/schemas.yaml#/RealReturn" }
+    PurchasingPower: { $ref: "./components/schemas.yaml#/PurchasingPower" }
+    Pagination: { $ref: "./components/schemas.yaml#/Pagination" }
+    Error: { $ref: "./components/schemas.yaml#/Error" }
+    BaseResponse: { $ref: "./components/schemas.yaml#/BaseResponse" }
+    ErrorResponse: { $ref: "./components/schemas.yaml#/ErrorResponse" }

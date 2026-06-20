@@ -1,0 +1,45 @@
+{
+  "dashboardResponse": {
+    "summary": "Fifteen-second capital overview",
+    "value": {
+      "data": {
+        "asOfDate": "2026-06-19",
+        "totalCapital": { "amount": "2430000.00000000", "currency": "RUB" },
+        "realGain": { "amount": "135510.59000000", "currency": "RUB" },
+        "dividendsReceived": { "amount": "84000.00000000", "currency": "RUB" },
+        "expectedDividends": { "amount": "34840.00000000", "currency": "RUB" },
+        "portfolios": [
+          {
+            "portfolioId": "01977a31-6db7-7ba6-b5b4-65a183ba5201",
+            "name": "Long-term capital",
+            "totalValue": { "amount": "2430000.00000000", "currency": "RUB" },
+            "realReturnRate": "0.06452885"
+          }
+        ],
+        "purchasingPower": {
+          "portfolioValue": { "amount": "2430000.00000000", "currency": "RUB" },
+          "asOfDate": "2026-06-19",
+          "equivalents": [
+            {
+              "category": "AVERAGE_SALARY",
+              "label": "Average monthly salary",
+              "unitPrice": { "amount": "52826.09000000", "currency": "RUB" },
+              "quantity": "46.00000000",
+              "source": { "code": "ROSSTAT_AVERAGE_SALARY", "observedAt": "2026-06-15T07:00:00Z" }
+            }
+          ]
+        },
+        "calculation": {
+          "methodologyVersion": "dashboard-v1",
+          "calculatedAt": "2026-06-20T14:00:00Z",
+          "inputsAsOf": "2026-06-19"
+        }
+      },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5501",
+        "traceId": "df4a3d2c1b0e4987a6f5e4d3c2b1a111",
+        "generatedAt": "2026-06-20T14:00:00Z"
+      }
+    }
+  }
+}

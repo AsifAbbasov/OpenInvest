@@ -1,0 +1,144 @@
+{
+  "listResponse": {
+    "summary": "Immutable transaction history",
+    "value": {
+      "data": {
+        "items": [
+          {
+            "id": "01977a31-6db7-7ba6-b5b4-65a183ba5301",
+            "portfolioId": "01977a31-6db7-7ba6-b5b4-65a183ba5201",
+            "transactionType": "BUY",
+            "status": "ACTIVE",
+            "ticker": "SBER",
+            "quantity": "100.00000000",
+            "unitPrice": { "amount": "280.00000000", "currency": "RUB" },
+            "grossAmount": { "amount": "28000.00000000", "currency": "RUB" },
+            "commission": { "amount": "28.00000000", "currency": "RUB" },
+            "tax": { "amount": "0.00000000", "currency": "RUB" },
+            "tradeDate": "2026-01-10",
+            "settlementDate": "2026-01-13",
+            "revision": 1,
+            "createdAt": "2026-01-10T11:35:00Z",
+            "updatedAt": "2026-01-10T11:35:00Z"
+          }
+        ],
+        "pagination": { "nextCursor": null, "hasMore": false, "limit": 50 }
+      },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5302",
+        "traceId": "7f4a3d2c1b0e4987a6f5e4d3c2b1a105",
+        "generatedAt": "2026-06-20T12:00:00Z"
+      }
+    }
+  },
+  "createRequest": {
+    "summary": "Record a stock purchase",
+    "value": {
+      "transactionType": "BUY",
+      "ticker": "SBER",
+      "quantity": "100.00000000",
+      "unitPrice": { "amount": "280.00000000", "currency": "RUB" },
+      "commission": { "amount": "28.00000000", "currency": "RUB" },
+      "tax": { "amount": "0.00000000", "currency": "RUB" },
+      "tradeDate": "2026-01-10",
+      "settlementDate": "2026-01-13",
+      "note": "Initial position"
+    }
+  },
+  "createResponse": {
+    "summary": "Recorded immutable transaction",
+    "value": {
+      "data": {
+        "id": "01977a31-6db7-7ba6-b5b4-65a183ba5301",
+        "portfolioId": "01977a31-6db7-7ba6-b5b4-65a183ba5201",
+        "transactionType": "BUY",
+        "status": "ACTIVE",
+        "ticker": "SBER",
+        "quantity": "100.00000000",
+        "unitPrice": { "amount": "280.00000000", "currency": "RUB" },
+        "grossAmount": { "amount": "28000.00000000", "currency": "RUB" },
+        "commission": { "amount": "28.00000000", "currency": "RUB" },
+        "tax": { "amount": "0.00000000", "currency": "RUB" },
+        "tradeDate": "2026-01-10",
+        "settlementDate": "2026-01-13",
+        "note": "Initial position",
+        "revision": 1,
+        "createdAt": "2026-06-20T12:01:00Z",
+        "updatedAt": "2026-06-20T12:01:00Z"
+      },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5303",
+        "traceId": "8f4a3d2c1b0e4987a6f5e4d3c2b1a106",
+        "generatedAt": "2026-06-20T12:01:00Z"
+      }
+    }
+  },
+  "patchRequest": {
+    "summary": "Append a correction revision",
+    "value": {
+      "expectedRevision": 1,
+      "reason": "Correct broker commission",
+      "corrected": {
+        "transactionType": "BUY",
+        "ticker": "SBER",
+        "quantity": "100.00000000",
+        "unitPrice": { "amount": "280.00000000", "currency": "RUB" },
+        "commission": { "amount": "30.00000000", "currency": "RUB" },
+        "tax": { "amount": "0.00000000", "currency": "RUB" },
+        "tradeDate": "2026-01-10",
+        "settlementDate": "2026-01-13",
+        "note": "Initial position"
+      }
+    }
+  },
+  "patchResponse": {
+    "summary": "Corrected transaction projection",
+    "value": {
+      "data": {
+        "id": "01977a31-6db7-7ba6-b5b4-65a183ba5301",
+        "portfolioId": "01977a31-6db7-7ba6-b5b4-65a183ba5201",
+        "transactionType": "BUY",
+        "status": "CORRECTED",
+        "ticker": "SBER",
+        "quantity": "100.00000000",
+        "unitPrice": { "amount": "280.00000000", "currency": "RUB" },
+        "grossAmount": { "amount": "28000.00000000", "currency": "RUB" },
+        "commission": { "amount": "30.00000000", "currency": "RUB" },
+        "tax": { "amount": "0.00000000", "currency": "RUB" },
+        "tradeDate": "2026-01-10",
+        "settlementDate": "2026-01-13",
+        "revision": 2,
+        "createdAt": "2026-01-10T11:35:00Z",
+        "updatedAt": "2026-06-20T12:02:00Z"
+      },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5304",
+        "traceId": "9f4a3d2c1b0e4987a6f5e4d3c2b1a107",
+        "generatedAt": "2026-06-20T12:02:00Z"
+      }
+    }
+  },
+  "deleteRequest": {
+    "summary": "Append a reversal without deleting history",
+    "value": {
+      "expectedRevision": 2,
+      "reason": "Broker cancelled the transaction"
+    }
+  },
+  "deleteResponse": {
+    "summary": "Transaction reversed without deleting history",
+    "value": {
+      "data": {
+        "transactionId": "01977a31-6db7-7ba6-b5b4-65a183ba5301",
+        "reversalTransactionId": "01977a31-6db7-7ba6-b5b4-65a183ba5305",
+        "status": "REVERSED",
+        "effectiveDate": "2026-06-20"
+      },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5306",
+        "traceId": "af4a3d2c1b0e4987a6f5e4d3c2b1a108",
+        "generatedAt": "2026-06-20T12:03:00Z"
+      }
+    }
+  }
+}

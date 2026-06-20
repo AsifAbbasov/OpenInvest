@@ -1,0 +1,24 @@
+{
+  "healthResponse": {
+    "summary": "API process is healthy",
+    "value": {
+      "data": { "status": "ok" },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba4f41",
+        "traceId": "7f4a3d2c1b0e4987a6f5e4d3c2b1a090",
+        "generatedAt": "2026-06-20T08:00:00Z"
+      }
+    }
+  },
+  "readyResponse": {
+    "summary": "API dependencies are ready",
+    "value": {
+      "data": { "status": "ready" },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba4f42",
+        "traceId": "8f4a3d2c1b0e4987a6f5e4d3c2b1a091",
+        "generatedAt": "2026-06-20T08:00:01Z"
+      }
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "searchResponse": {
+    "summary": "MOEX stock and bond search results",
+    "value": {
+      "data": {
+        "items": [
+          {
+            "ticker": "SBER",
+            "name": "Sberbank",
+            "assetType": "STOCK",
+            "currency": "RUB",
+            "lotSize": "10.00000000",
+            "lastPrice": { "amount": "315.42000000", "currency": "RUB" }
+          },
+          {
+            "ticker": "SU26238RMFS4",
+            "name": "OFZ 26238",
+            "assetType": "BOND",
+            "currency": "RUB",
+            "lotSize": "1.00000000",
+            "lastPrice": { "amount": "628.90000000", "currency": "RUB" }
+          }
+        ],
+        "pagination": { "nextCursor": null, "hasMore": false, "limit": 20 }
+      },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5101",
+        "traceId": "df4a3d2c1b0e4987a6f5e4d3c2b1a096",
+        "generatedAt": "2026-06-20T10:00:00Z"
+      }
+    }
+  },
+  "assetResponse": {
+    "summary": "MOEX stock card",
+    "value": {
+      "data": {
+        "ticker": "SBER",
+        "name": "Sberbank",
+        "assetType": "STOCK",
+        "currency": "RUB",
+        "market": "MOEX",
+        "lotSize": "10.00000000",
+        "status": "ACTIVE",
+        "lastPrice": { "amount": "315.42000000", "currency": "RUB" },
+        "priceAsOf": "2026-06-19T15:45:00Z",
+        "source": { "code": "MOEX_ISS", "observedAt": "2026-06-19T15:45:02Z" },
+        "stock": { "sector": "Financials", "isin": "RU0009029540" }
+      },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5102",
+        "traceId": "ef4a3d2c1b0e4987a6f5e4d3c2b1a097",
+        "generatedAt": "2026-06-20T10:01:00Z"
+      }
+    }
+  }
+}
