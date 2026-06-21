@@ -8,9 +8,17 @@ backend-go/bin/
 backend-go/coverage.out
 
 # Node
+frontend-next/node_modules/
+frontend-next/.next/
+frontend-next/out/
+frontend-next/next-env.d.ts
+frontend-next/*.tsbuildinfo
+frontend-next/*.local
+.pnpm-store/
+
+# Legacy Vite skeleton artifacts may remain in existing local checkouts after migration.
 frontend-react/node_modules/
 frontend-react/dist/
-frontend-react/*.local
 
 # Python
 microservice-python/.venv/
