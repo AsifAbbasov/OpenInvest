@@ -25,7 +25,7 @@
               "label": "Average monthly salary",
               "unitPrice": { "amount": "52826.09000000", "currency": "RUB" },
               "quantity": "46.00000000",
-              "source": { "code": "ROSSTAT_AVERAGE_SALARY", "observedAt": "2026-06-15T07:00:00Z" }
+              "source": { "code": "EXAMPLE_PURCHASING_POWER", "observedAt": "2026-06-15T07:00:00Z" }
             }
           ]
         },

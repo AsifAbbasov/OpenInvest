@@ -159,7 +159,9 @@ SourceReference:
     code:
       type: string
       pattern: "^[A-Z][A-Z0-9_]*$"
-      description: Registered source code from the Data Source Registry.
+      description: >-
+        Registered production source code from the Data Source Registry, or a reserved EXAMPLE_*
+        identifier in contract examples. Runtime responses must never emit example identifiers.
     observedAt:
       $ref: "#/SystemTimestamp"
 
@@ -189,10 +191,10 @@ AssetSummary:
       type: string
       const: RUB
     lotSize:
-      $ref: "#/Decimal"
+      $ref: "#/PositiveDecimal"
     lastPrice:
       oneOf:
-        - $ref: "#/Money"
+        - $ref: "#/NonNegativeMoney"
         - type: "null"
 
 AssetBase:
@@ -216,12 +218,12 @@ AssetBase:
       type: string
       const: MOEX
     lotSize:
-      $ref: "#/Decimal"
+      $ref: "#/PositiveDecimal"
     status:
       $ref: "#/AssetStatus"
     lastPrice:
       oneOf:
-        - $ref: "#/Money"
+        - $ref: "#/NonNegativeMoney"
         - type: "null"
     priceAsOf:
       oneOf:
@@ -252,7 +254,7 @@ BondDetails:
       type: string
       pattern: "^[A-Z]{2}[A-Z0-9]{9}[0-9]$"
     faceValue:
-      $ref: "#/Money"
+      $ref: "#/PositiveMoney"
     maturityDate:
       $ref: "#/BusinessDate"
     couponType:
@@ -260,7 +262,7 @@ BondDetails:
       enum: [FIXED, FLOATING, ZERO]
     couponRate:
       oneOf:
-        - $ref: "#/Decimal"
+        - $ref: "#/NonNegativeDecimal"
         - type: "null"
 
 StockAsset:
@@ -630,9 +632,7 @@ IncomeTransactionRequest:
         - $ref: "#/PositiveDecimal"
         - type: "null"
     unitPrice:
-      oneOf:
-        - $ref: "#/PositiveMoney"
-        - type: "null"
+      type: "null"
     grossAmount:
       $ref: "#/NonNegativeMoney"
     commission:
@@ -837,9 +837,9 @@ PurchasingPowerEquivalent:
       minLength: 1
       maxLength: 120
     unitPrice:
-      $ref: "#/Money"
+      $ref: "#/PositiveMoney"
     quantity:
-      $ref: "#/Decimal"
+      $ref: "#/NonNegativeDecimal"
     source:
       $ref: "#/SourceReference"
 
@@ -869,18 +869,18 @@ PortfolioPosition:
     assetType:
       $ref: "#/AssetType"
     quantity:
-      $ref: "#/Decimal"
+      $ref: "#/NonNegativeDecimal"
     weightedAverageCost:
-      $ref: "#/Money"
+      $ref: "#/NonNegativeMoney"
       description: Per-unit cost calculated from immutable acquisition and disposal history.
     marketPrice:
-      $ref: "#/Money"
+      $ref: "#/NonNegativeMoney"
     marketValue:
-      $ref: "#/Money"
+      $ref: "#/NonNegativeMoney"
     unrealizedGain:
       $ref: "#/Money"
     weight:
-      $ref: "#/Decimal"
+      $ref: "#/NonNegativeDecimal"
 
 PortfolioSummary:
   type: object
@@ -1007,7 +1007,7 @@ DividendEvent:
     status:
       $ref: "#/DividendEventStatus"
     amountPerUnit:
-      $ref: "#/Money"
+      $ref: "#/NonNegativeMoney"
     registryDate:
       $ref: "#/BusinessDate"
     paymentDate:

@@ -41,6 +41,9 @@ REQUIRED_SCHEMAS = %w[
   TransactionType PortfolioSummary PortfolioSnapshot DividendEvent DividendCalculation
   RealReturn PurchasingPower Pagination Error BaseResponse ErrorResponse
 ].freeze
+EXAMPLE_SOURCE_CODES = %w[
+  EXAMPLE_MARKET_DATA EXAMPLE_CORPORATE_ACTIONS EXAMPLE_PURCHASING_POWER
+].freeze
 
 class ContractValidator
   attr_reader :reference_count, :operation_count
@@ -58,6 +61,7 @@ class ContractValidator
     root_document = load_document(@root)
     validate_structure(root_document)
     validate_financial_guard_vectors
+    validate_example_source_codes
     walk(root_document, @root, "#")
 
     unless @errors.empty?
@@ -69,6 +73,29 @@ class ContractValidator
   end
 
   private
+
+  def validate_example_source_codes
+    observed_codes = []
+    Dir[@root.dirname.join("examples", "*.json")].sort.each do |path|
+      collect_source_codes(load_document(Pathname.new(path)), observed_codes)
+    end
+
+    unexpected = observed_codes.uniq - EXAMPLE_SOURCE_CODES
+    missing = EXAMPLE_SOURCE_CODES - observed_codes.uniq
+    @errors << "examples use non-reserved source codes: #{unexpected.join(', ')}" unless unexpected.empty?
+    @errors << "reserved example source codes are unused: #{missing.join(', ')}" unless missing.empty?
+  end
+
+  def collect_source_codes(node, codes)
+    case node
+    when Hash
+      source = node["source"]
+      codes << source["code"] if source.is_a?(Hash) && source["code"].is_a?(String)
+      node.each_value { |value| collect_source_codes(value, codes) }
+    when Array
+      node.each { |value| collect_source_codes(value, codes) }
+    end
+  end
 
   def validate_financial_guard_vectors
     schemas_path = @root.dirname.join("components", "schemas.yaml")
@@ -85,6 +112,50 @@ class ContractValidator
     reject_vector("Transaction BUY without quantity", invalid_buy, transaction_schema, schemas_path)
     invalid_cash = Marshal.load(Marshal.dump(transaction_example)).merge("transactionType" => "DEPOSIT")
     reject_vector("Transaction DEPOSIT with asset fields", invalid_cash, transaction_schema, schemas_path)
+
+    income_request = {
+      "transactionType" => "DIVIDEND",
+      "ticker" => "SBER",
+      "quantity" => "10.00000000",
+      "unitPrice" => { "amount" => "1.00000000", "currency" => "RUB" },
+      "grossAmount" => { "amount" => "100.00000000", "currency" => "RUB" },
+      "commission" => { "amount" => "0.00000000", "currency" => "RUB" },
+      "tax" => { "amount" => "0.00000000", "currency" => "RUB" },
+      "tradeDate" => "2026-06-19",
+      "settlementDate" => nil
+    }
+    reject_vector("CreateTransactionRequest DIVIDEND with unit price", income_request,
+                  schemas.fetch("CreateTransactionRequest"), schemas_path)
+    correction = { "expectedRevision" => 1, "reason" => "correct income", "corrected" => income_request }
+    reject_vector("UpdateTransactionRequest DIVIDEND with unit price", correction,
+                  schemas.fetch("UpdateTransactionRequest"), schemas_path)
+
+    negative_decimal = "-1.00000000"
+    negative_money = { "amount" => negative_decimal, "currency" => "RUB" }
+    asset_summary = schemas.fetch("AssetSummary").fetch("properties")
+    reject_vector("AssetSummary.lotSize negative", negative_decimal, asset_summary.fetch("lotSize"), schemas_path)
+    reject_vector("AssetSummary.lastPrice negative", negative_money, asset_summary.fetch("lastPrice"), schemas_path)
+    asset_base = schemas.fetch("AssetBase").fetch("properties")
+    reject_vector("AssetBase.lotSize negative", negative_decimal, asset_base.fetch("lotSize"), schemas_path)
+    reject_vector("AssetBase.lastPrice negative", negative_money, asset_base.fetch("lastPrice"), schemas_path)
+    bond = schemas.fetch("BondDetails").fetch("properties")
+    reject_vector("BondDetails.faceValue negative", negative_money, bond.fetch("faceValue"), schemas_path)
+    reject_vector("BondDetails.couponRate negative", negative_decimal, bond.fetch("couponRate"), schemas_path)
+    equivalent = schemas.fetch("PurchasingPowerEquivalent").fetch("properties")
+    reject_vector("PurchasingPowerEquivalent.unitPrice negative", negative_money,
+                  equivalent.fetch("unitPrice"), schemas_path)
+    reject_vector("PurchasingPowerEquivalent.quantity negative", negative_decimal,
+                  equivalent.fetch("quantity"), schemas_path)
+    position = schemas.fetch("PortfolioPosition").fetch("properties")
+    %w[quantity weight].each do |field|
+      reject_vector("PortfolioPosition.#{field} negative", negative_decimal, position.fetch(field), schemas_path)
+    end
+    %w[weightedAverageCost marketPrice marketValue].each do |field|
+      reject_vector("PortfolioPosition.#{field} negative", negative_money, position.fetch(field), schemas_path)
+    end
+    dividend = schemas.fetch("DividendEvent").fetch("properties")
+    reject_vector("DividendEvent.amountPerUnit negative", negative_money,
+                  dividend.fetch("amountPerUnit"), schemas_path)
 
     calculator = schemas.fetch("DividendCalculationRequest", {}).fetch("properties", {})
     reject_vector("DividendCalculationRequest.quantity zero", "0.00000000", calculator["quantity"], schemas_path)

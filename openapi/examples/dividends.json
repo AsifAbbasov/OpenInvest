@@ -12,7 +12,7 @@
             "registryDate": "2026-07-18",
             "paymentDate": "2026-08-05",
             "settlementDate": null,
-            "source": { "code": "MOEX_CORPORATE_ACTIONS", "observedAt": "2026-06-19T17:10:00Z" }
+            "source": { "code": "EXAMPLE_CORPORATE_ACTIONS", "observedAt": "2026-06-19T17:10:00Z" }
           }
         ],
         "pagination": { "nextCursor": null, "hasMore": false, "limit": 50 }

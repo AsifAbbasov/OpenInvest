@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.3.1 |
+| Version | 1.3.2 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
-| Last Review Date | 2026-06-20 |
-| Next Review Date | 2026-12-19 |
+| Last Review Date | 2026-06-21 |
+| Next Review Date | 2026-12-21 |
 
 ## Architecture status
 
@@ -17,6 +17,7 @@
 **Documentation Freeze: ACTIVE**
 **Last completed implementation stage: Stage 1 — Documentation Consolidation**
 **Next approved planning target: Stage 2 — OpenAPI Freeze**
+**Stage 2 branch status: Implemented / Draft PR review pending; not approved or merged**
 
 ## Document priority
 
@@ -115,6 +116,7 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 | ADR-003 | OpenAPI-first contracts | Accepted |
 | ADR-004 | Versioned rebuildable snapshots | Accepted |
 | ADR-005 | Privacy by Design | Accepted; interpreted with Document 43 anonymization terminology |
+| ADR-006 | Stage 2 MVP contract and canonical model freeze | Proposed; external and human approval pending |
 
 ## Version matrix
 

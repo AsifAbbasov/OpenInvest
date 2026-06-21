@@ -43,7 +43,7 @@
         "status": "ACTIVE",
         "lastPrice": { "amount": "315.42000000", "currency": "RUB" },
         "priceAsOf": "2026-06-19T15:45:00Z",
-        "source": { "code": "MOEX_ISS", "observedAt": "2026-06-19T15:45:02Z" },
+        "source": { "code": "EXAMPLE_MARKET_DATA", "observedAt": "2026-06-19T15:45:02Z" },
         "stock": { "sector": "Financials", "isin": "RU0009029540" }
       },
       "meta": {

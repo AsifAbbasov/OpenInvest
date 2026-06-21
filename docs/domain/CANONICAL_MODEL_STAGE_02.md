@@ -96,6 +96,10 @@ Discriminated union keyed by `assetType`:
 - stock: sector and ISIN;
 - bond: ISIN, face value, maturity date, coupon type, nullable coupon rate.
 
+Lot size and bond face value are strictly positive. Normalized market price and coupon rate are
+non-negative when present. Provider payloads containing impossible negative magnitudes are rejected
+before canonical ingestion; signed Money is reserved for fields whose meaning permits loss/debt.
+
 MOEX ticker is the public lookup key. The Investment context owns the canonical security master and
 normalized current Asset facts. The External Data Gateway owns provider adapters and normalization
 before those facts cross the Investment ingestion port; it owns no canonical table or client API.
@@ -234,9 +238,15 @@ are Decimal strings, not percentages encoded as whole numbers: `0.06452885` mean
 
 Contains portfolio Money, BusinessDate, and equivalents. Every equivalent includes a stable
 category, human label, RUB unit price, Decimal quantity, and registered source reference.
+Equivalent unit price is strictly positive and its resulting quantity is non-negative.
 Categories in MVP: iPhone, MacBook, average salary, food basket, utilities, apartment rent, car,
 and square meter. Missing/stale source data removes or marks an equivalent at read-model creation;
 the API must not fabricate a value.
+
+Portfolio position quantity, weighted-average cost, market price, market value, and weight are
+non-negative. Unrealized gain remains signed because it represents either a gain or a loss.
+Dividend amount per unit is non-negative; cancelled/zero declarations may carry zero, but never a
+negative amount.
 
 ## Pagination
 

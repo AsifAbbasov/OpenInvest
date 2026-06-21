@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-02 |
-| Version | 1.0.1 |
+| Version | 1.0.3 |
 | Status | Implemented / Awaiting Review |
 | Owner | Builder Engineer |
 | Supersedes | Stage 1 non-business OpenAPI skeleton after approval |
 | Dependencies | Stage 1 approval; Architecture Freeze v1.2; ADR-003; proposed ADR-006 |
-| Last Review Date | 2026-06-20 |
+| Last Review Date | 2026-06-21 |
 | Next Review Date | At Stage 2 approval |
 
 ## Goal
@@ -38,6 +38,16 @@ strategy before backend business implementation.
 - no frontend/mobile screen or client generation;
 - no tax export, foreign security, prediction, or AI behavior.
 
+## Review-size exception
+
+The complete Stage 2 PR contains 26 files, one above the default 25-file review budget. The current
+human-authorized hardening scope explicitly requires the contract, canonical/ER/migration records,
+OpenAPI validator CI, five synchronized governance registries, implementation log, and source
+registry correction to remain consistent in one reviewable freeze. Splitting one governance file
+would create a knowingly inconsistent Source of Truth and would not reduce contract complexity.
+The one-file exception is therefore approved for this Stage 2 PR only; generated/example artifacts
+remain fully reviewable and are not hidden from either reviewer.
+
 ## Contract decisions
 
 - versioned `/api/v1` paths;
@@ -53,9 +63,9 @@ strategy before backend business implementation.
 
 ## Assumptions
 
-1. Stage 1 is approved but its Draft PR has not yet been merged into `develop`; this branch was
-   created exactly from the requested `develop` base. Before any future push, it must be rebased
-   onto the merged Stage 1 result and the diff revalidated.
+1. The Stage 2 branch is based on current `develop` commit `75af67d`. Any later `develop` changes
+   must be incorporated through the approved update/rebase workflow followed by complete
+   revalidation; this report does not claim that other feature branches are included.
 2. MVP is web-only; secure native refresh-token transport is intentionally deferred.
 3. MOEX ticker is sufficient as the public asset path key for MVP while internal source IDs remain
    private.
@@ -71,7 +81,7 @@ must use Issue → ADR → review → approval and cannot be resolved ad hoc in 
 
 ## Verification
 
-- `ruby scripts/validate_openapi.rb`: passed; 22 operations, 2,182 resolved references,
+- `ruby scripts/validate_openapi.rb`: passed; 22 operations, 2,378 resolved references,
   11 OpenAPI/component/example documents.
 - YAML parse: passed for root contract and both component files.
 - JSON parse: passed for all eight domain-grouped example files.
@@ -83,6 +93,7 @@ must use Issue → ADR → review → approval and cannot be resolved ad hoc in 
 - `pnpm run typecheck`: passed.
 - `pnpm run build`: passed.
 - `docker compose config --quiet`: passed with a validation-only password.
+- Pull-request CI includes `ruby scripts/validate_openapi.rb` as a required contract job.
 - Markdown internal-link check: passed.
 - whitespace check for every new file: passed.
 
@@ -93,8 +104,8 @@ must be run in connected CI or during review before merge.
 
 ## Known risks
 
-- Stage 1 must merge before the Stage 2 branch is publishable without a stacked-diff conflict.
 - Full Redocly/spec ruleset evidence remains pending because npm registry access was unavailable.
+- GitHub CI evidence remains pending until the updated feature branch is pushed and PR #2 runs.
 - OpenAPI documents response shape but does not prove calculation correctness; financial vectors
   remain mandatory before algorithms are implemented.
 - Authentication, anonymization key destruction, event reliability, and physical database roles
@@ -119,7 +130,7 @@ verified by both reviewers before merge.
 
 ## Rollback
 
-Revert the future Stage 2 contract commit. No runtime behavior, database object, persisted data,
+Revert the Stage 2 contract commits. No runtime behavior, database object, persisted data,
 external source, or client has been changed by this stage.
 
 ## Stop condition
