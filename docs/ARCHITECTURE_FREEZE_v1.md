@@ -1,5 +1,10 @@
 # OpenInvest Architecture Freeze v1.0
 
+> Historical freeze record. The Vite SPA and mandatory Redux Toolkit portions of the Web frontend
+> decision below are superseded by accepted ADR-007. React and TypeScript remain through Next.js;
+> pnpm is the Web package manager. All other frozen decisions remain subject to the documented
+> priority rules.
+
 **Status:** Approved for implementation
 **Version:** 1.0
 

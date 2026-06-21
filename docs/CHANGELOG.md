@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.0.3 |
+| Version | 1.1.0 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-06-21 |
-| Next Review Date | 2026-12-21 |
+| Last Review Date | 2026-06-25 |
+| Next Review Date | 2026-12-25 |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -47,3 +47,12 @@
 - Accepted ADR-006 after external review, green CI, and human approval.
 - Marked Stage 2 Contract and Canonical Model Freeze as closed.
 - Declared `develop` at the Stage 2 merge commit as the canonical Stage 2 baseline.
+
+## 2026-06-25 — ADR-007 Web frontend amendment
+
+- Replaced the current Web MVP React + Vite SPA target with Next.js App Router + TypeScript + pnpm.
+- Restricted Next.js to presentation, routing, rendering, metadata, and Go API orchestration.
+- Prohibited business APIs, database access, financial calculations, and external-source integration
+  in Next.js.
+- Kept Go as the canonical business API and Python as the future analytics/collector worker layer.
+- Confirmed SwiftUI and Jetpack Compose as future-only clients with no current mobile scope.

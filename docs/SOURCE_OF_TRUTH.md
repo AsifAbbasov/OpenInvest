@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.3.4 |
+| Version | 1.4.0 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -37,14 +37,17 @@ OpenInvest is a **Personal Capital Operating System**. It is not a broker, bank,
 - Analytics: Python managed with uv
 - Database: PostgreSQL; schemas `identity`, `investment`, `analytics`, `tax`, `audit`
 - Cache: Redis plus process-local RAM cache
-- Frontend: React, Vite, TypeScript, Redux Toolkit; pnpm package management
-- Mobile later: SwiftUI and Jetpack Compose
+- Web frontend: Next.js App Router, TypeScript, and pnpm; presentation layer only under ADR-007
+- Current client implementation scope: Web MVP only
+- Mobile future: iOS SwiftUI and Android Jetpack Compose; no current mobile implementation
 - Style: API First, DDD, Clean Architecture, Event Driven
 - Data: canonical database, immutable transactions, rebuildable versioned snapshots
 - Events: at-least-once delivery and idempotent business processing through outbox/inbox
 - Security: Zero Trust and Privacy by Design
 - External sources: official/permitted sources registered before use and accessed only through backend collectors
 - Client: no external market-data calls and no LocalStorage for business data
+- Boundary: Browser/Next.js → OpenAPI-defined Go API → PostgreSQL/Redis/future Python workers;
+  Next.js never replaces the Go business API or accesses data stores directly
 - Delivery: no automatic commit or push without user review and approval
 - Review: mandatory feature branch → local checks → read-only Internal Review Agent line-by-line
   approval → human commit/push permission → Draft PR → green CI → independent ChatGPT external
@@ -118,6 +121,7 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 | ADR-004 | Versioned rebuildable snapshots | Accepted |
 | ADR-005 | Privacy by Design | Accepted; interpreted with Document 43 anonymization terminology |
 | ADR-006 | Stage 2 MVP contract and canonical model freeze | Accepted |
+| ADR-007 | Next.js App Router for Web presentation only | Accepted |
 
 ## Version matrix
 
