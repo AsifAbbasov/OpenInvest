@@ -4,12 +4,12 @@
 | --- | --- |
 | Document ID | ADR-006 |
 | Version | 1.0.0 |
-| Status | Proposed / Awaiting Stage 2 Review |
+| Status | Accepted |
 | Owner | Principal Architect |
 | Supersedes | Conflicting API/DTO/ER details in Documents 1–41 |
 | Dependencies | Documents 42–43; ADR-002; ADR-003; ADR-004; ADR-005 |
-| Last Review Date | 2026-06-20 |
-| Next Review Date | At Stage 2 approval |
+| Last Review Date | 2026-06-25 |
+| Next Review Date | 2026-12-25 |
 
 ## Context
 
@@ -126,8 +126,8 @@ The contract introduces no runtime cost. Cursor pagination, server-composed dash
 and rebuildable snapshots establish performance-compatible boundaries. Actual SLO evidence,
 caching, materialization, and infrastructure cost remain later-stage responsibilities.
 
-## Approval condition
+## Approval outcome
 
-On Principal Architect and human approval, change status to `Accepted`, register ADR-006 and the
-Stage 2 freeze in `docs/SOURCE_OF_TRUTH.md`, and require contract validation in CI. Until then the
-artifacts are proposed and business implementation remains forbidden.
+Accepted after Stage 2 external review, human approval, green CI, and squash merge of PR #2 into
+`develop`. The `develop` branch at merge commit `bfde623552ebea6eac7bdaabf0d1a2263883de12` is the
+canonical Stage 2 baseline. Business implementation remains forbidden until the next approved stage.
