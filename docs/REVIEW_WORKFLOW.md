@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-REVIEW-001 |
-| Version | 1.0.0 |
+| Version | 1.2.0 |
 | Status | Approved / Mandatory |
 | Owner | Principal Architect |
 | Supersedes | Informal review and push process |
 | Dependencies | Architecture Freeze v1.2; Document 40; Document 43 |
-| Last Review Date | 2026-06-19 |
+| Last Review Date | 2026-06-20 |
 | Next Review Date | 2026-12-19 |
 
 ## Purpose
@@ -25,7 +25,15 @@ Owns scoped implementation, refactoring, tests, terminal execution, builds, docu
 
 Runs deterministic lint, formatting, unit, integration, contract, security, build, and relevant performance checks. Full expensive performance, resilience, and architecture suites may run nightly rather than on every PR when the PR gate remains risk-appropriate.
 
-### Review Agent — ChatGPT
+### Internal Review Agent
+
+Performs a mandatory read-only, line-by-line review of every changed file after Builder checks and
+before commit authorization. The Internal Review Agent is independent from the active Builder turn,
+must not edit files, run auto-fixes, stage changes, create commits, or silently resolve findings.
+It produces evidence and exactly one verdict: `APPROVED`, `REQUEST CHANGES`, or
+`BLOCKED — insufficient evidence`.
+
+### External Review Agent — ChatGPT
 
 Reviews the Draft PR diff and evidence independently from the Builder. A review must address architecture/DDD/SOLID, API contracts, security/privacy, performance/cost, mathematical correctness when relevant, scope/YAGNI, migrations, rollback, and documentation.
 
@@ -42,12 +50,15 @@ Approved stage scope
   → feature branch
   → implementation and documentation
   → local quality gates
+  → Internal Review Agent line-by-line review (read-only)
+  → Builder resolves findings
+  → local quality gates rerun
   → Builder stage report and diff summary
   → human permission to commit/push feature branch
   → push feature branch
   → Draft PR targeting develop
   → required GitHub CI green
-  → ChatGPT specialist review(s)
+  → independent ChatGPT external review of PR diff without internal verdict disclosure
   → Builder fixes and CI rerun
   → ChatGPT approval/evidence
   → human review and approval
@@ -57,6 +68,63 @@ Approved stage scope
 ```
 
 GitHub Actions cannot evaluate an unpushed branch. Therefore local gates run before Draft PR; authoritative repository CI runs after the feature branch is pushed. This is not permission to push to `develop` or `main`.
+
+## Mandatory Internal Line-by-Line Review
+
+Every changed file must be reviewed in full after the Builder finishes the scoped change and runs
+the first local quality gate. Sampling is insufficient. Generated, vendored, specification,
+documentation, configuration, example, test, and migration files are not exempt; the reviewer may
+adapt emphasis to the artifact but must account for every changed line.
+
+The Internal Review Agent must check, where applicable:
+
+- SOLID, including SRP, OCP, LSP, ISP, and DIP;
+- DRY, KISS, YAGNI, and Law of Demeter;
+- DDD ownership and bounded-context boundaries;
+- API First compliance and OpenAPI consistency;
+- security and Privacy by Design;
+- performance and cost impact;
+- testability and evidence quality;
+- documentation and Source of Truth consistency;
+- scope control and absence of unrelated work;
+- absence of business logic forbidden by the currently approved stage.
+
+The reviewer does not modify code or documentation. Each finding contains severity, file and line
+where possible, violated principle/risk, impact, and a minimal recommendation. Its report ends with
+exactly one verdict:
+
+- `APPROVED` — no blocking finding remains;
+- `REQUEST CHANGES` — one or more actionable blocking findings must be fixed;
+- `BLOCKED — insufficient evidence` — a complete review cannot be supported by the available diff,
+  files, checks, or requirements.
+
+When the verdict is not `APPROVED`, only the Builder applies fixes. The Builder reruns every
+affected check and sends the revised complete diff back to an Internal Review Agent. No human
+permission to commit/push may be requested until the current complete diff has an `APPROVED`
+internal verdict. The stage report records files reviewed, verdict, blocking findings, resolved
+findings, remaining non-blocking notes, and explicit confirmation that the reviewer made no edits.
+
+Internal review does not replace CI, independent Draft PR review, or human accountability. It is a
+pre-commit defect gate; ChatGPT Draft PR review is the independent external gate on the published
+commit and authoritative GitHub diff.
+
+## Review levels and independence
+
+- Level A — automated build, lint, tests, coverage where applicable, OpenAPI, YAML, Markdown, and
+  other deterministic checks;
+- Level B — read-only Internal Review Agent line-by-line review;
+- Level C — independent external ChatGPT review of architecture, security, privacy, DDD, API,
+  performance, cost, mathematics when relevant, and governance;
+- Level D — human business/product judgment and final merge authorization.
+
+The external reviewer receives the Draft PR, changed files, diff, governing documentation, and CI
+evidence. Before the external verdict, internal findings and verdict remain in the private review
+thread or another access-controlled, out-of-band review record and are not committed into the PR.
+The Stage report retains the required `Internal Review Evidence` section but marks its fields
+`WITHHELD — blind external review pending`. After ChatGPT records its independent verdict, the
+Builder publishes the internal evidence in a follow-up documentation commit and both reviewers
+verify that evidence-only change. This prevents anchoring while preserving the permanent audit
+record; it does not hide code, requirements, tests, or repository history.
 
 ## Branch convention
 
@@ -138,8 +206,10 @@ Findings include severity, file/line where possible, violated principle, user/op
 
 ## Merge and push policy
 
-- Feature-branch push requires explicit human permission after the Builder report.
-- Merge requires green CI, resolved blocking findings, Review Agent evidence, and human approval.
+- Feature-branch commit/push permission may be requested only after local checks and the mandatory
+  Internal Review Agent verdict are `APPROVED`.
+- Merge requires green CI, an approved internal review, an approved independent ChatGPT Draft PR
+  review, resolved blocking findings, and explicit human approval.
 - Merge method into `develop` is squash merge.
 - Direct push and force push to `develop`/`main` are forbidden.
 - No Builder self-approval.
@@ -171,6 +241,9 @@ GitHub can enforce only identities/checks it recognizes. Until a Review Agent su
 
 - Nightly: extended tests, dependency/security scans, financial vectors, migration rehearsal where applicable, and targeted performance baselines.
 - Weekly: architecture drift, dependency growth, module coupling, Source of Truth consistency, unresolved risks, and MVP-scope audit.
+- Every fifth completed stage: a full repository line-by-line audit covering architecture, DDD,
+  SOLID, API, security, privacy, performance, dependencies, tests, documentation, cost, and ADR
+  consistency. Findings are resolved or explicitly accepted by the human before the next stage.
 
 ## Scope rule
 

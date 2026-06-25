@@ -1,0 +1,1345 @@
+Decimal:
+  type: string
+  pattern: "^-?(0|[1-9][0-9]*)(\\.[0-9]{1,8})?$"
+  description: >-
+    Base-10 decimal encoded as a JSON string. Binary floating-point values are forbidden.
+    The server normalizes financial calculations to 8 fractional digits using half-even rounding.
+  examples: ["0.15714286"]
+
+NonNegativeDecimal:
+  allOf:
+    - $ref: "#/Decimal"
+    - pattern: "^(0|[1-9][0-9]*)(\\.[0-9]{1,8})?$"
+  description: Decimal command magnitude greater than or equal to zero.
+
+PositiveDecimal:
+  allOf:
+    - $ref: "#/NonNegativeDecimal"
+    - not:
+        pattern: "^0(\\.0{1,8})?$"
+  description: Decimal command magnitude strictly greater than zero.
+
+Money:
+  type: object
+  additionalProperties: false
+  required: [amount, currency]
+  properties:
+    amount:
+      $ref: "#/Decimal"
+    currency:
+      type: string
+      const: RUB
+      description: MVP supports RUB only.
+
+NonNegativeMoney:
+  type: object
+  additionalProperties: false
+  required: [amount, currency]
+  properties:
+    amount:
+      $ref: "#/NonNegativeDecimal"
+    currency:
+      type: string
+      const: RUB
+
+PositiveMoney:
+  type: object
+  additionalProperties: false
+  required: [amount, currency]
+  properties:
+    amount:
+      $ref: "#/PositiveDecimal"
+    currency:
+      type: string
+      const: RUB
+
+BusinessDate:
+  type: string
+  format: date
+  description: >-
+    Financial calendar date without a time or timezone. Maps to SQL DATE and is interpreted
+    with the MOEX business calendar where market-day semantics are required.
+  examples: ["2026-06-19"]
+
+SystemTimestamp:
+  type: string
+  format: date-time
+  pattern: "Z$"
+  description: UTC system timestamp. Maps to TIMESTAMP WITH TIME ZONE and always ends in Z.
+  examples: ["2026-06-20T08:00:00Z"]
+
+ResponseMeta:
+  type: object
+  additionalProperties: false
+  required: [requestId, traceId, generatedAt]
+  properties:
+    requestId:
+      type: string
+      format: uuid
+      description: Unique request identifier returned in both the body and X-Request-ID header.
+    traceId:
+      type: string
+      pattern: "^[a-f0-9]{32}$"
+      description: Distributed trace identifier returned in both the body and X-Trace-ID header.
+    generatedAt:
+      $ref: "#/SystemTimestamp"
+
+BaseResponse:
+  type: object
+  additionalProperties: false
+  required: [data, meta]
+  properties:
+    data:
+      description: Endpoint-specific response payload.
+    meta:
+      $ref: "#/ResponseMeta"
+
+ErrorDetail:
+  type: object
+  additionalProperties: false
+  required: [code, message]
+  properties:
+    field:
+      type: [string, "null"]
+      description: JSON field or parameter path when the error is field-specific.
+    code:
+      type: string
+      pattern: "^[A-Z][A-Z0-9_]*$"
+    message:
+      type: string
+
+Error:
+  type: object
+  additionalProperties: false
+  required: [code, message, details]
+  properties:
+    code:
+      type: string
+      pattern: "^[A-Z][A-Z0-9_]*$"
+      description: Stable machine-readable error code.
+    message:
+      type: string
+      description: Safe user-facing summary; never contains secrets or internal stack details.
+    details:
+      type: array
+      items:
+        $ref: "#/ErrorDetail"
+
+ErrorResponse:
+  type: object
+  additionalProperties: false
+  required: [error, meta]
+  properties:
+    error:
+      $ref: "#/Error"
+    meta:
+      $ref: "#/ResponseMeta"
+
+Pagination:
+  type: object
+  additionalProperties: false
+  required: [nextCursor, hasMore, limit]
+  properties:
+    nextCursor:
+      type: [string, "null"]
+      maxLength: 512
+      description: Opaque cursor. Clients must not parse or construct it.
+    hasMore:
+      type: boolean
+    limit:
+      type: integer
+      minimum: 1
+      maximum: 100
+
+SourceReference:
+  type: object
+  additionalProperties: false
+  required: [code, observedAt]
+  properties:
+    code:
+      type: string
+      pattern: "^[A-Z][A-Z0-9_]*$"
+      description: >-
+        Registered production source code from the Data Source Registry, or a reserved EXAMPLE_*
+        identifier in contract examples. Runtime responses must never emit example identifiers.
+    observedAt:
+      $ref: "#/SystemTimestamp"
+
+AssetType:
+  type: string
+  enum: [STOCK, BOND]
+
+AssetStatus:
+  type: string
+  enum: [ACTIVE, INACTIVE, MATURED]
+
+AssetSummary:
+  type: object
+  additionalProperties: false
+  required: [ticker, name, assetType, currency, lotSize, lastPrice]
+  properties:
+    ticker:
+      type: string
+      pattern: "^[A-Z0-9]{1,32}$"
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    assetType:
+      $ref: "#/AssetType"
+    currency:
+      type: string
+      const: RUB
+    lotSize:
+      $ref: "#/PositiveDecimal"
+    lastPrice:
+      oneOf:
+        - $ref: "#/NonNegativeMoney"
+        - type: "null"
+
+AssetBase:
+  type: object
+  required:
+    [ticker, name, assetType, currency, market, lotSize, status, lastPrice, priceAsOf, source]
+  properties:
+    ticker:
+      type: string
+      pattern: "^[A-Z0-9]{1,32}$"
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    assetType:
+      $ref: "#/AssetType"
+    currency:
+      type: string
+      const: RUB
+    market:
+      type: string
+      const: MOEX
+    lotSize:
+      $ref: "#/PositiveDecimal"
+    status:
+      $ref: "#/AssetStatus"
+    lastPrice:
+      oneOf:
+        - $ref: "#/NonNegativeMoney"
+        - type: "null"
+    priceAsOf:
+      oneOf:
+        - $ref: "#/SystemTimestamp"
+        - type: "null"
+    source:
+      $ref: "#/SourceReference"
+
+StockDetails:
+  type: object
+  additionalProperties: false
+  required: [sector, isin]
+  properties:
+    sector:
+      type: string
+      minLength: 1
+      maxLength: 100
+    isin:
+      type: string
+      pattern: "^[A-Z]{2}[A-Z0-9]{9}[0-9]$"
+
+BondDetails:
+  type: object
+  additionalProperties: false
+  required: [isin, faceValue, maturityDate, couponType]
+  properties:
+    isin:
+      type: string
+      pattern: "^[A-Z]{2}[A-Z0-9]{9}[0-9]$"
+    faceValue:
+      $ref: "#/PositiveMoney"
+    maturityDate:
+      $ref: "#/BusinessDate"
+    couponType:
+      type: string
+      enum: [FIXED, FLOATING, ZERO]
+    couponRate:
+      oneOf:
+        - $ref: "#/NonNegativeDecimal"
+        - type: "null"
+
+StockAsset:
+  unevaluatedProperties: false
+  allOf:
+    - $ref: "#/AssetBase"
+    - type: object
+      required: [stock]
+      properties:
+        assetType:
+          const: STOCK
+        stock:
+          $ref: "#/StockDetails"
+
+BondAsset:
+  unevaluatedProperties: false
+  allOf:
+    - $ref: "#/AssetBase"
+    - type: object
+      required: [bond]
+      properties:
+        assetType:
+          const: BOND
+        bond:
+          $ref: "#/BondDetails"
+
+Asset:
+  oneOf:
+    - $ref: "#/StockAsset"
+    - $ref: "#/BondAsset"
+  discriminator:
+    propertyName: assetType
+    mapping:
+      STOCK: "#/StockAsset"
+      BOND: "#/BondAsset"
+
+User:
+  type: object
+  additionalProperties: false
+  required: [id, email, language, theme, timezone, privacyMode, createdAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    email:
+      type: string
+      format: email
+    language:
+      type: string
+      enum: [ru, en]
+    theme:
+      type: string
+      enum: [light, dark, system]
+    timezone:
+      type: string
+      description: IANA timezone name.
+    privacyMode:
+      type: boolean
+      description: New MVP accounts start with Privacy Mode enabled; later user choice is preserved.
+    createdAt:
+      $ref: "#/SystemTimestamp"
+
+AuthSession:
+  type: object
+  additionalProperties: false
+  required: [accessToken, accessTokenExpiresAt, csrfToken]
+  properties:
+    accessToken:
+      type: string
+      minLength: 20
+      description: Short-lived bearer token. Browser clients keep it in memory only.
+    accessTokenExpiresAt:
+      $ref: "#/SystemTimestamp"
+    csrfToken:
+      type: string
+      minLength: 20
+      description: Sent as X-CSRF-Token for refresh and logout cookie-authenticated requests.
+
+RegisterRequest:
+  type: object
+  additionalProperties: false
+  required: [email, password, language, theme, timezone]
+  properties:
+    email:
+      type: string
+      format: email
+      maxLength: 254
+    password:
+      type: string
+      format: password
+      minLength: 12
+      maxLength: 256
+      writeOnly: true
+    language:
+      type: string
+      enum: [ru, en]
+    theme:
+      type: string
+      enum: [light, dark, system]
+    timezone:
+      type: string
+      minLength: 1
+      maxLength: 64
+
+LoginRequest:
+  type: object
+  additionalProperties: false
+  required: [email, password]
+  properties:
+    email:
+      type: string
+      format: email
+      maxLength: 254
+    password:
+      type: string
+      format: password
+      minLength: 12
+      maxLength: 256
+      writeOnly: true
+
+LogoutRequest:
+  type: object
+  additionalProperties: false
+  required: [allSessions]
+  properties:
+    allSessions:
+      type: boolean
+      default: false
+
+AuthData:
+  type: object
+  additionalProperties: false
+  required: [user, session]
+  properties:
+    user:
+      $ref: "#/User"
+    session:
+      $ref: "#/AuthSession"
+
+LogoutResult:
+  type: object
+  additionalProperties: false
+  required: [revoked]
+  properties:
+    revoked:
+      type: boolean
+
+Portfolio:
+  type: object
+  additionalProperties: false
+  required: [id, name, baseCurrency, version, createdAt, updatedAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+      minLength: 1
+      maxLength: 100
+    baseCurrency:
+      type: string
+      const: RUB
+    version:
+      type: integer
+      minimum: 1
+      description: Optimistic concurrency version for mutable portfolio metadata.
+    createdAt:
+      $ref: "#/SystemTimestamp"
+    updatedAt:
+      $ref: "#/SystemTimestamp"
+
+CreatePortfolioRequest:
+  type: object
+  additionalProperties: false
+  required: [name, baseCurrency]
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 100
+    baseCurrency:
+      type: string
+      const: RUB
+
+UpdatePortfolioRequest:
+  type: object
+  additionalProperties: false
+  required: [name, expectedVersion]
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 100
+    expectedVersion:
+      type: integer
+      minimum: 1
+
+PortfolioDeletionResult:
+  type: object
+  additionalProperties: false
+  required: [deleted, financialHistoryRetained, effectiveAt]
+  properties:
+    deleted:
+      type: boolean
+    financialHistoryRetained:
+      type: boolean
+      const: true
+      description: Immutable financial history is retained and is never physically deleted.
+    effectiveAt:
+      $ref: "#/SystemTimestamp"
+      description: Time at which portfolio metadata is removed from active use.
+
+TransactionType:
+  type: string
+  enum: [BUY, SELL, DIVIDEND, COUPON, FEE, TAX, DEPOSIT, WITHDRAWAL]
+
+TransactionStatus:
+  type: string
+  enum: [ACTIVE, CORRECTED, REVERSED]
+
+Transaction:
+  type: object
+  additionalProperties: false
+  required:
+    - id
+    - portfolioId
+    - transactionType
+    - status
+    - ticker
+    - quantity
+    - unitPrice
+    - grossAmount
+    - commission
+    - tax
+    - tradeDate
+    - settlementDate
+    - revision
+    - createdAt
+    - updatedAt
+  properties:
+    id:
+      type: string
+      format: uuid
+    portfolioId:
+      type: string
+      format: uuid
+    transactionType:
+      $ref: "#/TransactionType"
+    status:
+      $ref: "#/TransactionStatus"
+    ticker:
+      type: [string, "null"]
+      pattern: "^[A-Z0-9]{1,32}$"
+      description: Required for asset-linked events; null for pure RUB cash flows.
+    quantity:
+      oneOf:
+        - $ref: "#/NonNegativeDecimal"
+        - type: "null"
+      description: Required for BUY and SELL; null for pure cash flows.
+    unitPrice:
+      oneOf:
+        - $ref: "#/NonNegativeMoney"
+        - type: "null"
+    grossAmount:
+      $ref: "#/NonNegativeMoney"
+    commission:
+      $ref: "#/NonNegativeMoney"
+    tax:
+      $ref: "#/NonNegativeMoney"
+      description: Recorded tax amount only; tax export and tax advisory are outside MVP.
+    tradeDate:
+      $ref: "#/BusinessDate"
+    settlementDate:
+      oneOf:
+        - $ref: "#/BusinessDate"
+        - type: "null"
+    note:
+      type: [string, "null"]
+      maxLength: 500
+    revision:
+      type: integer
+      minimum: 1
+    createdAt:
+      $ref: "#/SystemTimestamp"
+    updatedAt:
+      $ref: "#/SystemTimestamp"
+  allOf:
+    - if:
+        properties:
+          transactionType: { enum: [BUY, SELL] }
+      then:
+        properties:
+          ticker: { type: string, pattern: "^[A-Z0-9]{1,32}$" }
+          quantity: { $ref: "#/PositiveDecimal" }
+          unitPrice: { $ref: "#/PositiveMoney" }
+    - if:
+        properties:
+          transactionType: { enum: [DIVIDEND, COUPON] }
+      then:
+        properties:
+          ticker: { type: string, pattern: "^[A-Z0-9]{1,32}$" }
+          unitPrice: { type: "null" }
+    - if:
+        properties:
+          transactionType: { enum: [FEE, TAX] }
+      then:
+        properties:
+          quantity: { type: "null" }
+          unitPrice: { type: "null" }
+    - if:
+        properties:
+          transactionType: { enum: [DEPOSIT, WITHDRAWAL] }
+      then:
+        properties:
+          ticker: { type: "null" }
+          quantity: { type: "null" }
+          unitPrice: { type: "null" }
+
+TradeTransactionRequest:
+  type: object
+  additionalProperties: false
+  required: [transactionType, ticker, quantity, unitPrice, commission, tax, tradeDate, settlementDate]
+  properties:
+    transactionType:
+      type: string
+      enum: [BUY, SELL]
+    ticker:
+      type: string
+      pattern: "^[A-Z0-9]{1,32}$"
+    quantity:
+      $ref: "#/PositiveDecimal"
+    unitPrice:
+      $ref: "#/PositiveMoney"
+    grossAmount:
+      oneOf:
+        - $ref: "#/NonNegativeMoney"
+        - type: "null"
+      description: Optional for trades because the server derives and verifies it.
+    commission:
+      $ref: "#/NonNegativeMoney"
+    tax:
+      $ref: "#/NonNegativeMoney"
+    tradeDate:
+      $ref: "#/BusinessDate"
+    settlementDate:
+      oneOf:
+        - $ref: "#/BusinessDate"
+        - type: "null"
+    note:
+      type: [string, "null"]
+      maxLength: 500
+
+IncomeTransactionRequest:
+  type: object
+  additionalProperties: false
+  required:
+    [transactionType, ticker, quantity, unitPrice, grossAmount, commission, tax, tradeDate, settlementDate]
+  properties:
+    transactionType:
+      type: string
+      enum: [DIVIDEND, COUPON]
+    ticker:
+      type: string
+      pattern: "^[A-Z0-9]{1,32}$"
+    quantity:
+      oneOf:
+        - $ref: "#/PositiveDecimal"
+        - type: "null"
+    unitPrice:
+      type: "null"
+    grossAmount:
+      $ref: "#/NonNegativeMoney"
+    commission:
+      $ref: "#/NonNegativeMoney"
+    tax:
+      $ref: "#/NonNegativeMoney"
+    tradeDate:
+      $ref: "#/BusinessDate"
+    settlementDate:
+      oneOf:
+        - $ref: "#/BusinessDate"
+        - type: "null"
+    note:
+      type: [string, "null"]
+      maxLength: 500
+
+ExpenseTransactionRequest:
+  type: object
+  additionalProperties: false
+  required:
+    [transactionType, ticker, quantity, unitPrice, grossAmount, commission, tax, tradeDate, settlementDate]
+  properties:
+    transactionType:
+      type: string
+      enum: [FEE, TAX]
+    ticker:
+      type: [string, "null"]
+      pattern: "^[A-Z0-9]{1,32}$"
+    quantity:
+      type: "null"
+    unitPrice:
+      type: "null"
+    grossAmount:
+      $ref: "#/NonNegativeMoney"
+    commission:
+      $ref: "#/NonNegativeMoney"
+    tax:
+      $ref: "#/NonNegativeMoney"
+    tradeDate:
+      $ref: "#/BusinessDate"
+    settlementDate:
+      oneOf:
+        - $ref: "#/BusinessDate"
+        - type: "null"
+    note:
+      type: [string, "null"]
+      maxLength: 500
+
+CashTransactionRequest:
+  type: object
+  additionalProperties: false
+  required:
+    [transactionType, ticker, quantity, unitPrice, grossAmount, commission, tax, tradeDate, settlementDate]
+  properties:
+    transactionType:
+      type: string
+      enum: [DEPOSIT, WITHDRAWAL]
+    ticker:
+      type: "null"
+    quantity:
+      type: "null"
+    unitPrice:
+      type: "null"
+    grossAmount:
+      $ref: "#/NonNegativeMoney"
+    commission:
+      $ref: "#/NonNegativeMoney"
+    tax:
+      $ref: "#/NonNegativeMoney"
+    tradeDate:
+      $ref: "#/BusinessDate"
+    settlementDate:
+      oneOf:
+        - $ref: "#/BusinessDate"
+        - type: "null"
+    note:
+      type: [string, "null"]
+      maxLength: 500
+
+CreateTransactionRequest:
+  oneOf:
+    - $ref: "#/TradeTransactionRequest"
+    - $ref: "#/IncomeTransactionRequest"
+    - $ref: "#/ExpenseTransactionRequest"
+    - $ref: "#/CashTransactionRequest"
+  discriminator:
+    propertyName: transactionType
+    mapping:
+      BUY: "#/TradeTransactionRequest"
+      SELL: "#/TradeTransactionRequest"
+      DIVIDEND: "#/IncomeTransactionRequest"
+      COUPON: "#/IncomeTransactionRequest"
+      FEE: "#/ExpenseTransactionRequest"
+      TAX: "#/ExpenseTransactionRequest"
+      DEPOSIT: "#/CashTransactionRequest"
+      WITHDRAWAL: "#/CashTransactionRequest"
+
+UpdateTransactionRequest:
+  type: object
+  additionalProperties: false
+  required: [expectedRevision, reason, corrected]
+  properties:
+    expectedRevision:
+      type: integer
+      minimum: 1
+    reason:
+      type: string
+      minLength: 1
+      maxLength: 300
+      description: Mandatory audit reason for the appended correction revision.
+    corrected:
+      $ref: "#/CreateTransactionRequest"
+
+ReverseTransactionRequest:
+  type: object
+  additionalProperties: false
+  required: [expectedRevision, reason, effectiveDate]
+  properties:
+    expectedRevision:
+      type: integer
+      minimum: 1
+    reason:
+      type: string
+      minLength: 1
+      maxLength: 300
+      description: Mandatory audit reason kept in the JSON body, never in a URL.
+    effectiveDate:
+      $ref: "#/BusinessDate"
+      description: >-
+        Business date on which the reversal becomes effective for ledger and snapshot rebuilds.
+        The server appends a reversal transaction using this date and never derives it from system time.
+
+TransactionReversal:
+  type: object
+  additionalProperties: false
+  required: [transactionId, reversalTransactionId, status, effectiveDate]
+  properties:
+    transactionId:
+      type: string
+      format: uuid
+    reversalTransactionId:
+      type: string
+      format: uuid
+    status:
+      type: string
+      const: REVERSED
+    effectiveDate:
+      $ref: "#/BusinessDate"
+
+CalculationMeta:
+  type: object
+  additionalProperties: false
+  required: [methodologyVersion, calculatedAt, inputsAsOf]
+  properties:
+    methodologyVersion:
+      type: string
+      pattern: "^[a-z0-9-]+-v[0-9]+$"
+    calculatedAt:
+      $ref: "#/SystemTimestamp"
+    inputsAsOf:
+      $ref: "#/BusinessDate"
+
+RealReturn:
+  type: object
+  additionalProperties: false
+  required:
+    [nominalReturnRate, inflationRate, realReturnRate, nominalGain, realGain, fromDate, toDate, methodologyVersion]
+  properties:
+    nominalReturnRate:
+      $ref: "#/Decimal"
+    inflationRate:
+      $ref: "#/Decimal"
+    realReturnRate:
+      $ref: "#/Decimal"
+    nominalGain:
+      $ref: "#/Money"
+    realGain:
+      $ref: "#/Money"
+    fromDate:
+      $ref: "#/BusinessDate"
+    toDate:
+      $ref: "#/BusinessDate"
+    methodologyVersion:
+      type: string
+
+PurchasingPowerCategory:
+  type: string
+  enum:
+    - IPHONE
+    - MACBOOK
+    - AVERAGE_SALARY
+    - FOOD_BASKET
+    - UTILITIES
+    - APARTMENT_RENT
+    - CAR
+    - SQUARE_METER
+
+PurchasingPowerEquivalent:
+  type: object
+  additionalProperties: false
+  required: [category, label, unitPrice, quantity, source]
+  properties:
+    category:
+      $ref: "#/PurchasingPowerCategory"
+    label:
+      type: string
+      minLength: 1
+      maxLength: 120
+    unitPrice:
+      $ref: "#/PositiveMoney"
+    quantity:
+      $ref: "#/NonNegativeDecimal"
+    source:
+      $ref: "#/SourceReference"
+
+PurchasingPower:
+  type: object
+  additionalProperties: false
+  required: [portfolioValue, asOfDate, equivalents]
+  properties:
+    portfolioValue:
+      $ref: "#/Money"
+    asOfDate:
+      $ref: "#/BusinessDate"
+    equivalents:
+      type: array
+      items:
+        $ref: "#/PurchasingPowerEquivalent"
+
+PortfolioPosition:
+  type: object
+  additionalProperties: false
+  required:
+    [ticker, assetType, quantity, weightedAverageCost, marketPrice, marketValue, unrealizedGain, weight]
+  properties:
+    ticker:
+      type: string
+      pattern: "^[A-Z0-9]{1,32}$"
+    assetType:
+      $ref: "#/AssetType"
+    quantity:
+      $ref: "#/NonNegativeDecimal"
+    weightedAverageCost:
+      $ref: "#/NonNegativeMoney"
+      description: Per-unit cost calculated from immutable acquisition and disposal history.
+    marketPrice:
+      $ref: "#/NonNegativeMoney"
+    marketValue:
+      $ref: "#/NonNegativeMoney"
+    unrealizedGain:
+      $ref: "#/Money"
+    weight:
+      $ref: "#/NonNegativeDecimal"
+
+PortfolioSummary:
+  type: object
+  additionalProperties: false
+  required:
+    - portfolioId
+    - asOfDate
+    - totalValue
+    - cashValue
+    - stockValue
+    - bondValue
+    - investedCapital
+    - dividendsReceived
+    - couponsReceived
+    - nominalReturnRate
+    - xirr
+    - realReturn
+    - purchasingPower
+    - positions
+    - calculation
+  properties:
+    portfolioId:
+      type: string
+      format: uuid
+    asOfDate:
+      $ref: "#/BusinessDate"
+    totalValue:
+      $ref: "#/Money"
+    cashValue:
+      $ref: "#/Money"
+    stockValue:
+      $ref: "#/NonNegativeMoney"
+    bondValue:
+      $ref: "#/NonNegativeMoney"
+    investedCapital:
+      $ref: "#/NonNegativeMoney"
+    dividendsReceived:
+      $ref: "#/NonNegativeMoney"
+    couponsReceived:
+      $ref: "#/NonNegativeMoney"
+    nominalReturnRate:
+      $ref: "#/Decimal"
+    xirr:
+      oneOf:
+        - $ref: "#/Decimal"
+        - type: "null"
+      description: Null when cash-flow history cannot produce a defined XIRR.
+    realReturn:
+      $ref: "#/RealReturn"
+    purchasingPower:
+      $ref: "#/PurchasingPower"
+    positions:
+      type: array
+      items:
+        $ref: "#/PortfolioPosition"
+    calculation:
+      $ref: "#/CalculationMeta"
+
+PortfolioSnapshot:
+  type: object
+  additionalProperties: false
+  required:
+    - id
+    - portfolioId
+    - snapshotDate
+    - totalValue
+    - cashValue
+    - stockValue
+    - bondValue
+    - investedCapital
+    - nominalReturnRate
+    - realReturnRate
+    - snapshotVersion
+    - methodologyVersion
+    - calculatedAt
+  properties:
+    id:
+      type: string
+      format: uuid
+    portfolioId:
+      type: string
+      format: uuid
+    snapshotDate:
+      $ref: "#/BusinessDate"
+    totalValue:
+      $ref: "#/Money"
+    cashValue:
+      $ref: "#/Money"
+    stockValue:
+      $ref: "#/NonNegativeMoney"
+    bondValue:
+      $ref: "#/NonNegativeMoney"
+    investedCapital:
+      $ref: "#/NonNegativeMoney"
+    nominalReturnRate:
+      $ref: "#/Decimal"
+    realReturnRate:
+      $ref: "#/Decimal"
+    snapshotVersion:
+      type: integer
+      minimum: 1
+    methodologyVersion:
+      type: string
+    calculatedAt:
+      $ref: "#/SystemTimestamp"
+
+DividendEventStatus:
+  type: string
+  enum: [ANNOUNCED, APPROVED, PAID, CANCELLED]
+  description: Forecast-only states are excluded from MVP.
+
+DividendEvent:
+  type: object
+  additionalProperties: false
+  required:
+    [id, ticker, status, amountPerUnit, registryDate, paymentDate, settlementDate, source]
+  properties:
+    id:
+      type: string
+      format: uuid
+    ticker:
+      type: string
+      pattern: "^[A-Z0-9]{1,32}$"
+    status:
+      $ref: "#/DividendEventStatus"
+    amountPerUnit:
+      $ref: "#/NonNegativeMoney"
+    registryDate:
+      $ref: "#/BusinessDate"
+    paymentDate:
+      oneOf:
+        - $ref: "#/BusinessDate"
+        - type: "null"
+    settlementDate:
+      oneOf:
+        - $ref: "#/BusinessDate"
+        - type: "null"
+    source:
+      $ref: "#/SourceReference"
+
+DividendCalculationRequest:
+  type: object
+  additionalProperties: false
+  required: [ticker, quantity, dividendPerUnit]
+  properties:
+    ticker:
+      type: string
+      pattern: "^[A-Z0-9]{1,32}$"
+    quantity:
+      $ref: "#/PositiveDecimal"
+    dividendPerUnit:
+      $ref: "#/NonNegativeMoney"
+    positionCost:
+      oneOf:
+        - $ref: "#/PositiveMoney"
+        - type: "null"
+
+DividendCalculation:
+  type: object
+  additionalProperties: false
+  required:
+    [ticker, quantity, dividendPerUnit, grossDividend, positionCost, grossYield, taxIncluded, methodologyVersion]
+  properties:
+    ticker:
+      type: string
+    quantity:
+      $ref: "#/PositiveDecimal"
+    dividendPerUnit:
+      $ref: "#/NonNegativeMoney"
+    grossDividend:
+      $ref: "#/NonNegativeMoney"
+    positionCost:
+      oneOf:
+        - $ref: "#/PositiveMoney"
+        - type: "null"
+    grossYield:
+      oneOf:
+        - $ref: "#/NonNegativeDecimal"
+        - type: "null"
+    taxIncluded:
+      type: boolean
+      const: false
+      description: Tax calculation and export are outside the MVP dividend calculator contract.
+    methodologyVersion:
+      type: string
+  allOf:
+    - if:
+        properties:
+          positionCost: { type: "null" }
+      then:
+        properties:
+          grossYield: { type: "null" }
+      else:
+        properties:
+          grossYield: { $ref: "#/NonNegativeDecimal" }
+
+DashboardPortfolio:
+  type: object
+  additionalProperties: false
+  required: [portfolioId, name, totalValue, realReturnRate]
+  properties:
+    portfolioId:
+      type: string
+      format: uuid
+    name:
+      type: string
+    totalValue:
+      $ref: "#/Money"
+    realReturnRate:
+      $ref: "#/Decimal"
+
+Dashboard:
+  type: object
+  additionalProperties: false
+  required:
+    [asOfDate, totalCapital, realGain, dividendsReceived, expectedDividends, portfolios, purchasingPower, calculation]
+  properties:
+    asOfDate:
+      $ref: "#/BusinessDate"
+    totalCapital:
+      $ref: "#/Money"
+    realGain:
+      $ref: "#/Money"
+    dividendsReceived:
+      $ref: "#/NonNegativeMoney"
+    expectedDividends:
+      $ref: "#/NonNegativeMoney"
+    portfolios:
+      type: array
+      items:
+        $ref: "#/DashboardPortfolio"
+    purchasingPower:
+      $ref: "#/PurchasingPower"
+    calculation:
+      $ref: "#/CalculationMeta"
+
+Health:
+  type: object
+  additionalProperties: false
+  required: [status]
+  properties:
+    status:
+      type: string
+      const: ok
+
+Readiness:
+  type: object
+  additionalProperties: false
+  required: [status]
+  properties:
+    status:
+      type: string
+      enum: [ready, not_ready]
+
+PortfolioListData:
+  type: object
+  additionalProperties: false
+  required: [items, pagination]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/Portfolio"
+    pagination:
+      $ref: "#/Pagination"
+
+AssetListData:
+  type: object
+  additionalProperties: false
+  required: [items, pagination]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/AssetSummary"
+    pagination:
+      $ref: "#/Pagination"
+
+TransactionListData:
+  type: object
+  additionalProperties: false
+  required: [items, pagination]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/Transaction"
+    pagination:
+      $ref: "#/Pagination"
+
+SnapshotListData:
+  type: object
+  additionalProperties: false
+  required: [items, pagination]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/PortfolioSnapshot"
+    pagination:
+      $ref: "#/Pagination"
+
+DividendEventListData:
+  type: object
+  additionalProperties: false
+  required: [items, pagination]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/DividendEvent"
+    pagination:
+      $ref: "#/Pagination"
+
+HealthResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/Health"
+
+ReadinessResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/Readiness"
+
+AuthResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/AuthData"
+
+RefreshResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/AuthSession"
+
+LogoutResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/LogoutResult"
+
+AssetSearchResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/AssetListData"
+
+AssetResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/Asset"
+
+PortfolioListResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/PortfolioListData"
+
+PortfolioResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/Portfolio"
+
+PortfolioDeletionResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/PortfolioDeletionResult"
+
+PortfolioSummaryResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/PortfolioSummary"
+
+SnapshotListResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/SnapshotListData"
+
+TransactionListResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/TransactionListData"
+
+TransactionResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/Transaction"
+
+TransactionReversalResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/TransactionReversal"
+
+DividendCalendarResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/DividendEventListData"
+
+DividendCalculationResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/DividendCalculation"
+
+DashboardResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/Dashboard"

@@ -1,0 +1,85 @@
+{
+  "validationError": {
+    "summary": "Request validation failed",
+    "value": {
+      "error": {
+        "code": "VALIDATION_FAILED",
+        "message": "Request validation failed",
+        "details": [
+          { "field": "quantity", "code": "INVALID_DECIMAL", "message": "Use a decimal string with at most 8 fractional digits" }
+        ]
+      },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5601",
+        "traceId": "ef4a3d2c1b0e4987a6f5e4d3c2b1a112",
+        "generatedAt": "2026-06-20T15:00:00Z"
+      }
+    }
+  },
+  "unauthorizedError": {
+    "summary": "Authentication required",
+    "value": {
+      "error": { "code": "UNAUTHORIZED", "message": "Authentication is required", "details": [] },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5602",
+        "traceId": "0e4a3d2c1b0e4987a6f5e4d3c2b1a113",
+        "generatedAt": "2026-06-20T15:01:00Z"
+      }
+    }
+  },
+  "notFoundError": {
+    "summary": "Resource not found",
+    "value": {
+      "error": { "code": "RESOURCE_NOT_FOUND", "message": "Requested resource was not found", "details": [] },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5603",
+        "traceId": "1e4a3d2c1b0e4987a6f5e4d3c2b1a114",
+        "generatedAt": "2026-06-20T15:02:00Z"
+      }
+    }
+  },
+  "conflictError": {
+    "summary": "Optimistic concurrency conflict",
+    "value": {
+      "error": { "code": "RESOURCE_CONFLICT", "message": "The resource conflicts with current state", "details": [] },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5604",
+        "traceId": "2e4a3d2c1b0e4987a6f5e4d3c2b1a115",
+        "generatedAt": "2026-06-20T15:03:00Z"
+      }
+    }
+  },
+  "idempotencyConflict": {
+    "summary": "Idempotency key reused with a different payload",
+    "value": {
+      "error": { "code": "IDEMPOTENCY_CONFLICT", "message": "Idempotency-Key is already bound to another request", "details": [] },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5605",
+        "traceId": "3e4a3d2c1b0e4987a6f5e4d3c2b1a116",
+        "generatedAt": "2026-06-20T15:04:00Z"
+      }
+    }
+  },
+  "rateLimitError": {
+    "summary": "Rate limit exceeded",
+    "value": {
+      "error": { "code": "RATE_LIMITED", "message": "Too many requests", "details": [] },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5606",
+        "traceId": "4e4a3d2c1b0e4987a6f5e4d3c2b1a117",
+        "generatedAt": "2026-06-20T15:05:00Z"
+      }
+    }
+  },
+  "serviceUnavailableError": {
+    "summary": "Required dependency is unavailable",
+    "value": {
+      "error": { "code": "SERVICE_NOT_READY", "message": "Service is not ready", "details": [] },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5607",
+        "traceId": "5e4a3d2c1b0e4987a6f5e4d3c2b1a118",
+        "generatedAt": "2026-06-20T15:06:00Z"
+      }
+    }
+  }
+}

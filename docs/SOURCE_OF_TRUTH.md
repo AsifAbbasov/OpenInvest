@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.2.0 |
+| Version | 1.3.3 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
-| Last Review Date | 2026-06-19 |
-| Next Review Date | 2026-12-19 |
+| Last Review Date | 2026-06-21 |
+| Next Review Date | 2026-12-21 |
 
 ## Architecture status
 
@@ -17,6 +17,7 @@
 **Documentation Freeze: ACTIVE**
 **Last completed implementation stage: Stage 1 — Documentation Consolidation**
 **Next approved planning target: Stage 2 — OpenAPI Freeze**
+**Stage 2 branch status: Implemented / REQUEST CHANGES fixes applied; external approval, human approval, and merge still pending**
 
 ## Document priority
 
@@ -44,7 +45,21 @@ OpenInvest is a **Personal Capital Operating System**. It is not a broker, bank,
 - External sources: official/permitted sources registered before use and accessed only through backend collectors
 - Client: no external market-data calls and no LocalStorage for business data
 - Delivery: no automatic commit or push without user review and approval
-- Review: mandatory feature branch → Draft PR → CI → independent Review Agent evidence → human approval → squash merge; see `REVIEW_WORKFLOW.md`
+- Review: mandatory feature branch → local checks → read-only Internal Review Agent line-by-line
+  approval → human commit/push permission → Draft PR → green CI → independent ChatGPT external
+  approval → human approval → squash merge; see `REVIEW_WORKFLOW.md`.
+
+## Mandatory quality gates
+
+- Builder Agent cannot approve its own work.
+- Every changed line is reviewed internally before commit permission is requested.
+- Internal Review Agent produces findings only and cannot edit, stage, commit, or push.
+- Draft PR cannot merge without green CI, approved internal review evidence, approved independent
+  ChatGPT Draft PR review, and explicit human approval.
+- External ChatGPT receives the Draft PR diff without prior internal verdict disclosure and reaches
+  an independent conclusion before review evidence is compared.
+- Every fifth completed stage requires a full repository line-by-line audit before proceeding.
+- A review gate may add evidence and reject scope; it cannot silently change frozen architecture.
 
 ## MVP scope
 
@@ -101,6 +116,7 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 | ADR-003 | OpenAPI-first contracts | Accepted |
 | ADR-004 | Versioned rebuildable snapshots | Accepted |
 | ADR-005 | Privacy by Design | Accepted; interpreted with Document 43 anonymization terminology |
+| ADR-006 | Stage 2 MVP contract and canonical model freeze | Proposed; external and human approval pending |
 
 ## Version matrix
 

@@ -1,0 +1,338 @@
+headers:
+  RequestId:
+    description: Unique request identifier mirrored in response meta.requestId.
+    schema:
+      type: string
+      format: uuid
+  TraceId:
+    description: Distributed trace identifier mirrored in response meta.traceId.
+    schema:
+      type: string
+      pattern: "^[a-f0-9]{32}$"
+  RefreshCookie:
+    description: >-
+      Rotated Secure, HttpOnly, SameSite=Strict refresh cookie. Its value is intentionally
+      omitted from examples and must never be exposed to browser JavaScript or logs.
+    schema:
+      type: string
+  RetryAfter:
+    description: Seconds until another request may be attempted.
+    schema:
+      type: integer
+      minimum: 1
+
+responses:
+  Health:
+    description: API process is healthy.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/HealthResponse" }
+        examples:
+          default: { $ref: "../examples/operations.json#/healthResponse" }
+
+  Ready:
+    description: API dependencies are ready.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/ReadinessResponse" }
+        examples:
+          default: { $ref: "../examples/operations.json#/readyResponse" }
+
+  Register:
+    description: Account created. Privacy Mode is enabled by default.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+      Set-Cookie: { $ref: "#/headers/RefreshCookie" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/AuthResponse" }
+        examples:
+          default: { $ref: "../examples/auth.json#/registerResponse" }
+
+  Login:
+    description: Authentication succeeded.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+      Set-Cookie: { $ref: "#/headers/RefreshCookie" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/AuthResponse" }
+        examples:
+          default: { $ref: "../examples/auth.json#/loginResponse" }
+
+  Refresh:
+    description: Refresh cookie and access session rotated.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+      Set-Cookie: { $ref: "#/headers/RefreshCookie" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/RefreshResponse" }
+        examples:
+          default: { $ref: "../examples/auth.json#/refreshResponse" }
+
+  Logout:
+    description: Requested session or all sessions revoked.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+      Set-Cookie:
+        description: Expired refresh cookie.
+        schema: { type: string }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/LogoutResponse" }
+        examples:
+          default: { $ref: "../examples/auth.json#/logoutResponse" }
+
+  AssetSearch:
+    description: Matching MOEX assets.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/AssetSearchResponse" }
+        examples:
+          default: { $ref: "../examples/assets.json#/searchResponse" }
+
+  Asset:
+    description: MOEX stock or bond card.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/AssetResponse" }
+        examples:
+          default: { $ref: "../examples/assets.json#/assetResponse" }
+
+  PortfolioList:
+    description: Cursor-paginated portfolio list.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/PortfolioListResponse" }
+        examples:
+          default: { $ref: "../examples/portfolios.json#/listResponse" }
+
+  PortfolioCreated:
+    description: Portfolio created idempotently.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/PortfolioResponse" }
+        examples:
+          default: { $ref: "../examples/portfolios.json#/createResponse" }
+
+  Portfolio:
+    description: Portfolio metadata.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/PortfolioResponse" }
+        examples:
+          default: { $ref: "../examples/portfolios.json#/detailResponse" }
+
+  PortfolioUpdated:
+    description: Updated portfolio metadata.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/PortfolioResponse" }
+        examples:
+          default: { $ref: "../examples/portfolios.json#/patchResponse" }
+
+  PortfolioDeleted:
+    description: Portfolio removed from active use while immutable financial history is retained.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/PortfolioDeletionResponse" }
+        examples:
+          default: { $ref: "../examples/portfolios.json#/deleteResponse" }
+
+  PortfolioSummary:
+    description: Explainable portfolio summary calculated by the backend.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/PortfolioSummaryResponse" }
+        examples:
+          default: { $ref: "../examples/portfolios.json#/summaryResponse" }
+
+  SnapshotList:
+    description: Cursor-paginated versioned portfolio snapshots.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/SnapshotListResponse" }
+        examples:
+          default: { $ref: "../examples/portfolios.json#/snapshotsResponse" }
+
+  TransactionList:
+    description: Cursor-paginated immutable transaction history.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/TransactionListResponse" }
+        examples:
+          default: { $ref: "../examples/transactions.json#/listResponse" }
+
+  TransactionCreated:
+    description: Transaction appended idempotently.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/TransactionResponse" }
+        examples:
+          default: { $ref: "../examples/transactions.json#/createResponse" }
+
+  TransactionCorrected:
+    description: New correction revision appended; original history remains immutable.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/TransactionResponse" }
+        examples:
+          default: { $ref: "../examples/transactions.json#/patchResponse" }
+
+  TransactionReversed:
+    description: Reversal appended; no transaction row is physically deleted.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/TransactionReversalResponse" }
+        examples:
+          default: { $ref: "../examples/transactions.json#/deleteResponse" }
+
+  DividendCalendar:
+    description: Official dividend calendar events.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/DividendCalendarResponse" }
+        examples:
+          default: { $ref: "../examples/dividends.json#/calendarResponse" }
+
+  DividendCalculation:
+    description: Gross dividend calculation without tax export or advice.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/DividendCalculationResponse" }
+        examples:
+          default: { $ref: "../examples/dividends.json#/calculateResponse" }
+
+  Dashboard:
+    description: User capital dashboard.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/DashboardResponse" }
+        examples:
+          default: { $ref: "../examples/dashboard.json#/dashboardResponse" }
+
+  BadRequest:
+    description: Invalid request.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/ErrorResponse" }
+        examples:
+          default: { $ref: "../examples/errors.json#/validationError" }
+
+  Unauthorized:
+    description: Authentication failed or is required.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/ErrorResponse" }
+        examples:
+          default: { $ref: "../examples/errors.json#/unauthorizedError" }
+
+  NotFound:
+    description: Requested resource was not found or is not visible to the caller.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/ErrorResponse" }
+        examples:
+          default: { $ref: "../examples/errors.json#/notFoundError" }
+
+  Conflict:
+    description: Resource version conflict.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/ErrorResponse" }
+        examples:
+          default: { $ref: "../examples/errors.json#/conflictError" }
+
+  IdempotencyConflict:
+    description: Idempotency key was reused with a different request payload.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/ErrorResponse" }
+        examples:
+          default: { $ref: "../examples/errors.json#/idempotencyConflict" }
+
+  RateLimited:
+    description: Rate limit exceeded.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+      Retry-After: { $ref: "#/headers/RetryAfter" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/ErrorResponse" }
+        examples:
+          default: { $ref: "../examples/errors.json#/rateLimitError" }
