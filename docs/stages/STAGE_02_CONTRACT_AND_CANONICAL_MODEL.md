@@ -40,18 +40,19 @@ strategy before backend business implementation.
 
 ## Review-size exception
 
-The complete Stage 2 PR contains 26 files, one above the default 25-file review budget. The current
-human-authorized hardening scope explicitly requires the contract, canonical/ER/migration records,
-OpenAPI validator CI, five synchronized governance registries, implementation log, and source
-registry correction to remain consistent in one reviewable freeze. Splitting one governance file
-would create a knowingly inconsistent Source of Truth and would not reduce contract complexity.
-The one-file exception is therefore approved for this Stage 2 PR only; generated/example artifacts
-remain fully reviewable and are not hidden from either reviewer.
+The complete Stage 2 PR contains 26 files, one above the default 25-file review budget. The contract,
+canonical/ER/migration records, OpenAPI validator CI, five synchronized governance registries,
+implementation log, and source-registry correction must remain consistent in one reviewable freeze.
+Splitting one governance file would create a knowingly inconsistent Source of Truth and would not
+reduce contract complexity. Generated/example artifacts remain fully reviewable and are not hidden
+from either reviewer.
 
-Auditable approval: Principal Architect / Human Reviewer approved this exact 26-file Stage 2
-review-size exception for PR #2 after the final independent external review, limited to the Stage 2
-contract/canonical-model/governance freeze. The approval does not authorize merge, Stage 3 work, or
-any future PR-size exception.
+Auditable evidence: Principal Architect / Human Reviewer approval for this exact PR #2 26-file
+review-size exception is recorded in GitHub PR comment
+`https://github.com/AsifAbbasov/OpenInvest/pull/2#issuecomment-4800618888`.
+
+The approval covers the review-size exception only. It is not merge approval, not ADR-006
+acceptance, not authorization to start Stage 3, and not a reusable exception for future PRs.
 
 ## Contract decisions
 
