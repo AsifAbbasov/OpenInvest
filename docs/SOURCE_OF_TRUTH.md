@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.3.3 |
+| Version | 1.3.4 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -15,9 +15,10 @@
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 1 — Documentation Consolidation**
-**Next approved planning target: Stage 2 — OpenAPI Freeze**
-**Stage 2 branch status: Implemented / REQUEST CHANGES fixes applied; external approval, human approval, and merge still pending**
+**Last completed implementation stage: Stage 2 — Contract and Canonical Model Freeze**
+**Current canonical implementation baseline: `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12`**
+**Next approved planning target: Next.js Web Presentation amendment**
+**Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 
 ## Document priority
 
@@ -116,7 +117,7 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 | ADR-003 | OpenAPI-first contracts | Accepted |
 | ADR-004 | Versioned rebuildable snapshots | Accepted |
 | ADR-005 | Privacy by Design | Accepted; interpreted with Document 43 anonymization terminology |
-| ADR-006 | Stage 2 MVP contract and canonical model freeze | Proposed; external and human approval pending |
+| ADR-006 | Stage 2 MVP contract and canonical model freeze | Accepted |
 
 ## Version matrix
 

@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.0.2 |
+| Version | 1.0.3 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -40,3 +40,10 @@
   claiming complete JSON Schema 2020-12 compliance.
 - Recorded auditable Principal Architect approval for the Stage 2 26-file review-size exception.
 - Documented the GitHub runner Ruby version as a remaining non-blocking operational hardening risk.
+
+## 2026-06-25 — Stage 2 closure and ADR-006 acceptance
+
+- Squash-merged PR #2 into `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12`.
+- Accepted ADR-006 after external review, green CI, and human approval.
+- Marked Stage 2 Contract and Canonical Model Freeze as closed.
+- Declared `develop` at the Stage 2 merge commit as the canonical Stage 2 baseline.
