@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.0.1 |
+| Version | 1.0.2 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
@@ -15,7 +15,7 @@
 
 | ID | Title | Version | Status | Location |
 | --- | --- | --- | --- | --- |
-| SOT-001 | Source of Truth | 1.3.2 | Approved | `SOURCE_OF_TRUTH.md` |
+| SOT-001 | Source of Truth | 1.3.3 | Approved | `SOURCE_OF_TRUTH.md` |
 | 42 | Architecture Amendments | 1.1.0 | Approved | `specifications/current/DOCUMENT_42_ARCHITECTURE_AMENDMENTS_v1.1.md` |
 | 43 | Architecture Decision Closure | 1.2.0 | Final | `specifications/current/DOCUMENT_43_ARCHITECTURE_CLOSURE_v1.2.md` |
 
@@ -66,4 +66,4 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Canonical model | Implemented / awaiting review | `domain/CANONICAL_MODEL_STAGE_02.md` |
 | Logical ER model | Implemented / awaiting review | `database/ER_MODEL_STAGE_02.md` |
 | Migration strategy | Implemented / awaiting review | `database/MIGRATION_STRATEGY_STAGE_02.md` |
-| Stage report | Implemented / awaiting review | `stages/STAGE_02_CONTRACT_AND_CANONICAL_MODEL.md` |
+| Stage report | Implemented / REQUEST CHANGES fixes applied | `stages/STAGE_02_CONTRACT_AND_CANONICAL_MODEL.md` |

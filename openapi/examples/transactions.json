@@ -122,7 +122,8 @@
     "summary": "Append a reversal without deleting history",
     "value": {
       "expectedRevision": 2,
-      "reason": "Broker cancelled the transaction"
+      "reason": "Broker cancelled the transaction",
+      "effectiveDate": "2026-06-20"
     }
   },
   "deleteResponse": {

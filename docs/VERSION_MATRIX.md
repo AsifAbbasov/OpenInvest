@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.0.1 |
+| Version | 1.0.2 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -17,6 +17,7 @@
 | Document 42 | 1.1.0 | Approved / current | 2 | Principal Architect | 2026-12-19 |
 | ADR-001–005 | 1.0.0 | Accepted, subject to 42–43 | 3 | Principal Architect | 2026-12-19 |
 | ADR-006 | 1.0.0 | Proposed; no precedence until approved | — | Principal Architect | At Stage 2 approval |
+| Stage 2 contract artifacts | 1.0.x | Implemented; REQUEST CHANGES fixes applied; no precedence until ADR-006 approval | — | Principal Architect | PR #2 external and human approval |
 | Documents 28–39 | 2.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Document 40 | 3.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Documents 1–27, 41 | 1.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |

@@ -156,6 +156,11 @@ The physical ledger is append-only. API PATCH appends a correction revision. API
 a reversal transaction. No operation updates/deletes prior financial facts in place. A current
 projection may be materialized, but audit can reproduce every revision and reversal.
 
+Every reversal command carries an explicit `effectiveDate` BusinessDate. That date is the economic
+date used for ledger projections, derived holdings, and deterministic snapshot rebuilds. System
+timestamps such as request receipt, worker execution, `createdAt`, or audit time must never be used
+to derive reversal economics.
+
 #### Command validation matrix
 
 | Type | Ticker/quantity/unit price | Gross amount |
@@ -280,7 +285,8 @@ without contract review and an ADR when breaking.
 
 - MVP is web-first; refresh authentication uses an HttpOnly cookie and CSRF token.
 - Public assets use ticker lookup; internal provider IDs remain private.
-- Portfolio deletion removes active metadata but retains immutable financial history.
+- Portfolio deletion means the portfolio is removed from active use while immutable financial
+  history is retained.
 - Transaction PATCH/DELETE are correction/reversal commands, not physical mutation.
 - Dividend calculator is gross and excludes tax behavior.
 - Dividend calendar contains official events only.

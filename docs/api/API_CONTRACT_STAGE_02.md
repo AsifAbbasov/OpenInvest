@@ -80,7 +80,9 @@ HTTP status is authoritative. Clients must not infer success from body shape alo
 
 - The server returns `X-Request-ID` and `X-Trace-ID` and mirrors both in `meta`.
 - A client may send a UUID in `X-Request-ID`; invalid/untrusted values are replaced.
-- Distributed tracing uses the W3C `traceparent` request header.
+- Distributed tracing uses the W3C `traceparent` request header. Version `ff`, all-zero trace
+  IDs, and all-zero parent IDs are invalid and must be rejected/replaced according to server
+  request-validation policy before any value is propagated.
 - A trace ID correlates technical execution. It is not a user, account, or portfolio ID.
 - Neither identifier may contain personal or financial data.
 
@@ -104,6 +106,10 @@ HTTP status is authoritative. Clients must not infer success from body shape alo
 - Calculation precision is 8 decimal places with half-even rounding.
 - UI display rounds money to 2 decimal places; the contract preserves calculation precision.
 - `Money.currency` is `RUB` in MVP.
+- Inherently non-negative aggregate buckets use `NonNegativeMoney`: asset-class values, invested
+  capital, received dividends/coupons, and expected dividends. Signed `Money` remains only where a
+  negative value is economically legitimate, such as cash balance, gains/losses, and cash-flow
+  methodology outputs.
 - `BusinessDate` is `YYYY-MM-DD` and maps to SQL `DATE`.
 - `SystemTimestamp` is UTC RFC 3339 ending in `Z` and maps to `TIMESTAMP WITH TIME ZONE`.
 - Registry, payment, and settlement dates remain separate fields.
@@ -147,6 +153,10 @@ The HTTP verbs satisfy familiar CRUD interaction without violating immutable his
 - `DELETE` appends a reversal transaction; it never deletes a row.
 - `expectedRevision` prevents lost updates.
 - correction and reversal require an audit reason where applicable.
+- reversal requests must include an explicit `effectiveDate` BusinessDate. The server uses that
+  date as the economic date of the reversal for ledger projections and snapshot rebuilds. The
+  reversal effective date is never derived from request receipt time, worker execution time, or
+  any other system timestamp.
 - historical revisions remain traceable and snapshots are invalidated/rebuilt by later stages.
 
 Portfolio `DELETE` removes mutable portfolio metadata from active use but retains immutable

@@ -749,7 +749,7 @@ UpdateTransactionRequest:
 ReverseTransactionRequest:
   type: object
   additionalProperties: false
-  required: [expectedRevision, reason]
+  required: [expectedRevision, reason, effectiveDate]
   properties:
     expectedRevision:
       type: integer
@@ -759,6 +759,11 @@ ReverseTransactionRequest:
       minLength: 1
       maxLength: 300
       description: Mandatory audit reason kept in the JSON body, never in a URL.
+    effectiveDate:
+      $ref: "#/BusinessDate"
+      description: >-
+        Business date on which the reversal becomes effective for ledger and snapshot rebuilds.
+        The server appends a reversal transaction using this date and never derives it from system time.
 
 TransactionReversal:
   type: object
@@ -912,15 +917,15 @@ PortfolioSummary:
     cashValue:
       $ref: "#/Money"
     stockValue:
-      $ref: "#/Money"
+      $ref: "#/NonNegativeMoney"
     bondValue:
-      $ref: "#/Money"
+      $ref: "#/NonNegativeMoney"
     investedCapital:
-      $ref: "#/Money"
+      $ref: "#/NonNegativeMoney"
     dividendsReceived:
-      $ref: "#/Money"
+      $ref: "#/NonNegativeMoney"
     couponsReceived:
-      $ref: "#/Money"
+      $ref: "#/NonNegativeMoney"
     nominalReturnRate:
       $ref: "#/Decimal"
     xirr:
@@ -970,11 +975,11 @@ PortfolioSnapshot:
     cashValue:
       $ref: "#/Money"
     stockValue:
-      $ref: "#/Money"
+      $ref: "#/NonNegativeMoney"
     bondValue:
-      $ref: "#/Money"
+      $ref: "#/NonNegativeMoney"
     investedCapital:
-      $ref: "#/Money"
+      $ref: "#/NonNegativeMoney"
     nominalReturnRate:
       $ref: "#/Decimal"
     realReturnRate:
@@ -1105,9 +1110,9 @@ Dashboard:
     realGain:
       $ref: "#/Money"
     dividendsReceived:
-      $ref: "#/Money"
+      $ref: "#/NonNegativeMoney"
     expectedDividends:
-      $ref: "#/Money"
+      $ref: "#/NonNegativeMoney"
     portfolios:
       type: array
       items:

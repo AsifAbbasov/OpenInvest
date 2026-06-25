@@ -505,11 +505,11 @@ components:
       in: header
       required: false
       description: >-
-        W3C Trace Context header. The server rejects all-zero trace IDs and parent IDs as invalid.
-        The resulting trace ID is returned as X-Trace-ID.
+        W3C Trace Context header in lowercase hexadecimal form. Version ff, all-zero trace IDs,
+        and all-zero parent IDs are invalid. The resulting trace ID is returned as X-Trace-ID.
       schema:
         type: string
-        pattern: "^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$"
+        pattern: "^(?!ff)[0-9a-f]{2}-(?!0{32})[0-9a-f]{32}-(?!0{16})[0-9a-f]{16}-[0-9a-f]{2}$"
     CsrfToken:
       name: X-CSRF-Token
       in: header

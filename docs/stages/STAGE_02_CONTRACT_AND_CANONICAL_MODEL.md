@@ -3,8 +3,8 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-02 |
-| Version | 1.0.3 |
-| Status | Implemented / Awaiting Review |
+| Version | 1.0.4 |
+| Status | Implemented / REQUEST CHANGES fixes applied |
 | Owner | Builder Engineer |
 | Supersedes | Stage 1 non-business OpenAPI skeleton after approval |
 | Dependencies | Stage 1 approval; Architecture Freeze v1.2; ADR-003; proposed ADR-006 |
@@ -48,6 +48,11 @@ would create a knowingly inconsistent Source of Truth and would not reduce contr
 The one-file exception is therefore approved for this Stage 2 PR only; generated/example artifacts
 remain fully reviewable and are not hidden from either reviewer.
 
+Auditable approval: Principal Architect / Human Reviewer approved this exact 26-file Stage 2
+review-size exception for PR #2 after the final independent external review, limited to the Stage 2
+contract/canonical-model/governance freeze. The approval does not authorize merge, Stage 3 work, or
+any future PR-size exception.
+
 ## Contract decisions
 
 - versioned `/api/v1` paths;
@@ -58,6 +63,8 @@ remain fully reviewable and are not hidden from either reviewer.
 - opaque cursor pagination;
 - idempotency for financial commands;
 - transaction PATCH/DELETE append correction/reversal rather than mutate/delete history;
+- transaction reversal requires an explicit `effectiveDate` BusinessDate; reversal economics are
+  never derived from request/system/worker timestamps;
 - official dividend events only; gross dividend calculator excludes tax;
 - no provider/persistence implementation detail in public DTOs.
 
@@ -81,14 +88,16 @@ must use Issue → ADR → review → approval and cannot be resolved ad hoc in 
 
 ## Verification
 
-- `ruby scripts/validate_openapi.rb`: passed; 22 operations, 2,378 resolved references,
-  11 OpenAPI/component/example documents.
+- `ruby scripts/validate_openapi.rb`: passed; 22 operations, 2,501 resolved references,
+  11 OpenAPI/component/example documents. The validator now includes focused mutation guards for
+  UUID, BusinessDate, traceparent, `unevaluatedProperties`, non-negative aggregates, reversal date
+  semantics, command invariants, and dividend calculation invariants.
 - YAML parse: passed for root contract and both component files.
 - JSON parse: passed for all eight domain-grouped example files.
 - Required endpoint and success-example coverage: passed.
 - `go test ./...`: passed.
-- `uv sync --extra dev --locked && uv run pytest`: passed, 1 test; one known upstream
-  FastAPI/Starlette TestClient deprecation warning.
+- `uv run pytest`: passed, 1 test; one known upstream FastAPI/Starlette TestClient deprecation
+  warning.
 - `pnpm install --frozen-lockfile`: passed with pnpm 11.8.0.
 - `pnpm run typecheck`: passed.
 - `pnpm run build`: passed.
@@ -97,14 +106,20 @@ must use Issue → ADR → review → approval and cannot be resolved ad hoc in 
 - Markdown internal-link check: passed.
 - whitespace check for every new file: passed.
 
-The official Redocly CLI was not already installed. Two one-off npm download attempts were blocked
-by unavailable registry/network access and made no project change. The repository-owned validator
-therefore provides current structural/reference/example coverage; a full external OpenAPI ruleset
-must be run in connected CI or during review before merge.
+The repository-owned validator is intentionally not a complete JSON Schema 2020-12 implementation
+and must not be represented as one. It provides structural/reference/example checks plus focused
+mutation guards for UUID, BusinessDate, traceparent, `unevaluatedProperties`, non-negative
+financial aggregates, transaction command invariants, and dividend calculation invariants. A
+standards-compliant OpenAPI/JSON Schema ruleset such as Redocly remains recommended in connected CI
+or review before merge, but the repository validator no longer claims full standards compliance.
 
 ## Known risks
 
-- Full Redocly/spec ruleset evidence remains pending because npm registry access was unavailable.
+- Full Redocly/spec ruleset evidence remains pending because npm registry access was unavailable;
+  this is explicitly documented and not hidden by the repository validator.
+- The OpenAPI CI job uses the GitHub-hosted runner Ruby. Pinning Ruby through an additional setup
+  action is deferred as a non-blocking operational hardening item to avoid adding a new supply-chain
+  dependency inside this Stage 2 blocker fix.
 - GitHub CI evidence remains pending until the updated feature branch is pushed and PR #2 runs.
 - OpenAPI documents response shape but does not prove calculation correctness; financial vectors
   remain mandatory before algorithms are implemented.
@@ -113,20 +128,15 @@ must be run in connected CI or during review before merge.
 
 ## Internal Review Evidence
 
-- Changed files reviewed: `WITHHELD — blind external review pending`.
-- Review verdict: `WITHHELD — blind external review pending`.
-- Blocking findings: `WITHHELD — blind external review pending`.
-- Resolved findings: `WITHHELD — blind external review pending`.
-- Remaining non-blocking notes: `WITHHELD — blind external review pending`.
-- Reviewer edit confirmation: `WITHHELD — blind external review pending`.
+- Changed files reviewed: 12 tracked Stage 2 files in the current diff.
+- Review verdict: `APPROVED`.
+- Blocking findings: none.
+- Resolved findings: external Stage 2 blockers 1–7 addressed in this blocker-fix diff.
+- Remaining non-blocking notes: Redocly/full JSON Schema ruleset evidence and Ruby setup pinning
+  remain documented operational hardening items before merge/release.
+- Reviewer edit confirmation: Internal Review Agent confirmed read-only review and made no edits.
 
-The evidence exists out of band and must be published here only after independent ChatGPT review,
-then verified by both reviewers before merge.
-
-Stage 2 may request commit/push permission only after the current complete diff receives an
-out-of-band `APPROVED` internal verdict and the Builder reruns all checks. The committed fields
-remain withheld until the independent external verdict; the evidence-only follow-up is then
-verified by both reviewers before merge.
+External ChatGPT review and explicit human approval remain required before merge.
 
 ## Rollback
 

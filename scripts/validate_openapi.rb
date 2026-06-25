@@ -3,6 +3,7 @@
 
 require "json"
 require "pathname"
+require "date"
 require "yaml"
 
 ROOT = Pathname.new(__dir__).join("..", "openapi", "openapi.yaml").cleanpath
@@ -108,6 +109,11 @@ class ContractValidator
     transaction_schema = schemas.fetch("Transaction")
     transaction_example = load_document(@root.dirname.join("examples", "transactions.json"))
                           .dig("createResponse", "value", "data")
+    reject_vector("Transaction.id invalid UUID", Marshal.load(Marshal.dump(transaction_example)).merge("id" => "not-a-uuid"),
+                  transaction_schema, schemas_path)
+    reject_vector("Transaction.tradeDate invalid BusinessDate",
+                  Marshal.load(Marshal.dump(transaction_example)).merge("tradeDate" => "2026-02-30"),
+                  transaction_schema, schemas_path)
     invalid_buy = Marshal.load(Marshal.dump(transaction_example)).merge("quantity" => nil)
     reject_vector("Transaction BUY without quantity", invalid_buy, transaction_schema, schemas_path)
     invalid_cash = Marshal.load(Marshal.dump(transaction_example)).merge("transactionType" => "DEPOSIT")
@@ -129,6 +135,12 @@ class ContractValidator
     correction = { "expectedRevision" => 1, "reason" => "correct income", "corrected" => income_request }
     reject_vector("UpdateTransactionRequest DIVIDEND with unit price", correction,
                   schemas.fetch("UpdateTransactionRequest"), schemas_path)
+    reverse_request = load_document(@root.dirname.join("examples", "transactions.json")).dig("deleteRequest", "value")
+    reject_vector("ReverseTransactionRequest without effectiveDate", reverse_request.reject { |key, _| key == "effectiveDate" },
+                  schemas.fetch("ReverseTransactionRequest"), schemas_path)
+    reject_vector("ReverseTransactionRequest invalid effectiveDate",
+                  reverse_request.merge("effectiveDate" => "2026-02-30"),
+                  schemas.fetch("ReverseTransactionRequest"), schemas_path)
 
     negative_decimal = "-1.00000000"
     negative_money = { "amount" => negative_decimal, "currency" => "RUB" }
@@ -138,6 +150,10 @@ class ContractValidator
     asset_base = schemas.fetch("AssetBase").fetch("properties")
     reject_vector("AssetBase.lotSize negative", negative_decimal, asset_base.fetch("lotSize"), schemas_path)
     reject_vector("AssetBase.lastPrice negative", negative_money, asset_base.fetch("lastPrice"), schemas_path)
+    asset_example = load_document(@root.dirname.join("examples", "assets.json")).dig("assetResponse", "value", "data")
+    reject_vector("StockAsset unknown property through unevaluatedProperties",
+                  Marshal.load(Marshal.dump(asset_example)).merge("unexpected" => true),
+                  schemas.fetch("StockAsset"), schemas_path)
     bond = schemas.fetch("BondDetails").fetch("properties")
     reject_vector("BondDetails.faceValue negative", negative_money, bond.fetch("faceValue"), schemas_path)
     reject_vector("BondDetails.couponRate negative", negative_decimal, bond.fetch("couponRate"), schemas_path)
@@ -156,6 +172,18 @@ class ContractValidator
     dividend = schemas.fetch("DividendEvent").fetch("properties")
     reject_vector("DividendEvent.amountPerUnit negative", negative_money,
                   dividend.fetch("amountPerUnit"), schemas_path)
+    summary = schemas.fetch("PortfolioSummary").fetch("properties")
+    %w[stockValue bondValue investedCapital dividendsReceived couponsReceived].each do |field|
+      reject_vector("PortfolioSummary.#{field} negative", negative_money, summary.fetch(field), schemas_path)
+    end
+    snapshot = schemas.fetch("PortfolioSnapshot").fetch("properties")
+    %w[stockValue bondValue investedCapital].each do |field|
+      reject_vector("PortfolioSnapshot.#{field} negative", negative_money, snapshot.fetch(field), schemas_path)
+    end
+    dashboard = schemas.fetch("Dashboard").fetch("properties")
+    %w[dividendsReceived expectedDividends].each do |field|
+      reject_vector("Dashboard.#{field} negative", negative_money, dashboard.fetch(field), schemas_path)
+    end
 
     calculator = schemas.fetch("DividendCalculationRequest", {}).fetch("properties", {})
     reject_vector("DividendCalculationRequest.quantity zero", "0.00000000", calculator["quantity"], schemas_path)
@@ -172,6 +200,15 @@ class ContractValidator
     reject_vector("DividendCalculation yield without position cost", yield_without_cost, result_schema, schemas_path)
     missing_yield_with_cost = Marshal.load(Marshal.dump(result_example)).merge("grossYield" => nil)
     reject_vector("DividendCalculation null yield with position cost", missing_yield_with_cost, result_schema, schemas_path)
+
+    root = load_document(@root)
+    traceparent = root.dig("components", "parameters", "Traceparent", "schema")
+    reject_vector("traceparent version ff", "ff-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+                  traceparent, @root)
+    reject_vector("traceparent all-zero trace id", "00-00000000000000000000000000000000-00f067aa0ba902b7-01",
+                  traceparent, @root)
+    reject_vector("traceparent all-zero parent id", "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000000-01",
+                  traceparent, @root)
   end
 
   def reject_vector(name, value, schema, schema_path)
@@ -375,6 +412,10 @@ class ContractValidator
         extras = value.keys - properties.keys
         @errors << "#{location} has unknown properties: #{extras.join(', ')}" unless extras.empty?
       end
+      if resolved["unevaluatedProperties"] == false
+        extras = value.keys - evaluated_properties(resolved, resolved_path)
+        @errors << "#{location} has unevaluated properties: #{extras.join(', ')}" unless extras.empty?
+      end
       value.each { |key, child| validate_instance(child, properties[key], resolved_path, "#{location}.#{key}") if properties[key] }
       if resolved["minProperties"] && value.length < resolved["minProperties"]
         @errors << "#{location} has fewer than #{resolved['minProperties']} properties"
@@ -385,6 +426,7 @@ class ContractValidator
       @errors << "#{location} is shorter than minLength" if resolved["minLength"] && value.length < resolved["minLength"]
       @errors << "#{location} is longer than maxLength" if resolved["maxLength"] && value.length > resolved["maxLength"]
       @errors << "#{location} does not match pattern" if resolved["pattern"] && !Regexp.new(resolved["pattern"]).match?(value)
+      validate_string_format(value, resolved["format"], location) if resolved["format"]
     elsif value.is_a?(Numeric)
       @errors << "#{location} is below minimum" if resolved["minimum"] && value < resolved["minimum"]
       @errors << "#{location} is above maximum" if resolved["maximum"] && value > resolved["maximum"]
@@ -392,6 +434,39 @@ class ContractValidator
     if resolved["not"] && schema_matches?(value, resolved["not"], resolved_path)
       @errors << "#{location} matches a forbidden schema"
     end
+  end
+
+  def validate_string_format(value, format, location)
+    case format
+    when "uuid"
+      uuid = /\A[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\z/
+      @errors << "#{location} is not a valid uuid" unless uuid.match?(value)
+    when "date"
+      @errors << "#{location} is not a valid RFC 3339 full-date" unless valid_full_date?(value)
+    when "date-time"
+      @errors << "#{location} is not a valid UTC date-time" unless value.match?(/\A\d{4}-\d{2}-\d{2}T/) &&
+                                                               value.end_with?("Z") &&
+                                                               DateTime.rfc3339(value)
+    end
+  rescue ArgumentError
+    @errors << "#{location} is not a valid #{format}"
+  end
+
+  def valid_full_date?(value)
+    return false unless value.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+
+    Date.iso8601(value).strftime("%Y-%m-%d") == value
+  rescue ArgumentError
+    false
+  end
+
+  def evaluated_properties(schema, schema_path)
+    resolved, resolved_path = dereference_with_path(schema, schema_path)
+    names = resolved.fetch("properties", {}).keys
+    Array(resolved["allOf"]).each do |part|
+      names += evaluated_properties(part, resolved_path)
+    end
+    names.uniq
   end
 
   def schema_matches?(value, schema, schema_path)

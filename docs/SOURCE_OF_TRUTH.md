@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.3.2 |
+| Version | 1.3.3 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -17,7 +17,7 @@
 **Documentation Freeze: ACTIVE**
 **Last completed implementation stage: Stage 1 — Documentation Consolidation**
 **Next approved planning target: Stage 2 — OpenAPI Freeze**
-**Stage 2 branch status: Implemented / Draft PR review pending; not approved or merged**
+**Stage 2 branch status: Implemented / REQUEST CHANGES fixes applied; external approval, human approval, and merge still pending**
 
 ## Document priority
 
