@@ -2,7 +2,9 @@
 
 OpenInvest is an independent, privacy-first investment analytics platform. It is not a broker, bank, asset manager, trading system, or investment adviser.
 
-This repository currently contains the Stage 1 engineering skeleton only. There is no business logic yet.
+This repository contains the closed Stage 2 contract/canonical-model baseline and the accepted
+Next.js Web presentation-layer baseline. There is no product business logic yet; Stage 3 has not
+started.
 
 ## Components
 
