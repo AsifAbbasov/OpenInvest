@@ -30,10 +30,10 @@ The branch must not be pushed until both commits and the complete branch diff pa
 review workflow and the human explicitly approves push. No direct push to `develop` or `main` is
 allowed.
 
-This local branch currently descends from the unmerged Stage 2 commit. A Web PR against the current
-`develop` is forbidden because it would include Stage 2. The amendment must wait for Stage 2 to
-merge, then rebase onto the updated `develop`, rerun every check and the complete Internal Review,
-and only afterward request permission to push and open a Draft PR targeting `develop`.
+Stage 2 is merged into `develop`, ADR-006 is accepted, and PR #4 is based on the updated
+`develop` baseline. PR #4 targets `develop` and is isolated to the Next.js Web Presentation
+Amendment. After rebasing onto the Stage 2 baseline, checks were rerun for the Web amendment
+scope before requesting review.
 
 ## Implemented scope
 
@@ -65,9 +65,13 @@ This amendment exceeds the default 25-file review count because one atomic, reve
 replacement deletes eleven tracked Vite files, introduces the corresponding Next.js source/config
 and lockfile, and updates mandatory architecture registries. These are one responsibility and one
 rollback outcome; no business behavior is bundled. The lockfile and mechanical legacy deletions are
-reported separately from hand-written logic. Human approval of this report is also the required
-explicit size exception under `REVIEW_WORKFLOW.md`; rejection requires splitting the migration plan
-before commit.
+reported separately from hand-written logic.
+
+The auditable Principal Architect / Human Reviewer approval evidence for the PR #4 34-file
+review-size exception is recorded as PR comment:
+<https://github.com/AsifAbbasov/OpenInvest/pull/4#issuecomment-4810564738>.
+This approval covers the review-size exception only. It is not merge approval, not Stage 3
+approval, and not approval for future PR-size exceptions.
 
 The previously requested stage-handoff `AGENTS.md`/workflow change is intentionally excluded from
 this branch and must be restored in a separate governance change.
@@ -80,7 +84,7 @@ this branch and must be restored in a separate governance change.
 - `pnpm run typecheck`: passed with Next.js 16.2.9.
 - `pnpm run build`: passed; only static `/` and `/_not-found` routes exist.
 - `docker compose config --quiet`: passed.
-- OpenAPI validator: passed, 22 operations and 2,182 resolved references.
+- OpenAPI validator: passed, 22 operations, 2,501 resolved references, 11 documents.
 - YAML, JSON, Markdown-link, forbidden-boundary, and whitespace checks: passed.
 
 ## Risks and follow-up
@@ -88,7 +92,6 @@ this branch and must be restored in a separate governance change.
 - Next.js introduces a Node Web runtime and framework upgrade surface.
 - Full lint and presentation tests are deferred until before the first business screen.
 - Local developer orchestration remains a separate developer-experience change.
-- The Stage 2 Draft PR remains independent and must complete its existing external review.
 
 ## Rollback
 
