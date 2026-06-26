@@ -3,23 +3,27 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
 | Dependencies | Architecture Freeze v1.2 |
-| Last Review Date | 2026-06-19 |
-| Next Review Date | 2026-12-19 |
+| Last Review Date | 2026-06-26 |
+| Next Review Date | 2026-12-26 |
 
 | Stage | Outcome | State |
 | --- | --- | --- |
 | 0 — Foundation / Bootstrap | Local monorepo skeleton, toolchain, health checks, local PostgreSQL/Redis definition | Complete; awaiting review/commit |
 | 1 — Documentation Consolidation | Repository-owned Source of Truth and frozen MVP/architecture registers | Complete; awaiting review/commit |
-| 2 — OpenAPI Freeze | Reviewed MVP API contract, schemas, errors, idempotency, generated validation | Planned |
-| 3 — Bootstrap Hardening | Align existing Stage 0 skeleton with frozen OpenAPI, CI and repository standards | Planned |
-| 4 — Infrastructure | PostgreSQL schemas, migrations, Redis boundaries, outbox/inbox and test infrastructure | Planned |
-| 5 — First Vertical Slice | Add transaction → PostgreSQL → snapshot → API → React dashboard with tests | Planned |
+| 2 — Contract and Canonical Model Freeze | Reviewed MVP API contract, schemas, canonical DTOs, ER draft, migration strategy | Complete |
+| Web architecture amendment | Replace Vite skeleton with presentation-only Next.js under ADR-007 | Complete |
+| 3 — First Vertical Slice Planning | Plan the first portfolio → transaction → snapshot → API → Web path | In progress |
+| 3.1 — Local database foundation | Minimal PostgreSQL schemas/migrations for the first slice | Planned after Stage 3 planning approval |
+| 3.2 — Go API vertical-slice backend | Portfolio, transaction append, snapshot rebuild, summary read | Planned after Stage 3 planning approval |
+| 3.3 — Next.js presentation slice | Render the first slice through the Go API only | Planned after backend slice approval |
+| 3.4 — End-to-end verification | Prove the complete path and update onboarding docs | Planned |
 
-The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3 therefore hardens rather than recreates it.
+The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
+therefore implements the first vertical slice incrementally instead of recreating the repository.
 
 No AI, Tax Export, email, mobile, premium, or unnecessary worker implementation enters these stages.

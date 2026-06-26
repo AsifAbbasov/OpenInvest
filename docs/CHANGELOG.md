@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.1 |
+| Version | 1.1.2 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -64,3 +64,11 @@
   explicit human approval.
 - Declared Next.js App Router + TypeScript + pnpm as the current Web presentation baseline.
 - Confirmed Stage 3 remains not started; the next approved work item is Stage 3 planning.
+
+## 2026-06-26 — Stage 3 first vertical slice planning started
+
+- Added the Stage 3 planning document for the first portfolio/transaction/snapshot/API/Web slice.
+- Kept Stage 3 implementation explicitly unauthorized until planning review and human approval.
+- Defined small implementation PR boundaries to avoid scope creep.
+- Reconfirmed that AI, tax export, mobile, external providers, broker import, and Stage 3 business
+  expansion beyond the first slice remain out of scope.

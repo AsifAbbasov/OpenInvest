@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.1 |
+| Version | 1.4.2 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -17,8 +17,8 @@
 **Documentation Freeze: ACTIVE**
 **Last completed implementation stage: Stage 2 — Contract and Canonical Model Freeze**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973`**
-**Next approved planning target: Stage 3 — First Vertical Slice planning**
+**Current canonical implementation baseline: `develop` at `d3930e1ff81c16f123479c78091ac46a21b3701a`**
+**Current active work item: Stage 3 — First Vertical Slice planning**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -103,9 +103,9 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 | Capability | MVP | State |
 | --- | --- | --- |
 | Registration and privacy defaults | Yes | Planned |
-| Portfolio and transactions | Yes | Planned |
+| Portfolio and transactions | Yes | Stage 3 planning |
 | MOEX shares and bonds | Yes | Planned |
-| Dashboard and snapshots | Yes | Planned |
+| Dashboard and snapshots | Yes | Stage 3 planning |
 | WAC, XIRR, real/inflation returns | Yes | Planned |
 | Dividend calculator/calendar | Yes | Planned |
 | Purchasing power | Yes | Planned |
