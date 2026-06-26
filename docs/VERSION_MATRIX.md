@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.1.2 |
+| Version | 1.1.3 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | Documents 42–43 |
-| Last Review Date | 2026-06-26 |
+| Last Review Date | 2026-06-27 |
 | Next Review Date | 2026-12-26 |
 
 | Range | Version | Status under Freeze v1.2 | Priority | Owner | Review |
@@ -18,7 +18,8 @@
 | ADR-001–007 | 1.0.0 | Accepted, subject to 42–43 | 3 | Principal Architect | 2026-12-25 |
 | Stage 2 contract artifacts | 1.0.x | Closed / canonical baseline on `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | 3 | Principal Architect | 2026-12-25 |
 | Web presentation amendment | 1.0.x | Closed / canonical Web baseline on `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | 3 | Principal Architect | 2026-12-26 |
-| Stage 3 planning | 0.1.x | Planning / not implemented | 3 | Principal Architect | Before implementation |
+| Stage 3 planning | 0.1.x | Planning complete / merged into `develop` at `03908905b74da5c35d2fee71c2ed4956e4c06464` | 3 | Principal Architect | 2026-12-27 |
+| Stage 3.1 database foundation | 0.1.x | In progress | 3 | Principal Architect | Before merge |
 | Documents 28–39 | 2.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Document 40 | 3.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Documents 1–27, 41 | 1.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |

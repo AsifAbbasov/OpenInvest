@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.2 |
+| Version | 1.4.3 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
-| Last Review Date | 2026-06-26 |
+| Last Review Date | 2026-06-27 |
 | Next Review Date | 2026-12-26 |
 
 ## Architecture status
@@ -17,8 +17,8 @@
 **Documentation Freeze: ACTIVE**
 **Last completed implementation stage: Stage 2 — Contract and Canonical Model Freeze**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `d3930e1ff81c16f123479c78091ac46a21b3701a`**
-**Current active work item: Stage 3 — First Vertical Slice planning**
+**Current canonical implementation baseline: `develop` at `03908905b74da5c35d2fee71c2ed4956e4c06464`**
+**Current active work item: Stage 3.1 — Local Database Foundation**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -103,9 +103,9 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 | Capability | MVP | State |
 | --- | --- | --- |
 | Registration and privacy defaults | Yes | Planned |
-| Portfolio and transactions | Yes | Stage 3 planning |
+| Portfolio and transactions | Yes | Stage 3.1 database foundation |
 | MOEX shares and bonds | Yes | Planned |
-| Dashboard and snapshots | Yes | Stage 3 planning |
+| Dashboard and snapshots | Yes | Stage 3.1 database foundation |
 | WAC, XIRR, real/inflation returns | Yes | Planned |
 | Dividend calculator/calendar | Yes | Planned |
 | Purchasing power | Yes | Planned |

@@ -100,3 +100,14 @@ jobs:
         env:
           POSTGRES_PASSWORD: openinvest-ci-config-only
         run: docker compose config --quiet
+
+  migrations:
+    name: PostgreSQL migration validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Report runner Ruby
+        run: ruby --version
+      - name: Validate migration files
+        run: ruby scripts/validate_migrations.rb
