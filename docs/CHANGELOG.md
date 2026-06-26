@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.2 |
+| Version | 1.1.3 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-06-26 |
+| Last Review Date | 2026-06-27 |
 | Next Review Date | 2026-12-26 |
 
 ## 2026-06-19 — Architecture Freeze v1.2
@@ -72,3 +72,13 @@
 - Defined small implementation PR boundaries to avoid scope creep.
 - Reconfirmed that AI, tax export, mobile, external providers, broker import, and Stage 3 business
   expansion beyond the first slice remain out of scope.
+
+## 2026-06-27 — Stage 3.1 database foundation started
+
+- Squash-merged PR #6 into `develop` at `03908905b74da5c35d2fee71c2ed4956e4c06464`.
+- Started the local PostgreSQL foundation for the first vertical slice.
+- Added plain SQL migration pairs instead of selecting a migration library.
+- Added migration validation to CI.
+- Updated the local PostgreSQL 18 Docker volume mount to support live migration verification.
+- Kept Go API, Next.js presentation, Python workers, and external provider integrations out of
+  Stage 3.1 scope.
