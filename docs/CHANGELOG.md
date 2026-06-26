@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.0 |
+| Version | 1.1.1 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-06-25 |
-| Next Review Date | 2026-12-25 |
+| Last Review Date | 2026-06-26 |
+| Next Review Date | 2026-12-26 |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -56,3 +56,11 @@
   in Next.js.
 - Kept Go as the canonical business API and Python as the future analytics/collector worker layer.
 - Confirmed SwiftUI and Jetpack Compose as future-only clients with no current mobile scope.
+
+## 2026-06-26 — Next.js Web presentation amendment closure
+
+- Squash-merged PR #4 into `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973`.
+- Closed the Next.js Web Presentation Amendment after internal review approval, green CI, and
+  explicit human approval.
+- Declared Next.js App Router + TypeScript + pnpm as the current Web presentation baseline.
+- Confirmed Stage 3 remains not started; the next approved work item is Stage 3 planning.

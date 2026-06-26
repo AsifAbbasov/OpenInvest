@@ -3,37 +3,35 @@
 | Field | Value |
 | --- | --- |
 | Document ID | WEB-ARCH-001 |
-| Version | 1.0.0 |
-| Status | Implemented locally / Awaiting Review |
+| Version | 1.0.1 |
+| Status | Closed / Merged into `develop` |
 | Owner | Builder Engineer |
 | Supersedes | Current Web implementation target only; see ADR-007 |
 | Dependencies | Documents 42–43; ADR-003; ADR-005; accepted ADR-007 |
-| Last Review Date | 2026-06-20 |
-| Next Review Date | At architecture-amendment approval |
+| Last Review Date | 2026-06-26 |
+| Next Review Date | 2026-12-26 |
 
 ## Goal
 
 Replace the non-business Vite skeleton with a Next.js App Router + TypeScript + pnpm Web skeleton
 without weakening the Go API, OpenAPI First, security, privacy, financial, or MVP boundaries.
 
-## Decision and publication order
+## Decision and merge record
 
-The human architecture request accepted the Next.js presentation-only decision. No local edit-order
-claim is used as audit evidence, and no commit is authorized by this report. If the amendment is
-approved, repository history must preserve decision-before-implementation ordering with two commits
-on the dedicated `feature/nextjs-web-presentation` branch:
+The human architecture request accepted the Next.js presentation-only decision and ADR-007 records
+the architecture boundary. The amendment was implemented on the dedicated
+`feature/nextjs-web-presentation` branch, reviewed, approved, and squash-merged into `develop`.
 
-1. ADR-007, Source of Truth, document registries, changelog, and historical-freeze supersession;
-2. Vite skeleton removal, Next.js skeleton, CI, README, ignore rules, and implementation log.
+- PR: <https://github.com/AsifAbbasov/OpenInvest/pull/4>
+- Merge commit / canonical Web baseline:
+  `6a7748cc24fc852d42b90b0e0cb843b6020f3973`
+- Merge date: 2026-06-26
+- Merge method: squash merge into `develop`
 
-The branch must not be pushed until both commits and the complete branch diff pass the mandatory
-review workflow and the human explicitly approves push. No direct push to `develop` or `main` is
-allowed.
-
-Stage 2 is merged into `develop`, ADR-006 is accepted, and PR #4 is based on the updated
-`develop` baseline. PR #4 targets `develop` and is isolated to the Next.js Web Presentation
+Stage 2 is merged into `develop`, ADR-006 is accepted, and PR #4 was based on the updated
+`develop` baseline. PR #4 targeted `develop` and was isolated to the Next.js Web Presentation
 Amendment. After rebasing onto the Stage 2 baseline, checks were rerun for the Web amendment
-scope before requesting review.
+scope before final review and human merge approval.
 
 ## Implemented scope
 
@@ -95,10 +93,11 @@ this branch and must be restored in a separate governance change.
 
 ## Rollback
 
-Revert the future implementation commit and the preceding ADR-007 decision commit. The Vite
-skeleton is restored; Go/Python/OpenAPI/database/user data are unaffected.
+Revert merge commit `6a7748cc24fc852d42b90b0e0cb843b6020f3973` and, if architecture rollback is
+approved through ADR, supersede ADR-007. The Vite skeleton is restored; Go/Python/OpenAPI/database
+and user data are unaffected.
 
-## Stop condition
+## Closure
 
-After checks and Internal Review Agent evidence, stop without commit, push, merge, or Stage 3 and
-wait for explicit human approval.
+The amendment is closed. Stage 3 remains not started and requires its own planning document,
+review, and approval before implementation.

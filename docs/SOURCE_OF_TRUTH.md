@@ -3,22 +3,24 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.0 |
+| Version | 1.4.1 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
-| Last Review Date | 2026-06-21 |
-| Next Review Date | 2026-12-21 |
+| Last Review Date | 2026-06-26 |
+| Next Review Date | 2026-12-26 |
 
 ## Architecture status
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
 **Last completed implementation stage: Stage 2 — Contract and Canonical Model Freeze**
-**Current canonical implementation baseline: `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12`**
-**Next approved planning target: Next.js Web Presentation amendment**
+**Last completed architecture amendment: Next.js Web Presentation Amendment**
+**Current canonical implementation baseline: `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973`**
+**Next approved planning target: Stage 3 — First Vertical Slice planning**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
+**Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
 ## Document priority
 
