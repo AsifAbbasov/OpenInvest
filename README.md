@@ -7,7 +7,7 @@ This repository currently contains the Stage 1 engineering skeleton only. There 
 ## Components
 
 - `backend-go/` — Go 1.24+ API using Fiber.
-- `frontend-react/` — React 19, Vite, TypeScript, and Redux Toolkit web client.
+- `frontend-next/` — Next.js App Router, TypeScript, and pnpm Web presentation layer.
 - `microservice-python/` — FastAPI analytics worker skeleton.
 - `infrastructure/` — local infrastructure configuration.
 - `docs/` — frozen architecture and architecture decision records.
@@ -16,7 +16,7 @@ This repository currently contains the Stage 1 engineering skeleton only. There 
 
 ```bash
 cd backend-go && go test ./...
-cd frontend-react && pnpm install --frozen-lockfile && pnpm build
+cd frontend-next && corepack pnpm install --frozen-lockfile && corepack pnpm run typecheck && corepack pnpm run build
 cd microservice-python && uv sync --extra dev --locked && uv run pytest
 POSTGRES_PASSWORD=openinvest-local docker compose config --quiet
 ```
