@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.5 |
+| Version | 1.1.6 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -108,6 +108,17 @@
   and test-vector driven.
 - Repositioned Purchasing Power as a secondary explanatory insight below capital, real return,
   dividends/coupons, and inflation-adjusted performance.
+
+## 2026-06-27 — Product-risk refinement closed and Stage 3.3 started
+
+- Squash-merged PR #9 into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702`.
+- Closed the MVP product-risk refinement after internal review approval, green CI, independent
+  review approval, and human merge approval.
+- Started Stage 3.3 Next.js Presentation Slice.
+- Added the first Web presentation path for portfolio list/detail, add-transaction form, summary,
+  and transaction history using only the Go API.
+- Kept Next.js out of business calculations, database access, provider integration, Route Handlers,
+  Server Actions with business behavior, authentication implementation, and mobile scope.
 
 ## 2026-07-01 — Ruby tooling removed from active project stack
 

@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.0.7 |
+| Version | 1.0.8 |
 | Status | Active |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
@@ -22,7 +22,8 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3 — First Vertical Slice | Implement the first thin MVP path after contract and Web baseline approval | Planning complete; implementation split into small PRs | [Stage 3 plan](stages/STAGE_03_FIRST_VERTICAL_SLICE.md) |
 | 3.1 — Local Database Foundation | Add minimal PostgreSQL structures and migration validation for the first vertical slice | Complete / closed; merged into `develop` at `b1a3f23` | [Stage 3.1 report](stages/STAGE_03_01_DATABASE_FOUNDATION.md) |
 | 3.2 — Go API Vertical-Slice Backend | Implement portfolio create, transaction append, snapshot rebuild, and summary read in Go | Complete / closed; merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | [Stage 3.2 report](stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md) |
-| Product risk refinement | Convert hard PRD criticism into controlled MVP risk decisions | In progress | [MVP product risk refinement](product/MVP_PRODUCT_RISK_REFINEMENT.md) |
+| Product risk refinement | Convert hard PRD criticism into controlled MVP risk decisions | Complete / closed; merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | [MVP product risk refinement](product/MVP_PRODUCT_RISK_REFINEMENT.md) |
+| 3.3 — Next.js Presentation Slice | Render the first Web path through the Go API only | In progress | [Stage 3.3 report](stages/STAGE_03_03_NEXTJS_PRESENTATION_SLICE.md) |
 
 ## Stage completion protocol
 

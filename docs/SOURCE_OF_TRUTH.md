@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.5 |
+| Version | 1.4.6 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -17,8 +17,8 @@
 **Documentation Freeze: ACTIVE**
 **Last completed implementation stage: Stage 3.2 — Go API Vertical-Slice Backend**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1`**
-**Current active work item: Product risk refinement before Stage 3.3**
+**Current canonical implementation baseline: `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702`**
+**Current active work item: Stage 3.3 — Next.js Presentation Slice**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -88,6 +88,10 @@ equivalents in dashboard priority.
 Tax export remains outside MVP. Any future tax calculation core must be deterministic and covered by
 financial/legal test vectors; AI may explain or assist review, but must never be the source of tax
 truth.
+
+Product risk refinement is closed and merged into `develop` at
+`65bdf6537b44ed57e1c00bf68d2dacd70aa09702`. Stage 3.3 implements only the Web presentation slice
+for the existing Go API path and does not authorize broker import implementation.
 
 ## Financial standard
 

@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.3 |
+| Version | 1.1.4 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
@@ -20,7 +20,7 @@
 | 3 — First Vertical Slice Planning | Plan the first portfolio → transaction → snapshot → API → Web path | Complete |
 | 3.1 — Local database foundation | Minimal PostgreSQL schemas/migrations for the first slice | Complete |
 | 3.2 — Go API vertical-slice backend | Portfolio, transaction append, snapshot rebuild, summary read | Complete |
-| 3.3 — Next.js presentation slice | Render the first slice through the Go API only | Planned after backend slice approval |
+| 3.3 — Next.js presentation slice | Render the first slice through the Go API only | In progress |
 | 3.4 — End-to-end verification | Prove the complete path and update onboarding docs | Planned |
 | 3.5 — Broker file import and reconciliation design | Reduce public-MVP manual-entry risk before broad release | Recommended / requires approval |
 | 3.6 — Broker file import vertical slice | User-supplied file import with review and append-only reconciliation | Candidate / requires design approval |
