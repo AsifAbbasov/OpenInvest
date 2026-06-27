@@ -95,6 +95,18 @@ func TestCreatePortfolioRejectsContractInvalidIdempotencyKey(t *testing.T) {
 	}
 }
 
+func TestListTransactionsRejectsTransactionTypeOutsideOpenAPIEnum(t *testing.T) {
+	service := NewService(&recordingStore{}, fixedClock{})
+
+	_, err := service.ListTransactions(context.Background(), "subject", "portfolio-id", TransactionFilter{
+		TransactionType: "CORRECTION",
+	})
+
+	if !errors.Is(err, ErrInvalidInput) {
+		t.Fatalf("expected invalid input, got %v", err)
+	}
+}
+
 func TestGrossForDerivesTradeGrossAmount(t *testing.T) {
 	quantity := decimal.Must("3.00000000")
 	unitPrice := Money{Amount: decimal.Must("10.50000000"), Currency: RUB}

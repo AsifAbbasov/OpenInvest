@@ -66,7 +66,7 @@ func (s *Service) ListTransactions(ctx context.Context, subjectID string, portfo
 	filter.Limit = normalizeLimit(filter.Limit, 50, 100)
 	if strings.TrimSpace(filter.TransactionType) != "" {
 		switch filter.TransactionType {
-		case "BUY", "SELL", "DIVIDEND", "COUPON", "DEPOSIT", "WITHDRAWAL", "FEE", "TAX", "CORRECTION", "REVERSAL":
+		case "BUY", "SELL", "DIVIDEND", "COUPON", "DEPOSIT", "WITHDRAWAL", "FEE", "TAX":
 		default:
 			return nil, fmt.Errorf("%w: transactionType is invalid", ErrInvalidInput)
 		}
