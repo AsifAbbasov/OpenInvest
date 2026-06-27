@@ -52,7 +52,7 @@ func (unavailableStore) GetPortfolio(context.Context, string, string) (verticals
 	return verticalslice.Portfolio{}, errors.New("database url is not configured")
 }
 
-func (unavailableStore) ListTransactions(context.Context, string, string, int) ([]verticalslice.Transaction, error) {
+func (unavailableStore) ListTransactions(context.Context, string, string, verticalslice.TransactionFilter) ([]verticalslice.Transaction, error) {
 	return nil, errors.New("database url is not configured")
 }
 

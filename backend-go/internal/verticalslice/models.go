@@ -24,7 +24,7 @@ type Store interface {
 	ListPortfolios(ctx context.Context, subjectID string, limit int) ([]Portfolio, error)
 	CreatePortfolio(ctx context.Context, command CommandContext, request CreatePortfolioRequest) (Portfolio, error)
 	GetPortfolio(ctx context.Context, subjectID string, portfolioID string) (Portfolio, error)
-	ListTransactions(ctx context.Context, subjectID string, portfolioID string, limit int) ([]Transaction, error)
+	ListTransactions(ctx context.Context, subjectID string, portfolioID string, filter TransactionFilter) ([]Transaction, error)
 	AppendTransaction(ctx context.Context, command CommandContext, request AppendTransactionRequest) (Transaction, error)
 	GetPortfolioSummary(ctx context.Context, subjectID string, portfolioID string, asOfDate string) (PortfolioSummary, error)
 }
@@ -37,6 +37,11 @@ type CommandContext struct {
 	RequestID      string
 	TraceID        string
 	Now            time.Time
+}
+
+type RequestContext struct {
+	RequestID string
+	TraceID   string
 }
 
 type CreatePortfolioRequest struct {
@@ -56,6 +61,13 @@ type AppendTransactionRequest struct {
 	TradeDate       string
 	SettlementDate  *string
 	Note            *string
+}
+
+type TransactionFilter struct {
+	TransactionType string
+	FromDate        string
+	ToDate          string
+	Limit           int
 }
 
 type Money struct {

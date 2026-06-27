@@ -3,6 +3,7 @@ package httpapi
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"os"
@@ -60,18 +61,19 @@ func (api *API) listPortfolios(c fiber.Ctx) error {
 }
 
 func (api *API) createPortfolio(c fiber.Ctx) error {
+	meta := requestMeta(c)
 	var request createPortfolioRequestDTO
 	if err := c.Bind().Body(&request); err != nil {
-		return writeError(c, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")
+		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")
 	}
-	portfolio, err := api.service.CreatePortfolio(c.Context(), subjectID(), c.Get("Idempotency-Key"), c.Path(), verticalslice.CreatePortfolioRequest{
+	portfolio, err := api.service.CreatePortfolio(c.Context(), meta.toApp(), subjectID(), c.Get("Idempotency-Key"), c.Path(), verticalslice.CreatePortfolioRequest{
 		Name:         request.Name,
 		BaseCurrency: request.BaseCurrency,
 	})
 	if err != nil {
-		return writeMappedError(c, err)
+		return writeMappedErrorWithMeta(c, meta, err)
 	}
-	return writeStatus(c, http.StatusCreated, mapPortfolio(portfolio))
+	return writeStatusWithMeta(c, meta, http.StatusCreated, mapPortfolio(portfolio))
 }
 
 func (api *API) getPortfolio(c fiber.Ctx) error {
@@ -83,7 +85,16 @@ func (api *API) getPortfolio(c fiber.Ctx) error {
 }
 
 func (api *API) listTransactions(c fiber.Ctx) error {
-	items, err := api.service.ListTransactions(c.Context(), subjectID(), c.Params("portfolioId"), queryLimit(c, 50))
+	if strings.TrimSpace(c.Query("cursor")) != "" {
+		return writeError(c, http.StatusBadRequest, "VALIDATION_ERROR", "cursor pagination is outside Stage 3.2 scope")
+	}
+	filter := verticalslice.TransactionFilter{
+		TransactionType: c.Query("transactionType"),
+		FromDate:        c.Query("fromDate"),
+		ToDate:          c.Query("toDate"),
+		Limit:           queryLimit(c, 50),
+	}
+	items, err := api.service.ListTransactions(c.Context(), subjectID(), c.Params("portfolioId"), filter)
 	if err != nil {
 		return writeMappedError(c, err)
 	}
@@ -91,19 +102,23 @@ func (api *API) listTransactions(c fiber.Ctx) error {
 }
 
 func (api *API) appendTransaction(c fiber.Ctx) error {
+	meta := requestMeta(c)
+	if !jsonFieldPresent(c.Request().Body(), "settlementDate") {
+		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "settlementDate is required")
+	}
 	var request appendTransactionRequestDTO
 	if err := c.Bind().Body(&request); err != nil {
-		return writeError(c, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")
+		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")
 	}
 	appRequest, err := request.toApp(c.Params("portfolioId"))
 	if err != nil {
-		return writeMappedError(c, err)
+		return writeMappedErrorWithMeta(c, meta, err)
 	}
-	transaction, err := api.service.AppendTransaction(c.Context(), subjectID(), c.Get("Idempotency-Key"), c.Path(), appRequest)
+	transaction, err := api.service.AppendTransaction(c.Context(), meta.toApp(), subjectID(), c.Get("Idempotency-Key"), c.Path(), appRequest)
 	if err != nil {
-		return writeMappedError(c, err)
+		return writeMappedErrorWithMeta(c, meta, err)
 	}
-	return writeStatus(c, http.StatusCreated, mapTransaction(transaction))
+	return writeStatusWithMeta(c, meta, http.StatusCreated, mapTransaction(transaction))
 }
 
 func (api *API) getPortfolioSummary(c fiber.Ctx) error {
@@ -137,31 +152,41 @@ func writeOK(c fiber.Ctx, data any) error {
 }
 
 func writeStatus(c fiber.Ctx, status int, data any) error {
-	meta := responseMeta()
+	return writeStatusWithMeta(c, requestMeta(c), status, data)
+}
+
+func writeStatusWithMeta(c fiber.Ctx, meta metaDTO, status int, data any) error {
 	c.Set("X-Request-ID", meta.RequestID)
 	c.Set("X-Trace-ID", meta.TraceID)
 	return c.Status(status).JSON(baseResponse{Data: data, Meta: meta})
 }
 
 func writeMappedError(c fiber.Ctx, err error) error {
+	return writeMappedErrorWithMeta(c, requestMeta(c), err)
+}
+
+func writeMappedErrorWithMeta(c fiber.Ctx, meta metaDTO, err error) error {
 	switch {
 	case errors.Is(err, verticalslice.ErrInvalidInput):
-		return writeError(c, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
+		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
 	case errors.Is(err, verticalslice.ErrMissingIdempotency):
-		return writeError(c, http.StatusBadRequest, "VALIDATION_ERROR", "Idempotency-Key header is required")
+		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Idempotency-Key header is required")
 	case errors.Is(err, postgres.ErrNotFound):
-		return writeError(c, http.StatusNotFound, "NOT_FOUND", "Resource not found")
+		return writeErrorWithMeta(c, meta, http.StatusNotFound, "NOT_FOUND", "Resource not found")
 	case errors.Is(err, postgres.ErrIdempotencyConflict):
-		return writeError(c, http.StatusConflict, "IDEMPOTENCY_CONFLICT", "Idempotency-Key is already bound to another request")
+		return writeErrorWithMeta(c, meta, http.StatusConflict, "IDEMPOTENCY_CONFLICT", "Idempotency-Key is already bound to another request")
 	case errors.Is(err, postgres.ErrIdempotencyInFlight):
-		return writeError(c, http.StatusConflict, "IDEMPOTENCY_IN_FLIGHT", "Idempotency-Key is currently being processed")
+		return writeErrorWithMeta(c, meta, http.StatusConflict, "IDEMPOTENCY_IN_FLIGHT", "Idempotency-Key is currently being processed")
 	default:
-		return writeError(c, http.StatusInternalServerError, "INTERNAL_ERROR", "Internal server error")
+		return writeErrorWithMeta(c, meta, http.StatusInternalServerError, "INTERNAL_ERROR", "Internal server error")
 	}
 }
 
 func writeError(c fiber.Ctx, status int, code string, message string) error {
-	meta := responseMeta()
+	return writeErrorWithMeta(c, requestMeta(c), status, code, message)
+}
+
+func writeErrorWithMeta(c fiber.Ctx, meta metaDTO, status int, code string, message string) error {
 	c.Set("X-Request-ID", meta.RequestID)
 	c.Set("X-Trace-ID", meta.TraceID)
 	return c.Status(status).JSON(errorResponse{
@@ -170,12 +195,24 @@ func writeError(c fiber.Ctx, status int, code string, message string) error {
 	})
 }
 
-func responseMeta() metaDTO {
+func requestMeta(c fiber.Ctx) metaDTO {
+	requestID := strings.TrimSpace(c.Get("X-Request-ID"))
+	if _, err := uuid.Parse(requestID); err != nil {
+		requestID = uuid.NewString()
+	}
+	traceIDValue := traceID()
+	if traceparent := strings.TrimSpace(c.Get("traceparent")); validTraceparent(traceparent) {
+		traceIDValue = strings.Split(traceparent, "-")[1]
+	}
 	return metaDTO{
-		RequestID:   uuid.NewString(),
-		TraceID:     traceID(),
+		RequestID:   requestID,
+		TraceID:     traceIDValue,
 		GeneratedAt: time.Now().UTC().Format(time.RFC3339),
 	}
+}
+
+func (meta metaDTO) toApp() verticalslice.RequestContext {
+	return verticalslice.RequestContext{RequestID: meta.RequestID, TraceID: meta.TraceID}
 }
 
 func traceID() string {
@@ -184,6 +221,43 @@ func traceID() string {
 		return "00000000000000000000000000000001"
 	}
 	return hex.EncodeToString(bytes)
+}
+
+func validTraceparent(value string) bool {
+	parts := strings.Split(value, "-")
+	if len(parts) != 4 {
+		return false
+	}
+	version, traceIDPart, parentIDPart, flags := parts[0], parts[1], parts[2], parts[3]
+	return len(version) == 2 &&
+		len(traceIDPart) == 32 &&
+		len(parentIDPart) == 16 &&
+		len(flags) == 2 &&
+		version != "ff" &&
+		traceIDPart != strings.Repeat("0", 32) &&
+		parentIDPart != strings.Repeat("0", 16) &&
+		isLowerHex(version) &&
+		isLowerHex(traceIDPart) &&
+		isLowerHex(parentIDPart) &&
+		isLowerHex(flags)
+}
+
+func isLowerHex(value string) bool {
+	for _, char := range value {
+		if !((char >= '0' && char <= '9') || (char >= 'a' && char <= 'f')) {
+			return false
+		}
+	}
+	return true
+}
+
+func jsonFieldPresent(body []byte, field string) bool {
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(body, &raw); err != nil {
+		return false
+	}
+	_, ok := raw[field]
+	return ok
 }
 
 type baseResponse struct {

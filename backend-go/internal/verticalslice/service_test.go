@@ -34,7 +34,7 @@ func (store *recordingStore) GetPortfolio(context.Context, string, string) (Port
 	return Portfolio{}, nil
 }
 
-func (store *recordingStore) ListTransactions(context.Context, string, string, int) ([]Transaction, error) {
+func (store *recordingStore) ListTransactions(context.Context, string, string, TransactionFilter) ([]Transaction, error) {
 	return nil, nil
 }
 
@@ -50,7 +50,7 @@ func (store *recordingStore) GetPortfolioSummary(context.Context, string, string
 func TestCreatePortfolioRequiresIdempotencyKey(t *testing.T) {
 	service := NewService(&recordingStore{}, fixedClock{})
 
-	_, err := service.CreatePortfolio(context.Background(), "subject", "", "/api/v1/portfolios", CreatePortfolioRequest{
+	_, err := service.CreatePortfolio(context.Background(), RequestContext{}, "subject", "", "/api/v1/portfolios", CreatePortfolioRequest{
 		Name:         "Long-term capital",
 		BaseCurrency: RUB,
 	})
@@ -66,7 +66,7 @@ func TestAppendTransactionRejectsInvalidTicker(t *testing.T) {
 	quantity := decimal.Must("1.00000000")
 	unitPrice := Money{Amount: decimal.Must("100.00000000"), Currency: RUB}
 
-	_, err := service.AppendTransaction(context.Background(), "subject", "valid-key-000001", "/path", AppendTransactionRequest{
+	_, err := service.AppendTransaction(context.Background(), RequestContext{}, "subject", "valid-key-000001", "/path", AppendTransactionRequest{
 		PortfolioID:     "portfolio-id",
 		TransactionType: "BUY",
 		Ticker:          &ticker,
@@ -85,7 +85,7 @@ func TestAppendTransactionRejectsInvalidTicker(t *testing.T) {
 func TestCreatePortfolioRejectsContractInvalidIdempotencyKey(t *testing.T) {
 	service := NewService(&recordingStore{}, fixedClock{})
 
-	_, err := service.CreatePortfolio(context.Background(), "subject", "too-short", "/api/v1/portfolios", CreatePortfolioRequest{
+	_, err := service.CreatePortfolio(context.Background(), RequestContext{}, "subject", "too-short", "/api/v1/portfolios", CreatePortfolioRequest{
 		Name:         "Long-term capital",
 		BaseCurrency: RUB,
 	})
@@ -131,7 +131,7 @@ func TestAppendTransactionRejectsSellUntilCostBasisExists(t *testing.T) {
 	quantity := decimal.Must("1.00000000")
 	unitPrice := Money{Amount: decimal.Must("110.00000000"), Currency: RUB}
 
-	_, err := service.AppendTransaction(context.Background(), "subject", "valid-key-000001", "/path", AppendTransactionRequest{
+	_, err := service.AppendTransaction(context.Background(), RequestContext{}, "subject", "valid-key-000001", "/path", AppendTransactionRequest{
 		PortfolioID:     "portfolio-id",
 		TransactionType: "SELL",
 		Ticker:          &ticker,
@@ -155,7 +155,7 @@ func TestAppendTransactionHashIncludesDecimalValues(t *testing.T) {
 
 	firstStore := &recordingStore{}
 	firstService := NewService(firstStore, fixedClock{})
-	_, err := firstService.AppendTransaction(context.Background(), "subject", "valid-key-000001", "/path", AppendTransactionRequest{
+	_, err := firstService.AppendTransaction(context.Background(), RequestContext{}, "subject", "valid-key-000001", "/path", AppendTransactionRequest{
 		PortfolioID:     "portfolio-id",
 		TransactionType: "BUY",
 		Ticker:          &ticker,
@@ -171,7 +171,7 @@ func TestAppendTransactionHashIncludesDecimalValues(t *testing.T) {
 
 	secondStore := &recordingStore{}
 	secondService := NewService(secondStore, fixedClock{})
-	_, err = secondService.AppendTransaction(context.Background(), "subject", "valid-key-000001", "/path", AppendTransactionRequest{
+	_, err = secondService.AppendTransaction(context.Background(), RequestContext{}, "subject", "valid-key-000001", "/path", AppendTransactionRequest{
 		PortfolioID:     "portfolio-id",
 		TransactionType: "BUY",
 		Ticker:          &ticker,

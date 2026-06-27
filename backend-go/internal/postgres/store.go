@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -114,15 +116,30 @@ func (s *Store) GetPortfolio(ctx context.Context, subjectID string, portfolioID 
 	return getPortfolioQuery(ctx, s.db, subjectID, portfolioID)
 }
 
-func (s *Store) ListTransactions(ctx context.Context, subjectID string, portfolioID string, limit int) ([]verticalslice.Transaction, error) {
+func (s *Store) ListTransactions(ctx context.Context, subjectID string, portfolioID string, filter verticalslice.TransactionFilter) ([]verticalslice.Transaction, error) {
 	if _, err := s.GetPortfolio(ctx, subjectID, portfolioID); err != nil {
 		return nil, err
 	}
+	args := []any{portfolioID}
+	conditions := []string{"te.portfolio_id = $1"}
+	if filter.TransactionType != "" {
+		args = append(args, filter.TransactionType)
+		conditions = append(conditions, "te.transaction_type = $"+strconv.Itoa(len(args)))
+	}
+	if filter.FromDate != "" {
+		args = append(args, filter.FromDate)
+		conditions = append(conditions, "te.trade_date >= $"+strconv.Itoa(len(args))+"::date")
+	}
+	if filter.ToDate != "" {
+		args = append(args, filter.ToDate)
+		conditions = append(conditions, "te.trade_date <= $"+strconv.Itoa(len(args))+"::date")
+	}
+	args = append(args, filter.Limit)
 	rows, err := s.db.QueryContext(ctx, transactionSelectSQL()+`
-		WHERE te.portfolio_id = $1
-		ORDER BY te.trade_date DESC, te.entry_id DESC
-		LIMIT $2
-	`, portfolioID, limit)
+			WHERE `+strings.Join(conditions, " AND ")+`
+			ORDER BY te.trade_date DESC, te.entry_id DESC
+			LIMIT $`+strconv.Itoa(len(args))+`
+		`, args...)
 	if err != nil {
 		return nil, err
 	}

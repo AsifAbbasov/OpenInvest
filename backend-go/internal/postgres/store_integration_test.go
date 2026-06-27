@@ -29,7 +29,7 @@ func TestStoreVerticalSlice(t *testing.T) {
 	ctx := context.Background()
 	subjectID := uuid.NewString()
 
-	portfolio, err := service.CreatePortfolio(ctx, subjectID, "portfolio-key-000001", "/api/v1/portfolios", verticalslice.CreatePortfolioRequest{
+	portfolio, err := service.CreatePortfolio(ctx, verticalslice.RequestContext{}, subjectID, "portfolio-key-000001", "/api/v1/portfolios", verticalslice.CreatePortfolioRequest{
 		Name:         "Long-term capital",
 		BaseCurrency: verticalslice.RUB,
 	})
@@ -40,7 +40,7 @@ func TestStoreVerticalSlice(t *testing.T) {
 	ticker := "SBER"
 	quantity := decimal.Must("100.00000000")
 	unitPrice := verticalslice.Money{Amount: decimal.Must("280.00000000"), Currency: verticalslice.RUB}
-	_, err = service.AppendTransaction(ctx, subjectID, "transaction-key-000001", "/api/v1/portfolios/"+portfolio.ID+"/transactions", verticalslice.AppendTransactionRequest{
+	_, err = service.AppendTransaction(ctx, verticalslice.RequestContext{}, subjectID, "transaction-key-000001", "/api/v1/portfolios/"+portfolio.ID+"/transactions", verticalslice.AppendTransactionRequest{
 		PortfolioID:     portfolio.ID,
 		TransactionType: "BUY",
 		Ticker:          &ticker,
@@ -54,7 +54,7 @@ func TestStoreVerticalSlice(t *testing.T) {
 		t.Fatalf("append transaction: %v", err)
 	}
 
-	_, err = service.AppendTransaction(ctx, subjectID, "transaction-key-000002", "/api/v1/portfolios/"+portfolio.ID+"/transactions", verticalslice.AppendTransactionRequest{
+	_, err = service.AppendTransaction(ctx, verticalslice.RequestContext{}, subjectID, "transaction-key-000002", "/api/v1/portfolios/"+portfolio.ID+"/transactions", verticalslice.AppendTransactionRequest{
 		PortfolioID:     portfolio.ID,
 		TransactionType: "BUY",
 		Ticker:          &ticker,
@@ -83,7 +83,7 @@ func TestStoreVerticalSlice(t *testing.T) {
 
 	backdatedQuantity := decimal.Must("10.00000000")
 	backdatedPrice := verticalslice.Money{Amount: decimal.Must("100.00000000"), Currency: verticalslice.RUB}
-	_, err = service.AppendTransaction(ctx, subjectID, "transaction-key-000003", "/api/v1/portfolios/"+portfolio.ID+"/transactions", verticalslice.AppendTransactionRequest{
+	_, err = service.AppendTransaction(ctx, verticalslice.RequestContext{}, subjectID, "transaction-key-000003", "/api/v1/portfolios/"+portfolio.ID+"/transactions", verticalslice.AppendTransactionRequest{
 		PortfolioID:     portfolio.ID,
 		TransactionType: "BUY",
 		Ticker:          &ticker,
@@ -111,5 +111,18 @@ func TestStoreVerticalSlice(t *testing.T) {
 	}
 	if got := summary.StockValue.Amount.String(); got != "57000.00000000" {
 		t.Fatalf("expected stock value 57000.00000000 after backdated rebuild, got %s", got)
+	}
+
+	filtered, err := service.ListTransactions(ctx, subjectID, portfolio.ID, verticalslice.TransactionFilter{
+		TransactionType: "BUY",
+		FromDate:        "2026-01-06",
+		ToDate:          "2026-01-10",
+		Limit:           10,
+	})
+	if err != nil {
+		t.Fatalf("list filtered transactions: %v", err)
+	}
+	if len(filtered) != 2 {
+		t.Fatalf("expected 2 filtered transactions, got %d", len(filtered))
 	}
 }

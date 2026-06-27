@@ -39,7 +39,7 @@ func (s *Service) ListPortfolios(ctx context.Context, subjectID string, limit in
 	return s.store.ListPortfolios(ctx, subjectID, normalizeLimit(limit, 20, 100))
 }
 
-func (s *Service) CreatePortfolio(ctx context.Context, subjectID string, idempotencyKey string, requestPath string, request CreatePortfolioRequest) (Portfolio, error) {
+func (s *Service) CreatePortfolio(ctx context.Context, requestContext RequestContext, subjectID string, idempotencyKey string, requestPath string, request CreatePortfolioRequest) (Portfolio, error) {
 	if err := validateIdempotencyKey(idempotencyKey); err != nil {
 		return Portfolio{}, err
 	}
@@ -51,7 +51,7 @@ func (s *Service) CreatePortfolio(ctx context.Context, subjectID string, idempot
 		return Portfolio{}, fmt.Errorf("%w: baseCurrency must be RUB", ErrInvalidInput)
 	}
 
-	command, err := s.command(subjectID, idempotencyKey, requestPath, request)
+	command, err := s.command(requestContext, subjectID, idempotencyKey, requestPath, request)
 	if err != nil {
 		return Portfolio{}, err
 	}
@@ -62,11 +62,32 @@ func (s *Service) GetPortfolio(ctx context.Context, subjectID string, portfolioI
 	return s.store.GetPortfolio(ctx, subjectID, portfolioID)
 }
 
-func (s *Service) ListTransactions(ctx context.Context, subjectID string, portfolioID string, limit int) ([]Transaction, error) {
-	return s.store.ListTransactions(ctx, subjectID, portfolioID, normalizeLimit(limit, 50, 100))
+func (s *Service) ListTransactions(ctx context.Context, subjectID string, portfolioID string, filter TransactionFilter) ([]Transaction, error) {
+	filter.Limit = normalizeLimit(filter.Limit, 50, 100)
+	if strings.TrimSpace(filter.TransactionType) != "" {
+		switch filter.TransactionType {
+		case "BUY", "SELL", "DIVIDEND", "COUPON", "DEPOSIT", "WITHDRAWAL", "FEE", "TAX", "CORRECTION", "REVERSAL":
+		default:
+			return nil, fmt.Errorf("%w: transactionType is invalid", ErrInvalidInput)
+		}
+	}
+	if strings.TrimSpace(filter.FromDate) != "" {
+		if _, err := time.Parse("2006-01-02", filter.FromDate); err != nil {
+			return nil, fmt.Errorf("%w: fromDate must be YYYY-MM-DD", ErrInvalidInput)
+		}
+	}
+	if strings.TrimSpace(filter.ToDate) != "" {
+		if _, err := time.Parse("2006-01-02", filter.ToDate); err != nil {
+			return nil, fmt.Errorf("%w: toDate must be YYYY-MM-DD", ErrInvalidInput)
+		}
+	}
+	if filter.FromDate != "" && filter.ToDate != "" && filter.FromDate > filter.ToDate {
+		return nil, fmt.Errorf("%w: fromDate must be before or equal to toDate", ErrInvalidInput)
+	}
+	return s.store.ListTransactions(ctx, subjectID, portfolioID, filter)
 }
 
-func (s *Service) AppendTransaction(ctx context.Context, subjectID string, idempotencyKey string, requestPath string, request AppendTransactionRequest) (Transaction, error) {
+func (s *Service) AppendTransaction(ctx context.Context, requestContext RequestContext, subjectID string, idempotencyKey string, requestPath string, request AppendTransactionRequest) (Transaction, error) {
 	if err := validateIdempotencyKey(idempotencyKey); err != nil {
 		return Transaction{}, err
 	}
@@ -74,7 +95,7 @@ func (s *Service) AppendTransaction(ctx context.Context, subjectID string, idemp
 		return Transaction{}, err
 	}
 
-	command, err := s.command(subjectID, idempotencyKey, requestPath, request)
+	command, err := s.command(requestContext, subjectID, idempotencyKey, requestPath, request)
 	if err != nil {
 		return Transaction{}, err
 	}
@@ -90,7 +111,7 @@ func (s *Service) GetPortfolioSummary(ctx context.Context, subjectID string, por
 	return s.store.GetPortfolioSummary(ctx, subjectID, portfolioID, asOfDate)
 }
 
-func (s *Service) command(subjectID string, idempotencyKey string, requestPath string, payload any) (CommandContext, error) {
+func (s *Service) command(requestContext RequestContext, subjectID string, idempotencyKey string, requestPath string, payload any) (CommandContext, error) {
 	encoded, err := json.Marshal(payload)
 	if err != nil {
 		return CommandContext{}, err
@@ -102,6 +123,8 @@ func (s *Service) command(subjectID string, idempotencyKey string, requestPath s
 		IdempotencyKey: strings.TrimSpace(idempotencyKey),
 		RequestHash:    hex.EncodeToString(hash[:]),
 		RequestPath:    requestPath,
+		RequestID:      requestContext.RequestID,
+		TraceID:        requestContext.TraceID,
 		Now:            now,
 	}, nil
 }
