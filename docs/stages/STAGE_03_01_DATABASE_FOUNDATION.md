@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-01 |
-| Version | 0.1.0 |
-| Status | In Progress |
+| Version | 0.1.1 |
+| Status | Complete / Merged into `develop` |
 | Owner | Builder Engineer |
 | Supersedes | Stage 3 PR 3.1 placeholder |
 | Dependencies | `STAGE_03_FIRST_VERTICAL_SLICE.md`; `ER_MODEL_STAGE_02.md`; `MIGRATION_STRATEGY_STAGE_02.md`; ADR-002; ADR-006 |
 | Last Review Date | 2026-06-27 |
-| Next Review Date | Before Stage 3.1 merge |
+| Next Review Date | 2026-12-27 |
 
 ## Purpose
 
