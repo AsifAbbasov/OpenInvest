@@ -4,12 +4,12 @@
 | --- | --- |
 | Document ID | STAGE-03-02 |
 | Version | 0.1.0 |
-| Status | In progress |
+| Status | Complete / merged into `develop` |
 | Owner | Builder Engineer |
 | Supersedes | Stage 3.2 roadmap placeholder |
 | Dependencies | `STAGE_03_FIRST_VERTICAL_SLICE.md`; `STAGE_03_01_DATABASE_FOUNDATION.md`; ADR-001; ADR-002; ADR-003; ADR-006 |
 | Last Review Date | 2026-06-27 |
-| Next Review Date | Before Stage 3.2 merge |
+| Next Review Date | 2026-12-27 |
 
 ## Purpose
 
@@ -87,7 +87,7 @@ Local checks run during implementation:
 - Stage 3.1 migration applied to a disposable PostgreSQL container before the integration test;
 - disposable PostgreSQL container and volume removed after verification.
 
-Additional repository checks still required before PR review:
+Repository checks completed before merge:
 
 - Python tests;
 - frontend typecheck/build;
@@ -107,6 +107,18 @@ Additional repository checks still required before PR review:
 - The summary contains no external market prices, no XIRR calculation, and no purchasing-power
   equivalents yet.
 - Live database verification is local/disposable; no production migration rehearsal is claimed.
+
+## Closure
+
+Stage 3.2 was squash-merged into `develop` at:
+
+```text
+8971918c8046fb9a2d6bf9f97897432cf08fbde1
+```
+
+Internal review and targeted re-review approved the final head commit before merge. GitHub CI was
+green for Go tests, Python tests, frontend build/typecheck, OpenAPI contract, Docker Compose config,
+and PostgreSQL migration validation.
 
 ## Stop condition
 

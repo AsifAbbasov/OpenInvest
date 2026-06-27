@@ -2,9 +2,12 @@
 
 OpenInvest is an independent, privacy-first investment analytics platform. It is not a broker, bank, asset manager, trading system, or investment adviser.
 
-This repository contains the closed Stage 2 contract/canonical-model baseline and the accepted
-Next.js Web presentation-layer baseline. There is no product business logic yet; Stage 3 has not
-started.
+This repository contains the closed Stage 2 contract/canonical-model baseline, the accepted Next.js
+Web presentation-layer baseline, and the merged Stage 3.2 Go API vertical-slice backend.
+
+The current product-governance focus is reducing public-MVP adoption risk: sharpening the initial
+investor segment, keeping Purchasing Power secondary to real return, keeping tax calculation
+deterministic, and moving broker file import/reconciliation into near-term design consideration.
 
 ## Components
 
@@ -34,3 +37,4 @@ docker compose up -d
 Architecture changes require an ADR and Source of Truth update. Start with `docs/SOURCE_OF_TRUTH.md` and `docs/ARCHITECTURE_FREEZE_v1.2.md`.
 
 Implementation progress and completed-stage reports are recorded in `docs/IMPLEMENTATION_LOG.md`.
+Product risk decisions are recorded in `docs/product/MVP_PRODUCT_RISK_REFINEMENT.md`.

@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.0 |
+| Version | 0.1.1 |
 | Status | Planning / Not Implemented |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
@@ -63,6 +63,11 @@ Forbidden in Stage 3:
 - full authentication implementation beyond minimal local/dev guard if explicitly approved;
 - production deployment;
 - styling/design-system expansion beyond basic readable screens.
+
+Broker import is still forbidden inside the first vertical-slice implementation. However,
+`product/MVP_PRODUCT_RISK_REFINEMENT.md` promotes broker file import and reconciliation to a
+near-term public-MVP readiness candidate after Stage 3.4, because manual entry alone is not a strong
+public-MVP adoption path.
 
 ## Required implementation slices
 
@@ -158,6 +163,47 @@ Allowed:
 Forbidden:
 
 - expanding functional scope beyond the first slice.
+
+### PR 3.5 — Broker file import and reconciliation design
+
+Purpose:
+
+- design the smallest safe import path that reduces manual-entry friction before public MVP.
+
+Allowed:
+
+- documentation only;
+- broker-file format inventory;
+- reconciliation workflow design;
+- privacy/security review;
+- data-source/licensing review;
+- test-vector plan.
+
+Forbidden:
+
+- parser implementation;
+- direct broker API integration;
+- credential collection;
+- history mutation;
+- external provider ingestion.
+
+### PR 3.6 — Broker file import vertical slice
+
+Purpose:
+
+- implement the approved file-import path if PR 3.5 is accepted.
+
+Allowed:
+
+- user-supplied CSV/XLSX import if approved by design;
+- normalization, duplicate detection, conflict detection, user review, and append-only import;
+- import audit events.
+
+Forbidden:
+
+- credential scraping;
+- direct broker API synchronization;
+- silent mutation of existing ledger records.
 
 ## Stage 3 domain boundaries
 

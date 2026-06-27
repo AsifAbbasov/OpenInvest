@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.4 |
+| Version | 1.1.5 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -91,3 +91,19 @@
   and summary read without changing the frozen OpenAPI contract.
 - Kept frontend screens, mobile, tax, dividends, external providers, workers, and Redis out of
   Stage 3.2 scope.
+
+## 2026-06-27 — Stage 3.2 closed and MVP product-risk refinement added
+
+- Squash-merged PR #8 into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1`.
+- Closed Stage 3.2 Go API Vertical-Slice Backend after internal review approval, green CI, and
+  explicit human approval.
+- Added `product/MVP_PRODUCT_RISK_REFINEMENT.md` to convert PRD criticism into controlled MVP
+  risk governance.
+- Sharpened the initial ICP toward long-term, dividend, FIRE, and multi-account investors with
+  real portfolio-accounting pain.
+- Moved broker file import and reconciliation into near-term public-MVP readiness consideration
+  while keeping direct broker API synchronization and credential scraping out of current scope.
+- Clarified that Tax AI cannot be a calculation source; any future tax core must be deterministic
+  and test-vector driven.
+- Repositioned Purchasing Power as a secondary explanatory insight below capital, real return,
+  dividends/coupons, and inflation-adjusted performance.

@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.4 |
+| Version | 1.4.5 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -15,10 +15,10 @@
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 2 — Contract and Canonical Model Freeze**
+**Last completed implementation stage: Stage 3.2 — Go API Vertical-Slice Backend**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `b1a3f23`**
-**Current active work item: Stage 3.2 — Go API Vertical-Slice Backend**
+**Current canonical implementation baseline: `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1`**
+**Current active work item: Product risk refinement before Stage 3.3**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -31,6 +31,10 @@ No lower-priority document, code, or comment may override a higher-priority deci
 ## Product definition
 
 OpenInvest is a **Personal Capital Operating System**. It is not a broker, bank, trading terminal, investment adviser, or tax service.
+
+The first public MVP targets investors with real portfolio-accounting pain: long-term, dividend,
+FIRE, and multi-account investors who need independent, explainable real-return analytics. It is not
+optimized for casual brokerage-app users who only need a simple green/red return badge.
 
 ## Frozen stack and architecture
 
@@ -73,6 +77,18 @@ Included: registration; portfolio; transactions; stock card; bond card; dividend
 
 Excluded: AI Assistant; scenarios; premium analytics; Tax XML export; email automation; forecasts; family accounts; public API; foreign securities; mobile applications.
 
+Public-MVP readiness additionally requires an approved import/reconciliation path so users are not
+forced to enter large transaction histories manually. The preferred first import path is user-supplied
+broker files with explicit review, not credential scraping or direct broker API synchronization.
+
+Purchasing Power remains an MVP differentiator, but it is a secondary explanatory insight. Real
+return, capital, dividends/coupons, and inflation-adjusted performance stay above consumer-good
+equivalents in dashboard priority.
+
+Tax export remains outside MVP. Any future tax calculation core must be deterministic and covered by
+financial/legal test vectors; AI may explain or assist review, but must never be the source of tax
+truth.
+
 ## Financial standard
 
 - Decimal only; binary float forbidden for financial values.
@@ -103,12 +119,13 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 | Capability | MVP | State |
 | --- | --- | --- |
 | Registration and privacy defaults | Yes | Planned |
-| Portfolio and transactions | Yes | Stage 3.2 Go API vertical slice |
+| Portfolio and transactions | Yes | Stage 3.2 Go API vertical slice merged |
 | MOEX shares and bonds | Yes | Planned |
-| Dashboard and snapshots | Yes | Stage 3.2 Go API vertical slice |
+| Dashboard and snapshots | Yes | Stage 3.2 Go API vertical slice merged |
 | WAC, XIRR, real/inflation returns | Yes | Planned |
 | Dividend calculator/calendar | Yes | Planned |
-| Purchasing power | Yes | Planned |
+| Broker file import and reconciliation | Public-MVP readiness candidate | Product risk refinement |
+| Purchasing power | Yes | Planned as secondary insight |
 | Tax export | No | Experimental; feature flag off |
 | Foreign securities | No | Backlog v2.0 |
 | AI, mobile, premium, public API | No | Backlog v2.0 |
