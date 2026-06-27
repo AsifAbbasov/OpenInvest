@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.0.5 |
+| Version | 1.0.6 |
 | Status | Active |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
@@ -20,7 +20,8 @@ This log is the index of implementation stages. Every stage must document its pu
 | 2 — Contract and Canonical Model Freeze | Freeze the MVP API, canonical DTOs, logical ER model, and migration strategy | Complete / closed; merged into `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | [Stage 2 report](stages/STAGE_02_CONTRACT_AND_CANONICAL_MODEL.md) |
 | Web architecture amendment | Replace the Web skeleton with presentation-only Next.js under ADR-007 | Complete / closed; merged into `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | [Amendment report](stages/WEB_FRONTEND_ARCHITECTURE_AMENDMENT.md) |
 | 3 — First Vertical Slice | Implement the first thin MVP path after contract and Web baseline approval | Planning complete; implementation split into small PRs | [Stage 3 plan](stages/STAGE_03_FIRST_VERTICAL_SLICE.md) |
-| 3.1 — Local Database Foundation | Add minimal PostgreSQL structures and migration validation for the first vertical slice | In progress | [Stage 3.1 report](stages/STAGE_03_01_DATABASE_FOUNDATION.md) |
+| 3.1 — Local Database Foundation | Add minimal PostgreSQL structures and migration validation for the first vertical slice | Complete / closed; merged into `develop` at `b1a3f23` | [Stage 3.1 report](stages/STAGE_03_01_DATABASE_FOUNDATION.md) |
+| 3.2 — Go API Vertical-Slice Backend | Implement portfolio create, transaction append, snapshot rebuild, and summary read in Go | In progress | [Stage 3.2 report](stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md) |
 
 ## Stage completion protocol
 

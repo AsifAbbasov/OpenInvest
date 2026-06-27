@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.3 |
+| Version | 1.1.4 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
@@ -15,7 +15,7 @@
 
 | ID | Title | Version | Status | Location |
 | --- | --- | --- | --- | --- |
-| SOT-001 | Source of Truth | 1.4.3 | Approved | `SOURCE_OF_TRUTH.md` |
+| SOT-001 | Source of Truth | 1.4.4 | Approved | `SOURCE_OF_TRUTH.md` |
 | 42 | Architecture Amendments | 1.1.0 | Approved | `specifications/current/DOCUMENT_42_ARCHITECTURE_AMENDMENTS_v1.1.md` |
 | 43 | Architecture Decision Closure | 1.2.0 | Final | `specifications/current/DOCUMENT_43_ARCHITECTURE_CLOSURE_v1.2.md` |
 
@@ -73,7 +73,8 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Document | Status | Location |
 | --- | --- | --- |
 | Stage 3 plan | Planning / not implemented | `stages/STAGE_03_FIRST_VERTICAL_SLICE.md` |
-| Stage 3.1 database foundation | In progress | `stages/STAGE_03_01_DATABASE_FOUNDATION.md` |
+| Stage 3.1 database foundation | Complete / merged into `develop` | `stages/STAGE_03_01_DATABASE_FOUNDATION.md` |
+| Stage 3.2 Go API vertical slice | In progress | `stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md` |
 
 ## Web presentation amendment documents
 

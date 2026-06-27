@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.1 |
+| Version | 1.1.2 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
@@ -18,8 +18,8 @@
 | 2 — Contract and Canonical Model Freeze | Reviewed MVP API contract, schemas, canonical DTOs, ER draft, migration strategy | Complete |
 | Web architecture amendment | Replace Vite skeleton with presentation-only Next.js under ADR-007 | Complete |
 | 3 — First Vertical Slice Planning | Plan the first portfolio → transaction → snapshot → API → Web path | Complete |
-| 3.1 — Local database foundation | Minimal PostgreSQL schemas/migrations for the first slice | In progress |
-| 3.2 — Go API vertical-slice backend | Portfolio, transaction append, snapshot rebuild, summary read | Planned after Stage 3.1 database foundation approval/merge |
+| 3.1 — Local database foundation | Minimal PostgreSQL schemas/migrations for the first slice | Complete |
+| 3.2 — Go API vertical-slice backend | Portfolio, transaction append, snapshot rebuild, summary read | In progress |
 | 3.3 — Next.js presentation slice | Render the first slice through the Go API only | Planned after backend slice approval |
 | 3.4 — End-to-end verification | Prove the complete path and update onboarding docs | Planned |
 

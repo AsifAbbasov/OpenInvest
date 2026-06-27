@@ -1,0 +1,607 @@
+package postgres
+
+import (
+	"context"
+	"database/sql"
+	"errors"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
+	_ "github.com/jackc/pgx/v5/stdlib"
+
+	"github.com/openinvest/openinvest/backend-go/internal/decimal"
+	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
+)
+
+var (
+	ErrNotFound             = errors.New("not found")
+	ErrIdempotencyConflict  = errors.New("idempotency conflict")
+	ErrIdempotencyInFlight  = errors.New("idempotency in flight")
+	ErrUnsupportedDuplicate = errors.New("duplicate response is not available")
+)
+
+type Store struct {
+	db *sql.DB
+}
+
+func Open(databaseURL string) (*Store, error) {
+	db, err := sql.Open("pgx", databaseURL)
+	if err != nil {
+		return nil, err
+	}
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxLifetime(30 * time.Minute)
+	return &Store{db: db}, nil
+}
+
+func (s *Store) Close() error {
+	return s.db.Close()
+}
+
+func (s *Store) Ping(ctx context.Context) error {
+	return s.db.PingContext(ctx)
+}
+
+func (s *Store) ListPortfolios(ctx context.Context, subjectID string, limit int) ([]verticalslice.Portfolio, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT id, name, base_currency, version, created_at, updated_at
+		FROM investment.portfolios
+		WHERE subject_id = $1 AND portfolio_state = 'active'
+		ORDER BY updated_at DESC, id DESC
+		LIMIT $2
+	`, subjectID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var portfolios []verticalslice.Portfolio
+	for rows.Next() {
+		portfolio, err := scanPortfolio(rows)
+		if err != nil {
+			return nil, err
+		}
+		portfolios = append(portfolios, portfolio)
+	}
+	return portfolios, rows.Err()
+}
+
+func (s *Store) CreatePortfolio(ctx context.Context, command verticalslice.CommandContext, request verticalslice.CreatePortfolioRequest) (verticalslice.Portfolio, error) {
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return verticalslice.Portfolio{}, err
+	}
+	defer rollback(tx)
+
+	if err := ensureSubject(ctx, tx, command.SubjectID); err != nil {
+		return verticalslice.Portfolio{}, err
+	}
+
+	portfolioID, duplicate, err := reserveCommand(ctx, tx, command, "POST")
+	if err != nil {
+		return verticalslice.Portfolio{}, err
+	}
+	if duplicate {
+		portfolio, err := getPortfolioTx(ctx, tx, command.SubjectID, portfolioID)
+		if err != nil {
+			return verticalslice.Portfolio{}, err
+		}
+		return portfolio, tx.Commit()
+	}
+
+	now := command.Now
+	_, err = tx.ExecContext(ctx, `
+		INSERT INTO investment.portfolios
+			(id, subject_id, name, base_currency, portfolio_state, version, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, 'active', 1, $5, $5)
+	`, portfolioID, command.SubjectID, request.Name, request.BaseCurrency, now)
+	if err != nil {
+		return verticalslice.Portfolio{}, err
+	}
+
+	portfolio, err := getPortfolioTx(ctx, tx, command.SubjectID, portfolioID)
+	if err != nil {
+		return verticalslice.Portfolio{}, err
+	}
+	if err := completeCommand(ctx, tx, portfolioID); err != nil {
+		return verticalslice.Portfolio{}, err
+	}
+	return portfolio, tx.Commit()
+}
+
+func (s *Store) GetPortfolio(ctx context.Context, subjectID string, portfolioID string) (verticalslice.Portfolio, error) {
+	return getPortfolioQuery(ctx, s.db, subjectID, portfolioID)
+}
+
+func (s *Store) ListTransactions(ctx context.Context, subjectID string, portfolioID string, filter verticalslice.TransactionFilter) ([]verticalslice.Transaction, error) {
+	if _, err := s.GetPortfolio(ctx, subjectID, portfolioID); err != nil {
+		return nil, err
+	}
+	args := []any{portfolioID}
+	conditions := []string{"te.portfolio_id = $1"}
+	if filter.TransactionType != "" {
+		args = append(args, filter.TransactionType)
+		conditions = append(conditions, "te.transaction_type = $"+strconv.Itoa(len(args)))
+	}
+	if filter.FromDate != "" {
+		args = append(args, filter.FromDate)
+		conditions = append(conditions, "te.trade_date >= $"+strconv.Itoa(len(args))+"::date")
+	}
+	if filter.ToDate != "" {
+		args = append(args, filter.ToDate)
+		conditions = append(conditions, "te.trade_date <= $"+strconv.Itoa(len(args))+"::date")
+	}
+	args = append(args, filter.Limit)
+	rows, err := s.db.QueryContext(ctx, transactionSelectSQL()+`
+			WHERE `+strings.Join(conditions, " AND ")+`
+			ORDER BY te.trade_date DESC, te.entry_id DESC
+			LIMIT $`+strconv.Itoa(len(args))+`
+		`, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var transactions []verticalslice.Transaction
+	for rows.Next() {
+		transaction, err := scanTransaction(rows)
+		if err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, transaction)
+	}
+	return transactions, rows.Err()
+}
+
+func (s *Store) AppendTransaction(ctx context.Context, command verticalslice.CommandContext, request verticalslice.AppendTransactionRequest) (verticalslice.Transaction, error) {
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return verticalslice.Transaction{}, err
+	}
+	defer rollback(tx)
+
+	if _, err := getPortfolioTx(ctx, tx, command.SubjectID, request.PortfolioID); err != nil {
+		return verticalslice.Transaction{}, err
+	}
+
+	entryID, duplicate, err := reserveCommand(ctx, tx, command, "POST")
+	if err != nil {
+		return verticalslice.Transaction{}, err
+	}
+	if duplicate {
+		transaction, err := getTransactionByEntryTx(ctx, tx, request.PortfolioID, entryID)
+		if err != nil {
+			return verticalslice.Transaction{}, err
+		}
+		return transaction, tx.Commit()
+	}
+
+	gross, err := verticalslice.GrossFor(request)
+	if err != nil {
+		return verticalslice.Transaction{}, err
+	}
+	assetID, err := ensureAsset(ctx, tx, request)
+	if err != nil {
+		return verticalslice.Transaction{}, err
+	}
+
+	transactionID := uuid.NewString()
+	var ticker *string
+	if request.Ticker != nil {
+		value := *request.Ticker
+		ticker = &value
+	}
+	_, err = tx.ExecContext(ctx, `
+		INSERT INTO investment.transaction_entries (
+			entry_id, transaction_id, portfolio_id, asset_id, revision, transaction_type,
+			quantity, unit_price_amount, unit_price_currency,
+			gross_amount, gross_currency, commission_amount, commission_currency,
+			tax_amount, tax_currency, trade_date, settlement_date, note,
+			created_at, request_id, trace_id
+		)
+		VALUES (
+			$1, $2, $3, $4, 1, $5,
+			$6, $7, $8,
+			$9, 'RUB', $10, 'RUB',
+			$11, 'RUB', $12, $13, $14,
+			$15, NULLIF($16, '')::uuid, NULLIF($17, '')
+		)
+	`, entryID, transactionID, request.PortfolioID, assetID, request.TransactionType,
+		decimalString(request.Quantity), moneyAmount(request.UnitPrice), moneyCurrency(request.UnitPrice),
+		gross.Amount.String(), request.Commission.Amount.String(),
+		request.Tax.Amount.String(), request.TradeDate, request.SettlementDate, request.Note,
+		command.Now, command.RequestID, command.TraceID)
+	if err != nil {
+		return verticalslice.Transaction{}, err
+	}
+
+	if err := rebuildAffectedSnapshots(ctx, tx, request.PortfolioID, request.TradeDate, command.Now); err != nil {
+		return verticalslice.Transaction{}, err
+	}
+	if err := completeCommand(ctx, tx, entryID); err != nil {
+		return verticalslice.Transaction{}, err
+	}
+
+	transaction, err := getTransactionByEntryTx(ctx, tx, request.PortfolioID, entryID)
+	if err != nil {
+		return verticalslice.Transaction{}, err
+	}
+	_ = ticker
+	return transaction, tx.Commit()
+}
+
+func (s *Store) GetPortfolioSummary(ctx context.Context, subjectID string, portfolioID string, asOfDate string) (verticalslice.PortfolioSummary, error) {
+	if _, err := s.GetPortfolio(ctx, subjectID, portfolioID); err != nil {
+		return verticalslice.PortfolioSummary{}, err
+	}
+	return getPortfolioSummary(ctx, s.db, portfolioID, asOfDate)
+}
+
+type scanner interface {
+	Scan(dest ...any) error
+}
+
+type queryer interface {
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+}
+
+func ensureSubject(ctx context.Context, tx *sql.Tx, subjectID string) error {
+	_, err := tx.ExecContext(ctx, `
+		INSERT INTO investment.subjects (id, subject_state)
+		VALUES ($1, 'active')
+		ON CONFLICT (id) DO NOTHING
+	`, subjectID)
+	return err
+}
+
+func reserveCommand(ctx context.Context, tx *sql.Tx, command verticalslice.CommandContext, method string) (string, bool, error) {
+	commandID := uuid.NewString()
+	var existingID string
+	var existingHash string
+	var terminalStatus sql.NullString
+	err := tx.QueryRowContext(ctx, `
+		INSERT INTO investment.command_deduplication
+			(id, principal_id, method, canonical_path, idempotency_key, request_hash, created_at, expires_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7::timestamptz, $7::timestamptz + interval '24 hours')
+		ON CONFLICT (principal_id, method, canonical_path, idempotency_key)
+		DO UPDATE SET idempotency_key = investment.command_deduplication.idempotency_key
+		RETURNING id, request_hash, terminal_status
+	`, commandID, command.SubjectID, method, command.RequestPath, command.IdempotencyKey, command.RequestHash, command.Now).
+		Scan(&existingID, &existingHash, &terminalStatus)
+	if err != nil {
+		return "", false, err
+	}
+	if existingID == commandID {
+		return commandID, false, nil
+	}
+	if existingHash != command.RequestHash {
+		return "", false, ErrIdempotencyConflict
+	}
+	if !terminalStatus.Valid {
+		return "", false, ErrIdempotencyInFlight
+	}
+	return existingID, true, nil
+}
+
+func completeCommand(ctx context.Context, tx *sql.Tx, commandID string) error {
+	_, err := tx.ExecContext(ctx, `
+		UPDATE investment.command_deduplication
+		SET terminal_status = 'success', response_hash = request_hash
+		WHERE id = $1
+	`, commandID)
+	return err
+}
+
+func getPortfolioQuery(ctx context.Context, db queryer, subjectID string, portfolioID string) (verticalslice.Portfolio, error) {
+	return scanPortfolio(db.QueryRowContext(ctx, `
+		SELECT id, name, base_currency, version, created_at, updated_at
+		FROM investment.portfolios
+		WHERE id = $1 AND subject_id = $2 AND portfolio_state = 'active'
+	`, portfolioID, subjectID))
+}
+
+func getPortfolioTx(ctx context.Context, tx *sql.Tx, subjectID string, portfolioID string) (verticalslice.Portfolio, error) {
+	return getPortfolioQuery(ctx, tx, subjectID, portfolioID)
+}
+
+func scanPortfolio(row scanner) (verticalslice.Portfolio, error) {
+	var portfolio verticalslice.Portfolio
+	err := row.Scan(&portfolio.ID, &portfolio.Name, &portfolio.BaseCurrency, &portfolio.Version, &portfolio.CreatedAt, &portfolio.UpdatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return verticalslice.Portfolio{}, ErrNotFound
+	}
+	return portfolio, err
+}
+
+func transactionSelectSQL() string {
+	return `
+		SELECT
+			te.transaction_id, te.portfolio_id, te.transaction_type,
+			CASE
+				WHEN EXISTS (
+					SELECT 1 FROM investment.transaction_entries later
+					WHERE later.transaction_id = te.transaction_id AND later.revision > te.revision
+				) THEN 'CORRECTED'
+				WHEN EXISTS (
+					SELECT 1 FROM investment.transaction_entries reversal
+					WHERE reversal.reverses_transaction_id = te.transaction_id
+				) THEN 'REVERSED'
+				ELSE 'ACTIVE'
+			END AS status,
+			a.ticker,
+			te.quantity::text,
+			te.unit_price_amount::text,
+			te.unit_price_currency,
+			te.gross_amount::text,
+			te.commission_amount::text,
+			te.tax_amount::text,
+			te.trade_date::text,
+			te.settlement_date::text,
+			te.note,
+			te.revision,
+			te.created_at,
+			te.created_at AS updated_at
+		FROM investment.transaction_entries te
+		LEFT JOIN investment.assets a ON a.id = te.asset_id
+	`
+}
+
+func getTransactionByEntryTx(ctx context.Context, tx *sql.Tx, portfolioID string, entryID string) (verticalslice.Transaction, error) {
+	return scanTransaction(tx.QueryRowContext(ctx, transactionSelectSQL()+`
+		WHERE te.portfolio_id = $1 AND te.entry_id = $2
+	`, portfolioID, entryID))
+}
+
+func scanTransaction(row scanner) (verticalslice.Transaction, error) {
+	var transaction verticalslice.Transaction
+	var ticker sql.NullString
+	var quantity sql.NullString
+	var unitPriceAmount sql.NullString
+	var unitPriceCurrency sql.NullString
+	var grossAmount string
+	var commissionAmount string
+	var taxAmount string
+	var settlementDate sql.NullString
+	var note sql.NullString
+	err := row.Scan(
+		&transaction.ID, &transaction.PortfolioID, &transaction.TransactionType, &transaction.Status,
+		&ticker, &quantity, &unitPriceAmount, &unitPriceCurrency,
+		&grossAmount, &commissionAmount, &taxAmount,
+		&transaction.TradeDate, &settlementDate, &note,
+		&transaction.Revision, &transaction.CreatedAt, &transaction.UpdatedAt,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return verticalslice.Transaction{}, ErrNotFound
+	}
+	if err != nil {
+		return verticalslice.Transaction{}, err
+	}
+	if ticker.Valid {
+		transaction.Ticker = &ticker.String
+	}
+	if quantity.Valid {
+		parsed := decimal.Must(quantity.String)
+		transaction.Quantity = &parsed
+	}
+	if unitPriceAmount.Valid {
+		parsed := verticalslice.Money{Amount: decimal.Must(unitPriceAmount.String), Currency: unitPriceCurrency.String}
+		transaction.UnitPrice = &parsed
+	}
+	transaction.GrossAmount = verticalslice.Money{Amount: decimal.Must(grossAmount), Currency: verticalslice.RUB}
+	transaction.Commission = verticalslice.Money{Amount: decimal.Must(commissionAmount), Currency: verticalslice.RUB}
+	transaction.Tax = verticalslice.Money{Amount: decimal.Must(taxAmount), Currency: verticalslice.RUB}
+	if settlementDate.Valid {
+		transaction.SettlementDate = &settlementDate.String
+	}
+	if note.Valid {
+		transaction.Note = &note.String
+	}
+	return transaction, nil
+}
+
+func ensureAsset(ctx context.Context, tx *sql.Tx, request verticalslice.AppendTransactionRequest) (*string, error) {
+	if request.Ticker == nil {
+		return nil, nil
+	}
+	assetID := uuid.NewString()
+	_, err := tx.ExecContext(ctx, `
+		INSERT INTO investment.assets (id, ticker, asset_type, name, currency, market)
+		VALUES ($1, $2, 'stock', $2, 'RUB', 'MOEX')
+		ON CONFLICT (ticker) DO NOTHING
+	`, assetID, *request.Ticker)
+	if err != nil {
+		return nil, err
+	}
+	var existingID string
+	if err := tx.QueryRowContext(ctx, `SELECT id FROM investment.assets WHERE ticker = $1`, *request.Ticker).Scan(&existingID); err != nil {
+		return nil, err
+	}
+	return &existingID, nil
+}
+
+func rebuildAffectedSnapshots(ctx context.Context, tx *sql.Tx, portfolioID string, transactionTradeDate string, now time.Time) error {
+	rows, err := tx.QueryContext(ctx, `
+		SELECT snapshot_date::text
+		FROM analytics.portfolio_snapshots
+		WHERE portfolio_id = $1
+			AND snapshot_date >= $2::date
+			AND methodology_version = 'stage-03-02-local-cost-snapshot-v1'
+		UNION
+		SELECT $2::date::text
+		ORDER BY 1
+	`, portfolioID, transactionTradeDate)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	var snapshotDates []string
+	for rows.Next() {
+		var snapshotDate string
+		if err := rows.Scan(&snapshotDate); err != nil {
+			return err
+		}
+		snapshotDates = append(snapshotDates, snapshotDate)
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+
+	for _, snapshotDate := range snapshotDates {
+		if err := rebuildSnapshot(ctx, tx, portfolioID, snapshotDate, now); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func rebuildSnapshot(ctx context.Context, tx *sql.Tx, portfolioID string, snapshotDate string, now time.Time) error {
+	snapshotID := uuid.NewString()
+	_, err := tx.ExecContext(ctx, `
+		INSERT INTO analytics.portfolio_snapshots (
+			id, portfolio_id, snapshot_date,
+			total_value_amount, cash_value_amount, stock_value_amount, bond_value_amount,
+			invested_capital_amount, nominal_return_rate, real_return_rate,
+			snapshot_version, methodology_version, input_watermark, calculated_at
+		)
+		WITH ledger AS (
+			SELECT
+				COALESCE(SUM(CASE
+					WHEN transaction_type = 'DEPOSIT' THEN gross_amount
+					WHEN transaction_type = 'WITHDRAWAL' THEN -gross_amount
+					WHEN transaction_type = 'BUY' THEN -(gross_amount + commission_amount + tax_amount)
+					WHEN transaction_type = 'SELL' THEN gross_amount - commission_amount - tax_amount
+					ELSE 0
+				END), 0) AS cash_value,
+				COALESCE(SUM(CASE
+					WHEN transaction_type = 'BUY' THEN gross_amount
+					WHEN transaction_type = 'SELL' THEN -gross_amount
+					ELSE 0
+				END), 0) AS stock_value,
+				0::numeric AS bond_value,
+				COALESCE(SUM(CASE WHEN transaction_type = 'BUY' THEN gross_amount + commission_amount + tax_amount ELSE 0 END), 0) AS invested_capital,
+					COALESCE(MAX(created_at)::text, 'empty') AS watermark
+				FROM investment.transaction_entries
+				WHERE portfolio_id = $2
+					AND trade_date <= $3::date
+			), computed AS (
+			SELECT
+				cash_value,
+				stock_value,
+				bond_value,
+				invested_capital,
+				cash_value + stock_value + bond_value AS total_value,
+				CASE WHEN invested_capital > 0
+					THEN ((cash_value + stock_value + bond_value) - invested_capital) / invested_capital
+					ELSE 0
+				END AS nominal_return_rate,
+				watermark
+			FROM ledger
+		)
+		SELECT
+			$1, $2, $3::date,
+			total_value, cash_value, stock_value, bond_value,
+			invested_capital, nominal_return_rate, nominal_return_rate,
+				COALESCE((
+					SELECT MAX(snapshot_version) + 1
+					FROM analytics.portfolio_snapshots
+					WHERE portfolio_id = $2
+						AND snapshot_date = $3::date
+						AND methodology_version = 'stage-03-02-local-cost-snapshot-v1'
+				), 1),
+				'stage-03-02-local-cost-snapshot-v1', watermark, $4
+		FROM computed
+	`, snapshotID, portfolioID, snapshotDate, now)
+	return err
+}
+
+func getPortfolioSummary(ctx context.Context, db *sql.DB, portfolioID string, asOfDate string) (verticalslice.PortfolioSummary, error) {
+	var summary verticalslice.PortfolioSummary
+	var totalValue string
+	var cashValue string
+	var stockValue string
+	var bondValue string
+	var investedCapital string
+	var nominalReturn string
+	var calculatedAt time.Time
+	args := []any{portfolioID}
+	dateFilter := ""
+	if asOfDate != "" {
+		dateFilter = "AND snapshot_date <= $2::date"
+		args = append(args, asOfDate)
+	}
+	err := db.QueryRowContext(ctx, `
+		SELECT portfolio_id, snapshot_date::text, total_value_amount::text, cash_value_amount::text,
+			stock_value_amount::text, bond_value_amount::text, invested_capital_amount::text,
+			nominal_return_rate::text, methodology_version, calculated_at
+		FROM analytics.portfolio_snapshots
+		WHERE portfolio_id = $1 AND snapshot_status = 'calculated'
+		`+dateFilter+`
+		ORDER BY snapshot_date DESC, calculated_at DESC
+		LIMIT 1
+	`, args...).Scan(
+		&summary.PortfolioID, &summary.AsOfDate, &totalValue, &cashValue,
+		&stockValue, &bondValue, &investedCapital, &nominalReturn,
+		&summary.MethodologyVersion, &calculatedAt,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return verticalslice.PortfolioSummary{}, ErrNotFound
+	}
+	if err != nil {
+		return verticalslice.PortfolioSummary{}, err
+	}
+	summary.TotalValue = verticalslice.Money{Amount: decimal.Must(totalValue), Currency: verticalslice.RUB}
+	summary.CashValue = verticalslice.Money{Amount: decimal.Must(cashValue), Currency: verticalslice.RUB}
+	summary.StockValue = verticalslice.Money{Amount: decimal.Must(stockValue), Currency: verticalslice.RUB}
+	summary.BondValue = verticalslice.Money{Amount: decimal.Must(bondValue), Currency: verticalslice.RUB}
+	summary.InvestedCapital = verticalslice.Money{Amount: decimal.Must(investedCapital), Currency: verticalslice.RUB}
+	summary.DividendsReceived = verticalslice.ZeroMoney()
+	summary.CouponsReceived = verticalslice.ZeroMoney()
+	summary.NominalReturnRate = decimal.Must(nominalReturn)
+	summary.RealReturn = verticalslice.RealReturn{
+		NominalReturnRate: summary.NominalReturnRate,
+		InflationRate:     decimal.Zero(),
+		RealReturnRate:    summary.NominalReturnRate,
+		NominalGain:       summary.TotalValue.Sub(summary.InvestedCapital),
+		RealGain:          summary.TotalValue.Sub(summary.InvestedCapital),
+		FromDate:          summary.AsOfDate,
+		ToDate:            summary.AsOfDate,
+		Methodology:       "stage-03-02-no-inflation-placeholder-v1",
+	}
+	summary.PurchasingPower = verticalslice.PurchasingPower{
+		PortfolioValue: summary.TotalValue,
+		AsOfDate:       summary.AsOfDate,
+		Equivalents:    []verticalslice.PurchasingPowerEquivalent{},
+	}
+	summary.Positions = []verticalslice.PortfolioPosition{}
+	summary.CalculatedAt = calculatedAt
+	return summary, nil
+}
+
+func rollback(tx *sql.Tx) {
+	_ = tx.Rollback()
+}
+
+func decimalString(value *decimal.Decimal) any {
+	if value == nil {
+		return nil
+	}
+	return value.String()
+}
+
+func moneyAmount(value *verticalslice.Money) any {
+	if value == nil {
+		return nil
+	}
+	return value.Amount.String()
+}
+
+func moneyCurrency(value *verticalslice.Money) any {
+	if value == nil {
+		return nil
+	}
+	return value.Currency
+}

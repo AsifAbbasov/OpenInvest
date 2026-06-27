@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.3 |
+| Version | 1.1.4 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -82,3 +82,12 @@
 - Updated the local PostgreSQL 18 Docker volume mount to support live migration verification.
 - Kept Go API, Next.js presentation, Python workers, and external provider integrations out of
   Stage 3.1 scope.
+
+## 2026-06-27 — Stage 3.1 closed and Stage 3.2 started
+
+- Squash-merged PR #7 into `develop` at `b1a3f23`.
+- Started Stage 3.2 Go API Vertical-Slice Backend.
+- Added the first Go API path for portfolio creation, transaction append, local snapshot rebuild,
+  and summary read without changing the frozen OpenAPI contract.
+- Kept frontend screens, mobile, tax, dividends, external providers, workers, and Redis out of
+  Stage 3.2 scope.
