@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.6 |
+| Version | 1.1.7 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-06-27 |
-| Next Review Date | 2026-12-26 |
+| Last Review Date | 2026-07-01 |
+| Next Review Date | 2027-01-01 |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -126,3 +126,14 @@
 - Replaced them with Go CLI validators under `backend-go/cmd` so validation tooling stays inside
   the approved Go backend stack.
 - Updated CI and local-check documentation to run the Go validators instead of Ruby scripts.
+
+## 2026-07-01 — Stage 3.3 closed and Stage 3.4 selected as next work
+
+- Squash-merged PR #10 into `develop` at `11805cc298bba13f09f7f7af8b1e1178dc351209`.
+- Closed the Next.js Presentation Slice after independent review approval, green CI, and human
+  merge approval.
+- Added the first Web path for portfolio list/detail, create portfolio, add transaction, summary,
+  and transaction history through the Go API boundary.
+- Added local Go API CORS/OPTIONS support for explicit local Web origins and limited the transaction
+  form to the transaction types currently accepted by the Go vertical slice.
+- Selected Stage 3.4 end-to-end verification as the next implementation focus.

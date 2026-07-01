@@ -3,11 +3,12 @@
 OpenInvest is an independent, privacy-first investment analytics platform. It is not a broker, bank, asset manager, trading system, or investment adviser.
 
 This repository contains the closed Stage 2 contract/canonical-model baseline, the accepted Next.js
-Web presentation-layer baseline, the merged Stage 3.2 Go API vertical-slice backend, and the
-in-progress Stage 3.3 Web presentation slice.
+Web presentation-layer baseline, the merged Stage 3.2 Go API vertical-slice backend, and the closed
+Stage 3.3 Web presentation slice.
 
-The current implementation focus is rendering the first portfolio path in Next.js through the Go API
-only. Product-risk refinement is closed and remains part of the MVP governance baseline.
+The current implementation focus is Stage 3.4 end-to-end verification: proving the complete local
+path from Next.js through the Go API, PostgreSQL, snapshots, API responses, and rendered Web state.
+Product-risk refinement is closed and remains part of the MVP governance baseline.
 
 ## Components
 
