@@ -21,6 +21,7 @@ deterministic, and moving broker file import/reconciliation into near-term desig
 
 ```bash
 cd backend-go && go test ./...
+cd backend-go && go run ./cmd/validate-openapi && go run ./cmd/validate-migrations
 cd frontend-next && corepack pnpm install --frozen-lockfile && corepack pnpm run typecheck && corepack pnpm run build
 cd microservice-python && uv sync --extra dev --locked && uv run pytest
 POSTGRES_PASSWORD=openinvest-local docker compose config --quiet

@@ -4,6 +4,8 @@ go 1.25.0
 
 require github.com/gofiber/fiber/v3 v3.3.0
 
+require gopkg.in/yaml.v3 v3.0.1
+
 require (
 	github.com/andybalholm/brotli v1.2.1 // indirect
 	github.com/gofiber/schema v1.7.1 // indirect

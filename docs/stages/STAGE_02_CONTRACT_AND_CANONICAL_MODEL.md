@@ -89,7 +89,7 @@ must use Issue → ADR → review → approval and cannot be resolved ad hoc in 
 
 ## Verification
 
-- `ruby scripts/validate_openapi.rb`: passed; 22 operations, 2,501 resolved references,
+- `go run ./cmd/validate-openapi` from `backend-go/`: passed; 22 operations, 2,501 resolved references,
   11 OpenAPI/component/example documents. The validator now includes focused mutation guards for
   UUID, BusinessDate, traceparent, `unevaluatedProperties`, non-negative aggregates, reversal date
   semantics, command invariants, and dividend calculation invariants.
@@ -103,7 +103,7 @@ must use Issue → ADR → review → approval and cannot be resolved ad hoc in 
 - `pnpm run typecheck`: passed.
 - `pnpm run build`: passed.
 - `docker compose config --quiet`: passed with a validation-only password.
-- Pull-request CI includes `ruby scripts/validate_openapi.rb` as a required contract job.
+- Pull-request CI includes `go run ./cmd/validate-openapi` as a required contract job.
 - Markdown internal-link check: passed.
 - whitespace check for every new file: passed.
 
@@ -118,9 +118,8 @@ or review before merge, but the repository validator no longer claims full stand
 
 - Full Redocly/spec ruleset evidence remains pending because npm registry access was unavailable;
   this is explicitly documented and not hidden by the repository validator.
-- The OpenAPI CI job uses the GitHub-hosted runner Ruby. Pinning Ruby through an additional setup
-  action is deferred as a non-blocking operational hardening item to avoid adding a new supply-chain
-  dependency inside this Stage 2 blocker fix.
+- The previous Ruby-based validator has been superseded by Go tooling under `backend-go/cmd`.
+  Ruby is not part of the approved project/tooling stack.
 - GitHub CI evidence remains pending until the updated feature branch is pushed and PR #2 runs.
 - OpenAPI documents response shape but does not prove calculation correctness; financial vectors
   remain mandatory before algorithms are implemented.
@@ -133,8 +132,8 @@ or review before merge, but the repository validator no longer claims full stand
 - Review verdict: `APPROVED`.
 - Blocking findings: none.
 - Resolved findings: external Stage 2 blockers 1–7 addressed in this blocker-fix diff.
-- Remaining non-blocking notes: Redocly/full JSON Schema ruleset evidence and Ruby setup pinning
-  remain documented operational hardening items before merge/release.
+- Remaining non-blocking notes: Redocly/full JSON Schema ruleset evidence remains documented as an
+  operational hardening item before release.
 - Reviewer edit confirmation: Internal Review Agent confirmed read-only review and made no edits.
 
 External ChatGPT review and explicit human approval remain required before merge.
