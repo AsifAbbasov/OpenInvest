@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.1 |
+| Version | 0.1.2 |
 | Status | Planning / Not Implemented |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
@@ -159,7 +159,7 @@ Purpose:
 
 Status:
 
-- Planned / next work item after Stage 3.3 closure.
+- In progress.
 
 Allowed:
 

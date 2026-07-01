@@ -8,6 +8,7 @@ backend-go/bin/
 backend-go/coverage.out
 
 # Node
+node_modules/
 frontend-next/node_modules/
 frontend-next/.next/
 frontend-next/out/

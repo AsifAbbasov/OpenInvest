@@ -3,8 +3,8 @@
 OpenInvest is an independent, privacy-first investment analytics platform. It is not a broker, bank, asset manager, trading system, or investment adviser.
 
 This repository contains the closed Stage 2 contract/canonical-model baseline, the accepted Next.js
-Web presentation-layer baseline, the merged Stage 3.2 Go API vertical-slice backend, and the closed
-Stage 3.3 Web presentation slice.
+Web presentation-layer baseline, the merged Stage 3.2 Go API vertical-slice backend, the closed
+Stage 3.3 Web presentation slice, and the active Stage 3.4 end-to-end verification work.
 
 The current implementation focus is Stage 3.4 end-to-end verification: proving the complete local
 path from Next.js through the Go API, PostgreSQL, snapshots, API responses, and rendered Web state.
@@ -18,15 +18,41 @@ Product-risk refinement is closed and remains part of the MVP governance baselin
 - `infrastructure/` — local infrastructure configuration.
 - `docs/` — frozen architecture and architecture decision records.
 
+## Root commands
+
+Use pnpm from the repository root for common local workflows:
+
+```bash
+pnpm run infra:up
+pnpm run dev:api
+pnpm run dev:web
+pnpm run verify
+pnpm run verify:e2e
+```
+
+`dev:api` and `dev:web` are intentionally separate long-running commands. Run them in two terminal
+tabs when manually checking the Web UI.
+
 ## Local checks
 
 ```bash
-cd backend-go && go test ./...
-cd backend-go && go run ./cmd/validate-openapi && go run ./cmd/validate-migrations
-cd frontend-next && corepack pnpm install --frozen-lockfile && corepack pnpm run typecheck && corepack pnpm run build
-cd microservice-python && uv sync --extra dev --locked && uv run pytest
-POSTGRES_PASSWORD=openinvest-local docker compose config --quiet
+pnpm run verify
 ```
+
+For the Stage 3.4 vertical-slice smoke proof, run:
+
+```bash
+pnpm run verify:e2e
+```
+
+If local port `5432` is already used by another PostgreSQL process, use an alternate local port:
+
+```bash
+POSTGRES_PORT=55432 pnpm run verify:e2e
+```
+
+The smoke script starts its own Go API on `http://localhost:8080` with the matching `DATABASE_URL`.
+Stop any already-running local Go API before running `verify:e2e`.
 
 ## Local infrastructure
 

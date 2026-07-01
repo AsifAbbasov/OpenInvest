@@ -1,0 +1,20 @@
+{
+  "name": "openinvest",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@11.8.0",
+  "scripts": {
+    "infra:config": "POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-openinvest-local} docker compose config --quiet",
+    "infra:up": "POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-openinvest-local} docker compose up -d postgres redis",
+    "infra:down": "POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-openinvest-local} docker compose down",
+    "dev:api": "cd backend-go && DATABASE_URL=${DATABASE_URL:-postgres://openinvest:openinvest-local@localhost:${POSTGRES_PORT:-5432}/openinvest?sslmode=disable} go run ./cmd/api",
+    "dev:web": "cd frontend-next && NEXT_PUBLIC_OPENINVEST_API_BASE_URL=${NEXT_PUBLIC_OPENINVEST_API_BASE_URL:-http://localhost:8080} corepack pnpm dev",
+    "verify": "pnpm run verify:go && pnpm run verify:python && pnpm run verify:web && pnpm run verify:openapi && pnpm run verify:migrations && pnpm run infra:config",
+    "verify:go": "cd backend-go && go test ./...",
+    "verify:python": "cd microservice-python && uv sync --extra dev --locked && uv run pytest",
+    "verify:web": "cd frontend-next && corepack pnpm install --frozen-lockfile && corepack pnpm run typecheck && corepack pnpm run build",
+    "verify:openapi": "cd backend-go && go run ./cmd/validate-openapi",
+    "verify:migrations": "cd backend-go && go run ./cmd/validate-migrations",
+    "verify:e2e": "bash scripts/stage-03-04-smoke.sh"
+  }
+}
