@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.2 |
-| Status | Planning / Not Implemented |
+| Version | 0.1.3 |
+| Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
-| Last Review Date | 2026-06-26 |
-| Next Review Date | Before Stage 3 implementation PR |
+| Last Review Date | 2026-07-02 |
+| Next Review Date | Before Stage 3.6 implementation |
 
 ## Purpose
 
@@ -159,7 +159,7 @@ Purpose:
 
 Status:
 
-- In progress.
+- Complete / merged into `develop` at `86582efaa420b2c38465a5d0da041814149392c7`.
 
 Allowed:
 
@@ -194,6 +194,10 @@ Forbidden:
 - credential collection;
 - history mutation;
 - external provider ingestion.
+
+Status:
+
+- In progress / design only.
 
 ### PR 3.6 — Broker file import vertical slice
 
@@ -312,13 +316,15 @@ Implementation may reveal tactical questions, but they must be handled as follow
 - architecture-impacting choice: stop and create/update ADR;
 - contract-impacting choice: stop and create a separate OpenAPI contract change proposal.
 
-## Stop condition
+## Stage governance
 
-This document authorizes planning only.
+Stage 3 implementation is split into reviewable sub-stages. Each sub-stage requires its own feature
+branch, checks, strict review, and human approval before merge.
 
-Do not start Stage 3 implementation until:
+Stage 3.5 is design-only. Stage 3.6 implementation cannot start until:
 
-1. this planning document is reviewed;
+1. the Stage 3.5 design PR is reviewed;
 2. CI is green;
-3. human approval is given;
-4. the planning PR is merged into `develop`.
+3. strict review approves;
+4. human approval is given;
+5. the design PR is merged into `develop`.

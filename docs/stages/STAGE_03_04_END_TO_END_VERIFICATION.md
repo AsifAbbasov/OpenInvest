@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-04 |
-| Version | 0.1.0 |
-| Status | In progress |
+| Version | 0.1.1 |
+| Status | Complete / closed |
 | Owner | Builder Engineer |
 | Supersedes | Stage 3.4 roadmap placeholder |
 | Dependencies | Stage 3.1; Stage 3.2; Stage 3.3; ADR-006; ADR-007 |
-| Last Review Date | 2026-07-01 |
-| Next Review Date | Before merge |
+| Last Review Date | 2026-07-02 |
+| Next Review Date | 2027-01-02 |
 
 ## Purpose
 
@@ -123,8 +123,17 @@ Stage 3.4 does not change the Next.js implementation. Next.js remains a presenta
 
 ## Completion checklist
 
-- `pnpm run verify`
-- `pnpm run verify:e2e`
-- forbidden-boundary scan
-- Internal Review Agent review
-- Draft PR review
+- `pnpm run verify` — passed.
+- `POSTGRES_PORT=55432 pnpm run verify:e2e` — passed.
+- forbidden-boundary scan — passed.
+- Internal Review Agent review — approved after REQUEST CHANGES fixes.
+- Draft PR review — approved.
+
+## Closure evidence
+
+- PR: #13 — `feature/stage-03-04-e2e-verification` → `develop`
+- Merge method: squash merge
+- Merge commit: `86582efaa420b2c38465a5d0da041814149392c7`
+- CI status before merge: green
+- Scope result: verification and onboarding only; no business logic, SQL migrations, provider
+  integrations, workers, frontend feature expansion, mobile code, or Stage 3.5 implementation.

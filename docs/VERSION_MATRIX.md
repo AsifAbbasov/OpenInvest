@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.1.8 |
+| Version | 1.1.9 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -23,7 +23,8 @@
 | Stage 3.2 Go API vertical slice | 0.1.x | Closed / merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | 3 | Principal Architect | 2026-12-27 |
 | Product risk refinement | 1.0.x | Approved / merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | 3 | Principal Architect | Before public MVP |
 | Stage 3.3 Next.js presentation slice | 0.1.x | Closed / implementation merged into `develop` at `11805cc298bba13f09f7f7af8b1e1178dc351209`; closure docs at `fe402030359459f909c156a1e993f18ceed257bf` | 3 | Principal Architect | 2027-01-01 |
-| Stage 3.4 end-to-end verification | 0.1.x | In progress on feature branch | 3 | Principal Architect | Before Stage 3.4 merge |
+| Stage 3.4 end-to-end verification | 0.1.x | Closed / merged into `develop` at `86582efaa420b2c38465a5d0da041814149392c7` | 3 | Principal Architect | 2027-01-02 |
+| Stage 3.5 broker file import design | 0.1.x | In progress / design only | 3 | Principal Architect | Before Stage 3.5 merge |
 | Documents 28–39 | 2.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Document 40 | 3.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Documents 1–27, 41 | 1.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
