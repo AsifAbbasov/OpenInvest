@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.7 |
+| Version | 1.4.8 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -17,7 +17,7 @@
 **Documentation Freeze: ACTIVE**
 **Last completed implementation stage: Stage 3.3 — Next.js Presentation Slice**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `11805cc298bba13f09f7f7af8b1e1178dc351209`**
+**Current canonical implementation baseline: `develop` at `fe402030359459f909c156a1e993f18ceed257bf`**
 **Current active work item: Stage 3.4 — End-to-end verification**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
@@ -91,9 +91,10 @@ truth.
 
 Product risk refinement is closed and merged into `develop` at
 `65bdf6537b44ed57e1c00bf68d2dacd70aa09702`. Stage 3.3 is closed and merged into `develop` at
-`11805cc298bba13f09f7f7af8b1e1178dc351209`; it implemented only the Web presentation slice for the
-existing Go API path and does not authorize broker import implementation. Stage 3.4 is the next
-approved focus for end-to-end local verification.
+`11805cc298bba13f09f7f7af8b1e1178dc351209`, with closure documentation merged at
+`fe402030359459f909c156a1e993f18ceed257bf`; it implemented only the Web presentation slice for the
+existing Go API path and does not authorize broker import implementation. Stage 3.4 is the active
+focus for end-to-end local verification.
 
 ## Financial standard
 
@@ -125,9 +126,9 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 | Capability | MVP | State |
 | --- | --- | --- |
 | Registration and privacy defaults | Yes | Planned |
-| Portfolio and transactions | Yes | Stage 3.3 Web presentation slice merged |
+| Portfolio and transactions | Yes | Stage 3.4 end-to-end verification active |
 | MOEX shares and bonds | Yes | Planned |
-| Dashboard and snapshots | Yes | Stage 3.3 Web presentation slice merged |
+| Dashboard and snapshots | Yes | Stage 3.4 end-to-end verification active |
 | WAC, XIRR, real/inflation returns | Yes | Planned |
 | Dividend calculator/calendar | Yes | Planned |
 | Broker file import and reconciliation | Public-MVP readiness candidate | Product risk refinement |

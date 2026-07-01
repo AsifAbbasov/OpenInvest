@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.7 |
+| Version | 1.1.8 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -137,3 +137,13 @@
 - Added local Go API CORS/OPTIONS support for explicit local Web origins and limited the transaction
   form to the transaction types currently accepted by the Go vertical slice.
 - Selected Stage 3.4 end-to-end verification as the next implementation focus.
+
+## 2026-07-01 — Stage 3.4 end-to-end verification started
+
+- Added root pnpm commands for infrastructure, local API/Web startup, checks, and Stage 3.4 smoke
+  verification.
+- Added `scripts/stage-03-04-smoke.sh` to prove the local PostgreSQL → Go API → immutable
+  transaction append → snapshot rebuild → summary response path.
+- Added the Stage 3.4 report and synchronized governance registries.
+- Kept Stage 3.4 limited to verification and onboarding; no new business logic, SQL migrations,
+  provider integrations, workers, frontend feature expansion, or mobile code were added.
