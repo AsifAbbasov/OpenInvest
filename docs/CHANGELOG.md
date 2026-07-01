@@ -39,7 +39,8 @@
 - Documented repository OpenAPI validator limitations and added focused mutation guards instead of
   claiming complete JSON Schema 2020-12 compliance.
 - Recorded auditable Principal Architect approval for the Stage 2 26-file review-size exception.
-- Documented the GitHub runner Ruby version as a remaining non-blocking operational hardening risk.
+- Documented that the initial repository validator was a temporary tooling risk to be removed from
+  the approved stack.
 
 ## 2026-06-25 — Stage 2 closure and ADR-006 acceptance
 
@@ -107,3 +108,10 @@
   and test-vector driven.
 - Repositioned Purchasing Power as a secondary explanatory insight below capital, real return,
   dividends/coupons, and inflation-adjusted performance.
+
+## 2026-07-01 — Ruby tooling removed from active project stack
+
+- Removed the temporary Ruby OpenAPI and migration validators from `scripts/`.
+- Replaced them with Go CLI validators under `backend-go/cmd` so validation tooling stays inside
+  the approved Go backend stack.
+- Updated CI and local-check documentation to run the Go validators instead of Ruby scripts.

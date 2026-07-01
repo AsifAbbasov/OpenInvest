@@ -111,7 +111,7 @@ Reason:
 Stage 3.1 adds:
 
 ```text
-scripts/validate_migrations.rb
+backend-go/cmd/validate-migrations
 ```
 
 The validator checks:

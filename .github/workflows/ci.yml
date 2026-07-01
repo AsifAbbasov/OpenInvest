@@ -85,10 +85,14 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - name: Report runner Ruby
-        run: ruby --version
+      - name: Set up Go
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
+        with:
+          go-version: "1.25"
+          cache-dependency-path: backend-go/go.sum
       - name: Validate OpenAPI contract and examples
-        run: ruby scripts/validate_openapi.rb
+        working-directory: backend-go
+        run: go run ./cmd/validate-openapi
 
   compose:
     name: Docker Compose config
@@ -107,7 +111,11 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - name: Report runner Ruby
-        run: ruby --version
+      - name: Set up Go
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
+        with:
+          go-version: "1.25"
+          cache-dependency-path: backend-go/go.sum
       - name: Validate migration files
-        run: ruby scripts/validate_migrations.rb
+        working-directory: backend-go
+        run: go run ./cmd/validate-migrations
