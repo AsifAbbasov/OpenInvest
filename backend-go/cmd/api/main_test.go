@@ -52,6 +52,44 @@ func TestHealthPropagatesRequestAndTraceHeaders(t *testing.T) {
 	}
 }
 
+func TestLocalDevelopmentCORSPreflight(t *testing.T) {
+	request := httptest.NewRequest(http.MethodOptions, "/api/v1/portfolios", nil)
+	request.Header.Set("Origin", "http://localhost:3000")
+	request.Header.Set("Access-Control-Request-Method", "POST")
+	request.Header.Set("Access-Control-Request-Headers", "Content-Type, Idempotency-Key")
+
+	response, err := newApp().Test(request)
+	if err != nil {
+		t.Fatalf("request preflight: %v", err)
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusNoContent {
+		t.Fatalf("expected status %d, got %d", http.StatusNoContent, response.StatusCode)
+	}
+	if got := response.Header.Get("Access-Control-Allow-Origin"); got != "http://localhost:3000" {
+		t.Fatalf("expected allowed local origin, got %q", got)
+	}
+	if got := response.Header.Get("Access-Control-Allow-Headers"); got != "Accept, Content-Type, Idempotency-Key, X-Request-ID, traceparent" {
+		t.Fatalf("expected OpenAPI headers, got %q", got)
+	}
+}
+
+func TestLocalDevelopmentCORSRejectsUnknownOrigin(t *testing.T) {
+	request := httptest.NewRequest(http.MethodOptions, "/api/v1/portfolios", nil)
+	request.Header.Set("Origin", "https://evil.example")
+
+	response, err := newApp().Test(request)
+	if err != nil {
+		t.Fatalf("request preflight: %v", err)
+	}
+	defer response.Body.Close()
+
+	if got := response.Header.Get("Access-Control-Allow-Origin"); got != "" {
+		t.Fatalf("expected unknown origin to be rejected, got %q", got)
+	}
+}
+
 func TestAppendTransactionRequiresSettlementDateField(t *testing.T) {
 	body := []byte(`{
 		"transactionType":"BUY",

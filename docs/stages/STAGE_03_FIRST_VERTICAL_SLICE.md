@@ -130,6 +130,10 @@ Purpose:
 
 - render the first Web path using the Go API only.
 
+Status:
+
+- In progress in `feature/stage-03-03-nextjs-presentation-slice`.
+
 Allowed:
 
 - presentation screens/components for dashboard, portfolio list/detail, add transaction form, loading

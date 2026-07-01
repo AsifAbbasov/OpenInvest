@@ -4,12 +4,12 @@
 | --- | --- |
 | Document ID | PROD-RISK-001 |
 | Version | 1.0.0 |
-| Status | Proposed / pending review |
+| Status | Approved / merged into `develop` |
 | Owner | Principal Architect |
 | Supersedes | Unstructured PRD criticism outside the repository |
 | Dependencies | `SOURCE_OF_TRUTH.md`; Documents 42–43; ADR-003; ADR-006; ADR-007 |
 | Last Review Date | 2026-06-27 |
-| Next Review Date | Before Stage 3.3 merge |
+| Next Review Date | Before public MVP scope lock |
 
 ## Purpose
 

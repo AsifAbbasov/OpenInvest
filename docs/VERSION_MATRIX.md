@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.1.5 |
+| Version | 1.1.6 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -21,7 +21,8 @@
 | Stage 3 planning | 0.1.x | Planning complete / merged into `develop` at `03908905b74da5c35d2fee71c2ed4956e4c06464` | 3 | Principal Architect | 2026-12-27 |
 | Stage 3.1 database foundation | 0.1.x | Closed / merged into `develop` at `b1a3f23` | 3 | Principal Architect | 2026-12-27 |
 | Stage 3.2 Go API vertical slice | 0.1.x | Closed / merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | 3 | Principal Architect | 2026-12-27 |
-| Product risk refinement | 1.0.x | Proposed / pending review | 3 | Principal Architect | Before public MVP |
+| Product risk refinement | 1.0.x | Approved / merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | 3 | Principal Architect | Before public MVP |
+| Stage 3.3 Next.js presentation slice | 0.1.x | Proposed / pending review | 3 | Principal Architect | Before Stage 3.3 merge |
 | Documents 28–39 | 2.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Document 40 | 3.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Documents 1–27, 41 | 1.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
