@@ -74,7 +74,7 @@ default local value is `http://localhost:8080`.
 
 - Authentication is intentionally not implemented in Stage 3.3; the Go API still uses the Stage 3.2
   development subject boundary.
-- Browser-to-Go local development requires the Go API CORS/runtime deployment shape to be handled in
-  a later approved stage if needed.
+- Browser-to-Go local development is enabled only for explicit local Web origins through the Go API
+  CORS boundary. Production CORS policy remains a later deployment hardening decision.
 - This slice is not an end-to-end release proof; Stage 3.4 remains responsible for full E2E
   verification and onboarding updates.

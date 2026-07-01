@@ -9,7 +9,7 @@ type AddTransactionFormProps = {
   onSaved: () => void;
 };
 
-const transactionTypes: TransactionType[] = ["BUY", "SELL", "DIVIDEND", "COUPON", "FEE", "TAX", "DEPOSIT", "WITHDRAWAL"];
+const transactionTypes: TransactionType[] = ["BUY", "DEPOSIT", "WITHDRAWAL"];
 
 export function AddTransactionForm({ portfolioId, onSaved }: AddTransactionFormProps) {
   const [transactionType, setTransactionType] = useState<TransactionType>("BUY");
@@ -68,6 +68,7 @@ export function AddTransactionForm({ portfolioId, onSaved }: AddTransactionFormP
         <p className="muted">
           This form only builds the OpenAPI request. The Go API validates and stores immutable
           transactions, recalculates snapshots, and returns canonical results.
+          Stage 3.3 exposes only the transaction types currently accepted by the Go vertical slice.
         </p>
       </div>
 

@@ -29,6 +29,8 @@ func New(service *verticalslice.Service) *fiber.App {
 	api := &API{service: service}
 	app := fiber.New(fiber.Config{AppName: "OpenInvest API"})
 
+	app.Use(localDevelopmentCORS)
+
 	app.Get("/api/v1/health", api.health)
 	app.Get("/api/v1/ready", api.ready)
 	app.Get("/api/v1/portfolios", api.listPortfolios)
@@ -39,6 +41,34 @@ func New(service *verticalslice.Service) *fiber.App {
 	app.Post("/api/v1/portfolios/:portfolioId/transactions", api.appendTransaction)
 
 	return app
+}
+
+func localDevelopmentCORS(c fiber.Ctx) error {
+	origin := strings.TrimSpace(c.Get("Origin"))
+	if origin != "" && allowedWebOrigin(origin) {
+		c.Set("Access-Control-Allow-Origin", origin)
+		c.Set("Vary", "Origin")
+		c.Set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
+		c.Set("Access-Control-Allow-Headers", "Accept, Content-Type, Idempotency-Key, X-Request-ID, traceparent")
+		c.Set("Access-Control-Expose-Headers", "X-Request-ID, X-Trace-ID")
+	}
+	if c.Method() == http.MethodOptions {
+		return c.SendStatus(http.StatusNoContent)
+	}
+	return c.Next()
+}
+
+func allowedWebOrigin(origin string) bool {
+	configured := strings.TrimSpace(os.Getenv("OPENINVEST_ALLOWED_WEB_ORIGINS"))
+	if configured == "" {
+		configured = "http://localhost:3000,http://127.0.0.1:3000"
+	}
+	for _, allowed := range strings.Split(configured, ",") {
+		if strings.TrimSpace(allowed) == origin {
+			return true
+		}
+	}
+	return false
 }
 
 func (api *API) health(c fiber.Ctx) error {
