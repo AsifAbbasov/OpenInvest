@@ -132,7 +132,7 @@ Purpose:
 
 Status:
 
-- In progress in `feature/stage-03-03-nextjs-presentation-slice`.
+- Complete / merged into `develop` at `11805cc298bba13f09f7f7af8b1e1178dc351209`.
 
 Allowed:
 
@@ -156,6 +156,10 @@ Purpose:
 
 - prove the vertical slice works as one path;
 - update documentation and developer onboarding.
+
+Status:
+
+- Planned / next work item after Stage 3.3 closure.
 
 Allowed:
 

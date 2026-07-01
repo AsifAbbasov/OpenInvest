@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.1.6 |
+| Version | 1.1.7 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | Documents 42–43 |
-| Last Review Date | 2026-06-27 |
-| Next Review Date | 2026-12-26 |
+| Last Review Date | 2026-07-01 |
+| Next Review Date | 2027-01-01 |
 
 | Range | Version | Status under Freeze v1.2 | Priority | Owner | Review |
 | --- | --- | --- | --- | --- | --- |
@@ -22,7 +22,8 @@
 | Stage 3.1 database foundation | 0.1.x | Closed / merged into `develop` at `b1a3f23` | 3 | Principal Architect | 2026-12-27 |
 | Stage 3.2 Go API vertical slice | 0.1.x | Closed / merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | 3 | Principal Architect | 2026-12-27 |
 | Product risk refinement | 1.0.x | Approved / merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | 3 | Principal Architect | Before public MVP |
-| Stage 3.3 Next.js presentation slice | 0.1.x | Proposed / pending review | 3 | Principal Architect | Before Stage 3.3 merge |
+| Stage 3.3 Next.js presentation slice | 0.1.x | Closed / merged into `develop` at `11805cc298bba13f09f7f7af8b1e1178dc351209` | 3 | Principal Architect | 2027-01-01 |
+| Stage 3.4 end-to-end verification | 0.1.x | Planned / next work item | 3 | Principal Architect | Before Stage 3.4 merge |
 | Documents 28–39 | 2.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Document 40 | 3.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Documents 1–27, 41 | 1.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
