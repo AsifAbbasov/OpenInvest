@@ -197,3 +197,12 @@
 - Scoped the implementation to Go service/store internals and PostgreSQL transaction behavior only.
 - Kept public import API, upload UI, SQL import-session persistence, workers, broker/provider
   integrations, tax logic, mobile, and AI out of scope.
+
+## 2026-07-02 — Stage 3.7 import append slice closed
+
+- Squash-merged PR #18 into `develop` at `89f6cab500653e09b5daa47e439b3f82fb4c8720`.
+- Added internal atomic append of user-approved import rows with idempotency protection, duplicate
+  revalidation, minimal audit evidence, and deterministic snapshot rebuilds.
+- Added live PostgreSQL coverage for concurrent duplicate-batch serialization.
+- Kept public import API, upload UI, SQL import-session persistence, workers, provider
+  integrations, tax, mobile, AI, and Stage 3.8 implementation out of scope.

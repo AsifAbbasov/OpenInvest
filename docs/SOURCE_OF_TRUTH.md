@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.13 |
+| Version | 1.4.14 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -15,10 +15,10 @@
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.6 — Broker File Import Reconciliation Slice**
+**Last completed implementation stage: Stage 3.7 — Import Append Slice**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `36d86c7ff2a9c75478de155d4f60b979b8da9376`**
-**Current active work item: Stage 3.7 import append implementation on `feature/stage-03-07-import-append-slice`; not merged**
+**Current canonical implementation baseline: `develop` at `89f6cab500653e09b5daa47e439b3f82fb4c8720`**
+**Current active work item: Stage 3.8 planning pending; no implementation branch active**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -102,7 +102,9 @@ broker-file import. Stage 3.6 implementation is closed and merged into `develop`
 append-plan slice only. It does not authorize public import endpoints, broker API integration,
 upload UI, SQL migrations, workers, or automatic ledger append. Stage 3.7 import append planning is
 merged into `develop` at `36d86c7ff2a9c75478de155d4f60b979b8da9376`. Stage 3.7 implementation is
-active on a feature branch to add internal atomic append only; public import endpoints, upload UI,
+closed and merged into `develop` at `89f6cab500653e09b5daa47e439b3f82fb4c8720`; it added internal
+atomic append of user-approved import rows with duplicate revalidation, idempotency protection,
+minimal audit evidence, and deterministic snapshot rebuilds. Public import endpoints, upload UI,
 import-session persistence, broker/provider integrations, workers, tax, mobile, and AI remain out of
 scope.
 

@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-07-IMPL |
-| Version | 0.1.0 |
-| Status | Active / implementation PR |
+| Version | 0.1.1 |
+| Status | Complete / closed; merged into `develop` |
 | Owner | Builder Engineer |
 | Supersedes | Stage 3.7 planning-only state |
 | Dependencies | Stage 3.7 import append planning; Stage 3.6 import reconciliation slice; Stage 3.2 Go vertical slice |
 | Last Review Date | 2026-07-02 |
-| Next Review Date | Before Stage 3.7 merge |
+| Next Review Date | 2027-01-03 |
 
 ## Purpose
 
@@ -70,27 +70,48 @@ No partial append is allowed.
 
 Changed files reviewed:
 
-- `WITHHELD — blind external review pending`
+- `README.md`
+- `backend-go/cmd/api/main.go`
+- `backend-go/internal/postgres/store.go`
+- `backend-go/internal/postgres/store_integration_test.go`
+- `backend-go/internal/verticalslice/models.go`
+- `backend-go/internal/verticalslice/service.go`
+- `backend-go/internal/verticalslice/service_test.go`
+- `docs/CHANGELOG.md`
+- `docs/DOCUMENT_INDEX.md`
+- `docs/IMPLEMENTATION_LOG.md`
+- `docs/ROADMAP.md`
+- `docs/SOURCE_OF_TRUTH.md`
+- `docs/VERSION_MATRIX.md`
+- `docs/stages/STAGE_03_FIRST_VERTICAL_SLICE.md`
+- `docs/stages/STAGE_03_07_IMPORT_APPEND_SLICE.md`
 
 Review verdict:
 
-- `WITHHELD — blind external review pending`
+- `APPROVED`
 
 Blocking findings:
 
-- `WITHHELD — blind external review pending`
+- Initial strict review found a concurrent duplicate-batch race risk when two different
+  idempotency keys append the same approved row concurrently.
+- Follow-up review found missing live PostgreSQL evidence for the concurrency regression test.
 
 Resolved findings:
 
-- `WITHHELD — blind external review pending`
+- Import append now locks the portfolio row with `SELECT ... FOR UPDATE` before idempotency
+  reservation, duplicate revalidation, inserts, snapshot rebuild, and audit recording.
+- Live PostgreSQL verification now includes both Stage 3.7 import append integration tests,
+  including concurrent duplicate-batch serialization.
 
 Remaining non-blocking notes:
 
-- `WITHHELD — blind external review pending`
+- Repeated same idempotency key is safely rejected without duplicate append; response replay storage
+  is deliberately out of scope for this slice.
 
 Review-agent write access:
 
-- `WITHHELD — blind external review pending`
+- Independent review agents remained read-only and did not edit, stage, commit, push, merge, or
+  create PRs.
 
 ## Verification evidence
 
@@ -113,7 +134,7 @@ The live PostgreSQL test verifies:
 Stage 3.7 implementation is complete when:
 
 - full local verification passes;
-- GitHub CI is green;
-- strict independent review approves;
-- Stage report evidence is published after external review;
-- human approval is given before merge.
+- GitHub CI is green — complete;
+- strict independent review approves — complete;
+- Stage report evidence is published after external review — complete;
+- human approval is given before merge — complete.
