@@ -171,3 +171,14 @@
 - Started Stage 3.6 as an internal CSV parser/review/append-plan slice.
 - Kept public import endpoints, frontend upload UI, SQL import-session tables, workers, broker APIs,
   credential scraping, XLSX/PDF parsing, and automatic ledger append out of Stage 3.6 scope.
+
+## 2026-07-02 — Stage 3.6 broker-file import reconciliation slice closed
+
+- Squash-merged PR #15 into `develop` at `e2b05650a4422b97d4bd924254367106b6a4686b`.
+- Added the internal user-supplied CSV import parser, normalized review model, duplicate/conflict
+  detection, spreadsheet-safe review fields, and explicit append-plan generation.
+- Resolved independent review findings for gross amount mismatch handling, same-file near
+  duplicates, broker-operation-id neutralization, duplicate decisions, and fixture coverage.
+- Kept Stage 3.7 atomic import append, public import API, upload UI, SQL import-session persistence,
+  broker/provider integrations, workers, XLSX/PDF parsing, mobile, and automatic ledger append out
+  of scope.

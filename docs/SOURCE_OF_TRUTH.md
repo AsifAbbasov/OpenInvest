@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.10 |
+| Version | 1.4.11 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -15,10 +15,10 @@
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.5 — Broker File Import and Reconciliation Design**
+**Last completed implementation stage: Stage 3.6 — Broker File Import Reconciliation Slice**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `072d38d94b529221d6467502f82f03a674a7d805`**
-**Current active work item: Stage 3.6 — Broker file import reconciliation slice**
+**Current canonical implementation baseline: `develop` at `e2b05650a4422b97d4bd924254367106b6a4686b`**
+**Current active work item: Stage 3.7 planning is pending; no Stage 3.7 implementation is active**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -96,9 +96,11 @@ Product risk refinement is closed and merged into `develop` at
 `86582efaa420b2c38465a5d0da041814149392c7`; it added end-to-end local verification and root
 developer commands only. Stage 3.5 is closed and merged into `develop` at
 `072d38d94b529221d6467502f82f03a674a7d805`; it approved the design guardrails for user-supplied
-broker-file import. Stage 3.6 is the active implementation focus for an internal CSV
+broker-file import. Stage 3.6 is closed and merged into `develop` at
+`e2b05650a4422b97d4bd924254367106b6a4686b`; it added an internal CSV
 parse/normalize/review/append-plan slice only. It does not authorize public import endpoints,
-broker API integration, upload UI, SQL migrations, workers, or automatic ledger append.
+broker API integration, upload UI, SQL migrations, workers, or automatic ledger append. Any atomic
+import append or import-session persistence requires a separate reviewed Stage 3.7 scope.
 
 ## Financial standard
 
@@ -135,7 +137,7 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 | Dashboard and snapshots | Yes | Stage 3.4 verification closed |
 | WAC, XIRR, real/inflation returns | Yes | Planned |
 | Dividend calculator/calendar | Yes | Planned |
-| Broker file import and reconciliation | Public-MVP readiness candidate | Stage 3.6 internal CSV review slice active |
+| Broker file import and reconciliation | Public-MVP readiness candidate | Stage 3.6 internal CSV review slice closed |
 | Purchasing power | Yes | Planned as secondary insight |
 | Tax export | No | Experimental; feature flag off |
 | Foreign securities | No | Backlog v2.0 |
