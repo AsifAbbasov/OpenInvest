@@ -89,6 +89,10 @@ Rules:
 - files are treated as untrusted input;
 - no macros are executed;
 - formulas are ignored or resolved only through safe library primitives if XLSX is later approved;
+- spreadsheet-compatible previews, exports, diagnostics, and downloaded review files must neutralize
+  formula-injection payloads;
+- untrusted cell text beginning with `=`, `+`, `-`, `@`, tab, carriage return, or line feed must
+  be escaped or rendered as inert text before export;
 - original files are temporary by default;
 - parsed rows must not be logged with personal or financial details;
 - generated diagnostics must use safe row numbers and error codes;
@@ -108,7 +112,9 @@ Conceptual entities:
   - user/subject boundary;
   - source kind: `USER_UPLOADED_FILE`;
   - file metadata: safe filename, size, media type, hash;
-  - state: uploaded, parsed, normalized, review_required, approved, appended, rejected, expired;
+  - state: uploaded, parse_failed, parsed, validation_failed, normalized, review_required,
+    cancelled, approved, append_in_progress, append_failed_retryable, append_failed_terminal,
+    appended, rejected, expired;
   - created/updated timestamps.
 - `ImportRow`
   - source row number;
@@ -171,7 +177,8 @@ broker_operation_id_or_empty
 
 Duplicate detection levels:
 
-1. Exact broker operation ID match, when present.
+1. Exact broker operation ID match, when present and scoped to the same authenticated subject,
+   portfolio, user-selected source account or broker label, and source kind.
 2. Exact normalized fingerprint match.
 3. Near match requiring user review:
    - same date/ticker/type/quantity but different fee;
@@ -179,6 +186,9 @@ Duplicate detection levels:
    - same row imported from same file hash.
 
 Duplicate candidates must not be appended automatically.
+
+Broker operation identifiers are untrusted user-file data. They may be used for matching scope, but
+their presence does not approve or authenticate a broker, account, or external provider.
 
 ## Conflict detection
 
@@ -222,6 +232,32 @@ Review
 
 No automatic push, notification, declaration, tax export, or external submission is allowed.
 
+## Failure, retry, and partial append semantics
+
+Stage 3.6 must not introduce ambiguous import recovery behavior.
+
+Normative rules:
+
+- parse and validation failures are terminal for the affected raw file version until the user uploads
+  a corrected file or changes mapping decisions;
+- user cancellation leaves no ledger effect;
+- rejected rows leave no ledger effect;
+- approved rows enter `append_in_progress` before ledger writes start;
+- the append operation must be atomic for all approved rows in the session;
+- if any approved row cannot be appended, the entire append operation must roll back and the session
+  becomes `append_failed_retryable` or `append_failed_terminal`;
+- `append_failed_retryable` may be retried only with the same approved row set and the same
+  normalized fingerprints;
+- retry must use an idempotency key derived from import session ID, approved row IDs, and normalized
+  fingerprints;
+- `append_failed_terminal` requires a new user review before any future append attempt;
+- partial ledger append is forbidden in the MVP import path;
+- snapshots rebuild only after the append transaction commits successfully;
+- if snapshot rebuild fails after successful append, the immutable ledger remains committed and the
+  snapshot rebuild must be retried idempotently from canonical transactions;
+- import diagnostics must expose row numbers, safe error codes, and decision status, not raw private
+  row contents.
+
 ## Security and privacy requirements
 
 - imported files are private user data;
@@ -252,6 +288,7 @@ Required vector categories:
 - unknown transaction type review-required;
 - amount sign ambiguity;
 - malformed CSV row;
+- spreadsheet formula-injection payloads in text fields and diagnostics;
 - safe filename/media-type handling.
 
 Test vectors should live under:
@@ -291,4 +328,3 @@ Stage 3.5 is complete when:
 - governance registries point to this design;
 - no implementation code, migrations, workers, or UI were added;
 - strict review approves the design.
-
