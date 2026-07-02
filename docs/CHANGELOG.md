@@ -206,3 +206,12 @@
 - Added live PostgreSQL coverage for concurrent duplicate-batch serialization.
 - Kept public import API, upload UI, SQL import-session persistence, workers, provider
   integrations, tax, mobile, AI, and Stage 3.8 implementation out of scope.
+
+## 2026-07-03 — Stage 3.8 import review append flow planning started
+
+- Added a documentation-only planning scope for the future internal import review → append flow.
+- Defined the proposed orchestration as broker CSV bytes → parse/normalize → review candidates →
+  explicit accepted decisions → atomic append → snapshot rebuild → deterministic result.
+- Kept public import API, OpenAPI changes, upload UI, SQL import-session persistence, raw file
+  persistence, workers, broker/provider integrations, tax, mobile, AI, and implementation out of
+  scope.

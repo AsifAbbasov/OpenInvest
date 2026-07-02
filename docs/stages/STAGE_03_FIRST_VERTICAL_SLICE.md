@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.8 |
+| Version | 0.1.9 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
 | Last Review Date | 2026-07-02 |
-| Next Review Date | Before Stage 3.8 planning approval |
+| Next Review Date | Before Stage 3.8 implementation approval |
 
 ## Purpose
 
@@ -280,6 +280,38 @@ Forbidden:
 Status:
 
 - Complete / merged into `develop` at `89f6cab500653e09b5daa47e439b3f82fb4c8720`.
+
+### PR 3.8 — Import review append flow planning
+
+Purpose:
+
+- define the internal orchestration boundary from reviewed import candidates to atomic append.
+
+Allowed:
+
+- planning documentation;
+- future internal Go use-case boundary definition;
+- privacy, financial, idempotency, snapshot, and test expectations;
+- explicit allowed/forbidden implementation surfaces.
+
+Forbidden:
+
+- implementation code in the planning PR;
+- public import endpoints;
+- OpenAPI changes;
+- frontend upload UI;
+- SQL import-session persistence;
+- raw file persistence;
+- direct broker API synchronization;
+- credential scraping;
+- external provider integrations;
+- XLSX or PDF parsing;
+- automatic append without explicit approved decisions;
+- workers, tax, mobile, AI, or Stage 3.9 work.
+
+Status:
+
+- Active / planning PR.
 
 ## Stage 3 domain boundaries
 

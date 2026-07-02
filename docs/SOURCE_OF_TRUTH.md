@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.14 |
+| Version | 1.4.15 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -17,8 +17,8 @@
 **Documentation Freeze: ACTIVE**
 **Last completed implementation stage: Stage 3.7 — Import Append Slice**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `89f6cab500653e09b5daa47e439b3f82fb4c8720`**
-**Current active work item: Stage 3.8 planning pending; no implementation branch active**
+**Current canonical implementation baseline: `develop` at `9307ce56f438825ab77eff3a158e96f8659215ba`**
+**Current active work item: Stage 3.8 import review append flow planning on `feature/stage-03-08-import-review-append-flow-planning`; no implementation yet**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -108,6 +108,12 @@ minimal audit evidence, and deterministic snapshot rebuilds. Public import endpo
 import-session persistence, broker/provider integrations, workers, tax, mobile, and AI remain out of
 scope.
 
+Stage 3.8 import review append flow planning is active on a feature branch. It may define the
+future internal orchestration between Stage 3.6 review output and Stage 3.7 atomic append, but it
+does not authorize implementation by itself. Public import endpoints, OpenAPI changes, upload UI,
+SQL import-session persistence, raw file persistence, workers, broker/provider integrations, tax,
+mobile, AI, and automatic append without explicit approved decisions remain out of scope.
+
 ## Financial standard
 
 - Decimal only; binary float forbidden for financial values.
@@ -143,7 +149,7 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 | Dashboard and snapshots | Yes | Stage 3.4 verification closed |
 | WAC, XIRR, real/inflation returns | Yes | Planned |
 | Dividend calculator/calendar | Yes | Planned |
-| Broker file import and reconciliation | Public-MVP readiness candidate | Stage 3.6 internal CSV review slice closed |
+| Broker file import and reconciliation | Public-MVP readiness candidate | Stage 3.7 internal atomic append closed; Stage 3.8 internal review→append flow planning active; no public API/UI/import-session persistence |
 | Purchasing power | Yes | Planned as secondary insight |
 | Tax export | No | Experimental; feature flag off |
 | Foreign securities | No | Backlog v2.0 |

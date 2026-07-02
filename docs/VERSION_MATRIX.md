@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.1.14 |
+| Version | 1.1.15 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -28,6 +28,7 @@
 | Stage 3.6 broker file import reconciliation slice | 0.1.x | Closed / merged into `develop` at `e2b05650a4422b97d4bd924254367106b6a4686b` | 3 | Principal Architect | 2027-01-02 |
 | Stage 3.7 import append planning | 0.1.x | Closed / merged into `develop` at `36d86c7ff2a9c75478de155d4f60b979b8da9376` | 3 | Principal Architect | 2027-01-02 |
 | Stage 3.7 import append slice | 0.1.x | Closed / merged into `develop` at `89f6cab500653e09b5daa47e439b3f82fb4c8720` | 3 | Principal Architect | 2027-01-03 |
+| Stage 3.8 import review append flow planning | 0.1.x | Active / planning PR; no implementation | 3 | Principal Architect | Before Stage 3.8 implementation approval |
 | Documents 28–39 | 2.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Document 40 | 3.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Documents 1–27, 41 | 1.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
