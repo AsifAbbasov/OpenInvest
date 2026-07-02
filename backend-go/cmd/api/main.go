@@ -60,6 +60,10 @@ func (unavailableStore) AppendTransaction(context.Context, verticalslice.Command
 	return verticalslice.Transaction{}, errors.New("database url is not configured")
 }
 
+func (unavailableStore) AppendImportedTransactions(context.Context, verticalslice.CommandContext, verticalslice.AppendImportBatchRequest) ([]verticalslice.Transaction, error) {
+	return nil, errors.New("database url is not configured")
+}
+
 func (unavailableStore) GetPortfolioSummary(context.Context, string, string, string) (verticalslice.PortfolioSummary, error) {
 	return verticalslice.PortfolioSummary{
 		TotalValue:        verticalslice.Money{Amount: decimal.Zero(), Currency: verticalslice.RUB},

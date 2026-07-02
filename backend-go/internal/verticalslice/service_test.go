@@ -43,6 +43,11 @@ func (store *recordingStore) AppendTransaction(_ context.Context, command Comman
 	return Transaction{}, nil
 }
 
+func (store *recordingStore) AppendImportedTransactions(_ context.Context, command CommandContext, _ AppendImportBatchRequest) ([]Transaction, error) {
+	store.requestHash = command.RequestHash
+	return []Transaction{}, nil
+}
+
 func (store *recordingStore) GetPortfolioSummary(context.Context, string, string, string) (PortfolioSummary, error) {
 	return PortfolioSummary{}, nil
 }
@@ -199,5 +204,72 @@ func TestAppendTransactionHashIncludesDecimalValues(t *testing.T) {
 
 	if firstStore.requestHash == secondStore.requestHash {
 		t.Fatal("expected different request hashes for different decimal values")
+	}
+}
+
+func TestAppendImportedTransactionsRejectsDuplicateRows(t *testing.T) {
+	service := NewService(&recordingStore{}, fixedClock{})
+	gross := Money{Amount: decimal.Must("1000.00000000"), Currency: RUB}
+	request := AppendTransactionRequest{
+		PortfolioID:     "portfolio-id",
+		TransactionType: "DEPOSIT",
+		GrossAmount:     &gross,
+		Commission:      ZeroMoney(),
+		Tax:             ZeroMoney(),
+		TradeDate:       "2026-06-26",
+	}
+
+	_, err := service.AppendImportedTransactions(context.Background(), RequestContext{}, "subject", "import-batch-key-0001", "/internal/imports/append", AppendImportBatchRequest{
+		PortfolioID:    "portfolio-id",
+		Transactions:   []AppendTransactionRequest{request, request},
+		SourceKind:     "USER_UPLOADED_FILE",
+		SourceFileHash: "file-hash",
+	})
+
+	if !errors.Is(err, ErrInvalidInput) {
+		t.Fatalf("expected invalid input, got %v", err)
+	}
+}
+
+func TestAppendImportedTransactionsHashIncludesWholeBatch(t *testing.T) {
+	firstGross := Money{Amount: decimal.Must("1000.00000000"), Currency: RUB}
+	secondGross := Money{Amount: decimal.Must("2000.00000000"), Currency: RUB}
+	firstRequest := AppendImportBatchRequest{
+		PortfolioID: "portfolio-id",
+		Transactions: []AppendTransactionRequest{{
+			PortfolioID:     "portfolio-id",
+			TransactionType: "DEPOSIT",
+			GrossAmount:     &firstGross,
+			Commission:      ZeroMoney(),
+			Tax:             ZeroMoney(),
+			TradeDate:       "2026-06-26",
+		}},
+		SourceKind:     "USER_UPLOADED_FILE",
+		SourceFileHash: "file-hash",
+	}
+	secondRequest := firstRequest
+	secondRequest.Transactions = []AppendTransactionRequest{{
+		PortfolioID:     "portfolio-id",
+		TransactionType: "DEPOSIT",
+		GrossAmount:     &secondGross,
+		Commission:      ZeroMoney(),
+		Tax:             ZeroMoney(),
+		TradeDate:       "2026-06-26",
+	}}
+
+	firstStore := &recordingStore{}
+	firstService := NewService(firstStore, fixedClock{})
+	if _, err := firstService.AppendImportedTransactions(context.Background(), RequestContext{}, "subject", "import-batch-key-0001", "/internal/imports/append", firstRequest); err != nil {
+		t.Fatalf("append first import batch: %v", err)
+	}
+
+	secondStore := &recordingStore{}
+	secondService := NewService(secondStore, fixedClock{})
+	if _, err := secondService.AppendImportedTransactions(context.Background(), RequestContext{}, "subject", "import-batch-key-0001", "/internal/imports/append", secondRequest); err != nil {
+		t.Fatalf("append second import batch: %v", err)
+	}
+
+	if firstStore.requestHash == secondStore.requestHash {
+		t.Fatal("expected different request hashes for different import batches")
 	}
 }

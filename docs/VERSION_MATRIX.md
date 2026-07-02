@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.1.12 |
+| Version | 1.1.13 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -26,7 +26,8 @@
 | Stage 3.4 end-to-end verification | 0.1.x | Closed / merged into `develop` at `86582efaa420b2c38465a5d0da041814149392c7` | 3 | Principal Architect | 2027-01-02 |
 | Stage 3.5 broker file import design | 0.1.x | Closed / merged into `develop` at `072d38d94b529221d6467502f82f03a674a7d805` | 3 | Principal Architect | 2027-01-02 |
 | Stage 3.6 broker file import reconciliation slice | 0.1.x | Closed / merged into `develop` at `e2b05650a4422b97d4bd924254367106b6a4686b` | 3 | Principal Architect | 2027-01-02 |
-| Stage 3.7 import append planning | 0.1.x | Draft / planning only; implementation not active | 3 | Principal Architect | Before Stage 3.7 implementation approval |
+| Stage 3.7 import append planning | 0.1.x | Closed / merged into `develop` at `36d86c7ff2a9c75478de155d4f60b979b8da9376` | 3 | Principal Architect | 2027-01-02 |
+| Stage 3.7 import append slice | 0.1.x | Active / implementation PR; not merged | 3 | Principal Architect | Before Stage 3.7 merge |
 | Documents 28–39 | 2.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Document 40 | 3.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Documents 1–27, 41 | 1.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |

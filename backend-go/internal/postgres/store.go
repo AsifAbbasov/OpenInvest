@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -233,6 +234,74 @@ func (s *Store) AppendTransaction(ctx context.Context, command verticalslice.Com
 	return transaction, tx.Commit()
 }
 
+func (s *Store) AppendImportedTransactions(ctx context.Context, command verticalslice.CommandContext, request verticalslice.AppendImportBatchRequest) ([]verticalslice.Transaction, error) {
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return nil, err
+	}
+	defer rollback(tx)
+
+	if err := lockPortfolioTx(ctx, tx, command.SubjectID, request.PortfolioID); err != nil {
+		return nil, err
+	}
+
+	commandID, duplicate, err := reserveCommand(ctx, tx, command, "POST")
+	if err != nil {
+		return nil, err
+	}
+	if duplicate {
+		return nil, ErrUnsupportedDuplicate
+	}
+
+	for _, transactionRequest := range request.Transactions {
+		duplicate, err := equivalentTransactionExists(ctx, tx, transactionRequest)
+		if err != nil {
+			return nil, err
+		}
+		if duplicate {
+			return nil, verticalslice.ErrInvalidInput
+		}
+	}
+
+	entryIDs := make([]string, 0, len(request.Transactions))
+	snapshotDateSet := map[string]struct{}{}
+	for _, transactionRequest := range request.Transactions {
+		entryID, err := insertTransactionEntry(ctx, tx, command, transactionRequest)
+		if err != nil {
+			return nil, err
+		}
+		entryIDs = append(entryIDs, entryID)
+		snapshotDateSet[transactionRequest.TradeDate] = struct{}{}
+	}
+
+	snapshotDates := make([]string, 0, len(snapshotDateSet))
+	for snapshotDate := range snapshotDateSet {
+		snapshotDates = append(snapshotDates, snapshotDate)
+	}
+	sort.Strings(snapshotDates)
+	for _, snapshotDate := range snapshotDates {
+		if err := rebuildAffectedSnapshots(ctx, tx, request.PortfolioID, snapshotDate, command.Now); err != nil {
+			return nil, err
+		}
+	}
+	if err := recordImportAppendAudit(ctx, tx, command, request.PortfolioID); err != nil {
+		return nil, err
+	}
+	if err := completeCommand(ctx, tx, commandID); err != nil {
+		return nil, err
+	}
+
+	transactions := make([]verticalslice.Transaction, 0, len(entryIDs))
+	for _, entryID := range entryIDs {
+		transaction, err := getTransactionByEntryTx(ctx, tx, request.PortfolioID, entryID)
+		if err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, transaction)
+	}
+	return transactions, tx.Commit()
+}
+
 func (s *Store) GetPortfolioSummary(ctx context.Context, subjectID string, portfolioID string, asOfDate string) (verticalslice.PortfolioSummary, error) {
 	if _, err := s.GetPortfolio(ctx, subjectID, portfolioID); err != nil {
 		return verticalslice.PortfolioSummary{}, err
@@ -254,6 +323,109 @@ func ensureSubject(ctx context.Context, tx *sql.Tx, subjectID string) error {
 		VALUES ($1, 'active')
 		ON CONFLICT (id) DO NOTHING
 	`, subjectID)
+	return err
+}
+
+func equivalentTransactionExists(ctx context.Context, tx *sql.Tx, request verticalslice.AppendTransactionRequest) (bool, error) {
+	gross, err := verticalslice.GrossFor(request)
+	if err != nil {
+		return false, err
+	}
+	var ticker any
+	if request.Ticker != nil {
+		ticker = *request.Ticker
+	}
+	var quantity any
+	if request.Quantity != nil {
+		quantity = request.Quantity.String()
+	}
+	var unitPrice any
+	if request.UnitPrice != nil {
+		unitPrice = request.UnitPrice.Amount.String()
+	}
+	var settlementDate any
+	if request.SettlementDate != nil {
+		settlementDate = *request.SettlementDate
+	}
+	var exists bool
+	err = tx.QueryRowContext(ctx, `
+		SELECT EXISTS (
+			SELECT 1
+			FROM investment.transaction_entries te
+			LEFT JOIN investment.assets a ON a.id = te.asset_id
+			WHERE te.portfolio_id = $1
+				AND te.transaction_type = $2
+				AND te.gross_amount = $3::numeric
+				AND te.commission_amount = $4::numeric
+				AND te.tax_amount = $5::numeric
+				AND te.trade_date = $6::date
+				AND (($7::date IS NULL AND te.settlement_date IS NULL) OR te.settlement_date = $7::date)
+				AND (($8::text IS NULL AND a.ticker IS NULL) OR a.ticker = $8::text)
+				AND (($9::numeric IS NULL AND te.quantity IS NULL) OR te.quantity = $9::numeric)
+				AND (($10::numeric IS NULL AND te.unit_price_amount IS NULL) OR te.unit_price_amount = $10::numeric)
+		)
+	`, request.PortfolioID, request.TransactionType, gross.Amount.String(),
+		request.Commission.Amount.String(), request.Tax.Amount.String(), request.TradeDate,
+		settlementDate, ticker, quantity, unitPrice).Scan(&exists)
+	return exists, err
+}
+
+func insertTransactionEntry(ctx context.Context, tx *sql.Tx, command verticalslice.CommandContext, request verticalslice.AppendTransactionRequest) (string, error) {
+	gross, err := verticalslice.GrossFor(request)
+	if err != nil {
+		return "", err
+	}
+	assetID, err := ensureAsset(ctx, tx, request)
+	if err != nil {
+		return "", err
+	}
+
+	entryID := uuid.NewString()
+	transactionID := uuid.NewString()
+	_, err = tx.ExecContext(ctx, `
+		INSERT INTO investment.transaction_entries (
+			entry_id, transaction_id, portfolio_id, asset_id, revision, transaction_type,
+			quantity, unit_price_amount, unit_price_currency,
+			gross_amount, gross_currency, commission_amount, commission_currency,
+			tax_amount, tax_currency, trade_date, settlement_date, note,
+			created_at, request_id, trace_id
+		)
+		VALUES (
+			$1, $2, $3, $4, 1, $5,
+			$6, $7, $8,
+			$9, 'RUB', $10, 'RUB',
+			$11, 'RUB', $12, $13, $14,
+			$15, NULLIF($16, '')::uuid, NULLIF($17, '')
+		)
+	`, entryID, transactionID, request.PortfolioID, assetID, request.TransactionType,
+		decimalString(request.Quantity), moneyAmount(request.UnitPrice), moneyCurrency(request.UnitPrice),
+		gross.Amount.String(), request.Commission.Amount.String(),
+		request.Tax.Amount.String(), request.TradeDate, request.SettlementDate, request.Note,
+		command.Now, command.RequestID, command.TraceID)
+	if err != nil {
+		return "", err
+	}
+	return entryID, nil
+}
+
+func recordImportAppendAudit(ctx context.Context, tx *sql.Tx, command verticalslice.CommandContext, portfolioID string) error {
+	if _, err := tx.ExecContext(ctx, `
+		INSERT INTO audit.actors (id, actor_kind, created_at)
+		VALUES ($1, 'user', $2)
+		ON CONFLICT (id) DO NOTHING
+	`, command.SubjectID, command.Now); err != nil {
+		return err
+	}
+	_, err := tx.ExecContext(ctx, `
+		INSERT INTO audit.events (
+			id, actor_id, action_code, target_kind, target_id, outcome,
+			request_id, trace_id, occurred_at, schema_version
+		)
+		VALUES (
+			$1, $2, 'IMPORT_APPEND_BATCH', 'portfolio', $3, 'success',
+			NULLIF($4, '')::uuid, NULLIF($5, ''), $6, 1
+		)
+	`, uuid.NewString(), command.SubjectID, portfolioID, command.RequestID, command.TraceID, command.Now)
 	return err
 }
 
@@ -305,6 +477,20 @@ func getPortfolioQuery(ctx context.Context, db queryer, subjectID string, portfo
 
 func getPortfolioTx(ctx context.Context, tx *sql.Tx, subjectID string, portfolioID string) (verticalslice.Portfolio, error) {
 	return getPortfolioQuery(ctx, tx, subjectID, portfolioID)
+}
+
+func lockPortfolioTx(ctx context.Context, tx *sql.Tx, subjectID string, portfolioID string) error {
+	var id string
+	err := tx.QueryRowContext(ctx, `
+		SELECT id
+		FROM investment.portfolios
+		WHERE id = $1 AND subject_id = $2 AND portfolio_state = 'active'
+		FOR UPDATE
+	`, portfolioID, subjectID).Scan(&id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return ErrNotFound
+	}
+	return err
 }
 
 func scanPortfolio(row scanner) (verticalslice.Portfolio, error) {

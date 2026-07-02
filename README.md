@@ -10,8 +10,8 @@ slice.
 
 Stage 3.6 added an internal CSV parser/review/append-plan slice only: no public import API, broker
 API, upload UI, SQL migration, worker, or automatic ledger append was introduced.
-Stage 3.7 is currently documentation-only planning for a future atomic import append scope; no
-Stage 3.7 implementation is active yet.
+Stage 3.7 planning is closed; Stage 3.7 implementation is active on a feature branch and is limited
+to internal atomic append of user-approved import rows.
 Product-risk refinement is closed and remains part of the MVP governance baseline.
 
 ## Components

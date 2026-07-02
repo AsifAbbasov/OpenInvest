@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.6 |
+| Version | 0.1.7 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
@@ -251,7 +251,35 @@ Forbidden:
 
 Status:
 
-- Draft / planning only; implementation is not active.
+- Complete / merged into `develop` at `36d86c7ff2a9c75478de155d4f60b979b8da9376`.
+
+### PR 3.7 — Import append slice
+
+Purpose:
+
+- internally append user-approved import rows atomically into the immutable ledger.
+
+Allowed:
+
+- internal Go service/store methods;
+- PostgreSQL transaction boundaries using existing tables;
+- duplicate revalidation against existing ledger state;
+- batch idempotency handling;
+- deterministic snapshot rebuilds;
+- minimal audit event creation;
+- unit and integration tests.
+
+Forbidden:
+
+- public import endpoints;
+- frontend upload UI;
+- SQL import-session tables;
+- direct broker API synchronization;
+- workers, tax, mobile, AI, or external-provider integration.
+
+Status:
+
+- Active / implementation PR.
 
 ## Stage 3 domain boundaries
 

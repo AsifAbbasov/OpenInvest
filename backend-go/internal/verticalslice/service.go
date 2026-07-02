@@ -102,6 +102,21 @@ func (s *Service) AppendTransaction(ctx context.Context, requestContext RequestC
 	return s.store.AppendTransaction(ctx, command, request)
 }
 
+func (s *Service) AppendImportedTransactions(ctx context.Context, requestContext RequestContext, subjectID string, idempotencyKey string, requestPath string, request AppendImportBatchRequest) ([]Transaction, error) {
+	if err := validateIdempotencyKey(idempotencyKey); err != nil {
+		return nil, err
+	}
+	if err := validateAppendImportBatch(request); err != nil {
+		return nil, err
+	}
+
+	command, err := s.command(requestContext, subjectID, idempotencyKey, requestPath, request)
+	if err != nil {
+		return nil, err
+	}
+	return s.store.AppendImportedTransactions(ctx, command, request)
+}
+
 func (s *Service) GetPortfolioSummary(ctx context.Context, subjectID string, portfolioID string, asOfDate string) (PortfolioSummary, error) {
 	if strings.TrimSpace(asOfDate) != "" {
 		if _, err := time.Parse("2006-01-02", asOfDate); err != nil {
@@ -127,6 +142,36 @@ func (s *Service) command(requestContext RequestContext, subjectID string, idemp
 		TraceID:        requestContext.TraceID,
 		Now:            now,
 	}, nil
+}
+
+func validateAppendImportBatch(request AppendImportBatchRequest) error {
+	if strings.TrimSpace(request.PortfolioID) == "" {
+		return fmt.Errorf("%w: portfolioId is required", ErrInvalidInput)
+	}
+	if len(request.Transactions) == 0 {
+		return fmt.Errorf("%w: at least one imported transaction is required", ErrInvalidInput)
+	}
+	if len(request.Transactions) > 100 {
+		return fmt.Errorf("%w: imported transaction batch must contain at most 100 rows", ErrInvalidInput)
+	}
+	seen := map[string]struct{}{}
+	for index, transaction := range request.Transactions {
+		if transaction.PortfolioID != request.PortfolioID {
+			return fmt.Errorf("%w: imported transaction %d portfolioId does not match batch portfolioId", ErrInvalidInput, index+1)
+		}
+		if err := validateAppendTransaction(transaction); err != nil {
+			return fmt.Errorf("%w: imported transaction %d is invalid", err, index+1)
+		}
+		key, err := appendRequestBusinessKey(transaction)
+		if err != nil {
+			return err
+		}
+		if _, ok := seen[key]; ok {
+			return fmt.Errorf("%w: imported transaction %d duplicates another approved row", ErrInvalidInput, index+1)
+		}
+		seen[key] = struct{}{}
+	}
+	return nil
 }
 
 func validateAppendTransaction(request AppendTransactionRequest) error {
@@ -169,6 +214,42 @@ func validateAppendTransaction(request AppendTransactionRequest) error {
 		}
 	}
 	return nil
+}
+
+func appendRequestBusinessKey(request AppendTransactionRequest) (string, error) {
+	gross, err := GrossFor(request)
+	if err != nil {
+		return "", err
+	}
+	ticker := ""
+	if request.Ticker != nil {
+		ticker = strings.TrimSpace(*request.Ticker)
+	}
+	quantity := ""
+	if request.Quantity != nil {
+		quantity = request.Quantity.String()
+	}
+	unitPrice := ""
+	if request.UnitPrice != nil {
+		unitPrice = request.UnitPrice.Amount.String()
+	}
+	settlementDate := ""
+	if request.SettlementDate != nil {
+		settlementDate = *request.SettlementDate
+	}
+	parts := []string{
+		request.PortfolioID,
+		request.TransactionType,
+		ticker,
+		quantity,
+		unitPrice,
+		gross.Amount.String(),
+		request.Commission.Amount.String(),
+		request.Tax.Amount.String(),
+		request.TradeDate,
+		settlementDate,
+	}
+	return strings.Join(parts, "|"), nil
 }
 
 func validateIdempotencyKey(value string) error {
