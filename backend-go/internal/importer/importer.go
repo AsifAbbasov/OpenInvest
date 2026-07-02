@@ -131,6 +131,7 @@ func ReviewCSV(request ReviewRequest) (Review, error) {
 	existingFingerprints := existingFingerprintSet(request.PortfolioID, request.Existing)
 	seenFingerprints := map[string]int{}
 	seenBrokerOperationIDs := map[string]int{}
+	seenNearMatchCandidates := map[string]RowReview{}
 
 	rowNumber := 1
 	for {
@@ -169,6 +170,15 @@ func ReviewCSV(request ReviewRequest) (Review, error) {
 				row.Status = ReviewStatusConflict
 				row.ReasonCodes = appendReason(row.ReasonCodes, "NEAR_DUPLICATE_REQUIRES_REVIEW")
 			}
+			if row.Status == ReviewStatusAppendable {
+				nearKey := nearMatchKey(row.Candidate)
+				if firstRow, ok := seenNearMatchCandidates[nearKey]; ok && nearMatchImported(row.Candidate, firstRow.Candidate) {
+					row.Status = ReviewStatusConflict
+					row.ReasonCodes = appendReason(row.ReasonCodes, fmt.Sprintf("NEAR_DUPLICATE_IMPORTED_ROW_%d_REQUIRES_REVIEW", firstRow.RowNumber))
+				} else if nearKey != "" {
+					seenNearMatchCandidates[nearKey] = row
+				}
+			}
 		}
 		review.Rows = append(review.Rows, row)
 	}
@@ -181,8 +191,13 @@ func BuildAppendRequests(review Review, decisions []Decision) ([]verticalslice.A
 	for _, row := range review.Rows {
 		rows[row.RowNumber] = row
 	}
+	decidedRows := map[int]struct{}{}
 	appendRequests := []verticalslice.AppendTransactionRequest{}
 	for _, decision := range decisions {
+		if _, ok := decidedRows[decision.RowNumber]; ok {
+			return nil, fmt.Errorf("%w: row %d has duplicate decisions", ErrUnsafeAppend, decision.RowNumber)
+		}
+		decidedRows[decision.RowNumber] = struct{}{}
 		switch decision.Action {
 		case DecisionIgnore, DecisionReject:
 			continue
@@ -247,9 +262,11 @@ func normalizeCandidate(columns map[string]int, record []string) (*Candidate, st
 	tradeDate := strings.TrimSpace(value(record, columns, "trade_date"))
 	settlementDateText := strings.TrimSpace(value(record, columns, "settlement_date"))
 	brokerOperationID := strings.TrimSpace(value(record, columns, "broker_operation_id"))
+	safeBrokerOperationID := neutralizeSpreadsheetText(brokerOperationID)
 	note := neutralizeSpreadsheetText(value(record, columns, "note"))
 
 	gross, err := parseMoney(grossText, "GROSS_AMOUNT")
+	grossParsed := err == nil
 	if err != nil {
 		reasons = append(reasons, err.Error())
 	}
@@ -309,6 +326,12 @@ func normalizeCandidate(columns map[string]int, record []string) (*Candidate, st
 		} else {
 			candidate.UnitPrice = &unitPrice
 		}
+		if grossParsed && candidate.Quantity != nil && candidate.UnitPrice != nil {
+			expectedGross := candidate.Quantity.Mul(candidate.UnitPrice.Amount)
+			if !expectedGross.Equal(candidate.GrossAmount.Amount) {
+				reasons = append(reasons, "GROSS_AMOUNT_MISMATCH")
+			}
+		}
 	case "DEPOSIT", "WITHDRAWAL":
 		if ticker != "" || strings.TrimSpace(quantityText) != "" || strings.TrimSpace(unitPriceText) != "" {
 			reasons = append(reasons, "CASH_FLOW_HAS_ASSET_FIELDS")
@@ -319,10 +342,7 @@ func normalizeCandidate(columns map[string]int, record []string) (*Candidate, st
 		reasons = append(reasons, "UNKNOWN_TRANSACTION_TYPE")
 	}
 
-	if len(reasons) > 0 && (gross.Amount.IsZero() && !strings.Contains(strings.Join(reasons, ","), "GROSS_AMOUNT")) {
-		// Keep the candidate visible for user review when enough fields parsed.
-	}
-	return &candidate, brokerOperationID, uniqueReasons(reasons)
+	return &candidate, safeBrokerOperationID, uniqueReasons(reasons)
 }
 
 func mapColumns(header []string) (map[string]int, error) {
@@ -446,6 +466,30 @@ func nearMatch(candidate *Candidate, existing []verticalslice.Transaction) bool 
 		}
 	}
 	return false
+}
+
+func nearMatchImported(candidate *Candidate, existing *Candidate) bool {
+	if candidate == nil || existing == nil {
+		return false
+	}
+	if nearMatchKey(candidate) != nearMatchKey(existing) {
+		return false
+	}
+	return candidate.Commission.Amount.String() != existing.Commission.Amount.String() ||
+		candidate.Tax.Amount.String() != existing.Tax.Amount.String() ||
+		candidate.GrossAmount.Amount.String() != existing.GrossAmount.Amount.String()
+}
+
+func nearMatchKey(candidate *Candidate) string {
+	if candidate == nil {
+		return ""
+	}
+	return strings.Join([]string{
+		candidate.TransactionType,
+		candidate.TradeDate,
+		ptr(candidate.Ticker),
+		decimalPtr(candidate.Quantity),
+	}, "|")
 }
 
 func summarize(rows []RowReview) Summary {

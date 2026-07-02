@@ -71,6 +71,30 @@ func TestReviewCSVDetectsScopedBrokerOperationDuplicateInsideFile(t *testing.T) 
 	}
 }
 
+func TestReviewCSVMarksGrossAmountMismatchForBuyAsConflict(t *testing.T) {
+	review := mustReview(t, csvHeader+
+		"BUY,SBER,2.00000000,100.00000000,199.99000000,1.00000000,0.00000000,2026-06-20,,RUB,op-1,gross mismatch\n", nil)
+
+	if got := review.Rows[0].Status; got != ReviewStatusConflict {
+		t.Fatalf("expected gross mismatch conflict, got %s with reasons %v", got, review.Rows[0].ReasonCodes)
+	}
+	assertHasReason(t, review.Rows[0], "GROSS_AMOUNT_MISMATCH")
+}
+
+func TestReviewCSVDetectsNearDuplicateInsideImportFile(t *testing.T) {
+	review := mustReview(t, csvHeader+
+		"BUY,SBER,2.00000000,100.00000000,200.00000000,1.00000000,0.00000000,2026-06-20,,RUB,op-1,first buy\n"+
+		"BUY,SBER,2.00000000,100.00000000,200.00000000,2.00000000,0.00000000,2026-06-20,,RUB,op-2,near duplicate commission differs\n", nil)
+
+	if got := review.Rows[0].Status; got != ReviewStatusAppendable {
+		t.Fatalf("expected first row appendable, got %s with reasons %v", got, review.Rows[0].ReasonCodes)
+	}
+	if got := review.Rows[1].Status; got != ReviewStatusConflict {
+		t.Fatalf("expected second row near duplicate conflict, got %s with reasons %v", got, review.Rows[1].ReasonCodes)
+	}
+	assertHasReason(t, review.Rows[1], "NEAR_DUPLICATE_IMPORTED_ROW_2_REQUIRES_REVIEW")
+}
+
 func TestReviewCSVMarksUnsupportedAndUnsafeRowsForReview(t *testing.T) {
 	review := mustReview(t, csvHeader+
 		"SELL,SBER,1.00000000,100.00000000,100.00000000,0.00000000,0.00000000,2026-06-20,,RUB,op-1,sell later\n"+
@@ -88,7 +112,7 @@ func TestReviewCSVMarksUnsupportedAndUnsafeRowsForReview(t *testing.T) {
 
 func TestReviewCSVNeutralizesSpreadsheetFormulaPayloads(t *testing.T) {
 	review := mustReview(t, csvHeader+
-		"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,op-1,\"=HYPERLINK(\"\"https://evil.example\"\")\"\n", nil)
+		"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,\"=BROKEROP()\",\"=HYPERLINK(\"\"https://evil.example\"\")\"\n", nil)
 
 	note := review.Rows[0].Candidate.SafeNote
 	if note == nil {
@@ -97,6 +121,9 @@ func TestReviewCSVNeutralizesSpreadsheetFormulaPayloads(t *testing.T) {
 	if !strings.HasPrefix(*note, "'=") {
 		t.Fatalf("expected neutralized spreadsheet formula, got %q", *note)
 	}
+	if !strings.HasPrefix(review.Rows[0].BrokerOperationID, "'=") {
+		t.Fatalf("expected neutralized broker operation id, got %q", review.Rows[0].BrokerOperationID)
+	}
 }
 
 func TestBuildAppendRequestsRejectsUnapprovedUnsafeRows(t *testing.T) {
@@ -104,6 +131,19 @@ func TestBuildAppendRequestsRejectsUnapprovedUnsafeRows(t *testing.T) {
 		"SELL,SBER,1.00000000,100.00000000,100.00000000,0.00000000,0.00000000,2026-06-20,,RUB,op-1,sell later\n", nil)
 
 	_, err := BuildAppendRequests(review, []Decision{{RowNumber: 2, Action: DecisionApprove}})
+	if !errors.Is(err, ErrUnsafeAppend) {
+		t.Fatalf("expected unsafe append error, got %v", err)
+	}
+}
+
+func TestBuildAppendRequestsRejectsDuplicateDecisions(t *testing.T) {
+	review := mustReview(t, csvHeader+
+		"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,op-1,cash in\n", nil)
+
+	_, err := BuildAppendRequests(review, []Decision{
+		{RowNumber: 2, Action: DecisionApprove},
+		{RowNumber: 2, Action: DecisionApprove},
+	})
 	if !errors.Is(err, ErrUnsafeAppend) {
 		t.Fatalf("expected unsafe append error, got %v", err)
 	}
@@ -135,6 +175,37 @@ func TestReviewCSVReadsCanonicalFinancialFixture(t *testing.T) {
 	}
 }
 
+func TestReviewCSVReadsAllCanonicalFinancialFixtures(t *testing.T) {
+	tests := map[string]Summary{
+		"../../../tests/financial/import/valid_stage_03_06.csv": {
+			TotalRows:      3,
+			AppendableRows: 3,
+		},
+		"../../../tests/financial/import/conflicts_stage_03_06.csv": {
+			TotalRows:    4,
+			ConflictRows: 4,
+		},
+		"../../../tests/financial/import/formula_injection_stage_03_06.csv": {
+			TotalRows:      2,
+			AppendableRows: 2,
+		},
+	}
+
+	for path, want := range tests {
+		t.Run(path, func(t *testing.T) {
+			payload, err := os.ReadFile(path)
+			if err != nil {
+				t.Fatalf("read fixture: %v", err)
+			}
+
+			review := mustReview(t, string(payload), nil)
+			if review.Summary != want {
+				t.Fatalf("unexpected fixture summary: got %+v want %+v", review.Summary, want)
+			}
+		})
+	}
+}
+
 func mustReview(t *testing.T, input string, existing []verticalslice.Transaction) Review {
 	t.Helper()
 	review, err := ReviewCSV(ReviewRequest{
@@ -150,4 +221,14 @@ func mustReview(t *testing.T, input string, existing []verticalslice.Transaction
 		t.Fatalf("review csv: %v", err)
 	}
 	return review
+}
+
+func assertHasReason(t *testing.T, row RowReview, reason string) {
+	t.Helper()
+	for _, got := range row.ReasonCodes {
+		if got == reason {
+			return
+		}
+	}
+	t.Fatalf("expected row %d to contain reason %q, got %v", row.RowNumber, reason, row.ReasonCodes)
 }
