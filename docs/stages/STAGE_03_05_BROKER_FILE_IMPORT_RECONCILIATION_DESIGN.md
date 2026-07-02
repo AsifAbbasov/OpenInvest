@@ -118,7 +118,9 @@ Conceptual entities:
   - created/updated timestamps.
 - `ImportRow`
   - source row number;
-  - raw safe text snapshot or hash, subject to privacy review;
+  - persisted row hash, normalized candidate, and safe diagnostics only by default;
+  - raw row text may exist only transiently in memory during parse/review rendering;
+  - persistent raw row text storage requires a separate explicit retention approval and privacy review;
   - normalized candidate transaction;
   - validation status;
   - matching status;
@@ -241,6 +243,7 @@ Normative rules:
 - parse and validation failures are terminal for the affected raw file version until the user uploads
   a corrected file or changes mapping decisions;
 - user cancellation leaves no ledger effect;
+- cancellation, rejection, expiration, or terminal validation failure must delete transient raw row text;
 - rejected rows leave no ledger effect;
 - approved rows enter `append_in_progress` before ledger writes start;
 - the append operation must be atomic for all approved rows in the session;

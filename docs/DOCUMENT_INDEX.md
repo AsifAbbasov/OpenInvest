@@ -73,7 +73,7 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 
 | Document | Status | Location |
 | --- | --- | --- |
-| Stage 3 plan | Planning / not implemented | `stages/STAGE_03_FIRST_VERTICAL_SLICE.md` |
+| Stage 3 plan | Active / staged implementation | `stages/STAGE_03_FIRST_VERTICAL_SLICE.md` |
 | Stage 3.1 database foundation | Complete / merged into `develop` | `stages/STAGE_03_01_DATABASE_FOUNDATION.md` |
 | Stage 3.2 Go API vertical slice | Complete / merged into `develop` | `stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md` |
 | Stage 3.3 Next.js presentation slice | Complete / merged into `develop` | `stages/STAGE_03_03_NEXTJS_PRESENTATION_SLICE.md` |
