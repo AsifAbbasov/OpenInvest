@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.7 |
+| Version | 1.1.8 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
@@ -22,8 +22,8 @@
 | 3.2 — Go API vertical-slice backend | Portfolio, transaction append, snapshot rebuild, summary read | Complete |
 | 3.3 — Next.js presentation slice | Render the first slice through the Go API only | Complete |
 | 3.4 — End-to-end verification | Prove the complete path and update onboarding docs | Complete |
-| 3.5 — Broker file import and reconciliation design | Reduce public-MVP manual-entry risk before broad release | In progress / design only |
-| 3.6 — Broker file import vertical slice | User-supplied file import with review and append-only reconciliation | Candidate / requires design approval |
+| 3.5 — Broker file import and reconciliation design | Reduce public-MVP manual-entry risk before broad release | Complete |
+| 3.6 — Broker file import vertical slice | User-supplied CSV import review and explicit append-plan generation | In progress / internal slice |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.

@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-05 |
-| Version | 0.1.0 |
-| Status | In progress / design only |
+| Version | 0.1.1 |
+| Status | Complete / closed |
 | Owner | Builder Engineer |
 | Supersedes | Stage 3.5 roadmap placeholder |
 | Dependencies | Stage 3.4; `product/MVP_PRODUCT_RISK_REFINEMENT.md`; ADR-003; ADR-006; Documents 42–43 |
 | Last Review Date | 2026-07-02 |
-| Next Review Date | Before Stage 3.6 implementation |
+| Next Review Date | Before atomic import append implementation |
 
 ## Purpose
 
@@ -19,7 +19,8 @@ The product risk is simple: manual transaction entry proved the architecture, bu
 for users with real portfolio-accounting pain. A public MVP must let a user bring historical ledger
 data into OpenInvest without credential scraping, silent mutation, or unreviewed automation.
 
-This stage is documentation only. It does not authorize parser implementation.
+This stage was documentation only and did not authorize parser implementation. It is now closed and
+merged into `develop` at `072d38d94b529221d6467502f82f03a674a7d805`.
 
 ## Non-goals
 

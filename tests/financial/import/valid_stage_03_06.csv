@@ -1,0 +1,4 @@
+transaction_type,ticker,quantity,unit_price,gross_amount,commission,tax,trade_date,settlement_date,currency,broker_operation_id,note
+BUY,SBER,2.00000000,100.00000000,200.00000000,1.00000000,0.00000000,2026-06-20,2026-06-21,RUB,fixture-op-1,ordinary buy
+DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,fixture-op-2,cash in
+WITHDRAWAL,,,,250.00000000,0.00000000,0.00000000,2026-06-22,,RUB,fixture-op-3,cash out

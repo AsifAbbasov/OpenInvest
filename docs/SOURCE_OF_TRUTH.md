@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.9 |
+| Version | 1.4.10 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -15,10 +15,10 @@
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.4 — End-to-End Verification**
+**Last completed implementation stage: Stage 3.5 — Broker File Import and Reconciliation Design**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `86582efaa420b2c38465a5d0da041814149392c7`**
-**Current active work item: Stage 3.5 — Broker file import and reconciliation design**
+**Current canonical implementation baseline: `develop` at `072d38d94b529221d6467502f82f03a674a7d805`**
+**Current active work item: Stage 3.6 — Broker file import reconciliation slice**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -94,9 +94,11 @@ Product risk refinement is closed and merged into `develop` at
 `11805cc298bba13f09f7f7af8b1e1178dc351209`, with closure documentation merged at
 `fe402030359459f909c156a1e993f18ceed257bf`. Stage 3.4 is closed and merged into `develop` at
 `86582efaa420b2c38465a5d0da041814149392c7`; it added end-to-end local verification and root
-developer commands only. Stage 3.5 is the active design-only focus for broker-file import and
-reconciliation. It does not authorize parser implementation, broker API integration, upload UI, SQL
-migrations, or workers.
+developer commands only. Stage 3.5 is closed and merged into `develop` at
+`072d38d94b529221d6467502f82f03a674a7d805`; it approved the design guardrails for user-supplied
+broker-file import. Stage 3.6 is the active implementation focus for an internal CSV
+parse/normalize/review/append-plan slice only. It does not authorize public import endpoints,
+broker API integration, upload UI, SQL migrations, workers, or automatic ledger append.
 
 ## Financial standard
 
@@ -133,7 +135,7 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 | Dashboard and snapshots | Yes | Stage 3.4 verification closed |
 | WAC, XIRR, real/inflation returns | Yes | Planned |
 | Dividend calculator/calendar | Yes | Planned |
-| Broker file import and reconciliation | Public-MVP readiness candidate | Stage 3.5 design active |
+| Broker file import and reconciliation | Public-MVP readiness candidate | Stage 3.6 internal CSV review slice active |
 | Purchasing power | Yes | Planned as secondary insight |
 | Tax export | No | Experimental; feature flag off |
 | Foreign securities | No | Backlog v2.0 |
