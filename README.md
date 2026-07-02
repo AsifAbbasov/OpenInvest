@@ -5,12 +5,11 @@ OpenInvest is an independent, privacy-first investment analytics platform. It is
 This repository contains the closed Stage 2 contract/canonical-model baseline, the accepted Next.js
 Web presentation-layer baseline, the merged Stage 3.2 Go API vertical-slice backend, the closed
 Stage 3.3 Web presentation slice, the closed Stage 3.4 end-to-end verification layer, the closed
-Stage 3.5 broker-file import/reconciliation design, and the active Stage 3.6 import reconciliation
+Stage 3.5 broker-file import/reconciliation design, and the closed Stage 3.6 import reconciliation
 slice.
 
-The current implementation focus is Stage 3.6 broker-file import reconciliation. This is an internal
-CSV parser/review/append-plan slice only: no public import API, broker API, upload UI, SQL migration,
-worker, or automatic ledger append is authorized in this PR.
+Stage 3.6 added an internal CSV parser/review/append-plan slice only: no public import API, broker
+API, upload UI, SQL migration, worker, or automatic ledger append was introduced.
 Product-risk refinement is closed and remains part of the MVP governance baseline.
 
 ## Components

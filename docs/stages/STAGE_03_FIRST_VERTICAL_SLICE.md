@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.4 |
+| Version | 0.1.5 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
 | Last Review Date | 2026-07-02 |
-| Next Review Date | Before Stage 3.6 merge |
+| Next Review Date | Before Stage 3.7 scope approval |
 
 ## Purpose
 
@@ -223,7 +223,7 @@ Forbidden:
 
 Status:
 
-- In progress / implementation.
+- Complete / merged into `develop` at `e2b05650a4422b97d4bd924254367106b6a4686b`.
 
 ## Stage 3 domain boundaries
 
@@ -329,10 +329,13 @@ Implementation may reveal tactical questions, but they must be handled as follow
 Stage 3 implementation is split into reviewable sub-stages. Each sub-stage requires its own feature
 branch, checks, strict review, and human approval before merge.
 
-Stage 3.5 is closed. Stage 3.6 implementation started after:
+Stage 3.5 is closed. Stage 3.6 is closed after:
 
 1. the Stage 3.5 design PR is reviewed;
 2. CI is green;
 3. strict review approves;
 4. human approval is given;
-5. the design PR was merged into `develop` at `072d38d94b529221d6467502f82f03a674a7d805`.
+5. the design PR was merged into `develop` at `072d38d94b529221d6467502f82f03a674a7d805`;
+6. requested-changes fixes were applied;
+7. independent follow-up review approved;
+8. PR #15 was squash-merged into `develop` at `e2b05650a4422b97d4bd924254367106b6a4686b`.

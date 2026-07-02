@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-06 |
-| Version | 0.1.0 |
-| Status | In progress / implementation |
+| Version | 0.1.1 |
+| Status | Complete / merged into `develop` |
 | Owner | Builder Engineer |
 | Supersedes | Stage 3.6 roadmap placeholder |
 | Dependencies | Stage 3.5 import design; Stage 3.2 Go vertical slice; Documents 42–43 |
 | Last Review Date | 2026-07-02 |
-| Next Review Date | Before Stage 3.6 merge |
+| Next Review Date | Before Stage 3.7 import append scope approval |
 
 ## Purpose
 
@@ -113,6 +113,17 @@ Implemented test-vector categories:
   Stage 3.2 ledger schema has no broker-operation-id column.
 - Atomic database append of approved import rows is intentionally deferred.
 - Import-session persistence is intentionally deferred.
+
+## Completion evidence
+
+Stage 3.6 was squash-merged into `develop` at
+`e2b05650a4422b97d4bd924254367106b6a4686b` after:
+
+- green GitHub CI;
+- focused local verification;
+- independent review requested-changes fixes;
+- independent follow-up review approval;
+- human authorization to continue.
 
 ## Acceptance criteria
 
