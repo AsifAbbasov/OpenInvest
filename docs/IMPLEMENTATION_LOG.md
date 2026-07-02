@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.5 |
+| Version | 1.1.6 |
 | Status | Active |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
@@ -28,7 +28,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.5 — Broker File Import and Reconciliation Design | Design the safe user-supplied broker-file import path before parser implementation | Complete / closed; merged into `develop` at `072d38d94b529221d6467502f82f03a674a7d805` | [Stage 3.5 report](stages/STAGE_03_05_BROKER_FILE_IMPORT_RECONCILIATION_DESIGN.md) |
 | 3.6 — Broker File Import Reconciliation Slice | Parse CSV broker files into reviewable normalized candidates and explicit append plans | Complete / closed; merged into `develop` at `e2b05650a4422b97d4bd924254367106b6a4686b` | [Stage 3.6 report](stages/STAGE_03_06_IMPORT_RECONCILIATION_SLICE.md) |
 | 3.7 — Import Append Planning | Define the safe atomic append boundary before any import ledger mutation implementation | Complete / closed; merged into `develop` at `36d86c7ff2a9c75478de155d4f60b979b8da9376` | [Stage 3.7 plan](stages/STAGE_03_07_IMPORT_APPEND_PLANNING.md) |
-| 3.7 — Import Append Slice | Internally append user-approved import rows atomically into the immutable ledger | Active / implementation PR | [Stage 3.7 implementation report](stages/STAGE_03_07_IMPORT_APPEND_SLICE.md) |
+| 3.7 — Import Append Slice | Internally append user-approved import rows atomically into the immutable ledger | Complete / closed; merged into `develop` at `89f6cab500653e09b5daa47e439b3f82fb4c8720` | [Stage 3.7 implementation report](stages/STAGE_03_07_IMPORT_APPEND_SLICE.md) |
 
 ## Stage completion protocol
 
@@ -64,3 +64,13 @@ This log is the index of implementation stages. Every stage must document its pu
   integration, tax logic, mobile, or AI scope.
 - Required live PostgreSQL verification for atomicity, idempotency, snapshot rebuild, rollback, and
   audit evidence.
+
+## 2026-07-02 — Stage 3.7 import append slice closed
+
+- Squash-merged PR #18 into `develop` at `89f6cab500653e09b5daa47e439b3f82fb4c8720`.
+- Added internal atomic append of user-approved import rows with duplicate revalidation,
+  idempotency protection, minimal audit evidence, and deterministic snapshot rebuilds.
+- Resolved independent review findings for concurrent duplicate-batch serialization and live
+  PostgreSQL evidence.
+- Kept public import endpoints, upload UI, SQL import-session persistence, workers,
+  broker/provider integrations, tax logic, mobile, AI, and Stage 3.8 work out of scope.

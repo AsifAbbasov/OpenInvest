@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-07 |
-| Version | 0.1.0 |
-| Status | Draft / planning only |
+| Version | 0.1.1 |
+| Status | Complete / merged into `develop` |
 | Owner | Builder Engineer |
 | Supersedes | Stage 3.7 roadmap placeholder |
 | Dependencies | Stage 3.5 import design; Stage 3.6 import reconciliation slice; Stage 3.2 Go vertical slice; Documents 42–43 |
 | Last Review Date | 2026-07-02 |
-| Next Review Date | Before Stage 3.7 implementation approval |
+| Next Review Date | 2027-01-03 |
 
 ## Purpose
 
@@ -122,7 +122,7 @@ The future implementation PR must include tests for:
 
 ## Review requirements
 
-Before Stage 3.7 implementation can merge:
+The Stage 3.7 implementation was allowed to merge only after:
 
 - full local verification must pass;
 - GitHub CI must be green;
