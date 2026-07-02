@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-08 |
-| Version | 0.1.0 |
-| Status | Draft / planning only |
+| Version | 0.1.1 |
+| Status | Complete / merged into `develop` |
 | Owner | Builder Engineer |
 | Supersedes | Stage 3.7 isolated append-only state |
 | Dependencies | Stage 3.6 import reconciliation slice; Stage 3.7 import append slice; Documents 42–43 |
 | Last Review Date | 2026-07-03 |
-| Next Review Date | Before Stage 3.8 implementation approval |
+| Next Review Date | 2027-01-03 |
 
 ## Purpose
 

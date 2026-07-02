@@ -215,3 +215,10 @@
 - Kept public import API, OpenAPI changes, upload UI, SQL import-session persistence, raw file
   persistence, workers, broker/provider integrations, tax, mobile, AI, and implementation out of
   scope.
+
+## 2026-07-03 — Stage 3.8 import review append flow slice started
+
+- Added the active implementation report for the internal import review → append flow slice.
+- Scoped implementation to an internal Go orchestration package and tests only.
+- Kept public import API, OpenAPI changes, upload UI, SQL import-session persistence, raw file
+  persistence, workers, provider integrations, tax, mobile, AI, and Stage 3.9 out of scope.

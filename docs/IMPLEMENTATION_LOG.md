@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.7 |
+| Version | 1.1.8 |
 | Status | Active |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
@@ -29,7 +29,8 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.6 — Broker File Import Reconciliation Slice | Parse CSV broker files into reviewable normalized candidates and explicit append plans | Complete / closed; merged into `develop` at `e2b05650a4422b97d4bd924254367106b6a4686b` | [Stage 3.6 report](stages/STAGE_03_06_IMPORT_RECONCILIATION_SLICE.md) |
 | 3.7 — Import Append Planning | Define the safe atomic append boundary before any import ledger mutation implementation | Complete / closed; merged into `develop` at `36d86c7ff2a9c75478de155d4f60b979b8da9376` | [Stage 3.7 plan](stages/STAGE_03_07_IMPORT_APPEND_PLANNING.md) |
 | 3.7 — Import Append Slice | Internally append user-approved import rows atomically into the immutable ledger | Complete / closed; merged into `develop` at `89f6cab500653e09b5daa47e439b3f82fb4c8720` | [Stage 3.7 implementation report](stages/STAGE_03_07_IMPORT_APPEND_SLICE.md) |
-| 3.8 — Import Review Append Flow Planning | Define the internal orchestration from reviewed import candidates to atomic append | Active / planning PR | [Stage 3.8 plan](stages/STAGE_03_08_IMPORT_REVIEW_APPEND_FLOW_PLANNING.md) |
+| 3.8 — Import Review Append Flow Planning | Define the internal orchestration from reviewed import candidates to atomic append | Complete / closed; merged into `develop` at `a35af2f5207bd564647d2a3fc032f4f940e62ddd` | [Stage 3.8 plan](stages/STAGE_03_08_IMPORT_REVIEW_APPEND_FLOW_PLANNING.md) |
+| 3.8 — Import Review Append Flow Slice | Internally orchestrate import review decisions into atomic append | Active / implementation PR | [Stage 3.8 implementation report](stages/STAGE_03_08_IMPORT_REVIEW_APPEND_FLOW_SLICE.md) |
 
 ## Stage completion protocol
 
@@ -83,3 +84,11 @@ This log is the index of implementation stages. Every stage must document its pu
 - Kept public import endpoints, OpenAPI changes, upload UI, SQL import-session persistence, raw
   file persistence, workers, broker/provider integrations, tax logic, mobile, AI, and implementation
   out of scope.
+
+## 2026-07-03 — Stage 3.8 import review append flow slice started
+
+- Started the internal implementation slice for parse/review/approve/append orchestration.
+- Added no public import API, OpenAPI changes, upload UI, SQL import-session table, raw file
+  persistence, worker, provider integration, tax logic, mobile, or AI scope.
+- Required live PostgreSQL verification for full parse/review/approve/append behavior and stale
+  duplicate rollback.
