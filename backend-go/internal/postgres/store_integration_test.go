@@ -5,15 +5,20 @@ import (
 	"database/sql"
 	"errors"
 	"os"
+	"strings"
 	"sync"
 	"testing"
 
 	"github.com/google/uuid"
 
 	"github.com/openinvest/openinvest/backend-go/internal/decimal"
+	"github.com/openinvest/openinvest/backend-go/internal/importer"
+	"github.com/openinvest/openinvest/backend-go/internal/importflow"
 	"github.com/openinvest/openinvest/backend-go/internal/postgres"
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
+
+const importCSVHeader = "transaction_type,ticker,quantity,unit_price,gross_amount,commission,tax,trade_date,settlement_date,currency,broker_operation_id,note\n"
 
 func TestStoreVerticalSlice(t *testing.T) {
 	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
@@ -335,5 +340,135 @@ func TestStoreAppendImportedTransactionsSerializesConcurrentDuplicateBatches(t *
 	}
 	if len(listed) != 1 {
 		t.Fatalf("expected exactly one imported transaction after concurrent batches, got %d", len(listed))
+	}
+}
+
+func TestImportReviewAppendFlowAppendsApprovedRows(t *testing.T) {
+	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
+	if databaseURL == "" {
+		t.Skip("OPENINVEST_DATABASE_TEST_URL is not set")
+	}
+
+	store, err := postgres.Open(databaseURL)
+	if err != nil {
+		t.Fatalf("open postgres store: %v", err)
+	}
+	defer store.Close()
+
+	service := verticalslice.NewService(store, verticalslice.SystemClock{})
+	ctx := context.Background()
+	subjectID := uuid.NewString()
+
+	portfolio, err := service.CreatePortfolio(ctx, verticalslice.RequestContext{}, subjectID, "portfolio-key-import-flow-01", "/api/v1/portfolios", verticalslice.CreatePortfolioRequest{
+		Name:         "Review append flow",
+		BaseCurrency: verticalslice.RUB,
+	})
+	if err != nil {
+		t.Fatalf("create portfolio: %v", err)
+	}
+
+	result, err := importflow.ReviewAndAppend(ctx, service, importflow.Request{
+		SubjectID:          subjectID,
+		PortfolioID:        portfolio.ID,
+		IdempotencyKey:     "import-flow-key-1001",
+		RequestPath:        "/internal/imports/review-append",
+		SourceAccountLabel: "manual-broker-label",
+		Reader: strings.NewReader(importCSVHeader +
+			"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,op-flow-1,cash in\n" +
+			"BUY,SBER,2.00000000,100.00000000,200.00000000,1.00000000,0.00000000,2026-06-20,2026-06-21,RUB,op-flow-2,buy\n"),
+		Decisions: []importer.Decision{
+			{RowNumber: 2, Action: importer.DecisionApprove},
+			{RowNumber: 3, Action: importer.DecisionApprove},
+		},
+	})
+	if err != nil {
+		t.Fatalf("review and append flow: %v", err)
+	}
+	if result.ParsedRowCount != 2 || result.AcceptedRowCount != 2 || result.NonAppendedRowCount != 0 {
+		t.Fatalf("unexpected result counts: %+v", result)
+	}
+	if len(result.AppendedTransactionIDs) != 2 {
+		t.Fatalf("expected 2 appended transaction ids, got %v", result.AppendedTransactionIDs)
+	}
+	if got := result.SnapshotDatesRebuilt; len(got) != 2 || got[0] != "2026-06-19" || got[1] != "2026-06-20" {
+		t.Fatalf("unexpected snapshot rebuild dates: %v", got)
+	}
+	if result.AuditActionCode != "IMPORT_APPEND_BATCH" {
+		t.Fatalf("unexpected audit action code: %s", result.AuditActionCode)
+	}
+
+	summary, err := service.GetPortfolioSummary(ctx, subjectID, portfolio.ID, "2026-06-20")
+	if err != nil {
+		t.Fatalf("get portfolio summary: %v", err)
+	}
+	if got := summary.StockValue.Amount.String(); got != "200.00000000" {
+		t.Fatalf("expected stock value 200.00000000, got %s", got)
+	}
+	if got := summary.CashValue.Amount.String(); got != "799.00000000" {
+		t.Fatalf("expected cash value 799.00000000, got %s", got)
+	}
+}
+
+func TestImportReviewAppendFlowRejectsStaleDuplicateWithoutPartialAppend(t *testing.T) {
+	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
+	if databaseURL == "" {
+		t.Skip("OPENINVEST_DATABASE_TEST_URL is not set")
+	}
+
+	store, err := postgres.Open(databaseURL)
+	if err != nil {
+		t.Fatalf("open postgres store: %v", err)
+	}
+	defer store.Close()
+
+	service := verticalslice.NewService(store, verticalslice.SystemClock{})
+	ctx := context.Background()
+	subjectID := uuid.NewString()
+
+	portfolio, err := service.CreatePortfolio(ctx, verticalslice.RequestContext{}, subjectID, "portfolio-key-import-flow-02", "/api/v1/portfolios", verticalslice.CreatePortfolioRequest{
+		Name:         "Stale duplicate flow",
+		BaseCurrency: verticalslice.RUB,
+	})
+	if err != nil {
+		t.Fatalf("create portfolio: %v", err)
+	}
+
+	duplicateGross := verticalslice.Money{Amount: decimal.Must("1000.00000000"), Currency: verticalslice.RUB}
+	_, err = service.AppendTransaction(ctx, verticalslice.RequestContext{}, subjectID, "transaction-key-import-flow-dup", "/api/v1/portfolios/"+portfolio.ID+"/transactions", verticalslice.AppendTransactionRequest{
+		PortfolioID:     portfolio.ID,
+		TransactionType: "DEPOSIT",
+		GrossAmount:     &duplicateGross,
+		Commission:      verticalslice.ZeroMoney(),
+		Tax:             verticalslice.ZeroMoney(),
+		TradeDate:       "2026-06-19",
+	})
+	if err != nil {
+		t.Fatalf("seed duplicate transaction: %v", err)
+	}
+
+	_, err = importflow.ReviewAndAppend(ctx, service, importflow.Request{
+		SubjectID:      subjectID,
+		PortfolioID:    portfolio.ID,
+		IdempotencyKey: "import-flow-key-1002",
+		RequestPath:    "/internal/imports/review-append",
+		Existing:       nil,
+		Reader: strings.NewReader(importCSVHeader +
+			"DEPOSIT,,,,500.00000000,0.00000000,0.00000000,2026-06-18,,RUB,op-flow-safe,new cash in\n" +
+			"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,op-flow-dup,stale duplicate\n"),
+		Decisions: []importer.Decision{
+			{RowNumber: 2, Action: importer.DecisionApprove},
+			{RowNumber: 3, Action: importer.DecisionApprove},
+		},
+	})
+	if !errors.Is(err, verticalslice.ErrInvalidInput) {
+		t.Fatalf("expected stale duplicate rejection, got %v", err)
+	}
+
+	listed, err := service.ListTransactions(ctx, subjectID, portfolio.ID, verticalslice.TransactionFilter{Limit: 10})
+	if err != nil {
+		t.Fatalf("list transactions: %v", err)
+	}
+	if len(listed) != 1 {
+		t.Fatalf("expected rollback to keep only seeded duplicate transaction, got %d", len(listed))
 	}
 }

@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.15 |
+| Version | 1.1.16 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
@@ -15,7 +15,7 @@
 
 | ID | Title | Version | Status | Location |
 | --- | --- | --- | --- | --- |
-| SOT-001 | Source of Truth | 1.4.15 | Approved | `SOURCE_OF_TRUTH.md` |
+| SOT-001 | Source of Truth | 1.4.16 | Approved | `SOURCE_OF_TRUTH.md` |
 | 42 | Architecture Amendments | 1.1.0 | Approved | `specifications/current/DOCUMENT_42_ARCHITECTURE_AMENDMENTS_v1.1.md` |
 | 43 | Architecture Decision Closure | 1.2.0 | Final | `specifications/current/DOCUMENT_43_ARCHITECTURE_CLOSURE_v1.2.md` |
 
@@ -82,7 +82,8 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Stage 3.6 broker file import reconciliation slice | Complete / merged into `develop` | `stages/STAGE_03_06_IMPORT_RECONCILIATION_SLICE.md` |
 | Stage 3.7 import append planning | Complete / merged into `develop` | `stages/STAGE_03_07_IMPORT_APPEND_PLANNING.md` |
 | Stage 3.7 import append slice | Complete / merged into `develop` | `stages/STAGE_03_07_IMPORT_APPEND_SLICE.md` |
-| Stage 3.8 import review append flow planning | Active / planning PR | `stages/STAGE_03_08_IMPORT_REVIEW_APPEND_FLOW_PLANNING.md` |
+| Stage 3.8 import review append flow planning | Complete / merged into `develop` | `stages/STAGE_03_08_IMPORT_REVIEW_APPEND_FLOW_PLANNING.md` |
+| Stage 3.8 import review append flow slice | Active / implementation PR | `stages/STAGE_03_08_IMPORT_REVIEW_APPEND_FLOW_SLICE.md` |
 
 ## Product refinement documents
 

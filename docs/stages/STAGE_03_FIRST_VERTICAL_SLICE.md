@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.9 |
+| Version | 0.1.10 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
 | Last Review Date | 2026-07-02 |
-| Next Review Date | Before Stage 3.8 implementation approval |
+| Next Review Date | Before Stage 3.8 merge |
 
 ## Purpose
 
@@ -311,7 +311,41 @@ Forbidden:
 
 Status:
 
-- Active / planning PR.
+- Complete / merged into `develop` at `a35af2f5207bd564647d2a3fc032f4f940e62ddd`.
+
+### PR 3.8 — Import review append flow slice
+
+Purpose:
+
+- internally orchestrate reviewed import decisions into atomic append.
+
+Allowed:
+
+- internal Go orchestration package;
+- bounded in-memory CSV handling;
+- source file hash calculation without raw file persistence;
+- Stage 3.6 review and append-request generation;
+- Stage 3.7 atomic append invocation;
+- unit and live PostgreSQL integration tests;
+- documentation updates.
+
+Forbidden:
+
+- public import endpoints;
+- OpenAPI changes;
+- frontend upload UI;
+- SQL import-session persistence;
+- raw file persistence;
+- direct broker API synchronization;
+- credential scraping;
+- external provider integrations;
+- XLSX or PDF parsing;
+- automatic append without explicit approved decisions;
+- workers, tax, mobile, AI, or Stage 3.9 work.
+
+Status:
+
+- Active / implementation PR.
 
 ## Stage 3 domain boundaries
 
