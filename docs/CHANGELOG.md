@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.11 |
+| Version | 1.1.12 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -190,3 +190,10 @@
   immutable ledger entries → snapshot rebuild → audit evidence.
 - Kept implementation, public import endpoints, frontend upload UI, broker/provider integrations,
   workers, tax logic, mobile, and AI out of scope until a separate reviewed implementation PR.
+
+## 2026-07-02 — Stage 3.7 import append slice started
+
+- Added the active implementation report for the internal atomic import append slice.
+- Scoped the implementation to Go service/store internals and PostgreSQL transaction behavior only.
+- Kept public import API, upload UI, SQL import-session persistence, workers, broker/provider
+  integrations, tax logic, mobile, and AI out of scope.

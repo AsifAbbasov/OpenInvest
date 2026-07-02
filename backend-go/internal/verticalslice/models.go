@@ -26,6 +26,7 @@ type Store interface {
 	GetPortfolio(ctx context.Context, subjectID string, portfolioID string) (Portfolio, error)
 	ListTransactions(ctx context.Context, subjectID string, portfolioID string, filter TransactionFilter) ([]Transaction, error)
 	AppendTransaction(ctx context.Context, command CommandContext, request AppendTransactionRequest) (Transaction, error)
+	AppendImportedTransactions(ctx context.Context, command CommandContext, request AppendImportBatchRequest) ([]Transaction, error)
 	GetPortfolioSummary(ctx context.Context, subjectID string, portfolioID string, asOfDate string) (PortfolioSummary, error)
 }
 
@@ -61,6 +62,13 @@ type AppendTransactionRequest struct {
 	TradeDate       string
 	SettlementDate  *string
 	Note            *string
+}
+
+type AppendImportBatchRequest struct {
+	PortfolioID    string
+	Transactions   []AppendTransactionRequest
+	SourceKind     string
+	SourceFileHash string
 }
 
 type TransactionFilter struct {
