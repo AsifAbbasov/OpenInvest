@@ -1,0 +1,3 @@
+transaction_type,ticker,quantity,unit_price,gross_amount,commission,tax,trade_date,settlement_date,currency,broker_operation_id,note
+DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,fixture-op-8,"=HYPERLINK(""https://evil.example"")"
+DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,fixture-op-9,"+SUM(1,1)"

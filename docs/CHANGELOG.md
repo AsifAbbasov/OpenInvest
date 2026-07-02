@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.9 |
+| Version | 1.1.10 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -162,3 +162,12 @@
   collection, and provider integrations out of scope.
 - Defined the import principle as parse → normalize → match → duplicate/conflict detection → user
   review → append only.
+
+## 2026-07-02 — Stage 3.5 closed and Stage 3.6 started
+
+- Squash-merged PR #14 into `develop` at `072d38d94b529221d6467502f82f03a674a7d805`.
+- Closed the Stage 3.5 broker-file import and reconciliation design after independent review and
+  human merge approval.
+- Started Stage 3.6 as an internal CSV parser/review/append-plan slice.
+- Kept public import endpoints, frontend upload UI, SQL import-session tables, workers, broker APIs,
+  credential scraping, XLSX/PDF parsing, and automatic ledger append out of Stage 3.6 scope.

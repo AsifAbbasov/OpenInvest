@@ -1,0 +1,5 @@
+transaction_type,ticker,quantity,unit_price,gross_amount,commission,tax,trade_date,settlement_date,currency,broker_operation_id,note
+SELL,SBER,1.00000000,100.00000000,100.00000000,0.00000000,0.00000000,2026-06-20,,RUB,fixture-op-4,sell requires future review
+BUY,SBER,1.00000000,100.00000000,100.00000000,0.00000000,0.00000000,2026-06-20,,USD,fixture-op-5,non-rub rejected
+BUY,sber,1.00000000,100.00000000,100.00000000,0.00000000,0.00000000,2026-06-20,,RUB,fixture-op-6,lowercase ticker normalizes
+BUY,SBER,0.00000000,100.00000000,0.00000000,0.00000000,0.00000000,2026-06-20,,RUB,fixture-op-7,zero quantity rejected

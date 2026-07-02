@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.3 |
+| Version | 0.1.4 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
 | Last Review Date | 2026-07-02 |
-| Next Review Date | Before Stage 3.6 implementation |
+| Next Review Date | Before Stage 3.6 merge |
 
 ## Purpose
 
@@ -52,7 +52,7 @@ Forbidden in Stage 3:
 - tax export;
 - email automation;
 - mobile implementation;
-- broker import;
+- direct broker API synchronization;
 - MOEX, CBR, Rosstat, or external provider integration;
 - dividend calendar production ingestion;
 - forecast engine;
@@ -64,10 +64,8 @@ Forbidden in Stage 3:
 - production deployment;
 - styling/design-system expansion beyond basic readable screens.
 
-Broker import is still forbidden inside the first vertical-slice implementation. However,
-`product/MVP_PRODUCT_RISK_REFINEMENT.md` promotes broker file import and reconciliation to a
-near-term public-MVP readiness candidate after Stage 3.4, because manual entry alone is not a strong
-public-MVP adoption path.
+Direct broker API synchronization and credential scraping remain forbidden. User-supplied
+broker-file import is now a controlled public-MVP readiness path after Stage 3.5 design approval.
 
 ## Required implementation slices
 
@@ -197,25 +195,35 @@ Forbidden:
 
 Status:
 
-- In progress / design only.
+- Complete / merged into `develop` at `072d38d94b529221d6467502f82f03a674a7d805`.
 
 ### PR 3.6 — Broker file import vertical slice
 
 Purpose:
 
-- implement the approved file-import path if PR 3.5 is accepted.
+- implement the smallest approved file-import review path after PR 3.5 acceptance.
 
 Allowed:
 
-- user-supplied CSV/XLSX import if approved by design;
-- normalization, duplicate detection, conflict detection, user review, and append-only import;
-- import audit events.
+- user-supplied CSV import only;
+- normalization, duplicate detection, conflict detection, and user-review representation;
+- explicit append-plan generation from approved rows;
+- financial import test vectors.
 
 Forbidden:
 
+- public import endpoints;
+- frontend upload screens;
+- SQL import-session tables;
+- automatic ledger append;
+- XLSX and PDF parsing;
 - credential scraping;
 - direct broker API synchronization;
 - silent mutation of existing ledger records.
+
+Status:
+
+- In progress / implementation.
 
 ## Stage 3 domain boundaries
 
@@ -321,10 +329,10 @@ Implementation may reveal tactical questions, but they must be handled as follow
 Stage 3 implementation is split into reviewable sub-stages. Each sub-stage requires its own feature
 branch, checks, strict review, and human approval before merge.
 
-Stage 3.5 is design-only. Stage 3.6 implementation cannot start until:
+Stage 3.5 is closed. Stage 3.6 implementation started after:
 
 1. the Stage 3.5 design PR is reviewed;
 2. CI is green;
 3. strict review approves;
 4. human approval is given;
-5. the design PR is merged into `develop`.
+5. the design PR was merged into `develop` at `072d38d94b529221d6467502f82f03a674a7d805`.

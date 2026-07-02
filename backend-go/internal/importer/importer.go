@@ -1,0 +1,546 @@
+package importer
+
+import (
+	"crypto/sha256"
+	"encoding/csv"
+	"encoding/hex"
+	"errors"
+	"fmt"
+	"io"
+	"regexp"
+	"sort"
+	"strings"
+	"time"
+
+	"github.com/openinvest/openinvest/backend-go/internal/decimal"
+	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
+)
+
+const (
+	SourceKindUserUploadedFile = "USER_UPLOADED_FILE"
+
+	ReviewStatusAppendable = "APPENDABLE"
+	ReviewStatusDuplicate  = "DUPLICATE"
+	ReviewStatusConflict   = "CONFLICT"
+	ReviewStatusInvalid    = "INVALID"
+
+	DecisionApprove = "APPROVE"
+	DecisionIgnore  = "IGNORE"
+	DecisionReject  = "REJECT"
+)
+
+var (
+	ErrInvalidImport = errors.New("invalid import")
+	ErrUnsafeAppend  = errors.New("unsafe append")
+
+	tickerPattern = regexp.MustCompile(`^[A-Z0-9]{1,32}$`)
+)
+
+type ReviewRequest struct {
+	SubjectID          string
+	PortfolioID        string
+	SourceKind         string
+	SourceAccountLabel string
+	FileHash           string
+	Existing           []verticalslice.Transaction
+	Reader             io.Reader
+}
+
+type Review struct {
+	SubjectID          string      `json:"subjectId"`
+	PortfolioID        string      `json:"portfolioId"`
+	SourceKind         string      `json:"sourceKind"`
+	SourceAccountLabel string      `json:"sourceAccountLabel"`
+	FileHash           string      `json:"fileHash"`
+	Summary            Summary     `json:"summary"`
+	Rows               []RowReview `json:"rows"`
+}
+
+type Summary struct {
+	TotalRows      int `json:"totalRows"`
+	AppendableRows int `json:"appendableRows"`
+	DuplicateRows  int `json:"duplicateRows"`
+	ConflictRows   int `json:"conflictRows"`
+	InvalidRows    int `json:"invalidRows"`
+}
+
+type RowReview struct {
+	RowNumber         int        `json:"rowNumber"`
+	RowHash           string     `json:"rowHash"`
+	Status            string     `json:"status"`
+	ReasonCodes       []string   `json:"reasonCodes"`
+	Candidate         *Candidate `json:"candidate,omitempty"`
+	Fingerprint       string     `json:"fingerprint,omitempty"`
+	BrokerOperationID string     `json:"brokerOperationId,omitempty"`
+}
+
+type Candidate struct {
+	TransactionType string               `json:"transactionType"`
+	Ticker          *string              `json:"ticker,omitempty"`
+	Quantity        *decimal.Decimal     `json:"quantity,omitempty"`
+	UnitPrice       *verticalslice.Money `json:"unitPrice,omitempty"`
+	GrossAmount     verticalslice.Money  `json:"grossAmount"`
+	Commission      verticalslice.Money  `json:"commission"`
+	Tax             verticalslice.Money  `json:"tax"`
+	TradeDate       string               `json:"tradeDate"`
+	SettlementDate  *string              `json:"settlementDate,omitempty"`
+	SafeNote        *string              `json:"safeNote,omitempty"`
+}
+
+type Decision struct {
+	RowNumber int
+	Action    string
+}
+
+func ReviewCSV(request ReviewRequest) (Review, error) {
+	if strings.TrimSpace(request.SubjectID) == "" {
+		return Review{}, fmt.Errorf("%w: subjectId is required", ErrInvalidImport)
+	}
+	if strings.TrimSpace(request.PortfolioID) == "" {
+		return Review{}, fmt.Errorf("%w: portfolioId is required", ErrInvalidImport)
+	}
+	sourceKind := strings.TrimSpace(request.SourceKind)
+	if sourceKind == "" {
+		sourceKind = SourceKindUserUploadedFile
+	}
+	if sourceKind != SourceKindUserUploadedFile {
+		return Review{}, fmt.Errorf("%w: sourceKind must be USER_UPLOADED_FILE", ErrInvalidImport)
+	}
+
+	reader := csv.NewReader(request.Reader)
+	reader.TrimLeadingSpace = true
+	reader.FieldsPerRecord = -1
+
+	header, err := reader.Read()
+	if err != nil {
+		return Review{}, fmt.Errorf("%w: CSV header is required", ErrInvalidImport)
+	}
+	columns, err := mapColumns(header)
+	if err != nil {
+		return Review{}, err
+	}
+
+	review := Review{
+		SubjectID:          request.SubjectID,
+		PortfolioID:        request.PortfolioID,
+		SourceKind:         sourceKind,
+		SourceAccountLabel: strings.TrimSpace(request.SourceAccountLabel),
+		FileHash:           strings.TrimSpace(request.FileHash),
+		Rows:               []RowReview{},
+	}
+	existingFingerprints := existingFingerprintSet(request.PortfolioID, request.Existing)
+	seenFingerprints := map[string]int{}
+	seenBrokerOperationIDs := map[string]int{}
+
+	rowNumber := 1
+	for {
+		record, err := reader.Read()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		rowNumber++
+		if err != nil {
+			review.Rows = append(review.Rows, invalidRow(rowNumber, nil, "MALFORMED_CSV_ROW"))
+			continue
+		}
+		row := reviewRow(request.PortfolioID, columns, record, rowNumber)
+		if row.Candidate != nil {
+			businessFingerprint := fingerprintFor(request.PortfolioID, *row.Candidate, "")
+			if _, ok := existingFingerprints[businessFingerprint]; ok {
+				row.Status = ReviewStatusDuplicate
+				row.ReasonCodes = appendReason(row.ReasonCodes, "EXACT_NORMALIZED_FINGERPRINT_MATCH")
+			}
+			if firstRow, ok := seenFingerprints[row.Fingerprint]; ok {
+				row.Status = ReviewStatusDuplicate
+				row.ReasonCodes = appendReason(row.ReasonCodes, fmt.Sprintf("DUPLICATE_IMPORTED_ROW_%d", firstRow))
+			} else if row.Fingerprint != "" {
+				seenFingerprints[row.Fingerprint] = row.RowNumber
+			}
+			if row.BrokerOperationID != "" {
+				brokerScopeKey := request.SubjectID + "|" + request.PortfolioID + "|" + review.SourceAccountLabel + "|" + sourceKind + "|" + row.BrokerOperationID
+				if firstRow, ok := seenBrokerOperationIDs[brokerScopeKey]; ok {
+					row.Status = ReviewStatusDuplicate
+					row.ReasonCodes = appendReason(row.ReasonCodes, fmt.Sprintf("DUPLICATE_BROKER_OPERATION_ID_ROW_%d", firstRow))
+				} else {
+					seenBrokerOperationIDs[brokerScopeKey] = row.RowNumber
+				}
+			}
+			if row.Status == ReviewStatusAppendable && nearMatch(row.Candidate, request.Existing) {
+				row.Status = ReviewStatusConflict
+				row.ReasonCodes = appendReason(row.ReasonCodes, "NEAR_DUPLICATE_REQUIRES_REVIEW")
+			}
+		}
+		review.Rows = append(review.Rows, row)
+	}
+	review.Summary = summarize(review.Rows)
+	return review, nil
+}
+
+func BuildAppendRequests(review Review, decisions []Decision) ([]verticalslice.AppendTransactionRequest, error) {
+	rows := map[int]RowReview{}
+	for _, row := range review.Rows {
+		rows[row.RowNumber] = row
+	}
+	appendRequests := []verticalslice.AppendTransactionRequest{}
+	for _, decision := range decisions {
+		switch decision.Action {
+		case DecisionIgnore, DecisionReject:
+			continue
+		case DecisionApprove:
+			row, ok := rows[decision.RowNumber]
+			if !ok {
+				return nil, fmt.Errorf("%w: row %d is not in review", ErrUnsafeAppend, decision.RowNumber)
+			}
+			if row.Status != ReviewStatusAppendable || row.Candidate == nil {
+				return nil, fmt.Errorf("%w: row %d is not appendable", ErrUnsafeAppend, decision.RowNumber)
+			}
+			appendRequests = append(appendRequests, row.Candidate.toAppendRequest(review.PortfolioID))
+		default:
+			return nil, fmt.Errorf("%w: decision action is invalid", ErrUnsafeAppend)
+		}
+	}
+	return appendRequests, nil
+}
+
+func reviewRow(portfolioID string, columns map[string]int, record []string, rowNumber int) RowReview {
+	rowHash := hashRecord(record)
+	candidate, brokerOperationID, reasons := normalizeCandidate(columns, record)
+	if len(reasons) > 0 && candidate == nil {
+		return RowReview{RowNumber: rowNumber, RowHash: rowHash, Status: ReviewStatusInvalid, ReasonCodes: reasons}
+	}
+	status := ReviewStatusAppendable
+	if len(reasons) > 0 {
+		status = ReviewStatusConflict
+	}
+	fingerprint := ""
+	if candidate != nil {
+		fingerprint = fingerprintFor(portfolioID, *candidate, brokerOperationID)
+	}
+	return RowReview{
+		RowNumber:         rowNumber,
+		RowHash:           rowHash,
+		Status:            status,
+		ReasonCodes:       reasons,
+		Candidate:         candidate,
+		Fingerprint:       fingerprint,
+		BrokerOperationID: brokerOperationID,
+	}
+}
+
+func normalizeCandidate(columns map[string]int, record []string) (*Candidate, string, []string) {
+	reasons := []string{}
+	transactionType := strings.ToUpper(strings.TrimSpace(value(record, columns, "transaction_type")))
+	currency := strings.ToUpper(strings.TrimSpace(value(record, columns, "currency")))
+	if currency != verticalslice.RUB {
+		reasons = append(reasons, "NON_RUB_CURRENCY")
+	}
+	if transactionType == "" {
+		return nil, "", []string{"MISSING_TRANSACTION_TYPE"}
+	}
+
+	ticker := strings.ToUpper(strings.TrimSpace(value(record, columns, "ticker")))
+	quantityText := value(record, columns, "quantity")
+	unitPriceText := value(record, columns, "unit_price")
+	grossText := value(record, columns, "gross_amount")
+	commissionText := value(record, columns, "commission")
+	taxText := value(record, columns, "tax")
+	tradeDate := strings.TrimSpace(value(record, columns, "trade_date"))
+	settlementDateText := strings.TrimSpace(value(record, columns, "settlement_date"))
+	brokerOperationID := strings.TrimSpace(value(record, columns, "broker_operation_id"))
+	note := neutralizeSpreadsheetText(value(record, columns, "note"))
+
+	gross, err := parseMoney(grossText, "GROSS_AMOUNT")
+	if err != nil {
+		reasons = append(reasons, err.Error())
+	}
+	commission, err := parseOptionalMoney(commissionText, "COMMISSION")
+	if err != nil {
+		reasons = append(reasons, err.Error())
+	}
+	tax, err := parseOptionalMoney(taxText, "TAX")
+	if err != nil {
+		reasons = append(reasons, err.Error())
+	}
+	if !validBusinessDate(tradeDate) {
+		reasons = append(reasons, "INVALID_TRADE_DATE")
+	}
+	var settlementDate *string
+	if settlementDateText != "" {
+		if !validBusinessDate(settlementDateText) {
+			reasons = append(reasons, "INVALID_SETTLEMENT_DATE")
+		} else {
+			settlementDate = &settlementDateText
+			if tradeDate != "" && settlementDateText < tradeDate {
+				reasons = append(reasons, "SETTLEMENT_BEFORE_TRADE_DATE")
+			}
+		}
+	}
+
+	candidate := Candidate{
+		TransactionType: transactionType,
+		GrossAmount:     gross,
+		Commission:      commission,
+		Tax:             tax,
+		TradeDate:       tradeDate,
+		SettlementDate:  settlementDate,
+	}
+	if note != "" {
+		candidate.SafeNote = &note
+	}
+
+	switch transactionType {
+	case "BUY":
+		if !tickerPattern.MatchString(ticker) {
+			reasons = append(reasons, "INVALID_TICKER")
+		} else {
+			candidate.Ticker = &ticker
+		}
+		quantity, err := parsePositiveDecimal(quantityText, "QUANTITY")
+		if err != nil {
+			reasons = append(reasons, err.Error())
+		} else {
+			candidate.Quantity = &quantity
+		}
+		unitPrice, err := parseMoney(unitPriceText, "UNIT_PRICE")
+		if err != nil {
+			reasons = append(reasons, err.Error())
+		} else if !unitPrice.Amount.IsPositive() {
+			reasons = append(reasons, "UNIT_PRICE_NOT_POSITIVE")
+		} else {
+			candidate.UnitPrice = &unitPrice
+		}
+	case "DEPOSIT", "WITHDRAWAL":
+		if ticker != "" || strings.TrimSpace(quantityText) != "" || strings.TrimSpace(unitPriceText) != "" {
+			reasons = append(reasons, "CASH_FLOW_HAS_ASSET_FIELDS")
+		}
+	case "SELL", "DIVIDEND", "COUPON", "FEE", "TAX":
+		reasons = append(reasons, "TRANSACTION_TYPE_REQUIRES_FUTURE_REVIEW")
+	default:
+		reasons = append(reasons, "UNKNOWN_TRANSACTION_TYPE")
+	}
+
+	if len(reasons) > 0 && (gross.Amount.IsZero() && !strings.Contains(strings.Join(reasons, ","), "GROSS_AMOUNT")) {
+		// Keep the candidate visible for user review when enough fields parsed.
+	}
+	return &candidate, brokerOperationID, uniqueReasons(reasons)
+}
+
+func mapColumns(header []string) (map[string]int, error) {
+	required := []string{
+		"transaction_type", "ticker", "quantity", "unit_price", "gross_amount", "commission",
+		"tax", "trade_date", "settlement_date", "currency", "broker_operation_id", "note",
+	}
+	columns := map[string]int{}
+	for index, value := range header {
+		columns[strings.ToLower(strings.TrimSpace(value))] = index
+	}
+	for _, column := range required {
+		if _, ok := columns[column]; !ok {
+			return nil, fmt.Errorf("%w: missing CSV column %s", ErrInvalidImport, column)
+		}
+	}
+	return columns, nil
+}
+
+func value(record []string, columns map[string]int, column string) string {
+	index := columns[column]
+	if index >= len(record) {
+		return ""
+	}
+	return strings.TrimSpace(record[index])
+}
+
+func parseMoney(input string, code string) (verticalslice.Money, error) {
+	amount, err := decimal.FromString(input)
+	if err != nil {
+		return verticalslice.ZeroMoney(), fmt.Errorf("%s_INVALID", code)
+	}
+	if amount.IsNegative() {
+		return verticalslice.ZeroMoney(), fmt.Errorf("%s_NEGATIVE", code)
+	}
+	return verticalslice.Money{Amount: amount, Currency: verticalslice.RUB}, nil
+}
+
+func parseOptionalMoney(input string, code string) (verticalslice.Money, error) {
+	if strings.TrimSpace(input) == "" {
+		return verticalslice.ZeroMoney(), nil
+	}
+	return parseMoney(input, code)
+}
+
+func parsePositiveDecimal(input string, code string) (decimal.Decimal, error) {
+	value, err := decimal.FromString(input)
+	if err != nil {
+		return decimal.Zero(), fmt.Errorf("%s_INVALID", code)
+	}
+	if !value.IsPositive() {
+		return decimal.Zero(), fmt.Errorf("%s_NOT_POSITIVE", code)
+	}
+	return value, nil
+}
+
+func validBusinessDate(input string) bool {
+	if strings.TrimSpace(input) == "" {
+		return false
+	}
+	_, err := time.Parse("2006-01-02", input)
+	return err == nil
+}
+
+func hashRecord(record []string) string {
+	hash := sha256.Sum256([]byte(strings.Join(record, "\x1f")))
+	return hex.EncodeToString(hash[:])
+}
+
+func fingerprintFor(portfolioID string, candidate Candidate, brokerOperationID string) string {
+	fields := []string{
+		portfolioID,
+		candidate.TransactionType,
+		ptr(candidate.Ticker),
+		decimalPtr(candidate.Quantity),
+		moneyPtr(candidate.UnitPrice),
+		candidate.GrossAmount.Amount.String(),
+		candidate.Commission.Amount.String(),
+		candidate.Tax.Amount.String(),
+		candidate.TradeDate,
+		ptr(candidate.SettlementDate),
+		brokerOperationID,
+	}
+	hash := sha256.Sum256([]byte(strings.Join(fields, "|")))
+	return hex.EncodeToString(hash[:])
+}
+
+func existingFingerprintSet(portfolioID string, transactions []verticalslice.Transaction) map[string]struct{} {
+	result := map[string]struct{}{}
+	for _, transaction := range transactions {
+		candidate := Candidate{
+			TransactionType: transaction.TransactionType,
+			Ticker:          transaction.Ticker,
+			Quantity:        transaction.Quantity,
+			UnitPrice:       transaction.UnitPrice,
+			GrossAmount:     transaction.GrossAmount,
+			Commission:      transaction.Commission,
+			Tax:             transaction.Tax,
+			TradeDate:       transaction.TradeDate,
+			SettlementDate:  transaction.SettlementDate,
+		}
+		result[fingerprintFor(portfolioID, candidate, "")] = struct{}{}
+	}
+	return result
+}
+
+func nearMatch(candidate *Candidate, existing []verticalslice.Transaction) bool {
+	if candidate == nil {
+		return false
+	}
+	for _, transaction := range existing {
+		if transaction.TransactionType == candidate.TransactionType &&
+			transaction.TradeDate == candidate.TradeDate &&
+			ptr(transaction.Ticker) == ptr(candidate.Ticker) &&
+			decimalPtr(transaction.Quantity) == decimalPtr(candidate.Quantity) {
+			if transaction.Commission.Amount.String() != candidate.Commission.Amount.String() ||
+				transaction.Tax.Amount.String() != candidate.Tax.Amount.String() ||
+				transaction.GrossAmount.Amount.String() != candidate.GrossAmount.Amount.String() {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func summarize(rows []RowReview) Summary {
+	summary := Summary{TotalRows: len(rows)}
+	for _, row := range rows {
+		switch row.Status {
+		case ReviewStatusAppendable:
+			summary.AppendableRows++
+		case ReviewStatusDuplicate:
+			summary.DuplicateRows++
+		case ReviewStatusConflict:
+			summary.ConflictRows++
+		case ReviewStatusInvalid:
+			summary.InvalidRows++
+		}
+	}
+	return summary
+}
+
+func invalidRow(rowNumber int, record []string, reason string) RowReview {
+	return RowReview{RowNumber: rowNumber, RowHash: hashRecord(record), Status: ReviewStatusInvalid, ReasonCodes: []string{reason}}
+}
+
+func appendReason(reasons []string, reason string) []string {
+	for _, existing := range reasons {
+		if existing == reason {
+			return reasons
+		}
+	}
+	return append(reasons, reason)
+}
+
+func uniqueReasons(reasons []string) []string {
+	if len(reasons) == 0 {
+		return reasons
+	}
+	seen := map[string]struct{}{}
+	unique := []string{}
+	for _, reason := range reasons {
+		if _, ok := seen[reason]; ok {
+			continue
+		}
+		seen[reason] = struct{}{}
+		unique = append(unique, reason)
+	}
+	sort.Strings(unique)
+	return unique
+}
+
+func neutralizeSpreadsheetText(input string) string {
+	value := strings.TrimSpace(input)
+	if value == "" {
+		return ""
+	}
+	switch value[0] {
+	case '=', '+', '-', '@', '\t', '\r', '\n':
+		return "'" + value
+	default:
+		return value
+	}
+}
+
+func ptr(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
+}
+
+func decimalPtr(value *decimal.Decimal) string {
+	if value == nil {
+		return ""
+	}
+	return value.String()
+}
+
+func moneyPtr(value *verticalslice.Money) string {
+	if value == nil {
+		return ""
+	}
+	return value.Amount.String()
+}
+
+func (candidate Candidate) toAppendRequest(portfolioID string) verticalslice.AppendTransactionRequest {
+	return verticalslice.AppendTransactionRequest{
+		PortfolioID:     portfolioID,
+		TransactionType: candidate.TransactionType,
+		Ticker:          candidate.Ticker,
+		Quantity:        candidate.Quantity,
+		UnitPrice:       candidate.UnitPrice,
+		GrossAmount:     &candidate.GrossAmount,
+		Commission:      candidate.Commission,
+		Tax:             candidate.Tax,
+		TradeDate:       candidate.TradeDate,
+		SettlementDate:  candidate.SettlementDate,
+		Note:            candidate.SafeNote,
+	}
+}
