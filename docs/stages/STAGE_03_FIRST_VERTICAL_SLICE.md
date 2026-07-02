@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.5 |
+| Version | 0.1.6 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
 | Last Review Date | 2026-07-02 |
-| Next Review Date | Before Stage 3.7 scope approval |
+| Next Review Date | Before Stage 3.7 implementation approval |
 
 ## Purpose
 
@@ -224,6 +224,34 @@ Forbidden:
 Status:
 
 - Complete / merged into `develop` at `e2b05650a4422b97d4bd924254367106b6a4686b`.
+
+### PR 3.7 — Import append planning
+
+Purpose:
+
+- define the reviewed boundary for a future atomic append of user-approved import rows into the
+  immutable ledger.
+
+Allowed:
+
+- documentation-only planning;
+- allowed/forbidden implementation scope;
+- idempotency, duplicate, audit, rollback, and test expectations;
+- governance registry synchronization.
+
+Forbidden:
+
+- implementation code;
+- public import endpoints;
+- frontend upload screens;
+- SQL import-session tables;
+- automatic ledger append;
+- direct broker API synchronization;
+- workers, tax, mobile, AI, or external-provider integration.
+
+Status:
+
+- Draft / planning only; implementation is not active.
 
 ## Stage 3 domain boundaries
 

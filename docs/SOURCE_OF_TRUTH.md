@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.11 |
+| Version | 1.4.12 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -17,8 +17,8 @@
 **Documentation Freeze: ACTIVE**
 **Last completed implementation stage: Stage 3.6 — Broker File Import Reconciliation Slice**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `e2b05650a4422b97d4bd924254367106b6a4686b`**
-**Current active work item: Stage 3.7 planning is pending; no Stage 3.7 implementation is active**
+**Current canonical implementation baseline: `develop` at `fb651632036fabaa31ec92e9d28b5782ca0f92e5`**
+**Current active work item: Stage 3.7 import append planning; no Stage 3.7 implementation is active**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -96,11 +96,13 @@ Product risk refinement is closed and merged into `develop` at
 `86582efaa420b2c38465a5d0da041814149392c7`; it added end-to-end local verification and root
 developer commands only. Stage 3.5 is closed and merged into `develop` at
 `072d38d94b529221d6467502f82f03a674a7d805`; it approved the design guardrails for user-supplied
-broker-file import. Stage 3.6 is closed and merged into `develop` at
-`e2b05650a4422b97d4bd924254367106b6a4686b`; it added an internal CSV
-parse/normalize/review/append-plan slice only. It does not authorize public import endpoints,
-broker API integration, upload UI, SQL migrations, workers, or automatic ledger append. Any atomic
-import append or import-session persistence requires a separate reviewed Stage 3.7 scope.
+broker-file import. Stage 3.6 implementation is closed and merged into `develop` at
+`e2b05650a4422b97d4bd924254367106b6a4686b`, with closure governance merged at
+`fb651632036fabaa31ec92e9d28b5782ca0f92e5`; it added an internal CSV parse/normalize/review/
+append-plan slice only. It does not authorize public import endpoints, broker API integration,
+upload UI, SQL migrations, workers, or automatic ledger append. Stage 3.7 import append planning is
+active to define the separate reviewed scope required before any atomic import append
+implementation.
 
 ## Financial standard
 

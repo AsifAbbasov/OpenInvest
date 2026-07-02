@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.10 |
+| Version | 1.1.11 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -182,3 +182,11 @@
 - Kept Stage 3.7 atomic import append, public import API, upload UI, SQL import-session persistence,
   broker/provider integrations, workers, XLSX/PDF parsing, mobile, and automatic ledger append out
   of scope.
+
+## 2026-07-02 — Stage 3.7 import append planning started
+
+- Added a documentation-only Stage 3.7 planning document for the future atomic import append scope.
+- Defined the proposed append path as explicit approved import decisions → atomic database append →
+  immutable ledger entries → snapshot rebuild → audit evidence.
+- Kept implementation, public import endpoints, frontend upload UI, broker/provider integrations,
+  workers, tax logic, mobile, and AI out of scope until a separate reviewed implementation PR.
