@@ -222,3 +222,12 @@
 - Scoped implementation to an internal Go orchestration package and tests only.
 - Kept public import API, OpenAPI changes, upload UI, SQL import-session persistence, raw file
   persistence, workers, provider integrations, tax, mobile, AI, and Stage 3.9 out of scope.
+
+## 2026-07-03 — Stage 3.8 import review append flow slice closed
+
+- Squash-merged PR #21 into `develop` at `1a1d08249e252c5a3ab3f275b5fae848d5bc0e79`.
+- Added internal import review → append orchestration with explicit approved decisions and
+  non-sensitive result metadata.
+- Fixed independent review privacy finding by removing full review rows from the append result.
+- Kept public import API, OpenAPI changes, upload UI, SQL import-session persistence, raw file
+  persistence, workers, provider integrations, tax, mobile, AI, and Stage 3.9 out of scope.

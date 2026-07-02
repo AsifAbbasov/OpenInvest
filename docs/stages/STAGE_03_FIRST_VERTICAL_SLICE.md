@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.10 |
+| Version | 0.1.11 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
 | Last Review Date | 2026-07-02 |
-| Next Review Date | Before Stage 3.8 merge |
+| Next Review Date | Before Stage 3.9 planning approval |
 
 ## Purpose
 
@@ -345,7 +345,7 @@ Forbidden:
 
 Status:
 
-- Active / implementation PR.
+- Complete / merged into `develop` at `1a1d08249e252c5a3ab3f275b5fae848d5bc0e79`.
 
 ## Stage 3 domain boundaries
 

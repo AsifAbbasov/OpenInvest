@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-08-IMPL |
-| Version | 0.1.0 |
-| Status | Active / implementation PR |
+| Version | 0.1.1 |
+| Status | Complete / closed; merged into `develop` |
 | Owner | Builder Engineer |
 | Supersedes | Stage 3.8 planning-only state |
 | Dependencies | Stage 3.8 planning; Stage 3.6 import reconciliation slice; Stage 3.7 import append slice |
 | Last Review Date | 2026-07-03 |
-| Next Review Date | Before Stage 3.8 merge |
+| Next Review Date | 2027-01-03 |
 
 ## Purpose
 
@@ -65,27 +65,43 @@ Stage 3.8 does not implement:
 
 Changed files reviewed:
 
-- `WITHHELD — blind external review pending`
+- `README.md`
+- `backend-go/internal/importflow/importflow.go`
+- `backend-go/internal/importflow/importflow_test.go`
+- `backend-go/internal/postgres/store_integration_test.go`
+- `docs/CHANGELOG.md`
+- `docs/DOCUMENT_INDEX.md`
+- `docs/IMPLEMENTATION_LOG.md`
+- `docs/ROADMAP.md`
+- `docs/SOURCE_OF_TRUTH.md`
+- `docs/VERSION_MATRIX.md`
+- `docs/stages/STAGE_03_08_IMPORT_REVIEW_APPEND_FLOW_PLANNING.md`
+- `docs/stages/STAGE_03_08_IMPORT_REVIEW_APPEND_FLOW_SLICE.md`
+- `docs/stages/STAGE_03_FIRST_VERTICAL_SLICE.md`
 
 Review verdict:
 
-- `WITHHELD — blind external review pending`
+- `APPROVED`
 
 Blocking findings:
 
-- `WITHHELD — blind external review pending`
+- Strict review found that the initial `importflow.Result` exposed the full `importer.Review`,
+  including row-level details, which widened the privacy surface.
 
 Resolved findings:
 
-- `WITHHELD — blind external review pending`
+- Removed full review rows from `importflow.Result`; the result now exposes only deterministic
+  non-sensitive metadata and warning codes.
 
 Remaining non-blocking notes:
 
-- `WITHHELD — blind external review pending`
+- Stage 3.8 remains internal-only. Public import endpoints and upload UI require a future reviewed
+  stage.
 
 Review-agent write access:
 
-- `WITHHELD — blind external review pending`
+- Independent review agents remained read-only and did not edit, stage, commit, push, merge, or
+  create PRs.
 
 ## Verification evidence
 
@@ -107,7 +123,7 @@ The live PostgreSQL tests verify:
 Stage 3.8 implementation is complete when:
 
 - full local verification passes;
-- GitHub CI is green;
-- strict independent review approves;
-- Stage report evidence is published after external review;
-- human approval is given before merge.
+- GitHub CI is green — complete;
+- strict independent review approves — complete;
+- Stage report evidence is published after external review — complete;
+- human approval is given before merge — complete.

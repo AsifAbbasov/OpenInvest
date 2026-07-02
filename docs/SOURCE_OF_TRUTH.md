@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.16 |
+| Version | 1.4.17 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -15,10 +15,10 @@
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.7 — Import Append Slice**
+**Last completed implementation stage: Stage 3.8 — Import Review Append Flow Slice**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `9307ce56f438825ab77eff3a158e96f8659215ba`**
-**Current active work item: Stage 3.8 import review append flow implementation on `feature/stage-03-08-import-review-append-flow-slice`; not merged**
+**Current canonical implementation baseline: `develop` at `1a1d08249e252c5a3ab3f275b5fae848d5bc0e79`**
+**Current active work item: Stage 3.9 planning pending; no implementation branch active**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -109,11 +109,12 @@ import-session persistence, broker/provider integrations, workers, tax, mobile, 
 scope.
 
 Stage 3.8 import review append flow planning is merged into `develop` at
-`a35af2f5207bd564647d2a3fc032f4f940e62ddd`. Stage 3.8 implementation is active on a feature
-branch to add internal orchestration between Stage 3.6 review output and Stage 3.7 atomic append.
-Public import endpoints, OpenAPI changes, upload UI, SQL import-session persistence, raw file
-persistence, workers, broker/provider integrations, tax, mobile, AI, and automatic append without
-explicit approved decisions remain out of scope.
+`a35af2f5207bd564647d2a3fc032f4f940e62ddd`. Stage 3.8 implementation is closed and merged into
+`develop` at `1a1d08249e252c5a3ab3f275b5fae848d5bc0e79`; it added internal orchestration between
+Stage 3.6 review output and Stage 3.7 atomic append. Public import endpoints, OpenAPI changes,
+upload UI, SQL import-session persistence, raw file persistence, workers, broker/provider
+integrations, tax, mobile, AI, and automatic append without explicit approved decisions remain out
+of scope.
 
 ## Financial standard
 
@@ -150,7 +151,7 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 | Dashboard and snapshots | Yes | Stage 3.4 verification closed |
 | WAC, XIRR, real/inflation returns | Yes | Planned |
 | Dividend calculator/calendar | Yes | Planned |
-| Broker file import and reconciliation | Public-MVP readiness candidate | Stage 3.7 internal atomic append closed; Stage 3.8 internal review→append flow implementation active; no public API/UI/import-session persistence |
+| Broker file import and reconciliation | Public-MVP readiness candidate | Stage 3.8 internal review→append flow closed; no public API/UI/import-session persistence |
 | Purchasing power | Yes | Planned as secondary insight |
 | Tax export | No | Experimental; feature flag off |
 | Foreign securities | No | Backlog v2.0 |
