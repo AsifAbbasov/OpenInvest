@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.8 |
+| Version | 1.1.9 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -147,3 +147,18 @@
 - Added the Stage 3.4 report and synchronized governance registries.
 - Kept Stage 3.4 limited to verification and onboarding; no new business logic, SQL migrations,
   provider integrations, workers, frontend feature expansion, or mobile code were added.
+
+## 2026-07-01 — Stage 3.4 closed
+
+- Squash-merged PR #13 into `develop` at `86582efaa420b2c38465a5d0da041814149392c7`.
+- Closed Stage 3.4 after green CI, controlled local smoke evidence, and independent review approval.
+- Added root verification commands and a controlled local smoke path for PostgreSQL, Go API,
+  immutable transaction append, snapshot rebuild, and summary response.
+
+## 2026-07-02 — Stage 3.5 broker-file import design started
+
+- Started the design-only broker-file import and reconciliation stage.
+- Kept parser implementation, SQL migrations, upload UI, workers, direct broker APIs, credential
+  collection, and provider integrations out of scope.
+- Defined the import principle as parse → normalize → match → duplicate/conflict detection → user
+  review → append only.
