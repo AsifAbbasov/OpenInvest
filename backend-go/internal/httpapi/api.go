@@ -194,6 +194,9 @@ func (api *API) reviewImport(c fiber.Ctx) error {
 
 func (api *API) appendImport(c fiber.Ctx) error {
 	meta := requestMeta(c)
+	if err := verticalslice.ValidateIdempotencyKey(c.Get("Idempotency-Key")); err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
 	var request importAppendRequestDTO
 	if err := c.Bind().Body(&request); err != nil {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")
@@ -202,10 +205,6 @@ func (api *API) appendImport(c fiber.Ctx) error {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
 	portfolioID := c.Params("portfolioId")
-	existing, err := api.service.ListTransactions(c.Context(), subjectID(), portfolioID, verticalslice.TransactionFilter{Limit: 100})
-	if err != nil {
-		return writeMappedErrorWithMeta(c, meta, err)
-	}
 	fileHash := importPayloadHash(request.CSVPayload)
 	preflightReview, err := importer.ReviewCSV(importer.ReviewRequest{
 		SubjectID:          subjectID(),
@@ -213,7 +212,6 @@ func (api *API) appendImport(c fiber.Ctx) error {
 		SourceKind:         importer.SourceKindUserUploadedFile,
 		SourceAccountLabel: request.SourceAccountLabel,
 		FileHash:           fileHash,
-		Existing:           existing,
 		Reader:             strings.NewReader(request.CSVPayload),
 	})
 	if err != nil {
@@ -231,7 +229,6 @@ func (api *API) appendImport(c fiber.Ctx) error {
 		SourceKind:         importer.SourceKindUserUploadedFile,
 		SourceAccountLabel: request.SourceAccountLabel,
 		SourceFileHash:     fileHash,
-		Existing:           existing,
 		Reader:             strings.NewReader(request.CSVPayload),
 		Decisions:          request.toAppDecisions(),
 	})

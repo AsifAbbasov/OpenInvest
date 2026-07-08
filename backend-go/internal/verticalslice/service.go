@@ -40,7 +40,7 @@ func (s *Service) ListPortfolios(ctx context.Context, subjectID string, limit in
 }
 
 func (s *Service) CreatePortfolio(ctx context.Context, requestContext RequestContext, subjectID string, idempotencyKey string, requestPath string, request CreatePortfolioRequest) (Portfolio, error) {
-	if err := validateIdempotencyKey(idempotencyKey); err != nil {
+	if err := ValidateIdempotencyKey(idempotencyKey); err != nil {
 		return Portfolio{}, err
 	}
 	request.Name = strings.TrimSpace(request.Name)
@@ -88,7 +88,7 @@ func (s *Service) ListTransactions(ctx context.Context, subjectID string, portfo
 }
 
 func (s *Service) AppendTransaction(ctx context.Context, requestContext RequestContext, subjectID string, idempotencyKey string, requestPath string, request AppendTransactionRequest) (Transaction, error) {
-	if err := validateIdempotencyKey(idempotencyKey); err != nil {
+	if err := ValidateIdempotencyKey(idempotencyKey); err != nil {
 		return Transaction{}, err
 	}
 	if err := validateAppendTransaction(request); err != nil {
@@ -103,7 +103,7 @@ func (s *Service) AppendTransaction(ctx context.Context, requestContext RequestC
 }
 
 func (s *Service) AppendImportedTransactions(ctx context.Context, requestContext RequestContext, subjectID string, idempotencyKey string, requestPath string, request AppendImportBatchRequest) ([]Transaction, error) {
-	if err := validateIdempotencyKey(idempotencyKey); err != nil {
+	if err := ValidateIdempotencyKey(idempotencyKey); err != nil {
 		return nil, err
 	}
 	if err := validateAppendImportBatch(request); err != nil {
@@ -252,7 +252,7 @@ func appendRequestBusinessKey(request AppendTransactionRequest) (string, error) 
 	return strings.Join(parts, "|"), nil
 }
 
-func validateIdempotencyKey(value string) error {
+func ValidateIdempotencyKey(value string) error {
 	if strings.TrimSpace(value) == "" {
 		return ErrMissingIdempotency
 	}

@@ -250,7 +250,11 @@ func (s *Store) AppendImportedTransactions(ctx context.Context, command vertical
 		return nil, err
 	}
 	if duplicate {
-		return nil, ErrUnsupportedDuplicate
+		transactions, err := getEquivalentImportedTransactionsTx(ctx, tx, request)
+		if err != nil {
+			return nil, err
+		}
+		return transactions, tx.Commit()
 	}
 
 	for _, transactionRequest := range request.Transactions {
@@ -368,6 +372,57 @@ func equivalentTransactionExists(ctx context.Context, tx *sql.Tx, request vertic
 		request.Commission.Amount.String(), request.Tax.Amount.String(), request.TradeDate,
 		settlementDate, ticker, quantity, unitPrice).Scan(&exists)
 	return exists, err
+}
+
+func getEquivalentImportedTransactionsTx(ctx context.Context, tx *sql.Tx, request verticalslice.AppendImportBatchRequest) ([]verticalslice.Transaction, error) {
+	transactions := make([]verticalslice.Transaction, 0, len(request.Transactions))
+	for _, transactionRequest := range request.Transactions {
+		transaction, err := getEquivalentTransactionTx(ctx, tx, transactionRequest)
+		if err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, transaction)
+	}
+	return transactions, nil
+}
+
+func getEquivalentTransactionTx(ctx context.Context, tx *sql.Tx, request verticalslice.AppendTransactionRequest) (verticalslice.Transaction, error) {
+	gross, err := verticalslice.GrossFor(request)
+	if err != nil {
+		return verticalslice.Transaction{}, err
+	}
+	var ticker any
+	if request.Ticker != nil {
+		ticker = *request.Ticker
+	}
+	var quantity any
+	if request.Quantity != nil {
+		quantity = request.Quantity.String()
+	}
+	var unitPrice any
+	if request.UnitPrice != nil {
+		unitPrice = request.UnitPrice.Amount.String()
+	}
+	var settlementDate any
+	if request.SettlementDate != nil {
+		settlementDate = *request.SettlementDate
+	}
+	return scanTransaction(tx.QueryRowContext(ctx, transactionSelectSQL()+`
+		WHERE te.portfolio_id = $1
+			AND te.transaction_type = $2
+			AND te.gross_amount = $3::numeric
+			AND te.commission_amount = $4::numeric
+			AND te.tax_amount = $5::numeric
+			AND te.trade_date = $6::date
+			AND (($7::date IS NULL AND te.settlement_date IS NULL) OR te.settlement_date = $7::date)
+			AND (($8::text IS NULL AND a.ticker IS NULL) OR a.ticker = $8::text)
+			AND (($9::numeric IS NULL AND te.quantity IS NULL) OR te.quantity = $9::numeric)
+			AND (($10::numeric IS NULL AND te.unit_price_amount IS NULL) OR te.unit_price_amount = $10::numeric)
+		ORDER BY te.created_at DESC, te.entry_id DESC
+		LIMIT 1
+	`, request.PortfolioID, request.TransactionType, gross.Amount.String(),
+		request.Commission.Amount.String(), request.Tax.Amount.String(), request.TradeDate,
+		settlementDate, ticker, quantity, unitPrice))
 }
 
 func insertTransactionEntry(ctx context.Context, tx *sql.Tx, command verticalslice.CommandContext, request verticalslice.AppendTransactionRequest) (string, error) {

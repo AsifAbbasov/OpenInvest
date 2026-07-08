@@ -67,7 +67,8 @@ func TestImportReviewRejectsMoreThanOneHundredRows(t *testing.T) {
 }
 
 func TestImportAppendRequiresIdempotencyKey(t *testing.T) {
-	app := New(verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}))
+	store := &importAPITestStore{}
+	app := New(verticalslice.NewService(store, fixedHTTPClock{}))
 	body := []byte(`{"sourceAccountLabel":"Manual CSV","csvPayload":` + quote(importCSV) + `,"decisions":[{"rowNumber":2,"action":"APPROVE"}]}`)
 	request := httptest.NewRequest(http.MethodPost, "/api/v1/portfolios/00000000-0000-4000-8000-000000000002/imports/append", bytes.NewReader(body))
 	request.Header.Set("Content-Type", "application/json")
@@ -80,6 +81,31 @@ func TestImportAppendRequiresIdempotencyKey(t *testing.T) {
 
 	if response.StatusCode != http.StatusBadRequest {
 		t.Fatalf("expected status %d, got %d", http.StatusBadRequest, response.StatusCode)
+	}
+	if store.listTransactionsCalls != 0 || store.appendImportedCalls != 0 {
+		t.Fatalf("expected missing idempotency key to short-circuit before store work, got list=%d append=%d", store.listTransactionsCalls, store.appendImportedCalls)
+	}
+}
+
+func TestImportAppendRejectsInvalidIdempotencyKeyBeforeStoreWork(t *testing.T) {
+	store := &importAPITestStore{}
+	app := New(verticalslice.NewService(store, fixedHTTPClock{}))
+	body := []byte(`{"sourceAccountLabel":"Manual CSV","csvPayload":` + quote(importCSV) + `,"decisions":[{"rowNumber":2,"action":"APPROVE"}]}`)
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/portfolios/00000000-0000-4000-8000-000000000002/imports/append", bytes.NewReader(body))
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Idempotency-Key", "too-short")
+
+	response, err := app.Test(request)
+	if err != nil {
+		t.Fatalf("request import append endpoint: %v", err)
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusBadRequest {
+		t.Fatalf("expected status %d, got %d", http.StatusBadRequest, response.StatusCode)
+	}
+	if store.listTransactionsCalls != 0 || store.appendImportedCalls != 0 {
+		t.Fatalf("expected invalid idempotency key to short-circuit before store work, got list=%d append=%d", store.listTransactionsCalls, store.appendImportedCalls)
 	}
 }
 
@@ -134,7 +160,9 @@ func (fixedHTTPClock) Now() time.Time {
 }
 
 type importAPITestStore struct {
-	appendedBatch *verticalslice.AppendImportBatchRequest
+	appendedBatch         *verticalslice.AppendImportBatchRequest
+	listTransactionsCalls int
+	appendImportedCalls   int
 }
 
 func (store *importAPITestStore) Ping(context.Context) error {
@@ -154,6 +182,7 @@ func (store *importAPITestStore) GetPortfolio(context.Context, string, string) (
 }
 
 func (store *importAPITestStore) ListTransactions(context.Context, string, string, verticalslice.TransactionFilter) ([]verticalslice.Transaction, error) {
+	store.listTransactionsCalls++
 	return []verticalslice.Transaction{}, nil
 }
 
@@ -162,6 +191,7 @@ func (store *importAPITestStore) AppendTransaction(context.Context, verticalslic
 }
 
 func (store *importAPITestStore) AppendImportedTransactions(_ context.Context, _ verticalslice.CommandContext, request verticalslice.AppendImportBatchRequest) ([]verticalslice.Transaction, error) {
+	store.appendImportedCalls++
 	store.appendedBatch = &request
 	quantity, _ := decimal.FromString("2.00000000")
 	unitPriceAmount, _ := decimal.FromString("100.00000000")

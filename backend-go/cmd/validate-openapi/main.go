@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -10,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/openinvest/openinvest/backend-go/internal/importer"
 	"gopkg.in/yaml.v3"
 )
 
@@ -75,6 +78,7 @@ func (v *validator) validate() {
 	v.validateStructure(asMap(rootDocument))
 	v.validateFinancialGuardVectors()
 	v.validateExampleSourceCodes()
+	v.validateImportExamples()
 	v.walk(rootDocument, v.root, "#")
 
 	if len(v.errors) > 0 {
@@ -411,6 +415,65 @@ func (v *validator) validateExampleSourceCodes() {
 	}
 	if len(missing) > 0 {
 		v.errors = append(v.errors, "reserved example source codes are unused: "+strings.Join(missing, ", "))
+	}
+}
+
+func (v *validator) validateImportExamples() {
+	examplesPath := filepath.Join(filepath.Dir(v.root), "examples", "imports.json")
+	examples := v.loadDocument(examplesPath)
+	reviewRequest := asMap(dig(examples, "reviewRequest", "value"))
+	reviewResponse := asMap(dig(examples, "reviewResponse", "value", "data"))
+	appendResponse := asMap(dig(examples, "appendResponse", "value", "data"))
+
+	payload, _ := reviewRequest["csvPayload"].(string)
+	portfolioID, _ := reviewResponse["portfolioId"].(string)
+	sourceAccountLabel, _ := reviewRequest["sourceAccountLabel"].(string)
+	if payload == "" || portfolioID == "" {
+		v.errors = append(v.errors, "import examples must include csvPayload and portfolioId")
+		return
+	}
+
+	hash := sha256.Sum256([]byte(payload))
+	sourceFileHash := hex.EncodeToString(hash[:])
+	if got, _ := reviewResponse["sourceFileHash"].(string); got != sourceFileHash {
+		v.errors = append(v.errors, "import review example sourceFileHash does not match csvPayload")
+	}
+	if got, _ := appendResponse["sourceFileHash"].(string); got != sourceFileHash {
+		v.errors = append(v.errors, "import append example sourceFileHash does not match csvPayload")
+	}
+
+	review, err := importer.ReviewCSV(importer.ReviewRequest{
+		SubjectID:          "00000000-0000-4000-8000-000000000001",
+		PortfolioID:        portfolioID,
+		SourceKind:         importer.SourceKindUserUploadedFile,
+		SourceAccountLabel: sourceAccountLabel,
+		FileHash:           sourceFileHash,
+		Reader:             strings.NewReader(payload),
+	})
+	if err != nil {
+		v.errors = append(v.errors, "import review example cannot be parsed by importer: "+err.Error())
+		return
+	}
+
+	exampleRows := asSlice(reviewResponse["rows"])
+	if len(exampleRows) != len(review.Rows) {
+		v.errors = append(v.errors, fmt.Sprintf("import review example row count mismatch: got %d want %d", len(exampleRows), len(review.Rows)))
+		return
+	}
+	for index, row := range review.Rows {
+		exampleRow := asMap(exampleRows[index])
+		if got, _ := asInt(exampleRow["rowNumber"]); got != row.RowNumber {
+			v.errors = append(v.errors, fmt.Sprintf("import example row %d rowNumber mismatch", index+1))
+		}
+		if got, _ := exampleRow["rowHash"].(string); got != row.RowHash {
+			v.errors = append(v.errors, fmt.Sprintf("import example row %d rowHash mismatch", index+1))
+		}
+		if got, _ := exampleRow["fingerprint"].(string); got != row.Fingerprint {
+			v.errors = append(v.errors, fmt.Sprintf("import example row %d fingerprint mismatch", index+1))
+		}
+		if got, _ := exampleRow["status"].(string); got != row.Status {
+			v.errors = append(v.errors, fmt.Sprintf("import example row %d status mismatch", index+1))
+		}
 	}
 }
 

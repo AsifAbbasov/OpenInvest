@@ -26,10 +26,10 @@
         "rows": [
           {
             "rowNumber": 2,
-            "rowHash": "7c3f5bbda1e7e7be1bfc6f73d38b5deecf8603fd605ff4a5f491c1e9ec1adac2",
+            "rowHash": "24f0a1dd41f968e875524a02379d9f826debcfac699ece349fe1a1598f367505",
             "status": "APPENDABLE",
             "reasonCodes": [],
-            "fingerprint": "058acb0a4f46ee2d498bb8318abbd7ffcd004fd973fa9faad20f34f9096dc030",
+            "fingerprint": "3c9feecf55b6794870b0dd9eb53fb982482ff59713390269aaf56a4f9bb6fd43",
             "candidate": {
               "transactionType": "BUY",
               "ticker": "SBER",

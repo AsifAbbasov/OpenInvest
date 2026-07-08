@@ -68,6 +68,9 @@ schema expansion.
 - Append reruns review using the submitted CSV payload and explicit decisions.
 - Append calls the existing atomic store boundary, which protects idempotency and duplicate
   revalidation under the portfolio lock.
+- Exact replay with the same authenticated principal, path, idempotency key, and canonical append
+  payload returns the original imported transactions instead of reprocessing duplicate-sensitive
+  review state.
 
 ## Current limitation
 
