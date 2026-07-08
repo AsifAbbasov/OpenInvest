@@ -235,7 +235,8 @@ func TestAppendImportedTransactionsHashIncludesWholeBatch(t *testing.T) {
 	firstGross := Money{Amount: decimal.Must("1000.00000000"), Currency: RUB}
 	secondGross := Money{Amount: decimal.Must("2000.00000000"), Currency: RUB}
 	firstRequest := AppendImportBatchRequest{
-		PortfolioID: "portfolio-id",
+		PortfolioID:        "portfolio-id",
+		SourceAccountLabel: "Manual CSV",
 		Transactions: []AppendTransactionRequest{{
 			PortfolioID:     "portfolio-id",
 			TransactionType: "DEPOSIT",
@@ -246,6 +247,7 @@ func TestAppendImportedTransactionsHashIncludesWholeBatch(t *testing.T) {
 		}},
 		SourceKind:     "USER_UPLOADED_FILE",
 		SourceFileHash: "file-hash",
+		Decisions:      []AppendImportDecision{{RowNumber: 2, Action: "APPROVE"}},
 	}
 	secondRequest := firstRequest
 	secondRequest.Transactions = []AppendTransactionRequest{{
@@ -271,5 +273,31 @@ func TestAppendImportedTransactionsHashIncludesWholeBatch(t *testing.T) {
 
 	if firstStore.requestHash == secondStore.requestHash {
 		t.Fatal("expected different request hashes for different import batches")
+	}
+
+	thirdRequest := firstRequest
+	thirdRequest.SourceAccountLabel = "Another Manual CSV"
+
+	thirdStore := &recordingStore{}
+	thirdService := NewService(thirdStore, fixedClock{})
+	if _, err := thirdService.AppendImportedTransactions(context.Background(), RequestContext{}, "subject", "import-batch-key-0001", "/internal/imports/append", thirdRequest); err != nil {
+		t.Fatalf("append third import batch: %v", err)
+	}
+
+	if firstStore.requestHash == thirdStore.requestHash {
+		t.Fatal("expected different request hashes for different import source labels")
+	}
+
+	fourthRequest := firstRequest
+	fourthRequest.Decisions = []AppendImportDecision{{RowNumber: 2, Action: "IGNORE"}}
+
+	fourthStore := &recordingStore{}
+	fourthService := NewService(fourthStore, fixedClock{})
+	if _, err := fourthService.AppendImportedTransactions(context.Background(), RequestContext{}, "subject", "import-batch-key-0001", "/internal/imports/append", fourthRequest); err != nil {
+		t.Fatalf("append fourth import batch: %v", err)
+	}
+
+	if firstStore.requestHash == fourthStore.requestHash {
+		t.Fatal("expected different request hashes for different import decisions")
 	}
 }

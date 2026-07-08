@@ -422,15 +422,20 @@ func (v *validator) validateImportExamples() {
 	examplesPath := filepath.Join(filepath.Dir(v.root), "examples", "imports.json")
 	examples := v.loadDocument(examplesPath)
 	reviewRequest := asMap(dig(examples, "reviewRequest", "value"))
+	appendRequest := asMap(dig(examples, "appendRequest", "value"))
 	reviewResponse := asMap(dig(examples, "reviewResponse", "value", "data"))
 	appendResponse := asMap(dig(examples, "appendResponse", "value", "data"))
 
 	payload, _ := reviewRequest["csvPayload"].(string)
+	appendPayload, _ := appendRequest["csvPayload"].(string)
 	portfolioID, _ := reviewResponse["portfolioId"].(string)
 	sourceAccountLabel, _ := reviewRequest["sourceAccountLabel"].(string)
-	if payload == "" || portfolioID == "" {
+	if payload == "" || appendPayload == "" || portfolioID == "" {
 		v.errors = append(v.errors, "import examples must include csvPayload and portfolioId")
 		return
+	}
+	if appendPayload != payload {
+		v.errors = append(v.errors, "import append example csvPayload must match review csvPayload for stateless review-to-append flow")
 	}
 
 	hash := sha256.Sum256([]byte(payload))

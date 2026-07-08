@@ -65,10 +65,17 @@ type AppendTransactionRequest struct {
 }
 
 type AppendImportBatchRequest struct {
-	PortfolioID    string
-	Transactions   []AppendTransactionRequest
-	SourceKind     string
-	SourceFileHash string
+	PortfolioID        string
+	Transactions       []AppendTransactionRequest
+	SourceKind         string
+	SourceAccountLabel string
+	SourceFileHash     string
+	Decisions          []AppendImportDecision
+}
+
+type AppendImportDecision struct {
+	RowNumber int
+	Action    string
 }
 
 type TransactionFilter struct {

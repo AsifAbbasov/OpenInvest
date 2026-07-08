@@ -220,6 +220,10 @@ func (api *API) appendImport(c fiber.Ctx) error {
 	if err := validateImportRowCount(preflightReview.Summary.TotalRows); err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
+	existing, err := api.service.ListTransactions(c.Context(), subjectID(), portfolioID, verticalslice.TransactionFilter{Limit: 100})
+	if err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
 	result, err := importflow.ReviewAndAppend(c.Context(), api.service, importflow.Request{
 		RequestContext:     meta.toApp(),
 		SubjectID:          subjectID(),
@@ -229,6 +233,7 @@ func (api *API) appendImport(c fiber.Ctx) error {
 		SourceKind:         importer.SourceKindUserUploadedFile,
 		SourceAccountLabel: request.SourceAccountLabel,
 		SourceFileHash:     fileHash,
+		Existing:           existing,
 		Reader:             strings.NewReader(request.CSVPayload),
 		Decisions:          request.toAppDecisions(),
 	})

@@ -218,6 +218,19 @@ func TestStoreAppendImportedTransactionsIsAtomicAndIdempotent(t *testing.T) {
 		t.Fatalf("expected replay to return original transactions, got %v want %v", replayed, transactions)
 	}
 
+	_, err = service.AppendTransaction(ctx, verticalslice.RequestContext{}, subjectID, "manual-equivalent-after-import", "/api/v1/portfolios/"+portfolio.ID+"/transactions", batch.Transactions[1])
+	if err != nil {
+		t.Fatalf("append later equivalent manual transaction: %v", err)
+	}
+
+	replayedAfterEquivalent, err := service.AppendImportedTransactions(ctx, verticalslice.RequestContext{}, subjectID, "import-batch-key-001", "/internal/imports/append", batch)
+	if err != nil {
+		t.Fatalf("replay imported transactions after later equivalent: %v", err)
+	}
+	if replayedAfterEquivalent[0].ID != transactions[0].ID || replayedAfterEquivalent[1].ID != transactions[1].ID {
+		t.Fatalf("expected replay after later equivalent to return original transactions, got %v want %v", replayedAfterEquivalent, transactions)
+	}
+
 	secondDeposit := verticalslice.Money{Amount: decimal.Must("500.00000000"), Currency: verticalslice.RUB}
 	conflictingBatch := verticalslice.AppendImportBatchRequest{
 		PortfolioID: portfolio.ID,

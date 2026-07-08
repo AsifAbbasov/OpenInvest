@@ -134,6 +134,48 @@ func TestImportAppendUsesAtomicImportBatch(t *testing.T) {
 	}
 }
 
+func TestImportAppendRevalidatesAgainstCurrentLedger(t *testing.T) {
+	quantity := decimal.Must("2.00000000")
+	unitPrice := verticalslice.Money{Amount: decimal.Must("100.00000000"), Currency: verticalslice.RUB}
+	ticker := "SBER"
+	settlementDate := "2026-01-13"
+	store := &importAPITestStore{
+		existingTransactions: []verticalslice.Transaction{{
+			ID:              "00000000-0000-4000-8000-000000000201",
+			PortfolioID:     "00000000-0000-4000-8000-000000000002",
+			TransactionType: "BUY",
+			Status:          "ACTIVE",
+			Ticker:          &ticker,
+			Quantity:        &quantity,
+			UnitPrice:       &unitPrice,
+			GrossAmount:     verticalslice.Money{Amount: decimal.Must("200.00000000"), Currency: verticalslice.RUB},
+			Commission:      verticalslice.Money{Amount: decimal.Must("1.00000000"), Currency: verticalslice.RUB},
+			Tax:             verticalslice.ZeroMoney(),
+			TradeDate:       "2026-01-10",
+			SettlementDate:  &settlementDate,
+			Revision:        1,
+		}},
+	}
+	app := New(verticalslice.NewService(store, fixedHTTPClock{}))
+	body := []byte(`{"sourceAccountLabel":"Manual CSV","csvPayload":` + quote(importCSV) + `,"decisions":[{"rowNumber":2,"action":"APPROVE"}]}`)
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/portfolios/00000000-0000-4000-8000-000000000002/imports/append", bytes.NewReader(body))
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Idempotency-Key", "import-api-key-0002")
+
+	response, err := app.Test(request)
+	if err != nil {
+		t.Fatalf("request import append endpoint: %v", err)
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusBadRequest {
+		t.Fatalf("expected stale duplicate to be rejected with status %d, got %d", http.StatusBadRequest, response.StatusCode)
+	}
+	if store.appendImportedCalls != 0 {
+		t.Fatalf("expected stale duplicate to be rejected before append, got append calls=%d", store.appendImportedCalls)
+	}
+}
+
 func quote(value string) string {
 	encoded, err := json.Marshal(value)
 	if err != nil {
@@ -161,6 +203,7 @@ func (fixedHTTPClock) Now() time.Time {
 
 type importAPITestStore struct {
 	appendedBatch         *verticalslice.AppendImportBatchRequest
+	existingTransactions  []verticalslice.Transaction
 	listTransactionsCalls int
 	appendImportedCalls   int
 }
@@ -183,7 +226,7 @@ func (store *importAPITestStore) GetPortfolio(context.Context, string, string) (
 
 func (store *importAPITestStore) ListTransactions(context.Context, string, string, verticalslice.TransactionFilter) ([]verticalslice.Transaction, error) {
 	store.listTransactionsCalls++
-	return []verticalslice.Transaction{}, nil
+	return store.existingTransactions, nil
 }
 
 func (store *importAPITestStore) AppendTransaction(context.Context, verticalslice.CommandContext, verticalslice.AppendTransactionRequest) (verticalslice.Transaction, error) {
