@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.14 |
+| Version | 1.1.15 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
@@ -27,7 +27,7 @@
 | 3.7 — Import append planning | Define the reviewed atomic append scope before any ledger mutation implementation | Complete |
 | 3.7 — Import append slice | Internal atomic append of user-approved import rows into immutable ledger | Complete |
 | 3.8 — Import review append flow planning | Define the internal parse/review/approve/append orchestration boundary | Complete |
-| 3.8 — Import review append flow slice | Internal parse/review/approve/append orchestration | Active / implementation PR |
+| 3.8 — Import review append flow slice | Internal parse/review/approve/append orchestration | Complete |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
