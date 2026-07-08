@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.11 |
+| Version | 1.1.12 |
 | Status | Active |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
@@ -32,7 +32,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.8 — Import Review Append Flow Planning | Define the internal orchestration from reviewed import candidates to atomic append | Complete / closed; merged into `develop` at `a35af2f5207bd564647d2a3fc032f4f940e62ddd` | [Stage 3.8 plan](stages/STAGE_03_08_IMPORT_REVIEW_APPEND_FLOW_PLANNING.md) |
 | 3.8 — Import Review Append Flow Slice | Internally orchestrate import review decisions into atomic append | Complete / closed; merged into `develop` at `1a1d08249e252c5a3ab3f275b5fae848d5bc0e79` | [Stage 3.8 implementation report](stages/STAGE_03_08_IMPORT_REVIEW_APPEND_FLOW_SLICE.md) |
 | 3.9 — Import API Boundary Planning | Define future public Go API boundary for user-supplied broker-file import | Complete / closed; merged into `develop` at `5cde1ca0232921d306d5e9337e4a0ba9455404ab` | [Stage 3.9 plan](stages/STAGE_03_09_IMPORT_API_BOUNDARY_PLANNING.md) |
-| 3.9 — Import API Boundary Slice | Expose user-supplied CSV import review/append through the Go API boundary | Active / implementation PR | [Stage 3.9 implementation report](stages/STAGE_03_09_IMPORT_API_BOUNDARY_SLICE.md) |
+| 3.9 — Import API Boundary Slice | Expose user-supplied CSV import review/append through the Go API boundary | Complete / closed; merged into `develop` at `b749a1632791127e0e2d4f99a91cb95eafc88898` | [Stage 3.9 implementation report](stages/STAGE_03_09_IMPORT_API_BOUNDARY_SLICE.md) |
 
 ## Stage completion protocol
 
@@ -124,3 +124,15 @@ This log is the index of implementation stages. Every stage must document its pu
   no raw CSV persistence, and append reruns review before invoking the atomic store boundary.
 - Kept frontend upload UI, SQL import-session persistence, workers, broker/provider integrations,
   tax, mobile, AI, and Stage 3.10 work out of scope.
+
+## 2026-07-08 — Stage 3.9 import API boundary slice closed
+
+- Squash-merged PR #24 into `develop` at `b749a1632791127e0e2d4f99a91cb95eafc88898`.
+- Closed the Stage 3.9 public Go API boundary after green CI and independent external review
+  approval.
+- Added transient CSV import review and explicit append endpoints backed by the Stage 3.8
+  review→append flow and Stage 3.7 atomic store append.
+- Resolved independent review findings for current-ledger revalidation, exact replay of original
+  imported transactions, complete append idempotency hashing, and append payload validator coverage.
+- Kept frontend upload UI, SQL import-session persistence, raw CSV persistence, workers,
+  broker/provider integrations, tax, mobile, AI, and Stage 3.10 implementation out of scope.
