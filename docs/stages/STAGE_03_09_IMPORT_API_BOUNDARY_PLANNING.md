@@ -4,12 +4,12 @@
 | --- | --- |
 | Document ID | STAGE-03-09 |
 | Version | 0.1.0 |
-| Status | Draft / planning only |
+| Status | Complete / planning closed |
 | Owner | Builder Engineer |
 | Supersedes | Internal-only import flow state |
 | Dependencies | Stage 3.6 import reconciliation slice; Stage 3.7 import append slice; Stage 3.8 import review append flow slice; Documents 42–43 |
 | Last Review Date | 2026-07-08 |
-| Next Review Date | Before Stage 3.9 implementation approval |
+| Next Review Date | 2027-01-08 |
 
 ## Purpose
 
@@ -19,7 +19,9 @@ The goal is to define the smallest safe API lifecycle that can expose the existi
 capabilities without weakening privacy, explicit user confirmation, immutable ledger semantics, or
 OpenAPI-first governance.
 
-This planning document authorizes no implementation by itself.
+This planning document authorized no implementation by itself. It has been merged into `develop` at
+`5cde1ca0232921d306d5e9337e4a0ba9455404ab`; implementation continues in
+`STAGE_03_09_IMPORT_API_BOUNDARY_SLICE.md`.
 
 ## Why this stage exists
 
@@ -85,9 +87,9 @@ A future Stage 3.9 implementation PR may include only after this plan is approve
 - tests for API validation, privacy boundaries, idempotency, and failure cases;
 - documentation updates.
 
-## Forbidden in this planning PR
+## Forbidden in the planning PR
 
-This planning PR must not introduce:
+The planning PR did not introduce:
 
 - OpenAPI changes;
 - Go handlers;
@@ -119,9 +121,9 @@ Before implementation starts, the next PR must decide:
 - how to prevent replay or append of stale review decisions;
 - how to expose row-level warnings without leaking sensitive raw file content.
 
-## Acceptance criteria for this planning PR
+## Acceptance criteria for the planning PR
 
-This planning PR is complete when:
+This planning PR is complete:
 
 - the future API boundary is documented;
 - allowed and forbidden implementation surfaces are explicit;

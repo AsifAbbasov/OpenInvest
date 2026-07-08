@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.12 |
+| Version | 1.1.13 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -240,3 +240,12 @@
   privacy constraints that must be resolved before implementation.
 - Kept OpenAPI changes, Go handlers, upload UI, SQL import-session persistence, raw file
   persistence, workers, provider integrations, tax, mobile, AI, and Stage 3.10 out of scope.
+
+## 2026-07-08 — Stage 3.9 import API boundary planning closed and implementation started
+
+- Squash-merged PR #23 into `develop` at `5cde1ca0232921d306d5e9337e4a0ba9455404ab`.
+- Started the Stage 3.9 implementation slice for public Go API import review/append endpoints.
+- Added a stateless API-boundary decision: review results are transient, append receives the same
+  CSV payload plus explicit row decisions, and append reruns review before atomic store mutation.
+- Kept raw CSV persistence, import-session tables, frontend upload UI, direct broker APIs, workers,
+  tax, mobile, AI, and Stage 3.10 outside the implementation scope.

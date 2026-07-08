@@ -250,7 +250,11 @@ func (s *Store) AppendImportedTransactions(ctx context.Context, command vertical
 		return nil, err
 	}
 	if duplicate {
-		return nil, ErrUnsupportedDuplicate
+		transactions, err := getImportedTransactionsByCommandTx(ctx, tx, commandID, request)
+		if err != nil {
+			return nil, err
+		}
+		return transactions, tx.Commit()
 	}
 
 	for _, transactionRequest := range request.Transactions {
@@ -261,13 +265,23 @@ func (s *Store) AppendImportedTransactions(ctx context.Context, command vertical
 		if duplicate {
 			return nil, verticalslice.ErrInvalidInput
 		}
+		conflict, err := nearConflictTransactionExists(ctx, tx, transactionRequest)
+		if err != nil {
+			return nil, err
+		}
+		if conflict {
+			return nil, verticalslice.ErrInvalidInput
+		}
 	}
 
 	entryIDs := make([]string, 0, len(request.Transactions))
 	snapshotDateSet := map[string]struct{}{}
-	for _, transactionRequest := range request.Transactions {
-		entryID, err := insertTransactionEntry(ctx, tx, command, transactionRequest)
+	for index, transactionRequest := range request.Transactions {
+		entryID, err := importEntryID(commandID, index)
 		if err != nil {
+			return nil, err
+		}
+		if err := insertTransactionEntryWithID(ctx, tx, command, transactionRequest, entryID); err != nil {
 			return nil, err
 		}
 		entryIDs = append(entryIDs, entryID)
@@ -370,17 +384,83 @@ func equivalentTransactionExists(ctx context.Context, tx *sql.Tx, request vertic
 	return exists, err
 }
 
-func insertTransactionEntry(ctx context.Context, tx *sql.Tx, command verticalslice.CommandContext, request verticalslice.AppendTransactionRequest) (string, error) {
+func nearConflictTransactionExists(ctx context.Context, tx *sql.Tx, request verticalslice.AppendTransactionRequest) (bool, error) {
 	gross, err := verticalslice.GrossFor(request)
 	if err != nil {
+		return false, err
+	}
+	var ticker any
+	if request.Ticker != nil {
+		ticker = *request.Ticker
+	}
+	var quantity any
+	if request.Quantity != nil {
+		quantity = request.Quantity.String()
+	}
+	var exists bool
+	err = tx.QueryRowContext(ctx, `
+		SELECT EXISTS (
+			SELECT 1
+			FROM investment.transaction_entries te
+			LEFT JOIN investment.assets a ON a.id = te.asset_id
+			WHERE te.portfolio_id = $1
+				AND te.transaction_type = $2
+				AND te.trade_date = $3::date
+				AND (($4::text IS NULL AND a.ticker IS NULL) OR a.ticker = $4::text)
+				AND (($5::numeric IS NULL AND te.quantity IS NULL) OR te.quantity = $5::numeric)
+				AND (
+					te.gross_amount <> $6::numeric
+					OR te.commission_amount <> $7::numeric
+					OR te.tax_amount <> $8::numeric
+				)
+		)
+	`, request.PortfolioID, request.TransactionType, request.TradeDate, ticker, quantity,
+		gross.Amount.String(), request.Commission.Amount.String(), request.Tax.Amount.String()).Scan(&exists)
+	return exists, err
+}
+
+func getImportedTransactionsByCommandTx(ctx context.Context, tx *sql.Tx, commandID string, request verticalslice.AppendImportBatchRequest) ([]verticalslice.Transaction, error) {
+	transactions := make([]verticalslice.Transaction, 0, len(request.Transactions))
+	for index := range request.Transactions {
+		entryID, err := importEntryID(commandID, index)
+		if err != nil {
+			return nil, err
+		}
+		transaction, err := getTransactionByEntryTx(ctx, tx, request.PortfolioID, entryID)
+		if err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, transaction)
+	}
+	return transactions, nil
+}
+
+func importEntryID(commandID string, index int) (string, error) {
+	namespace, err := uuid.Parse(commandID)
+	if err != nil {
 		return "", err
+	}
+	return uuid.NewSHA1(namespace, []byte("import-entry-"+strconv.Itoa(index+1))).String(), nil
+}
+
+func insertTransactionEntry(ctx context.Context, tx *sql.Tx, command verticalslice.CommandContext, request verticalslice.AppendTransactionRequest) (string, error) {
+	entryID := uuid.NewString()
+	if err := insertTransactionEntryWithID(ctx, tx, command, request, entryID); err != nil {
+		return "", err
+	}
+	return entryID, nil
+}
+
+func insertTransactionEntryWithID(ctx context.Context, tx *sql.Tx, command verticalslice.CommandContext, request verticalslice.AppendTransactionRequest, entryID string) error {
+	gross, err := verticalslice.GrossFor(request)
+	if err != nil {
+		return err
 	}
 	assetID, err := ensureAsset(ctx, tx, request)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	entryID := uuid.NewString()
 	transactionID := uuid.NewString()
 	_, err = tx.ExecContext(ctx, `
 		INSERT INTO investment.transaction_entries (
@@ -403,9 +483,9 @@ func insertTransactionEntry(ctx context.Context, tx *sql.Tx, command verticalsli
 		request.Tax.Amount.String(), request.TradeDate, request.SettlementDate, request.Note,
 		command.Now, command.RequestID, command.TraceID)
 	if err != nil {
-		return "", err
+		return err
 	}
-	return entryID, nil
+	return nil
 }
 
 func recordImportAppendAudit(ctx context.Context, tx *sql.Tx, command verticalslice.CommandContext, portfolioID string) error {

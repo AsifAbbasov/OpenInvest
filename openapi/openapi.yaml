@@ -31,6 +31,8 @@ tags:
     description: Authenticated portfolio metadata and server-calculated summaries.
   - name: Transactions
     description: Append-only portfolio financial history and correction/reversal operations.
+  - name: Imports
+    description: User-supplied broker-file review and explicit append commands.
   - name: Dividends
     description: Official dividend events and gross dividend calculations.
   - name: Dashboard
@@ -414,6 +416,64 @@ paths:
         "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
         "409": { $ref: "./components/responses.yaml#/responses/Conflict" }
 
+  /api/v1/portfolios/{portfolioId}/imports/review:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+      - $ref: "#/components/parameters/PortfolioId"
+    post:
+      operationId: reviewPortfolioImport
+      summary: Review a user-uploaded CSV import without storing raw payload
+      description: >-
+        Parses and normalizes a user-supplied broker CSV payload, compares it with currently
+        visible portfolio transactions, and returns a transient review result. The raw CSV is
+        not persisted. This is a preflight review only; append reruns review and store-level
+        duplicate/conflict validation before writing immutable ledger rows.
+      tags: [Imports]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "./components/schemas.yaml#/ImportReviewRequest" }
+            examples:
+              default: { $ref: "./examples/imports.json#/reviewRequest" }
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/ImportReview" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
+        "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
+
+  /api/v1/portfolios/{portfolioId}/imports/append:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+      - $ref: "#/components/parameters/PortfolioId"
+    post:
+      operationId: appendReviewedPortfolioImport
+      summary: Append explicitly approved import rows
+      description: >-
+        Re-parses the submitted CSV payload, applies explicit row decisions, revalidates
+        duplicates/conflicts at append time, and atomically appends approved rows to the
+        immutable financial ledger. No review session or raw CSV payload is stored.
+      tags: [Imports]
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "./components/schemas.yaml#/ImportAppendRequest" }
+            examples:
+              default: { $ref: "./examples/imports.json#/appendRequest" }
+      responses:
+        "201": { $ref: "./components/responses.yaml#/responses/ImportAppend" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
+        "409": { $ref: "./components/responses.yaml#/responses/IdempotencyConflict" }
+        "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
+
   /api/v1/dividends/calendar:
     parameters:
       - $ref: "#/components/parameters/RequestId"
@@ -585,6 +645,8 @@ components:
     TransactionType: { $ref: "./components/schemas.yaml#/TransactionType" }
     PortfolioSummary: { $ref: "./components/schemas.yaml#/PortfolioSummary" }
     PortfolioSnapshot: { $ref: "./components/schemas.yaml#/PortfolioSnapshot" }
+    ImportReviewResult: { $ref: "./components/schemas.yaml#/ImportReviewResult" }
+    ImportAppendResult: { $ref: "./components/schemas.yaml#/ImportAppendResult" }
     DividendEvent: { $ref: "./components/schemas.yaml#/DividendEvent" }
     DividendCalculation: { $ref: "./components/schemas.yaml#/DividendCalculation" }
     RealReturn: { $ref: "./components/schemas.yaml#/RealReturn" }

@@ -99,10 +99,12 @@ func ReviewAndAppend(ctx context.Context, appender Appender, request Request) (R
 	}
 
 	transactions, err := appender.AppendImportedTransactions(ctx, request.RequestContext, request.SubjectID, request.IdempotencyKey, request.RequestPath, verticalslice.AppendImportBatchRequest{
-		PortfolioID:    request.PortfolioID,
-		Transactions:   appendRequests,
-		SourceKind:     review.SourceKind,
-		SourceFileHash: review.FileHash,
+		PortfolioID:        request.PortfolioID,
+		Transactions:       appendRequests,
+		SourceKind:         review.SourceKind,
+		SourceAccountLabel: review.SourceAccountLabel,
+		SourceFileHash:     review.FileHash,
+		Decisions:          importDecisions(request.Decisions),
 	})
 	if err != nil {
 		return Result{}, err
@@ -118,6 +120,17 @@ func ReviewAndAppend(ctx context.Context, appender Appender, request Request) (R
 		NonSensitiveWarnings:   nonSensitiveWarnings(review, len(request.Decisions), len(appendRequests)),
 	}
 	return result, nil
+}
+
+func importDecisions(decisions []importer.Decision) []verticalslice.AppendImportDecision {
+	result := make([]verticalslice.AppendImportDecision, 0, len(decisions))
+	for _, decision := range decisions {
+		result = append(result, verticalslice.AppendImportDecision{
+			RowNumber: decision.RowNumber,
+			Action:    decision.Action,
+		})
+	}
+	return result
 }
 
 func transactionIDs(transactions []verticalslice.Transaction) []string {
