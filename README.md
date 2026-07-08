@@ -13,10 +13,9 @@ API, upload UI, SQL migration, worker, or automatic ledger append was introduced
 Stage 3.7 is closed and added internal atomic append of user-approved import rows with atomic
 PostgreSQL persistence, duplicate revalidation, idempotency protection, audit evidence, and
 deterministic snapshot rebuilds. Stage 3.8 is closed and added the internal import review → append
-flow integration. Stage 3.9 planning is closed; Stage 3.9 implementation is active and is limited to
-the public Go API boundary for transient CSV import review and explicit append. Upload UI,
-import-session persistence, workers, provider integrations, tax, mobile, AI, and Stage 3.10 remain
-out of scope.
+flow integration. Stage 3.9 is closed and added the public Go API boundary for transient CSV import
+review and explicit append. Upload UI, import-session persistence, workers, provider integrations,
+tax, mobile, AI, and Stage 3.10 implementation remain out of scope.
 Product-risk refinement is closed and remains part of the MVP governance baseline.
 
 ## Components

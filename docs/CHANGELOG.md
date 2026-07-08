@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.13 |
+| Version | 1.1.14 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -249,3 +249,14 @@
   CSV payload plus explicit row decisions, and append reruns review before atomic store mutation.
 - Kept raw CSV persistence, import-session tables, frontend upload UI, direct broker APIs, workers,
   tax, mobile, AI, and Stage 3.10 outside the implementation scope.
+
+## 2026-07-08 — Stage 3.9 import API boundary slice closed
+
+- Squash-merged PR #24 into `develop` at `b749a1632791127e0e2d4f99a91cb95eafc88898`.
+- Added public Go API endpoints for transient user-supplied CSV import review and explicit append.
+- Preserved the stateless boundary: no review IDs, no import-session table, no raw CSV persistence,
+  and append reruns review before atomic store mutation.
+- Resolved independent review findings for stale ledger revalidation, deterministic idempotent
+  replay, full import append request hashing, and append-payload example validation.
+- Kept frontend upload UI, SQL import-session persistence, workers, broker/provider integrations,
+  tax, mobile, AI, and Stage 3.10 implementation out of scope.
