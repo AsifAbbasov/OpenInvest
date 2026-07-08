@@ -2,9 +2,11 @@ package httpapi
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -15,11 +17,15 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/openinvest/openinvest/backend-go/internal/decimal"
+	"github.com/openinvest/openinvest/backend-go/internal/importer"
+	"github.com/openinvest/openinvest/backend-go/internal/importflow"
 	"github.com/openinvest/openinvest/backend-go/internal/postgres"
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
 const devSubjectID = "00000000-0000-4000-8000-000000000001"
+const maxHTTPImportPayloadBytes = 2 * 1024 * 1024
+const maxHTTPImportRows = 100
 
 type API struct {
 	service *verticalslice.Service
@@ -39,6 +45,8 @@ func New(service *verticalslice.Service) *fiber.App {
 	app.Get("/api/v1/portfolios/:portfolioId/summary", api.getPortfolioSummary)
 	app.Get("/api/v1/portfolios/:portfolioId/transactions", api.listTransactions)
 	app.Post("/api/v1/portfolios/:portfolioId/transactions", api.appendTransaction)
+	app.Post("/api/v1/portfolios/:portfolioId/imports/review", api.reviewImport)
+	app.Post("/api/v1/portfolios/:portfolioId/imports/append", api.appendImport)
 
 	return app
 }
@@ -151,6 +159,88 @@ func (api *API) appendTransaction(c fiber.Ctx) error {
 	return writeStatusWithMeta(c, meta, http.StatusCreated, mapTransaction(transaction))
 }
 
+func (api *API) reviewImport(c fiber.Ctx) error {
+	meta := requestMeta(c)
+	var request importReviewRequestDTO
+	if err := c.Bind().Body(&request); err != nil {
+		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")
+	}
+	if err := request.validate(); err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
+	portfolioID := c.Params("portfolioId")
+	existing, err := api.service.ListTransactions(c.Context(), subjectID(), portfolioID, verticalslice.TransactionFilter{Limit: 100})
+	if err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
+	fileHash := importPayloadHash(request.CSVPayload)
+	review, err := importer.ReviewCSV(importer.ReviewRequest{
+		SubjectID:          subjectID(),
+		PortfolioID:        portfolioID,
+		SourceKind:         importer.SourceKindUserUploadedFile,
+		SourceAccountLabel: request.SourceAccountLabel,
+		FileHash:           fileHash,
+		Existing:           existing,
+		Reader:             strings.NewReader(request.CSVPayload),
+	})
+	if err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
+	if err := validateImportRowCount(review.Summary.TotalRows); err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
+	return writeStatusWithMeta(c, meta, http.StatusOK, mapImportReview(review))
+}
+
+func (api *API) appendImport(c fiber.Ctx) error {
+	meta := requestMeta(c)
+	var request importAppendRequestDTO
+	if err := c.Bind().Body(&request); err != nil {
+		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")
+	}
+	if err := request.validate(); err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
+	portfolioID := c.Params("portfolioId")
+	existing, err := api.service.ListTransactions(c.Context(), subjectID(), portfolioID, verticalslice.TransactionFilter{Limit: 100})
+	if err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
+	fileHash := importPayloadHash(request.CSVPayload)
+	preflightReview, err := importer.ReviewCSV(importer.ReviewRequest{
+		SubjectID:          subjectID(),
+		PortfolioID:        portfolioID,
+		SourceKind:         importer.SourceKindUserUploadedFile,
+		SourceAccountLabel: request.SourceAccountLabel,
+		FileHash:           fileHash,
+		Existing:           existing,
+		Reader:             strings.NewReader(request.CSVPayload),
+	})
+	if err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
+	if err := validateImportRowCount(preflightReview.Summary.TotalRows); err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
+	result, err := importflow.ReviewAndAppend(c.Context(), api.service, importflow.Request{
+		RequestContext:     meta.toApp(),
+		SubjectID:          subjectID(),
+		PortfolioID:        portfolioID,
+		IdempotencyKey:     c.Get("Idempotency-Key"),
+		RequestPath:        c.Path(),
+		SourceKind:         importer.SourceKindUserUploadedFile,
+		SourceAccountLabel: request.SourceAccountLabel,
+		SourceFileHash:     fileHash,
+		Existing:           existing,
+		Reader:             strings.NewReader(request.CSVPayload),
+		Decisions:          request.toAppDecisions(),
+	})
+	if err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
+	return writeStatusWithMeta(c, meta, http.StatusCreated, mapImportAppendResult(portfolioID, importer.SourceKindUserUploadedFile, fileHash, result))
+}
+
 func (api *API) getPortfolioSummary(c fiber.Ctx) error {
 	summary, err := api.service.GetPortfolioSummary(c.Context(), subjectID(), c.Params("portfolioId"), c.Query("asOfDate"))
 	if err != nil {
@@ -201,6 +291,14 @@ func writeMappedErrorWithMeta(c fiber.Ctx, meta metaDTO, err error) error {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
 	case errors.Is(err, verticalslice.ErrMissingIdempotency):
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Idempotency-Key header is required")
+	case errors.Is(err, importer.ErrInvalidImport):
+		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
+	case errors.Is(err, importer.ErrUnsafeAppend):
+		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
+	case errors.Is(err, importflow.ErrInvalidFlowInput):
+		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
+	case errors.Is(err, importflow.ErrNoApprovedRows):
+		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "at least one appendable import row must be approved")
 	case errors.Is(err, postgres.ErrNotFound):
 		return writeErrorWithMeta(c, meta, http.StatusNotFound, "NOT_FOUND", "Resource not found")
 	case errors.Is(err, postgres.ErrIdempotencyConflict):
@@ -361,6 +459,59 @@ type appendTransactionRequestDTO struct {
 	Note            *string   `json:"note"`
 }
 
+type importReviewRequestDTO struct {
+	SourceAccountLabel string `json:"sourceAccountLabel"`
+	CSVPayload         string `json:"csvPayload"`
+}
+
+func (request importReviewRequestDTO) validate() error {
+	if strings.TrimSpace(request.CSVPayload) == "" {
+		return fmt.Errorf("%w: csvPayload is required", verticalslice.ErrInvalidInput)
+	}
+	if len([]byte(request.CSVPayload)) > maxHTTPImportPayloadBytes {
+		return fmt.Errorf("%w: csvPayload exceeds 2097152 bytes", verticalslice.ErrInvalidInput)
+	}
+	if len(request.SourceAccountLabel) > 120 {
+		return fmt.Errorf("%w: sourceAccountLabel must be at most 120 characters", verticalslice.ErrInvalidInput)
+	}
+	return nil
+}
+
+type importAppendRequestDTO struct {
+	SourceAccountLabel string              `json:"sourceAccountLabel"`
+	CSVPayload         string              `json:"csvPayload"`
+	Decisions          []importDecisionDTO `json:"decisions"`
+}
+
+func (request importAppendRequestDTO) validate() error {
+	if err := (importReviewRequestDTO{
+		SourceAccountLabel: request.SourceAccountLabel,
+		CSVPayload:         request.CSVPayload,
+	}).validate(); err != nil {
+		return err
+	}
+	if len(request.Decisions) == 0 {
+		return fmt.Errorf("%w: decisions are required", verticalslice.ErrInvalidInput)
+	}
+	if len(request.Decisions) > 100 {
+		return fmt.Errorf("%w: decisions must contain at most 100 rows", verticalslice.ErrInvalidInput)
+	}
+	return nil
+}
+
+func (request importAppendRequestDTO) toAppDecisions() []importer.Decision {
+	decisions := make([]importer.Decision, 0, len(request.Decisions))
+	for _, decision := range request.Decisions {
+		decisions = append(decisions, importer.Decision{RowNumber: decision.RowNumber, Action: decision.Action})
+	}
+	return decisions
+}
+
+type importDecisionDTO struct {
+	RowNumber int    `json:"rowNumber"`
+	Action    string `json:"action"`
+}
+
 func (request appendTransactionRequestDTO) toApp(portfolioID string) (verticalslice.AppendTransactionRequest, error) {
 	quantity, err := parseOptionalDecimal(request.Quantity)
 	if err != nil {
@@ -487,6 +638,62 @@ type calcDTO struct {
 	InputsAsOf         string `json:"inputsAsOf"`
 }
 
+type importReviewDTO struct {
+	PortfolioID        string               `json:"portfolioId"`
+	SourceKind         string               `json:"sourceKind"`
+	SourceAccountLabel string               `json:"sourceAccountLabel"`
+	SourceFileHash     string               `json:"sourceFileHash"`
+	RetentionPolicy    string               `json:"retentionPolicy"`
+	ReviewGuarantee    string               `json:"reviewGuarantee"`
+	Summary            importSummaryDTO     `json:"summary"`
+	Rows               []importRowReviewDTO `json:"rows"`
+}
+
+type importSummaryDTO struct {
+	TotalRows      int `json:"totalRows"`
+	AppendableRows int `json:"appendableRows"`
+	DuplicateRows  int `json:"duplicateRows"`
+	ConflictRows   int `json:"conflictRows"`
+	InvalidRows    int `json:"invalidRows"`
+}
+
+type importRowReviewDTO struct {
+	RowNumber   int                 `json:"rowNumber"`
+	RowHash     string              `json:"rowHash"`
+	Status      string              `json:"status"`
+	ReasonCodes []string            `json:"reasonCodes"`
+	Fingerprint string              `json:"fingerprint,omitempty"`
+	Candidate   *importCandidateDTO `json:"candidate,omitempty"`
+}
+
+type importCandidateDTO struct {
+	TransactionType string    `json:"transactionType"`
+	Ticker          *string   `json:"ticker,omitempty"`
+	Quantity        *string   `json:"quantity,omitempty"`
+	UnitPrice       *moneyDTO `json:"unitPrice,omitempty"`
+	GrossAmount     moneyDTO  `json:"grossAmount"`
+	Commission      moneyDTO  `json:"commission"`
+	Tax             moneyDTO  `json:"tax"`
+	TradeDate       string    `json:"tradeDate"`
+	SettlementDate  *string   `json:"settlementDate,omitempty"`
+	SafeNote        *string   `json:"safeNote,omitempty"`
+}
+
+type importAppendResultDTO struct {
+	PortfolioID             string   `json:"portfolioId"`
+	SourceKind              string   `json:"sourceKind"`
+	SourceFileHash          string   `json:"sourceFileHash"`
+	ParsedRowCount          int      `json:"parsedRowCount"`
+	AcceptedRowCount        int      `json:"acceptedRowCount"`
+	NonAppendedRowCount     int      `json:"nonAppendedRowCount"`
+	AppendedTransactionIDs  []string `json:"appendedTransactionIds"`
+	SnapshotDatesRebuilt    []string `json:"snapshotDatesRebuilt"`
+	AuditActionCode         string   `json:"auditActionCode"`
+	NonSensitiveWarnings    []string `json:"nonSensitiveWarnings"`
+	AppendValidationPolicy  string   `json:"appendValidationPolicy"`
+	RawPayloadRetentionRule string   `json:"rawPayloadRetentionRule"`
+}
+
 func mapPortfolios(items []verticalslice.Portfolio) []portfolioDTO {
 	mapped := make([]portfolioDTO, 0, len(items))
 	for _, item := range items {
@@ -587,4 +794,90 @@ func mapOptionalMoney(item *verticalslice.Money) *moneyDTO {
 
 func mapMoney(item verticalslice.Money) moneyDTO {
 	return moneyDTO{Amount: item.Amount.String(), Currency: item.Currency}
+}
+
+func mapImportReview(review importer.Review) importReviewDTO {
+	rows := make([]importRowReviewDTO, 0, len(review.Rows))
+	for _, row := range review.Rows {
+		rows = append(rows, mapImportRowReview(row))
+	}
+	return importReviewDTO{
+		PortfolioID:        review.PortfolioID,
+		SourceKind:         review.SourceKind,
+		SourceAccountLabel: review.SourceAccountLabel,
+		SourceFileHash:     review.FileHash,
+		RetentionPolicy:    "TRANSIENT_NOT_STORED",
+		ReviewGuarantee:    "PREFLIGHT_ONLY_APPEND_RERUNS_REVIEW_AND_STORE_CHECKS",
+		Summary: importSummaryDTO{
+			TotalRows:      review.Summary.TotalRows,
+			AppendableRows: review.Summary.AppendableRows,
+			DuplicateRows:  review.Summary.DuplicateRows,
+			ConflictRows:   review.Summary.ConflictRows,
+			InvalidRows:    review.Summary.InvalidRows,
+		},
+		Rows: rows,
+	}
+}
+
+func mapImportRowReview(row importer.RowReview) importRowReviewDTO {
+	return importRowReviewDTO{
+		RowNumber:   row.RowNumber,
+		RowHash:     row.RowHash,
+		Status:      row.Status,
+		ReasonCodes: row.ReasonCodes,
+		Fingerprint: row.Fingerprint,
+		Candidate:   mapImportCandidate(row.Candidate),
+	}
+}
+
+func mapImportCandidate(candidate *importer.Candidate) *importCandidateDTO {
+	if candidate == nil {
+		return nil
+	}
+	var quantity *string
+	if candidate.Quantity != nil {
+		value := candidate.Quantity.String()
+		quantity = &value
+	}
+	return &importCandidateDTO{
+		TransactionType: candidate.TransactionType,
+		Ticker:          candidate.Ticker,
+		Quantity:        quantity,
+		UnitPrice:       mapOptionalMoney(candidate.UnitPrice),
+		GrossAmount:     mapMoney(candidate.GrossAmount),
+		Commission:      mapMoney(candidate.Commission),
+		Tax:             mapMoney(candidate.Tax),
+		TradeDate:       candidate.TradeDate,
+		SettlementDate:  candidate.SettlementDate,
+		SafeNote:        candidate.SafeNote,
+	}
+}
+
+func mapImportAppendResult(portfolioID string, sourceKind string, fileHash string, result importflow.Result) importAppendResultDTO {
+	return importAppendResultDTO{
+		PortfolioID:             portfolioID,
+		SourceKind:              sourceKind,
+		SourceFileHash:          fileHash,
+		ParsedRowCount:          result.ParsedRowCount,
+		AcceptedRowCount:        result.AcceptedRowCount,
+		NonAppendedRowCount:     result.NonAppendedRowCount,
+		AppendedTransactionIDs:  result.AppendedTransactionIDs,
+		SnapshotDatesRebuilt:    result.SnapshotDatesRebuilt,
+		AuditActionCode:         result.AuditActionCode,
+		NonSensitiveWarnings:    result.NonSensitiveWarnings,
+		AppendValidationPolicy:  "REVIEW_RERUN_AND_ATOMIC_STORE_REVALIDATION",
+		RawPayloadRetentionRule: "RAW_CSV_NOT_STORED",
+	}
+}
+
+func importPayloadHash(payload string) string {
+	hash := sha256.Sum256([]byte(payload))
+	return hex.EncodeToString(hash[:])
+}
+
+func validateImportRowCount(totalRows int) error {
+	if totalRows > maxHTTPImportRows {
+		return fmt.Errorf("%w: import CSV must contain at most %d data rows", verticalslice.ErrInvalidInput, maxHTTPImportRows)
+	}
+	return nil
 }

@@ -237,6 +237,28 @@ responses:
         examples:
           default: { $ref: "../examples/transactions.json#/deleteResponse" }
 
+  ImportReview:
+    description: Transient user-uploaded CSV import review. Raw CSV is not stored.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/ImportReviewResponse" }
+        examples:
+          default: { $ref: "../examples/imports.json#/reviewResponse" }
+
+  ImportAppend:
+    description: Explicitly approved import rows appended atomically.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/ImportAppendResponse" }
+        examples:
+          default: { $ref: "../examples/imports.json#/appendResponse" }
+
   DividendCalendar:
     description: Official dividend calendar events.
     headers:

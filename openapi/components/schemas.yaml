@@ -782,6 +782,236 @@ TransactionReversal:
     effectiveDate:
       $ref: "#/BusinessDate"
 
+ImportReviewRequest:
+  type: object
+  additionalProperties: false
+  required: [csvPayload]
+  properties:
+    sourceAccountLabel:
+      type: string
+      maxLength: 120
+      description: User-visible brokerage account label. Stored only if later included in append audit metadata.
+    csvPayload:
+      type: string
+      minLength: 1
+      maxLength: 2097152
+      description: Raw CSV payload supplied by the user for transient review; never persisted by the API.
+
+ImportDecisionAction:
+  type: string
+  enum: [APPROVE, IGNORE, REJECT]
+
+ImportDecision:
+  type: object
+  additionalProperties: false
+  required: [rowNumber, action]
+  properties:
+    rowNumber:
+      type: integer
+      minimum: 2
+      description: CSV data row number from the review response. Header is row 1.
+    action:
+      $ref: "#/ImportDecisionAction"
+
+ImportAppendRequest:
+  type: object
+  additionalProperties: false
+  required: [csvPayload, decisions]
+  properties:
+    sourceAccountLabel:
+      type: string
+      maxLength: 120
+    csvPayload:
+      type: string
+      minLength: 1
+      maxLength: 2097152
+      description: Same CSV payload reviewed by the user. Append reruns review instead of trusting client state.
+    decisions:
+      type: array
+      minItems: 1
+      maxItems: 100
+      items:
+        $ref: "#/ImportDecision"
+
+ImportReviewStatus:
+  type: string
+  enum: [APPENDABLE, DUPLICATE, CONFLICT, INVALID]
+
+ImportSummary:
+  type: object
+  additionalProperties: false
+  required: [totalRows, appendableRows, duplicateRows, conflictRows, invalidRows]
+  properties:
+    totalRows:
+      type: integer
+      minimum: 0
+    appendableRows:
+      type: integer
+      minimum: 0
+    duplicateRows:
+      type: integer
+      minimum: 0
+    conflictRows:
+      type: integer
+      minimum: 0
+    invalidRows:
+      type: integer
+      minimum: 0
+
+ImportCandidate:
+  type: object
+  additionalProperties: false
+  required: [transactionType, grossAmount, commission, tax, tradeDate]
+  properties:
+    transactionType:
+      $ref: "#/TransactionType"
+    ticker:
+      type: string
+      pattern: "^[A-Z0-9]{1,32}$"
+    quantity:
+      $ref: "#/PositiveDecimal"
+    unitPrice:
+      $ref: "#/PositiveMoney"
+    grossAmount:
+      $ref: "#/NonNegativeMoney"
+    commission:
+      $ref: "#/NonNegativeMoney"
+    tax:
+      $ref: "#/NonNegativeMoney"
+    tradeDate:
+      $ref: "#/BusinessDate"
+    settlementDate:
+      $ref: "#/BusinessDate"
+    safeNote:
+      type: string
+      maxLength: 500
+      description: Spreadsheet-formula-neutralized note that may be appended if the row is approved.
+
+ImportRowReview:
+  type: object
+  additionalProperties: false
+  required: [rowNumber, rowHash, status, reasonCodes]
+  properties:
+    rowNumber:
+      type: integer
+      minimum: 2
+    rowHash:
+      type: string
+      pattern: "^[a-f0-9]{64}$"
+    status:
+      $ref: "#/ImportReviewStatus"
+    reasonCodes:
+      type: array
+      items:
+        type: string
+        pattern: "^[A-Z0-9_]+(_ROW_[0-9]+)?(_REQUIRES_REVIEW)?$"
+    fingerprint:
+      type: string
+      pattern: "^[a-f0-9]{64}$"
+      description: Normalized row fingerprint for review display; broker operation identifiers are not returned.
+    candidate:
+      $ref: "#/ImportCandidate"
+
+ImportReviewResult:
+  type: object
+  additionalProperties: false
+  required:
+    - portfolioId
+    - sourceKind
+    - sourceAccountLabel
+    - sourceFileHash
+    - retentionPolicy
+    - reviewGuarantee
+    - summary
+    - rows
+  properties:
+    portfolioId:
+      type: string
+      format: uuid
+    sourceKind:
+      type: string
+      const: USER_UPLOADED_FILE
+    sourceAccountLabel:
+      type: string
+      maxLength: 120
+    sourceFileHash:
+      type: string
+      pattern: "^[a-f0-9]{64}$"
+    retentionPolicy:
+      type: string
+      const: TRANSIENT_NOT_STORED
+    reviewGuarantee:
+      type: string
+      const: PREFLIGHT_ONLY_APPEND_RERUNS_REVIEW_AND_STORE_CHECKS
+    summary:
+      $ref: "#/ImportSummary"
+    rows:
+      type: array
+      maxItems: 100
+      items:
+        $ref: "#/ImportRowReview"
+
+ImportAppendResult:
+  type: object
+  additionalProperties: false
+  required:
+    - portfolioId
+    - sourceKind
+    - sourceFileHash
+    - parsedRowCount
+    - acceptedRowCount
+    - nonAppendedRowCount
+    - appendedTransactionIds
+    - snapshotDatesRebuilt
+    - auditActionCode
+    - nonSensitiveWarnings
+    - appendValidationPolicy
+    - rawPayloadRetentionRule
+  properties:
+    portfolioId:
+      type: string
+      format: uuid
+    sourceKind:
+      type: string
+      const: USER_UPLOADED_FILE
+    sourceFileHash:
+      type: string
+      pattern: "^[a-f0-9]{64}$"
+    parsedRowCount:
+      type: integer
+      minimum: 0
+    acceptedRowCount:
+      type: integer
+      minimum: 1
+    nonAppendedRowCount:
+      type: integer
+      minimum: 0
+    appendedTransactionIds:
+      type: array
+      minItems: 1
+      items:
+        type: string
+        format: uuid
+    snapshotDatesRebuilt:
+      type: array
+      minItems: 1
+      items:
+        $ref: "#/BusinessDate"
+    auditActionCode:
+      type: string
+      const: IMPORT_APPEND_BATCH
+    nonSensitiveWarnings:
+      type: array
+      items:
+        type: string
+        pattern: "^[A-Z0-9_]+$"
+    appendValidationPolicy:
+      type: string
+      const: REVIEW_RERUN_AND_ATOMIC_STORE_REVALIDATION
+    rawPayloadRetentionRule:
+      type: string
+      const: RAW_CSV_NOT_STORED
+
 CalculationMeta:
   type: object
   additionalProperties: false
@@ -1319,6 +1549,22 @@ TransactionReversalResponse:
       properties:
         data:
           $ref: "#/TransactionReversal"
+
+ImportReviewResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/ImportReviewResult"
+
+ImportAppendResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/ImportAppendResult"
 
 DividendCalendarResponse:
   allOf:

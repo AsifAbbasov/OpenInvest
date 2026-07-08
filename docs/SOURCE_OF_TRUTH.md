@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.18 |
+| Version | 1.4.19 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -17,8 +17,8 @@
 **Documentation Freeze: ACTIVE**
 **Last completed implementation stage: Stage 3.8 — Import Review Append Flow Slice**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `cb9a392eb90ede954d9cc68b247bada13a1540d9`**
-**Current active work item: Stage 3.9 import API boundary planning on `feature/stage-03-09-import-api-boundary-planning`; no implementation yet**
+**Current canonical implementation baseline: `develop` at `5cde1ca0232921d306d5e9337e4a0ba9455404ab`**
+**Current active work item: Stage 3.9 import API boundary slice on `feature/stage-03-09-import-api-boundary-slice`**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -117,11 +117,12 @@ integrations, tax, mobile, AI, and automatic append without explicit approved de
 of scope.
 
 Stage 3.8 closure governance is merged into `develop` at
-`cb9a392eb90ede954d9cc68b247bada13a1540d9`. Stage 3.9 import API boundary planning is active on a
-feature branch. It may define a future public Go API boundary for user-supplied broker-file import,
-but it does not authorize implementation by itself. OpenAPI changes, Go handlers, upload UI,
-import-session persistence, raw file persistence, workers, broker/provider integrations, tax,
-mobile, AI, and Stage 3.10 work remain out of scope.
+`cb9a392eb90ede954d9cc68b247bada13a1540d9`. Stage 3.9 import API boundary planning is merged into
+`develop` at `5cde1ca0232921d306d5e9337e4a0ba9455404ab`. Stage 3.9 implementation is active on a
+feature branch and may add only the public Go API boundary, OpenAPI contract, DTOs, tests, and
+documentation for user-supplied CSV import review/append. Frontend upload UI, SQL import-session
+persistence, raw file persistence, workers, broker/provider integrations, tax, mobile, AI, and
+Stage 3.10 work remain out of scope.
 
 ## Financial standard
 
@@ -158,7 +159,7 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 | Dashboard and snapshots | Yes | Stage 3.4 verification closed |
 | WAC, XIRR, real/inflation returns | Yes | Planned |
 | Dividend calculator/calendar | Yes | Planned |
-| Broker file import and reconciliation | Public-MVP readiness candidate | Stage 3.8 internal review→append flow closed; Stage 3.9 API boundary planning active; no public API/UI/import-session persistence yet |
+| Broker file import and reconciliation | Public-MVP readiness candidate | Stage 3.8 internal review→append flow closed; Stage 3.9 API boundary slice active; no upload UI/import-session persistence yet |
 | Purchasing power | Yes | Planned as secondary insight |
 | Tax export | No | Experimental; feature flag off |
 | Foreign securities | No | Backlog v2.0 |

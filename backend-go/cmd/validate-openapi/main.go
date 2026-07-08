@@ -35,6 +35,8 @@ var requiredOperations = map[string]string{
 	"POST /api/v1/portfolios/{portfolioId}/transactions":                   "createTransaction",
 	"PATCH /api/v1/portfolios/{portfolioId}/transactions/{transactionId}":  "correctTransaction",
 	"DELETE /api/v1/portfolios/{portfolioId}/transactions/{transactionId}": "reverseTransaction",
+	"POST /api/v1/portfolios/{portfolioId}/imports/review":                 "reviewPortfolioImport",
+	"POST /api/v1/portfolios/{portfolioId}/imports/append":                 "appendReviewedPortfolioImport",
 	"GET /api/v1/dividends/calendar":                                       "getDividendCalendar",
 	"POST /api/v1/dividends/calculate":                                     "calculateDividend",
 	"GET /api/v1/dashboard":                                                "getDashboard",
@@ -42,11 +44,11 @@ var requiredOperations = map[string]string{
 
 var publicOperations = stringSet("getHealth", "getReadiness", "register", "login", "searchAssets", "getAsset", "calculateDividend")
 var refreshOperations = stringSet("refreshSession", "logout")
-var idempotentOperations = stringSet("createPortfolio", "deletePortfolio", "createTransaction", "correctTransaction", "reverseTransaction", "calculateDividend")
+var idempotentOperations = stringSet("createPortfolio", "deletePortfolio", "createTransaction", "correctTransaction", "reverseTransaction", "appendReviewedPortfolioImport", "calculateDividend")
 
 var requiredSchemas = []string{
 	"Money", "Decimal", "BusinessDate", "SystemTimestamp", "Asset", "AssetType", "Portfolio", "Transaction",
-	"TransactionType", "PortfolioSummary", "PortfolioSnapshot", "DividendEvent", "DividendCalculation",
+	"TransactionType", "PortfolioSummary", "PortfolioSnapshot", "ImportReviewResult", "ImportAppendResult", "DividendEvent", "DividendCalculation",
 	"RealReturn", "PurchasingPower", "Pagination", "Error", "BaseResponse", "ErrorResponse",
 }
 
