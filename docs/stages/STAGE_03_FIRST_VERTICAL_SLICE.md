@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.11 |
+| Version | 0.1.12 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
 | Last Review Date | 2026-07-02 |
-| Next Review Date | Before Stage 3.9 planning approval |
+| Next Review Date | Before Stage 3.9 implementation approval |
 
 ## Purpose
 
@@ -346,6 +346,39 @@ Forbidden:
 Status:
 
 - Complete / merged into `develop` at `1a1d08249e252c5a3ab3f275b5fae848d5bc0e79`.
+
+### PR 3.9 — Import API boundary planning
+
+Purpose:
+
+- define the future public Go API boundary for user-supplied broker-file import before any endpoint,
+  OpenAPI, UI, or persistence implementation.
+
+Allowed:
+
+- planning documentation;
+- future API lifecycle sketch;
+- privacy, idempotency, audit, retention, and stale-review questions;
+- explicit allowed/forbidden implementation surfaces.
+
+Forbidden:
+
+- implementation code;
+- OpenAPI changes;
+- Go handlers;
+- frontend upload UI;
+- SQL import-session persistence;
+- raw file persistence;
+- direct broker API synchronization;
+- credential scraping;
+- external provider integrations;
+- XLSX or PDF parsing;
+- automatic append without explicit approved decisions;
+- workers, tax, mobile, AI, or Stage 3.10 work.
+
+Status:
+
+- Active / planning PR.
 
 ## Stage 3 domain boundaries
 

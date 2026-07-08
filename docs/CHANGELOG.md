@@ -231,3 +231,12 @@
 - Fixed independent review privacy finding by removing full review rows from the append result.
 - Kept public import API, OpenAPI changes, upload UI, SQL import-session persistence, raw file
   persistence, workers, provider integrations, tax, mobile, AI, and Stage 3.9 out of scope.
+
+## 2026-07-08 — Stage 3.9 import API boundary planning started
+
+- Added a documentation-only planning scope for the future public Go API boundary for user-supplied
+  broker-file import.
+- Defined review/append lifecycle questions, retention decisions, idempotency boundaries, and
+  privacy constraints that must be resolved before implementation.
+- Kept OpenAPI changes, Go handlers, upload UI, SQL import-session persistence, raw file
+  persistence, workers, provider integrations, tax, mobile, AI, and Stage 3.10 out of scope.

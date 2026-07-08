@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.15 |
+| Version | 1.1.16 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
@@ -28,6 +28,7 @@
 | 3.7 — Import append slice | Internal atomic append of user-approved import rows into immutable ledger | Complete |
 | 3.8 — Import review append flow planning | Define the internal parse/review/approve/append orchestration boundary | Complete |
 | 3.8 — Import review append flow slice | Internal parse/review/approve/append orchestration | Complete |
+| 3.9 — Import API boundary planning | Define future public Go API boundary for user-supplied broker-file import | Active / planning PR |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
