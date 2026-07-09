@@ -378,6 +378,70 @@ Forbidden:
 
 Status:
 
+- Complete / merged into `develop` at `5cde1ca0232921d306d5e9337e4a0ba9455404ab`.
+
+### PR 3.9 — Import API boundary slice
+
+Purpose:
+
+- expose the transient user-supplied CSV import review and explicit append lifecycle through the
+  canonical Go API boundary.
+
+Allowed:
+
+- OpenAPI contract additions;
+- Go HTTP handlers and DTOs;
+- tests for API validation, privacy boundaries, idempotency, and append result behavior;
+- documentation updates.
+
+Forbidden:
+
+- frontend upload UI;
+- SQL import-session persistence;
+- raw file persistence;
+- direct broker API synchronization;
+- credential scraping;
+- external provider integrations;
+- XLSX or PDF parsing;
+- workers, tax, mobile, AI, or Stage 3.10 implementation.
+
+Status:
+
+- Complete / merged into `develop` at `b749a1632791127e0e2d4f99a91cb95eafc88898`;
+  closure governance merged at `682ffd856395a6e3e988817551a512898fda2d38`.
+
+### PR 3.10 — Import upload/review UI planning
+
+Purpose:
+
+- define the future Next.js presentation-only UI boundary for selecting a broker CSV file, sending it
+  to the Go review endpoint, displaying non-sensitive review output, collecting explicit row
+  approvals, and submitting append decisions to the Go append endpoint.
+
+Allowed:
+
+- planning documentation;
+- Web route/lifecycle sketch;
+- presentation-layer boundary rules;
+- privacy, idempotency, accessibility, and test-scope questions;
+- explicit allowed/forbidden implementation surfaces.
+
+Forbidden:
+
+- Next.js implementation code;
+- frontend upload screens;
+- OpenAPI changes;
+- Go handlers;
+- business logic;
+- SQL migrations;
+- raw file persistence;
+- direct broker API synchronization;
+- credential scraping;
+- external provider integrations;
+- workers, tax, mobile, AI, or Stage 3.10 implementation code.
+
+Status:
+
 - Active / planning PR.
 
 ## Stage 3 domain boundaries

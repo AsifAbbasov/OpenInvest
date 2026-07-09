@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.1.20 |
+| Version | 1.1.21 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -31,7 +31,8 @@
 | Stage 3.8 import review append flow planning | 0.1.x | Closed / merged into `develop` at `a35af2f5207bd564647d2a3fc032f4f940e62ddd` | 3 | Principal Architect | 2027-01-03 |
 | Stage 3.8 import review append flow slice | 0.1.x | Closed / merged into `develop` at `1a1d08249e252c5a3ab3f275b5fae848d5bc0e79` | 3 | Principal Architect | 2027-01-03 |
 | Stage 3.9 import API boundary planning | 0.1.x | Closed / merged into `develop` at `5cde1ca0232921d306d5e9337e4a0ba9455404ab` | 3 | Principal Architect | 2027-01-08 |
-| Stage 3.9 import API boundary slice | 0.1.x | Closed / merged into `develop` at `b749a1632791127e0e2d4f99a91cb95eafc88898` | 3 | Principal Architect | 2027-01-08 |
+| Stage 3.9 import API boundary slice | 0.1.x | Closed / merged into `develop` at `b749a1632791127e0e2d4f99a91cb95eafc88898`; closure docs at `682ffd856395a6e3e988817551a512898fda2d38` | 3 | Principal Architect | 2027-01-08 |
+| Stage 3.10 import upload/review UI planning | 0.1.x | Draft / planning active on `feature/stage-03-10-planning` | 3 | Principal Architect | 2027-01-08 |
 | Documents 28–39 | 2.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Document 40 | 3.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Documents 1–27, 41 | 1.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |

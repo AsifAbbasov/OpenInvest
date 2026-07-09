@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.14 |
+| Version | 1.1.15 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -260,3 +260,12 @@
   replay, full import append request hashing, and append-payload example validation.
 - Kept frontend upload UI, SQL import-session persistence, workers, broker/provider integrations,
   tax, mobile, AI, and Stage 3.10 implementation out of scope.
+
+## 2026-07-08 — Stage 3.10 import upload/review UI planning started
+
+- Squash-merged Stage 3.9 closure governance into `develop` at
+  `682ffd856395a6e3e988817551a512898fda2d38`.
+- Started documentation-only planning for a future Next.js import upload/review UI over the existing
+  Stage 3.9 Go API boundary.
+- Kept Next.js implementation, business logic, OpenAPI changes, backend changes, SQL migrations,
+  import-session persistence, workers, provider integrations, tax, mobile, and AI out of scope.
