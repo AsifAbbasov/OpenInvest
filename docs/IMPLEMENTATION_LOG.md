@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.15 |
+| Version | 1.1.16 |
 | Status | Active |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
@@ -35,7 +35,8 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.9 — Import API Boundary Slice | Expose user-supplied CSV import review/append through the Go API boundary | Complete / closed; merged into `develop` at `b749a1632791127e0e2d4f99a91cb95eafc88898` | [Stage 3.9 implementation report](stages/STAGE_03_09_IMPORT_API_BOUNDARY_SLICE.md) |
 | 3.10 — Import Upload/Review UI Planning | Define the future Next.js presentation-only import upload/review UI boundary | Complete / closed; merged into `develop` at `27480d6ff22e2929e33aeac352aef8a1b01bb448` | [Stage 3.10 plan](stages/STAGE_03_10_IMPORT_UPLOAD_UI_PLANNING.md) |
 | 3.10 — Import Upload/Review UI Slice | Expose CSV import review/append through the Next.js presentation layer only | Complete / closed; merged into `develop` at `e19a1a0ea4b0b183687bd89daabdfbc973daea71` | [Stage 3.10 implementation report](stages/STAGE_03_10_IMPORT_UPLOAD_REVIEW_UI_SLICE.md) |
-| 3.11 — Authentication and Privacy-Boundary Planning | Define the future auth/session/privacy-default implementation boundary before replacing the local development subject | Draft / planning active | [Stage 3.11 plan](stages/STAGE_03_11_AUTH_PRIVACY_PLANNING.md) |
+| 3.11 — Authentication and Privacy-Boundary Planning | Define the future auth/session/privacy-default implementation boundary before replacing the local development subject | Complete / closed; merged into `develop` at `34a31b7bb379db8a59ecc52f2cd32697be3fe125` | [Stage 3.11 plan](stages/STAGE_03_11_AUTH_PRIVACY_PLANNING.md) |
+| 3.11 — Authentication and Privacy-Boundary Slice | Implement the approved Go API auth/session/privacy-default boundary without frontend auth UI | Draft / implementation active | [Stage 3.11 implementation report](stages/STAGE_03_11_AUTH_PRIVACY_SLICE.md) |
 
 ## Stage completion protocol
 
@@ -174,3 +175,23 @@ This log is the index of implementation stages. Every stage must document its pu
   the approved MVP web auth, session, CSRF, and privacy-default boundary.
 - Kept auth implementation, schema migrations, password hashing, token issuance, frontend session
   code, business logic, workers, tax, mobile, AI, and provider integrations out of scope.
+
+## 2026-07-09 — Stage 3.11 authentication and privacy-boundary slice started
+
+- Squash-merged PR #28 into `develop` at `34a31b7bb379db8a59ecc52f2cd32697be3fe125`.
+- Started the implementation slice for the approved Go API auth/privacy boundary.
+- Added no frontend auth UI, email verification, OAuth/passkeys/2FA, worker, provider integration,
+  tax logic, mobile implementation, AI functionality, or Stage 3.12 scope.
+- Required strict independent review to verify refresh-token secrecy, CSRF enforcement, replay
+  rejection, privacy defaults, migration safety, and absence of Next.js business logic.
+
+## 2026-07-09 — Stage 3.11 independent review findings fixed
+
+- Added a production guard requiring `OPENINVEST_ENV=development` or `local` before unsafe local auth
+  flags can run with a configured `DATABASE_URL`.
+- Added non-secret audit events for auth/session lifecycle actions and rejected refresh/logout
+  attempts, including missing cookie/CSRF paths that return before token lookup.
+- Added `Retry-After` to rate-limited auth responses and removed logout rate limiting to preserve
+  the frozen logout contract.
+- Tightened auth email validation to reject display-name forms and addresses above the OpenAPI
+  254-character limit.

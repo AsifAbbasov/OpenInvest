@@ -287,3 +287,21 @@
   and privacy-default boundary.
 - Kept auth implementation, schema migrations, password hashing, token issuance, frontend session
   code, business logic, workers, tax, mobile, AI, and provider integrations out of scope.
+
+## 2026-07-09 — Stage 3.11 authentication and privacy-boundary slice started
+
+- Squash-merged PR #28 into `develop` at `34a31b7bb379db8a59ecc52f2cd32697be3fe125`.
+- Closed the Stage 3.11 planning scope and started the implementation slice on
+  `feature/stage-03-11-auth-privacy-slice`.
+- Scoped implementation to Go API auth handlers, Argon2id password hashing, rotating refresh
+  sessions, CSRF enforcement, privacy-default persistence, additive PostgreSQL migration, and tests.
+- Kept frontend auth UI, business logic in Next.js, email verification, OAuth/passkeys/2FA, workers,
+  provider integrations, tax, mobile, AI, and Stage 3.12 out of scope.
+
+## 2026-07-09 — Stage 3.11 independent review fixes applied
+
+- Resolved strict independent review findings for unsafe development auth bypass production guard,
+  missing auth/session audit evidence, rate-limit `Retry-After`/logout contract alignment, and
+  strict email shape validation.
+- Kept the fixes inside the Stage 3.11 Go API auth/privacy boundary; no frontend auth UI, provider,
+  worker, tax, mobile, AI, or Stage 3.12 scope was added.
