@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.15 |
+| Version | 0.1.16 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
@@ -539,6 +539,37 @@ Forbidden:
 Status:
 
 - Complete / merged into `develop` at `5c49173ac858995929f266c2de991282dd194dec`.
+
+### PR 3.12 — Web authentication UI planning
+
+Purpose:
+
+- define the future Next.js presentation-only registration, login, authenticated shell, refresh, and
+  logout UI boundary over the Stage 3.11 Go API auth implementation.
+
+Allowed:
+
+- planning documentation;
+- browser-session lifecycle sketch;
+- token/CSRF handling constraints;
+- accessibility, test, and route-protection acceptance criteria;
+- explicit allowed and forbidden implementation surfaces for a later PR.
+
+Forbidden:
+
+- implementation code;
+- Go handler changes;
+- OpenAPI changes;
+- SQL migrations;
+- frontend auth screens;
+- business logic in Next.js;
+- email verification, OAuth/passkeys/2FA;
+- provider integrations;
+- workers, tax, mobile, AI, or Stage 3.12 implementation work.
+
+Status:
+
+- Active / planning branch `feature/stage-03-12-auth-ui-planning`.
 
 ## Stage 3 domain boundaries
 

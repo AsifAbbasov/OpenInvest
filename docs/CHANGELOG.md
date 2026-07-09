@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.18 |
+| Version | 1.1.19 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -313,3 +313,11 @@
   version matrix, implementation log, and stage report.
 - Confirmed the closed slice remains Go API/auth persistence only and does not authorize frontend
   auth UI, provider integrations, workers, tax, mobile, AI, or Stage 3.12 implementation.
+
+## 2026-07-09 — Stage 3.12 Web authentication UI planning started
+
+- Added the planning-only Stage 3.12 document for a future Next.js presentation auth/session UI.
+- Registered Stage 3.12 planning in the roadmap, Source of Truth, document index, version matrix,
+  implementation log, and Stage 3 plan.
+- Kept implementation, backend changes, OpenAPI changes, SQL migrations, token-storage changes,
+  provider integrations, workers, tax, mobile, AI, and Stage 3.13 out of scope.
