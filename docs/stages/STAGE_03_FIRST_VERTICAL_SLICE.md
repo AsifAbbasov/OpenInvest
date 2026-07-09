@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.14 |
+| Version | 0.1.15 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
 | Last Review Date | 2026-07-02 |
-| Next Review Date | Before Stage 3.11 implementation approval |
+| Next Review Date | Before Stage 3.12 planning approval |
 
 ## Purpose
 
@@ -538,7 +538,7 @@ Forbidden:
 
 Status:
 
-- Active / implementation branch `feature/stage-03-11-auth-privacy-slice`.
+- Complete / merged into `develop` at `5c49173ac858995929f266c2de991282dd194dec`.
 
 ## Stage 3 domain boundaries
 

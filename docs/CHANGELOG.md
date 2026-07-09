@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.17 |
+| Version | 1.1.18 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -305,3 +305,11 @@
   strict email shape validation.
 - Kept the fixes inside the Stage 3.11 Go API auth/privacy boundary; no frontend auth UI, provider,
   worker, tax, mobile, AI, or Stage 3.12 scope was added.
+
+## 2026-07-09 — Stage 3.11 authentication and privacy-boundary slice closed
+
+- Squash-merged PR #29 into `develop` at `5c49173ac858995929f266c2de991282dd194dec`.
+- Marked Stage 3.11 implementation as complete in the roadmap, Source of Truth, document index,
+  version matrix, implementation log, and stage report.
+- Confirmed the closed slice remains Go API/auth persistence only and does not authorize frontend
+  auth UI, provider integrations, workers, tax, mobile, AI, or Stage 3.12 implementation.
