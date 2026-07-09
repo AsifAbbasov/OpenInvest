@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.20 |
+| Version | 1.1.21 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
@@ -31,7 +31,8 @@
 | 3.9 — Import API boundary planning | Define future public Go API boundary for user-supplied broker-file import | Complete |
 | 3.9 — Import API boundary slice | Expose transient CSV review and explicit append through the Go API | Complete |
 | 3.10 — Import upload/review UI planning | Define future Next.js presentation-only import upload and review UI before implementation | Complete |
-| 3.10 — Import upload/review UI slice | Expose the CSV import review/append flow in Next.js presentation only | Active / implementation |
+| 3.10 — Import upload/review UI slice | Expose the CSV import review/append flow in Next.js presentation only | Complete |
+| 3.11 — Authentication and privacy-boundary planning | Define the future replacement of the local development subject with the approved web auth/session/privacy model | Active / planning |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.

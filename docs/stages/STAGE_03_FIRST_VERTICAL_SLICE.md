@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.12 |
+| Version | 0.1.13 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
 | Last Review Date | 2026-07-02 |
-| Next Review Date | Before Stage 3.9 implementation approval |
+| Next Review Date | Before Stage 3.11 implementation approval |
 
 ## Purpose
 
@@ -476,7 +476,36 @@ Forbidden:
 
 Status:
 
-- Active / implementation PR.
+- Complete / merged into `develop` at `e19a1a0ea4b0b183687bd89daabdfbc973daea71`.
+
+### PR 3.11 — Authentication and privacy-boundary planning
+
+Purpose:
+
+- define the future replacement of the Stage 3 local development subject with the approved MVP web
+  authentication, session, CSRF, and privacy-default boundary.
+
+Allowed:
+
+- planning documentation;
+- implementation sequencing for registration, login, refresh, logout, privacy defaults, session
+  management, and audit evidence;
+- security/privacy acceptance criteria;
+- exact allowed and forbidden implementation surfaces for a later PR.
+
+Forbidden:
+
+- implementation code;
+- OpenAPI changes;
+- SQL migrations;
+- password hashing implementation;
+- JWT or refresh-token issuance;
+- frontend authentication screens or session state;
+- workers, provider integrations, tax, mobile, AI, or Stage 3.11 implementation work.
+
+Status:
+
+- Active / planning branch.
 
 ## Stage 3 domain boundaries
 

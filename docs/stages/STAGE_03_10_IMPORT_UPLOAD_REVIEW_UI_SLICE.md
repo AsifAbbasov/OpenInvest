@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-10-UI |
-| Version | 0.1.0 |
-| Status | Draft / implementation active |
+| Version | 0.1.1 |
+| Status | Complete / merged into `develop` |
 | Owner | Builder Engineer |
 | Supersedes | Stage 3.10 planning-only state |
 | Dependencies | Stage 3.10 import upload/review UI planning; Stage 3.9 import API boundary slice; ADR-007 |
 | Last Review Date | 2026-07-09 |
-| Next Review Date | Before Stage 3.11 planning |
+| Next Review Date | Before changing import-session persistence or browser file-retention behavior |
 
 ## Purpose
 
@@ -32,6 +32,17 @@ The implementation adds:
 - success and error presentation states;
 - CSS for import review status and success feedback;
 - documentation and governance updates.
+
+## Merge and review evidence
+
+- PR: #27
+- Branch: `feature/stage-03-10-import-upload-review-ui`
+- Merge target: `develop`
+- Merge commit: `e19a1a0ea4b0b183687bd89daabdfbc973daea71`
+- Local verification: `pnpm run verify`
+- GitHub CI: Go tests, Python tests, Frontend build/typecheck, OpenAPI contract, PostgreSQL
+  migration validation, and Docker Compose config passed.
+- Independent review: approved after fixes for duplicate-row React keys and file-input clearing.
 
 ## Route and navigation decision
 
