@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.16 |
+| Version | 1.1.17 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -277,3 +277,13 @@
 - Added the active implementation scope for a Next.js presentation-only import upload/review panel.
 - Preserved the Go API as the only business authority; no backend contract, SQL, provider, worker,
   tax, mobile, or AI scope entered the slice.
+
+## 2026-07-09 — Stage 3.10 closed and Stage 3.11 planning started
+
+- Squash-merged PR #27 into `develop` at `e19a1a0ea4b0b183687bd89daabdfbc973daea71`.
+- Closed the Stage 3.10 import upload/review UI slice after green CI and independent review
+  approval.
+- Started Stage 3.11 as documentation-only planning for the future authentication, session, CSRF,
+  and privacy-default boundary.
+- Kept auth implementation, schema migrations, password hashing, token issuance, frontend session
+  code, business logic, workers, tax, mobile, AI, and provider integrations out of scope.

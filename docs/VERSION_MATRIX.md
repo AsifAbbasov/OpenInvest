@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.1.22 |
+| Version | 1.1.23 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -33,7 +33,8 @@
 | Stage 3.9 import API boundary planning | 0.1.x | Closed / merged into `develop` at `5cde1ca0232921d306d5e9337e4a0ba9455404ab` | 3 | Principal Architect | 2027-01-08 |
 | Stage 3.9 import API boundary slice | 0.1.x | Closed / merged into `develop` at `b749a1632791127e0e2d4f99a91cb95eafc88898`; closure docs at `682ffd856395a6e3e988817551a512898fda2d38` | 3 | Principal Architect | 2027-01-08 |
 | Stage 3.10 import upload/review UI planning | 0.1.x | Closed / merged into `develop` at `27480d6ff22e2929e33aeac352aef8a1b01bb448` | 3 | Principal Architect | 2027-01-08 |
-| Stage 3.10 import upload/review UI slice | 0.1.x | Draft / implementation active on `feature/stage-03-10-import-upload-review-ui` | 3 | Principal Architect | Before Stage 3.11 planning |
+| Stage 3.10 import upload/review UI slice | 0.1.x | Closed / merged into `develop` at `e19a1a0ea4b0b183687bd89daabdfbc973daea71` | 3 | Principal Architect | 2027-01-09 |
+| Stage 3.11 authentication and privacy-boundary planning | 0.1.x | Draft / planning active on `feature/stage-03-11-auth-privacy-planning` | 3 | Principal Architect | Before Stage 3.11 implementation |
 | Documents 28–39 | 2.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Document 40 | 3.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Documents 1–27, 41 | 1.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
