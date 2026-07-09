@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.15 |
+| Version | 1.1.16 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -269,3 +269,11 @@
   Stage 3.9 Go API boundary.
 - Kept Next.js implementation, business logic, OpenAPI changes, backend changes, SQL migrations,
   import-session persistence, workers, provider integrations, tax, mobile, and AI out of scope.
+
+## 2026-07-09 — Stage 3.10 import upload/review UI slice started
+
+- Squash-merged Stage 3.10 planning into `develop` at
+  `27480d6ff22e2929e33aeac352aef8a1b01bb448`.
+- Added the active implementation scope for a Next.js presentation-only import upload/review panel.
+- Preserved the Go API as the only business authority; no backend contract, SQL, provider, worker,
+  tax, mobile, or AI scope entered the slice.

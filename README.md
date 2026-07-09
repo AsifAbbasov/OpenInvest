@@ -14,8 +14,8 @@ Stage 3.7 is closed and added internal atomic append of user-approved import row
 PostgreSQL persistence, duplicate revalidation, idempotency protection, audit evidence, and
 deterministic snapshot rebuilds. Stage 3.8 is closed and added the internal import review → append
 flow integration. Stage 3.9 is closed and added the public Go API boundary for transient CSV import
-review and explicit append. Stage 3.10 planning is active and limited to the future Web import
-upload/review UI boundary; implementation remains out of scope until that plan is approved.
+review and explicit append. Stage 3.10 planning is closed and Stage 3.10 implementation is active:
+the current branch adds a presentation-only Web import upload/review panel over the Go API.
 Product-risk refinement is closed and remains part of the MVP governance baseline.
 
 ## Components

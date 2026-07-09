@@ -14,6 +14,7 @@ import {
 } from "@/common/api/openinvest";
 import { formatMoney, formatNullableDecimal } from "@/common/presentation/format";
 import { AddTransactionForm } from "@/features/portfolio/components/AddTransactionForm";
+import { ImportUploadReviewPanel } from "@/features/portfolio/components/ImportUploadReviewPanel";
 
 type PortfolioDetailSliceProps = {
   portfolioId: string;
@@ -93,6 +94,8 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
       ) : null}
 
       <AddTransactionForm portfolioId={portfolioId} onSaved={load} />
+
+      <ImportUploadReviewPanel portfolioId={portfolioId} onImported={load} />
 
       <section className="panel">
         <div className="section-heading">

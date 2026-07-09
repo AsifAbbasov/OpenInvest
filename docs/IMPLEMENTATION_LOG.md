@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.13 |
+| Version | 1.1.14 |
 | Status | Active |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
@@ -33,7 +33,8 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.8 — Import Review Append Flow Slice | Internally orchestrate import review decisions into atomic append | Complete / closed; merged into `develop` at `1a1d08249e252c5a3ab3f275b5fae848d5bc0e79` | [Stage 3.8 implementation report](stages/STAGE_03_08_IMPORT_REVIEW_APPEND_FLOW_SLICE.md) |
 | 3.9 — Import API Boundary Planning | Define future public Go API boundary for user-supplied broker-file import | Complete / closed; merged into `develop` at `5cde1ca0232921d306d5e9337e4a0ba9455404ab` | [Stage 3.9 plan](stages/STAGE_03_09_IMPORT_API_BOUNDARY_PLANNING.md) |
 | 3.9 — Import API Boundary Slice | Expose user-supplied CSV import review/append through the Go API boundary | Complete / closed; merged into `develop` at `b749a1632791127e0e2d4f99a91cb95eafc88898` | [Stage 3.9 implementation report](stages/STAGE_03_09_IMPORT_API_BOUNDARY_SLICE.md) |
-| 3.10 — Import Upload/Review UI Planning | Define the future Next.js presentation-only import upload/review UI boundary | Draft / planning active | [Stage 3.10 plan](stages/STAGE_03_10_IMPORT_UPLOAD_UI_PLANNING.md) |
+| 3.10 — Import Upload/Review UI Planning | Define the future Next.js presentation-only import upload/review UI boundary | Complete / closed; merged into `develop` at `27480d6ff22e2929e33aeac352aef8a1b01bb448` | [Stage 3.10 plan](stages/STAGE_03_10_IMPORT_UPLOAD_UI_PLANNING.md) |
+| 3.10 — Import Upload/Review UI Slice | Expose CSV import review/append through the Next.js presentation layer only | Draft / implementation active | [Stage 3.10 implementation report](stages/STAGE_03_10_IMPORT_UPLOAD_REVIEW_UI_SLICE.md) |
 
 ## Stage completion protocol
 
@@ -145,3 +146,13 @@ This log is the index of implementation stages. Every stage must document its pu
 - Started the documentation-only Stage 3.10 planning scope for a future Web import upload/review UI.
 - Kept Next.js implementation, OpenAPI changes, Go handlers, SQL migrations, import-session
   persistence, business logic, provider integrations, workers, tax, mobile, and AI out of scope.
+
+## 2026-07-09 — Stage 3.10 import upload/review UI slice started
+
+- Squash-merged Stage 3.10 planning into `develop` at
+  `27480d6ff22e2929e33aeac352aef8a1b01bb448`.
+- Started the implementation slice for a presentation-only Next.js CSV import upload/review panel.
+- Scoped implementation to typed Go API calls, transient in-memory file handling, review display,
+  explicit row approval, append submission, and UI feedback only.
+- Kept OpenAPI changes, backend handlers, SQL migrations, import-session persistence, raw file
+  persistence, provider integrations, workers, tax, mobile, and AI out of scope.

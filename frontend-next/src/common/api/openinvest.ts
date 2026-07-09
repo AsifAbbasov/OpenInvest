@@ -94,6 +94,80 @@ export type CreateTransactionPayload = {
   note?: string | null;
 };
 
+export type ImportReviewStatus = "APPENDABLE" | "DUPLICATE" | "CONFLICT" | "INVALID";
+
+export type ImportDecisionAction = "APPROVE" | "IGNORE" | "REJECT";
+
+export type ImportSummary = {
+  totalRows: number;
+  appendableRows: number;
+  duplicateRows: number;
+  conflictRows: number;
+  invalidRows: number;
+};
+
+export type ImportCandidate = {
+  transactionType: TransactionType;
+  ticker?: string;
+  quantity?: string;
+  unitPrice?: Money;
+  grossAmount: Money;
+  commission: Money;
+  tax: Money;
+  tradeDate: string;
+  settlementDate?: string;
+  safeNote?: string;
+};
+
+export type ImportRowReview = {
+  rowNumber: number;
+  rowHash: string;
+  status: ImportReviewStatus;
+  reasonCodes: string[];
+  fingerprint?: string;
+  candidate?: ImportCandidate;
+};
+
+export type ImportReviewResult = {
+  portfolioId: string;
+  sourceKind: "USER_UPLOADED_FILE";
+  sourceAccountLabel: string;
+  sourceFileHash: string;
+  retentionPolicy: "TRANSIENT_NOT_STORED";
+  reviewGuarantee: "PREFLIGHT_ONLY_APPEND_RERUNS_REVIEW_AND_STORE_CHECKS";
+  summary: ImportSummary;
+  rows: ImportRowReview[];
+};
+
+export type ImportDecision = {
+  rowNumber: number;
+  action: ImportDecisionAction;
+};
+
+export type ImportAppendResult = {
+  portfolioId: string;
+  sourceKind: "USER_UPLOADED_FILE";
+  sourceFileHash: string;
+  parsedRowCount: number;
+  acceptedRowCount: number;
+  nonAppendedRowCount: number;
+  appendedTransactionIds: string[];
+  snapshotDatesRebuilt: string[];
+  auditActionCode: "IMPORT_APPEND_BATCH";
+  nonSensitiveWarnings: string[];
+  appendValidationPolicy: "REVIEW_RERUN_AND_ATOMIC_STORE_REVALIDATION";
+  rawPayloadRetentionRule: "RAW_CSV_NOT_STORED";
+};
+
+export type ImportReviewPayload = {
+  sourceAccountLabel?: string;
+  csvPayload: string;
+};
+
+export type ImportAppendPayload = ImportReviewPayload & {
+  decisions: ImportDecision[];
+};
+
 type Pagination = {
   nextCursor: string | null;
   hasMore: boolean;
@@ -170,6 +244,27 @@ export async function appendTransaction(
   payload: CreateTransactionPayload,
 ): Promise<ApiResult<Transaction>> {
   return request<Transaction>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/transactions`, {
+    method: "POST",
+    headers: idempotentHeaders(),
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function reviewPortfolioImport(
+  portfolioId: string,
+  payload: ImportReviewPayload,
+): Promise<ApiResult<ImportReviewResult>> {
+  return request<ImportReviewResult>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/imports/review`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function appendReviewedPortfolioImport(
+  portfolioId: string,
+  payload: ImportAppendPayload,
+): Promise<ApiResult<ImportAppendResult>> {
+  return request<ImportAppendResult>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/imports/append`, {
     method: "POST",
     headers: idempotentHeaders(),
     body: JSON.stringify(payload),
