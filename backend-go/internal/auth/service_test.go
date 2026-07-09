@@ -73,6 +73,28 @@ func TestServiceRefreshRequiresCSRFBeforeRotation(t *testing.T) {
 	}
 }
 
+func TestServiceAuditsEarlyRefreshAndLogoutRejections(t *testing.T) {
+	store := &memoryStore{}
+	service := newTestService(t, store)
+
+	if _, err := service.Refresh(context.Background(), "", "csrf-token"); !errors.Is(err, ErrInvalidSession) {
+		t.Fatalf("expected missing refresh token to be invalid session, got %v", err)
+	}
+	if _, err := service.Logout(context.Background(), "refresh-token", "", false); !errors.Is(err, ErrInvalidCSRF) {
+		t.Fatalf("expected missing csrf token to be invalid csrf, got %v", err)
+	}
+
+	if len(store.auditEvents) != 2 {
+		t.Fatalf("expected two rejected auth audit events, got %d", len(store.auditEvents))
+	}
+	if store.auditEvents[0].ActionCode != "AUTH_REFRESH_REJECTED" || store.auditEvents[0].Outcome != "failure" {
+		t.Fatalf("unexpected refresh audit event: %#v", store.auditEvents[0])
+	}
+	if store.auditEvents[1].ActionCode != "AUTH_LOGOUT_REJECTED" || store.auditEvents[1].Outcome != "failure" {
+		t.Fatalf("unexpected logout audit event: %#v", store.auditEvents[1])
+	}
+}
+
 func TestServiceRejectsRefreshReplayAfterRotation(t *testing.T) {
 	service := newTestService(t, &memoryStore{})
 	result, err := service.Register(context.Background(), RegistrationRequest{
@@ -179,6 +201,7 @@ type memoryStore struct {
 	user        StoredUser
 	password    string
 	sessions    map[string]SessionRecord
+	auditEvents []AuthAuditRecord
 	revoked     bool
 	rotateCalls int
 }
@@ -242,4 +265,9 @@ func (store *memoryStore) RevokeSession(_ context.Context, refreshTokenHash stri
 		delete(store.sessions, refreshTokenHash)
 	}
 	return true, nil
+}
+
+func (store *memoryStore) RecordAuthEvent(_ context.Context, record AuthAuditRecord) error {
+	store.auditEvents = append(store.auditEvents, record)
+	return nil
 }

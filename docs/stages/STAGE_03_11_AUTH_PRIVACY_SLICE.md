@@ -37,8 +37,8 @@ This slice may add only:
 - PostgreSQL migration tables for credentials, privacy defaults, and sessions;
 - tests for registration, login/session shape, refresh rotation, replay rejection, logout, CSRF
   rejection, and migration validation;
-- non-secret audit events for registration, login, refresh, logout, and rejected refresh/logout
-  attempts;
+- non-secret audit events for registration, login, refresh, logout, and all rejected
+  refresh/logout attempts including missing cookie or CSRF input;
 - documentation and governance updates for this stage.
 
 ## Explicit non-goals
@@ -93,8 +93,8 @@ pre-auth developer workflows. When `DATABASE_URL` is configured, unsafe local fl
 - Migration validator covers the Stage 3.11 credentials, privacy settings, and sessions migration
   fragments.
 - Follow-up review fixes add production guards for local auth bypass flags, non-secret auth audit
-  evidence, required `Retry-After` rate-limit headers, logout/OpenAPI rate-limit alignment, and
-  strict email shape validation.
+  evidence for both successful and rejected session lifecycle paths, required `Retry-After`
+  rate-limit headers, logout/OpenAPI rate-limit alignment, and strict email shape validation.
 
 ## Scope guard
 

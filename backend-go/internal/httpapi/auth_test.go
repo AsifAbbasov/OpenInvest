@@ -332,3 +332,7 @@ func (store *httpAuthTestStore) RevokeSession(_ context.Context, refreshTokenHas
 	}
 	return true, nil
 }
+
+func (store *httpAuthTestStore) RecordAuthEvent(context.Context, auth.AuthAuditRecord) error {
+	return nil
+}

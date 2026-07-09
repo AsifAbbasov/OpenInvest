@@ -189,8 +189,8 @@ This log is the index of implementation stages. Every stage must document its pu
 
 - Added a production guard requiring `OPENINVEST_ENV=development` or `local` before unsafe local auth
   flags can run with a configured `DATABASE_URL`.
-- Added non-secret audit events for auth/session lifecycle actions and invalid refresh/logout token
-  attempts.
+- Added non-secret audit events for auth/session lifecycle actions and rejected refresh/logout
+  attempts, including missing cookie/CSRF paths that return before token lookup.
 - Added `Retry-After` to rate-limited auth responses and removed logout rate limiting to preserve
   the frozen logout contract.
 - Tightened auth email validation to reject display-name forms and addresses above the OpenAPI

@@ -84,6 +84,10 @@ func TestStoreAuthPrivacySessionLifecycle(t *testing.T) {
 		t.Fatalf("expected replay to be rejected, got %v", err)
 	}
 
+	if _, err := service.Logout(ctx, "", rotated.Session.CSRFToken, false); !errors.Is(err, auth.ErrInvalidSession) {
+		t.Fatalf("expected missing refresh token logout to be rejected, got %v", err)
+	}
+
 	revoked, err := service.Logout(ctx, rotated.RefreshToken, rotated.Session.CSRFToken, false)
 	if err != nil {
 		t.Fatalf("logout: %v", err)
@@ -98,7 +102,7 @@ func TestStoreAuthPrivacySessionLifecycle(t *testing.T) {
 	rows, err := db.QueryContext(ctx, `
 		SELECT action_code, outcome, count(*)
 		FROM audit.events
-		WHERE action_code IN ('AUTH_REGISTER', 'AUTH_LOGIN', 'AUTH_REFRESH', 'AUTH_REFRESH_REJECTED', 'AUTH_LOGOUT')
+		WHERE action_code IN ('AUTH_REGISTER', 'AUTH_LOGIN', 'AUTH_REFRESH', 'AUTH_REFRESH_REJECTED', 'AUTH_LOGOUT', 'AUTH_LOGOUT_REJECTED')
 		GROUP BY action_code, outcome
 	`)
 	if err != nil {
@@ -124,6 +128,7 @@ func TestStoreAuthPrivacySessionLifecycle(t *testing.T) {
 		"AUTH_REFRESH|success",
 		"AUTH_REFRESH_REJECTED|failure",
 		"AUTH_LOGOUT|success",
+		"AUTH_LOGOUT_REJECTED|failure",
 	} {
 		if auditCounts[key] < 1 {
 			t.Fatalf("missing auth audit evidence %s in %#v", key, auditCounts)

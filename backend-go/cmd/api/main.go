@@ -135,3 +135,7 @@ func (unavailableStore) RotateSession(context.Context, string, string, auth.Sess
 func (unavailableStore) RevokeSession(context.Context, string, string, bool, time.Time) (bool, error) {
 	return false, errors.New("database url is not configured")
 }
+
+func (unavailableStore) RecordAuthEvent(context.Context, auth.AuthAuditRecord) error {
+	return errors.New("database url is not configured")
+}

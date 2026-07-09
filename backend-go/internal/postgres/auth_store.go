@@ -183,6 +183,18 @@ func (s *Store) RevokeSession(ctx context.Context, refreshTokenHash string, csrf
 	return affected > 0, tx.Commit()
 }
 
+func (s *Store) RecordAuthEvent(ctx context.Context, record auth.AuthAuditRecord) error {
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+	defer rollback(tx)
+	if err := recordAuthAudit(ctx, tx, record.ActorID, record.ActionCode, record.TargetKind, record.TargetID, record.Outcome, record.Now); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
 type storedSession struct {
 	SessionID string
 	UserID    string
