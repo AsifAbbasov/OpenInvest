@@ -37,6 +37,8 @@ This slice may add only:
 - PostgreSQL migration tables for credentials, privacy defaults, and sessions;
 - tests for registration, login/session shape, refresh rotation, replay rejection, logout, CSRF
   rejection, and migration validation;
+- non-secret audit events for registration, login, refresh, logout, and rejected refresh/logout
+  attempts;
 - documentation and governance updates for this stage.
 
 ## Explicit non-goals
@@ -69,12 +71,17 @@ This slice must not add:
   - anonymous analytics.
 - Passport, INN, phone, address, and tax profile are not accepted by this slice.
 - No password, token, cookie, CSRF token, or secret may be logged.
+- Auth audit events must never include passwords, refresh tokens, CSRF tokens, access tokens, or raw
+  request payloads.
 - The Go API remains the only canonical business API.
 
 ## Local development boundary
 
 The previous local development subject remains available only as an explicit development bypass for
-pre-auth developer workflows. Production authorization must use the access-token path.
+pre-auth developer workflows. When `DATABASE_URL` is configured, unsafe local flags
+(`OPENINVEST_DEV_AUTH_BYPASS`, `OPENINVEST_REFRESH_COOKIE_INSECURE`, or
+`OPENINVEST_ALLOW_EPHEMERAL_ACCESS_TOKEN_SECRET`) are accepted only when `OPENINVEST_ENV` is
+`development` or `local`. Production authorization must use the access-token path.
 
 ## Current implementation evidence
 
@@ -85,6 +92,9 @@ pre-auth developer workflows. Production authorization must use the access-token
   `OPENINVEST_DATABASE_TEST_URL` is configured.
 - Migration validator covers the Stage 3.11 credentials, privacy settings, and sessions migration
   fragments.
+- Follow-up review fixes add production guards for local auth bypass flags, non-secret auth audit
+  evidence, required `Retry-After` rate-limit headers, logout/OpenAPI rate-limit alignment, and
+  strict email shape validation.
 
 ## Scope guard
 

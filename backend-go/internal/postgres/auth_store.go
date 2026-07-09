@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/openinvest/openinvest/backend-go/internal/auth"
 )
 
@@ -58,6 +60,9 @@ func (s *Store) RegisterUser(ctx context.Context, record auth.RegistrationRecord
 	if err := insertSession(ctx, tx, record.Session); err != nil {
 		return auth.StoredUser{}, err
 	}
+	if err := recordAuthAudit(ctx, tx, record.UserID, "AUTH_REGISTER", "user", record.UserID, "success", record.Now); err != nil {
+		return auth.StoredUser{}, err
+	}
 
 	user, err := scanAuthUser(tx.QueryRowContext(ctx, authUserSelectSQL()+` WHERE u.id = $1`, record.UserID))
 	if err != nil {
@@ -86,6 +91,9 @@ func (s *Store) CreateSession(ctx context.Context, record auth.SessionRecord) er
 	if err := insertSession(ctx, tx, record); err != nil {
 		return err
 	}
+	if err := recordAuthAudit(ctx, tx, record.UserID, "AUTH_LOGIN", "session", record.SessionID, "success", record.Now); err != nil {
+		return err
+	}
 	return tx.Commit()
 }
 
@@ -98,6 +106,14 @@ func (s *Store) RotateSession(ctx context.Context, currentRefreshTokenHash strin
 
 	current, err := lockActiveSession(ctx, tx, currentRefreshTokenHash, currentCSRFTokenHash, now)
 	if err != nil {
+		if errors.Is(err, auth.ErrInvalidSession) {
+			if auditErr := recordAuthAudit(ctx, tx, "", "AUTH_REFRESH_REJECTED", "session", "", "failure", now); auditErr != nil {
+				return auth.StoredUser{}, auditErr
+			}
+			if commitErr := tx.Commit(); commitErr != nil {
+				return auth.StoredUser{}, commitErr
+			}
+		}
 		return auth.StoredUser{}, err
 	}
 	if _, err := tx.ExecContext(ctx, `
@@ -109,6 +125,9 @@ func (s *Store) RotateSession(ctx context.Context, currentRefreshTokenHash strin
 	}
 	next.UserID = current.UserID
 	if err := insertSession(ctx, tx, next); err != nil {
+		return auth.StoredUser{}, err
+	}
+	if err := recordAuthAudit(ctx, tx, current.UserID, "AUTH_REFRESH", "session", next.SessionID, "success", now); err != nil {
 		return auth.StoredUser{}, err
 	}
 	user, err := scanAuthUser(tx.QueryRowContext(ctx, authUserSelectSQL()+` WHERE u.id = $1`, current.UserID))
@@ -127,6 +146,14 @@ func (s *Store) RevokeSession(ctx context.Context, refreshTokenHash string, csrf
 
 	current, err := lockActiveSession(ctx, tx, refreshTokenHash, csrfTokenHash, now)
 	if err != nil {
+		if errors.Is(err, auth.ErrInvalidSession) {
+			if auditErr := recordAuthAudit(ctx, tx, "", "AUTH_LOGOUT_REJECTED", "session", "", "failure", now); auditErr != nil {
+				return false, auditErr
+			}
+			if commitErr := tx.Commit(); commitErr != nil {
+				return false, commitErr
+			}
+		}
 		return false, err
 	}
 	var result sql.Result
@@ -150,6 +177,9 @@ func (s *Store) RevokeSession(ctx context.Context, refreshTokenHash string, csrf
 	if err != nil {
 		return false, err
 	}
+	if err := recordAuthAudit(ctx, tx, current.UserID, "AUTH_LOGOUT", "session", current.SessionID, "success", now); err != nil {
+		return false, err
+	}
 	return affected > 0, tx.Commit()
 }
 
@@ -166,6 +196,29 @@ func insertSession(ctx context.Context, tx *sql.Tx, record auth.SessionRecord) e
 		)
 		VALUES ($1, $2, $3, $4, 'active', $5, $6, $6)
 	`, record.SessionID, record.UserID, record.RefreshTokenHash, record.CSRFTokenHash, record.ExpiresAt, record.Now)
+	return err
+}
+
+func recordAuthAudit(ctx context.Context, tx *sql.Tx, actorID string, actionCode string, targetKind string, targetID string, outcome string, now time.Time) error {
+	if strings.TrimSpace(actorID) != "" {
+		if _, err := tx.ExecContext(ctx, `
+			INSERT INTO audit.actors (id, actor_kind, created_at)
+			VALUES ($1, 'user', $2)
+			ON CONFLICT (id) DO NOTHING
+		`, actorID, now); err != nil {
+			return err
+		}
+	}
+	_, err := tx.ExecContext(ctx, `
+		INSERT INTO audit.events (
+			id, actor_id, action_code, target_kind, target_id, outcome,
+			request_id, trace_id, occurred_at, schema_version
+		)
+		VALUES (
+			$1, NULLIF($2, '')::uuid, $3, $4, NULLIF($5, '')::uuid, $6,
+			NULL, NULL, $7, 1
+		)
+	`, uuid.NewString(), actorID, actionCode, targetKind, targetID, outcome, now)
 	return err
 }
 

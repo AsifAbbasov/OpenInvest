@@ -80,7 +80,7 @@ func (s *Service) Register(ctx context.Context, request RegistrationRequest) (Au
 
 func (s *Service) Login(ctx context.Context, request LoginRequest) (AuthResult, error) {
 	email := normalizeEmail(request.Email)
-	if email == "" || strings.TrimSpace(request.Password) == "" {
+	if !validNormalizedEmail(email) || strings.TrimSpace(request.Password) == "" {
 		return AuthResult{}, ErrInvalidCredentials
 	}
 	user, passwordHash, err := s.store.FindUserByEmail(ctx, email)
@@ -192,7 +192,7 @@ func (s *Service) newSessionRecord(userID string) (string, string, SessionRecord
 }
 
 func validateRegistration(request RegistrationRequest) error {
-	if _, err := mail.ParseAddress(request.Email); err != nil {
+	if !validNormalizedEmail(request.Email) {
 		return fmt.Errorf("%w: email is invalid", ErrInvalidInput)
 	}
 	if len(request.Password) < 12 || len(request.Password) > 256 {
@@ -212,6 +212,14 @@ func validateRegistration(request RegistrationRequest) error {
 
 func normalizeEmail(email string) string {
 	return strings.ToLower(strings.TrimSpace(email))
+}
+
+func validNormalizedEmail(email string) bool {
+	if email == "" || len(email) > 254 {
+		return false
+	}
+	parsed, err := mail.ParseAddress(email)
+	return err == nil && parsed.Name == "" && parsed.Address == email
 }
 
 func IsInvalidInput(err error) bool {

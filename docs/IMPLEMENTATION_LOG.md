@@ -184,3 +184,14 @@ This log is the index of implementation stages. Every stage must document its pu
   tax logic, mobile implementation, AI functionality, or Stage 3.12 scope.
 - Required strict independent review to verify refresh-token secrecy, CSRF enforcement, replay
   rejection, privacy defaults, migration safety, and absence of Next.js business logic.
+
+## 2026-07-09 — Stage 3.11 independent review findings fixed
+
+- Added a production guard requiring `OPENINVEST_ENV=development` or `local` before unsafe local auth
+  flags can run with a configured `DATABASE_URL`.
+- Added non-secret audit events for auth/session lifecycle actions and invalid refresh/logout token
+  attempts.
+- Added `Retry-After` to rate-limited auth responses and removed logout rate limiting to preserve
+  the frozen logout contract.
+- Tightened auth email validation to reject display-name forms and addresses above the OpenAPI
+  254-character limit.

@@ -43,6 +43,11 @@ pnpm run verify:e2e
 `dev:api` and `dev:web` are intentionally separate long-running commands. Run them in two terminal
 tabs when manually checking the Web UI.
 
+`dev:api` sets `OPENINVEST_ENV=development` by default so the local auth bypass and insecure local
+refresh cookie cannot accidentally become production behavior. Production or staging runs with a
+configured `DATABASE_URL` must keep unsafe local auth flags disabled and provide
+`OPENINVEST_ACCESS_TOKEN_SECRET`.
+
 ## Local checks
 
 ```bash

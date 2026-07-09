@@ -132,7 +132,8 @@ merged into `develop` at `34a31b7bb379db8a59ecc52f2cd32697be3fe125`. Stage 3.11 
 active on `feature/stage-03-11-auth-privacy-slice`; it may implement only the approved Go API auth,
 privacy-default, session, CSRF, and persistence boundary. It does not authorize frontend auth UI,
 email verification, OAuth/passkeys/2FA, tax, mobile, AI, workers, provider integrations, or portfolio
-feature expansion.
+feature expansion. Unsafe local auth flags with a configured `DATABASE_URL` require
+`OPENINVEST_ENV=development` or `local`; production authorization must use signed access tokens.
 
 ## Financial standard
 

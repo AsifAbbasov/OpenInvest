@@ -52,6 +52,7 @@ start_controlled_api() {
   echo "Starting Go API at ${API_BASE_URL}"
   (
     cd "$ROOT_DIR/backend-go"
+    export OPENINVEST_ENV="${OPENINVEST_ENV:-development}"
     export OPENINVEST_DEV_AUTH_BYPASS="${OPENINVEST_DEV_AUTH_BYPASS:-true}"
     go run ./cmd/api
   ) >"$API_LOG" 2>&1 &

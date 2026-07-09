@@ -90,6 +90,25 @@ func TestLocalDevelopmentCORSRejectsUnknownOrigin(t *testing.T) {
 	}
 }
 
+func TestValidateRuntimeSafetyRejectsUnsafeAuthFlagsOutsideDevelopment(t *testing.T) {
+	t.Setenv("OPENINVEST_ENV", "production")
+	t.Setenv("OPENINVEST_DEV_AUTH_BYPASS", "true")
+
+	if err := validateRuntimeSafety("postgres://openinvest@example/openinvest"); err == nil {
+		t.Fatalf("expected unsafe development auth bypass to be rejected outside development")
+	}
+}
+
+func TestValidateRuntimeSafetyAllowsUnsafeAuthFlagsOnlyInDevelopment(t *testing.T) {
+	t.Setenv("OPENINVEST_ENV", "development")
+	t.Setenv("OPENINVEST_DEV_AUTH_BYPASS", "true")
+	t.Setenv("OPENINVEST_REFRESH_COOKIE_INSECURE", "true")
+
+	if err := validateRuntimeSafety("postgres://openinvest@example/openinvest"); err != nil {
+		t.Fatalf("expected explicit development mode to allow local auth flags: %v", err)
+	}
+}
+
 func TestAppendTransactionRequiresSettlementDateField(t *testing.T) {
 	body := []byte(`{
 		"transactionType":"BUY",

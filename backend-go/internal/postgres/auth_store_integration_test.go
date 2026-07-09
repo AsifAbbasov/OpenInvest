@@ -69,6 +69,10 @@ func TestStoreAuthPrivacySessionLifecycle(t *testing.T) {
 		t.Fatalf("unexpected privacy defaults: privacy=%t tax=%t notifications=%t analytics=%q", privacyMode, taxProfileEnabled, notificationsEnabled, analyticsMode)
 	}
 
+	if _, err := service.Login(ctx, auth.LoginRequest{Email: result.User.Email, Password: "correct horse battery staple"}); err != nil {
+		t.Fatalf("login: %v", err)
+	}
+
 	rotated, err := service.Refresh(ctx, result.RefreshToken, result.Session.CSRFToken)
 	if err != nil {
 		t.Fatalf("refresh: %v", err)
@@ -89,5 +93,40 @@ func TestStoreAuthPrivacySessionLifecycle(t *testing.T) {
 	}
 	if _, err := service.Refresh(ctx, rotated.RefreshToken, rotated.Session.CSRFToken); !errors.Is(err, auth.ErrInvalidSession) {
 		t.Fatalf("expected revoked refresh token to be rejected, got %v", err)
+	}
+
+	rows, err := db.QueryContext(ctx, `
+		SELECT action_code, outcome, count(*)
+		FROM audit.events
+		WHERE action_code IN ('AUTH_REGISTER', 'AUTH_LOGIN', 'AUTH_REFRESH', 'AUTH_REFRESH_REJECTED', 'AUTH_LOGOUT')
+		GROUP BY action_code, outcome
+	`)
+	if err != nil {
+		t.Fatalf("query auth audit evidence: %v", err)
+	}
+	defer rows.Close()
+	auditCounts := map[string]int{}
+	for rows.Next() {
+		var action string
+		var outcome string
+		var count int
+		if err := rows.Scan(&action, &outcome, &count); err != nil {
+			t.Fatalf("scan auth audit evidence: %v", err)
+		}
+		auditCounts[action+"|"+outcome] = count
+	}
+	if err := rows.Err(); err != nil {
+		t.Fatalf("iterate auth audit evidence: %v", err)
+	}
+	for _, key := range []string{
+		"AUTH_REGISTER|success",
+		"AUTH_LOGIN|success",
+		"AUTH_REFRESH|success",
+		"AUTH_REFRESH_REJECTED|failure",
+		"AUTH_LOGOUT|success",
+	} {
+		if auditCounts[key] < 1 {
+			t.Fatalf("missing auth audit evidence %s in %#v", key, auditCounts)
+		}
 	}
 }

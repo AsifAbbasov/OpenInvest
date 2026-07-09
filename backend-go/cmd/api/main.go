@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -22,6 +23,9 @@ func newApp() *fiber.App {
 		store := unavailableStore{}
 		return httpapi.NewDevelopment(verticalslice.NewService(store, verticalslice.SystemClock{}))
 	}
+	if err := validateRuntimeSafety(databaseURL); err != nil {
+		log.Fatal(err)
+	}
 	store, err := postgres.Open(databaseURL)
 	if err != nil {
 		log.Fatal(err)
@@ -36,6 +40,23 @@ func newApp() *fiber.App {
 		log.Fatal(err)
 	}
 	return httpapi.New(verticalslice.NewService(store, verticalslice.SystemClock{}), authService)
+}
+
+func validateRuntimeSafety(databaseURL string) error {
+	if strings.TrimSpace(databaseURL) == "" {
+		return nil
+	}
+	if !(envBool("OPENINVEST_DEV_AUTH_BYPASS") ||
+		envBool("OPENINVEST_REFRESH_COOKIE_INSECURE") ||
+		envBool("OPENINVEST_ALLOW_EPHEMERAL_ACCESS_TOKEN_SECRET")) {
+		return nil
+	}
+	switch strings.ToLower(strings.TrimSpace(os.Getenv("OPENINVEST_ENV"))) {
+	case "development", "local":
+		return nil
+	default:
+		return errors.New("unsafe development auth settings require OPENINVEST_ENV=development or local")
+	}
 }
 
 func main() {

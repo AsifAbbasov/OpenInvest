@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 )
@@ -123,6 +124,35 @@ func TestServiceRequiresExplicitAccessTokenSecretOrEphemeralFlag(t *testing.T) {
 	}
 	if _, err := NewService(&memoryStore{}, fixedClock{}, Config{AllowEphemeralAccessTokenSecret: true}); err != nil {
 		t.Fatalf("expected explicit ephemeral secret flag to be accepted: %v", err)
+	}
+}
+
+func TestServiceRejectsDisplayNameEmailForms(t *testing.T) {
+	service := newTestService(t, &memoryStore{})
+
+	if _, err := service.Register(context.Background(), RegistrationRequest{
+		Email:    `Investor <investor@example.com>`,
+		Password: "correct horse battery staple",
+		Language: LanguageEN,
+		Theme:    ThemeSystem,
+		Timezone: "UTC",
+	}); !IsInvalidInput(err) {
+		t.Fatalf("expected display-name email form to be rejected, got %v", err)
+	}
+}
+
+func TestServiceRejectsOverlongEmail(t *testing.T) {
+	service := newTestService(t, &memoryStore{})
+	overlong := strings.Repeat("a", 245) + "@example.com"
+
+	if _, err := service.Register(context.Background(), RegistrationRequest{
+		Email:    overlong,
+		Password: "correct horse battery staple",
+		Language: LanguageEN,
+		Theme:    ThemeSystem,
+		Timezone: "UTC",
+	}); !IsInvalidInput(err) {
+		t.Fatalf("expected overlong email to be rejected, got %v", err)
 	}
 }
 

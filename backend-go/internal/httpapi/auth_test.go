@@ -114,6 +114,50 @@ func TestAuthRegisterRejectsUnknownSensitiveFields(t *testing.T) {
 	}
 }
 
+func TestAuthRateLimitedResponseIncludesRetryAfter(t *testing.T) {
+	authService := newHTTPAuthService(t, &httpAuthTestStore{})
+	app := newApp(&API{
+		service:     verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}),
+		auth:        authService,
+		authLimiter: newAuthRateLimiter(1, time.Minute),
+	})
+	body := `{
+		"email":"investor@example.com",
+		"password":"correct horse battery staple",
+		"language":"en",
+		"theme":"system",
+		"timezone":"UTC"
+	}`
+
+	first := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", body, "", "")
+	defer first.Body.Close()
+	second := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", body, "", "")
+	defer second.Body.Close()
+
+	if second.StatusCode != http.StatusTooManyRequests {
+		t.Fatalf("expected status %d, got %d", http.StatusTooManyRequests, second.StatusCode)
+	}
+	if got := second.Header.Get("Retry-After"); got != authRateLimitRetryAfterSeconds {
+		t.Fatalf("expected Retry-After %q, got %q", authRateLimitRetryAfterSeconds, got)
+	}
+}
+
+func TestAuthLogoutIsNotRateLimitedBecauseContractDoesNotExpose429(t *testing.T) {
+	authService := newHTTPAuthService(t, &httpAuthTestStore{})
+	app := newApp(&API{
+		service:     verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}),
+		auth:        authService,
+		authLimiter: newAuthRateLimiter(0, time.Minute),
+	})
+
+	logout := authRequest(t, app, http.MethodPost, "/api/v1/auth/logout", `{"allSessions":false}`, "missing-refresh", "missing-csrf")
+	defer logout.Body.Close()
+
+	if logout.StatusCode == http.StatusTooManyRequests {
+		t.Fatalf("logout must not return 429 while the frozen OpenAPI logout contract omits RateLimited")
+	}
+}
+
 func TestAuthLogoutRequiresExplicitScopeBody(t *testing.T) {
 	authService := newHTTPAuthService(t, &httpAuthTestStore{})
 	app := New(verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}), authService)

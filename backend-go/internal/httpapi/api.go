@@ -30,6 +30,7 @@ import (
 const devSubjectID = "00000000-0000-4000-8000-000000000001"
 const maxHTTPImportPayloadBytes = 2 * 1024 * 1024
 const maxHTTPImportRows = 100
+const authRateLimitRetryAfterSeconds = "60"
 
 var errAuthRateLimited = errors.New("auth rate limited")
 
@@ -216,9 +217,6 @@ func (api *API) refresh(c fiber.Ctx) error {
 
 func (api *API) logout(c fiber.Ctx) error {
 	meta := requestMeta(c)
-	if err := api.checkAuthRateLimit(c); err != nil {
-		return writeMappedErrorWithMeta(c, meta, err)
-	}
 	if api.auth == nil {
 		return writeErrorWithMeta(c, meta, http.StatusServiceUnavailable, "SERVICE_NOT_READY", "Authentication service is not ready")
 	}
@@ -520,6 +518,7 @@ func writeMappedError(c fiber.Ctx, err error) error {
 func writeMappedErrorWithMeta(c fiber.Ctx, meta metaDTO, err error) error {
 	switch {
 	case errors.Is(err, errAuthRateLimited):
+		c.Set("Retry-After", authRateLimitRetryAfterSeconds)
 		return writeErrorWithMeta(c, meta, http.StatusTooManyRequests, "RATE_LIMITED", "Too many authentication attempts")
 	case errors.Is(err, auth.ErrInvalidInput):
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
