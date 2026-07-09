@@ -442,7 +442,41 @@ Forbidden:
 
 Status:
 
-- Active / planning PR.
+- Complete / merged into `develop` at `27480d6ff22e2929e33aeac352aef8a1b01bb448`.
+
+### PR 3.10 — Import upload/review UI slice
+
+Purpose:
+
+- expose the Stage 3.9 transient CSV import review/append flow in the Next.js presentation layer
+  without moving business logic out of the Go API.
+
+Allowed:
+
+- typed frontend calls to the existing Go import review and append endpoints;
+- file picker and transient in-memory CSV payload handling;
+- review result display;
+- explicit user approval selection for appendable rows;
+- append submission for selected approved rows;
+- loading, error, success, accessibility, and responsive presentation states;
+- documentation updates.
+
+Forbidden:
+
+- OpenAPI changes;
+- backend handlers;
+- SQL migrations;
+- import-session persistence;
+- raw file persistence;
+- CSV parsing business logic in Next.js;
+- financial calculations;
+- tax logic;
+- provider integrations;
+- workers, mobile, AI, or Stage 3.11 work.
+
+Status:
+
+- Active / implementation PR.
 
 ## Stage 3 domain boundaries
 

@@ -171,6 +171,11 @@ textarea {
   resize: vertical;
 }
 
+input[type="checkbox"] {
+  width: auto;
+  accent-color: #17492f;
+}
+
 button,
 .secondary-button {
   width: fit-content;
@@ -198,6 +203,19 @@ button:disabled {
 .form-status,
 .warning-text {
   color: #9a4b00;
+}
+
+.success-panel {
+  margin-top: 20px;
+  border: 1px solid #b7dbc5;
+  border-radius: 18px;
+  padding: 18px;
+  background: #f0fbf4;
+}
+
+.success-panel h3 {
+  margin: 0 0 8px;
+  font-size: 1.2rem;
 }
 
 .warning {
@@ -236,6 +254,38 @@ td {
 th {
   color: #62776b;
   font-size: 0.8rem;
+}
+
+.compact-form {
+  margin-bottom: 20px;
+}
+
+.import-review {
+  display: grid;
+  gap: 18px;
+}
+
+.status-pill {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: #e8efe9;
+  color: #40594c;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.status-appendable {
+  background: #e3f8ea;
+  color: #146c37;
+}
+
+.status-duplicate,
+.status-conflict,
+.status-invalid {
+  background: #fff1dc;
+  color: #9a4b00;
 }
 
 @media (max-width: 720px) {

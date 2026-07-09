@@ -4,7 +4,7 @@
 | --- | --- |
 | Document ID | STAGE-03-10 |
 | Version | 0.1.0 |
-| Status | Draft / planning active |
+| Status | Complete / merged into `develop` |
 | Owner | Builder Engineer |
 | Supersedes | Stage 3.9 API-only import boundary state |
 | Dependencies | Stage 3.9 import API boundary slice; ADR-007; Documents 42–43 |
@@ -19,7 +19,9 @@ The goal is to let a future Next.js implementation expose the existing Go import
 without moving business logic, financial calculations, reconciliation decisions, parsing rules, or
 storage into the Web layer.
 
-This planning document authorizes no implementation by itself.
+This planning document authorized no implementation by itself. It was merged into `develop` at
+`27480d6ff22e2929e33aeac352aef8a1b01bb448`; implementation continues in
+`STAGE_03_10_IMPORT_UPLOAD_REVIEW_UI_SLICE.md`.
 
 ## Why this stage exists
 

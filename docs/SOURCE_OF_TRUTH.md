@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.21 |
+| Version | 1.4.22 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -17,8 +17,8 @@
 **Documentation Freeze: ACTIVE**
 **Last completed implementation stage: Stage 3.9 — Import API Boundary Slice**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `682ffd856395a6e3e988817551a512898fda2d38`**
-**Current active work item: Stage 3.10 import upload/review UI planning; no Stage 3.10 implementation started**
+**Current canonical implementation baseline: `develop` at `27480d6ff22e2929e33aeac352aef8a1b01bb448`**
+**Current active work item: Stage 3.10 import upload/review UI slice on `feature/stage-03-10-import-upload-review-ui`**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -122,9 +122,12 @@ Stage 3.8 closure governance is merged into `develop` at
 merged into `develop` at `b749a1632791127e0e2d4f99a91cb95eafc88898`, with closure governance
 merged at `682ffd856395a6e3e988817551a512898fda2d38`; it added only the public Go API boundary,
 OpenAPI contract, DTOs, tests, and documentation for user-supplied CSV import review/append.
-Stage 3.10 import upload/review UI planning is active and authorizes no implementation by itself.
-Frontend upload UI implementation, SQL import-session persistence, raw file persistence, workers,
-broker/provider integrations, tax, mobile, and AI remain out of scope.
+Stage 3.10 import upload/review UI planning is closed and merged into `develop` at
+`27480d6ff22e2929e33aeac352aef8a1b01bb448`. Stage 3.10 implementation is active on
+`feature/stage-03-10-import-upload-review-ui`; it may add only the presentation-only Next.js import
+upload/review UI over the existing Go API boundary. SQL import-session persistence, raw file
+persistence, backend contract changes, workers, broker/provider integrations, tax, mobile, and AI
+remain out of scope.
 
 ## Financial standard
 
@@ -161,7 +164,7 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 | Dashboard and snapshots | Yes | Stage 3.4 verification closed |
 | WAC, XIRR, real/inflation returns | Yes | Planned |
 | Dividend calculator/calendar | Yes | Planned |
-| Broker file import and reconciliation | Public-MVP readiness candidate | Stage 3.10 upload/review UI planning active; no UI implementation/import-session persistence yet |
+| Broker file import and reconciliation | Public-MVP readiness candidate | Stage 3.10 upload/review UI slice active; no import-session persistence |
 | Purchasing power | Yes | Planned as secondary insight |
 | Tax export | No | Experimental; feature flag off |
 | Foreign securities | No | Backlog v2.0 |
