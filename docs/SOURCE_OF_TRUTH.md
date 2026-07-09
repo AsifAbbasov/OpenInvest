@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.24 |
+| Version | 1.4.25 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -15,10 +15,10 @@
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.11 — Authentication and Privacy-Boundary Planning**
+**Last completed implementation stage: Stage 3.11 — Authentication and Privacy-Boundary Slice**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `34a31b7bb379db8a59ecc52f2cd32697be3fe125`**
-**Current active work item: Stage 3.11 authentication and privacy-boundary implementation on `feature/stage-03-11-auth-privacy-slice`**
+**Current canonical implementation baseline: `develop` at `5c49173ac858995929f266c2de991282dd194dec`**
+**Current active work item: Stage 3.12 planning not yet started**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -129,11 +129,12 @@ Next.js import upload/review UI over the existing Go API boundary. SQL import-se
 raw file persistence, backend contract changes, workers, broker/provider integrations, tax, mobile,
 and AI remain out of scope. Stage 3.11 authentication and privacy-boundary planning is closed and
 merged into `develop` at `34a31b7bb379db8a59ecc52f2cd32697be3fe125`. Stage 3.11 implementation is
-active on `feature/stage-03-11-auth-privacy-slice`; it may implement only the approved Go API auth,
-privacy-default, session, CSRF, and persistence boundary. It does not authorize frontend auth UI,
-email verification, OAuth/passkeys/2FA, tax, mobile, AI, workers, provider integrations, or portfolio
-feature expansion. Unsafe local auth flags with a configured `DATABASE_URL` require
-`OPENINVEST_ENV=development` or `local`; production authorization must use signed access tokens.
+closed and merged into `develop` at `5c49173ac858995929f266c2de991282dd194dec`; it implemented only
+the approved Go API auth, privacy-default, session, CSRF, audit, and persistence boundary. It does
+not authorize frontend auth UI, email verification, OAuth/passkeys/2FA, tax, mobile, AI, workers,
+provider integrations, or portfolio feature expansion. Unsafe local auth flags with a configured
+`DATABASE_URL` require `OPENINVEST_ENV=development` or `local`; production authorization must use
+signed access tokens.
 
 ## Financial standard
 
@@ -164,7 +165,7 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 
 | Capability | MVP | State |
 | --- | --- | --- |
-| Registration and privacy defaults | Yes | Stage 3.11 implementation active; Go API/auth persistence only |
+| Registration and privacy defaults | Yes | Stage 3.11 closed; Go API/auth persistence only |
 | Portfolio and transactions | Yes | Stage 3.4 verification closed |
 | MOEX shares and bonds | Yes | Planned |
 | Dashboard and snapshots | Yes | Stage 3.4 verification closed |

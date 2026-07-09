@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-11-AUTH-SLICE |
-| Version | 0.1.0 |
-| Status | Draft / implementation active |
+| Version | 0.1.1 |
+| Status | Complete / merged into `develop` |
 | Owner | Builder Engineer |
 | Supersedes | Stage 3 local development subject as the only runtime user boundary |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-005; ADR-006; ADR-007; Stage 2 contract baseline; Stage 3.11 planning |
 | Last Review Date | 2026-07-09 |
-| Next Review Date | Before merge approval |
+| Next Review Date | Before frontend auth UI planning |
 
 ## Purpose
 
@@ -83,7 +83,7 @@ pre-auth developer workflows. When `DATABASE_URL` is configured, unsafe local fl
 `OPENINVEST_ALLOW_EPHEMERAL_ACCESS_TOKEN_SECRET`) are accepted only when `OPENINVEST_ENV` is
 `development` or `local`. Production authorization must use the access-token path.
 
-## Current implementation evidence
+## Completion evidence
 
 - Go unit tests cover auth service token boundaries, refresh rotation, replay rejection, and logout.
 - HTTP tests cover HttpOnly refresh-cookie behavior, refresh-token body non-disclosure, CSRF
@@ -95,6 +95,11 @@ pre-auth developer workflows. When `DATABASE_URL` is configured, unsafe local fl
 - Follow-up review fixes add production guards for local auth bypass flags, non-secret auth audit
   evidence for both successful and rejected session lifecycle paths, required `Retry-After`
   rate-limit headers, logout/OpenAPI rate-limit alignment, and strict email shape validation.
+- Squash-merged PR #29 into `develop` at `5c49173ac858995929f266c2de991282dd194dec`
+  after green GitHub CI and strict independent review. The final independent review initially
+  returned `BLOCKED — insufficient evidence` only because GitHub CI was still pending; CI later
+  completed green for the reviewed head commit `8a8052c18768dbad0aa0e724836f3c9252d257e3` with no
+  code findings remaining.
 
 ## Scope guard
 

@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.24 |
+| Version | 1.1.25 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
@@ -15,7 +15,7 @@
 
 | ID | Title | Version | Status | Location |
 | --- | --- | --- | --- | --- |
-| SOT-001 | Source of Truth | 1.4.24 | Approved | `SOURCE_OF_TRUTH.md` |
+| SOT-001 | Source of Truth | 1.4.25 | Approved | `SOURCE_OF_TRUTH.md` |
 | 42 | Architecture Amendments | 1.1.0 | Approved | `specifications/current/DOCUMENT_42_ARCHITECTURE_AMENDMENTS_v1.1.md` |
 | 43 | Architecture Decision Closure | 1.2.0 | Final | `specifications/current/DOCUMENT_43_ARCHITECTURE_CLOSURE_v1.2.md` |
 
@@ -89,7 +89,7 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Stage 3.10 import upload/review UI planning | Complete / merged into `develop` | `stages/STAGE_03_10_IMPORT_UPLOAD_UI_PLANNING.md` |
 | Stage 3.10 import upload/review UI slice | Complete / merged into `develop` | `stages/STAGE_03_10_IMPORT_UPLOAD_REVIEW_UI_SLICE.md` |
 | Stage 3.11 authentication and privacy-boundary planning | Complete / merged into `develop` | `stages/STAGE_03_11_AUTH_PRIVACY_PLANNING.md` |
-| Stage 3.11 authentication and privacy-boundary slice | Draft / implementation active | `stages/STAGE_03_11_AUTH_PRIVACY_SLICE.md` |
+| Stage 3.11 authentication and privacy-boundary slice | Complete / merged into `develop` | `stages/STAGE_03_11_AUTH_PRIVACY_SLICE.md` |
 
 ## Product refinement documents
 
