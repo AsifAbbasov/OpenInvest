@@ -30,6 +30,16 @@ var requiredUpFragments = []string{
 	"CREATE TABLE audit.events",
 }
 
+var requiredAuthPrivacyFragments = []string{
+	"CREATE TABLE identity.credentials",
+	"CREATE TABLE identity.privacy_settings",
+	"CREATE TABLE identity.sessions",
+	"CREATE UNIQUE INDEX sessions_refresh_token_hash_uidx",
+	"CREATE INDEX sessions_user_state_expires_idx",
+	"credentials_argon2id_hash",
+	"analytics_mode TEXT NOT NULL DEFAULT 'anonymous'",
+}
+
 type forbiddenPattern struct {
 	pattern *regexp.Regexp
 	message string
@@ -109,6 +119,16 @@ func main() {
 			}
 			if !strings.Contains(sql, "NUMERIC(28, 8)") {
 				fail("%s: expected NUMERIC(28, 8) decimal financial columns", relative(root, path))
+			}
+		}
+		if strings.HasPrefix(filepath.Base(path), "000002_stage_03_11_auth_privacy") {
+			for _, fragment := range requiredAuthPrivacyFragments {
+				if !strings.Contains(sql, fragment) {
+					fail("%s: missing required fragment: %s", relative(root, path), fragment)
+				}
+			}
+			if regexp.MustCompile(`(?i)\bFLOAT\b|\bDOUBLE\b|\bREAL\b`).MatchString(sql) {
+				fail("%s: binary floating-point types are forbidden", relative(root, path))
 			}
 		}
 	}

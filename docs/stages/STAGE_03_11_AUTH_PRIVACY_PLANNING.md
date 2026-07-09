@@ -4,21 +4,27 @@
 | --- | --- |
 | Document ID | STAGE-03-11-AUTH-PLANNING |
 | Version | 0.1.0 |
-| Status | Draft / planning active |
+| Status | Complete / merged into `develop` |
 | Owner | Builder Engineer |
 | Supersedes | Local development subject as an acceptable long-term user boundary |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-005; ADR-006; ADR-007; Stage 2 contract baseline; Stage 3.10 |
 | Last Review Date | 2026-07-09 |
-| Next Review Date | Before Stage 3.11 implementation |
+| Next Review Date | Superseded by `STAGE_03_11_AUTH_PRIVACY_SLICE.md` |
 
 ## Purpose
 
-Stage 3.11 plans the smallest safe path from the Stage 3 local development subject to the approved
+Stage 3.11 planned the smallest safe path from the Stage 3 local development subject to the approved
 MVP web authentication and privacy-default boundary.
 
-The goal is not to implement authentication in this PR. The goal is to define the exact future
+The goal was not to implement authentication in this PR. The goal was to define the exact future
 implementation scope so the product can move from a developer-only vertical slice toward a real
 user-owned account model without weakening Privacy by Design, API First, or the Go API boundary.
+
+## Closure
+
+This planning document was merged into `develop` at
+`34a31b7bb379db8a59ecc52f2cd32697be3fe125`. Implementation continues only through
+`STAGE_03_11_AUTH_PRIVACY_SLICE.md`.
 
 ## Why this is next
 

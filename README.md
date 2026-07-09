@@ -15,9 +15,9 @@ PostgreSQL persistence, duplicate revalidation, idempotency protection, audit ev
 deterministic snapshot rebuilds. Stage 3.8 is closed and added the internal import review → append
 flow integration. Stage 3.9 is closed and added the public Go API boundary for transient CSV import
 review and explicit append. Stage 3.10 is closed and added a presentation-only Web import
-upload/review panel over the Go API. Stage 3.11 planning is active and defines the future
-authentication, privacy-default, and session boundary before any implementation replaces the local
-development subject.
+upload/review panel over the Go API. Stage 3.11 planning is closed and Stage 3.11 implementation is
+active for the approved Go API authentication, privacy-default, CSRF, and rotating-session boundary
+that replaces the local development subject without adding frontend auth UI.
 Product-risk refinement is closed and remains part of the MVP governance baseline.
 
 ## Components

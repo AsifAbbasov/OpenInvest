@@ -1,0 +1,99 @@
+# Stage 3.11 — Authentication and Privacy-Boundary Slice
+
+| Field | Value |
+| --- | --- |
+| Document ID | STAGE-03-11-AUTH-SLICE |
+| Version | 0.1.0 |
+| Status | Draft / implementation active |
+| Owner | Builder Engineer |
+| Supersedes | Stage 3 local development subject as the only runtime user boundary |
+| Dependencies | `SOURCE_OF_TRUTH.md`; ADR-005; ADR-006; ADR-007; Stage 2 contract baseline; Stage 3.11 planning |
+| Last Review Date | 2026-07-09 |
+| Next Review Date | Before merge approval |
+
+## Purpose
+
+Stage 3.11 implements the smallest reviewed MVP authentication and privacy-default boundary behind
+the already frozen Stage 2 OpenAPI contract.
+
+The goal is to replace the developer-only subject boundary with a real account/session boundary
+without expanding business scope or moving business authority out of the Go API.
+
+## Implementation scope
+
+This slice may add only:
+
+- Go API handlers for:
+  - `POST /api/v1/auth/register`;
+  - `POST /api/v1/auth/login`;
+  - `POST /api/v1/auth/refresh`;
+  - `POST /api/v1/auth/logout`;
+- Argon2id password hashing and verification;
+- short-lived access-token issuance for Go API authentication;
+- rotating HttpOnly refresh-cookie sessions;
+- CSRF validation for cookie-authenticated refresh/logout;
+- privacy-default records for new identities;
+- deterministic identity-to-investment subject mapping through the existing schemas;
+- PostgreSQL migration tables for credentials, privacy defaults, and sessions;
+- tests for registration, login/session shape, refresh rotation, replay rejection, logout, CSRF
+  rejection, and migration validation;
+- documentation and governance updates for this stage.
+
+## Explicit non-goals
+
+This slice must not add:
+
+- Next.js authentication screens or browser session state;
+- business logic in Next.js;
+- financial calculations;
+- tax logic;
+- email verification or SMTP;
+- OAuth/passkeys/2FA;
+- provider integrations;
+- workers;
+- mobile implementation;
+- AI functionality;
+- portfolio/domain feature expansion;
+- OpenAPI contract changes unless a separate contract-change review is approved.
+
+## Security and privacy constraints
+
+- Refresh tokens are returned only through an HttpOnly cookie.
+- Refresh tokens and CSRF tokens are stored only as hashes.
+- Refresh rotation must reject replay.
+- CSRF must be checked as part of the same atomic rotation/revocation boundary.
+- New accounts default to:
+  - Privacy Mode ON;
+  - Tax Profile OFF;
+  - Notifications OFF;
+  - anonymous analytics.
+- Passport, INN, phone, address, and tax profile are not accepted by this slice.
+- No password, token, cookie, CSRF token, or secret may be logged.
+- The Go API remains the only canonical business API.
+
+## Local development boundary
+
+The previous local development subject remains available only as an explicit development bypass for
+pre-auth developer workflows. Production authorization must use the access-token path.
+
+## Current implementation evidence
+
+- Go unit tests cover auth service token boundaries, refresh rotation, replay rejection, and logout.
+- HTTP tests cover HttpOnly refresh-cookie behavior, refresh-token body non-disclosure, CSRF
+  enforcement, refresh rotation, replay rejection, and logout cookie clearing.
+- PostgreSQL integration test covers privacy-default persistence and session lifecycle when
+  `OPENINVEST_DATABASE_TEST_URL` is configured.
+- Migration validator covers the Stage 3.11 credentials, privacy settings, and sessions migration
+  fragments.
+
+## Scope guard
+
+The review for this slice must verify absence of:
+
+- Stage 3.12 work;
+- frontend authentication UI;
+- provider integrations;
+- workers;
+- tax/email/mobile/AI work;
+- direct database access from Next.js;
+- business API routes in Next.js.

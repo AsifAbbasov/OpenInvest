@@ -18,7 +18,7 @@ const importCSV = "transaction_type,ticker,quantity,unit_price,gross_amount,comm
 	"BUY,SBER,2.00000000,100.00000000,200.00000000,1.00000000,0.00000000,2026-01-10,2026-01-13,RUB,broker-row-1,Imported buy\n"
 
 func TestImportReviewReturnsTransientRowsWithoutBrokerOperationID(t *testing.T) {
-	app := New(verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}))
+	app := NewDevelopment(verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}))
 	body := []byte(`{"sourceAccountLabel":"Manual CSV","csvPayload":` + quote(importCSV) + `}`)
 	request := httptest.NewRequest(http.MethodPost, "/api/v1/portfolios/00000000-0000-4000-8000-000000000002/imports/review", bytes.NewReader(body))
 	request.Header.Set("Content-Type", "application/json")
@@ -50,7 +50,7 @@ func TestImportReviewReturnsTransientRowsWithoutBrokerOperationID(t *testing.T) 
 }
 
 func TestImportReviewRejectsMoreThanOneHundredRows(t *testing.T) {
-	app := New(verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}))
+	app := NewDevelopment(verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}))
 	body := []byte(`{"csvPayload":` + quote(importCSVWithRows(101)) + `}`)
 	request := httptest.NewRequest(http.MethodPost, "/api/v1/portfolios/00000000-0000-4000-8000-000000000002/imports/review", bytes.NewReader(body))
 	request.Header.Set("Content-Type", "application/json")
@@ -68,7 +68,7 @@ func TestImportReviewRejectsMoreThanOneHundredRows(t *testing.T) {
 
 func TestImportAppendRequiresIdempotencyKey(t *testing.T) {
 	store := &importAPITestStore{}
-	app := New(verticalslice.NewService(store, fixedHTTPClock{}))
+	app := NewDevelopment(verticalslice.NewService(store, fixedHTTPClock{}))
 	body := []byte(`{"sourceAccountLabel":"Manual CSV","csvPayload":` + quote(importCSV) + `,"decisions":[{"rowNumber":2,"action":"APPROVE"}]}`)
 	request := httptest.NewRequest(http.MethodPost, "/api/v1/portfolios/00000000-0000-4000-8000-000000000002/imports/append", bytes.NewReader(body))
 	request.Header.Set("Content-Type", "application/json")
@@ -89,7 +89,7 @@ func TestImportAppendRequiresIdempotencyKey(t *testing.T) {
 
 func TestImportAppendRejectsInvalidIdempotencyKeyBeforeStoreWork(t *testing.T) {
 	store := &importAPITestStore{}
-	app := New(verticalslice.NewService(store, fixedHTTPClock{}))
+	app := NewDevelopment(verticalslice.NewService(store, fixedHTTPClock{}))
 	body := []byte(`{"sourceAccountLabel":"Manual CSV","csvPayload":` + quote(importCSV) + `,"decisions":[{"rowNumber":2,"action":"APPROVE"}]}`)
 	request := httptest.NewRequest(http.MethodPost, "/api/v1/portfolios/00000000-0000-4000-8000-000000000002/imports/append", bytes.NewReader(body))
 	request.Header.Set("Content-Type", "application/json")
@@ -111,7 +111,7 @@ func TestImportAppendRejectsInvalidIdempotencyKeyBeforeStoreWork(t *testing.T) {
 
 func TestImportAppendUsesAtomicImportBatch(t *testing.T) {
 	store := &importAPITestStore{}
-	app := New(verticalslice.NewService(store, fixedHTTPClock{}))
+	app := NewDevelopment(verticalslice.NewService(store, fixedHTTPClock{}))
 	body := []byte(`{"sourceAccountLabel":"Manual CSV","csvPayload":` + quote(importCSV) + `,"decisions":[{"rowNumber":2,"action":"APPROVE"}]}`)
 	request := httptest.NewRequest(http.MethodPost, "/api/v1/portfolios/00000000-0000-4000-8000-000000000002/imports/append", bytes.NewReader(body))
 	request.Header.Set("Content-Type", "application/json")
@@ -156,7 +156,7 @@ func TestImportAppendRevalidatesAgainstCurrentLedger(t *testing.T) {
 			Revision:        1,
 		}},
 	}
-	app := New(verticalslice.NewService(store, fixedHTTPClock{}))
+	app := NewDevelopment(verticalslice.NewService(store, fixedHTTPClock{}))
 	body := []byte(`{"sourceAccountLabel":"Manual CSV","csvPayload":` + quote(importCSV) + `,"decisions":[{"rowNumber":2,"action":"APPROVE"}]}`)
 	request := httptest.NewRequest(http.MethodPost, "/api/v1/portfolios/00000000-0000-4000-8000-000000000002/imports/append", bytes.NewReader(body))
 	request.Header.Set("Content-Type", "application/json")

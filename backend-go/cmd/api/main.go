@@ -5,9 +5,11 @@ import (
 	"errors"
 	"log"
 	"os"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/openinvest/openinvest/backend-go/internal/auth"
 	"github.com/openinvest/openinvest/backend-go/internal/decimal"
 	"github.com/openinvest/openinvest/backend-go/internal/httpapi"
 	"github.com/openinvest/openinvest/backend-go/internal/postgres"
@@ -15,22 +17,39 @@ import (
 )
 
 func newApp() *fiber.App {
-	var store verticalslice.Store
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
-		store = unavailableStore{}
-		return httpapi.New(verticalslice.NewService(store, verticalslice.SystemClock{}))
+		store := unavailableStore{}
+		return httpapi.NewDevelopment(verticalslice.NewService(store, verticalslice.SystemClock{}))
 	}
-	store, err := postgres.Open(os.Getenv("DATABASE_URL"))
+	store, err := postgres.Open(databaseURL)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return httpapi.New(verticalslice.NewService(store, verticalslice.SystemClock{}))
+	authService, err := auth.NewService(store, verticalslice.SystemClock{}, auth.Config{
+		AccessTokenSecret:               []byte(os.Getenv("OPENINVEST_ACCESS_TOKEN_SECRET")),
+		RefreshCookieSecure:             !envBool("OPENINVEST_REFRESH_COOKIE_INSECURE"),
+		AllowDevelopmentBypass:          envBool("OPENINVEST_DEV_AUTH_BYPASS"),
+		AllowEphemeralAccessTokenSecret: envBool("OPENINVEST_ALLOW_EPHEMERAL_ACCESS_TOKEN_SECRET") || envBool("OPENINVEST_DEV_AUTH_BYPASS"),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	return httpapi.New(verticalslice.NewService(store, verticalslice.SystemClock{}), authService)
 }
 
 func main() {
 	if err := newApp().Listen(":8080"); err != nil {
 		log.Fatal(err)
+	}
+}
+
+func envBool(name string) bool {
+	switch os.Getenv(name) {
+	case "1", "true", "TRUE", "yes", "YES":
+		return true
+	default:
+		return false
 	}
 }
 
@@ -74,4 +93,24 @@ func (unavailableStore) GetPortfolioSummary(context.Context, string, string, str
 		DividendsReceived: verticalslice.Money{Amount: decimal.Zero(), Currency: verticalslice.RUB},
 		CouponsReceived:   verticalslice.Money{Amount: decimal.Zero(), Currency: verticalslice.RUB},
 	}, errors.New("database url is not configured")
+}
+
+func (unavailableStore) RegisterUser(context.Context, auth.RegistrationRecord) (auth.StoredUser, error) {
+	return auth.StoredUser{}, errors.New("database url is not configured")
+}
+
+func (unavailableStore) FindUserByEmail(context.Context, string) (auth.StoredUser, string, error) {
+	return auth.StoredUser{}, "", errors.New("database url is not configured")
+}
+
+func (unavailableStore) CreateSession(context.Context, auth.SessionRecord) error {
+	return errors.New("database url is not configured")
+}
+
+func (unavailableStore) RotateSession(context.Context, string, string, auth.SessionRecord, time.Time) (auth.StoredUser, error) {
+	return auth.StoredUser{}, errors.New("database url is not configured")
+}
+
+func (unavailableStore) RevokeSession(context.Context, string, string, bool, time.Time) (bool, error) {
+	return false, errors.New("database url is not configured")
 }

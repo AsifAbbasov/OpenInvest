@@ -52,6 +52,7 @@ start_controlled_api() {
   echo "Starting Go API at ${API_BASE_URL}"
   (
     cd "$ROOT_DIR/backend-go"
+    export OPENINVEST_DEV_AUTH_BYPASS="${OPENINVEST_DEV_AUTH_BYPASS:-true}"
     go run ./cmd/api
   ) >"$API_LOG" 2>&1 &
   API_PID=$!
@@ -106,17 +107,34 @@ apply_migration_if_needed() {
       -Atqc "SELECT to_regclass('investment.portfolios') IS NOT NULL;"
   )"
 
-  if [[ "$exists" == "t" ]]; then
-    echo "Database schema already exists; skipping Stage 3.1 migration replay."
-    return 0
+  if [[ "$exists" != "t" ]]; then
+    echo "Applying Stage 3.1 migration."
+    docker compose exec -T postgres psql \
+      -v ON_ERROR_STOP=1 \
+      -U "$POSTGRES_USER" \
+      -d "$POSTGRES_DB" \
+      < "$ROOT_DIR/infrastructure/postgres/migrations/000001_stage_03_01_vertical_slice.up.sql"
+  else
+    echo "Database foundation schema already exists; skipping Stage 3.1 migration replay."
   fi
 
-  echo "Applying Stage 3.1 migration."
-  docker compose exec -T postgres psql \
-    -v ON_ERROR_STOP=1 \
-    -U "$POSTGRES_USER" \
-    -d "$POSTGRES_DB" \
-    < "$ROOT_DIR/infrastructure/postgres/migrations/000001_stage_03_01_vertical_slice.up.sql"
+  exists="$(
+    docker compose exec -T postgres psql \
+      -U "$POSTGRES_USER" \
+      -d "$POSTGRES_DB" \
+      -Atqc "SELECT to_regclass('identity.sessions') IS NOT NULL;"
+  )"
+
+  if [[ "$exists" != "t" ]]; then
+    echo "Applying Stage 3.11 auth/privacy migration."
+    docker compose exec -T postgres psql \
+      -v ON_ERROR_STOP=1 \
+      -U "$POSTGRES_USER" \
+      -d "$POSTGRES_DB" \
+      < "$ROOT_DIR/infrastructure/postgres/migrations/000002_stage_03_11_auth_privacy.up.sql"
+  else
+    echo "Auth/privacy schema already exists; skipping Stage 3.11 migration replay."
+  fi
 }
 
 api_post() {

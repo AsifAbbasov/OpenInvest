@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.13 |
+| Version | 0.1.14 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
@@ -60,7 +60,7 @@ Forbidden in Stage 3:
 - public API;
 - multi-currency support;
 - foreign securities;
-- full authentication implementation beyond minimal local/dev guard if explicitly approved;
+- authentication implementation outside the approved Stage 3.11 auth/privacy slice;
 - production deployment;
 - styling/design-system expansion beyond basic readable screens.
 
@@ -505,7 +505,40 @@ Forbidden:
 
 Status:
 
-- Active / planning branch.
+- Complete / merged into `develop` at `34a31b7bb379db8a59ecc52f2cd32697be3fe125`.
+
+### PR 3.11 — Authentication and privacy-boundary slice
+
+Purpose:
+
+- implement the approved MVP web auth, session, CSRF, and privacy-default boundary behind the
+  Stage 2 contract while preserving the Go API as the only business authority.
+
+Allowed:
+
+- Go auth handlers for register, login, refresh, and logout;
+- Argon2id password hashing;
+- short-lived access-token issuance for Go API authorization;
+- rotating HttpOnly refresh-cookie sessions;
+- CSRF protection for refresh/logout;
+- privacy-default persistence for new accounts;
+- identity-to-investment subject mapping through existing identity/investment schemas;
+- additive PostgreSQL migration for credentials, privacy settings, and sessions;
+- tests and governance updates for this slice.
+
+Forbidden:
+
+- frontend authentication screens or session state;
+- business logic in Next.js;
+- OpenAPI contract changes unless separately reviewed;
+- email verification, OAuth/passkeys/2FA;
+- financial calculations;
+- tax logic;
+- workers, provider integrations, mobile, AI, or Stage 3.12 work.
+
+Status:
+
+- Active / implementation branch `feature/stage-03-11-auth-privacy-slice`.
 
 ## Stage 3 domain boundaries
 
