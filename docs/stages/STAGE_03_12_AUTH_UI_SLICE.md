@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-12-AUTH-UI-SLICE |
-| Version | 0.1.2 |
-| Status | Active / implementation |
+| Version | 0.1.3 |
+| Status | Complete / closed; merged into `develop` at `b4840b60346109e3cd54a07d9e1e131fc0cfad23` |
 | Owner | Builder Engineer |
 | Supersedes | Stage 3.12 Web authentication UI planning |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-007; Stage 3.11 auth/privacy slice; Stage 3.12 auth UI planning |
 | Last Review Date | 2026-07-11 |
-| Next Review Date | Before Stage 3.12 merge approval |
+| Next Review Date | Before Stage 3.13 planning approval |
 
 ## Purpose
 
@@ -99,5 +99,5 @@ Review must verify:
 
 ## Recommended next step
 
-Finish local verification, stop for user notice, then send the branch to independent code review in
-the separate review chat.
+Stage 3.12 is closed. Do not start Stage 3.13 implementation until a separate Stage 3.13 planning
+scope is documented, reviewed, approved, and merged.

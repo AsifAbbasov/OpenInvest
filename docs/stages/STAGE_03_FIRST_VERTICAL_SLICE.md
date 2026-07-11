@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.17 |
+| Version | 0.1.18 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
 | Last Review Date | 2026-07-11 |
-| Next Review Date | Before Stage 3.12 merge approval |
+| Next Review Date | Before Stage 3.13 planning approval |
 
 ## Purpose
 
@@ -601,7 +601,7 @@ Forbidden:
 
 Status:
 
-- Active / implementation branch `feature/stage-03-12-auth-ui`.
+- Complete / closed; merged into `develop` at `b4840b60346109e3cd54a07d9e1e131fc0cfad23`.
 
 ## Stage 3 domain boundaries
 

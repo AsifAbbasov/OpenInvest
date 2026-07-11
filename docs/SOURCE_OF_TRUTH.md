@@ -3,22 +3,22 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.28 |
+| Version | 1.4.29 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
 | Last Review Date | 2026-07-11 |
-| Next Review Date | Before Stage 3.12 merge approval |
+| Next Review Date | Before Stage 3.13 planning approval |
 
 ## Architecture status
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.11 — Authentication and Privacy-Boundary Slice**
+**Last completed implementation stage: Stage 3.12 — Web Authentication UI Slice**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `25be13ce84844562e0381b79f4b81cbfed7eb44d`**
-**Current active work item: Stage 3.12 Web authentication UI slice on `feature/stage-03-12-auth-ui`**
+**Current canonical implementation baseline: `develop` at `b4840b60346109e3cd54a07d9e1e131fc0cfad23`**
+**Current active work item: Stage 3.13 planning not started; next scope requires approval**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -136,11 +136,9 @@ provider integrations, or portfolio feature expansion. Unsafe local auth flags w
 `DATABASE_URL` require `OPENINVEST_ENV=development` or `local`; production authorization must use
 signed access tokens. Stage 3.11 closure governance is merged into `develop` at
 `2febb6f49224ec6252368d2195a4e3054ea24278`. Stage 3.12 Web authentication UI planning is closed
-and merged into `develop` at `25be13ce84844562e0381b79f4b81cbfed7eb44d`. Stage 3.12 implementation
-is active and may add only the approved Next.js presentation boundary for registration, login,
-refresh-aware session shell behavior, and logout over the existing Go API. It does not authorize
-business logic in Next.js, backend contract changes, SQL migrations, email verification,
-OAuth/passkeys/2FA, provider integrations, workers, tax, mobile, AI, or Stage 3.13 work.
+and merged into `develop` at `25be13ce84844562e0381b79f4b81cbfed7eb44d`. Stage 3.12 Web
+authentication UI implementation is closed and merged into `develop` at
+`b4840b60346109e3cd54a07d9e1e131fc0cfad23`. No Stage 3.13 scope is approved yet.
 
 ## Financial standard
 
@@ -171,7 +169,7 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 
 | Capability | MVP | State |
 | --- | --- | --- |
-| Registration and privacy defaults | Yes | Stage 3.11 closed; Go API/auth persistence only; Stage 3.12 Web auth UI implementation active |
+| Registration and privacy defaults | Yes | Stage 3.12 closed; Go API auth plus presentation-only Web auth UI |
 | Portfolio and transactions | Yes | Stage 3.4 verification closed |
 | MOEX shares and bonds | Yes | Planned |
 | Dashboard and snapshots | Yes | Stage 3.4 verification closed |

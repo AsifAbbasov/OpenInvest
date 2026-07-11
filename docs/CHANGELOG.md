@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.21 |
+| Version | 1.1.22 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-07-11 |
-| Next Review Date | Before Stage 3.12 merge approval |
+| Next Review Date | Before Stage 3.13 planning approval |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -348,3 +348,13 @@
 - Kept the fixes inside the Stage 3.12 presentation/auth boundary; no Route Handlers, Server
   Actions, OpenAPI changes, SQL migrations, providers, workers, tax, mobile, AI, or Stage 3.13
   scope was added.
+
+## 2026-07-11 — Stage 3.12 Web authentication UI slice closed
+
+- Squash-merged PR #32 into `develop` at `b4840b60346109e3cd54a07d9e1e131fc0cfad23`.
+- Closed the Stage 3.12 presentation-only Web authentication UI slice after green CI and strict
+  independent follow-up review approval.
+- Updated governance registries and the Source of Truth to mark Stage 3.12 complete and advance the
+  next review gate to Stage 3.13 planning approval.
+- Kept Route Handlers, Server Actions, OpenAPI changes, SQL migrations, provider integrations,
+  workers, tax, mobile, AI, and Stage 3.13 implementation out of scope.
