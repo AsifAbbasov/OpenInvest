@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.25 |
+| Version | 1.4.26 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -17,8 +17,8 @@
 **Documentation Freeze: ACTIVE**
 **Last completed implementation stage: Stage 3.11 — Authentication and Privacy-Boundary Slice**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `5c49173ac858995929f266c2de991282dd194dec`**
-**Current active work item: Stage 3.12 planning not yet started**
+**Current canonical implementation baseline: `develop` at `2febb6f49224ec6252368d2195a4e3054ea24278`**
+**Current active work item: Stage 3.12 Web authentication UI planning on `feature/stage-03-12-auth-ui-planning`**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -134,7 +134,12 @@ the approved Go API auth, privacy-default, session, CSRF, audit, and persistence
 not authorize frontend auth UI, email verification, OAuth/passkeys/2FA, tax, mobile, AI, workers,
 provider integrations, or portfolio feature expansion. Unsafe local auth flags with a configured
 `DATABASE_URL` require `OPENINVEST_ENV=development` or `local`; production authorization must use
-signed access tokens.
+signed access tokens. Stage 3.11 closure governance is merged into `develop` at
+`2febb6f49224ec6252368d2195a4e3054ea24278`. Stage 3.12 Web authentication UI planning is active
+and may define only the future Next.js presentation boundary for registration, login, refresh-aware
+session shell behavior, and logout over the existing Go API. It does not authorize implementation,
+backend contract changes, SQL migrations, email verification, OAuth/passkeys/2FA, provider
+integrations, workers, tax, mobile, AI, or Stage 3.13 work.
 
 ## Financial standard
 
@@ -165,7 +170,7 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 
 | Capability | MVP | State |
 | --- | --- | --- |
-| Registration and privacy defaults | Yes | Stage 3.11 closed; Go API/auth persistence only |
+| Registration and privacy defaults | Yes | Stage 3.11 closed; Go API/auth persistence only; Stage 3.12 Web auth UI planning active |
 | Portfolio and transactions | Yes | Stage 3.4 verification closed |
 | MOEX shares and bonds | Yes | Planned |
 | Dashboard and snapshots | Yes | Stage 3.4 verification closed |

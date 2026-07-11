@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.17 |
+| Version | 1.1.18 |
 | Status | Active |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
@@ -37,6 +37,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.10 — Import Upload/Review UI Slice | Expose CSV import review/append through the Next.js presentation layer only | Complete / closed; merged into `develop` at `e19a1a0ea4b0b183687bd89daabdfbc973daea71` | [Stage 3.10 implementation report](stages/STAGE_03_10_IMPORT_UPLOAD_REVIEW_UI_SLICE.md) |
 | 3.11 — Authentication and Privacy-Boundary Planning | Define the future auth/session/privacy-default implementation boundary before replacing the local development subject | Complete / closed; merged into `develop` at `34a31b7bb379db8a59ecc52f2cd32697be3fe125` | [Stage 3.11 plan](stages/STAGE_03_11_AUTH_PRIVACY_PLANNING.md) |
 | 3.11 — Authentication and Privacy-Boundary Slice | Implement the approved Go API auth/session/privacy-default boundary without frontend auth UI | Complete / closed; merged into `develop` at `5c49173ac858995929f266c2de991282dd194dec` | [Stage 3.11 implementation report](stages/STAGE_03_11_AUTH_PRIVACY_SLICE.md) |
+| 3.12 — Web Authentication UI Planning | Define the future Next.js presentation-only auth/session UI boundary before implementation | Draft / planning active | [Stage 3.12 plan](stages/STAGE_03_12_AUTH_UI_PLANNING.md) |
 
 ## Stage completion protocol
 
@@ -207,3 +208,13 @@ This log is the index of implementation stages. Every stage must document its pu
   additive identity schema migration; and non-secret auth/session audit evidence.
 - Kept frontend auth UI, email verification, OAuth/passkeys/2FA, workers, provider integrations,
   tax, mobile, AI, and Stage 3.12 out of scope.
+
+## 2026-07-09 — Stage 3.12 Web authentication UI planning started
+
+- Squash-merged Stage 3.11 closure governance into `develop` at
+  `2febb6f49224ec6252368d2195a4e3054ea24278`.
+- Started documentation-only planning for a future Next.js presentation-only registration/login,
+  session-shell, refresh, and logout UI over the existing Stage 3.11 Go API auth boundary.
+- Kept Next.js implementation, Go handler changes, OpenAPI changes, SQL migrations, token-storage
+  changes, business logic, provider integrations, workers, tax, mobile, AI, and Stage 3.13 out of
+  scope.
