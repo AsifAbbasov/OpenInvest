@@ -16,8 +16,10 @@ deterministic snapshot rebuilds. Stage 3.8 is closed and added the internal impo
 flow integration. Stage 3.9 is closed and added the public Go API boundary for transient CSV import
 review and explicit append. Stage 3.10 is closed and added a presentation-only Web import
 upload/review panel over the Go API. Stage 3.11 planning is closed and Stage 3.11 implementation is
-active for the approved Go API authentication, privacy-default, CSRF, and rotating-session boundary
-that replaces the local development subject without adding frontend auth UI.
+closed for the approved Go API authentication, privacy-default, CSRF, and rotating-session boundary
+that replaces the local development subject without adding frontend auth UI. Stage 3.12 Web
+authentication UI planning is active for the future presentation-only registration, login, session
+shell, refresh, and logout UI over the existing Go API.
 Product-risk refinement is closed and remains part of the MVP governance baseline.
 
 ## Components
