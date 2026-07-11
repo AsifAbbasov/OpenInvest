@@ -5,10 +5,11 @@ import { useState } from "react";
 import { createPortfolio } from "@/common/api/openinvest";
 
 type CreatePortfolioFormProps = {
+  accessToken: string;
   onCreated: () => void;
 };
 
-export function CreatePortfolioForm({ onCreated }: CreatePortfolioFormProps) {
+export function CreatePortfolioForm({ accessToken, onCreated }: CreatePortfolioFormProps) {
   const [name, setName] = useState("Long-term RUB portfolio");
   const [status, setStatus] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -17,7 +18,7 @@ export function CreatePortfolioForm({ onCreated }: CreatePortfolioFormProps) {
     event.preventDefault();
     setIsSubmitting(true);
     setStatus(null);
-    const result = await createPortfolio({ name: name.trim(), baseCurrency: "RUB" });
+    const result = await createPortfolio({ name: name.trim(), baseCurrency: "RUB" }, { accessToken });
     setIsSubmitting(false);
     if (!result.ok) {
       setStatus(result.message);

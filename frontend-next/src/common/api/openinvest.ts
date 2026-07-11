@@ -12,6 +12,44 @@ export type Portfolio = {
   updatedAt: string;
 };
 
+export type AuthUser = {
+  id: string;
+  email: string;
+  language: string;
+  theme: string;
+  timezone: string;
+  privacyMode: boolean;
+  createdAt: string;
+};
+
+export type AuthSession = {
+  accessToken: string;
+  accessTokenExpiresAt: string;
+  csrfToken: string;
+};
+
+export type AuthData = {
+  user: AuthUser;
+  session: AuthSession;
+};
+
+export type RegisterPayload = {
+  email: string;
+  password: string;
+  language: "en";
+  theme: "system";
+  timezone: string;
+};
+
+export type LoginPayload = {
+  email: string;
+  password: string;
+};
+
+export type LogoutPayload = {
+  allSessions: boolean;
+};
+
 export type PortfolioSummary = {
   portfolioId: string;
   asOfDate: string;
@@ -199,39 +237,96 @@ export type ApiResult<T> =
   | { ok: true; data: T; requestId: string }
   | { ok: false; message: string; status?: number };
 
+export type AuthenticatedRequest = {
+  accessToken: string;
+};
+
+export type CSRFAuthenticatedRequest = AuthenticatedRequest & {
+  csrfToken: string;
+};
+
 const DEFAULT_API_BASE_URL = "http://localhost:8080";
 
 export function openInvestApiBaseUrl() {
   return (process.env.NEXT_PUBLIC_OPENINVEST_API_BASE_URL ?? DEFAULT_API_BASE_URL).replace(/\/$/, "");
 }
 
-export async function listPortfolios(): Promise<ApiResult<Portfolio[]>> {
-  const response = await request<ListData<Portfolio>>("/api/v1/portfolios");
+export async function register(payload: RegisterPayload): Promise<ApiResult<AuthData>> {
+  return request<AuthData>("/api/v1/auth/register", {
+    method: "POST",
+    body: JSON.stringify(payload),
+    credentials: "include",
+  });
+}
+
+export async function login(payload: LoginPayload): Promise<ApiResult<AuthData>> {
+  return request<AuthData>("/api/v1/auth/login", {
+    method: "POST",
+    body: JSON.stringify(payload),
+    credentials: "include",
+  });
+}
+
+export async function refreshSession(csrfToken: string): Promise<ApiResult<AuthSession>> {
+  return request<AuthSession>("/api/v1/auth/refresh", {
+    method: "POST",
+    headers: csrfHeaders(csrfToken),
+    credentials: "include",
+  });
+}
+
+export async function logout(payload: LogoutPayload, csrfToken: string): Promise<ApiResult<{ revoked: boolean }>> {
+  return request<{ revoked: boolean }>("/api/v1/auth/logout", {
+    method: "POST",
+    headers: csrfHeaders(csrfToken),
+    body: JSON.stringify(payload),
+    credentials: "include",
+  });
+}
+
+export async function listPortfolios(auth: AuthenticatedRequest): Promise<ApiResult<Portfolio[]>> {
+  const response = await request<ListData<Portfolio>>("/api/v1/portfolios", {
+    headers: bearerHeaders(auth.accessToken),
+  });
   if (!response.ok) {
     return response;
   }
   return { ok: true, data: response.data.items, requestId: response.requestId };
 }
 
-export async function createPortfolio(payload: CreatePortfolioPayload): Promise<ApiResult<Portfolio>> {
+export async function createPortfolio(
+  payload: CreatePortfolioPayload,
+  auth: AuthenticatedRequest,
+): Promise<ApiResult<Portfolio>> {
   return request<Portfolio>("/api/v1/portfolios", {
     method: "POST",
-    headers: idempotentHeaders(),
+    headers: { ...idempotentHeaders(), ...bearerHeaders(auth.accessToken) },
     body: JSON.stringify(payload),
   });
 }
 
-export async function getPortfolio(portfolioId: string): Promise<ApiResult<Portfolio>> {
-  return request<Portfolio>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}`);
+export async function getPortfolio(portfolioId: string, auth: AuthenticatedRequest): Promise<ApiResult<Portfolio>> {
+  return request<Portfolio>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}`, {
+    headers: bearerHeaders(auth.accessToken),
+  });
 }
 
-export async function getPortfolioSummary(portfolioId: string): Promise<ApiResult<PortfolioSummary>> {
-  return request<PortfolioSummary>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/summary`);
+export async function getPortfolioSummary(
+  portfolioId: string,
+  auth: AuthenticatedRequest,
+): Promise<ApiResult<PortfolioSummary>> {
+  return request<PortfolioSummary>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/summary`, {
+    headers: bearerHeaders(auth.accessToken),
+  });
 }
 
-export async function listTransactions(portfolioId: string): Promise<ApiResult<Transaction[]>> {
+export async function listTransactions(
+  portfolioId: string,
+  auth: AuthenticatedRequest,
+): Promise<ApiResult<Transaction[]>> {
   const response = await request<ListData<Transaction>>(
     `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/transactions`,
+    { headers: bearerHeaders(auth.accessToken) },
   );
   if (!response.ok) {
     return response;
@@ -242,10 +337,11 @@ export async function listTransactions(portfolioId: string): Promise<ApiResult<T
 export async function appendTransaction(
   portfolioId: string,
   payload: CreateTransactionPayload,
+  auth: AuthenticatedRequest,
 ): Promise<ApiResult<Transaction>> {
   return request<Transaction>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/transactions`, {
     method: "POST",
-    headers: idempotentHeaders(),
+    headers: { ...idempotentHeaders(), ...bearerHeaders(auth.accessToken) },
     body: JSON.stringify(payload),
   });
 }
@@ -253,9 +349,11 @@ export async function appendTransaction(
 export async function reviewPortfolioImport(
   portfolioId: string,
   payload: ImportReviewPayload,
+  auth: AuthenticatedRequest,
 ): Promise<ApiResult<ImportReviewResult>> {
   return request<ImportReviewResult>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/imports/review`, {
     method: "POST",
+    headers: bearerHeaders(auth.accessToken),
     body: JSON.stringify(payload),
   });
 }
@@ -263,10 +361,11 @@ export async function reviewPortfolioImport(
 export async function appendReviewedPortfolioImport(
   portfolioId: string,
   payload: ImportAppendPayload,
+  auth: AuthenticatedRequest,
 ): Promise<ApiResult<ImportAppendResult>> {
   return request<ImportAppendResult>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/imports/append`, {
     method: "POST",
-    headers: idempotentHeaders(),
+    headers: { ...idempotentHeaders(), ...bearerHeaders(auth.accessToken) },
     body: JSON.stringify(payload),
   });
 }
@@ -306,5 +405,17 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<ApiResu
 function idempotentHeaders() {
   return {
     "Idempotency-Key": crypto.randomUUID(),
+  };
+}
+
+function bearerHeaders(accessToken: string) {
+  return {
+    Authorization: `Bearer ${accessToken}`,
+  };
+}
+
+function csrfHeaders(csrfToken: string) {
+  return {
+    "X-CSRF-Token": csrfToken,
   };
 }

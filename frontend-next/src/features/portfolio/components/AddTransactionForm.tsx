@@ -5,13 +5,14 @@ import { useState } from "react";
 import { appendTransaction, type CreateTransactionPayload, type TransactionType } from "@/common/api/openinvest";
 
 type AddTransactionFormProps = {
+  accessToken: string;
   portfolioId: string;
   onSaved: () => void;
 };
 
 const transactionTypes: TransactionType[] = ["BUY", "DEPOSIT", "WITHDRAWAL"];
 
-export function AddTransactionForm({ portfolioId, onSaved }: AddTransactionFormProps) {
+export function AddTransactionForm({ accessToken, portfolioId, onSaved }: AddTransactionFormProps) {
   const [transactionType, setTransactionType] = useState<TransactionType>("BUY");
   const [ticker, setTicker] = useState("SBER");
   const [quantity, setQuantity] = useState("10.00000000");
@@ -34,7 +35,7 @@ export function AddTransactionForm({ portfolioId, onSaved }: AddTransactionFormP
     setIsSubmitting(true);
     setStatus(null);
     const payload = buildPayload();
-    const result = await appendTransaction(portfolioId, payload);
+    const result = await appendTransaction(portfolioId, payload, { accessToken });
     setIsSubmitting(false);
     if (!result.ok) {
       setStatus(result.message);

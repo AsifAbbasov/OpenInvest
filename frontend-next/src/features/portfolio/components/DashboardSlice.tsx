@@ -1,22 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { listPortfolios, type ApiResult, type Portfolio } from "@/common/api/openinvest";
+import { useAuth } from "@/features/auth/components/AuthShell";
 import { CreatePortfolioForm } from "@/features/portfolio/components/CreatePortfolioForm";
+import { shouldCommitPortfolioLoad, startPortfolioLoad, type PortfolioLoadGuardState } from "@/features/portfolio/loadGuard";
 
 export function DashboardSlice() {
+  const { accessToken } = useAuth();
   const [result, setResult] = useState<ApiResult<Portfolio[]> | null>(null);
+  const loadGuard = useRef<PortfolioLoadGuardState>({ generation: 0, accessToken });
+  loadGuard.current.accessToken = accessToken;
 
   async function load() {
+    const { state: nextGuard, attempt } = startPortfolioLoad(loadGuard.current, loadGuard.current.accessToken);
+    loadGuard.current = nextGuard;
     setResult(null);
-    setResult(await listPortfolios());
+    const nextResult = await listPortfolios({ accessToken: attempt.accessToken });
+    if (shouldCommitPortfolioLoad(loadGuard.current, attempt)) {
+      setResult(nextResult);
+    }
   }
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [accessToken]);
 
   return (
     <main className="page-shell">
@@ -39,7 +49,9 @@ export function DashboardSlice() {
         </section>
       ) : null}
 
-      {result?.ok === true && result.data.length === 0 ? <CreatePortfolioForm onCreated={load} /> : null}
+      {result?.ok === true && result.data.length === 0 ? (
+        <CreatePortfolioForm accessToken={accessToken} onCreated={load} />
+      ) : null}
 
       {result?.ok === true && result.data.length > 0 ? (
         <section className="panel">
