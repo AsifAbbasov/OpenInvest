@@ -76,6 +76,7 @@ func localDevelopmentCORS(c fiber.Ctx) error {
 	origin := strings.TrimSpace(c.Get("Origin"))
 	if origin != "" && allowedWebOrigin(origin) {
 		c.Set("Access-Control-Allow-Origin", origin)
+		c.Set("Access-Control-Allow-Credentials", "true")
 		c.Set("Vary", "Origin")
 		c.Set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
 		c.Set("Access-Control-Allow-Headers", "Accept, Authorization, Content-Type, Idempotency-Key, X-CSRF-Token, X-Request-ID, traceparent")

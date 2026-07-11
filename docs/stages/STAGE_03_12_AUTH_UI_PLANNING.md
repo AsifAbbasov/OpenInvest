@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-12-AUTH-UI-PLAN |
-| Version | 0.1.0 |
-| Status | Draft / planning active |
+| Version | 0.1.2 |
+| Status | Complete / merged into `develop` |
 | Owner | Builder Engineer |
 | Supersedes | Informal next-step discussion after Stage 3.11 |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-007; Stage 2 contract baseline; Stage 3.11 auth/privacy slice |
-| Last Review Date | 2026-07-09 |
-| Next Review Date | Before Stage 3.12 implementation approval |
+| Last Review Date | 2026-07-11 |
+| Next Review Date | Before Stage 3.12 merge approval |
 
 ## Purpose
 
@@ -59,11 +59,13 @@ Stage 3.12 must not add:
 - tax logic;
 - direct database access;
 - SQL migrations;
-- Go auth handler changes unless a separate backend review approves them first;
-- OpenAPI contract changes unless a separate contract-change review approves them first;
+- Go auth handler changes;
+- OpenAPI contract changes;
 - Route Handlers or Server Actions for business/auth domains, including proxy or wrapper calls to
   the Go API;
-- LocalStorage, SessionStorage, or IndexedDB persistence for business data or refresh tokens;
+- LocalStorage, SessionStorage, or IndexedDB persistence for business data, access tokens, or
+  refresh tokens;
+- cookie or other JavaScript-readable durable access-token storage;
 - storing refresh tokens in JavaScript-readable storage;
 - email verification, SMTP, OAuth, passkeys, or 2FA;
 - provider integrations;
@@ -77,6 +79,8 @@ Stage 3.12 must not add:
 - Refresh tokens remain HttpOnly-cookie only.
 - The browser must never receive a refresh token in JSON.
 - Access-token storage must be minimal and bounded to the active browser session.
+- Access tokens must remain in memory only and must not be persisted to LocalStorage,
+  SessionStorage, IndexedDB, cookies, logs, or durable frontend state.
 - No password, access token, CSRF token, cookie, or auth response payload may be logged.
 - UI copy must preserve Privacy First defaults:
   - Privacy Mode ON;
@@ -100,11 +104,16 @@ Stage 3.12 must not add:
 
 - Registration and login screens call only `/api/v1/auth/register` and `/api/v1/auth/login`.
 - Refresh/logout calls preserve the Stage 3.11 CSRF and cookie boundary.
+- Credentialed refresh/logout calls remain limited to the approved local Web origins.
 - No refresh token is JavaScript-readable.
-- No business data is stored in LocalStorage, SessionStorage, or IndexedDB.
+- No business data, access token, or refresh token is stored in LocalStorage, SessionStorage, or
+  IndexedDB.
 - Unauthenticated users cannot use authenticated Web routes without an access token.
+- Existing portfolio/import calls use bearer authorization directly against the Go API.
 - Authenticated users can logout and return to an unauthenticated state.
 - Tests cover success, invalid credentials, missing CSRF, logout, and basic route protection.
+- Tests cover in-memory-only access-token handling, credentialed refresh/logout behavior, approved
+  local CORS credentials, and bearer authorization for existing portfolio/import calls.
 - CI is green.
 - Independent review confirms no Next.js business authority was introduced.
 

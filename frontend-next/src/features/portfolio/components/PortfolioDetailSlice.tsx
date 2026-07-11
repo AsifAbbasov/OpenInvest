@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   getPortfolio,
@@ -13,8 +13,10 @@ import {
   type Transaction,
 } from "@/common/api/openinvest";
 import { formatMoney, formatNullableDecimal } from "@/common/presentation/format";
+import { useAuth } from "@/features/auth/components/AuthShell";
 import { AddTransactionForm } from "@/features/portfolio/components/AddTransactionForm";
 import { ImportUploadReviewPanel } from "@/features/portfolio/components/ImportUploadReviewPanel";
+import { shouldCommitPortfolioLoad, startPortfolioLoad, type PortfolioLoadGuardState } from "@/features/portfolio/loadGuard";
 
 type PortfolioDetailSliceProps = {
   portfolioId: string;
@@ -27,17 +29,24 @@ type PortfolioDetailState = {
 };
 
 export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps) {
+  const { accessToken } = useAuth();
   const [state, setState] = useState<PortfolioDetailState | null>(null);
+  const loadGuard = useRef<PortfolioLoadGuardState>({ generation: 0, accessToken });
+  loadGuard.current.accessToken = accessToken;
 
   const load = useCallback(async () => {
+    const { state: nextGuard, attempt } = startPortfolioLoad(loadGuard.current, loadGuard.current.accessToken);
+    loadGuard.current = nextGuard;
     setState(null);
     const [portfolio, summary, transactions] = await Promise.all([
-      getPortfolio(portfolioId),
-      getPortfolioSummary(portfolioId),
-      listTransactions(portfolioId),
+      getPortfolio(portfolioId, { accessToken: attempt.accessToken }),
+      getPortfolioSummary(portfolioId, { accessToken: attempt.accessToken }),
+      listTransactions(portfolioId, { accessToken: attempt.accessToken }),
     ]);
-    setState({ portfolio, summary, transactions });
-  }, [portfolioId]);
+    if (shouldCommitPortfolioLoad(loadGuard.current, attempt)) {
+      setState({ portfolio, summary, transactions });
+    }
+  }, [accessToken, portfolioId]);
 
   useEffect(() => {
     void load();
@@ -93,9 +102,9 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
         </section>
       ) : null}
 
-      <AddTransactionForm portfolioId={portfolioId} onSaved={load} />
+      <AddTransactionForm accessToken={accessToken} portfolioId={portfolioId} onSaved={load} />
 
-      <ImportUploadReviewPanel portfolioId={portfolioId} onImported={load} />
+      <ImportUploadReviewPanel accessToken={accessToken} portfolioId={portfolioId} onImported={load} />
 
       <section className="panel">
         <div className="section-heading">

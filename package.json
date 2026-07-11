@@ -12,7 +12,7 @@
     "verify": "pnpm run verify:go && pnpm run verify:python && pnpm run verify:web && pnpm run verify:openapi && pnpm run verify:migrations && pnpm run infra:config",
     "verify:go": "cd backend-go && go test ./...",
     "verify:python": "cd microservice-python && uv sync --extra dev --locked && uv run pytest",
-    "verify:web": "cd frontend-next && corepack pnpm install --frozen-lockfile && corepack pnpm run typecheck && corepack pnpm run build",
+    "verify:web": "cd frontend-next && corepack pnpm install --frozen-lockfile && corepack pnpm run typecheck && corepack pnpm run test && corepack pnpm run build",
     "verify:openapi": "cd backend-go && go run ./cmd/validate-openapi",
     "verify:migrations": "cd backend-go && go run ./cmd/validate-migrations",
     "verify:e2e": "bash scripts/stage-03-04-smoke.sh"

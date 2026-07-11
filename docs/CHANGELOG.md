@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.19 |
+| Version | 1.1.21 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-07-01 |
-| Next Review Date | 2027-01-01 |
+| Last Review Date | 2026-07-11 |
+| Next Review Date | Before Stage 3.12 merge approval |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -321,3 +321,30 @@
   implementation log, and Stage 3 plan.
 - Kept implementation, backend changes, OpenAPI changes, SQL migrations, token-storage changes,
   provider integrations, workers, tax, mobile, AI, and Stage 3.13 out of scope.
+
+## 2026-07-11 — Stage 3.12 Web authentication UI slice started
+
+- Squash-merged PR #31 into `develop` at `25be13ce84844562e0381b79f4b81cbfed7eb44d`.
+- Started the implementation slice for a Next.js presentation-only registration, login,
+  authenticated shell, refresh, and logout UI over the existing Stage 3.11 Go API auth boundary.
+- Scoped implementation to typed frontend auth API calls, in-memory access-token handling, CSRF
+  wiring for refresh/logout, route gating, presentation states, tests, and local CORS credentials
+  support for the HttpOnly refresh cookie.
+- Kept business logic in Next.js, Route Handlers, Server Actions, OpenAPI contract changes, SQL
+  migrations, refresh-token JavaScript storage, email verification, OAuth/passkeys/2FA, provider
+  integrations, workers, tax, mobile, AI, and Stage 3.13 out of scope.
+
+## 2026-07-11 — Stage 3.12 independent review findings fixed
+
+- Resolved strict independent review findings for refresh/logout operation races, live default
+  registration credentials, stale bearer-request overwrites after refresh, weak auth/session test
+  coverage, local CORS credentials negative coverage, and stale governance metadata.
+- Added session-operation generation guards, empty live credential fields, obsolete-load guards,
+  expanded frontend API/session tests, stronger CORS tests, and synchronized document versions and
+  review gates.
+- Added follow-up fixes for exact auth request body assertions, complete bearer coverage across
+  portfolio/detail/summary/transaction/import frontend API methods, shell-controller race coverage,
+  stale-token portfolio load guards, and consistent Stage 3.12 next-review gates.
+- Kept the fixes inside the Stage 3.12 presentation/auth boundary; no Route Handlers, Server
+  Actions, OpenAPI changes, SQL migrations, providers, workers, tax, mobile, AI, or Stage 3.13
+  scope was added.

@@ -13,13 +13,14 @@ import {
 import { formatMoney } from "@/common/presentation/format";
 
 type ImportUploadReviewPanelProps = {
+  accessToken: string;
   portfolioId: string;
   onImported: () => void;
 };
 
 const maxCsvPayloadBytes = 2 * 1024 * 1024;
 
-export function ImportUploadReviewPanel({ portfolioId, onImported }: ImportUploadReviewPanelProps) {
+export function ImportUploadReviewPanel({ accessToken, portfolioId, onImported }: ImportUploadReviewPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [sourceAccountLabel, setSourceAccountLabel] = useState("Manual CSV import");
   const [csvPayload, setCsvPayload] = useState("");
@@ -71,7 +72,7 @@ export function ImportUploadReviewPanel({ portfolioId, onImported }: ImportUploa
     const result = await reviewPortfolioImport(portfolioId, {
       sourceAccountLabel: sourceAccountLabel.trim() || undefined,
       csvPayload,
-    });
+    }, { accessToken });
 
     setReviewResult(result);
     setIsReviewing(false);
@@ -96,7 +97,7 @@ export function ImportUploadReviewPanel({ portfolioId, onImported }: ImportUploa
         rowNumber: row.rowNumber,
         action: "APPROVE",
       })),
-    });
+    }, { accessToken });
 
     setAppendResult(result);
     setIsAppending(false);

@@ -53,25 +53,32 @@ func TestHealthPropagatesRequestAndTraceHeaders(t *testing.T) {
 }
 
 func TestLocalDevelopmentCORSPreflight(t *testing.T) {
-	request := httptest.NewRequest(http.MethodOptions, "/api/v1/portfolios", nil)
-	request.Header.Set("Origin", "http://localhost:3000")
-	request.Header.Set("Access-Control-Request-Method", "POST")
-	request.Header.Set("Access-Control-Request-Headers", "Content-Type, Idempotency-Key")
+	for _, origin := range []string{"http://localhost:3000", "http://127.0.0.1:3000"} {
+		t.Run(origin, func(t *testing.T) {
+			request := httptest.NewRequest(http.MethodOptions, "/api/v1/portfolios", nil)
+			request.Header.Set("Origin", origin)
+			request.Header.Set("Access-Control-Request-Method", "POST")
+			request.Header.Set("Access-Control-Request-Headers", "Content-Type, Idempotency-Key")
 
-	response, err := newApp().Test(request)
-	if err != nil {
-		t.Fatalf("request preflight: %v", err)
-	}
-	defer response.Body.Close()
+			response, err := newApp().Test(request)
+			if err != nil {
+				t.Fatalf("request preflight: %v", err)
+			}
+			defer response.Body.Close()
 
-	if response.StatusCode != http.StatusNoContent {
-		t.Fatalf("expected status %d, got %d", http.StatusNoContent, response.StatusCode)
-	}
-	if got := response.Header.Get("Access-Control-Allow-Origin"); got != "http://localhost:3000" {
-		t.Fatalf("expected allowed local origin, got %q", got)
-	}
-	if got := response.Header.Get("Access-Control-Allow-Headers"); got != "Accept, Authorization, Content-Type, Idempotency-Key, X-CSRF-Token, X-Request-ID, traceparent" {
-		t.Fatalf("expected OpenAPI headers, got %q", got)
+			if response.StatusCode != http.StatusNoContent {
+				t.Fatalf("expected status %d, got %d", http.StatusNoContent, response.StatusCode)
+			}
+			if got := response.Header.Get("Access-Control-Allow-Origin"); got != origin {
+				t.Fatalf("expected allowed local origin, got %q", got)
+			}
+			if got := response.Header.Get("Access-Control-Allow-Credentials"); got != "true" {
+				t.Fatalf("expected credentialed local auth CORS, got %q", got)
+			}
+			if got := response.Header.Get("Access-Control-Allow-Headers"); got != "Accept, Authorization, Content-Type, Idempotency-Key, X-CSRF-Token, X-Request-ID, traceparent" {
+				t.Fatalf("expected OpenAPI headers, got %q", got)
+			}
+		})
 	}
 }
 
@@ -87,6 +94,9 @@ func TestLocalDevelopmentCORSRejectsUnknownOrigin(t *testing.T) {
 
 	if got := response.Header.Get("Access-Control-Allow-Origin"); got != "" {
 		t.Fatalf("expected unknown origin to be rejected, got %q", got)
+	}
+	if got := response.Header.Get("Access-Control-Allow-Credentials"); got != "" {
+		t.Fatalf("expected unknown origin credentials to be rejected, got %q", got)
 	}
 }
 

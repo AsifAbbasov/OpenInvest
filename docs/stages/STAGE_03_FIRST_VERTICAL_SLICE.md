@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.16 |
+| Version | 0.1.17 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
-| Last Review Date | 2026-07-02 |
-| Next Review Date | Before Stage 3.12 planning approval |
+| Last Review Date | 2026-07-11 |
+| Next Review Date | Before Stage 3.12 merge approval |
 
 ## Purpose
 
@@ -569,7 +569,39 @@ Forbidden:
 
 Status:
 
-- Active / planning branch `feature/stage-03-12-auth-ui-planning`.
+- Complete / merged into `develop` at `25be13ce84844562e0381b79f4b81cbfed7eb44d`.
+
+### PR 3.12 — Web authentication UI slice
+
+Purpose:
+
+- implement the approved Next.js presentation-only registration, login, authenticated shell,
+  refresh, and logout UI boundary over the existing Stage 3.11 Go API auth implementation.
+
+Allowed:
+
+- presentation screens for registration and login;
+- in-memory access-token handling for the active browser session;
+- CSRF token handling for refresh/logout calls;
+- authenticated shell state and route gating;
+- typed frontend auth API calls to the Go API;
+- loading, error, success, accessibility, responsive, and test coverage states;
+- minimal local CORS credentials support required for the existing HttpOnly refresh cookie.
+
+Forbidden:
+
+- business logic in Next.js;
+- Route Handlers or Server Actions for auth/business domains;
+- OpenAPI contract changes;
+- SQL migrations;
+- access-token or refresh-token storage in JavaScript-readable durable browser storage;
+- email verification, OAuth/passkeys/2FA;
+- provider integrations;
+- workers, tax, mobile, AI, or Stage 3.13 work.
+
+Status:
+
+- Active / implementation branch `feature/stage-03-12-auth-ui`.
 
 ## Stage 3 domain boundaries
 
