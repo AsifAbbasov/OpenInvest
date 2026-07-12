@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.22 |
+| Version | 1.1.23 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -358,3 +358,14 @@
   next review gate to Stage 3.13 planning approval.
 - Kept Route Handlers, Server Actions, OpenAPI changes, SQL migrations, provider integrations,
   workers, tax, mobile, AI, and Stage 3.13 implementation out of scope.
+
+## 2026-07-11 — Stage 3.13 instrument catalog planning started
+
+- Squash-merged Stage 3.12 closure governance into `develop` at
+  `321eaf4f75df83d85fd356a8d6a454e49bbc4db4`.
+- Added the planning-only Stage 3.13 document for a future backend-owned MVP instrument catalog
+  boundary for MOEX shares and bonds.
+- Registered Stage 3.13 planning in the roadmap, Source of Truth, document index, version matrix,
+  implementation log, and Stage 3 plan.
+- Kept implementation, provider integrations, workers, market-data ingestion, financial
+  calculations, tax, mobile, AI, and frontend business authority out of scope.

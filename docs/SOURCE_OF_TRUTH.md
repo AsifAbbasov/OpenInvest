@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.29 |
+| Version | 1.4.30 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -17,8 +17,8 @@
 **Documentation Freeze: ACTIVE**
 **Last completed implementation stage: Stage 3.12 — Web Authentication UI Slice**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `b4840b60346109e3cd54a07d9e1e131fc0cfad23`**
-**Current active work item: Stage 3.13 planning not started; next scope requires approval**
+**Current canonical implementation baseline: `develop` at `321eaf4f75df83d85fd356a8d6a454e49bbc4db4`**
+**Current active work item: Stage 3.13 instrument catalog planning on `stage-03-13-instrument-planning`**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -138,7 +138,11 @@ signed access tokens. Stage 3.11 closure governance is merged into `develop` at
 `2febb6f49224ec6252368d2195a4e3054ea24278`. Stage 3.12 Web authentication UI planning is closed
 and merged into `develop` at `25be13ce84844562e0381b79f4b81cbfed7eb44d`. Stage 3.12 Web
 authentication UI implementation is closed and merged into `develop` at
-`b4840b60346109e3cd54a07d9e1e131fc0cfad23`. No Stage 3.13 scope is approved yet.
+`b4840b60346109e3cd54a07d9e1e131fc0cfad23`. Stage 3.12 closure governance is merged into
+`develop` at `321eaf4f75df83d85fd356a8d6a454e49bbc4db4`. Stage 3.13 instrument catalog planning is
+active on `stage-03-13-instrument-planning`; it is documentation-only and does not authorize
+implementation, provider integrations, workers, market-data ingestion, financial calculations, tax,
+mobile, AI, or Stage 3.13 implementation work.
 
 ## Financial standard
 
@@ -171,7 +175,7 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 | --- | --- | --- |
 | Registration and privacy defaults | Yes | Stage 3.12 closed; Go API auth plus presentation-only Web auth UI |
 | Portfolio and transactions | Yes | Stage 3.4 verification closed |
-| MOEX shares and bonds | Yes | Planned |
+| MOEX shares and bonds | Yes | Stage 3.13 instrument catalog planning active |
 | Dashboard and snapshots | Yes | Stage 3.4 verification closed |
 | WAC, XIRR, real/inflation returns | Yes | Planned |
 | Dividend calculator/calendar | Yes | Planned |
