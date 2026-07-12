@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.21 |
+| Version | 1.1.22 |
 | Status | Active |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
@@ -39,6 +39,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.11 — Authentication and Privacy-Boundary Slice | Implement the approved Go API auth/session/privacy-default boundary without frontend auth UI | Complete / closed; merged into `develop` at `5c49173ac858995929f266c2de991282dd194dec` | [Stage 3.11 implementation report](stages/STAGE_03_11_AUTH_PRIVACY_SLICE.md) |
 | 3.12 — Web Authentication UI Planning | Define the future Next.js presentation-only auth/session UI boundary before implementation | Complete / closed; merged into `develop` at `25be13ce84844562e0381b79f4b81cbfed7eb44d` | [Stage 3.12 plan](stages/STAGE_03_12_AUTH_UI_PLANNING.md) |
 | 3.12 — Web Authentication UI Slice | Implement the approved Next.js presentation-only auth/session UI boundary | Complete / closed; merged into `develop` at `b4840b60346109e3cd54a07d9e1e131fc0cfad23` | [Stage 3.12 implementation report](stages/STAGE_03_12_AUTH_UI_SLICE.md) |
+| 3.13 — Instrument Catalog Planning | Define the canonical MVP MOEX share/bond identity boundary before implementation | Active / planning | [Stage 3.13 plan](stages/STAGE_03_13_INSTRUMENT_CATALOG_PLANNING.md) |
 
 ## Stage completion protocol
 
@@ -231,3 +232,12 @@ This log is the index of implementation stages. Every stage must document its pu
 - Kept Route Handlers, Server Actions, OpenAPI changes, SQL migrations, direct datastore access,
   refresh-token JavaScript storage, durable browser token storage, provider integrations, workers,
   tax, mobile, AI, and Stage 3.13 work out of scope.
+
+## 2026-07-11 — Stage 3.13 instrument catalog planning started
+
+- Squash-merged Stage 3.12 closure governance into `develop` at
+  `321eaf4f75df83d85fd356a8d6a454e49bbc4db4`.
+- Started documentation-only planning for a future backend-owned MVP instrument catalog boundary for
+  MOEX shares and bonds.
+- Kept implementation, provider integrations, workers, market-data ingestion, financial
+  calculations, tax, mobile, AI, and frontend business authority out of scope.

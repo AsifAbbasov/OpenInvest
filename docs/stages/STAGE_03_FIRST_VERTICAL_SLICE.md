@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.18 |
+| Version | 0.1.19 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
@@ -602,6 +602,38 @@ Forbidden:
 Status:
 
 - Complete / closed; merged into `develop` at `b4840b60346109e3cd54a07d9e1e131fc0cfad23`.
+
+### PR 3.13 — Instrument catalog planning
+
+Purpose:
+
+- define the future backend-owned MVP instrument catalog boundary for MOEX shares and bonds before
+  any implementation.
+
+Allowed:
+
+- planning document only;
+- alignment with the frozen Stage 2 asset identity model;
+- candidate future implementation surfaces that remain unauthorized until a separate implementation
+  PR passes its normal gates;
+- review criteria and acceptance criteria;
+- governance registry updates.
+
+Forbidden:
+
+- implementation code;
+- OpenAPI changes;
+- SQL migrations;
+- Go handler changes;
+- frontend implementation;
+- external provider integrations;
+- market-data ingestion;
+- financial calculations;
+- workers, tax, mobile, AI, or Stage 3.13 implementation work.
+
+Status:
+
+- Active / planning branch `stage-03-13-instrument-planning`.
 
 ## Stage 3 domain boundaries
 
