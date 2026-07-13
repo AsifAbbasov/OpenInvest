@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.21 |
+| Version | 0.1.22 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
@@ -678,8 +678,8 @@ Allowed:
 
 - documentation-only planning;
 - use of the Stage 3.13 backend-owned catalog as the future data source;
-- explicit placeholder policy for any required Stage 2 asset fields not yet backed by live market
-  data;
+- explicit null-price and source-provenance policy for required Stage 2 asset fields not yet backed
+  by approved source data;
 - acceptance criteria, forbidden scope, and review focus for a later implementation PR;
 - governance registry updates.
 

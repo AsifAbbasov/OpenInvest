@@ -50,7 +50,7 @@ is reviewed and merged:
 Authenticated or anonymous MVP Web client
 → calls Go API asset search or asset detail endpoint
 → Go API reads only approved local catalog metadata
-→ Go API returns the frozen Stage 2 asset DTO shape where supported
+→ Go API returns only the frozen Stage 2 asset DTO fields that can be populated honestly
 → unsupported or inactive tickers return documented errors or empty search results
 → no market data, returns, dividends, coupons, taxes, or external provider calls occur
 ```
@@ -61,9 +61,11 @@ The future implementation PR may include only:
 
 - Go HTTP handlers for the already-frozen asset search/detail endpoints;
 - service/store read methods over the existing `investment.assets` table;
-- mapping from backend-owned catalog rows to Stage 2 asset DTOs;
-- deterministic placeholder values only where the existing Stage 2 DTO requires fields not yet
-  backed by live market data, with explicit documentation and tests;
+- mapping from backend-owned catalog rows to Stage 2 asset DTOs only where every required response
+  field has reviewed, non-fabricated data;
+- search responses that use `lastPrice: null` when no approved market-data source exists;
+- detail responses only after the implementation PR proves how every required `Asset` field is
+  populated without fake provenance or contract drift;
 - unsupported ticker and inactive asset handling;
 - backend and API tests for search, detail, case/canonical ticker behavior, and privacy boundaries;
 - documentation updates.
@@ -95,8 +97,17 @@ Stage 3.14 planning and the future implementation slice must not add:
   introduced by Stage 3.13.
 - The implementation must not broaden supported instruments beyond the reviewed fixture set without
   a separate source-governance and catalog-expansion review.
-- Any required placeholder for price-related Stage 2 fields must be explicit, deterministic,
-  non-misleading, and tested. Placeholder data must not masquerade as live market data.
+- Price placeholders are forbidden. Until an approved market-data source exists, asset search must
+  return `lastPrice: null`; asset detail must return `lastPrice: null` and `priceAsOf: null` if it
+  is implemented at all.
+- A runtime `source` response cannot use reserved `EXAMPLE_*` identifiers, fabricated providers, or
+  unregistered provenance. If the required Stage 2 `source` field cannot be populated from an
+  approved registry entry, implementation must stop for a separate source-governance or
+  contract-change decision before serving the detail endpoint.
+- Required stock and bond detail fields cannot be invented. Sector, ISIN, face value, maturity date,
+  and coupon type may be returned only when backed by reviewed static fixture metadata for the same
+  approved instruments. Bond identity metadata is distinct from dividend/coupon events,
+  calculations, calendars, and yield analytics, which remain out of scope.
 - External provider ingestion is a separate future stage requiring Data Source Registry updates,
   caching policy, freshness policy, auditability, and failure-mode design.
 - Frontend stock/bond cards are a later stage after the Go API boundary is implemented and reviewed.
@@ -105,10 +116,14 @@ Stage 3.14 planning and the future implementation slice must not add:
 
 - Existing Stage 2 asset search/detail contract is served by Go without OpenAPI drift.
 - Search returns only supported active assets from the backend-owned catalog.
-- Detail lookup returns a supported active asset or the documented error response.
+- Detail lookup returns a supported active asset only if every mandatory field has reviewed,
+  non-fabricated data and a valid runtime source; otherwise implementation must defer detail lookup
+  or stop for a separate contract/source-governance proposal.
 - Response mapping preserves Stage 2 `STOCK | BOND` discriminated asset semantics.
-- Price/source placeholders, if needed, are documented as local deterministic placeholders and do
-  not claim market freshness.
+- `lastPrice` and `priceAsOf` are `null` until an approved market-data source exists.
+- Runtime `source` never uses `EXAMPLE_*`, fake provider identifiers, or unregistered provenance.
+- Required stock/bond detail values are fixture-backed static identity metadata, not live market
+  data, coupon events, coupon calculations, or analytics.
 - Tests prove no unsupported ticker becomes an accepted asset reference.
 - Tests prove no external provider, worker, frontend, SQL migration, or business-calculation scope
   entered the slice.
@@ -124,7 +139,8 @@ Review must specifically verify:
 - no financial calculations are introduced;
 - no SQL or OpenAPI changes are hidden inside the implementation;
 - Stage 3.14 does not implement stock-card or bond-card UI;
-- placeholder values cannot be confused with official market data.
+- null price fields, source provenance, and required stock/bond detail fields cannot be confused
+  with official market data.
 
 ## Recommended next step
 
