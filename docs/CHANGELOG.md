@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.23 |
+| Version | 1.1.24 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-07-11 |
-| Next Review Date | Before Stage 3.13 planning approval |
+| Last Review Date | 2026-07-12 |
+| Next Review Date | Before Stage 3.13 implementation review |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -369,3 +369,26 @@
   implementation log, and Stage 3 plan.
 - Kept implementation, provider integrations, workers, market-data ingestion, financial
   calculations, tax, mobile, AI, and frontend business authority out of scope.
+
+## 2026-07-12 — Stage 3.13 instrument catalog slice started
+
+- Closed Stage 3.13 planning after strict review approval and merged PR #34 into `develop` at
+  `ca16af9adba249fc8c32c9b246b5f92f7e290b92`.
+- Started the backend-only instrument catalog implementation on
+  `feature/stage-03-13-instrument-catalog`.
+- Added an implementation report for approved local asset fixture resolution, unsupported ticker
+  rejection, existing `investment.assets` usage, and stock/bond bucket preservation.
+- Kept OpenAPI changes, SQL migrations, Go handler changes, frontend work, provider integrations,
+  workers, market-data ingestion, stock/bond cards, dividend/coupon scope, tax, mobile, and AI out
+  of scope.
+
+## 2026-07-12 — Stage 3.13 review findings fixed
+
+- Resolved strict separate-window review findings for noncanonical ticker acceptance, per-row
+  catalog rewrite/deadlock risk, weak fixture identity coverage, and stale implementation docs.
+- Enforced literal OpenAPI ticker validation, seed-only asset catalog writes, deterministic
+  import-batch asset preparation, approved fixture assertions, inactive-fixture rejection coverage,
+  and updated Stage 3.13 review-gate documentation.
+- Added follow-up fixes so existing active catalog rows must match approved canonical metadata while
+  retaining legacy internal UUID compatibility, and live integration tests restore any temporary
+  catalog mutations exactly.

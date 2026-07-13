@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-13-INSTRUMENT-CATALOG-PLAN |
-| Version | 0.1.1 |
-| Status | Active / planning |
+| Version | 0.1.2 |
+| Status | Complete / closed; merged into `develop` at `ca16af9adba249fc8c32c9b246b5f92f7e290b92` |
 | Owner | Builder Engineer |
 | Supersedes | Informal next-step discussion after Stage 3.12 |
 | Dependencies | `SOURCE_OF_TRUTH.md`; Stage 2 contract baseline; Stage 3.12 Web authentication UI slice |
-| Last Review Date | 2026-07-11 |
-| Next Review Date | Before Stage 3.13 implementation approval |
+| Last Review Date | 2026-07-12 |
+| Next Review Date | Before Stage 3.13 implementation review |
 
 ## Purpose
 
@@ -107,16 +107,17 @@ Stage 3.13 must not add:
   retention rules, audit boundaries, and failure-mode design.
 - Instrument catalog implementation must not silently broaden MVP scope into market-data products.
 
-## Decisions to document before implementation
+## Decisions documented for implementation
 
-- Which minimal share and bond fixture set is sufficient for local demonstration and tests, while
-  staying inside the Stage 2 asset fields?
-- Should transaction append reject unknown tickers immediately, preserve them as unresolved, or
-  require explicit cash-only transaction types when no catalog match exists?
-- Which OpenAPI DTOs, if any, need asset metadata changes through the normal contract-review gate?
-- How should historical transactions behave if an instrument display name changes later?
-- What audit evidence is needed for rejected or unresolved instrument references without logging
-  sensitive user notes?
+- Minimal local fixtures are limited to `SBER`, `GAZP`, and `SU26238RMFS4` for the first
+  implementation slice.
+- Transaction append rejects unknown or noncanonical tickers immediately with the existing invalid
+  input path; it does not preserve unresolved asset references.
+- No OpenAPI DTO changes are authorized for the first implementation slice.
+- Historical transactions keep referencing the stable backend asset identity. Later display-name
+  lifecycle changes require a separately reviewed metadata-management slice.
+- Rejected instrument references do not add a new audit event in this slice; existing request/error
+  telemetry remains the only evidence until a separately reviewed rejection-audit design exists.
 
 ## Acceptance criteria for a future implementation PR
 
@@ -147,6 +148,5 @@ Review must specifically verify:
 
 ## Recommended next step
 
-Send this planning-only branch to strict independent review. Do not start Stage 3.13 implementation
-until this plan is reviewed, approved, merged into `develop`, and human approval is given for the
-implementation slice.
+Stage 3.13 planning is closed. Continue the approved implementation slice on
+`feature/stage-03-13-instrument-catalog`, then stop before implementation review and notify the user.

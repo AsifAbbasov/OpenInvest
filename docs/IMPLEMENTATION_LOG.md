@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.22 |
+| Version | 1.1.23 |
 | Status | Active |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
 | Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md` |
-| Last Review Date | 2026-07-11 |
-| Next Review Date | Before Stage 3.13 planning approval |
+| Last Review Date | 2026-07-12 |
+| Next Review Date | Before Stage 3.13 implementation review |
 
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
 
@@ -39,7 +39,8 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.11 — Authentication and Privacy-Boundary Slice | Implement the approved Go API auth/session/privacy-default boundary without frontend auth UI | Complete / closed; merged into `develop` at `5c49173ac858995929f266c2de991282dd194dec` | [Stage 3.11 implementation report](stages/STAGE_03_11_AUTH_PRIVACY_SLICE.md) |
 | 3.12 — Web Authentication UI Planning | Define the future Next.js presentation-only auth/session UI boundary before implementation | Complete / closed; merged into `develop` at `25be13ce84844562e0381b79f4b81cbfed7eb44d` | [Stage 3.12 plan](stages/STAGE_03_12_AUTH_UI_PLANNING.md) |
 | 3.12 — Web Authentication UI Slice | Implement the approved Next.js presentation-only auth/session UI boundary | Complete / closed; merged into `develop` at `b4840b60346109e3cd54a07d9e1e131fc0cfad23` | [Stage 3.12 implementation report](stages/STAGE_03_12_AUTH_UI_SLICE.md) |
-| 3.13 — Instrument Catalog Planning | Define the canonical MVP MOEX share/bond identity boundary before implementation | Active / planning | [Stage 3.13 plan](stages/STAGE_03_13_INSTRUMENT_CATALOG_PLANNING.md) |
+| 3.13 — Instrument Catalog Planning | Define the canonical MVP MOEX share/bond identity boundary before implementation | Complete / closed; merged into `develop` at `ca16af9adba249fc8c32c9b246b5f92f7e290b92` | [Stage 3.13 plan](stages/STAGE_03_13_INSTRUMENT_CATALOG_PLANNING.md) |
+| 3.13 — Instrument Catalog Slice | Resolve approved MOEX share/bond tickers through the backend-owned catalog boundary | Active / implementation | [Stage 3.13 implementation report](stages/STAGE_03_13_INSTRUMENT_CATALOG_SLICE.md) |
 
 ## Stage completion protocol
 
@@ -241,3 +242,29 @@ This log is the index of implementation stages. Every stage must document its pu
   MOEX shares and bonds.
 - Kept implementation, provider integrations, workers, market-data ingestion, financial
   calculations, tax, mobile, AI, and frontend business authority out of scope.
+
+## 2026-07-12 — Stage 3.13 instrument catalog slice started
+
+- Squash-merged Stage 3.13 planning into `develop` at
+  `ca16af9adba249fc8c32c9b246b5f92f7e290b92` after strict follow-up review approval and green CI.
+- Started the backend-only implementation slice on `feature/stage-03-13-instrument-catalog`.
+- Scoped implementation to approved local asset fixtures, backend ticker resolution through the
+  existing `investment.assets` table, unsupported ticker rejection, stock/bond asset-type
+  preservation in existing snapshot buckets, tests, and documentation.
+- Kept OpenAPI changes, SQL migrations, Go handler changes, frontend work, provider integrations,
+  workers, market-data ingestion, stock/bond cards, dividend/coupon scope, tax, mobile, and AI out
+  of scope.
+
+## 2026-07-12 — Stage 3.13 independent review findings fixed
+
+- Addressed strict separate-window `REQUEST CHANGES` findings for whitespace-padded ticker
+  acceptance, catalog upsert rewrite/deadlock risk, insufficient fixture identity tests, and stale
+  implementation-review documentation.
+- Changed the catalog boundary to enforce literal ticker contract matching, seed approved assets
+  without reactivating or rewriting existing rows, resolve import-batch assets in deterministic
+  ticker order, and assert approved fixture metadata in tests.
+- Added follow-up fixes so an existing active row with conflicting stock/bond metadata is rejected
+  while legacy internal UUIDs remain compatible when all canonical metadata matches, and
+  catalog-mutation integration tests restore shared database state.
+- Kept the fixes inside the backend/store/test/documentation implementation slice; no OpenAPI,
+  migration, handler, frontend, provider, worker, market-data, tax, mobile, or AI scope was added.

@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-12-AUTH-UI-SLICE |
-| Version | 0.1.3 |
+| Version | 0.1.4 |
 | Status | Complete / closed; merged into `develop` at `b4840b60346109e3cd54a07d9e1e131fc0cfad23` |
 | Owner | Builder Engineer |
 | Supersedes | Stage 3.12 Web authentication UI planning |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-007; Stage 3.11 auth/privacy slice; Stage 3.12 auth UI planning |
-| Last Review Date | 2026-07-11 |
-| Next Review Date | Before Stage 3.13 planning approval |
+| Last Review Date | 2026-07-12 |
+| Next Review Date | Before Stage 3.13 implementation review |
 
 ## Purpose
 

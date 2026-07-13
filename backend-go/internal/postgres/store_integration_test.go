@@ -20,6 +20,81 @@ import (
 
 const importCSVHeader = "transaction_type,ticker,quantity,unit_price,gross_amount,commission,tax,trade_date,settlement_date,currency,broker_operation_id,note\n"
 
+type assetRowSnapshot struct {
+	Exists          bool
+	ID              string
+	AssetType       string
+	Name            string
+	Currency        string
+	Market          string
+	LifecycleStatus string
+	ISIN            sql.NullString
+	LotSize         string
+	UpdatedAt       string
+}
+
+func snapshotAssetRow(t *testing.T, ctx context.Context, db *sql.DB, ticker string) assetRowSnapshot {
+	t.Helper()
+	var snapshot assetRowSnapshot
+	err := db.QueryRowContext(ctx, `
+		SELECT id, asset_type, name, currency, market, lifecycle_status, isin, lot_size::text, updated_at::text
+		FROM investment.assets
+		WHERE ticker = $1
+	`, ticker).Scan(
+		&snapshot.ID,
+		&snapshot.AssetType,
+		&snapshot.Name,
+		&snapshot.Currency,
+		&snapshot.Market,
+		&snapshot.LifecycleStatus,
+		&snapshot.ISIN,
+		&snapshot.LotSize,
+		&snapshot.UpdatedAt,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return snapshot
+	}
+	if err != nil {
+		t.Fatalf("snapshot existing asset %s: %v", ticker, err)
+	}
+	snapshot.Exists = true
+	return snapshot
+}
+
+func restoreAssetRow(ctx context.Context, db *sql.DB, ticker string, snapshot assetRowSnapshot) {
+	if !snapshot.Exists {
+		_, _ = db.ExecContext(ctx, `DELETE FROM investment.assets WHERE ticker = $1`, ticker)
+		return
+	}
+	_, _ = db.ExecContext(ctx, `
+		UPDATE investment.assets
+		SET id = $1,
+			asset_type = $2,
+			name = $3,
+			currency = $4,
+			market = $5,
+			lifecycle_status = $6,
+			isin = $7,
+			lot_size = $8::numeric,
+			updated_at = $9::timestamptz
+		WHERE ticker = $10
+	`, snapshot.ID, snapshot.AssetType, snapshot.Name, snapshot.Currency, snapshot.Market,
+		snapshot.LifecycleStatus, snapshot.ISIN, snapshot.LotSize, snapshot.UpdatedAt, ticker)
+}
+
+func cleanupPortfolioRows(ctx context.Context, db *sql.DB, portfolioID string) {
+	_, _ = db.ExecContext(ctx, `
+		DELETE FROM analytics.snapshot_positions
+		WHERE snapshot_id IN (
+			SELECT id FROM analytics.portfolio_snapshots WHERE portfolio_id = $1
+		)
+	`, portfolioID)
+	_, _ = db.ExecContext(ctx, `DELETE FROM analytics.portfolio_snapshots WHERE portfolio_id = $1`, portfolioID)
+	_, _ = db.ExecContext(ctx, `DELETE FROM analytics.calculation_runs WHERE portfolio_id = $1`, portfolioID)
+	_, _ = db.ExecContext(ctx, `DELETE FROM investment.transaction_entries WHERE portfolio_id = $1`, portfolioID)
+	_, _ = db.ExecContext(ctx, `DELETE FROM investment.portfolios WHERE id = $1`, portfolioID)
+}
+
 func TestStoreVerticalSlice(t *testing.T) {
 	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
 	if databaseURL == "" {
@@ -131,6 +206,372 @@ func TestStoreVerticalSlice(t *testing.T) {
 	}
 	if len(filtered) != 2 {
 		t.Fatalf("expected 2 filtered transactions, got %d", len(filtered))
+	}
+}
+
+func TestStoreAppendTransactionRejectsUnsupportedTicker(t *testing.T) {
+	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
+	if databaseURL == "" {
+		t.Skip("OPENINVEST_DATABASE_TEST_URL is not set")
+	}
+
+	store, err := postgres.Open(databaseURL)
+	if err != nil {
+		t.Fatalf("open postgres store: %v", err)
+	}
+	defer store.Close()
+
+	service := verticalslice.NewService(store, verticalslice.SystemClock{})
+	ctx := context.Background()
+	subjectID := uuid.NewString()
+
+	portfolio, err := service.CreatePortfolio(ctx, verticalslice.RequestContext{}, subjectID, "portfolio-key-catalog-001", "/api/v1/portfolios", verticalslice.CreatePortfolioRequest{
+		Name:         "Catalog validation",
+		BaseCurrency: verticalslice.RUB,
+	})
+	if err != nil {
+		t.Fatalf("create portfolio: %v", err)
+	}
+
+	ticker := "UNKNOWN1"
+	quantity := decimal.Must("1.00000000")
+	unitPrice := verticalslice.Money{Amount: decimal.Must("100.00000000"), Currency: verticalslice.RUB}
+	_, err = service.AppendTransaction(ctx, verticalslice.RequestContext{}, subjectID, "transaction-key-catalog-001", "/api/v1/portfolios/"+portfolio.ID+"/transactions", verticalslice.AppendTransactionRequest{
+		PortfolioID:     portfolio.ID,
+		TransactionType: "BUY",
+		Ticker:          &ticker,
+		Quantity:        &quantity,
+		UnitPrice:       &unitPrice,
+		Commission:      verticalslice.ZeroMoney(),
+		Tax:             verticalslice.ZeroMoney(),
+		TradeDate:       "2026-07-01",
+	})
+	if !errors.Is(err, verticalslice.ErrInvalidInput) {
+		t.Fatalf("expected unsupported ticker rejection, got %v", err)
+	}
+
+	listed, err := service.ListTransactions(ctx, subjectID, portfolio.ID, verticalslice.TransactionFilter{Limit: 10})
+	if err != nil {
+		t.Fatalf("list transactions: %v", err)
+	}
+	if len(listed) != 0 {
+		t.Fatalf("expected unsupported ticker append to leave no transactions, got %d", len(listed))
+	}
+}
+
+func TestStoreAppendTransactionSeedsApprovedBondFixture(t *testing.T) {
+	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
+	if databaseURL == "" {
+		t.Skip("OPENINVEST_DATABASE_TEST_URL is not set")
+	}
+
+	store, err := postgres.Open(databaseURL)
+	if err != nil {
+		t.Fatalf("open postgres store: %v", err)
+	}
+	defer store.Close()
+
+	service := verticalslice.NewService(store, verticalslice.SystemClock{})
+	ctx := context.Background()
+	subjectID := uuid.NewString()
+
+	portfolio, err := service.CreatePortfolio(ctx, verticalslice.RequestContext{}, subjectID, "portfolio-key-catalog-002", "/api/v1/portfolios", verticalslice.CreatePortfolioRequest{
+		Name:         "Bond catalog validation",
+		BaseCurrency: verticalslice.RUB,
+	})
+	if err != nil {
+		t.Fatalf("create portfolio: %v", err)
+	}
+
+	ticker := "SU26238RMFS4"
+	quantity := decimal.Must("1.00000000")
+	unitPrice := verticalslice.Money{Amount: decimal.Must("700.00000000"), Currency: verticalslice.RUB}
+	_, err = service.AppendTransaction(ctx, verticalslice.RequestContext{}, subjectID, "transaction-key-catalog-002", "/api/v1/portfolios/"+portfolio.ID+"/transactions", verticalslice.AppendTransactionRequest{
+		PortfolioID:     portfolio.ID,
+		TransactionType: "BUY",
+		Ticker:          &ticker,
+		Quantity:        &quantity,
+		UnitPrice:       &unitPrice,
+		Commission:      verticalslice.ZeroMoney(),
+		Tax:             verticalslice.ZeroMoney(),
+		TradeDate:       "2026-07-02",
+	})
+	if err != nil {
+		t.Fatalf("append approved bond transaction: %v", err)
+	}
+	summary, err := service.GetPortfolioSummary(ctx, subjectID, portfolio.ID, "2026-07-02")
+	if err != nil {
+		t.Fatalf("get bond summary: %v", err)
+	}
+	if got := summary.BondValue.Amount.String(); got != "700.00000000" {
+		t.Fatalf("expected bond value 700.00000000, got %s", got)
+	}
+	if got := summary.StockValue.Amount.String(); got != "0.00000000" {
+		t.Fatalf("expected stock value 0.00000000 for bond transaction, got %s", got)
+	}
+
+	db, err := sql.Open("pgx", databaseURL)
+	if err != nil {
+		t.Fatalf("open catalog check db: %v", err)
+	}
+	defer db.Close()
+
+	var assetID, assetType, name, currency, market, lifecycleStatus string
+	var isin sql.NullString
+	var lotSize string
+	if err := db.QueryRowContext(ctx, `
+		SELECT id, asset_type, name, currency, market, lifecycle_status, isin, lot_size::text
+		FROM investment.assets
+		WHERE ticker = $1
+	`, ticker).Scan(&assetID, &assetType, &name, &currency, &market, &lifecycleStatus, &isin, &lotSize); err != nil {
+		t.Fatalf("query approved bond fixture: %v", err)
+	}
+	if assetID != "00000000-0000-4000-8000-00000000b001" ||
+		assetType != "bond" ||
+		name != "OFZ 26238" ||
+		currency != "RUB" ||
+		market != "MOEX" ||
+		lifecycleStatus != "active" ||
+		!isin.Valid ||
+		isin.String != "RU000A1038V6" ||
+		lotSize != "1.00000000" {
+		t.Fatalf("expected approved bond fixture metadata, got id=%s type=%s name=%q currency=%s market=%s lifecycle=%s isin=%v lotSize=%s",
+			assetID, assetType, name, currency, market, lifecycleStatus, isin, lotSize)
+	}
+}
+
+func TestStoreAppendTransactionAcceptsCanonicalFixtureWithLegacyID(t *testing.T) {
+	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
+	if databaseURL == "" {
+		t.Skip("OPENINVEST_DATABASE_TEST_URL is not set")
+	}
+
+	store, err := postgres.Open(databaseURL)
+	if err != nil {
+		t.Fatalf("open postgres store: %v", err)
+	}
+	defer store.Close()
+
+	db, err := sql.Open("pgx", databaseURL)
+	if err != nil {
+		t.Fatalf("open catalog setup db: %v", err)
+	}
+	defer db.Close()
+
+	ctx := context.Background()
+	ticker := "GAZP"
+	previousAsset := snapshotAssetRow(t, ctx, db, ticker)
+	defer restoreAssetRow(ctx, db, ticker, previousAsset)
+
+	legacyAssetID := uuid.NewString()
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO investment.assets (
+			id, ticker, asset_type, name, currency, market, lifecycle_status, isin, lot_size, updated_at
+		)
+		VALUES ($1, $2, 'stock', 'Gazprom ordinary shares', 'RUB', 'MOEX', 'active', 'RU0007661625', 10::numeric, now())
+		ON CONFLICT (ticker) DO UPDATE SET
+			id = EXCLUDED.id,
+			asset_type = EXCLUDED.asset_type,
+			name = EXCLUDED.name,
+			currency = EXCLUDED.currency,
+			market = EXCLUDED.market,
+			lifecycle_status = EXCLUDED.lifecycle_status,
+			isin = EXCLUDED.isin,
+			lot_size = EXCLUDED.lot_size,
+			updated_at = EXCLUDED.updated_at
+	`, legacyAssetID, ticker)
+	if err != nil {
+		t.Fatalf("seed legacy-id canonical asset: %v", err)
+	}
+
+	service := verticalslice.NewService(store, verticalslice.SystemClock{})
+	subjectID := uuid.NewString()
+	portfolio, err := service.CreatePortfolio(ctx, verticalslice.RequestContext{}, subjectID, "portfolio-key-catalog-legacy-id", "/api/v1/portfolios", verticalslice.CreatePortfolioRequest{
+		Name:         "Legacy asset identity catalog validation",
+		BaseCurrency: verticalslice.RUB,
+	})
+	if err != nil {
+		t.Fatalf("create portfolio: %v", err)
+	}
+	defer cleanupPortfolioRows(ctx, db, portfolio.ID)
+
+	quantity := decimal.Must("1.00000000")
+	unitPrice := verticalslice.Money{Amount: decimal.Must("200.00000000"), Currency: verticalslice.RUB}
+	transaction, err := service.AppendTransaction(ctx, verticalslice.RequestContext{}, subjectID, "transaction-key-catalog-legacy-id", "/api/v1/portfolios/"+portfolio.ID+"/transactions", verticalslice.AppendTransactionRequest{
+		PortfolioID:     portfolio.ID,
+		TransactionType: "BUY",
+		Ticker:          &ticker,
+		Quantity:        &quantity,
+		UnitPrice:       &unitPrice,
+		Commission:      verticalslice.ZeroMoney(),
+		Tax:             verticalslice.ZeroMoney(),
+		TradeDate:       "2026-07-02",
+	})
+	if err != nil {
+		t.Fatalf("append canonical legacy-id asset transaction: %v", err)
+	}
+
+	var storedAssetID string
+	if err := db.QueryRowContext(ctx, `
+		SELECT asset_id::text
+		FROM investment.transaction_entries
+		WHERE transaction_id = $1
+	`, transaction.ID).Scan(&storedAssetID); err != nil {
+		t.Fatalf("query transaction asset id: %v", err)
+	}
+	if storedAssetID != legacyAssetID {
+		t.Fatalf("expected existing canonical legacy asset id %s, got %s", legacyAssetID, storedAssetID)
+	}
+}
+
+func TestStoreAppendTransactionDoesNotReactivateInactiveFixture(t *testing.T) {
+	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
+	if databaseURL == "" {
+		t.Skip("OPENINVEST_DATABASE_TEST_URL is not set")
+	}
+
+	store, err := postgres.Open(databaseURL)
+	if err != nil {
+		t.Fatalf("open postgres store: %v", err)
+	}
+	defer store.Close()
+
+	db, err := sql.Open("pgx", databaseURL)
+	if err != nil {
+		t.Fatalf("open catalog setup db: %v", err)
+	}
+	defer db.Close()
+
+	ctx := context.Background()
+	ticker := "GAZP"
+	previousAsset := snapshotAssetRow(t, ctx, db, ticker)
+	defer restoreAssetRow(ctx, db, ticker, previousAsset)
+
+	assetID := "00000000-0000-4000-8000-00000000a002"
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO investment.assets (
+			id, ticker, asset_type, name, currency, market, lifecycle_status, isin, lot_size, updated_at
+		)
+		VALUES ($1, $2, 'stock', 'Inactive Gazprom fixture', 'RUB', 'MOEX', 'inactive', 'RU0007661625', 10::numeric, now())
+		ON CONFLICT (ticker) DO UPDATE SET
+			lifecycle_status = 'inactive',
+			name = EXCLUDED.name,
+			updated_at = EXCLUDED.updated_at
+	`, assetID, ticker)
+	if err != nil {
+		t.Fatalf("seed inactive asset: %v", err)
+	}
+
+	service := verticalslice.NewService(store, verticalslice.SystemClock{})
+	subjectID := uuid.NewString()
+	portfolio, err := service.CreatePortfolio(ctx, verticalslice.RequestContext{}, subjectID, "portfolio-key-catalog-003", "/api/v1/portfolios", verticalslice.CreatePortfolioRequest{
+		Name:         "Inactive catalog validation",
+		BaseCurrency: verticalslice.RUB,
+	})
+	if err != nil {
+		t.Fatalf("create portfolio: %v", err)
+	}
+
+	quantity := decimal.Must("1.00000000")
+	unitPrice := verticalslice.Money{Amount: decimal.Must("100.00000000"), Currency: verticalslice.RUB}
+	_, err = service.AppendTransaction(ctx, verticalslice.RequestContext{}, subjectID, "transaction-key-catalog-003", "/api/v1/portfolios/"+portfolio.ID+"/transactions", verticalslice.AppendTransactionRequest{
+		PortfolioID:     portfolio.ID,
+		TransactionType: "BUY",
+		Ticker:          &ticker,
+		Quantity:        &quantity,
+		UnitPrice:       &unitPrice,
+		Commission:      verticalslice.ZeroMoney(),
+		Tax:             verticalslice.ZeroMoney(),
+		TradeDate:       "2026-07-03",
+	})
+	if !errors.Is(err, verticalslice.ErrInvalidInput) {
+		t.Fatalf("expected inactive fixture to be rejected, got %v", err)
+	}
+
+	var lifecycleStatus string
+	if err := db.QueryRowContext(ctx, `
+		SELECT lifecycle_status
+		FROM investment.assets
+		WHERE ticker = $1
+	`, ticker).Scan(&lifecycleStatus); err != nil {
+		t.Fatalf("query inactive asset lifecycle: %v", err)
+	}
+	if lifecycleStatus != "inactive" {
+		t.Fatalf("expected inactive asset to remain inactive, got %s", lifecycleStatus)
+	}
+}
+
+func TestStoreAppendTransactionRejectsConflictingActiveFixture(t *testing.T) {
+	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
+	if databaseURL == "" {
+		t.Skip("OPENINVEST_DATABASE_TEST_URL is not set")
+	}
+
+	store, err := postgres.Open(databaseURL)
+	if err != nil {
+		t.Fatalf("open postgres store: %v", err)
+	}
+	defer store.Close()
+
+	db, err := sql.Open("pgx", databaseURL)
+	if err != nil {
+		t.Fatalf("open catalog setup db: %v", err)
+	}
+	defer db.Close()
+
+	ctx := context.Background()
+	ticker := "SU26238RMFS4"
+	previousAsset := snapshotAssetRow(t, ctx, db, ticker)
+	defer restoreAssetRow(ctx, db, ticker, previousAsset)
+
+	conflictingAssetID := uuid.NewString()
+	if previousAsset.Exists {
+		conflictingAssetID = previousAsset.ID
+	}
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO investment.assets (
+			id, ticker, asset_type, name, currency, market, lifecycle_status, isin, lot_size, updated_at
+		)
+		VALUES ($1, $2, 'stock', 'Legacy generic bond-as-stock row', 'RUB', 'MOEX', 'active', 'RU000A1038V6', 1::numeric, now())
+		ON CONFLICT (ticker) DO UPDATE SET
+			id = EXCLUDED.id,
+			asset_type = EXCLUDED.asset_type,
+			name = EXCLUDED.name,
+			currency = EXCLUDED.currency,
+			market = EXCLUDED.market,
+			lifecycle_status = EXCLUDED.lifecycle_status,
+			isin = EXCLUDED.isin,
+			lot_size = EXCLUDED.lot_size,
+			updated_at = EXCLUDED.updated_at
+	`, conflictingAssetID, ticker)
+	if err != nil {
+		t.Fatalf("seed conflicting active asset: %v", err)
+	}
+
+	service := verticalslice.NewService(store, verticalslice.SystemClock{})
+	subjectID := uuid.NewString()
+	portfolio, err := service.CreatePortfolio(ctx, verticalslice.RequestContext{}, subjectID, "portfolio-key-catalog-004", "/api/v1/portfolios", verticalslice.CreatePortfolioRequest{
+		Name:         "Conflicting catalog validation",
+		BaseCurrency: verticalslice.RUB,
+	})
+	if err != nil {
+		t.Fatalf("create portfolio: %v", err)
+	}
+
+	quantity := decimal.Must("1.00000000")
+	unitPrice := verticalslice.Money{Amount: decimal.Must("700.00000000"), Currency: verticalslice.RUB}
+	_, err = service.AppendTransaction(ctx, verticalslice.RequestContext{}, subjectID, "transaction-key-catalog-004", "/api/v1/portfolios/"+portfolio.ID+"/transactions", verticalslice.AppendTransactionRequest{
+		PortfolioID:     portfolio.ID,
+		TransactionType: "BUY",
+		Ticker:          &ticker,
+		Quantity:        &quantity,
+		UnitPrice:       &unitPrice,
+		Commission:      verticalslice.ZeroMoney(),
+		Tax:             verticalslice.ZeroMoney(),
+		TradeDate:       "2026-07-04",
+	})
+	if !errors.Is(err, verticalslice.ErrInvalidInput) {
+		t.Fatalf("expected conflicting active fixture to be rejected, got %v", err)
 	}
 }
 
@@ -258,8 +699,8 @@ func TestStoreAppendImportedTransactionsIsAtomicAndIdempotent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("list transactions: %v", err)
 	}
-	if len(listed) != 2 {
-		t.Fatalf("expected rollback to keep 2 transactions, got %d", len(listed))
+	if len(listed) != 3 {
+		t.Fatalf("expected rollback to keep 3 transactions, got %d", len(listed))
 	}
 
 	db, err := sql.Open("pgx", databaseURL)

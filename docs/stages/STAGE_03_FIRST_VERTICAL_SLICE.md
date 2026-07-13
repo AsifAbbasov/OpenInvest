@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.19 |
+| Version | 0.1.20 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
-| Last Review Date | 2026-07-11 |
-| Next Review Date | Before Stage 3.13 planning approval |
+| Last Review Date | 2026-07-12 |
+| Next Review Date | Before Stage 3.13 implementation review |
 
 ## Purpose
 
@@ -633,7 +633,39 @@ Forbidden:
 
 Status:
 
-- Active / planning branch `stage-03-13-instrument-planning`.
+- Complete / closed; merged into `develop` at `ca16af9adba249fc8c32c9b246b5f92f7e290b92`.
+
+### PR 3.13 — Instrument catalog slice
+
+Purpose:
+
+- resolve supported MOEX share and bond tickers through the backend-owned catalog boundary using
+  the frozen Stage 2 asset identity model.
+
+Allowed:
+
+- approved local asset fixtures for a narrow MVP demonstration set;
+- backend ticker resolution through the existing `investment.assets` table;
+- unsupported ticker rejection before transaction append;
+- stock/bond asset-type preservation in existing snapshot buckets;
+- backend and persistence tests;
+- documentation updates.
+
+Forbidden:
+
+- OpenAPI changes;
+- SQL migrations;
+- Go handler changes;
+- frontend implementation;
+- external provider integrations;
+- market-data ingestion;
+- stock-card or bond-card pages, cards, or financial calculations;
+- dividend or coupon calendars;
+- workers, tax, mobile, AI, or Stage 3.14 work.
+
+Status:
+
+- Active / implementation branch `feature/stage-03-13-instrument-catalog`.
 
 ## Stage 3 domain boundaries
 

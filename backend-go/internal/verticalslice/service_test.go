@@ -87,6 +87,28 @@ func TestAppendTransactionRejectsInvalidTicker(t *testing.T) {
 	}
 }
 
+func TestAppendTransactionRejectsWhitespacePaddedTicker(t *testing.T) {
+	service := NewService(&recordingStore{}, fixedClock{})
+	ticker := " SBER "
+	quantity := decimal.Must("1.00000000")
+	unitPrice := Money{Amount: decimal.Must("100.00000000"), Currency: RUB}
+
+	_, err := service.AppendTransaction(context.Background(), RequestContext{}, "subject", "valid-key-000001", "/path", AppendTransactionRequest{
+		PortfolioID:     "portfolio-id",
+		TransactionType: "BUY",
+		Ticker:          &ticker,
+		Quantity:        &quantity,
+		UnitPrice:       &unitPrice,
+		Commission:      ZeroMoney(),
+		Tax:             ZeroMoney(),
+		TradeDate:       "2026-06-26",
+	})
+
+	if !errors.Is(err, ErrInvalidInput) {
+		t.Fatalf("expected invalid input, got %v", err)
+	}
+}
+
 func TestCreatePortfolioRejectsContractInvalidIdempotencyKey(t *testing.T) {
 	service := NewService(&recordingStore{}, fixedClock{})
 
