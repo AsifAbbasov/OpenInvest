@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.23 |
+| Version | 0.1.24 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
-| Last Review Date | 2026-07-13 |
-| Next Review Date | Before Stage 3.14 merge |
+| Last Review Date | 2026-07-14 |
+| Next Review Date | Before Stage 3.15 planning |
 
 ## Purpose
 
@@ -731,7 +731,7 @@ Forbidden:
 
 Status:
 
-- Draft / active on `feature/stage-03-14-asset-api-boundary`.
+- Complete / closed; merged into `develop` at `57a9404952cb65693614109dd4a14d41fa5c4295`.
 
 ## Stage 3 domain boundaries
 

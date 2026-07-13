@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-14-ASSET-API-BOUNDARY-SLICE |
-| Version | 0.1.1 |
-| Status | Draft / implementation |
+| Version | 0.1.2 |
+| Status | Complete / closed |
 | Owner | Builder Engineer |
 | Supersedes | Stage 3.14 asset search/card API boundary planning |
 | Dependencies | `SOURCE_OF_TRUTH.md`; Stage 2 contract baseline; Stage 3.13 instrument catalog slice; Stage 3.14 planning |
-| Last Review Date | 2026-07-13 |
-| Next Review Date | Before merge |
+| Last Review Date | 2026-07-14 |
+| Next Review Date | Before Stage 3.15 planning |
 
 ## Purpose
 
@@ -88,19 +88,47 @@ Therefore, Stage 3.14 wires `GET /api/v1/assets/{ticker}` for API-boundary compl
 contract-change stage can populate every mandatory field. This preserves the frozen API surface
 without fabricating asset-card facts.
 
-## Verification
+## Verification evidence
 
-Required before merge:
+Completed before PR #38 merge:
 
-- Go tests;
-- Python tests;
-- frontend typecheck/build;
-- OpenAPI validator;
-- Docker Compose config validation;
-- migration validation;
-- forbidden-boundary scan;
-- `git diff --check`;
-- strict independent separate-window review.
+- Local Go targeted tests passed:
+  `go test ./cmd/api ./internal/auth ./internal/httpapi ./internal/postgres ./internal/verticalslice`.
+- Full repository verification passed:
+  `pnpm run verify`.
+- Whitespace/diff validation passed:
+  `git diff --check`.
+- GitHub CI passed on PR #38:
+  Go tests, Python tests, frontend build/typecheck, OpenAPI contract, PostgreSQL migration
+  validation, and Docker Compose config.
+- Final reviewed feature-branch head:
+  `fa8d4a8ce798948fee307fed15c8fe78cf3dc716`.
+- Squash merge into `develop`:
+  `57a9404952cb65693614109dd4a14d41fa5c4295`.
+- Merge date:
+  2026-07-14.
+
+## Internal Review Evidence
+
+- Review channel:
+  strict independent separate-window Codex review.
+- Reviewed scope:
+  Stage 3.14 Go API asset search/card boundary implementation diff and follow-up fixes.
+- Final implementation verdict:
+  `APPROVED`.
+- Blocking findings resolved before approval:
+  - canonical fixture predicates, including ISIN, must run before SQL `LIMIT`;
+  - ticker search must use prefix semantics while name search may use fragment semantics;
+  - invalid and supplied-empty `limit`, `assetType`, and `cursor` query parameters must be rejected;
+  - cursor validation must use the exact supplied token, enforce the 1–512 byte boundary before
+    Base64 decoding, and reject whitespace, padded, malformed, or oversized tokens;
+  - Source of Truth version references must remain synchronized.
+- Remaining non-blocking notes:
+  asset search still discovers only active canonical rows already present in `investment.assets`,
+  and asset detail remains deferred until approved source provenance and mandatory detail fields
+  exist.
+- Review Agent write authority:
+  read-only only; the Review Agent did not edit, stage, commit, push, merge, or create/update PRs.
 
 ## Known risks
 
@@ -112,5 +140,6 @@ Required before merge:
 
 ## Recommended next step
 
-After this implementation PR is reviewed, approved, and merged, close Stage 3.14 with a separate
-governance-only closure PR before starting the next stage.
+Stage 3.14 is closed after PR #38 was squash-merged into `develop` at
+`57a9404952cb65693614109dd4a14d41fa5c4295`. Start the next stage only from the updated `develop`
+baseline and preserve the same review gates.
