@@ -177,7 +177,7 @@ func validateAppendImportBatch(request AppendImportBatchRequest) error {
 func validateAppendTransaction(request AppendTransactionRequest) error {
 	switch request.TransactionType {
 	case "BUY":
-		if request.Ticker == nil || !tickerPattern.MatchString(strings.TrimSpace(*request.Ticker)) {
+		if request.Ticker == nil || !tickerPattern.MatchString(*request.Ticker) {
 			return fmt.Errorf("%w: ticker is required for trades", ErrInvalidInput)
 		}
 		if request.Quantity == nil || !request.Quantity.IsPositive() {

@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.1.30 |
+| Version | 1.1.31 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | Documents 42–43 |
-| Last Review Date | 2026-07-11 |
-| Next Review Date | Before Stage 3.13 planning approval |
+| Last Review Date | 2026-07-12 |
+| Next Review Date | Before Stage 3.13 implementation review |
 
 | Range | Version | Status under Freeze v1.2 | Priority | Owner | Review |
 | --- | --- | --- | --- | --- | --- |
@@ -36,9 +36,10 @@
 | Stage 3.10 import upload/review UI slice | 0.1.x | Closed / merged into `develop` at `e19a1a0ea4b0b183687bd89daabdfbc973daea71` | 3 | Principal Architect | 2027-01-09 |
 | Stage 3.11 authentication and privacy-boundary planning | 0.1.x | Closed / merged into `develop` at `34a31b7bb379db8a59ecc52f2cd32697be3fe125` | 3 | Principal Architect | 2027-01-09 |
 | Stage 3.11 authentication and privacy-boundary slice | 0.1.x | Closed / merged into `develop` at `5c49173ac858995929f266c2de991282dd194dec` | 3 | Principal Architect | 2027-01-09 |
-| Stage 3.12 Web authentication UI planning | 0.1.x | Closed / merged into `develop` at `25be13ce84844562e0381b79f4b81cbfed7eb44d` | 3 | Principal Architect | Before Stage 3.13 planning approval |
-| Stage 3.12 Web authentication UI slice | 0.1.x | Closed / merged into `develop` at `b4840b60346109e3cd54a07d9e1e131fc0cfad23` | 3 | Principal Architect | Before Stage 3.13 planning approval |
-| Stage 3.13 instrument catalog planning | 0.1.x | Active / planning on `stage-03-13-instrument-planning` | 3 | Principal Architect | Before Stage 3.13 implementation approval |
+| Stage 3.12 Web authentication UI planning | 0.1.x | Closed / merged into `develop` at `25be13ce84844562e0381b79f4b81cbfed7eb44d` | 3 | Principal Architect | Before Stage 3.13 implementation review |
+| Stage 3.12 Web authentication UI slice | 0.1.x | Closed / merged into `develop` at `b4840b60346109e3cd54a07d9e1e131fc0cfad23` | 3 | Principal Architect | Before Stage 3.13 implementation review |
+| Stage 3.13 instrument catalog planning | 0.1.x | Closed / merged into `develop` at `ca16af9adba249fc8c32c9b246b5f92f7e290b92` | 3 | Principal Architect | Before Stage 3.13 implementation review |
+| Stage 3.13 instrument catalog slice | 0.1.x | Active / implementation on `feature/stage-03-13-instrument-catalog` | 3 | Principal Architect | Before Stage 3.13 implementation review |
 | Documents 28–39 | 2.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Document 40 | 3.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Documents 1–27, 41 | 1.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |

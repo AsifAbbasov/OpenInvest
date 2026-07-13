@@ -23,6 +23,42 @@ var (
 	ErrUnsupportedDuplicate = errors.New("duplicate response is not available")
 )
 
+type assetFixture struct {
+	ID        string
+	Ticker    string
+	AssetType string
+	Name      string
+	ISIN      *string
+	LotSize   string
+}
+
+var approvedAssetFixtures = map[string]assetFixture{
+	"SBER": {
+		ID:        "00000000-0000-4000-8000-00000000a001",
+		Ticker:    "SBER",
+		AssetType: "stock",
+		Name:      "Sberbank ordinary shares",
+		ISIN:      stringPtr("RU0009029540"),
+		LotSize:   "10.00000000",
+	},
+	"GAZP": {
+		ID:        "00000000-0000-4000-8000-00000000a002",
+		Ticker:    "GAZP",
+		AssetType: "stock",
+		Name:      "Gazprom ordinary shares",
+		ISIN:      stringPtr("RU0007661625"),
+		LotSize:   "10.00000000",
+	},
+	"SU26238RMFS4": {
+		ID:        "00000000-0000-4000-8000-00000000b001",
+		Ticker:    "SU26238RMFS4",
+		AssetType: "bond",
+		Name:      "OFZ 26238",
+		ISIN:      stringPtr("RU000A1038V6"),
+		LotSize:   "1.00000000",
+	},
+}
+
 type Store struct {
 	db *sql.DB
 }
@@ -274,6 +310,10 @@ func (s *Store) AppendImportedTransactions(ctx context.Context, command vertical
 		}
 	}
 
+	if err := ensureAssets(ctx, tx, request.Transactions); err != nil {
+		return nil, err
+	}
+
 	entryIDs := make([]string, 0, len(request.Transactions))
 	snapshotDateSet := map[string]struct{}{}
 	for index, transactionRequest := range request.Transactions {
@@ -445,6 +485,9 @@ func importEntryID(commandID string, index int) (string, error) {
 
 func insertTransactionEntry(ctx context.Context, tx *sql.Tx, command verticalslice.CommandContext, request verticalslice.AppendTransactionRequest) (string, error) {
 	entryID := uuid.NewString()
+	if _, err := ensureAsset(ctx, tx, request); err != nil {
+		return "", err
+	}
 	if err := insertTransactionEntryWithID(ctx, tx, command, request, entryID); err != nil {
 		return "", err
 	}
@@ -456,7 +499,7 @@ func insertTransactionEntryWithID(ctx context.Context, tx *sql.Tx, command verti
 	if err != nil {
 		return err
 	}
-	assetID, err := ensureAsset(ctx, tx, request)
+	assetID, err := activeAssetID(ctx, tx, request)
 	if err != nil {
 		return err
 	}
@@ -672,20 +715,79 @@ func ensureAsset(ctx context.Context, tx *sql.Tx, request verticalslice.AppendTr
 	if request.Ticker == nil {
 		return nil, nil
 	}
-	assetID := uuid.NewString()
+	fixture, ok := approvedAssetFixture(*request.Ticker)
+	if !ok {
+		return nil, verticalslice.ErrInvalidInput
+	}
 	_, err := tx.ExecContext(ctx, `
-		INSERT INTO investment.assets (id, ticker, asset_type, name, currency, market)
-		VALUES ($1, $2, 'stock', $2, 'RUB', 'MOEX')
+		INSERT INTO investment.assets (
+			id, ticker, asset_type, name, currency, market, lifecycle_status, isin, lot_size, updated_at
+		)
+		VALUES ($1, $2, $3, $4, 'RUB', 'MOEX', 'active', $5, $6::numeric, now())
 		ON CONFLICT (ticker) DO NOTHING
-	`, assetID, *request.Ticker)
+	`, fixture.ID, fixture.Ticker, fixture.AssetType, fixture.Name, fixture.ISIN, fixture.LotSize)
 	if err != nil {
 		return nil, err
 	}
+	return activeAssetID(ctx, tx, request)
+}
+
+func ensureAssets(ctx context.Context, tx *sql.Tx, requests []verticalslice.AppendTransactionRequest) error {
+	tickerSet := map[string]verticalslice.AppendTransactionRequest{}
+	for _, request := range requests {
+		if request.Ticker != nil {
+			tickerSet[*request.Ticker] = request
+		}
+	}
+	tickers := make([]string, 0, len(tickerSet))
+	for ticker := range tickerSet {
+		tickers = append(tickers, ticker)
+	}
+	sort.Strings(tickers)
+	for _, ticker := range tickers {
+		if _, err := ensureAsset(ctx, tx, tickerSet[ticker]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func activeAssetID(ctx context.Context, tx *sql.Tx, request verticalslice.AppendTransactionRequest) (*string, error) {
+	if request.Ticker == nil {
+		return nil, nil
+	}
+	fixture, ok := approvedAssetFixture(*request.Ticker)
+	if !ok {
+		return nil, verticalslice.ErrInvalidInput
+	}
 	var existingID string
-	if err := tx.QueryRowContext(ctx, `SELECT id FROM investment.assets WHERE ticker = $1`, *request.Ticker).Scan(&existingID); err != nil {
+	if err := tx.QueryRowContext(ctx, `
+		SELECT id
+		FROM investment.assets
+		WHERE ticker = $1
+			AND asset_type = $2
+			AND name = $3
+			AND currency = 'RUB'
+			AND market = 'MOEX'
+			AND lifecycle_status = 'active'
+			AND (($4::text IS NULL AND isin IS NULL) OR isin = $4::text)
+			AND lot_size = $5::numeric
+	`, fixture.Ticker, fixture.AssetType, fixture.Name, fixture.ISIN, fixture.LotSize).Scan(&existingID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, verticalslice.ErrInvalidInput
+		}
 		return nil, err
 	}
 	return &existingID, nil
+}
+
+func approvedAssetFixture(ticker string) (assetFixture, bool) {
+	fixture, ok := approvedAssetFixtures[ticker]
+	return fixture, ok
+}
+
+func stringPtr(value string) *string {
+	return &value
 }
 
 func rebuildAffectedSnapshots(ctx context.Context, tx *sql.Tx, portfolioID string, transactionTradeDate string, now time.Time) error {
@@ -736,23 +838,28 @@ func rebuildSnapshot(ctx context.Context, tx *sql.Tx, portfolioID string, snapsh
 		WITH ledger AS (
 			SELECT
 				COALESCE(SUM(CASE
-					WHEN transaction_type = 'DEPOSIT' THEN gross_amount
-					WHEN transaction_type = 'WITHDRAWAL' THEN -gross_amount
-					WHEN transaction_type = 'BUY' THEN -(gross_amount + commission_amount + tax_amount)
-					WHEN transaction_type = 'SELL' THEN gross_amount - commission_amount - tax_amount
+					WHEN te.transaction_type = 'DEPOSIT' THEN te.gross_amount
+					WHEN te.transaction_type = 'WITHDRAWAL' THEN -te.gross_amount
+					WHEN te.transaction_type = 'BUY' THEN -(te.gross_amount + te.commission_amount + te.tax_amount)
+					WHEN te.transaction_type = 'SELL' THEN te.gross_amount - te.commission_amount - te.tax_amount
 					ELSE 0
 				END), 0) AS cash_value,
 				COALESCE(SUM(CASE
-					WHEN transaction_type = 'BUY' THEN gross_amount
-					WHEN transaction_type = 'SELL' THEN -gross_amount
+					WHEN te.transaction_type = 'BUY' AND a.asset_type = 'stock' THEN te.gross_amount
+					WHEN te.transaction_type = 'SELL' AND a.asset_type = 'stock' THEN -te.gross_amount
 					ELSE 0
 				END), 0) AS stock_value,
-				0::numeric AS bond_value,
-				COALESCE(SUM(CASE WHEN transaction_type = 'BUY' THEN gross_amount + commission_amount + tax_amount ELSE 0 END), 0) AS invested_capital,
-					COALESCE(MAX(created_at)::text, 'empty') AS watermark
-				FROM investment.transaction_entries
-				WHERE portfolio_id = $2
-					AND trade_date <= $3::date
+				COALESCE(SUM(CASE
+					WHEN te.transaction_type = 'BUY' AND a.asset_type = 'bond' THEN te.gross_amount
+					WHEN te.transaction_type = 'SELL' AND a.asset_type = 'bond' THEN -te.gross_amount
+					ELSE 0
+				END), 0) AS bond_value,
+				COALESCE(SUM(CASE WHEN te.transaction_type = 'BUY' THEN te.gross_amount + te.commission_amount + te.tax_amount ELSE 0 END), 0) AS invested_capital,
+					COALESCE(MAX(te.created_at)::text, 'empty') AS watermark
+				FROM investment.transaction_entries te
+				LEFT JOIN investment.assets a ON a.id = te.asset_id
+				WHERE te.portfolio_id = $2
+					AND te.trade_date <= $3::date
 			), computed AS (
 			SELECT
 				cash_value,
