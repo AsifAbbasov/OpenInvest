@@ -33,6 +33,15 @@ type assetRowSnapshot struct {
 	UpdatedAt       string
 }
 
+func closeDBOnCleanup(t *testing.T, db *sql.DB, label string) {
+	t.Helper()
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Fatalf("close %s db: %v", label, err)
+		}
+	})
+}
+
 func snapshotAssetRow(t *testing.T, ctx context.Context, db *sql.DB, ticker string) assetRowSnapshot {
 	t.Helper()
 	var snapshot assetRowSnapshot
@@ -61,38 +70,91 @@ func snapshotAssetRow(t *testing.T, ctx context.Context, db *sql.DB, ticker stri
 	return snapshot
 }
 
-func restoreAssetRow(ctx context.Context, db *sql.DB, ticker string, snapshot assetRowSnapshot) {
+func restoreAssetRow(t *testing.T, ctx context.Context, db *sql.DB, ticker string, snapshot assetRowSnapshot) {
+	t.Helper()
+
 	if !snapshot.Exists {
-		_, _ = db.ExecContext(ctx, `DELETE FROM investment.assets WHERE ticker = $1`, ticker)
+		if _, err := db.ExecContext(ctx, `DELETE FROM investment.assets WHERE ticker = $1`, ticker); err != nil {
+			t.Fatalf("delete restored absent asset %s: %v", ticker, err)
+		}
+		restored := snapshotAssetRow(t, ctx, db, ticker)
+		if restored.Exists {
+			t.Fatalf("expected restored asset %s to be absent, got %+v", ticker, restored)
+		}
 		return
 	}
-	_, _ = db.ExecContext(ctx, `
-		UPDATE investment.assets
-		SET id = $1,
-			asset_type = $2,
-			name = $3,
-			currency = $4,
-			market = $5,
-			lifecycle_status = $6,
-			isin = $7,
-			lot_size = $8::numeric,
-			updated_at = $9::timestamptz
-		WHERE ticker = $10
-	`, snapshot.ID, snapshot.AssetType, snapshot.Name, snapshot.Currency, snapshot.Market,
-		snapshot.LifecycleStatus, snapshot.ISIN, snapshot.LotSize, snapshot.UpdatedAt, ticker)
+
+	if _, err := db.ExecContext(ctx, `
+		INSERT INTO investment.assets (
+			id, ticker, asset_type, name, currency, market, lifecycle_status, isin, lot_size, updated_at
+		)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::numeric, $10::timestamptz)
+		ON CONFLICT (ticker) DO UPDATE SET
+			id = EXCLUDED.id,
+			asset_type = EXCLUDED.asset_type,
+			name = EXCLUDED.name,
+			currency = EXCLUDED.currency,
+			market = EXCLUDED.market,
+			lifecycle_status = EXCLUDED.lifecycle_status,
+			isin = EXCLUDED.isin,
+			lot_size = EXCLUDED.lot_size,
+			updated_at = EXCLUDED.updated_at
+	`, snapshot.ID, ticker, snapshot.AssetType, snapshot.Name, snapshot.Currency, snapshot.Market,
+		snapshot.LifecycleStatus, snapshot.ISIN, snapshot.LotSize, snapshot.UpdatedAt); err != nil {
+		t.Fatalf("restore asset %s: %v", ticker, err)
+	}
+
+	restored := snapshotAssetRow(t, ctx, db, ticker)
+	if restored.ID != snapshot.ID ||
+		restored.AssetType != snapshot.AssetType ||
+		restored.Name != snapshot.Name ||
+		restored.Currency != snapshot.Currency ||
+		restored.Market != snapshot.Market ||
+		restored.LifecycleStatus != snapshot.LifecycleStatus ||
+		restored.ISIN != snapshot.ISIN ||
+		restored.LotSize != snapshot.LotSize ||
+		restored.UpdatedAt != snapshot.UpdatedAt {
+		t.Fatalf("asset %s restore mismatch: got %+v want %+v", ticker, restored, snapshot)
+	}
 }
 
-func cleanupPortfolioRows(ctx context.Context, db *sql.DB, portfolioID string) {
-	_, _ = db.ExecContext(ctx, `
-		DELETE FROM analytics.snapshot_positions
-		WHERE snapshot_id IN (
-			SELECT id FROM analytics.portfolio_snapshots WHERE portfolio_id = $1
-		)
-	`, portfolioID)
-	_, _ = db.ExecContext(ctx, `DELETE FROM analytics.portfolio_snapshots WHERE portfolio_id = $1`, portfolioID)
-	_, _ = db.ExecContext(ctx, `DELETE FROM analytics.calculation_runs WHERE portfolio_id = $1`, portfolioID)
-	_, _ = db.ExecContext(ctx, `DELETE FROM investment.transaction_entries WHERE portfolio_id = $1`, portfolioID)
-	_, _ = db.ExecContext(ctx, `DELETE FROM investment.portfolios WHERE id = $1`, portfolioID)
+func cleanupPortfolioRows(t *testing.T, ctx context.Context, db *sql.DB, portfolioID string) {
+	t.Helper()
+
+	statements := []struct {
+		name  string
+		query string
+	}{
+		{
+			name: "snapshot positions",
+			query: `
+				DELETE FROM analytics.snapshot_positions
+				WHERE snapshot_id IN (
+					SELECT id FROM analytics.portfolio_snapshots WHERE portfolio_id = $1
+				)
+			`,
+		},
+		{name: "portfolio snapshots", query: `DELETE FROM analytics.portfolio_snapshots WHERE portfolio_id = $1`},
+		{name: "calculation runs", query: `DELETE FROM analytics.calculation_runs WHERE portfolio_id = $1`},
+		{name: "transaction entries", query: `DELETE FROM investment.transaction_entries WHERE portfolio_id = $1`},
+		{name: "portfolio", query: `DELETE FROM investment.portfolios WHERE id = $1`},
+	}
+
+	for _, statement := range statements {
+		result, err := db.ExecContext(ctx, statement.query, portfolioID)
+		if err != nil {
+			t.Fatalf("cleanup %s for portfolio %s: %v", statement.name, portfolioID, err)
+		}
+		if statement.name == "portfolio" {
+			rowsAffected, err := result.RowsAffected()
+			if err != nil {
+				t.Fatalf("read cleanup portfolio rows affected for %s: %v", portfolioID, err)
+			}
+			if rowsAffected != 1 {
+				t.Fatalf("expected to cleanup 1 portfolio row for %s, cleaned %d", portfolioID, rowsAffected)
+			}
+		}
+	}
 }
 
 func TestStoreVerticalSlice(t *testing.T) {
@@ -314,7 +376,7 @@ func TestStoreAppendTransactionSeedsApprovedBondFixture(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open catalog check db: %v", err)
 	}
-	defer db.Close()
+	closeDBOnCleanup(t, db, "test")
 
 	var assetID, assetType, name, currency, market, lifecycleStatus string
 	var isin sql.NullString
@@ -356,12 +418,14 @@ func TestStoreAppendTransactionAcceptsCanonicalFixtureWithLegacyID(t *testing.T)
 	if err != nil {
 		t.Fatalf("open catalog setup db: %v", err)
 	}
-	defer db.Close()
+	closeDBOnCleanup(t, db, "test")
 
 	ctx := context.Background()
 	ticker := "GAZP"
 	previousAsset := snapshotAssetRow(t, ctx, db, ticker)
-	defer restoreAssetRow(ctx, db, ticker, previousAsset)
+	t.Cleanup(func() {
+		restoreAssetRow(t, ctx, db, ticker, previousAsset)
+	})
 
 	legacyAssetID := uuid.NewString()
 	_, err = db.ExecContext(ctx, `
@@ -393,7 +457,9 @@ func TestStoreAppendTransactionAcceptsCanonicalFixtureWithLegacyID(t *testing.T)
 	if err != nil {
 		t.Fatalf("create portfolio: %v", err)
 	}
-	defer cleanupPortfolioRows(ctx, db, portfolio.ID)
+	t.Cleanup(func() {
+		cleanupPortfolioRows(t, ctx, db, portfolio.ID)
+	})
 
 	quantity := decimal.Must("1.00000000")
 	unitPrice := verticalslice.Money{Amount: decimal.Must("200.00000000"), Currency: verticalslice.RUB}
@@ -440,12 +506,14 @@ func TestStoreAppendTransactionDoesNotReactivateInactiveFixture(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open catalog setup db: %v", err)
 	}
-	defer db.Close()
+	closeDBOnCleanup(t, db, "test")
 
 	ctx := context.Background()
 	ticker := "GAZP"
 	previousAsset := snapshotAssetRow(t, ctx, db, ticker)
-	defer restoreAssetRow(ctx, db, ticker, previousAsset)
+	t.Cleanup(func() {
+		restoreAssetRow(t, ctx, db, ticker, previousAsset)
+	})
 
 	assetID := "00000000-0000-4000-8000-00000000a002"
 	_, err = db.ExecContext(ctx, `
@@ -471,6 +539,9 @@ func TestStoreAppendTransactionDoesNotReactivateInactiveFixture(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create portfolio: %v", err)
 	}
+	t.Cleanup(func() {
+		cleanupPortfolioRows(t, ctx, db, portfolio.ID)
+	})
 
 	quantity := decimal.Must("1.00000000")
 	unitPrice := verticalslice.Money{Amount: decimal.Must("100.00000000"), Currency: verticalslice.RUB}
@@ -517,12 +588,14 @@ func TestStoreAppendTransactionRejectsConflictingActiveFixture(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open catalog setup db: %v", err)
 	}
-	defer db.Close()
+	closeDBOnCleanup(t, db, "test")
 
 	ctx := context.Background()
 	ticker := "SU26238RMFS4"
 	previousAsset := snapshotAssetRow(t, ctx, db, ticker)
-	defer restoreAssetRow(ctx, db, ticker, previousAsset)
+	t.Cleanup(func() {
+		restoreAssetRow(t, ctx, db, ticker, previousAsset)
+	})
 
 	conflictingAssetID := uuid.NewString()
 	if previousAsset.Exists {
@@ -557,6 +630,9 @@ func TestStoreAppendTransactionRejectsConflictingActiveFixture(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create portfolio: %v", err)
 	}
+	t.Cleanup(func() {
+		cleanupPortfolioRows(t, ctx, db, portfolio.ID)
+	})
 
 	quantity := decimal.Must("1.00000000")
 	unitPrice := verticalslice.Money{Amount: decimal.Must("700.00000000"), Currency: verticalslice.RUB}
@@ -707,7 +783,7 @@ func TestStoreAppendImportedTransactionsIsAtomicAndIdempotent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open audit check db: %v", err)
 	}
-	defer db.Close()
+	closeDBOnCleanup(t, db, "test")
 
 	var auditCount int
 	err = db.QueryRowContext(ctx, `

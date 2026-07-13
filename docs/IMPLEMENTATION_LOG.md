@@ -255,16 +255,14 @@ This log is the index of implementation stages. Every stage must document its pu
   workers, market-data ingestion, stock/bond cards, dividend/coupon scope, tax, mobile, and AI out
   of scope.
 
-## 2026-07-12 — Stage 3.13 independent review findings fixed
+## 2026-07-12 — Stage 3.13 implementation hardening updated
 
-- Addressed strict separate-window `REQUEST CHANGES` findings for whitespace-padded ticker
-  acceptance, catalog upsert rewrite/deadlock risk, insufficient fixture identity tests, and stale
-  implementation-review documentation.
 - Changed the catalog boundary to enforce literal ticker contract matching, seed approved assets
   without reactivating or rewriting existing rows, resolve import-batch assets in deterministic
   ticker order, and assert approved fixture metadata in tests.
-- Added follow-up fixes so an existing active row with conflicting stock/bond metadata is rejected
-  while legacy internal UUIDs remain compatible when all canonical metadata matches, and
-  catalog-mutation integration tests restore shared database state.
+- Required existing active catalog rows to match approved canonical metadata while legacy internal
+  UUIDs remain compatible when all canonical metadata matches.
+- Required catalog-mutation integration tests to restore shared database state with checked cleanup
+  operations.
 - Kept the fixes inside the backend/store/test/documentation implementation slice; no OpenAPI,
   migration, handler, frontend, provider, worker, market-data, tax, mobile, or AI scope was added.

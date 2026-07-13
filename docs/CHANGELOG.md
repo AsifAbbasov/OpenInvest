@@ -382,13 +382,12 @@
   workers, market-data ingestion, stock/bond cards, dividend/coupon scope, tax, mobile, and AI out
   of scope.
 
-## 2026-07-12 — Stage 3.13 review findings fixed
+## 2026-07-12 — Stage 3.13 implementation hardening updated
 
-- Resolved strict separate-window review findings for noncanonical ticker acceptance, per-row
-  catalog rewrite/deadlock risk, weak fixture identity coverage, and stale implementation docs.
 - Enforced literal OpenAPI ticker validation, seed-only asset catalog writes, deterministic
   import-batch asset preparation, approved fixture assertions, inactive-fixture rejection coverage,
   and updated Stage 3.13 review-gate documentation.
-- Added follow-up fixes so existing active catalog rows must match approved canonical metadata while
-  retaining legacy internal UUID compatibility, and live integration tests restore any temporary
-  catalog mutations exactly.
+- Required existing active catalog rows to match approved canonical metadata while retaining legacy
+  internal UUID compatibility when all canonical metadata matches.
+- Required catalog-mutation integration tests to restore any temporary shared database state with
+  checked cleanup operations.

@@ -74,16 +74,17 @@ This slice does not add:
 - `backend-go`: `OPENINVEST_DATABASE_TEST_URL='postgres://openinvest:openinvest-local@127.0.0.1:55432/openinvest?sslmode=disable' GOCACHE=/private/tmp/openinvest-gocache go test ./internal/postgres -run 'TestStoreAppendTransaction(RejectsUnsupportedTicker|SeedsApprovedBondFixture|AcceptsCanonicalFixtureWithLegacyID|DoesNotReactivateInactiveFixture|RejectsConflictingActiveFixture)|TestStoreVerticalSlice|TestStoreAppendImportedTransactionsIsAtomicAndIdempotent' -count=1 -v`
 - Repository root: `GOCACHE=/private/tmp/openinvest-gocache UV_CACHE_DIR=/private/tmp/openinvest-uv-cache pnpm run verify`
 
-## Review Findings Addressed
+## Review Gate Status
 
-- Strict separate-window review returned `REQUEST CHANGES` for noncanonical ticker acceptance,
-  per-row catalog rewrite/deadlock risk, weak fixture identity tests, and stale review-gate docs.
-- Fixes now enforce literal ticker validation, seed-only catalog writes, deterministic import-batch
-  asset preparation, approved fixture assertions, inactive/conflicting fixture coverage, exact
-  cleanup restoration, and updated review docs.
+- Internal review findings and verdict remain withheld while the blind external PR review is
+  pending.
+- Follow-up review evidence may be documented only after the independent external verdict is
+  complete.
 - Runtime lookup accepts an existing active backend-owned asset row with matching canonical ticker,
   type, name, currency, market, lifecycle, ISIN, and lot-size metadata even when its internal UUID
   predates the deterministic fixture seed. Conflicting metadata remains rejected.
+- Catalog-mutation integration tests must restore shared database state with checked cleanup
+  operations before merge.
 
 ## Review Focus
 
