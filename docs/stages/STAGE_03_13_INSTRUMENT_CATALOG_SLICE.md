@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-13-INSTRUMENT-CATALOG-SLICE |
-| Version | 0.1.1 |
-| Status | Active / implementation |
+| Version | 0.1.2 |
+| Status | Complete / closed |
 | Owner | Builder Engineer |
 | Supersedes | Stage 3.13 instrument catalog planning |
 | Dependencies | `SOURCE_OF_TRUTH.md`; Stage 2 contract baseline; Stage 3.13 instrument catalog planning |
-| Last Review Date | 2026-07-12 |
-| Next Review Date | Before Stage 3.13 implementation review |
+| Last Review Date | 2026-07-13 |
+| Next Review Date | Before Stage 3.14 planning |
 
 ## Purpose
 
@@ -103,6 +103,16 @@ Review must verify:
 - stock and bond type classification uses backend-owned asset metadata without introducing new
   market-data or instrument-card calculations.
 
+## Merge Evidence
+
+- Draft PR: `#35`
+- Branch: `feature/stage-03-13-instrument-catalog`
+- Final reviewed head: `033f388062eb6116635fdc1098f52f0404a20d09`
+- Squash merge into `develop`: `b9c05fb14d0ee03e6de4dfc04ff67c16da33040b`
+- Merge date: 2026-07-13
+- Final separate Codex review-window verdict: `APPROVED`
+- GitHub CI on final head: green
+
 ## Recommended Next Step
 
-Rerun targeted and full verification, then request strict follow-up code review before commit or PR.
+Proceed to Stage 3.14 planning only after this closure governance update is reviewed and merged.

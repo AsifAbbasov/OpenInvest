@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.20 |
+| Version | 0.1.21 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
-| Last Review Date | 2026-07-12 |
-| Next Review Date | Before Stage 3.13 implementation review |
+| Last Review Date | 2026-07-13 |
+| Next Review Date | Before Stage 3.14 planning |
 
 ## Purpose
 
@@ -665,7 +665,7 @@ Forbidden:
 
 Status:
 
-- Active / implementation branch `feature/stage-03-13-instrument-catalog`.
+- Complete / closed; merged into `develop` at `b9c05fb14d0ee03e6de4dfc04ff67c16da33040b`.
 
 ## Stage 3 domain boundaries
 

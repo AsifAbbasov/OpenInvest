@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-13-INSTRUMENT-CATALOG-PLAN |
-| Version | 0.1.2 |
+| Version | 0.1.3 |
 | Status | Complete / closed; merged into `develop` at `ca16af9adba249fc8c32c9b246b5f92f7e290b92` |
 | Owner | Builder Engineer |
 | Supersedes | Informal next-step discussion after Stage 3.12 |
 | Dependencies | `SOURCE_OF_TRUTH.md`; Stage 2 contract baseline; Stage 3.12 Web authentication UI slice |
-| Last Review Date | 2026-07-12 |
-| Next Review Date | Before Stage 3.13 implementation review |
+| Last Review Date | 2026-07-13 |
+| Next Review Date | Before Stage 3.14 planning |
 
 ## Purpose
 
@@ -148,5 +148,5 @@ Review must specifically verify:
 
 ## Recommended next step
 
-Stage 3.13 planning is closed. Continue the approved implementation slice on
-`feature/stage-03-13-instrument-catalog`, then stop before implementation review and notify the user.
+Stage 3.13 planning and implementation are closed. Continue with Stage 3.14 planning only after
+Stage 3.13 closure governance is reviewed and merged.

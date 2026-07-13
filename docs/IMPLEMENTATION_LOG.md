@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.23 |
+| Version | 1.1.24 |
 | Status | Active |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
 | Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md` |
-| Last Review Date | 2026-07-12 |
-| Next Review Date | Before Stage 3.13 implementation review |
+| Last Review Date | 2026-07-13 |
+| Next Review Date | Before Stage 3.14 planning |
 
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
 
@@ -40,7 +40,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.12 — Web Authentication UI Planning | Define the future Next.js presentation-only auth/session UI boundary before implementation | Complete / closed; merged into `develop` at `25be13ce84844562e0381b79f4b81cbfed7eb44d` | [Stage 3.12 plan](stages/STAGE_03_12_AUTH_UI_PLANNING.md) |
 | 3.12 — Web Authentication UI Slice | Implement the approved Next.js presentation-only auth/session UI boundary | Complete / closed; merged into `develop` at `b4840b60346109e3cd54a07d9e1e131fc0cfad23` | [Stage 3.12 implementation report](stages/STAGE_03_12_AUTH_UI_SLICE.md) |
 | 3.13 — Instrument Catalog Planning | Define the canonical MVP MOEX share/bond identity boundary before implementation | Complete / closed; merged into `develop` at `ca16af9adba249fc8c32c9b246b5f92f7e290b92` | [Stage 3.13 plan](stages/STAGE_03_13_INSTRUMENT_CATALOG_PLANNING.md) |
-| 3.13 — Instrument Catalog Slice | Resolve approved MOEX share/bond tickers through the backend-owned catalog boundary | Active / implementation | [Stage 3.13 implementation report](stages/STAGE_03_13_INSTRUMENT_CATALOG_SLICE.md) |
+| 3.13 — Instrument Catalog Slice | Resolve approved MOEX share/bond tickers through the backend-owned catalog boundary | Complete / closed; merged into `develop` at `b9c05fb14d0ee03e6de4dfc04ff67c16da33040b` | [Stage 3.13 implementation report](stages/STAGE_03_13_INSTRUMENT_CATALOG_SLICE.md) |
 
 ## Stage completion protocol
 
@@ -266,3 +266,13 @@ This log is the index of implementation stages. Every stage must document its pu
   operations.
 - Kept the fixes inside the backend/store/test/documentation implementation slice; no OpenAPI,
   migration, handler, frontend, provider, worker, market-data, tax, mobile, or AI scope was added.
+
+## 2026-07-13 — Stage 3.13 instrument catalog slice closed
+
+- Squash-merged PR #35 into `develop` at `b9c05fb14d0ee03e6de4dfc04ff67c16da33040b`.
+- Closed the backend-owned instrument catalog boundary after green GitHub CI and strict
+  separate-window review approval.
+- Preserved the narrow approved fixture set and explicit unsupported ticker rejection while keeping
+  provider ingestion, market-data collection, instrument cards, dividend/coupon scope, frontend,
+  mobile, tax, AI, OpenAPI changes, SQL migrations, and Go handler changes out of scope.
+- Advanced the governance baseline to Stage 3.14 planning.
