@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.1.32 |
+| Version | 1.1.33 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | Documents 42–43 |
 | Last Review Date | 2026-07-13 |
-| Next Review Date | Before Stage 3.14 planning |
+| Next Review Date | Before Stage 3.14 implementation |
 
 | Range | Version | Status under Freeze v1.2 | Priority | Owner | Review |
 | --- | --- | --- | --- | --- | --- |
@@ -38,8 +38,10 @@
 | Stage 3.11 authentication and privacy-boundary slice | 0.1.x | Closed / merged into `develop` at `5c49173ac858995929f266c2de991282dd194dec` | 3 | Principal Architect | 2027-01-09 |
 | Stage 3.12 Web authentication UI planning | 0.1.x | Closed / merged into `develop` at `25be13ce84844562e0381b79f4b81cbfed7eb44d` | 3 | Principal Architect | Before Stage 3.13 implementation review |
 | Stage 3.12 Web authentication UI slice | 0.1.x | Closed / merged into `develop` at `b4840b60346109e3cd54a07d9e1e131fc0cfad23` | 3 | Principal Architect | Before Stage 3.13 implementation review |
-| Stage 3.13 instrument catalog planning | 0.1.x | Closed / merged into `develop` at `ca16af9adba249fc8c32c9b246b5f92f7e290b92` | 3 | Principal Architect | Before Stage 3.14 planning |
-| Stage 3.13 instrument catalog slice | 0.1.x | Closed / merged into `develop` at `b9c05fb14d0ee03e6de4dfc04ff67c16da33040b` | 3 | Principal Architect | Before Stage 3.14 planning |
+| Stage 3.13 instrument catalog planning | 0.1.x | Closed / merged into `develop` at `ca16af9adba249fc8c32c9b246b5f92f7e290b92` | 3 | Principal Architect | Before Stage 3.14 implementation review |
+| Stage 3.13 instrument catalog slice | 0.1.x | Closed / merged into `develop` at `b9c05fb14d0ee03e6de4dfc04ff67c16da33040b` | 3 | Principal Architect | Before Stage 3.14 implementation review |
+| Stage 3.13 closure governance | 0.1.x | Closed / merged into `develop` at `45a298e3ba36dbe711fa27b8d044d80a77cfd74a` | 3 | Principal Architect | Before Stage 3.14 implementation review |
+| Stage 3.14 asset search/card API boundary planning | 0.1.x | Draft / active on `feature/stage-03-14-asset-api-planning` | 3 | Principal Architect | Before Stage 3.14 implementation |
 | Documents 28–39 | 2.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Document 40 | 3.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Documents 1–27, 41 | 1.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |

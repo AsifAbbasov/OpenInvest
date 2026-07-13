@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.24 |
+| Version | 1.1.25 |
 | Status | Active |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
 | Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md` |
 | Last Review Date | 2026-07-13 |
-| Next Review Date | Before Stage 3.14 planning |
+| Next Review Date | Before Stage 3.14 implementation |
 
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
 
@@ -41,6 +41,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.12 — Web Authentication UI Slice | Implement the approved Next.js presentation-only auth/session UI boundary | Complete / closed; merged into `develop` at `b4840b60346109e3cd54a07d9e1e131fc0cfad23` | [Stage 3.12 implementation report](stages/STAGE_03_12_AUTH_UI_SLICE.md) |
 | 3.13 — Instrument Catalog Planning | Define the canonical MVP MOEX share/bond identity boundary before implementation | Complete / closed; merged into `develop` at `ca16af9adba249fc8c32c9b246b5f92f7e290b92` | [Stage 3.13 plan](stages/STAGE_03_13_INSTRUMENT_CATALOG_PLANNING.md) |
 | 3.13 — Instrument Catalog Slice | Resolve approved MOEX share/bond tickers through the backend-owned catalog boundary | Complete / closed; merged into `develop` at `b9c05fb14d0ee03e6de4dfc04ff67c16da33040b` | [Stage 3.13 implementation report](stages/STAGE_03_13_INSTRUMENT_CATALOG_SLICE.md) |
+| 3.14 — Asset Search/Card API Boundary Planning | Define the future Go API asset search/detail boundary before implementation | Draft / active | [Stage 3.14 plan](stages/STAGE_03_14_ASSET_API_BOUNDARY_PLANNING.md) |
 
 ## Stage completion protocol
 
@@ -276,3 +277,14 @@ This log is the index of implementation stages. Every stage must document its pu
   provider ingestion, market-data collection, instrument cards, dividend/coupon scope, frontend,
   mobile, tax, AI, OpenAPI changes, SQL migrations, and Go handler changes out of scope.
 - Advanced the governance baseline to Stage 3.14 planning.
+
+## 2026-07-13 — Stage 3.14 asset search/card API boundary planning started
+
+- Squash-merged Stage 3.13 closure governance into `develop` at
+  `45a298e3ba36dbe711fa27b8d044d80a77cfd74a`.
+- Started documentation-only planning for a future Go API implementation of the frozen
+  `GET /api/v1/assets/search` and `GET /api/v1/assets/{ticker}` contract over the Stage 3.13
+  backend-owned catalog.
+- Kept implementation, frontend stock/bond cards, OpenAPI changes, SQL migrations, provider
+  integrations, workers, market-data ingestion, financial calculations, tax, mobile, and AI out of
+  scope.

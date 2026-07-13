@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-13-INSTRUMENT-CATALOG-PLAN |
-| Version | 0.1.3 |
+| Version | 0.1.4 |
 | Status | Complete / closed; merged into `develop` at `ca16af9adba249fc8c32c9b246b5f92f7e290b92` |
 | Owner | Builder Engineer |
 | Supersedes | Informal next-step discussion after Stage 3.12 |
 | Dependencies | `SOURCE_OF_TRUTH.md`; Stage 2 contract baseline; Stage 3.12 Web authentication UI slice |
 | Last Review Date | 2026-07-13 |
-| Next Review Date | Before Stage 3.14 planning |
+| Next Review Date | Before Stage 3.14 implementation |
 
 ## Purpose
 
@@ -148,5 +148,5 @@ Review must specifically verify:
 
 ## Recommended next step
 
-Stage 3.13 planning and implementation are closed. Continue with Stage 3.14 planning only after
-Stage 3.13 closure governance is reviewed and merged.
+Stage 3.13 planning, implementation, and closure governance are closed. Continue with Stage 3.14
+asset search/card API boundary planning.
