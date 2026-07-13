@@ -9,7 +9,7 @@
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
 | Last Review Date | 2026-07-13 |
-| Next Review Date | Before Stage 3.14 planning |
+| Next Review Date | Before Stage 3.14 implementation |
 
 ## Purpose
 
@@ -666,6 +666,38 @@ Forbidden:
 Status:
 
 - Complete / closed; merged into `develop` at `b9c05fb14d0ee03e6de4dfc04ff67c16da33040b`.
+
+### PR 3.14 — Asset search/card API boundary planning
+
+Purpose:
+
+- define the future Go API implementation boundary for the frozen Stage 2 asset search and asset
+  detail endpoints before implementation.
+
+Allowed:
+
+- documentation-only planning;
+- use of the Stage 3.13 backend-owned catalog as the future data source;
+- explicit placeholder policy for any required Stage 2 asset fields not yet backed by live market
+  data;
+- acceptance criteria, forbidden scope, and review focus for a later implementation PR;
+- governance registry updates.
+
+Forbidden:
+
+- implementation code;
+- OpenAPI changes;
+- SQL migrations;
+- Go handler changes;
+- frontend implementation;
+- external provider integrations;
+- market-data ingestion;
+- financial calculations;
+- workers, tax, mobile, AI, or Stage 3.14 implementation work.
+
+Status:
+
+- Draft / active on `feature/stage-03-14-asset-api-planning`.
 
 ## Stage 3 domain boundaries
 

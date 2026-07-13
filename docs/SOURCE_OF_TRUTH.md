@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.32 |
+| Version | 1.4.33 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
 | Last Review Date | 2026-07-13 |
-| Next Review Date | Before Stage 3.14 planning |
+| Next Review Date | Before Stage 3.14 implementation |
 
 ## Architecture status
 
@@ -17,8 +17,8 @@
 **Documentation Freeze: ACTIVE**
 **Last completed implementation stage: Stage 3.13 — Instrument Catalog Slice**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `b9c05fb14d0ee03e6de4dfc04ff67c16da33040b`**
-**Current active work item: Stage 3.13 closure governance on `feature/stage-03-13-closure`**
+**Current canonical implementation baseline: `develop` at `45a298e3ba36dbe711fa27b8d044d80a77cfd74a`**
+**Current active work item: Stage 3.14 asset search/card API boundary planning on `feature/stage-03-14-asset-api-planning`**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -147,7 +147,10 @@ asset-catalog fixture resolution, supported ticker validation, existing asset ta
 snapshot stock/bond bucket classification from backend-owned asset type, tests, and documentation.
 It does not authorize OpenAPI changes, SQL migrations, Go handler changes, frontend work, provider
 integrations, workers, market-data ingestion, stock/bond cards, dividend/coupon scope, tax, mobile,
-or AI. Stage 3.13 closure governance is active on `feature/stage-03-13-closure`.
+or AI. Stage 3.13 closure governance is merged into `develop` at
+`45a298e3ba36dbe711fa27b8d044d80a77cfd74a`. Stage 3.14 asset search/card API
+boundary planning is active on `feature/stage-03-14-asset-api-planning`; it is documentation-only
+and does not authorize implementation until reviewed and merged.
 
 ## Financial standard
 

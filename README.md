@@ -3,24 +3,14 @@
 OpenInvest is an independent, privacy-first investment analytics platform. It is not a broker, bank, asset manager, trading system, or investment adviser.
 
 This repository contains the closed Stage 2 contract/canonical-model baseline, the accepted Next.js
-Web presentation-layer baseline, the merged Stage 3.2 Go API vertical-slice backend, the closed
-Stage 3.3 Web presentation slice, the closed Stage 3.4 end-to-end verification layer, the closed
-Stage 3.5 broker-file import/reconciliation design, and the closed Stage 3.6 import reconciliation
-slice.
+Web presentation-layer baseline, and the staged Stage 3 MVP vertical-slice implementation.
 
-Stage 3.6 added an internal CSV parser/review/append-plan slice only: no public import API, broker
-API, upload UI, SQL migration, worker, or automatic ledger append was introduced.
-Stage 3.7 is closed and added internal atomic append of user-approved import rows with atomic
-PostgreSQL persistence, duplicate revalidation, idempotency protection, audit evidence, and
-deterministic snapshot rebuilds. Stage 3.8 is closed and added the internal import review → append
-flow integration. Stage 3.9 is closed and added the public Go API boundary for transient CSV import
-review and explicit append. Stage 3.10 is closed and added a presentation-only Web import
-upload/review panel over the Go API. Stage 3.11 planning is closed and Stage 3.11 implementation is
-closed for the approved Go API authentication, privacy-default, CSRF, and rotating-session boundary
-that replaces the local development subject without adding frontend auth UI. Stage 3.12 Web
-authentication UI planning is closed and Stage 3.12 implementation is active for the
-presentation-only registration, login, session shell, refresh, and logout UI over the existing Go
-API.
+Stage 3 currently has closed slices for the local database foundation, portfolio/transaction
+vertical slice, Next.js presentation shell, end-to-end verification, CSV import/reconciliation,
+authentication/privacy boundaries, Web authentication UI, and backend-owned instrument catalog.
+The current active work is Stage 3.14 planning for the future Go API asset search/detail boundary
+over the approved local catalog. No Stage 3.14 implementation is authorized until that planning PR
+is reviewed and merged.
 Product-risk refinement is closed and remains part of the MVP governance baseline.
 
 ## Components
