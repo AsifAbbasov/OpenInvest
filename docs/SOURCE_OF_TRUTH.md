@@ -3,22 +3,22 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.31 |
+| Version | 1.4.32 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
-| Last Review Date | 2026-07-12 |
-| Next Review Date | Before Stage 3.13 implementation review |
+| Last Review Date | 2026-07-13 |
+| Next Review Date | Before Stage 3.14 planning |
 
 ## Architecture status
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.12 — Web Authentication UI Slice**
+**Last completed implementation stage: Stage 3.13 — Instrument Catalog Slice**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `ca16af9adba249fc8c32c9b246b5f92f7e290b92`**
-**Current active work item: Stage 3.13 instrument catalog implementation on `feature/stage-03-13-instrument-catalog`**
+**Current canonical implementation baseline: `develop` at `b9c05fb14d0ee03e6de4dfc04ff67c16da33040b`**
+**Current active work item: Stage 3.13 closure governance on `feature/stage-03-13-closure`**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -141,12 +141,13 @@ authentication UI implementation is closed and merged into `develop` at
 `b4840b60346109e3cd54a07d9e1e131fc0cfad23`. Stage 3.12 closure governance is merged into
 `develop` at `321eaf4f75df83d85fd356a8d6a454e49bbc4db4`. Stage 3.13 instrument catalog planning is
 merged into `develop` at `ca16af9adba249fc8c32c9b246b5f92f7e290b92`. Stage 3.13 instrument
-catalog implementation is active on `feature/stage-03-13-instrument-catalog`; it is limited to backend-owned
-approved asset-catalog fixture resolution, supported ticker validation, existing asset table usage,
+catalog implementation is closed and merged into `develop` at
+`b9c05fb14d0ee03e6de4dfc04ff67c16da33040b`; it is limited to backend-owned approved
+asset-catalog fixture resolution, supported ticker validation, existing asset table usage,
 snapshot stock/bond bucket classification from backend-owned asset type, tests, and documentation.
 It does not authorize OpenAPI changes, SQL migrations, Go handler changes, frontend work, provider
 integrations, workers, market-data ingestion, stock/bond cards, dividend/coupon scope, tax, mobile,
-or AI.
+or AI. Stage 3.13 closure governance is active on `feature/stage-03-13-closure`.
 
 ## Financial standard
 
@@ -179,7 +180,7 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 | --- | --- | --- |
 | Registration and privacy defaults | Yes | Stage 3.12 closed; Go API auth plus presentation-only Web auth UI |
 | Portfolio and transactions | Yes | Stage 3.4 verification closed |
-| MOEX shares and bonds | Yes | Stage 3.13 instrument catalog implementation active |
+| MOEX shares and bonds | Yes | Stage 3.13 instrument catalog slice closed |
 | Dashboard and snapshots | Yes | Stage 3.4 verification closed |
 | WAC, XIRR, real/inflation returns | Yes | Planned |
 | Dividend calculator/calendar | Yes | Planned |

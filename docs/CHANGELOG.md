@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.24 |
+| Version | 1.1.25 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-07-12 |
-| Next Review Date | Before Stage 3.13 implementation review |
+| Last Review Date | 2026-07-13 |
+| Next Review Date | Before Stage 3.14 planning |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -391,3 +391,14 @@
   internal UUID compatibility when all canonical metadata matches.
 - Required catalog-mutation integration tests to restore any temporary shared database state with
   checked cleanup operations.
+
+## 2026-07-13 — Stage 3.13 instrument catalog slice closed
+
+- Squash-merged PR #35 into `develop` at `b9c05fb14d0ee03e6de4dfc04ff67c16da33040b`.
+- Closed the backend-owned instrument catalog boundary after green CI and strict separate-window
+  review approval.
+- Updated governance registries and the Stage 3 plan to mark Stage 3.13 complete and advance the
+  next review gate to Stage 3.14 planning.
+- Kept OpenAPI changes, SQL migrations, Go handler changes, frontend work, provider integrations,
+  workers, market-data ingestion, stock/bond cards, dividend/coupon scope, tax, mobile, AI, and
+  Stage 3.14 implementation out of scope.

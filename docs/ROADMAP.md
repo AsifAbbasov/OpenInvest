@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.29 |
+| Version | 1.1.30 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
 | Dependencies | Architecture Freeze v1.2 |
-| Last Review Date | 2026-07-12 |
-| Next Review Date | Before Stage 3.13 implementation review |
+| Last Review Date | 2026-07-13 |
+| Next Review Date | Before Stage 3.14 planning |
 
 | Stage | Outcome | State |
 | --- | --- | --- |
@@ -37,7 +37,7 @@
 | 3.12 — Web authentication UI planning | Define the future Next.js presentation-only auth/session UI boundary | Complete |
 | 3.12 — Web authentication UI slice | Expose registration, login, session shell, refresh, and logout in Next.js presentation only | Complete |
 | 3.13 — Instrument catalog planning | Define canonical MVP MOEX share/bond identity before implementation | Complete |
-| 3.13 — Instrument catalog slice | Resolve approved MOEX share/bond tickers through the backend-owned catalog boundary | Active / implementation |
+| 3.13 — Instrument catalog slice | Resolve approved MOEX share/bond tickers through the backend-owned catalog boundary | Complete |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
