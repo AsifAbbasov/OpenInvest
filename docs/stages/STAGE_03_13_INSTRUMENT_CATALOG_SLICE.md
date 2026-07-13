@@ -74,10 +74,15 @@ This slice does not add:
 - `backend-go`: `OPENINVEST_DATABASE_TEST_URL='postgres://openinvest:openinvest-local@127.0.0.1:55432/openinvest?sslmode=disable' GOCACHE=/private/tmp/openinvest-gocache go test ./internal/postgres -run 'TestStoreAppendTransaction(RejectsUnsupportedTicker|SeedsApprovedBondFixture|AcceptsCanonicalFixtureWithLegacyID|DoesNotReactivateInactiveFixture|RejectsConflictingActiveFixture)|TestStoreVerticalSlice|TestStoreAppendImportedTransactionsIsAtomicAndIdempotent' -count=1 -v`
 - Repository root: `GOCACHE=/private/tmp/openinvest-gocache UV_CACHE_DIR=/private/tmp/openinvest-uv-cache pnpm run verify`
 
-## Review Gate Status
+## Internal Review Evidence
 
-- Internal review findings and verdict remain withheld while the blind external PR review is
-  pending.
+- Changed files reviewed: `WITHHELD — blind external review pending`.
+- Review verdict: `WITHHELD — blind external review pending`.
+- Blocking findings: `WITHHELD — blind external review pending`.
+- Resolved findings: `WITHHELD — blind external review pending`.
+- Remaining non-blocking notes: `WITHHELD — blind external review pending`.
+- Confirmation that Review Agent did not edit code:
+  `WITHHELD — blind external review pending`.
 - Follow-up review evidence may be documented only after the independent external verdict is
   complete.
 - Runtime lookup accepts an existing active backend-owned asset row with matching canonical ticker,
