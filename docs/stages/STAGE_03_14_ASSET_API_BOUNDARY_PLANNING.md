@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-14-ASSET-API-BOUNDARY-PLAN |
-| Version | 0.1.0 |
+| Version | 0.1.1 |
 | Status | Draft / planning |
 | Owner | Builder Engineer |
 | Supersedes | Informal next-step discussion after Stage 3.13 |

@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-13-INSTRUMENT-CATALOG-PLAN |
-| Version | 0.1.3 |
+| Version | 0.1.4 |
 | Status | Complete / closed; merged into `develop` at `ca16af9adba249fc8c32c9b246b5f92f7e290b92` |
 | Owner | Builder Engineer |
 | Supersedes | Informal next-step discussion after Stage 3.12 |
