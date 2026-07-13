@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.27 |
+| Version | 1.1.28 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-07-13 |
-| Next Review Date | Before Stage 3.14 implementation |
+| Next Review Date | Before Stage 3.14 merge |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -423,3 +423,17 @@
   invented sector, face value, maturity, coupon type, price, coupon event, or analytics values.
 - Published Stage 3.13 internal review evidence after the independent external verdict and closure
   merge.
+
+## 2026-07-13 — Stage 3.14 asset API boundary slice started
+
+- Squash-merged Stage 3.14 planning PR #37 into `develop` at
+  `2c4f7853599a455bb0cc04114b338a1145baf39c`.
+- Started the backend-only implementation slice on `feature/stage-03-14-asset-api-boundary`.
+- Added the implementation report for the public Go API asset search/detail boundary over the
+  approved Stage 3.13 local catalog.
+- Scoped implementation to backend asset search summaries with `lastPrice: null` and a wired but
+  deferred asset-detail boundary until registered runtime provenance and mandatory detail fields are
+  available.
+- Kept OpenAPI changes, SQL migrations, external provider integrations, market-data ingestion,
+  frontend stock/bond cards, workers, financial calculations, tax, mobile, AI, and Stage 3.15 out
+  of scope.

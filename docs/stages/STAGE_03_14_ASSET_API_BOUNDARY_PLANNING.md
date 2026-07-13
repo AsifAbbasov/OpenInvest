@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-14-ASSET-API-BOUNDARY-PLAN |
-| Version | 0.1.1 |
-| Status | Draft / planning |
+| Version | 0.1.2 |
+| Status | Complete / closed; merged into `develop` |
 | Owner | Builder Engineer |
 | Supersedes | Informal next-step discussion after Stage 3.13 |
 | Dependencies | `SOURCE_OF_TRUTH.md`; Stage 2 contract baseline; Stage 3.13 instrument catalog slice |
 | Last Review Date | 2026-07-13 |
-| Next Review Date | Before Stage 3.14 implementation |
+| Next Review Date | Before Stage 3.14 merge |
 
 ## Purpose
 
@@ -144,5 +144,5 @@ Review must specifically verify:
 
 ## Recommended next step
 
-After this planning PR is reviewed and merged, start a separate Stage 3.14 implementation feature
-branch for the Go API asset search/detail boundary only.
+Stage 3.14 implementation is active separately on `feature/stage-03-14-asset-api-boundary` for the
+Go API asset search/detail boundary only.

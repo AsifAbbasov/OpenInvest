@@ -60,6 +60,8 @@ func newApp(api *API) *fiber.App {
 	app.Post("/api/v1/auth/login", api.login)
 	app.Post("/api/v1/auth/refresh", api.refresh)
 	app.Post("/api/v1/auth/logout", api.logout)
+	app.Get("/api/v1/assets/search", api.searchAssets)
+	app.Get("/api/v1/assets/:ticker", api.getAsset)
 	app.Get("/api/v1/portfolios", api.listPortfolios)
 	app.Post("/api/v1/portfolios", api.createPortfolio)
 	app.Get("/api/v1/portfolios/:portfolioId", api.getPortfolio)
@@ -237,6 +239,45 @@ func (api *API) logout(c fiber.Ctx) error {
 	}
 	api.clearRefreshCookie(c)
 	return writeStatusWithMeta(c, meta, http.StatusOK, logoutResultDTO{Revoked: revoked})
+}
+
+func (api *API) searchAssets(c fiber.Ctx) error {
+	limit, err := queryLimitStrict(c, 20)
+	if err != nil {
+		return writeMappedError(c, err)
+	}
+	assetType, err := optionalQueryValue(c, "assetType")
+	if err != nil {
+		return writeMappedError(c, err)
+	}
+	cursor, err := optionalQueryValue(c, "cursor")
+	if err != nil {
+		return writeMappedError(c, err)
+	}
+	result, err := api.service.SearchAssets(c.Context(), verticalslice.AssetSearchFilter{
+		Query:     c.Query("query"),
+		AssetType: assetType,
+		Cursor:    cursor,
+		Limit:     limit,
+	})
+	if err != nil {
+		return writeMappedError(c, err)
+	}
+	return writeOK(c, listData[assetSummaryDTO]{
+		Items: mapAssetSummaries(result.Items),
+		Pagination: paginationDTO{
+			NextCursor: result.NextCursor,
+			HasMore:    result.HasMore,
+			Limit:      result.Limit,
+		},
+	})
+}
+
+func (api *API) getAsset(c fiber.Ctx) error {
+	if _, err := api.service.GetAsset(c.Context(), c.Params("ticker")); err != nil {
+		return writeMappedError(c, err)
+	}
+	return writeMappedError(c, verticalslice.ErrNotFound)
 }
 
 func (api *API) listPortfolios(c fiber.Ctx) error {
@@ -498,6 +539,41 @@ func queryLimit(c fiber.Ctx, fallback int) int {
 	return value
 }
 
+func queryLimitStrict(c fiber.Ctx, fallback int) (int, error) {
+	raw, present := queryValue(c, "limit")
+	if !present {
+		return fallback, nil
+	}
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		return 0, fmt.Errorf("%w: limit must be an integer between 1 and 100", verticalslice.ErrInvalidInput)
+	}
+	value, err := strconv.Atoi(trimmed)
+	if err != nil || value < 1 || value > 100 {
+		return 0, fmt.Errorf("%w: limit must be an integer between 1 and 100", verticalslice.ErrInvalidInput)
+	}
+	return value, nil
+}
+
+func optionalQueryValue(c fiber.Ctx, name string) (string, error) {
+	raw, present := queryValue(c, name)
+	if !present {
+		return "", nil
+	}
+	if strings.TrimSpace(raw) == "" {
+		return "", fmt.Errorf("%w: %s must not be empty when supplied", verticalslice.ErrInvalidInput, name)
+	}
+	return raw, nil
+}
+
+func queryValue(c fiber.Ctx, name string) (string, bool) {
+	args := c.Request().URI().QueryArgs()
+	if !args.Has(name) {
+		return "", false
+	}
+	return string(args.Peek(name)), true
+}
+
 func writeOK(c fiber.Ctx, data any) error {
 	return writeStatus(c, http.StatusOK, data)
 }
@@ -535,6 +611,8 @@ func writeMappedErrorWithMeta(c fiber.Ctx, meta metaDTO, err error) error {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
 	case errors.Is(err, verticalslice.ErrMissingIdempotency):
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Idempotency-Key header is required")
+	case errors.Is(err, verticalslice.ErrNotFound):
+		return writeErrorWithMeta(c, meta, http.StatusNotFound, "NOT_FOUND", "Resource not found")
 	case errors.Is(err, importer.ErrInvalidImport):
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
 	case errors.Is(err, importer.ErrUnsafeAppend):
@@ -746,6 +824,15 @@ type portfolioDTO struct {
 type moneyDTO struct {
 	Amount   string `json:"amount"`
 	Currency string `json:"currency"`
+}
+
+type assetSummaryDTO struct {
+	Ticker    string    `json:"ticker"`
+	Name      string    `json:"name"`
+	AssetType string    `json:"assetType"`
+	Currency  string    `json:"currency"`
+	LotSize   string    `json:"lotSize"`
+	LastPrice *moneyDTO `json:"lastPrice"`
 }
 
 type appendTransactionRequestDTO struct {
@@ -1029,6 +1116,21 @@ func mapUser(user auth.StoredUser) userDTO {
 		PrivacyMode: user.PrivacyMode,
 		CreatedAt:   user.CreatedAt.UTC().Format(time.RFC3339),
 	}
+}
+
+func mapAssetSummaries(items []verticalslice.AssetSummary) []assetSummaryDTO {
+	mapped := make([]assetSummaryDTO, 0, len(items))
+	for _, item := range items {
+		mapped = append(mapped, assetSummaryDTO{
+			Ticker:    item.Ticker,
+			Name:      item.Name,
+			AssetType: item.AssetType,
+			Currency:  item.Currency,
+			LotSize:   item.LotSize.String(),
+			LastPrice: mapOptionalMoney(item.LastPrice),
+		})
+	}
+	return mapped
 }
 
 func mapAuthSession(session auth.ClientSession) authSessionDTO {

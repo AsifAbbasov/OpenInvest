@@ -80,6 +80,10 @@ func (unavailableStore) Ping(context.Context) error {
 	return errors.New("database url is not configured")
 }
 
+func (unavailableStore) SearchAssets(context.Context, verticalslice.AssetSearchFilter) ([]verticalslice.AssetSummary, error) {
+	return nil, errors.New("database url is not configured")
+}
+
 func (unavailableStore) ListPortfolios(context.Context, string, int) ([]verticalslice.Portfolio, error) {
 	return nil, errors.New("database url is not configured")
 }

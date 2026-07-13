@@ -82,6 +82,78 @@ func (s *Store) Ping(ctx context.Context) error {
 	return s.db.PingContext(ctx)
 }
 
+func (s *Store) SearchAssets(ctx context.Context, filter verticalslice.AssetSearchFilter) ([]verticalslice.AssetSummary, error) {
+	approvedTickers := make([]string, 0, len(approvedAssetFixtures))
+	for ticker := range approvedAssetFixtures {
+		approvedTickers = append(approvedTickers, ticker)
+	}
+	sort.Strings(approvedTickers)
+
+	args := []any{likePrefixPattern(filter.Query), likeContainsPattern(filter.Query)}
+	conditions := []string{
+		"lifecycle_status = 'active'",
+		"currency = 'RUB'",
+		"market = 'MOEX'",
+		"(ticker ILIKE $1 ESCAPE '\\' OR name ILIKE $2 ESCAPE '\\')",
+	}
+	if filter.AssetType != "" {
+		args = append(args, strings.ToLower(filter.AssetType))
+		conditions = append(conditions, "asset_type = $"+strconv.Itoa(len(args)))
+	}
+	if filter.Cursor != "" {
+		args = append(args, filter.Cursor)
+		conditions = append(conditions, "ticker > $"+strconv.Itoa(len(args)))
+	}
+	canonicalFixtureConditions := make([]string, 0, len(approvedTickers))
+	for _, ticker := range approvedTickers {
+		fixture := approvedAssetFixtures[ticker]
+		args = append(args, fixture.Ticker)
+		tickerPlaceholder := "$" + strconv.Itoa(len(args))
+		args = append(args, fixture.AssetType)
+		assetTypePlaceholder := "$" + strconv.Itoa(len(args))
+		args = append(args, fixture.Name)
+		namePlaceholder := "$" + strconv.Itoa(len(args))
+		args = append(args, fixture.ISIN)
+		isinPlaceholder := "$" + strconv.Itoa(len(args))
+		args = append(args, fixture.LotSize)
+		lotSizePlaceholder := "$" + strconv.Itoa(len(args))
+		canonicalFixtureConditions = append(canonicalFixtureConditions, "("+strings.Join([]string{
+			"ticker = " + tickerPlaceholder,
+			"asset_type = " + assetTypePlaceholder,
+			"name = " + namePlaceholder,
+			"((" + isinPlaceholder + "::text IS NULL AND isin IS NULL) OR isin = " + isinPlaceholder + "::text)",
+			"lot_size = " + lotSizePlaceholder + "::numeric",
+		}, " AND ")+")")
+	}
+	conditions = append(conditions, "("+strings.Join(canonicalFixtureConditions, " OR ")+")")
+	args = append(args, filter.Limit)
+	limitPlaceholder := "$" + strconv.Itoa(len(args))
+
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT ticker, name, asset_type, currency, isin, lot_size::text
+		FROM investment.assets
+		WHERE `+strings.Join(conditions, " AND ")+`
+		ORDER BY ticker ASC
+		LIMIT `+limitPlaceholder+`
+	`, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	assets := []verticalslice.AssetSummary{}
+	for rows.Next() {
+		asset, ok, err := scanApprovedAssetSummary(rows)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			assets = append(assets, asset)
+		}
+	}
+	return assets, rows.Err()
+}
+
 func (s *Store) ListPortfolios(ctx context.Context, subjectID string, limit int) ([]verticalslice.Portfolio, error) {
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT id, name, base_currency, version, created_at, updated_at
@@ -365,6 +437,51 @@ func (s *Store) GetPortfolioSummary(ctx context.Context, subjectID string, portf
 
 type scanner interface {
 	Scan(dest ...any) error
+}
+
+func scanApprovedAssetSummary(row scanner) (verticalslice.AssetSummary, bool, error) {
+	var ticker string
+	var name string
+	var assetType string
+	var currency string
+	var isin sql.NullString
+	var lotSizeText string
+	if err := row.Scan(&ticker, &name, &assetType, &currency, &isin, &lotSizeText); err != nil {
+		return verticalslice.AssetSummary{}, false, err
+	}
+	fixture, ok := approvedAssetFixture(ticker)
+	if !ok || fixture.Name != name || fixture.AssetType != assetType || currency != verticalslice.RUB {
+		return verticalslice.AssetSummary{}, false, nil
+	}
+	if (fixture.ISIN == nil && isin.Valid) || (fixture.ISIN != nil && (!isin.Valid || isin.String != *fixture.ISIN)) {
+		return verticalslice.AssetSummary{}, false, nil
+	}
+	lotSize, err := decimal.FromString(lotSizeText)
+	if err != nil {
+		return verticalslice.AssetSummary{}, false, err
+	}
+	fixtureLotSize := decimal.Must(fixture.LotSize)
+	if !lotSize.Equal(fixtureLotSize) {
+		return verticalslice.AssetSummary{}, false, nil
+	}
+	return verticalslice.AssetSummary{
+		Ticker:    ticker,
+		Name:      name,
+		AssetType: strings.ToUpper(assetType),
+		Currency:  currency,
+		LotSize:   fixtureLotSize,
+		LastPrice: nil,
+	}, true, nil
+}
+
+func likeContainsPattern(value string) string {
+	replacer := strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`)
+	return "%" + replacer.Replace(value) + "%"
+}
+
+func likePrefixPattern(value string) string {
+	replacer := strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`)
+	return replacer.Replace(value) + "%"
 }
 
 type queryer interface {

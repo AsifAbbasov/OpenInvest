@@ -402,6 +402,117 @@ func TestStoreAppendTransactionSeedsApprovedBondFixture(t *testing.T) {
 	}
 }
 
+func TestStoreSearchAssetsReturnsOnlyActiveCanonicalFixtures(t *testing.T) {
+	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
+	if databaseURL == "" {
+		t.Skip("OPENINVEST_DATABASE_TEST_URL is not set")
+	}
+
+	store, err := postgres.Open(databaseURL)
+	if err != nil {
+		t.Fatalf("open postgres store: %v", err)
+	}
+	defer store.Close()
+
+	db, err := sql.Open("pgx", databaseURL)
+	if err != nil {
+		t.Fatalf("open catalog setup db: %v", err)
+	}
+	closeDBOnCleanup(t, db, "test")
+
+	ctx := context.Background()
+	tickers := []string{"SBER", "GAZP", "SU26238RMFS4"}
+	previousRows := make(map[string]assetRowSnapshot, len(tickers))
+	for _, ticker := range tickers {
+		previousRows[ticker] = snapshotAssetRow(t, ctx, db, ticker)
+	}
+	t.Cleanup(func() {
+		for _, ticker := range tickers {
+			restoreAssetRow(t, ctx, db, ticker, previousRows[ticker])
+		}
+	})
+
+	sberID := "00000000-0000-4000-8000-00000000a001"
+	if previousRows["SBER"].Exists {
+		sberID = previousRows["SBER"].ID
+	}
+	gazpID := "00000000-0000-4000-8000-00000000a002"
+	if previousRows["GAZP"].Exists {
+		gazpID = previousRows["GAZP"].ID
+	}
+	bondID := "00000000-0000-4000-8000-00000000b001"
+	if previousRows["SU26238RMFS4"].Exists {
+		bondID = previousRows["SU26238RMFS4"].ID
+	}
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO investment.assets (
+			id, ticker, asset_type, name, currency, market, lifecycle_status, isin, lot_size, updated_at
+		)
+		VALUES
+			($1, 'SBER', 'stock', 'Sberbank ordinary shares', 'RUB', 'MOEX', 'active', 'RU0009029540', 10::numeric, now()),
+			($2, 'SU26238RMFS4', 'bond', 'OFZ 26238', 'RUB', 'MOEX', 'active', 'RU000A1038V6', 1::numeric, now()),
+			($3, 'GAZP', 'stock', 'Gazprom ordinary shares', 'RUB', 'MOEX', 'active', 'RU0000000000', 10::numeric, now())
+		ON CONFLICT (ticker) DO UPDATE SET
+			asset_type = EXCLUDED.asset_type,
+			name = EXCLUDED.name,
+			currency = EXCLUDED.currency,
+			market = EXCLUDED.market,
+			lifecycle_status = EXCLUDED.lifecycle_status,
+			isin = EXCLUDED.isin,
+			lot_size = EXCLUDED.lot_size,
+			updated_at = EXCLUDED.updated_at
+	`, sberID, bondID, gazpID)
+	if err != nil {
+		t.Fatalf("seed search catalog rows: %v", err)
+	}
+
+	service := verticalslice.NewService(store, verticalslice.SystemClock{})
+	assets, err := service.SearchAssets(ctx, verticalslice.AssetSearchFilter{Query: "S", Limit: 20})
+	if err != nil {
+		t.Fatalf("search assets: %v", err)
+	}
+	if len(assets.Items) != 2 {
+		t.Fatalf("expected SBER and SU26238RMFS4, got %+v", assets)
+	}
+	if assets.Items[0].Ticker != "SBER" || assets.Items[0].AssetType != "STOCK" || assets.Items[0].LastPrice != nil {
+		t.Fatalf("unexpected first asset summary: %+v", assets.Items[0])
+	}
+	if assets.Items[1].Ticker != "SU26238RMFS4" || assets.Items[1].AssetType != "BOND" || assets.Items[1].LastPrice != nil {
+		t.Fatalf("unexpected second asset summary: %+v", assets.Items[1])
+	}
+
+	stocks, err := service.SearchAssets(ctx, verticalslice.AssetSearchFilter{Query: "S", AssetType: "STOCK", Limit: 20})
+	if err != nil {
+		t.Fatalf("search stock assets: %v", err)
+	}
+	if len(stocks.Items) != 1 || stocks.Items[0].Ticker != "SBER" {
+		t.Fatalf("expected only active SBER stock, got %+v", stocks)
+	}
+
+	tickerContainsOnly, err := service.SearchAssets(ctx, verticalslice.AssetSearchFilter{Query: "RMFS", Limit: 20})
+	if err != nil {
+		t.Fatalf("search ticker contains-only fragment: %v", err)
+	}
+	if len(tickerContainsOnly.Items) != 0 {
+		t.Fatalf("expected ticker contains-only fragment not to match ticker without name fragment, got %+v", tickerContainsOnly)
+	}
+
+	firstPage, err := service.SearchAssets(ctx, verticalslice.AssetSearchFilter{Query: "S", Limit: 1})
+	if err != nil {
+		t.Fatalf("search first page: %v", err)
+	}
+	if !firstPage.HasMore || firstPage.NextCursor == nil || len(firstPage.Items) != 1 || firstPage.Items[0].Ticker != "SBER" {
+		t.Fatalf("unexpected first page: %+v", firstPage)
+	}
+	secondPage, err := service.SearchAssets(ctx, verticalslice.AssetSearchFilter{Query: "S", Cursor: *firstPage.NextCursor, Limit: 1})
+	if err != nil {
+		t.Fatalf("search second page: %v", err)
+	}
+	if secondPage.HasMore || secondPage.NextCursor != nil || len(secondPage.Items) != 1 || secondPage.Items[0].Ticker != "SU26238RMFS4" {
+		t.Fatalf("unexpected second page: %+v", secondPage)
+	}
+}
+
 func TestStoreAppendTransactionAcceptsCanonicalFixtureWithLegacyID(t *testing.T) {
 	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
 	if databaseURL == "" {

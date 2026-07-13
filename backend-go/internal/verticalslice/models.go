@@ -21,6 +21,7 @@ func (SystemClock) Now() time.Time {
 
 type Store interface {
 	Ping(ctx context.Context) error
+	SearchAssets(ctx context.Context, filter AssetSearchFilter) ([]AssetSummary, error)
 	ListPortfolios(ctx context.Context, subjectID string, limit int) ([]Portfolio, error)
 	CreatePortfolio(ctx context.Context, command CommandContext, request CreatePortfolioRequest) (Portfolio, error)
 	GetPortfolio(ctx context.Context, subjectID string, portfolioID string) (Portfolio, error)
@@ -43,6 +44,29 @@ type CommandContext struct {
 type RequestContext struct {
 	RequestID string
 	TraceID   string
+}
+
+type AssetSearchFilter struct {
+	Query     string
+	AssetType string
+	Cursor    string
+	Limit     int
+}
+
+type AssetSearchResult struct {
+	Items      []AssetSummary
+	NextCursor *string
+	HasMore    bool
+	Limit      int
+}
+
+type AssetSummary struct {
+	Ticker    string
+	Name      string
+	AssetType string
+	Currency  string
+	LotSize   decimal.Decimal
+	LastPrice *Money
 }
 
 type CreatePortfolioRequest struct {
