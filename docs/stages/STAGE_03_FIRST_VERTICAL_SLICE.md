@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.22 |
+| Version | 0.1.23 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
 | Last Review Date | 2026-07-13 |
-| Next Review Date | Before Stage 3.14 implementation |
+| Next Review Date | Before Stage 3.14 merge |
 
 ## Purpose
 
@@ -697,7 +697,41 @@ Forbidden:
 
 Status:
 
-- Draft / active on `feature/stage-03-14-asset-api-planning`.
+- Complete / closed; merged into `develop` at `2c4f7853599a455bb0cc04114b338a1145baf39c`.
+
+### PR 3.14 — Asset search/card API boundary slice
+
+Purpose:
+
+- expose the frozen Stage 2 public asset search/detail API boundary through Go without fabricating
+  market data, source provenance, or mandatory detail fields.
+
+Allowed:
+
+- Go HTTP handlers for asset search and asset detail route wiring;
+- service/store read methods over the existing `investment.assets` table;
+- search summaries for active canonical approved fixture rows;
+- `lastPrice: null` while no market-data source is approved;
+- deferred `GET /api/v1/assets/{ticker}` behavior when mandatory source/detail fields cannot be
+  populated honestly;
+- backend tests and documentation updates.
+
+Forbidden:
+
+- OpenAPI changes;
+- SQL migrations;
+- new catalog columns;
+- frontend stock or bond cards;
+- external provider integrations;
+- market-data ingestion;
+- price placeholders;
+- runtime `EXAMPLE_*` source identifiers;
+- financial calculations;
+- workers, tax, mobile, AI, or Stage 3.15 work.
+
+Status:
+
+- Draft / active on `feature/stage-03-14-asset-api-boundary`.
 
 ## Stage 3 domain boundaries
 

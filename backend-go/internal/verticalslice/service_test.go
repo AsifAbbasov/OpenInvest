@@ -3,6 +3,7 @@ package verticalslice
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -17,9 +18,33 @@ func (fixedClock) Now() time.Time {
 
 type recordingStore struct {
 	requestHash string
+	assetFilter AssetSearchFilter
+	assets      []AssetSummary
 }
 
 func (store *recordingStore) Ping(context.Context) error { return nil }
+
+func (store *recordingStore) SearchAssets(_ context.Context, filter AssetSearchFilter) ([]AssetSummary, error) {
+	store.assetFilter = filter
+	if len(store.assets) == 0 {
+		return []AssetSummary{}, nil
+	}
+	start := 0
+	if filter.Cursor != "" {
+		for index, asset := range store.assets {
+			if asset.Ticker > filter.Cursor {
+				start = index
+				break
+			}
+			start = index + 1
+		}
+	}
+	end := start + filter.Limit
+	if end > len(store.assets) {
+		end = len(store.assets)
+	}
+	return store.assets[start:end], nil
+}
 
 func (store *recordingStore) ListPortfolios(context.Context, string, int) ([]Portfolio, error) {
 	return nil, nil
@@ -50,6 +75,116 @@ func (store *recordingStore) AppendImportedTransactions(_ context.Context, comma
 
 func (store *recordingStore) GetPortfolioSummary(context.Context, string, string, string) (PortfolioSummary, error) {
 	return PortfolioSummary{}, nil
+}
+
+func TestSearchAssetsRequiresQuery(t *testing.T) {
+	service := NewService(&recordingStore{}, fixedClock{})
+
+	_, err := service.SearchAssets(context.Background(), AssetSearchFilter{Query: " "})
+
+	if !errors.Is(err, ErrInvalidInput) {
+		t.Fatalf("expected invalid input, got %v", err)
+	}
+}
+
+func TestSearchAssetsRejectsAssetTypeOutsideFrozenEnum(t *testing.T) {
+	service := NewService(&recordingStore{}, fixedClock{})
+
+	_, err := service.SearchAssets(context.Background(), AssetSearchFilter{Query: "SBER", AssetType: "ETF"})
+
+	if !errors.Is(err, ErrInvalidInput) {
+		t.Fatalf("expected invalid input, got %v", err)
+	}
+}
+
+func TestSearchAssetsAllowsOneHundredUnicodeCharacters(t *testing.T) {
+	store := &recordingStore{}
+	service := NewService(store, fixedClock{})
+
+	query := strings.Repeat("Ж", 100)
+	if _, err := service.SearchAssets(context.Background(), AssetSearchFilter{Query: query}); err != nil {
+		t.Fatalf("expected 100 unicode characters to be accepted, got %v", err)
+	}
+}
+
+func TestSearchAssetsRejectsMoreThanOneHundredUnicodeCharacters(t *testing.T) {
+	service := NewService(&recordingStore{}, fixedClock{})
+
+	query := strings.Repeat("Ж", 101)
+	_, err := service.SearchAssets(context.Background(), AssetSearchFilter{Query: query})
+
+	if !errors.Is(err, ErrInvalidInput) {
+		t.Fatalf("expected invalid input, got %v", err)
+	}
+}
+
+func TestSearchAssetsNormalizesLimit(t *testing.T) {
+	store := &recordingStore{}
+	service := NewService(store, fixedClock{})
+
+	result, err := service.SearchAssets(context.Background(), AssetSearchFilter{Query: "SBER", Limit: 1000})
+	if err != nil {
+		t.Fatalf("search assets: %v", err)
+	}
+
+	if store.assetFilter.Limit != 101 {
+		t.Fatalf("expected over-fetch limit 101, got %d", store.assetFilter.Limit)
+	}
+	if result.Limit != 100 {
+		t.Fatalf("expected response limit 100, got %d", result.Limit)
+	}
+}
+
+func TestSearchAssetsUsesOpaqueCursorOverDeterministicTicker(t *testing.T) {
+	store := &recordingStore{
+		assets: []AssetSummary{
+			{Ticker: "SBER", Name: "Sberbank ordinary shares", AssetType: "STOCK", Currency: RUB, LotSize: decimal.Must("10.00000000")},
+			{Ticker: "SU26238RMFS4", Name: "OFZ 26238", AssetType: "BOND", Currency: RUB, LotSize: decimal.Must("1.00000000")},
+		},
+	}
+	service := NewService(store, fixedClock{})
+
+	first, err := service.SearchAssets(context.Background(), AssetSearchFilter{Query: "S", Limit: 1})
+	if err != nil {
+		t.Fatalf("search first page: %v", err)
+	}
+	if !first.HasMore || first.NextCursor == nil || len(first.Items) != 1 || first.Items[0].Ticker != "SBER" {
+		t.Fatalf("unexpected first page: %+v", first)
+	}
+
+	second, err := service.SearchAssets(context.Background(), AssetSearchFilter{Query: "S", Cursor: *first.NextCursor, Limit: 1})
+	if err != nil {
+		t.Fatalf("search second page: %v", err)
+	}
+	if second.HasMore || second.NextCursor != nil || len(second.Items) != 1 || second.Items[0].Ticker != "SU26238RMFS4" {
+		t.Fatalf("unexpected second page: %+v", second)
+	}
+}
+
+func TestSearchAssetsRejectsInvalidCursor(t *testing.T) {
+	service := NewService(&recordingStore{}, fixedClock{})
+
+	for _, cursor := range []string{
+		"not-base64!",
+		" ",
+		encodeAssetCursor("SBER") + "==",
+		strings.Repeat("A", 513),
+	} {
+		_, err := service.SearchAssets(context.Background(), AssetSearchFilter{Query: "SBER", Cursor: cursor, Limit: 1})
+		if !errors.Is(err, ErrInvalidInput) {
+			t.Fatalf("expected invalid input for cursor %q, got %v", cursor, err)
+		}
+	}
+}
+
+func TestGetAssetDefersDetailUntilRuntimeSourceAndRequiredFieldsExist(t *testing.T) {
+	service := NewService(&recordingStore{}, fixedClock{})
+
+	_, err := service.GetAsset(context.Background(), "SBER")
+
+	if !errors.Is(err, ErrNotFound) {
+		t.Fatalf("expected not found while asset card detail is deferred, got %v", err)
+	}
 }
 
 func TestCreatePortfolioRequiresIdempotencyKey(t *testing.T) {

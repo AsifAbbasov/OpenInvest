@@ -17,6 +17,160 @@ import (
 const importCSV = "transaction_type,ticker,quantity,unit_price,gross_amount,commission,tax,trade_date,settlement_date,currency,broker_operation_id,note\n" +
 	"BUY,SBER,2.00000000,100.00000000,200.00000000,1.00000000,0.00000000,2026-01-10,2026-01-13,RUB,broker-row-1,Imported buy\n"
 
+func TestAssetSearchReturnsCatalogSummariesWithoutPriceOrSource(t *testing.T) {
+	app := NewDevelopment(verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}))
+	request := httptest.NewRequest(http.MethodGet, "/api/v1/assets/search?query=sber&limit=20", nil)
+
+	response, err := app.Test(request)
+	if err != nil {
+		t.Fatalf("request asset search endpoint: %v", err)
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, response.StatusCode)
+	}
+	var payload map[string]any
+	if err := json.NewDecoder(response.Body).Decode(&payload); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	encoded, err := json.Marshal(payload)
+	if err != nil {
+		t.Fatalf("marshal response: %v", err)
+	}
+	text := string(encoded)
+	if !strings.Contains(text, `"ticker":"SBER"`) || !strings.Contains(text, `"lastPrice":null`) {
+		t.Fatalf("expected SBER search result with null lastPrice, got %s", text)
+	}
+	if strings.Contains(text, "source") || strings.Contains(text, "EXAMPLE_") {
+		t.Fatalf("runtime asset search must not emit source provenance or example identifiers: %s", text)
+	}
+}
+
+func TestAssetSearchReturnsOpaqueCursorForNextPage(t *testing.T) {
+	app := NewDevelopment(verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}))
+	request := httptest.NewRequest(http.MethodGet, "/api/v1/assets/search?query=S&limit=1", nil)
+
+	response, err := app.Test(request)
+	if err != nil {
+		t.Fatalf("request asset search endpoint: %v", err)
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, response.StatusCode)
+	}
+	var payload struct {
+		Data struct {
+			Items      []assetSummaryDTO `json:"items"`
+			Pagination paginationDTO     `json:"pagination"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(response.Body).Decode(&payload); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if len(payload.Data.Items) != 1 || payload.Data.Items[0].Ticker != "SBER" {
+		t.Fatalf("unexpected first page: %+v", payload.Data.Items)
+	}
+	if !payload.Data.Pagination.HasMore || payload.Data.Pagination.NextCursor == nil {
+		t.Fatalf("expected next cursor, got %+v", payload.Data.Pagination)
+	}
+
+	secondRequest := httptest.NewRequest(http.MethodGet, "/api/v1/assets/search?query=S&limit=1&cursor="+*payload.Data.Pagination.NextCursor, nil)
+	secondResponse, err := app.Test(secondRequest)
+	if err != nil {
+		t.Fatalf("request second asset search page: %v", err)
+	}
+	defer secondResponse.Body.Close()
+	if secondResponse.StatusCode != http.StatusOK {
+		t.Fatalf("expected second status %d, got %d", http.StatusOK, secondResponse.StatusCode)
+	}
+	var secondPayload struct {
+		Data struct {
+			Items      []assetSummaryDTO `json:"items"`
+			Pagination paginationDTO     `json:"pagination"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(secondResponse.Body).Decode(&secondPayload); err != nil {
+		t.Fatalf("decode second response: %v", err)
+	}
+	if len(secondPayload.Data.Items) != 1 || secondPayload.Data.Items[0].Ticker != "SU26238RMFS4" {
+		t.Fatalf("unexpected second page: %+v", secondPayload.Data.Items)
+	}
+	if secondPayload.Data.Pagination.HasMore || secondPayload.Data.Pagination.NextCursor != nil {
+		t.Fatalf("expected final page, got %+v", secondPayload.Data.Pagination)
+	}
+}
+
+func TestAssetSearchRejectsMalformedAndOutOfRangeLimit(t *testing.T) {
+	app := NewDevelopment(verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}))
+	for _, path := range []string{
+		"/api/v1/assets/search?query=SBER&limit=abc",
+		"/api/v1/assets/search?query=SBER&limit=",
+		"/api/v1/assets/search?query=SBER&limit=%20",
+		"/api/v1/assets/search?query=SBER&limit=0",
+		"/api/v1/assets/search?query=SBER&limit=101",
+	} {
+		response, err := app.Test(httptest.NewRequest(http.MethodGet, path, nil))
+		if err != nil {
+			t.Fatalf("request asset search endpoint %s: %v", path, err)
+		}
+		defer response.Body.Close()
+		if response.StatusCode != http.StatusBadRequest {
+			t.Fatalf("expected %s to return %d, got %d", path, http.StatusBadRequest, response.StatusCode)
+		}
+	}
+}
+
+func TestAssetSearchRejectsEmptyOptionalQueryParameters(t *testing.T) {
+	app := NewDevelopment(verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}))
+	for _, path := range []string{
+		"/api/v1/assets/search?query=SBER&assetType=",
+		"/api/v1/assets/search?query=SBER&assetType=%20",
+		"/api/v1/assets/search?query=SBER&cursor=",
+		"/api/v1/assets/search?query=SBER&cursor=%20",
+	} {
+		response, err := app.Test(httptest.NewRequest(http.MethodGet, path, nil))
+		if err != nil {
+			t.Fatalf("request asset search endpoint %s: %v", path, err)
+		}
+		defer response.Body.Close()
+		if response.StatusCode != http.StatusBadRequest {
+			t.Fatalf("expected %s to return %d, got %d", path, http.StatusBadRequest, response.StatusCode)
+		}
+	}
+}
+
+func TestAssetDetailIsDeferredUntilMandatorySourceAndDetailsExist(t *testing.T) {
+	app := NewDevelopment(verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}))
+	request := httptest.NewRequest(http.MethodGet, "/api/v1/assets/SBER", nil)
+
+	response, err := app.Test(request)
+	if err != nil {
+		t.Fatalf("request asset detail endpoint: %v", err)
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusNotFound {
+		t.Fatalf("expected status %d, got %d", http.StatusNotFound, response.StatusCode)
+	}
+}
+
+func TestAssetDetailInvalidTickerStillUsesFrozenNotFoundContract(t *testing.T) {
+	app := NewDevelopment(verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}))
+	request := httptest.NewRequest(http.MethodGet, "/api/v1/assets/sber", nil)
+
+	response, err := app.Test(request)
+	if err != nil {
+		t.Fatalf("request asset detail endpoint: %v", err)
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusNotFound {
+		t.Fatalf("expected status %d, got %d", http.StatusNotFound, response.StatusCode)
+	}
+}
+
 func TestImportReviewReturnsTransientRowsWithoutBrokerOperationID(t *testing.T) {
 	app := NewDevelopment(verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}))
 	body := []byte(`{"sourceAccountLabel":"Manual CSV","csvPayload":` + quote(importCSV) + `}`)
@@ -210,6 +364,42 @@ type importAPITestStore struct {
 
 func (store *importAPITestStore) Ping(context.Context) error {
 	return nil
+}
+
+func (store *importAPITestStore) SearchAssets(_ context.Context, filter verticalslice.AssetSearchFilter) ([]verticalslice.AssetSummary, error) {
+	assets := []verticalslice.AssetSummary{
+		{
+			Ticker:    "SBER",
+			Name:      "Sberbank ordinary shares",
+			AssetType: "STOCK",
+			Currency:  verticalslice.RUB,
+			LotSize:   decimal.Must("10.00000000"),
+			LastPrice: nil,
+		},
+		{
+			Ticker:    "SU26238RMFS4",
+			Name:      "OFZ 26238",
+			AssetType: "BOND",
+			Currency:  verticalslice.RUB,
+			LotSize:   decimal.Must("1.00000000"),
+			LastPrice: nil,
+		},
+	}
+	start := 0
+	if filter.Cursor != "" {
+		for index, asset := range assets {
+			if asset.Ticker > filter.Cursor {
+				start = index
+				break
+			}
+			start = index + 1
+		}
+	}
+	end := start + filter.Limit
+	if end > len(assets) {
+		end = len(assets)
+	}
+	return assets[start:end], nil
 }
 
 func (store *importAPITestStore) ListPortfolios(context.Context, string, int) ([]verticalslice.Portfolio, error) {

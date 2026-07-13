@@ -3,6 +3,7 @@ package verticalslice
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -10,6 +11,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/openinvest/openinvest/backend-go/internal/decimal"
 )
@@ -17,6 +19,7 @@ import (
 var (
 	ErrInvalidInput       = errors.New("invalid input")
 	ErrMissingIdempotency = errors.New("missing idempotency key")
+	ErrNotFound           = errors.New("not found")
 )
 
 var tickerPattern = regexp.MustCompile(`^[A-Z0-9]{1,32}$`)
@@ -33,6 +36,58 @@ func NewService(store Store, clock Clock) *Service {
 
 func (s *Service) Ready(ctx context.Context) error {
 	return s.store.Ping(ctx)
+}
+
+func (s *Service) SearchAssets(ctx context.Context, filter AssetSearchFilter) (AssetSearchResult, error) {
+	filter.Query = strings.TrimSpace(filter.Query)
+	if filter.Query == "" {
+		return AssetSearchResult{}, fmt.Errorf("%w: query is required", ErrInvalidInput)
+	}
+	if utf8.RuneCountInString(filter.Query) > 100 {
+		return AssetSearchResult{}, fmt.Errorf("%w: query must be at most 100 characters", ErrInvalidInput)
+	}
+	if filter.AssetType != "" {
+		switch filter.AssetType {
+		case "STOCK", "BOND":
+		default:
+			return AssetSearchResult{}, fmt.Errorf("%w: assetType is invalid", ErrInvalidInput)
+		}
+	}
+	limit := normalizeLimit(filter.Limit, 20, 100)
+	if filter.Cursor != "" {
+		cursor, err := decodeAssetCursor(filter.Cursor)
+		if err != nil {
+			return AssetSearchResult{}, err
+		}
+		filter.Cursor = cursor
+	}
+	filter.Limit = limit + 1
+	items, err := s.store.SearchAssets(ctx, filter)
+	if err != nil {
+		return AssetSearchResult{}, err
+	}
+	hasMore := len(items) > limit
+	if hasMore {
+		items = items[:limit]
+	}
+	var nextCursor *string
+	if hasMore && len(items) > 0 {
+		value := encodeAssetCursor(items[len(items)-1].Ticker)
+		nextCursor = &value
+	}
+	return AssetSearchResult{Items: items, NextCursor: nextCursor, HasMore: hasMore, Limit: limit}, nil
+}
+
+func (s *Service) GetAsset(ctx context.Context, ticker string) (AssetSummary, error) {
+	ticker = strings.TrimSpace(ticker)
+	if !tickerPattern.MatchString(ticker) {
+		return AssetSummary{}, ErrNotFound
+	}
+	// Stage 3.14 intentionally defers the asset-card detail response until a registered runtime
+	// source and all mandatory stock/bond detail fields are available without fabricated data.
+	// The HTTP route exists to preserve the frozen API boundary, but it must not emit incomplete
+	// detail DTOs or EXAMPLE_* source identifiers.
+	return AssetSummary{}, ErrNotFound
 }
 
 func (s *Service) ListPortfolios(ctx context.Context, subjectID string, limit int) ([]Portfolio, error) {
@@ -260,6 +315,25 @@ func ValidateIdempotencyKey(value string) error {
 		return fmt.Errorf("%w: Idempotency-Key must be 16..128 characters and match ^[A-Za-z0-9._:-]+$", ErrInvalidInput)
 	}
 	return nil
+}
+
+func encodeAssetCursor(ticker string) string {
+	return base64.RawURLEncoding.EncodeToString([]byte(ticker))
+}
+
+func decodeAssetCursor(value string) (string, error) {
+	if len(value) == 0 || len(value) > 512 {
+		return "", fmt.Errorf("%w: cursor is invalid", ErrInvalidInput)
+	}
+	decoded, err := base64.RawURLEncoding.DecodeString(value)
+	if err != nil {
+		return "", fmt.Errorf("%w: cursor is invalid", ErrInvalidInput)
+	}
+	ticker := string(decoded)
+	if !tickerPattern.MatchString(ticker) {
+		return "", fmt.Errorf("%w: cursor is invalid", ErrInvalidInput)
+	}
+	return ticker, nil
 }
 
 func normalizeLimit(value int, fallback int, max int) int {
