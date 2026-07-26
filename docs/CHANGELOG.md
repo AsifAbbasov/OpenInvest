@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.30 |
+| Version | 1.1.31 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-07-26 |
-| Next Review Date | Before Stage 3.15 planning approval |
+| Next Review Date | Before Stage 3.15 implementation approval |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -466,3 +466,25 @@
   headers, and browser storage usage.
 - Expanded accessibility criteria beyond labels to define testable keyboard navigation, focus
   destination/restoration, and live-region/error announcements for asynchronous search states.
+
+## 2026-07-26 — Stage 3.15 Web asset discovery UI slice started
+
+- Squash-merged Stage 3.15 planning PR #40 into `develop` at
+  `dfeab109b2825fe0e0317e87a7abf2e706a29ea6`.
+- Started the reviewed Next.js presentation-only asset discovery implementation slice.
+- Kept backend API, OpenAPI, SQL, Route Handler, Server Action, datastore, market-data, provider,
+  worker, calculation, tax, mobile, and AI scope out of the slice.
+
+## 2026-07-26 — Stage 3.15 implementation review fixes
+
+- Tightened detail-request invalidation so stale detail responses cannot restore removed selection
+  state after search reset.
+- Moved focus into the detail region during loading and separated polite status announcements from
+  assertive error alerts.
+- Aligned successful asset-detail typing with the frozen `Asset` contract and expanded frontend
+  tests for detail generation, accessibility helpers, and component accessibility wiring.
+- Aligned follow-up detail typing with frozen `SourceReference`, `AssetStatus`, and optional bond
+  coupon-rate fields; made successful detail copy distinct from deferred detail; and hardened focus
+  tests against async outcome focus stealing.
+- Preserved Escape/focus behavior for same-ticker detail retries while keeping async detail outcomes
+  from stealing focus.

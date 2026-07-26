@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.28 |
+| Version | 1.1.29 |
 | Status | Active |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
 | Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md` |
 | Last Review Date | 2026-07-26 |
-| Next Review Date | Before Stage 3.15 planning approval |
+| Next Review Date | Before Stage 3.15 implementation approval |
 
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
 
@@ -43,7 +43,8 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.13 — Instrument Catalog Slice | Resolve approved MOEX share/bond tickers through the backend-owned catalog boundary | Complete / closed; merged into `develop` at `b9c05fb14d0ee03e6de4dfc04ff67c16da33040b` | [Stage 3.13 implementation report](stages/STAGE_03_13_INSTRUMENT_CATALOG_SLICE.md) |
 | 3.14 — Asset Search/Card API Boundary Planning | Define the future Go API asset search/detail boundary before implementation | Complete / closed; merged into `develop` at `2c4f7853599a455bb0cc04114b338a1145baf39c` | [Stage 3.14 plan](stages/STAGE_03_14_ASSET_API_BOUNDARY_PLANNING.md) |
 | 3.14 — Asset Search/Card API Boundary Slice | Expose the public Go API asset search boundary without fabricated market data or detail provenance | Complete / closed; merged into `develop` at `57a9404952cb65693614109dd4a14d41fa5c4295` | [Stage 3.14 implementation report](stages/STAGE_03_14_ASSET_API_BOUNDARY_SLICE.md) |
-| 3.15 — Web Asset Discovery UI Planning | Define the future Next.js presentation-only asset search entry and honest deferred card-state boundary | Active / planning on `feature/stage-03-15-asset-ui-planning` | [Stage 3.15 plan](stages/STAGE_03_15_WEB_ASSET_DISCOVERY_UI_PLANNING.md) |
+| 3.15 — Web Asset Discovery UI Planning | Define the future Next.js presentation-only asset search entry and honest deferred card-state boundary | Complete / closed; merged into `develop` at `dfeab109b2825fe0e0317e87a7abf2e706a29ea6` | [Stage 3.15 plan](stages/STAGE_03_15_WEB_ASSET_DISCOVERY_UI_PLANNING.md) |
+| 3.15 — Web Asset Discovery UI Slice | Implement the reviewed Next.js presentation-only asset discovery boundary | Active / implementation on `feature/stage-03-15-asset-discovery-ui` | [Stage 3.15 implementation report](stages/STAGE_03_15_WEB_ASSET_DISCOVERY_UI_SLICE.md) |
 
 ## Stage completion protocol
 
@@ -336,3 +337,32 @@ This log is the index of implementation stages. Every stage must document its pu
 - Added planning requirements for query/type cursor reset, accepted cursor-chain appends,
   stale-response guards, public asset API calls with `credentials: "omit"`, keyboard/focus behavior,
   focus destination/restoration, and asynchronous live-region/error announcements.
+
+## 2026-07-26 — Stage 3.15 Web asset discovery UI slice started
+
+- Squash-merged Stage 3.15 planning PR #40 into `develop` at
+  `dfeab109b2825fe0e0317e87a7abf2e706a29ea6` after green CI and strict separate-window review
+  approval.
+- Started the Next.js presentation-only implementation slice on
+  `feature/stage-03-15-asset-discovery-ui`.
+- Scoped implementation to typed public asset API calls, UI state, stale-response/pagination guards,
+  unavailable price rendering, deferred detail handling, routing, accessibility behavior, tests, and
+  documentation.
+- Kept OpenAPI changes, SQL migrations, Go handlers, Route Handlers, Server Actions, direct
+  datastore access, provider/market-data integrations, workers, financial calculations, tax, mobile,
+  and AI out of scope.
+
+## 2026-07-26 — Stage 3.15 implementation review findings fixed
+
+- Addressed strict separate-window review findings for stale detail-response resurrection, missing
+  focus transfer during detail loading, incomplete live-region behavior, weak component wiring
+  coverage, incorrect successful detail typing, and incomplete verification evidence.
+- Added detail-generation invalidation on search reset and detail close, loading-state focus entry,
+  separate search/detail polite announcements, assertive error-only alerts, frozen `Asset` detail
+  typing, and source-level component wiring checks.
+- Addressed follow-up strict review findings by aligning `Asset` detail types with the frozen
+  `SourceReference`, `AssetStatus`, and optional bond coupon-rate schema, making successful detail
+  heading copy distinct from deferred detail, and preventing async detail outcomes from stealing
+  focus after the initial detail entry.
+- Tightened the detail focus helper so retrying the same ticker re-enters the loading detail region
+  while same-ticker async outcomes still avoid stealing focus.
