@@ -3,23 +3,23 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.34 |
+| Version | 1.4.35 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
-| Last Review Date | 2026-07-13 |
-| Next Review Date | Before Stage 3.14 merge |
+| Last Review Date | 2026-07-14 |
+| Next Review Date | Before Stage 3.15 planning |
 
 ## Architecture status
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.13 — Instrument Catalog Slice**
+**Last completed implementation stage: Stage 3.14 — Asset Search/Card API Boundary Slice**
 **Last completed planning gate: Stage 3.14 — Asset Search/Card API Boundary Planning**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `2c4f7853599a455bb0cc04114b338a1145baf39c`**
-**Current active work item: Stage 3.14 asset search/card API boundary slice on `feature/stage-03-14-asset-api-boundary`**
+**Current canonical implementation baseline: `develop` at `57a9404952cb65693614109dd4a14d41fa5c4295`**
+**Current active work item: Stage 3.14 closure governance on `feature/stage-03-14-closure`**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -151,11 +151,11 @@ integrations, workers, market-data ingestion, stock/bond cards, dividend/coupon 
 or AI. Stage 3.13 closure governance is merged into `develop` at
 `45a298e3ba36dbe711fa27b8d044d80a77cfd74a`. Stage 3.14 asset search/card API
 boundary planning is closed and merged into `develop` at
-`2c4f7853599a455bb0cc04114b338a1145baf39c`. Stage 3.14 implementation is active
-on `feature/stage-03-14-asset-api-boundary`; it is limited to the Go API asset search/detail
-boundary over the approved local catalog. Runtime asset search must use `lastPrice: null` until an
-approved market-data source exists, and asset detail must remain deferred unless every mandatory
-source/detail field can be populated without fabricated data.
+`2c4f7853599a455bb0cc04114b338a1145baf39c`. Stage 3.14 implementation is closed and
+merged into `develop` at `57a9404952cb65693614109dd4a14d41fa5c4295`; it is limited to the Go API
+asset search/detail boundary over the approved local catalog. Runtime asset search uses
+`lastPrice: null` until an approved market-data source exists, and asset detail remains deferred
+unless every mandatory source/detail field can be populated without fabricated data.
 
 ## Financial standard
 
@@ -188,7 +188,7 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 | --- | --- | --- |
 | Registration and privacy defaults | Yes | Stage 3.12 closed; Go API auth plus presentation-only Web auth UI |
 | Portfolio and transactions | Yes | Stage 3.4 verification closed |
-| MOEX shares and bonds | Yes | Stage 3.14 asset API boundary slice active |
+| MOEX shares and bonds | Yes | Stage 3.14 asset API boundary slice closed |
 | Dashboard and snapshots | Yes | Stage 3.4 verification closed |
 | WAC, XIRR, real/inflation returns | Yes | Planned |
 | Dividend calculator/calendar | Yes | Planned |

@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.26 |
+| Version | 1.1.27 |
 | Status | Active |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
 | Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md` |
-| Last Review Date | 2026-07-13 |
-| Next Review Date | Before Stage 3.14 merge |
+| Last Review Date | 2026-07-14 |
+| Next Review Date | Before Stage 3.15 planning |
 
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
 
@@ -42,7 +42,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.13 — Instrument Catalog Planning | Define the canonical MVP MOEX share/bond identity boundary before implementation | Complete / closed; merged into `develop` at `ca16af9adba249fc8c32c9b246b5f92f7e290b92` | [Stage 3.13 plan](stages/STAGE_03_13_INSTRUMENT_CATALOG_PLANNING.md) |
 | 3.13 — Instrument Catalog Slice | Resolve approved MOEX share/bond tickers through the backend-owned catalog boundary | Complete / closed; merged into `develop` at `b9c05fb14d0ee03e6de4dfc04ff67c16da33040b` | [Stage 3.13 implementation report](stages/STAGE_03_13_INSTRUMENT_CATALOG_SLICE.md) |
 | 3.14 — Asset Search/Card API Boundary Planning | Define the future Go API asset search/detail boundary before implementation | Complete / closed; merged into `develop` at `2c4f7853599a455bb0cc04114b338a1145baf39c` | [Stage 3.14 plan](stages/STAGE_03_14_ASSET_API_BOUNDARY_PLANNING.md) |
-| 3.14 — Asset Search/Card API Boundary Slice | Expose the public Go API asset search boundary without fabricated market data or detail provenance | Draft / active | [Stage 3.14 implementation report](stages/STAGE_03_14_ASSET_API_BOUNDARY_SLICE.md) |
+| 3.14 — Asset Search/Card API Boundary Slice | Expose the public Go API asset search boundary without fabricated market data or detail provenance | Complete / closed; merged into `develop` at `57a9404952cb65693614109dd4a14d41fa5c4295` | [Stage 3.14 implementation report](stages/STAGE_03_14_ASSET_API_BOUNDARY_SLICE.md) |
 
 ## Stage completion protocol
 
@@ -302,3 +302,15 @@ This log is the index of implementation stages. Every stage must document its pu
   populated without fabricated data.
 - Kept OpenAPI changes, SQL migrations, frontend stock/bond cards, providers, workers,
   market-data ingestion, financial calculations, tax, mobile, AI, and Stage 3.15 out of scope.
+
+## 2026-07-14 — Stage 3.14 asset search/card API boundary slice closed
+
+- Squash-merged PR #38 into `develop` at `57a9404952cb65693614109dd4a14d41fa5c4295`.
+- Closed the Go API asset search/detail boundary after green CI and strict separate-window review
+  approval.
+- Added public asset search over active canonical approved catalog rows with `lastPrice: null`.
+- Kept asset detail honest and contract-safe by returning `404 NOT_FOUND` until approved runtime
+  source provenance and mandatory detail fields exist.
+- Kept OpenAPI changes, SQL migrations, frontend stock/bond cards, provider integrations,
+  market-data ingestion, workers, financial calculations, tax, mobile, AI, and Stage 3.15 out of
+  scope.

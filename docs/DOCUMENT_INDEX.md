@@ -3,19 +3,19 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.34 |
+| Version | 1.1.35 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-07-13 |
-| Next Review Date | Before Stage 3.14 merge |
+| Last Review Date | 2026-07-14 |
+| Next Review Date | Before Stage 3.15 planning |
 
 ## Canonical control documents
 
 | ID | Title | Version | Status | Location |
 | --- | --- | --- | --- | --- |
-| SOT-001 | Source of Truth | 1.4.34 | Approved | `SOURCE_OF_TRUTH.md` |
+| SOT-001 | Source of Truth | 1.4.35 | Approved | `SOURCE_OF_TRUTH.md` |
 | 42 | Architecture Amendments | 1.1.0 | Approved | `specifications/current/DOCUMENT_42_ARCHITECTURE_AMENDMENTS_v1.1.md` |
 | 43 | Architecture Decision Closure | 1.2.0 | Final | `specifications/current/DOCUMENT_43_ARCHITECTURE_CLOSURE_v1.2.md` |
 
@@ -95,7 +95,7 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Stage 3.13 instrument catalog planning | Complete / merged into `develop` | `stages/STAGE_03_13_INSTRUMENT_CATALOG_PLANNING.md` |
 | Stage 3.13 instrument catalog slice | Complete / merged into `develop` | `stages/STAGE_03_13_INSTRUMENT_CATALOG_SLICE.md` |
 | Stage 3.14 asset search/card API boundary planning | Complete / merged into `develop` | `stages/STAGE_03_14_ASSET_API_BOUNDARY_PLANNING.md` |
-| Stage 3.14 asset search/card API boundary slice | Draft / active | `stages/STAGE_03_14_ASSET_API_BOUNDARY_SLICE.md` |
+| Stage 3.14 asset search/card API boundary slice | Complete / merged into `develop` | `stages/STAGE_03_14_ASSET_API_BOUNDARY_SLICE.md` |
 
 ## Product refinement documents
 

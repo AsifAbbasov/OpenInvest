@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.28 |
+| Version | 1.1.29 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-07-13 |
-| Next Review Date | Before Stage 3.14 merge |
+| Last Review Date | 2026-07-14 |
+| Next Review Date | Before Stage 3.15 planning |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -437,3 +437,13 @@
 - Kept OpenAPI changes, SQL migrations, external provider integrations, market-data ingestion,
   frontend stock/bond cards, workers, financial calculations, tax, mobile, AI, and Stage 3.15 out
   of scope.
+
+## 2026-07-14 — Stage 3.14 asset API boundary slice closed
+
+- Squash-merged PR #38 into `develop` at `57a9404952cb65693614109dd4a14d41fa5c4295`.
+- Closed the public Go API asset search boundary over active canonical approved catalog rows.
+- Preserved `lastPrice: null` and deferred asset-card detail to avoid fabricated market data,
+  source provenance, sector, face value, maturity date, or coupon-type facts.
+- Recorded strict separate-window review approval and green CI before closure.
+- Advanced the governance baseline to Stage 3.14 implementation completion; Stage 3.15 remains not
+  started.

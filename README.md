@@ -7,11 +7,11 @@ Web presentation-layer baseline, and the staged Stage 3 MVP vertical-slice imple
 
 Stage 3 currently has closed slices for the local database foundation, portfolio/transaction
 vertical slice, Next.js presentation shell, end-to-end verification, CSV import/reconciliation,
-authentication/privacy boundaries, Web authentication UI, and backend-owned instrument catalog.
-The current active work is Stage 3.14 implementation for the Go API asset search/detail boundary
-over the approved local catalog. Asset search returns backend-owned catalog summaries with
-`lastPrice: null`; asset-card detail remains intentionally deferred until mandatory source
-provenance and required detail fields can be populated without fabricated data.
+authentication/privacy boundaries, Web authentication UI, backend-owned instrument catalog, and the
+Go API asset search/detail boundary over the approved local catalog. Asset search returns
+backend-owned catalog summaries with `lastPrice: null`; asset-card detail remains intentionally
+deferred until mandatory source provenance and required detail fields can be populated without
+fabricated data.
 Product-risk refinement is closed and remains part of the MVP governance baseline.
 
 ## Components
