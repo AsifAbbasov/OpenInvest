@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.25 |
+| Version | 0.1.26 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
 | Last Review Date | 2026-07-26 |
-| Next Review Date | Before Stage 3.15 planning approval |
+| Next Review Date | Before Stage 3.15 implementation approval |
 
 ## Purpose
 
@@ -764,7 +764,41 @@ Forbidden:
 
 Status:
 
-- Active / planning on `feature/stage-03-15-asset-ui-planning`.
+- Complete / closed; merged into `develop` at `dfeab109b2825fe0e0317e87a7abf2e706a29ea6`.
+
+### PR 3.15 — Web asset discovery UI slice
+
+Purpose:
+
+- implement the reviewed Next.js presentation-only asset discovery entry over the Stage 3.14 Go
+  asset search/detail API boundary.
+
+Allowed:
+
+- typed public asset API client methods using `credentials: "omit"`;
+- Next.js presentation components and route wiring under ADR-007;
+- query/type search, pagination, loading, empty, error, result, and deferred detail states;
+- stale-response and accepted-cursor-chain guards;
+- unavailable `lastPrice` presentation and cause-neutral deferred detail handling;
+- keyboard, focus, live-region, and responsive UI behavior;
+- frontend tests and documentation updates.
+
+Forbidden:
+
+- OpenAPI changes;
+- SQL migrations;
+- Go handler, service, or store changes;
+- Route Handlers or Server Actions;
+- direct database access from Next.js;
+- frontend-owned catalog fixtures or business rules;
+- client-side market-data/provider calls;
+- fabricated prices, source provenance, sector, face value, maturity, coupon type, dividends,
+  coupons, yields, returns, WAC, XIRR, purchasing-power, or tax calculations;
+- workers, mobile, or AI.
+
+Status:
+
+- Active / implementation on `feature/stage-03-15-asset-discovery-ui`.
 
 ## Stage 3 domain boundaries
 

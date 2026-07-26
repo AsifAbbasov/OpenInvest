@@ -206,7 +206,61 @@ export type ImportAppendPayload = ImportReviewPayload & {
   decisions: ImportDecision[];
 };
 
-type Pagination = {
+export type AssetType = "STOCK" | "BOND";
+
+export type AssetSummary = {
+  ticker: string;
+  name: string;
+  assetType: AssetType;
+  currency: "RUB";
+  lotSize: string;
+  lastPrice: Money | null;
+};
+
+type AssetStatus = "ACTIVE" | "INACTIVE" | "MATURED";
+
+type SourceReference = {
+  code: string;
+  observedAt: string;
+};
+
+type AssetBase = AssetSummary & {
+  market: "MOEX";
+  status: AssetStatus;
+  priceAsOf: string | null;
+  source: SourceReference;
+};
+
+export type StockAsset = AssetBase & {
+  assetType: "STOCK";
+  stock: {
+    sector: string;
+    isin: string;
+  };
+};
+
+export type BondAsset = AssetBase & {
+  assetType: "BOND";
+  bond: {
+    isin: string;
+    faceValue: Money;
+    maturityDate: string;
+    couponType: "FIXED" | "FLOATING" | "ZERO";
+    couponRate?: string | null;
+  };
+};
+
+export type Asset = StockAsset | BondAsset;
+
+export type AssetSearchParams = {
+  query: string;
+  assetType?: AssetType;
+  cursor?: string;
+  limit?: number;
+  signal?: AbortSignal;
+};
+
+export type Pagination = {
   nextCursor: string | null;
   hasMore: boolean;
   limit: number;
@@ -221,7 +275,7 @@ type BaseResponse<T> = {
   };
 };
 
-type ListData<T> = {
+export type ListData<T> = {
   items: T[];
   pagination: Pagination;
 };
@@ -367,6 +421,30 @@ export async function appendReviewedPortfolioImport(
     method: "POST",
     headers: { ...idempotentHeaders(), ...bearerHeaders(auth.accessToken) },
     body: JSON.stringify(payload),
+  });
+}
+
+export async function searchAssets(params: AssetSearchParams): Promise<ApiResult<ListData<AssetSummary>>> {
+  const searchParams = new URLSearchParams({ query: params.query });
+  if (params.assetType) {
+    searchParams.set("assetType", params.assetType);
+  }
+  if (params.cursor) {
+    searchParams.set("cursor", params.cursor);
+  }
+  if (params.limit) {
+    searchParams.set("limit", String(params.limit));
+  }
+  return request<ListData<AssetSummary>>(`/api/v1/assets/search?${searchParams.toString()}`, {
+    credentials: "omit",
+    signal: params.signal,
+  });
+}
+
+export async function getAsset(ticker: string, signal?: AbortSignal): Promise<ApiResult<Asset>> {
+  return request<Asset>(`/api/v1/assets/${encodeURIComponent(ticker)}`, {
+    credentials: "omit",
+    signal,
   });
 }
 

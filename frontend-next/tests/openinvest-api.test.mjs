@@ -313,3 +313,79 @@ test("business API requests include bearer access token without browser storage"
     Object.defineProperty(globalThis, "document", { configurable: true, value: originalDocument });
   }
 });
+
+test("public asset API requests omit credentials and browser storage", async () => {
+  const calls = [];
+  const originalLocalStorage = globalThis.localStorage;
+  const originalSessionStorage = globalThis.sessionStorage;
+  const originalIndexedDB = globalThis.indexedDB;
+  const originalDocument = globalThis.document;
+
+  Object.defineProperty(globalThis, "localStorage", {
+    configurable: true,
+    get() {
+      throw new Error("localStorage must not be used by public asset requests");
+    },
+  });
+  Object.defineProperty(globalThis, "sessionStorage", {
+    configurable: true,
+    get() {
+      throw new Error("sessionStorage must not be used by public asset requests");
+    },
+  });
+  Object.defineProperty(globalThis, "indexedDB", {
+    configurable: true,
+    get() {
+      throw new Error("indexedDB must not be used by public asset requests");
+    },
+  });
+  Object.defineProperty(globalThis, "document", {
+    configurable: true,
+    get() {
+      throw new Error("document.cookie must not be used by public asset requests");
+    },
+  });
+
+  try {
+    globalThis.fetch = async (url, init) => {
+      calls.push({ url, init });
+      if (String(url).includes("/assets/search")) {
+        return jsonResponse({
+          items: [{
+            ticker: "SBER",
+            name: "Sberbank ordinary shares",
+            assetType: "STOCK",
+            currency: "RUB",
+            lotSize: "10.00000000",
+            lastPrice: null,
+          }],
+          pagination: { nextCursor: null, hasMore: false, limit: 20 },
+        });
+      }
+      return new Response(
+        JSON.stringify({ error: { code: "NOT_FOUND", message: "Asset not found" } }),
+        { status: 404, headers: { "Content-Type": "application/json" } },
+      );
+    };
+
+    const searchResult = await api.searchAssets({ query: "SBER", assetType: "STOCK", limit: 20 });
+    const detailResult = await api.getAsset("SBER");
+
+    assert.equal(searchResult.ok, true);
+    assert.equal(detailResult.ok, false);
+    assert.equal(detailResult.status, 404);
+    assert.equal(calls[0].url, "http://localhost:8080/api/v1/assets/search?query=SBER&assetType=STOCK&limit=20");
+    assert.equal(calls[1].url, "http://localhost:8080/api/v1/assets/SBER");
+    for (const call of calls) {
+      assert.equal(call.init.credentials, "omit");
+      assert.equal(call.init.headers.Authorization, undefined);
+      assert.equal(call.init.headers["X-CSRF-Token"], undefined);
+      assert.equal(call.init.body, undefined);
+    }
+  } finally {
+    Object.defineProperty(globalThis, "localStorage", { configurable: true, value: originalLocalStorage });
+    Object.defineProperty(globalThis, "sessionStorage", { configurable: true, value: originalSessionStorage });
+    Object.defineProperty(globalThis, "indexedDB", { configurable: true, value: originalIndexedDB });
+    Object.defineProperty(globalThis, "document", { configurable: true, value: originalDocument });
+  }
+});

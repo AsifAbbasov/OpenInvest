@@ -60,9 +60,14 @@ export function DashboardSlice() {
               <p className="eyebrow">Portfolio list</p>
               <h2>Your portfolios</h2>
             </div>
-            <button type="button" className="secondary-button" onClick={load}>
-              Reload
-            </button>
+            <div className="button-row">
+              <Link href="/assets" className="secondary-button">
+                Discover assets
+              </Link>
+              <button type="button" className="secondary-button" onClick={load}>
+                Reload
+              </button>
+            </div>
           </div>
           <div className="portfolio-list">
             {result.data.map((portfolio) => (
@@ -72,6 +77,23 @@ export function DashboardSlice() {
               </Link>
             ))}
           </div>
+        </section>
+      ) : null}
+
+      {result?.ok === true && result.data.length === 0 ? (
+        <section className="panel">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Supported instruments</p>
+              <h2>Asset discovery</h2>
+            </div>
+            <Link href="/assets" className="secondary-button">
+              Discover assets
+            </Link>
+          </div>
+          <p className="muted">
+            Search supported MVP assets through the public Go API before adding transactions.
+          </p>
         </section>
       ) : null}
     </main>

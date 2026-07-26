@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-15-WEB-ASSET-DISCOVERY-UI-PLAN |
-| Version | 0.1.2 |
-| Status | Active / planning |
+| Version | 0.1.3 |
+| Status | Complete / closed |
 | Owner | Builder Engineer |
 | Supersedes | Informal next-step discussion after Stage 3.14 |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-007; Stage 2 contract baseline; Stage 3.14 asset API boundary slice |
 | Last Review Date | 2026-07-26 |
-| Next Review Date | Before Stage 3.15 planning approval |
+| Next Review Date | Before Stage 3.15 implementation approval |
 
 ## Purpose
 
@@ -180,6 +180,6 @@ Review must specifically verify:
 
 ## Recommended next step
 
-Complete this planning document, run repository verification, stop for strict review, and do not
-start Stage 3.15 implementation until this planning scope is reviewed, approved, merged into
-`develop`, and explicitly authorized.
+Stage 3.15 planning is closed and merged into `develop` at
+`dfeab109b2825fe0e0317e87a7abf2e706a29ea6`. Continue with the reviewed Web asset discovery UI
+implementation slice, preserving the same review gates before merge.
