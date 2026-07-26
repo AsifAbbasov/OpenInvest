@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.1.35 |
+| Version | 1.1.36 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | Documents 42–43 |
-| Last Review Date | 2026-07-14 |
-| Next Review Date | Before Stage 3.15 planning |
+| Last Review Date | 2026-07-26 |
+| Next Review Date | Before Stage 3.15 planning approval |
 
 | Range | Version | Status under Freeze v1.2 | Priority | Owner | Review |
 | --- | --- | --- | --- | --- | --- |
@@ -43,6 +43,8 @@
 | Stage 3.13 closure governance | 0.1.x | Closed / merged into `develop` at `45a298e3ba36dbe711fa27b8d044d80a77cfd74a` | 3 | Principal Architect | Completed before Stage 3.14 planning |
 | Stage 3.14 asset search/card API boundary planning | 0.1.x | Closed / merged into `develop` at `2c4f7853599a455bb0cc04114b338a1145baf39c` | 3 | Principal Architect | Completed before Stage 3.14 implementation |
 | Stage 3.14 asset search/card API boundary slice | 0.1.x | Closed / merged into `develop` at `57a9404952cb65693614109dd4a14d41fa5c4295` | 3 | Principal Architect | Completed before Stage 3.15 planning |
+| Stage 3.14 closure governance | 0.1.x | Closed / merged into `develop` at `f5289eb604b8ba31aa422d0d09950da02e0f48b3` | 3 | Principal Architect | Completed before Stage 3.15 planning |
+| Stage 3.15 Web asset discovery UI planning | 0.1.x | Active / planning on `feature/stage-03-15-asset-ui-planning` | 3 | Principal Architect | Before Stage 3.15 planning approval |
 | Documents 28–39 | 2.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Document 40 | 3.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Documents 1–27, 41 | 1.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |

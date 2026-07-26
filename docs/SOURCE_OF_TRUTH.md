@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.35 |
+| Version | 1.4.36 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
-| Last Review Date | 2026-07-14 |
-| Next Review Date | Before Stage 3.15 planning |
+| Last Review Date | 2026-07-26 |
+| Next Review Date | Before Stage 3.15 planning approval |
 
 ## Architecture status
 
@@ -18,8 +18,8 @@
 **Last completed implementation stage: Stage 3.14 — Asset Search/Card API Boundary Slice**
 **Last completed planning gate: Stage 3.14 — Asset Search/Card API Boundary Planning**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `57a9404952cb65693614109dd4a14d41fa5c4295`**
-**Current active work item: Stage 3.14 closure governance on `feature/stage-03-14-closure`**
+**Current canonical implementation baseline: `develop` at `f5289eb604b8ba31aa422d0d09950da02e0f48b3`**
+**Current active work item: Stage 3.15 Web asset discovery UI planning on `feature/stage-03-15-asset-ui-planning`**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -155,7 +155,11 @@ boundary planning is closed and merged into `develop` at
 merged into `develop` at `57a9404952cb65693614109dd4a14d41fa5c4295`; it is limited to the Go API
 asset search/detail boundary over the approved local catalog. Runtime asset search uses
 `lastPrice: null` until an approved market-data source exists, and asset detail remains deferred
-unless every mandatory source/detail field can be populated without fabricated data.
+unless every mandatory source/detail field can be populated without fabricated data. Stage 3.14
+closure governance is merged into `develop` at `f5289eb604b8ba31aa422d0d09950da02e0f48b3`.
+Stage 3.15 Web asset discovery UI planning is active and documentation-only; it does not authorize
+implementation, market data, stock/bond card calculations, provider integrations, workers, tax,
+mobile, or AI.
 
 ## Financial standard
 

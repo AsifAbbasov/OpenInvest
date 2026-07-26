@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.29 |
+| Version | 1.1.30 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-07-14 |
-| Next Review Date | Before Stage 3.15 planning |
+| Last Review Date | 2026-07-26 |
+| Next Review Date | Before Stage 3.15 planning approval |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -447,3 +447,22 @@
 - Recorded strict separate-window review approval and green CI before closure.
 - Advanced the governance baseline to Stage 3.14 implementation completion; Stage 3.15 remains not
   started.
+
+## 2026-07-26 — Stage 3.15 Web asset discovery UI planning started
+
+- Squash-merged Stage 3.14 closure governance PR #39 into `develop` at
+  `f5289eb604b8ba31aa422d0d09950da02e0f48b3`.
+- Started documentation-only planning for a future Next.js presentation-only asset search entry and
+  deferred asset-card state over the existing Go asset API.
+- Kept implementation, OpenAPI changes, SQL migrations, Route Handlers, Server Actions, direct
+  database access, market data, provider integrations, workers, financial calculations, tax, mobile,
+  and AI out of scope.
+
+## 2026-07-26 — Stage 3.15 planning review fixes
+
+- Tightened the future Web asset discovery UI state contract for query/type changes, cursor reset,
+  accepted cursor chains, and stale-response protection.
+- Required public asset API calls to use `credentials: "omit"` and omit bearer tokens, cookies, CSRF
+  headers, and browser storage usage.
+- Expanded accessibility criteria beyond labels to define testable keyboard navigation, focus
+  destination/restoration, and live-region/error announcements for asynchronous search states.
