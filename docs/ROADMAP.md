@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.35 |
+| Version | 1.1.36 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
 | Dependencies | Architecture Freeze v1.2 |
-| Last Review Date | 2026-07-26 |
-| Next Review Date | Before Stage 3.15 implementation approval |
+| Last Review Date | 2026-07-27 |
+| Next Review Date | Before next approved implementation stage |
 
 | Stage | Outcome | State |
 | --- | --- | --- |
@@ -41,7 +41,7 @@
 | 3.14 — Asset search/card API boundary planning | Define the future Go API asset search/detail boundary before implementation | Complete |
 | 3.14 — Asset search/card API boundary slice | Expose the public Go API asset search boundary without fabricated market data or detail provenance | Complete |
 | 3.15 — Web asset discovery UI planning | Define the future Next.js presentation-only asset search entry and deferred card-state boundary before implementation | Complete |
-| 3.15 — Web asset discovery UI slice | Implement the reviewed Next.js presentation-only asset discovery boundary | Active |
+| 3.15 — Web asset discovery UI slice | Implement the reviewed Next.js presentation-only asset discovery boundary | Complete |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.

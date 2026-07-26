@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.1.37 |
+| Version | 1.1.38 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | Documents 42–43 |
-| Last Review Date | 2026-07-26 |
-| Next Review Date | Before Stage 3.15 implementation approval |
+| Last Review Date | 2026-07-27 |
+| Next Review Date | Before next approved implementation stage |
 
 | Range | Version | Status under Freeze v1.2 | Priority | Owner | Review |
 | --- | --- | --- | --- | --- | --- |
@@ -45,7 +45,7 @@
 | Stage 3.14 asset search/card API boundary slice | 0.1.x | Closed / merged into `develop` at `57a9404952cb65693614109dd4a14d41fa5c4295` | 3 | Principal Architect | Completed before Stage 3.15 planning |
 | Stage 3.14 closure governance | 0.1.x | Closed / merged into `develop` at `f5289eb604b8ba31aa422d0d09950da02e0f48b3` | 3 | Principal Architect | Completed before Stage 3.15 planning |
 | Stage 3.15 Web asset discovery UI planning | 0.1.x | Closed / merged into `develop` at `dfeab109b2825fe0e0317e87a7abf2e706a29ea6` | 3 | Principal Architect | Completed before Stage 3.15 implementation |
-| Stage 3.15 Web asset discovery UI slice | 0.1.x | Active / implementation on `feature/stage-03-15-asset-discovery-ui` | 3 | Principal Architect | Before Stage 3.15 implementation approval |
+| Stage 3.15 Web asset discovery UI slice | 0.1.x | Closed / merged into `develop` at `22bede651a646d0e8b06568bda457d0626891e63` | 3 | Principal Architect | Completed before next approved implementation stage |
 | Documents 28–39 | 2.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Document 40 | 3.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Documents 1–27, 41 | 1.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
