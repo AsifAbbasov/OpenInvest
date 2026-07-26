@@ -11,7 +11,8 @@ authentication/privacy boundaries, Web authentication UI, backend-owned instrume
 Go API asset search/detail boundary over the approved local catalog. Asset search returns
 backend-owned catalog summaries with `lastPrice: null`; asset-card detail remains intentionally
 deferred until mandatory source provenance and required detail fields can be populated without
-fabricated data.
+fabricated data. Stage 3.15 Web asset discovery UI planning is active and remains documentation
+only until reviewed, approved, and merged.
 Product-risk refinement is closed and remains part of the MVP governance baseline.
 
 ## Components

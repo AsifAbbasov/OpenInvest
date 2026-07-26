@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-14-ASSET-API-BOUNDARY-SLICE |
-| Version | 0.1.2 |
+| Version | 0.1.3 |
 | Status | Complete / closed |
 | Owner | Builder Engineer |
 | Supersedes | Stage 3.14 asset search/card API boundary planning |
 | Dependencies | `SOURCE_OF_TRUTH.md`; Stage 2 contract baseline; Stage 3.13 instrument catalog slice; Stage 3.14 planning |
-| Last Review Date | 2026-07-14 |
-| Next Review Date | Before Stage 3.15 planning |
+| Last Review Date | 2026-07-26 |
+| Next Review Date | Before Stage 3.15 planning approval |
 
 ## Purpose
 
@@ -140,6 +140,6 @@ Completed before PR #38 merge:
 
 ## Recommended next step
 
-Stage 3.14 is closed after PR #38 was squash-merged into `develop` at
-`57a9404952cb65693614109dd4a14d41fa5c4295`. Start the next stage only from the updated `develop`
-baseline and preserve the same review gates.
+Stage 3.14 implementation and closure governance are closed. Continue with Stage 3.15 Web asset
+discovery UI planning from `develop` at `f5289eb604b8ba31aa422d0d09950da02e0f48b3`, and preserve
+the same review gates before any implementation.

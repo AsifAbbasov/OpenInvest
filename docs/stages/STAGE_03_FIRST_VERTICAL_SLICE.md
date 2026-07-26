@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.24 |
+| Version | 0.1.25 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
-| Last Review Date | 2026-07-14 |
-| Next Review Date | Before Stage 3.15 planning |
+| Last Review Date | 2026-07-26 |
+| Next Review Date | Before Stage 3.15 planning approval |
 
 ## Purpose
 
@@ -732,6 +732,39 @@ Forbidden:
 Status:
 
 - Complete / closed; merged into `develop` at `57a9404952cb65693614109dd4a14d41fa5c4295`.
+
+### PR 3.15 — Web asset discovery UI planning
+
+Purpose:
+
+- define the future Next.js presentation-only asset discovery entry over the Stage 3.14 Go asset
+  search API before any frontend implementation.
+
+Allowed:
+
+- documentation-only planning;
+- UI boundary definition for asset search, empty states, loading states, error states, and deferred
+  detail/card states;
+- ADR-007 constraints for typed frontend calls directly to the Go API;
+- accessibility, responsive behavior, and privacy review criteria;
+- explicit implementation acceptance criteria for a later PR.
+
+Forbidden:
+
+- implementation code;
+- OpenAPI changes;
+- SQL migrations;
+- Go handler changes;
+- Route Handlers or Server Actions;
+- direct database access from Next.js;
+- client-side market-data/provider calls;
+- fabricated prices, source provenance, sector, face value, maturity, coupon type, dividends,
+  coupons, yields, returns, WAC, XIRR, purchasing-power, or tax calculations;
+- workers, mobile, AI, or Stage 3.15 implementation work.
+
+Status:
+
+- Active / planning on `feature/stage-03-15-asset-ui-planning`.
 
 ## Stage 3 domain boundaries
 

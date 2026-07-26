@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.27 |
+| Version | 1.1.28 |
 | Status | Active |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
 | Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md` |
-| Last Review Date | 2026-07-14 |
-| Next Review Date | Before Stage 3.15 planning |
+| Last Review Date | 2026-07-26 |
+| Next Review Date | Before Stage 3.15 planning approval |
 
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
 
@@ -43,6 +43,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.13 — Instrument Catalog Slice | Resolve approved MOEX share/bond tickers through the backend-owned catalog boundary | Complete / closed; merged into `develop` at `b9c05fb14d0ee03e6de4dfc04ff67c16da33040b` | [Stage 3.13 implementation report](stages/STAGE_03_13_INSTRUMENT_CATALOG_SLICE.md) |
 | 3.14 — Asset Search/Card API Boundary Planning | Define the future Go API asset search/detail boundary before implementation | Complete / closed; merged into `develop` at `2c4f7853599a455bb0cc04114b338a1145baf39c` | [Stage 3.14 plan](stages/STAGE_03_14_ASSET_API_BOUNDARY_PLANNING.md) |
 | 3.14 — Asset Search/Card API Boundary Slice | Expose the public Go API asset search boundary without fabricated market data or detail provenance | Complete / closed; merged into `develop` at `57a9404952cb65693614109dd4a14d41fa5c4295` | [Stage 3.14 implementation report](stages/STAGE_03_14_ASSET_API_BOUNDARY_SLICE.md) |
+| 3.15 — Web Asset Discovery UI Planning | Define the future Next.js presentation-only asset search entry and honest deferred card-state boundary | Active / planning on `feature/stage-03-15-asset-ui-planning` | [Stage 3.15 plan](stages/STAGE_03_15_WEB_ASSET_DISCOVERY_UI_PLANNING.md) |
 
 ## Stage completion protocol
 
@@ -314,3 +315,24 @@ This log is the index of implementation stages. Every stage must document its pu
 - Kept OpenAPI changes, SQL migrations, frontend stock/bond cards, provider integrations,
   market-data ingestion, workers, financial calculations, tax, mobile, AI, and Stage 3.15 out of
   scope.
+
+## 2026-07-26 — Stage 3.15 Web asset discovery UI planning started
+
+- Squash-merged Stage 3.14 closure governance PR #39 into `develop` at
+  `f5289eb604b8ba31aa422d0d09950da02e0f48b3` after green CI and strict separate-window review
+  approval.
+- Started documentation-only planning for a future Next.js presentation-only asset discovery entry
+  over the existing Go asset search API.
+- Scoped planning to UI state, typed frontend API calls, routing, accessibility, and honest deferred
+  asset-card behavior while asset detail remains unavailable.
+- Kept implementation, OpenAPI changes, SQL migrations, Route Handlers, Server Actions, direct
+  database access, market-data/provider integrations, workers, stock/bond financial calculations,
+  tax, mobile, and AI out of scope.
+
+## 2026-07-26 — Stage 3.15 planning review findings fixed
+
+- Addressed strict separate-window review findings for underspecified cursor/stale-response
+  behavior, missing public-endpoint credential minimization, and incomplete accessibility criteria.
+- Added planning requirements for query/type cursor reset, accepted cursor-chain appends,
+  stale-response guards, public asset API calls with `credentials: "omit"`, keyboard/focus behavior,
+  focus destination/restoration, and asynchronous live-region/error announcements.
