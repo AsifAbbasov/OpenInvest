@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.31 |
+| Version | 1.1.32 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-07-26 |
-| Next Review Date | Before Stage 3.15 implementation approval |
+| Last Review Date | 2026-07-27 |
+| Next Review Date | Before next approved implementation stage |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -488,3 +488,13 @@
   tests against async outcome focus stealing.
 - Preserved Escape/focus behavior for same-ticker detail retries while keeping async detail outcomes
   from stealing focus.
+
+## 2026-07-27 — Stage 3.15 Web asset discovery UI slice closed
+
+- Squash-merged PR #41 into `develop` at `22bede651a646d0e8b06568bda457d0626891e63`.
+- Closed the reviewed Next.js presentation-only asset discovery UI after strict separate-window
+  review approval and green CI.
+- Advanced the governance baseline to Stage 3.15 implementation completion while preserving the
+  exclusions for market data, provider integrations, stock/bond calculations, tax, mobile, and AI.
+- Updated the umbrella Stage 3 plan and Stage 3.15 planning report to remove stale implementation
+  approval and next-step language after closure.

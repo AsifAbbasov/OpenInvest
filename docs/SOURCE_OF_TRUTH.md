@@ -3,23 +3,23 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.37 |
+| Version | 1.4.38 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
-| Last Review Date | 2026-07-26 |
-| Next Review Date | Before Stage 3.15 implementation approval |
+| Last Review Date | 2026-07-27 |
+| Next Review Date | Before next approved implementation stage |
 
 ## Architecture status
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.14 — Asset Search/Card API Boundary Slice**
+**Last completed implementation stage: Stage 3.15 — Web Asset Discovery UI Slice**
 **Last completed planning gate: Stage 3.15 — Web Asset Discovery UI Planning**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `dfeab109b2825fe0e0317e87a7abf2e706a29ea6`**
-**Current active work item: Stage 3.15 Web asset discovery UI slice on `feature/stage-03-15-asset-discovery-ui`**
+**Current canonical implementation baseline: `develop` at `22bede651a646d0e8b06568bda457d0626891e63`**
+**Current active work item: Stage 3.15 closure governance on `stage-03-15-closure-governance`**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -158,8 +158,8 @@ asset search/detail boundary over the approved local catalog. Runtime asset sear
 unless every mandatory source/detail field can be populated without fabricated data. Stage 3.14
 closure governance is merged into `develop` at `f5289eb604b8ba31aa422d0d09950da02e0f48b3`.
 Stage 3.15 Web asset discovery UI planning is closed and merged into `develop` at
-`dfeab109b2825fe0e0317e87a7abf2e706a29ea6`. Stage 3.15 implementation is active on
-`feature/stage-03-15-asset-discovery-ui`; it is limited to the reviewed Next.js
+`dfeab109b2825fe0e0317e87a7abf2e706a29ea6`. Stage 3.15 implementation is closed and merged into
+`develop` at `22bede651a646d0e8b06568bda457d0626891e63`; it added only the reviewed Next.js
 presentation-only asset discovery boundary over the existing Go API and does not authorize market
 data, stock/bond card calculations, provider integrations, workers, tax, mobile, or AI.
 
@@ -194,7 +194,7 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 | --- | --- | --- |
 | Registration and privacy defaults | Yes | Stage 3.12 closed; Go API auth plus presentation-only Web auth UI |
 | Portfolio and transactions | Yes | Stage 3.4 verification closed |
-| MOEX shares and bonds | Yes | Stage 3.14 asset API boundary slice closed |
+| MOEX shares and bonds | Yes | Stage 3.15 Web asset discovery UI slice closed over the Stage 3.14 asset API boundary |
 | Dashboard and snapshots | Yes | Stage 3.4 verification closed |
 | WAC, XIRR, real/inflation returns | Yes | Planned |
 | Dividend calculator/calendar | Yes | Planned |

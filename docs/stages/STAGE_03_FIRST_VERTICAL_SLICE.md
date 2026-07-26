@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.26 |
+| Version | 0.1.27 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
-| Last Review Date | 2026-07-26 |
-| Next Review Date | Before Stage 3.15 implementation approval |
+| Last Review Date | 2026-07-27 |
+| Next Review Date | Before next approved implementation stage |
 
 ## Purpose
 
@@ -798,7 +798,7 @@ Forbidden:
 
 Status:
 
-- Active / implementation on `feature/stage-03-15-asset-discovery-ui`.
+- Complete / closed; merged into `develop` at `22bede651a646d0e8b06568bda457d0626891e63`.
 
 ## Stage 3 domain boundaries
 

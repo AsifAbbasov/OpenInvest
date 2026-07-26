@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.29 |
+| Version | 1.1.30 |
 | Status | Active |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
 | Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md` |
-| Last Review Date | 2026-07-26 |
-| Next Review Date | Before Stage 3.15 implementation approval |
+| Last Review Date | 2026-07-27 |
+| Next Review Date | Before next approved implementation stage |
 
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
 
@@ -44,7 +44,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.14 — Asset Search/Card API Boundary Planning | Define the future Go API asset search/detail boundary before implementation | Complete / closed; merged into `develop` at `2c4f7853599a455bb0cc04114b338a1145baf39c` | [Stage 3.14 plan](stages/STAGE_03_14_ASSET_API_BOUNDARY_PLANNING.md) |
 | 3.14 — Asset Search/Card API Boundary Slice | Expose the public Go API asset search boundary without fabricated market data or detail provenance | Complete / closed; merged into `develop` at `57a9404952cb65693614109dd4a14d41fa5c4295` | [Stage 3.14 implementation report](stages/STAGE_03_14_ASSET_API_BOUNDARY_SLICE.md) |
 | 3.15 — Web Asset Discovery UI Planning | Define the future Next.js presentation-only asset search entry and honest deferred card-state boundary | Complete / closed; merged into `develop` at `dfeab109b2825fe0e0317e87a7abf2e706a29ea6` | [Stage 3.15 plan](stages/STAGE_03_15_WEB_ASSET_DISCOVERY_UI_PLANNING.md) |
-| 3.15 — Web Asset Discovery UI Slice | Implement the reviewed Next.js presentation-only asset discovery boundary | Active / implementation on `feature/stage-03-15-asset-discovery-ui` | [Stage 3.15 implementation report](stages/STAGE_03_15_WEB_ASSET_DISCOVERY_UI_SLICE.md) |
+| 3.15 — Web Asset Discovery UI Slice | Implement the reviewed Next.js presentation-only asset discovery boundary | Complete / closed; merged into `develop` at `22bede651a646d0e8b06568bda457d0626891e63` | [Stage 3.15 implementation report](stages/STAGE_03_15_WEB_ASSET_DISCOVERY_UI_SLICE.md) |
 
 ## Stage completion protocol
 
@@ -366,3 +366,17 @@ This log is the index of implementation stages. Every stage must document its pu
   focus after the initial detail entry.
 - Tightened the detail focus helper so retrying the same ticker re-enters the loading detail region
   while same-ticker async outcomes still avoid stealing focus.
+
+## 2026-07-27 — Stage 3.15 Web asset discovery UI slice closed
+
+- Squash-merged PR #41 into `develop` at `22bede651a646d0e8b06568bda457d0626891e63`.
+- Closed the reviewed Next.js presentation-only asset discovery boundary after strict
+  separate-window review approval and green CI.
+- Added `/assets` discovery UI, typed public asset API calls, stale search/detail guards, honest
+  unavailable-price and deferred-detail rendering, keyboard/focus/live-region behavior, and focused
+  frontend tests.
+- Updated the umbrella Stage 3 plan and Stage 3.15 planning report so no current governance
+  document still points to Stage 3.15 implementation approval after closure.
+- Kept OpenAPI changes, SQL migrations, Go handlers, Route Handlers, Server Actions, direct
+  datastore access, provider/market-data integrations, workers, financial calculations, tax, mobile,
+  and AI out of scope.
