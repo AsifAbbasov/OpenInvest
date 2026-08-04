@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.38 |
+| Version | 1.1.40 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
@@ -15,7 +15,7 @@
 
 | ID | Title | Version | Status | Location |
 | --- | --- | --- | --- | --- |
-| SOT-001 | Source of Truth | 1.4.38 | Approved | `SOURCE_OF_TRUTH.md` |
+| SOT-001 | Source of Truth | 1.4.39 | Approved | `SOURCE_OF_TRUTH.md` |
 | 42 | Architecture Amendments | 1.1.0 | Approved | `specifications/current/DOCUMENT_42_ARCHITECTURE_AMENDMENTS_v1.1.md` |
 | 43 | Architecture Decision Closure | 1.2.0 | Final | `specifications/current/DOCUMENT_43_ARCHITECTURE_CLOSURE_v1.2.md` |
 
@@ -73,7 +73,7 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 
 | Document | Status | Location |
 | --- | --- | --- |
-| Stage 3 plan | Active / staged implementation; updated through Stage 3.15 closure | `stages/STAGE_03_FIRST_VERTICAL_SLICE.md` |
+| Stage 3 plan | Active / staged implementation; updated through Stage 3.16 repository audit planning | `stages/STAGE_03_FIRST_VERTICAL_SLICE.md` |
 | Stage 3.1 database foundation | Complete / merged into `develop` | `stages/STAGE_03_01_DATABASE_FOUNDATION.md` |
 | Stage 3.2 Go API vertical slice | Complete / merged into `develop` | `stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md` |
 | Stage 3.3 Next.js presentation slice | Complete / merged into `develop` | `stages/STAGE_03_03_NEXTJS_PRESENTATION_SLICE.md` |
@@ -98,6 +98,7 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Stage 3.14 asset search/card API boundary slice | Complete / merged into `develop` | `stages/STAGE_03_14_ASSET_API_BOUNDARY_SLICE.md` |
 | Stage 3.15 Web asset discovery UI planning | Complete / merged into `develop` | `stages/STAGE_03_15_WEB_ASSET_DISCOVERY_UI_PLANNING.md` |
 | Stage 3.15 Web asset discovery UI slice | Complete / merged into `develop` | `stages/STAGE_03_15_WEB_ASSET_DISCOVERY_UI_SLICE.md` |
+| Stage 3.16 repository audit planning | Active / planning | `stages/STAGE_03_16_REPOSITORY_AUDIT_PLANNING.md` |
 
 ## Product refinement documents
 

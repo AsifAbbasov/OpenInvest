@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.32 |
+| Version | 1.1.34 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -498,3 +498,21 @@
   exclusions for market data, provider integrations, stock/bond calculations, tax, mobile, and AI.
 - Updated the umbrella Stage 3 plan and Stage 3.15 planning report to remove stale implementation
   approval and next-step language after closure.
+
+## 2026-07-27 — Stage 3.16 repository audit planning started
+
+- Squash-merged Stage 3.15 closure governance PR #42 into `develop` at
+  `9eec98c36d7aeffb21dc2d7e7e0eb1681106901d`.
+- Started documentation-only planning for the mandatory full repository audit before the next
+  implementation stage.
+- Preserved the block on financial algorithms, market data, providers, workers, tax, mobile, and AI
+  until a separately reviewed stage authorizes them.
+
+## 2026-07-27 — Stage 3.16 planning review findings fixed
+
+- Added a required immutable post-planning audit target SHA and tracked-file coverage manifest for
+  the future repository audit stage.
+- Required every tracked path to be audited or narrowly excluded with a reviewed generated,
+  vendored, binary, or archival rationale.
+- Made SOLID, cost, and ADR-consistency review explicit in audit scope, evidence mapping, and
+  acceptance criteria.

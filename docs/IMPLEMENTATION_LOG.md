@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.30 |
+| Version | 1.1.32 |
 | Status | Active |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
@@ -45,6 +45,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.14 — Asset Search/Card API Boundary Slice | Expose the public Go API asset search boundary without fabricated market data or detail provenance | Complete / closed; merged into `develop` at `57a9404952cb65693614109dd4a14d41fa5c4295` | [Stage 3.14 implementation report](stages/STAGE_03_14_ASSET_API_BOUNDARY_SLICE.md) |
 | 3.15 — Web Asset Discovery UI Planning | Define the future Next.js presentation-only asset search entry and honest deferred card-state boundary | Complete / closed; merged into `develop` at `dfeab109b2825fe0e0317e87a7abf2e706a29ea6` | [Stage 3.15 plan](stages/STAGE_03_15_WEB_ASSET_DISCOVERY_UI_PLANNING.md) |
 | 3.15 — Web Asset Discovery UI Slice | Implement the reviewed Next.js presentation-only asset discovery boundary | Complete / closed; merged into `develop` at `22bede651a646d0e8b06568bda457d0626891e63` | [Stage 3.15 implementation report](stages/STAGE_03_15_WEB_ASSET_DISCOVERY_UI_SLICE.md) |
+| 3.16 — Repository Audit Planning | Plan the mandatory full repository audit before the next implementation stage | Active / planning on `stage-03-16-repository-audit-planning` | [Stage 3.16 plan](stages/STAGE_03_16_REPOSITORY_AUDIT_PLANNING.md) |
 
 ## Stage completion protocol
 
@@ -380,3 +381,23 @@ This log is the index of implementation stages. Every stage must document its pu
 - Kept OpenAPI changes, SQL migrations, Go handlers, Route Handlers, Server Actions, direct
   datastore access, provider/market-data integrations, workers, financial calculations, tax, mobile,
   and AI out of scope.
+
+## 2026-07-27 — Stage 3.16 repository audit planning started
+
+- Squash-merged Stage 3.15 closure governance PR #42 into `develop` at
+  `9eec98c36d7aeffb21dc2d7e7e0eb1681106901d`.
+- Started documentation-only planning for the mandatory full repository audit before the next
+  implementation stage.
+- Scoped the future audit to architecture, DDD, API, security, privacy, performance, dependencies,
+  tests, documentation, cost, and ADR consistency.
+- Kept implementation work, financial algorithms, OpenAPI changes, SQL migrations, dependency
+  changes, market data, providers, workers, tax, mobile, and AI out of scope.
+
+## 2026-07-27 — Stage 3.16 planning review findings fixed
+
+- Addressed strict separate-window review findings by making the future audit target reproducible:
+  after the planning PR merge, the audit stage must record the full post-planning `develop` SHA.
+- Required a tracked-file coverage manifest where every path is audited or excluded with a narrow
+  generated, vendored, binary, or archival rationale.
+- Added explicit SOLID, cost, and ADR-consistency coverage to the audit method and acceptance
+  criteria.
