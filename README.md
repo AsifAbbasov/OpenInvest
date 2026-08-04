@@ -12,8 +12,8 @@ API asset search/detail boundary over the approved local catalog, and the review
 discovery UI. Asset search returns
 backend-owned catalog summaries with `lastPrice: null`; asset-card detail remains intentionally
 deferred until mandatory source provenance and required detail fields can be populated without
-fabricated data. Stage 3.15 Web asset discovery UI implementation is closed; closure governance is
-the current active documentation-only follow-up.
+fabricated data. Stage 3.15 Web asset discovery UI implementation and closure governance are closed;
+the current active follow-up is documentation-only Stage 3.16 repository audit planning.
 Product-risk refinement is closed and remains part of the MVP governance baseline.
 
 ## Components

@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.27 |
+| Version | 0.1.28 |
 | Status | Active / staged implementation |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
@@ -799,6 +799,37 @@ Forbidden:
 Status:
 
 - Complete / closed; merged into `develop` at `22bede651a646d0e8b06568bda457d0626891e63`.
+
+### PR 3.16 — Repository audit planning
+
+Purpose:
+
+- plan the mandatory full repository audit before the next implementation stage;
+- make architecture, DDD, API, privacy/security, dependency, test, documentation, cost, and ADR
+  drift visible before financial algorithms or source-backed read models begin;
+- define the future audit report, review evidence, and finding-resolution expectations.
+
+Allowed:
+
+- documentation-only planning;
+- audit scope definition;
+- repository-area checklist definition;
+- acceptance criteria for the future audit stage;
+- governance updates to mark Stage 3.16 planning active.
+
+Forbidden:
+
+- code changes;
+- OpenAPI changes;
+- SQL migrations;
+- dependency changes;
+- WAC, XIRR, real return, inflation, purchasing-power, dividend, coupon, tax, or market-data
+  implementation;
+- provider integrations, workers, mobile, AI, premium, public API, or email automation.
+
+Status:
+
+- Active / planning on `stage-03-16-repository-audit-planning`.
 
 ## Stage 3 domain boundaries
 

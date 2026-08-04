@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.38 |
+| Version | 1.4.39 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -18,8 +18,8 @@
 **Last completed implementation stage: Stage 3.15 — Web Asset Discovery UI Slice**
 **Last completed planning gate: Stage 3.15 — Web Asset Discovery UI Planning**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `22bede651a646d0e8b06568bda457d0626891e63`**
-**Current active work item: Stage 3.15 closure governance on `stage-03-15-closure-governance`**
+**Current canonical implementation baseline: `develop` at `9eec98c36d7aeffb21dc2d7e7e0eb1681106901d`**
+**Current active work item: Stage 3.16 repository audit planning on `stage-03-16-repository-audit-planning`**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -161,7 +161,9 @@ Stage 3.15 Web asset discovery UI planning is closed and merged into `develop` a
 `dfeab109b2825fe0e0317e87a7abf2e706a29ea6`. Stage 3.15 implementation is closed and merged into
 `develop` at `22bede651a646d0e8b06568bda457d0626891e63`; it added only the reviewed Next.js
 presentation-only asset discovery boundary over the existing Go API and does not authorize market
-data, stock/bond card calculations, provider integrations, workers, tax, mobile, or AI.
+data, stock/bond card calculations, provider integrations, workers, tax, mobile, or AI. Stage 3.15
+closure governance is merged into `develop` at `9eec98c36d7aeffb21dc2d7e7e0eb1681106901d`. Stage
+3.16 repository audit planning is active and must not authorize implementation work by itself.
 
 ## Financial standard
 
