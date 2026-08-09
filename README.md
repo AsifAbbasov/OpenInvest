@@ -12,8 +12,10 @@ API asset search/detail boundary over the approved local catalog, and the review
 discovery UI. Asset search returns
 backend-owned catalog summaries with `lastPrice: null`; asset-card detail remains intentionally
 deferred until mandatory source provenance and required detail fields can be populated without
-fabricated data. Stage 3.16 repository audit planning is closed; the mandatory repository audit
-returned `REQUEST CHANGES`, and the current active follow-up is Stage 3.16 audit fixes.
+fabricated data. Stage 3.16 repository audit planning and its audit-fix closure are closed; the
+fixes were squash-merged into `develop` through PR #44 at
+`9e6b8a753bf73ef020ce40461df25a5878344d92`. No next implementation stage is authorized until a
+separately reviewed planning gate is complete.
 Product-risk refinement is closed and remains part of the MVP governance baseline.
 
 ## Components

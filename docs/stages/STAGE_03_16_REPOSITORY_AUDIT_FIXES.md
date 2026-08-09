@@ -2,18 +2,22 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Active / audit fixes |
+| Status | Complete / closed; merged into `develop` |
 | Owner | Principal Architect |
 | Audit Target SHA | `74eebe9ec8231764f21ce384c4690d073d0273da` |
-| Audit Verdict | `REQUEST CHANGES` |
+| Audit Verdict | `REQUEST CHANGES` (historical immutable audit result) |
+| Read-only Review Verdict | `APPROVED` (existing review task; not a blind external review) |
 | Branch | `stage-03-16-audit-fixes` |
+| Merge | PR #44; squash commit `9e6b8a753bf73ef020ce40461df25a5878344d92` |
+| Human Merge Authorization | User command in Codex task `019fce20-2e0d-78f2-93af-3c5bc72c9b04` on 2026-08-09 |
+| External Review Evidence | No independently recorded external review; this closure does not assert that policy gate was satisfied |
 
 ## Scope
 
 This stage fixes the blocking findings from the mandatory Stage 3.16 full repository audit before any
 new implementation stage can begin.
 
-## Implemented fixes awaiting independent review
+## Implemented fixes
 
 - Fail closed when `OPENINVEST_IMPORT_REVIEW_TOKEN_SECRET` is absent or shorter than 32 bytes;
   a static development secret is available only through the explicit development constructor or an
@@ -45,6 +49,20 @@ new implementation stage can begin.
 - Reject explicitly supplied empty or whitespace private-list cursors, and reject undeclared fields in
   import review/append payloads, including nested import decisions, to match the OpenAPI cursor and
   `additionalProperties: false` contract.
+
+## Closure evidence
+
+- The existing read-only review task returned `APPROVED` after its P2 findings and subsequent CI
+  follow-ups were addressed; it was not a blind external review, and reviewers did not edit, stage,
+  commit, or push the fix branch.
+- GitHub Actions run `31300786551` passed its full configured verification suite after the final
+  database-constraint and integration-test corrections.
+- The source Codex task records the user's merge authorization on 2026-08-09; PR #44 was
+  squash-merged into `develop` at `9e6b8a753bf73ef020ce40461df25a5878344d92`.
+- The separate Stage 3.16 audit report preserves its original `REQUEST CHANGES` verdict as
+  historical evidence. No subsequent implementation stage is authorized; the next work requires a
+  separately reviewed planning gate. This closure does not represent the independently recorded
+  external-review policy gate as satisfied.
 
 ## Still requiring disposition
 

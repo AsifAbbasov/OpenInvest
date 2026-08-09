@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.1.41 |
+| Version | 1.1.42 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | Documents 42–43 |
-| Last Review Date | 2026-08-08 |
-| Next Review Date | Before next approved implementation stage |
+| Last Review Date | 2026-08-09 |
+| Next Review Date | Before the next separately reviewed planning stage |
 
 | Range | Version | Status under Freeze v1.2 | Priority | Owner | Review |
 | --- | --- | --- | --- | --- | --- |
@@ -50,7 +50,7 @@
 | Stage 3.16 repository audit planning | 0.1.x | Closed / merged into `develop` at `74eebe9ec8231764f21ce384c4690d073d0273da` | 3 | Principal Architect | Mandatory full repository audit returned `REQUEST CHANGES` |
 | Stage 3.16 repository audit report | 0.1.x | Complete / returned `REQUEST CHANGES` | 3 | Principal Architect | Manifest SHA `1fd740a8d5bca3afd05daa3268c079bae3a7a331a043ecdff5d35734ac77604e` |
 | Stage 3.16 repository audit coverage manifest | 0.1.x | Complete / 200-path immutable coverage record | 3 | Principal Architect | Audited target `74eebe9ec8231764f21ce384c4690d073d0273da` |
-| Stage 3.16 repository audit fixes | 0.1.x | Active / fixes on `stage-03-16-audit-fixes` | 3 | Principal Architect | Before any next implementation stage |
+| Stage 3.16 repository audit fixes | 0.1.x | Closed / merged into `develop` at `9e6b8a753bf73ef020ce40461df25a5878344d92` | 3 | Principal Architect | Next separately reviewed planning stage |
 | Documents 28–39 | 2.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Document 40 | 3.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Documents 1–27, 41 | 1.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |

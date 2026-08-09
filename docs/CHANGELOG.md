@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.35 |
+| Version | 1.1.37 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-08-08 |
-| Next Review Date | Before next approved implementation stage |
+| Last Review Date | 2026-08-09 |
+| Next Review Date | Before the next separately reviewed planning stage |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -549,8 +549,22 @@
   restored an explicit development-only token-secret fallback, applied the provenance migration in
   smoke, and scope-bound Web import async responses to the active portfolio/session.
 - Published the durable 200-path Stage 3.16 audit coverage manifest and synchronized governance
-  metadata. The separate review verdict remains `REQUEST CHANGES` until independently approved.
+  metadata. The original audit verdict remained `REQUEST CHANGES` pending the later fix review.
 - Signed asset-search continuations with query/type-bound HMAC keysets and synchronously invalidate
   stale import operations before passive effects run after session or portfolio changes.
 - Hardened migration-rehearsal traversal and schema evidence, and added a mounted React lifecycle test
   for stale review and append promises after a portfolio or session change.
+
+## 2026-08-09 — Stage 3.16 audit-fix closure
+
+- Squash-merged PR #44 into `develop` at `9e6b8a753bf73ef020ce40461df25a5878344d92` after
+  read-only review approval and green GitHub Actions verification run `31300786551`.
+- Corrected the CI-discovered PostgreSQL provenance `CHECK` NULL case and stale rollback-test row
+  count, then reran CI successfully.
+- Updated the Stage 3.16 governance records to distinguish the historical audit `REQUEST CHANGES`
+  verdict from the resolved and merged fix disposition.
+- Preserved the requirement for a separately reviewed planning gate before any subsequent
+  implementation stage.
+- Synchronized the umbrella Stage 3 plan with the closed Stage 3.16 governance state, recorded the
+  human merge authorization location, and did not represent the existing read-only review as an
+  independently recorded external review.
