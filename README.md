@@ -12,8 +12,8 @@ API asset search/detail boundary over the approved local catalog, and the review
 discovery UI. Asset search returns
 backend-owned catalog summaries with `lastPrice: null`; asset-card detail remains intentionally
 deferred until mandatory source provenance and required detail fields can be populated without
-fabricated data. Stage 3.15 Web asset discovery UI implementation and closure governance are closed;
-the current active follow-up is documentation-only Stage 3.16 repository audit planning.
+fabricated data. Stage 3.16 repository audit planning is closed; the mandatory repository audit
+returned `REQUEST CHANGES`, and the current active follow-up is Stage 3.16 audit fixes.
 Product-risk refinement is closed and remains part of the MVP governance baseline.
 
 ## Components
@@ -40,9 +40,11 @@ pnpm run verify:e2e
 tabs when manually checking the Web UI.
 
 `dev:api` sets `OPENINVEST_ENV=development` by default so the local auth bypass and insecure local
-refresh cookie cannot accidentally become production behavior. Production or staging runs with a
-configured `DATABASE_URL` must keep unsafe local auth flags disabled and provide
-`OPENINVEST_ACCESS_TOKEN_SECRET`.
+refresh cookie cannot accidentally become production behavior. An API process without `DATABASE_URL`
+starts only with an explicit `OPENINVEST_ENV=development` or `local`; staging and production fail
+closed. Production or staging runs with a configured `DATABASE_URL` must keep unsafe local auth flags disabled and provide
+`OPENINVEST_ACCESS_TOKEN_SECRET` and `OPENINVEST_IMPORT_REVIEW_TOKEN_SECRET`. Both secrets must
+contain at least 32 high-entropy bytes and must be different values.
 
 ## Local checks
 

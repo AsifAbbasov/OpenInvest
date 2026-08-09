@@ -22,7 +22,7 @@ func (SystemClock) Now() time.Time {
 type Store interface {
 	Ping(ctx context.Context) error
 	SearchAssets(ctx context.Context, filter AssetSearchFilter) ([]AssetSummary, error)
-	ListPortfolios(ctx context.Context, subjectID string, limit int) ([]Portfolio, error)
+	ListPortfolios(ctx context.Context, subjectID string, filter PortfolioFilter) ([]Portfolio, error)
 	CreatePortfolio(ctx context.Context, command CommandContext, request CreatePortfolioRequest) (Portfolio, error)
 	GetPortfolio(ctx context.Context, subjectID string, portfolioID string) (Portfolio, error)
 	ListTransactions(ctx context.Context, subjectID string, portfolioID string, filter TransactionFilter) ([]Transaction, error)
@@ -47,17 +47,23 @@ type RequestContext struct {
 }
 
 type AssetSearchFilter struct {
-	Query     string
-	AssetType string
-	Cursor    string
-	Limit     int
+	Query       string
+	AssetType   string
+	AfterTicker string
+	Limit       int
 }
 
 type AssetSearchResult struct {
 	Items      []AssetSummary
-	NextCursor *string
+	NextTicker *string
 	HasMore    bool
 	Limit      int
+}
+
+type PortfolioFilter struct {
+	Limit           int
+	BeforeUpdatedAt *time.Time
+	BeforeID        string
 }
 
 type AssetSummary struct {
@@ -107,6 +113,8 @@ type TransactionFilter struct {
 	FromDate        string
 	ToDate          string
 	Limit           int
+	BeforeTradeDate string
+	BeforeEntryID   string
 }
 
 type Money struct {
@@ -129,6 +137,7 @@ type Portfolio struct {
 
 type Transaction struct {
 	ID              string
+	EntryID         string
 	PortfolioID     string
 	TransactionType string
 	Status          string

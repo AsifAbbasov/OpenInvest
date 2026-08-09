@@ -2,7 +2,9 @@ package postgres_test
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"errors"
 	"os"
 	"strings"
@@ -18,7 +20,32 @@ import (
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
-const importCSVHeader = "transaction_type,ticker,quantity,unit_price,gross_amount,commission,tax,trade_date,settlement_date,currency,broker_operation_id,note\n"
+const (
+	importCSVHeader     = "transaction_type,ticker,quantity,unit_price,gross_amount,commission,tax,trade_date,settlement_date,currency,broker_operation_id,note\n"
+	testImportFileHashA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	testImportFileHashB = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+	testImportFileHashC = "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+	testImportFileHashD = "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+	testImportFileHashE = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+)
+
+func mustReviewImportPayload(t *testing.T, subjectID string, portfolioID string, sourceAccountLabel string, payload string, existing []verticalslice.Transaction) importer.Review {
+	t.Helper()
+	hash := sha256.Sum256([]byte(payload))
+	review, err := importer.ReviewCSV(importer.ReviewRequest{
+		SubjectID:          subjectID,
+		PortfolioID:        portfolioID,
+		SourceKind:         importer.SourceKindUserUploadedFile,
+		SourceAccountLabel: sourceAccountLabel,
+		FileHash:           hex.EncodeToString(hash[:]),
+		Existing:           existing,
+		Reader:             strings.NewReader(payload),
+	})
+	if err != nil {
+		t.Fatalf("review import payload: %v", err)
+	}
+	return review
+}
 
 type assetRowSnapshot struct {
 	Exists          bool
@@ -204,7 +231,7 @@ func TestStoreVerticalSlice(t *testing.T) {
 		Ticker:          &ticker,
 		Quantity:        &quantity,
 		UnitPrice:       &unitPrice,
-		Commission:      verticalslice.Money{Amount: decimal.Must("28.00000000"), Currency: verticalslice.RUB},
+		Commission:      verticalslice.Money{Amount: decimal.Must("29.00000000"), Currency: verticalslice.RUB},
 		Tax:             verticalslice.ZeroMoney(),
 		TradeDate:       "2026-01-10",
 	})
@@ -501,14 +528,14 @@ func TestStoreSearchAssetsReturnsOnlyActiveCanonicalFixtures(t *testing.T) {
 	if err != nil {
 		t.Fatalf("search first page: %v", err)
 	}
-	if !firstPage.HasMore || firstPage.NextCursor == nil || len(firstPage.Items) != 1 || firstPage.Items[0].Ticker != "SBER" {
+	if !firstPage.HasMore || firstPage.NextTicker == nil || len(firstPage.Items) != 1 || firstPage.Items[0].Ticker != "SBER" {
 		t.Fatalf("unexpected first page: %+v", firstPage)
 	}
-	secondPage, err := service.SearchAssets(ctx, verticalslice.AssetSearchFilter{Query: "S", Cursor: *firstPage.NextCursor, Limit: 1})
+	secondPage, err := service.SearchAssets(ctx, verticalslice.AssetSearchFilter{Query: "S", AfterTicker: *firstPage.NextTicker, Limit: 1})
 	if err != nil {
 		t.Fatalf("search second page: %v", err)
 	}
-	if secondPage.HasMore || secondPage.NextCursor != nil || len(secondPage.Items) != 1 || secondPage.Items[0].Ticker != "SU26238RMFS4" {
+	if secondPage.HasMore || secondPage.NextTicker != nil || len(secondPage.Items) != 1 || secondPage.Items[0].Ticker != "SU26238RMFS4" {
 		t.Fatalf("unexpected second page: %+v", secondPage)
 	}
 }
@@ -813,7 +840,7 @@ func TestStoreAppendImportedTransactionsIsAtomicAndIdempotent(t *testing.T) {
 			},
 		},
 		SourceKind:     "USER_UPLOADED_FILE",
-		SourceFileHash: "file-hash",
+		SourceFileHash: testImportFileHashA,
 	}
 
 	transactions, err := service.AppendImportedTransactions(ctx, verticalslice.RequestContext{}, subjectID, "import-batch-key-001", "/internal/imports/append", batch)
@@ -847,8 +874,8 @@ func TestStoreAppendImportedTransactionsIsAtomicAndIdempotent(t *testing.T) {
 	}
 
 	_, err = service.AppendTransaction(ctx, verticalslice.RequestContext{}, subjectID, "manual-equivalent-after-import", "/api/v1/portfolios/"+portfolio.ID+"/transactions", batch.Transactions[1])
-	if err != nil {
-		t.Fatalf("append later equivalent manual transaction: %v", err)
+	if !errors.Is(err, verticalslice.ErrInvalidInput) {
+		t.Fatalf("expected later equivalent manual transaction rejection, got %v", err)
 	}
 
 	replayedAfterEquivalent, err := service.AppendImportedTransactions(ctx, verticalslice.RequestContext{}, subjectID, "import-batch-key-001", "/internal/imports/append", batch)
@@ -874,7 +901,7 @@ func TestStoreAppendImportedTransactionsIsAtomicAndIdempotent(t *testing.T) {
 			batch.Transactions[1],
 		},
 		SourceKind:     "USER_UPLOADED_FILE",
-		SourceFileHash: "file-hash-2",
+		SourceFileHash: testImportFileHashB,
 	}
 
 	_, err = service.AppendImportedTransactions(ctx, verticalslice.RequestContext{}, subjectID, "import-batch-key-002", "/internal/imports/append", conflictingBatch)
@@ -886,8 +913,8 @@ func TestStoreAppendImportedTransactionsIsAtomicAndIdempotent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("list transactions: %v", err)
 	}
-	if len(listed) != 3 {
-		t.Fatalf("expected rollback to keep 3 transactions, got %d", len(listed))
+	if len(listed) != 2 {
+		t.Fatalf("expected rejected batch rollback to keep 2 transactions, got %d", len(listed))
 	}
 
 	db, err := sql.Open("pgx", databaseURL)
@@ -907,6 +934,64 @@ func TestStoreAppendImportedTransactionsIsAtomicAndIdempotent(t *testing.T) {
 	}
 	if auditCount != 1 {
 		t.Fatalf("expected one import append audit event, got %d", auditCount)
+	}
+}
+
+func TestStoreAllowsIdenticalManualTransactionsButRejectsEquivalentImport(t *testing.T) {
+	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
+	if databaseURL == "" {
+		t.Skip("OPENINVEST_DATABASE_TEST_URL is not set")
+	}
+
+	store, err := postgres.Open(databaseURL)
+	if err != nil {
+		t.Fatalf("open postgres store: %v", err)
+	}
+	defer store.Close()
+
+	db, err := sql.Open("pgx", databaseURL)
+	if err != nil {
+		t.Fatalf("open cleanup database: %v", err)
+	}
+	closeDBOnCleanup(t, db, "manual/import provenance")
+
+	service := verticalslice.NewService(store, verticalslice.SystemClock{})
+	ctx := context.Background()
+	subjectID := uuid.NewString()
+	portfolio, err := service.CreatePortfolio(ctx, verticalslice.RequestContext{}, subjectID, "portfolio-key-provenance-001", "/api/v1/portfolios", verticalslice.CreatePortfolioRequest{
+		Name:         "Source-aware duplicates",
+		BaseCurrency: verticalslice.RUB,
+	})
+	if err != nil {
+		t.Fatalf("create portfolio: %v", err)
+	}
+	t.Cleanup(func() {
+		cleanupPortfolioRows(t, ctx, db, portfolio.ID)
+	})
+
+	gross := verticalslice.Money{Amount: decimal.Must("1250.00000000"), Currency: verticalslice.RUB}
+	transaction := verticalslice.AppendTransactionRequest{
+		PortfolioID:     portfolio.ID,
+		TransactionType: "DEPOSIT",
+		GrossAmount:     &gross,
+		Commission:      verticalslice.ZeroMoney(),
+		Tax:             verticalslice.ZeroMoney(),
+		TradeDate:       "2026-07-01",
+	}
+	for _, idempotencyKey := range []string{"manual-provenance-key-001", "manual-provenance-key-002"} {
+		if _, err := service.AppendTransaction(ctx, verticalslice.RequestContext{}, subjectID, idempotencyKey, "/api/v1/portfolios/"+portfolio.ID+"/transactions", transaction); err != nil {
+			t.Fatalf("append independent manual transaction %s: %v", idempotencyKey, err)
+		}
+	}
+
+	_, err = service.AppendImportedTransactions(ctx, verticalslice.RequestContext{}, subjectID, "import-provenance-key-001", "/internal/imports/append", verticalslice.AppendImportBatchRequest{
+		PortfolioID:    portfolio.ID,
+		Transactions:   []verticalslice.AppendTransactionRequest{transaction},
+		SourceKind:     "USER_UPLOADED_FILE",
+		SourceFileHash: testImportFileHashC,
+	})
+	if !errors.Is(err, verticalslice.ErrInvalidInput) {
+		t.Fatalf("expected equivalent import to be rejected after manual ledger entries, got %v", err)
 	}
 }
 
@@ -946,7 +1031,7 @@ func TestStoreAppendImportedTransactionsSerializesConcurrentDuplicateBatches(t *
 			TradeDate:       "2026-06-23",
 		}},
 		SourceKind:     "USER_UPLOADED_FILE",
-		SourceFileHash: "file-hash-concurrent",
+		SourceFileHash: testImportFileHashD,
 	}
 
 	start := make(chan struct{})
@@ -990,6 +1075,91 @@ func TestStoreAppendImportedTransactionsSerializesConcurrentDuplicateBatches(t *
 	}
 }
 
+func TestStoreAppendTransactionSerializesAgainstConcurrentImportDuplicate(t *testing.T) {
+	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
+	if databaseURL == "" {
+		t.Skip("OPENINVEST_DATABASE_TEST_URL is not set")
+	}
+
+	store, err := postgres.Open(databaseURL)
+	if err != nil {
+		t.Fatalf("open postgres store: %v", err)
+	}
+	defer store.Close()
+
+	service := verticalslice.NewService(store, verticalslice.SystemClock{})
+	ctx := context.Background()
+	subjectID := uuid.NewString()
+
+	portfolio, err := service.CreatePortfolio(ctx, verticalslice.RequestContext{}, subjectID, "portfolio-key-import-manual-race", "/api/v1/portfolios", verticalslice.CreatePortfolioRequest{
+		Name:         "Manual import race",
+		BaseCurrency: verticalslice.RUB,
+	})
+	if err != nil {
+		t.Fatalf("create portfolio: %v", err)
+	}
+
+	gross := verticalslice.Money{Amount: decimal.Must("880.00000000"), Currency: verticalslice.RUB}
+	transaction := verticalslice.AppendTransactionRequest{
+		PortfolioID:     portfolio.ID,
+		TransactionType: "DEPOSIT",
+		GrossAmount:     &gross,
+		Commission:      verticalslice.ZeroMoney(),
+		Tax:             verticalslice.ZeroMoney(),
+		TradeDate:       "2026-06-24",
+	}
+	batch := verticalslice.AppendImportBatchRequest{
+		PortfolioID:    portfolio.ID,
+		Transactions:   []verticalslice.AppendTransactionRequest{transaction},
+		SourceKind:     "USER_UPLOADED_FILE",
+		SourceFileHash: testImportFileHashE,
+	}
+
+	start := make(chan struct{})
+	errs := make(chan error, 2)
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		<-start
+		_, err := service.AppendTransaction(ctx, verticalslice.RequestContext{}, subjectID, "manual-race-key-001", "/api/v1/portfolios/"+portfolio.ID+"/transactions", transaction)
+		errs <- err
+	}()
+	go func() {
+		defer wg.Done()
+		<-start
+		_, err := service.AppendImportedTransactions(ctx, verticalslice.RequestContext{}, subjectID, "import-race-key-001", "/internal/imports/append", batch)
+		errs <- err
+	}()
+	close(start)
+	wg.Wait()
+	close(errs)
+
+	successes := 0
+	duplicates := 0
+	for err := range errs {
+		switch {
+		case err == nil:
+			successes++
+		case errors.Is(err, verticalslice.ErrInvalidInput):
+			duplicates++
+		default:
+			t.Fatalf("unexpected concurrent manual/import error: %v", err)
+		}
+	}
+	if successes != 1 || duplicates != 1 {
+		t.Fatalf("expected one success and one duplicate rejection, got successes=%d duplicates=%d", successes, duplicates)
+	}
+
+	listed, err := service.ListTransactions(ctx, subjectID, portfolio.ID, verticalslice.TransactionFilter{Limit: 10})
+	if err != nil {
+		t.Fatalf("list transactions: %v", err)
+	}
+	if len(listed) != 1 {
+		t.Fatalf("expected exactly one transaction after concurrent manual/import append, got %d", len(listed))
+	}
+}
+
 func TestImportReviewAppendFlowAppendsApprovedRows(t *testing.T) {
 	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
 	if databaseURL == "" {
@@ -1014,18 +1184,22 @@ func TestImportReviewAppendFlowAppendsApprovedRows(t *testing.T) {
 		t.Fatalf("create portfolio: %v", err)
 	}
 
+	payload := importCSVHeader +
+		"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,op-flow-1,cash in\n" +
+		"BUY,SBER,2.00000000,100.00000000,200.00000000,1.00000000,0.00000000,2026-06-20,2026-06-21,RUB,op-flow-2,buy\n"
+	review := mustReviewImportPayload(t, subjectID, portfolio.ID, "manual-broker-label", payload, nil)
+
 	result, err := importflow.ReviewAndAppend(ctx, service, importflow.Request{
 		SubjectID:          subjectID,
 		PortfolioID:        portfolio.ID,
 		IdempotencyKey:     "import-flow-key-1001",
 		RequestPath:        "/internal/imports/review-append",
 		SourceAccountLabel: "manual-broker-label",
-		Reader: strings.NewReader(importCSVHeader +
-			"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,op-flow-1,cash in\n" +
-			"BUY,SBER,2.00000000,100.00000000,200.00000000,1.00000000,0.00000000,2026-06-20,2026-06-21,RUB,op-flow-2,buy\n"),
+		SourceFileHash:     review.FileHash,
+		Reader:             strings.NewReader(payload),
 		Decisions: []importer.Decision{
-			{RowNumber: 2, Action: importer.DecisionApprove},
-			{RowNumber: 3, Action: importer.DecisionApprove},
+			{RowNumber: 2, RowHash: review.Rows[0].RowHash, Action: importer.DecisionApprove},
+			{RowNumber: 3, RowHash: review.Rows[1].RowHash, Action: importer.DecisionApprove},
 		},
 	})
 	if err != nil {
@@ -1093,18 +1267,22 @@ func TestImportReviewAppendFlowRejectsStaleDuplicateWithoutPartialAppend(t *test
 		t.Fatalf("seed duplicate transaction: %v", err)
 	}
 
+	payload := importCSVHeader +
+		"DEPOSIT,,,,500.00000000,0.00000000,0.00000000,2026-06-18,,RUB,op-flow-safe,new cash in\n" +
+		"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,op-flow-dup,stale duplicate\n"
+	review := mustReviewImportPayload(t, subjectID, portfolio.ID, "", payload, nil)
+
 	_, err = importflow.ReviewAndAppend(ctx, service, importflow.Request{
 		SubjectID:      subjectID,
 		PortfolioID:    portfolio.ID,
 		IdempotencyKey: "import-flow-key-1002",
 		RequestPath:    "/internal/imports/review-append",
+		SourceFileHash: review.FileHash,
 		Existing:       nil,
-		Reader: strings.NewReader(importCSVHeader +
-			"DEPOSIT,,,,500.00000000,0.00000000,0.00000000,2026-06-18,,RUB,op-flow-safe,new cash in\n" +
-			"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,op-flow-dup,stale duplicate\n"),
+		Reader:         strings.NewReader(payload),
 		Decisions: []importer.Decision{
-			{RowNumber: 2, Action: importer.DecisionApprove},
-			{RowNumber: 3, Action: importer.DecisionApprove},
+			{RowNumber: 2, RowHash: review.Rows[0].RowHash, Action: importer.DecisionApprove},
+			{RowNumber: 3, RowHash: review.Rows[1].RowHash, Action: importer.DecisionApprove},
 		},
 	})
 	if !errors.Is(err, verticalslice.ErrInvalidInput) {

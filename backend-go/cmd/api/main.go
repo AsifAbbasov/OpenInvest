@@ -17,14 +17,16 @@ import (
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
+const developmentImportReviewTokenSecret = "openinvest-development-import-review-token-secret"
+
 func newApp() *fiber.App {
-	databaseURL := os.Getenv("DATABASE_URL")
+	databaseURL := strings.TrimSpace(os.Getenv("DATABASE_URL"))
+	if err := validateRuntimeSafety(databaseURL); err != nil {
+		log.Fatal(err)
+	}
 	if databaseURL == "" {
 		store := unavailableStore{}
 		return httpapi.NewDevelopment(verticalslice.NewService(store, verticalslice.SystemClock{}))
-	}
-	if err := validateRuntimeSafety(databaseURL); err != nil {
-		log.Fatal(err)
 	}
 	store, err := postgres.Open(databaseURL)
 	if err != nil {
@@ -39,23 +41,51 @@ func newApp() *fiber.App {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return httpapi.New(verticalslice.NewService(store, verticalslice.SystemClock{}), authService)
+	app, err := httpapi.New(
+		verticalslice.NewService(store, verticalslice.SystemClock{}),
+		authService,
+		configuredImportReviewTokenSecret(),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return app
 }
 
 func validateRuntimeSafety(databaseURL string) error {
 	if strings.TrimSpace(databaseURL) == "" {
-		return nil
+		if isExplicitDevelopmentEnvironment() {
+			return nil
+		}
+		return errors.New("DATABASE_URL is required unless OPENINVEST_ENV=development or local")
 	}
 	if !(envBool("OPENINVEST_DEV_AUTH_BYPASS") ||
 		envBool("OPENINVEST_REFRESH_COOKIE_INSECURE") ||
 		envBool("OPENINVEST_ALLOW_EPHEMERAL_ACCESS_TOKEN_SECRET")) {
 		return nil
 	}
+	if isExplicitDevelopmentEnvironment() {
+		return nil
+	}
+	return errors.New("unsafe development auth settings require OPENINVEST_ENV=development or local")
+}
+
+func configuredImportReviewTokenSecret() []byte {
+	if configured := strings.TrimSpace(os.Getenv("OPENINVEST_IMPORT_REVIEW_TOKEN_SECRET")); configured != "" {
+		return []byte(configured)
+	}
+	if isExplicitDevelopmentEnvironment() {
+		return []byte(developmentImportReviewTokenSecret)
+	}
+	return nil
+}
+
+func isExplicitDevelopmentEnvironment() bool {
 	switch strings.ToLower(strings.TrimSpace(os.Getenv("OPENINVEST_ENV"))) {
 	case "development", "local":
-		return nil
+		return true
 	default:
-		return errors.New("unsafe development auth settings require OPENINVEST_ENV=development or local")
+		return false
 	}
 }
 
@@ -84,7 +114,7 @@ func (unavailableStore) SearchAssets(context.Context, verticalslice.AssetSearchF
 	return nil, errors.New("database url is not configured")
 }
 
-func (unavailableStore) ListPortfolios(context.Context, string, int) ([]verticalslice.Portfolio, error) {
+func (unavailableStore) ListPortfolios(context.Context, string, verticalslice.PortfolioFilter) ([]verticalslice.Portfolio, error) {
 	return nil, errors.New("database url is not configured")
 }
 

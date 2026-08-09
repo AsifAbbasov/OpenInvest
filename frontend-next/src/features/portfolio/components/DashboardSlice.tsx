@@ -3,24 +3,43 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-import { listPortfolios, type ApiResult, type Portfolio } from "@/common/api/openinvest";
+import { listPortfolios, type ApiResult, type ListData, type Portfolio } from "@/common/api/openinvest";
 import { useAuth } from "@/features/auth/components/AuthShell";
 import { CreatePortfolioForm } from "@/features/portfolio/components/CreatePortfolioForm";
 import { shouldCommitPortfolioLoad, startPortfolioLoad, type PortfolioLoadGuardState } from "@/features/portfolio/loadGuard";
 
 export function DashboardSlice() {
   const { accessToken } = useAuth();
-  const [result, setResult] = useState<ApiResult<Portfolio[]> | null>(null);
+  const [result, setResult] = useState<ApiResult<ListData<Portfolio>> | null>(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const loadGuard = useRef<PortfolioLoadGuardState>({ generation: 0, accessToken });
   loadGuard.current.accessToken = accessToken;
 
-  async function load() {
+  async function load(cursor: string | null = null) {
     const { state: nextGuard, attempt } = startPortfolioLoad(loadGuard.current, loadGuard.current.accessToken);
     loadGuard.current = nextGuard;
-    setResult(null);
-    const nextResult = await listPortfolios({ accessToken: attempt.accessToken });
+    const existingItems = cursor !== null && result?.ok ? result.data.items : [];
+    if (cursor === null) {
+      setResult(null);
+      setIsLoadingMore(false);
+    } else {
+      setIsLoadingMore(true);
+    }
+    const nextResult = await listPortfolios({ accessToken: attempt.accessToken }, { cursor: cursor ?? undefined });
     if (shouldCommitPortfolioLoad(loadGuard.current, attempt)) {
-      setResult(nextResult);
+      if (nextResult.ok && cursor !== null) {
+        setResult({
+          ok: true,
+          requestId: nextResult.requestId,
+          data: {
+            items: [...existingItems, ...nextResult.data.items],
+            pagination: nextResult.data.pagination,
+          },
+        });
+      } else {
+        setResult(nextResult);
+      }
+      setIsLoadingMore(false);
     }
   }
 
@@ -49,11 +68,11 @@ export function DashboardSlice() {
         </section>
       ) : null}
 
-      {result?.ok === true && result.data.length === 0 ? (
+      {result?.ok === true && result.data.items.length === 0 ? (
         <CreatePortfolioForm accessToken={accessToken} onCreated={load} />
       ) : null}
 
-      {result?.ok === true && result.data.length > 0 ? (
+      {result?.ok === true && result.data.items.length > 0 ? (
         <section className="panel">
           <div className="section-heading">
             <div>
@@ -64,23 +83,33 @@ export function DashboardSlice() {
               <Link href="/assets" className="secondary-button">
                 Discover assets
               </Link>
-              <button type="button" className="secondary-button" onClick={load}>
+              <button type="button" className="secondary-button" onClick={() => void load()}>
                 Reload
               </button>
             </div>
           </div>
           <div className="portfolio-list">
-            {result.data.map((portfolio) => (
+            {result.data.items.map((portfolio) => (
               <Link key={portfolio.id} href={`/portfolios/${portfolio.id}`} className="portfolio-card">
                 <span>{portfolio.name}</span>
                 <small>{portfolio.baseCurrency} · version {portfolio.version}</small>
               </Link>
             ))}
           </div>
+          {result.data.pagination.hasMore && result.data.pagination.nextCursor ? (
+            <button
+              type="button"
+              className="secondary-button"
+              disabled={isLoadingMore}
+              onClick={() => void load(result.data.pagination.nextCursor)}
+            >
+              {isLoadingMore ? "Loading portfolios…" : "Load more portfolios"}
+            </button>
+          ) : null}
         </section>
       ) : null}
 
-      {result?.ok === true && result.data.length === 0 ? (
+      {result?.ok === true && result.data.items.length === 0 ? (
         <section className="panel">
           <div className="section-heading">
             <div>

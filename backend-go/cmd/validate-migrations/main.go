@@ -132,6 +132,19 @@ func main() {
 			}
 		}
 	}
+	for _, path := range downFiles {
+		content, err := os.ReadFile(path)
+		if err != nil {
+			fail("cannot read %s: %v", path, err)
+		}
+		sql := strings.TrimSpace(string(content))
+		if sql == "" {
+			fail("%s: down migration must not be empty", relative(root, path))
+		}
+		if !regexp.MustCompile(`(?i)\bBEGIN\s*;`).MatchString(sql) || !regexp.MustCompile(`(?i)\bCOMMIT\s*;`).MatchString(sql) {
+			fail("%s: down migration must be transactional", relative(root, path))
+		}
+	}
 
 	fmt.Printf("Validated %d migration pair(s)\n", len(upFiles))
 }

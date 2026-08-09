@@ -60,7 +60,7 @@ export type PortfolioSummary = {
   investedCapital: Money;
   dividendsReceived: Money;
   couponsReceived: Money;
-  nominalReturnRate: string;
+  nominalReturnRate: string | null;
   xirr: string | null;
   realReturn: {
     nominalReturnRate: string;
@@ -71,7 +71,7 @@ export type PortfolioSummary = {
     fromDate: string;
     toDate: string;
     methodologyVersion: string;
-  };
+  } | null;
   purchasingPower: {
     portfolioValue: Money;
     asOfDate: string;
@@ -171,14 +171,16 @@ export type ImportReviewResult = {
   sourceKind: "USER_UPLOADED_FILE";
   sourceAccountLabel: string;
   sourceFileHash: string;
+  reviewToken: string;
   retentionPolicy: "TRANSIENT_NOT_STORED";
-  reviewGuarantee: "PREFLIGHT_ONLY_APPEND_RERUNS_REVIEW_AND_STORE_CHECKS";
+  reviewGuarantee: "SIGNED_REVIEW_TOKEN_APPEND_RERUNS_REVIEW_AND_STORE_CHECKS";
   summary: ImportSummary;
   rows: ImportRowReview[];
 };
 
 export type ImportDecision = {
   rowNumber: number;
+  rowHash: string;
   action: ImportDecisionAction;
 };
 
@@ -203,6 +205,8 @@ export type ImportReviewPayload = {
 };
 
 export type ImportAppendPayload = ImportReviewPayload & {
+  sourceFileHash: string;
+  reviewToken: string;
   decisions: ImportDecision[];
 };
 
@@ -266,6 +270,11 @@ export type Pagination = {
   limit: number;
 };
 
+export type ListPageRequest = {
+  cursor?: string;
+  limit?: number;
+};
+
 type BaseResponse<T> = {
   data: T;
   meta: {
@@ -293,6 +302,10 @@ export type ApiResult<T> =
 
 export type AuthenticatedRequest = {
   accessToken: string;
+};
+
+export type IdempotentAuthenticatedRequest = AuthenticatedRequest & {
+  idempotencyKey?: string;
 };
 
 export type CSRFAuthenticatedRequest = AuthenticatedRequest & {
@@ -338,23 +351,22 @@ export async function logout(payload: LogoutPayload, csrfToken: string): Promise
   });
 }
 
-export async function listPortfolios(auth: AuthenticatedRequest): Promise<ApiResult<Portfolio[]>> {
-  const response = await request<ListData<Portfolio>>("/api/v1/portfolios", {
+export async function listPortfolios(
+  auth: AuthenticatedRequest,
+  page: ListPageRequest = {},
+): Promise<ApiResult<ListData<Portfolio>>> {
+  return request<ListData<Portfolio>>(`/api/v1/portfolios${listPageQuery(page)}`, {
     headers: bearerHeaders(auth.accessToken),
   });
-  if (!response.ok) {
-    return response;
-  }
-  return { ok: true, data: response.data.items, requestId: response.requestId };
 }
 
 export async function createPortfolio(
   payload: CreatePortfolioPayload,
-  auth: AuthenticatedRequest,
+  auth: IdempotentAuthenticatedRequest,
 ): Promise<ApiResult<Portfolio>> {
   return request<Portfolio>("/api/v1/portfolios", {
     method: "POST",
-    headers: { ...idempotentHeaders(), ...bearerHeaders(auth.accessToken) },
+    headers: { ...idempotentHeaders(auth.idempotencyKey), ...bearerHeaders(auth.accessToken) },
     body: JSON.stringify(payload),
   });
 }
@@ -377,25 +389,22 @@ export async function getPortfolioSummary(
 export async function listTransactions(
   portfolioId: string,
   auth: AuthenticatedRequest,
-): Promise<ApiResult<Transaction[]>> {
-  const response = await request<ListData<Transaction>>(
-    `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/transactions`,
+  page: ListPageRequest = {},
+): Promise<ApiResult<ListData<Transaction>>> {
+  return request<ListData<Transaction>>(
+    `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/transactions${listPageQuery(page)}`,
     { headers: bearerHeaders(auth.accessToken) },
   );
-  if (!response.ok) {
-    return response;
-  }
-  return { ok: true, data: response.data.items, requestId: response.requestId };
 }
 
 export async function appendTransaction(
   portfolioId: string,
   payload: CreateTransactionPayload,
-  auth: AuthenticatedRequest,
+  auth: IdempotentAuthenticatedRequest,
 ): Promise<ApiResult<Transaction>> {
   return request<Transaction>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/transactions`, {
     method: "POST",
-    headers: { ...idempotentHeaders(), ...bearerHeaders(auth.accessToken) },
+    headers: { ...idempotentHeaders(auth.idempotencyKey), ...bearerHeaders(auth.accessToken) },
     body: JSON.stringify(payload),
   });
 }
@@ -415,11 +424,11 @@ export async function reviewPortfolioImport(
 export async function appendReviewedPortfolioImport(
   portfolioId: string,
   payload: ImportAppendPayload,
-  auth: AuthenticatedRequest,
+  auth: IdempotentAuthenticatedRequest,
 ): Promise<ApiResult<ImportAppendResult>> {
   return request<ImportAppendResult>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/imports/append`, {
     method: "POST",
-    headers: { ...idempotentHeaders(), ...bearerHeaders(auth.accessToken) },
+    headers: { ...idempotentHeaders(auth.idempotencyKey), ...bearerHeaders(auth.accessToken) },
     body: JSON.stringify(payload),
   });
 }
@@ -480,10 +489,22 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<ApiResu
   }
 }
 
-function idempotentHeaders() {
+function idempotentHeaders(idempotencyKey = crypto.randomUUID()) {
   return {
-    "Idempotency-Key": crypto.randomUUID(),
+    "Idempotency-Key": idempotencyKey,
   };
+}
+
+function listPageQuery(page: ListPageRequest) {
+  const searchParams = new URLSearchParams();
+  if (page.cursor) {
+    searchParams.set("cursor", page.cursor);
+  }
+  if (page.limit) {
+    searchParams.set("limit", String(page.limit));
+  }
+  const query = searchParams.toString();
+  return query === "" ? "" : `?${query}`;
 }
 
 function bearerHeaders(accessToken: string) {

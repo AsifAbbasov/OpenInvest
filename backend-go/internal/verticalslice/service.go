@@ -3,7 +3,6 @@ package verticalslice
 import (
 	"context"
 	"crypto/sha256"
-	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -54,12 +53,8 @@ func (s *Service) SearchAssets(ctx context.Context, filter AssetSearchFilter) (A
 		}
 	}
 	limit := normalizeLimit(filter.Limit, 20, 100)
-	if filter.Cursor != "" {
-		cursor, err := decodeAssetCursor(filter.Cursor)
-		if err != nil {
-			return AssetSearchResult{}, err
-		}
-		filter.Cursor = cursor
+	if filter.AfterTicker != "" && !tickerPattern.MatchString(filter.AfterTicker) {
+		return AssetSearchResult{}, fmt.Errorf("%w: asset keyset anchor is invalid", ErrInvalidInput)
 	}
 	filter.Limit = limit + 1
 	items, err := s.store.SearchAssets(ctx, filter)
@@ -70,12 +65,12 @@ func (s *Service) SearchAssets(ctx context.Context, filter AssetSearchFilter) (A
 	if hasMore {
 		items = items[:limit]
 	}
-	var nextCursor *string
+	var nextTicker *string
 	if hasMore && len(items) > 0 {
-		value := encodeAssetCursor(items[len(items)-1].Ticker)
-		nextCursor = &value
+		value := items[len(items)-1].Ticker
+		nextTicker = &value
 	}
-	return AssetSearchResult{Items: items, NextCursor: nextCursor, HasMore: hasMore, Limit: limit}, nil
+	return AssetSearchResult{Items: items, NextTicker: nextTicker, HasMore: hasMore, Limit: limit}, nil
 }
 
 func (s *Service) GetAsset(ctx context.Context, ticker string) (AssetSummary, error) {
@@ -90,8 +85,13 @@ func (s *Service) GetAsset(ctx context.Context, ticker string) (AssetSummary, er
 	return AssetSummary{}, ErrNotFound
 }
 
-func (s *Service) ListPortfolios(ctx context.Context, subjectID string, limit int) ([]Portfolio, error) {
-	return s.store.ListPortfolios(ctx, subjectID, normalizeLimit(limit, 20, 100))
+func (s *Service) ListPortfolios(ctx context.Context, subjectID string, filter PortfolioFilter) ([]Portfolio, error) {
+	filter.Limit = normalizeLimit(filter.Limit, 20, 101)
+	filter.BeforeID = strings.TrimSpace(filter.BeforeID)
+	if (filter.BeforeUpdatedAt == nil) != (filter.BeforeID == "") {
+		return nil, fmt.Errorf("%w: portfolio cursor anchor is invalid", ErrInvalidInput)
+	}
+	return s.store.ListPortfolios(ctx, subjectID, filter)
 }
 
 func (s *Service) CreatePortfolio(ctx context.Context, requestContext RequestContext, subjectID string, idempotencyKey string, requestPath string, request CreatePortfolioRequest) (Portfolio, error) {
@@ -118,8 +118,13 @@ func (s *Service) GetPortfolio(ctx context.Context, subjectID string, portfolioI
 }
 
 func (s *Service) ListTransactions(ctx context.Context, subjectID string, portfolioID string, filter TransactionFilter) ([]Transaction, error) {
-	filter.Limit = normalizeLimit(filter.Limit, 50, 100)
-	if strings.TrimSpace(filter.TransactionType) != "" {
+	filter.Limit = normalizeLimit(filter.Limit, 50, 101)
+	filter.TransactionType = strings.TrimSpace(filter.TransactionType)
+	filter.FromDate = strings.TrimSpace(filter.FromDate)
+	filter.ToDate = strings.TrimSpace(filter.ToDate)
+	filter.BeforeTradeDate = strings.TrimSpace(filter.BeforeTradeDate)
+	filter.BeforeEntryID = strings.TrimSpace(filter.BeforeEntryID)
+	if filter.TransactionType != "" {
 		switch filter.TransactionType {
 		case "BUY", "SELL", "DIVIDEND", "COUPON", "DEPOSIT", "WITHDRAWAL", "FEE", "TAX":
 		default:
@@ -138,6 +143,14 @@ func (s *Service) ListTransactions(ctx context.Context, subjectID string, portfo
 	}
 	if filter.FromDate != "" && filter.ToDate != "" && filter.FromDate > filter.ToDate {
 		return nil, fmt.Errorf("%w: fromDate must be before or equal to toDate", ErrInvalidInput)
+	}
+	if (filter.BeforeTradeDate == "") != (filter.BeforeEntryID == "") {
+		return nil, fmt.Errorf("%w: transaction cursor anchor is invalid", ErrInvalidInput)
+	}
+	if filter.BeforeTradeDate != "" {
+		if _, err := time.Parse("2006-01-02", filter.BeforeTradeDate); err != nil {
+			return nil, fmt.Errorf("%w: transaction cursor anchor is invalid", ErrInvalidInput)
+		}
 	}
 	return s.store.ListTransactions(ctx, subjectID, portfolioID, filter)
 }
@@ -202,6 +215,19 @@ func (s *Service) command(requestContext RequestContext, subjectID string, idemp
 func validateAppendImportBatch(request AppendImportBatchRequest) error {
 	if strings.TrimSpace(request.PortfolioID) == "" {
 		return fmt.Errorf("%w: portfolioId is required", ErrInvalidInput)
+	}
+	if request.SourceKind != "USER_UPLOADED_FILE" {
+		return fmt.Errorf("%w: sourceKind must be USER_UPLOADED_FILE", ErrInvalidInput)
+	}
+	sourceFileHash := strings.TrimSpace(request.SourceFileHash)
+	if sourceFileHash == "" {
+		return fmt.Errorf("%w: sourceFileHash is required", ErrInvalidInput)
+	}
+	if len(sourceFileHash) != hex.EncodedLen(sha256.Size) {
+		return fmt.Errorf("%w: sourceFileHash must be a SHA-256 hex digest", ErrInvalidInput)
+	}
+	if _, err := hex.DecodeString(sourceFileHash); err != nil {
+		return fmt.Errorf("%w: sourceFileHash must be a SHA-256 hex digest", ErrInvalidInput)
 	}
 	if len(request.Transactions) == 0 {
 		return fmt.Errorf("%w: at least one imported transaction is required", ErrInvalidInput)
@@ -315,25 +341,6 @@ func ValidateIdempotencyKey(value string) error {
 		return fmt.Errorf("%w: Idempotency-Key must be 16..128 characters and match ^[A-Za-z0-9._:-]+$", ErrInvalidInput)
 	}
 	return nil
-}
-
-func encodeAssetCursor(ticker string) string {
-	return base64.RawURLEncoding.EncodeToString([]byte(ticker))
-}
-
-func decodeAssetCursor(value string) (string, error) {
-	if len(value) == 0 || len(value) > 512 {
-		return "", fmt.Errorf("%w: cursor is invalid", ErrInvalidInput)
-	}
-	decoded, err := base64.RawURLEncoding.DecodeString(value)
-	if err != nil {
-		return "", fmt.Errorf("%w: cursor is invalid", ErrInvalidInput)
-	}
-	ticker := string(decoded)
-	if !tickerPattern.MatchString(ticker) {
-		return "", fmt.Errorf("%w: cursor is invalid", ErrInvalidInput)
-	}
-	return ticker, nil
 }
 
 func normalizeLimit(value int, fallback int, max int) int {

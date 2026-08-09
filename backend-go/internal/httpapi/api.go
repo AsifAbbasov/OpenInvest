@@ -2,8 +2,10 @@ package httpapi
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -31,6 +33,9 @@ const devSubjectID = "00000000-0000-4000-8000-000000000001"
 const maxHTTPImportPayloadBytes = 2 * 1024 * 1024
 const maxHTTPImportRows = 100
 const authRateLimitRetryAfterSeconds = "60"
+const minImportReviewTokenSecretBytes = 32
+const maxPaginationCursorBytes = 512
+const maxImportReviewTokenBytes = 16384
 
 var errAuthRateLimited = errors.New("auth rate limited")
 
@@ -39,14 +44,36 @@ type API struct {
 	auth                    *auth.Service
 	allowDevelopmentSubject bool
 	authLimiter             *authRateLimiter
+	importReviewSecret      []byte
+	paginationCursorSecret  []byte
 }
 
-func New(service *verticalslice.Service, authService *auth.Service) *fiber.App {
-	return newApp(&API{service: service, auth: authService, authLimiter: newAuthRateLimiter(20, time.Minute)})
+func New(service *verticalslice.Service, authService *auth.Service, importReviewTokenSecret []byte) (*fiber.App, error) {
+	secret, err := normalizedImportReviewSecret(importReviewTokenSecret)
+	if err != nil {
+		return nil, err
+	}
+	return newApp(&API{
+		service:                service,
+		auth:                   authService,
+		authLimiter:            newAuthRateLimiter(20, time.Minute),
+		importReviewSecret:     secret,
+		paginationCursorSecret: derivePaginationCursorSecret(secret),
+	}), nil
 }
 
 func NewDevelopment(service *verticalslice.Service) *fiber.App {
-	return newApp(&API{service: service, allowDevelopmentSubject: true, authLimiter: newAuthRateLimiter(20, time.Minute)})
+	secret, err := normalizedImportReviewSecret([]byte("openinvest-development-import-review-token-secret"))
+	if err != nil {
+		panic(err)
+	}
+	return newApp(&API{
+		service:                 service,
+		allowDevelopmentSubject: true,
+		authLimiter:             newAuthRateLimiter(20, time.Minute),
+		importReviewSecret:      secret,
+		paginationCursorSecret:  derivePaginationCursorSecret(secret),
+	})
 }
 
 func newApp(api *API) *fiber.App {
@@ -254,19 +281,27 @@ func (api *API) searchAssets(c fiber.Ctx) error {
 	if err != nil {
 		return writeMappedError(c, err)
 	}
-	result, err := api.service.SearchAssets(c.Context(), verticalslice.AssetSearchFilter{
-		Query:     c.Query("query"),
-		AssetType: assetType,
-		Cursor:    cursor,
-		Limit:     limit,
-	})
+	query := strings.TrimSpace(c.Query("query"))
+	filter := verticalslice.AssetSearchFilter{Query: query, AssetType: assetType, Limit: limit}
+	if err := api.applyAssetCursor(cursor, query, assetType, &filter); err != nil {
+		return writeMappedError(c, err)
+	}
+	result, err := api.service.SearchAssets(c.Context(), filter)
 	if err != nil {
 		return writeMappedError(c, err)
+	}
+	var nextCursor *string
+	if result.NextTicker != nil {
+		value, err := api.encodeAssetCursor(query, assetType, *result.NextTicker)
+		if err != nil {
+			return writeMappedError(c, err)
+		}
+		nextCursor = &value
 	}
 	return writeOK(c, listData[assetSummaryDTO]{
 		Items: mapAssetSummaries(result.Items),
 		Pagination: paginationDTO{
-			NextCursor: result.NextCursor,
+			NextCursor: nextCursor,
 			HasMore:    result.HasMore,
 			Limit:      result.Limit,
 		},
@@ -285,11 +320,39 @@ func (api *API) listPortfolios(c fiber.Ctx) error {
 	if err != nil {
 		return writeMappedError(c, err)
 	}
-	items, err := api.service.ListPortfolios(c.Context(), subjectID, queryLimit(c, 20))
+	limit, err := queryLimitStrict(c, 20)
 	if err != nil {
 		return writeMappedError(c, err)
 	}
-	return writeOK(c, listData[portfolioDTO]{Items: mapPortfolios(items), Pagination: paginationDTO{Limit: queryLimit(c, 20)}})
+	cursor, err := optionalQueryValue(c, "cursor")
+	if err != nil {
+		return writeMappedError(c, err)
+	}
+	filter, err := api.decodePortfolioCursor(cursor, subjectID)
+	if err != nil {
+		return writeMappedError(c, err)
+	}
+	filter.Limit = limit + 1
+	items, err := api.service.ListPortfolios(c.Context(), subjectID, filter)
+	if err != nil {
+		return writeMappedError(c, err)
+	}
+	hasMore := len(items) > limit
+	if hasMore {
+		items = items[:limit]
+	}
+	var nextCursor *string
+	if hasMore {
+		value, err := api.encodePortfolioCursor(subjectID, items[len(items)-1])
+		if err != nil {
+			return writeMappedError(c, err)
+		}
+		nextCursor = &value
+	}
+	return writeOK(c, listData[portfolioDTO]{
+		Items:      mapPortfolios(items),
+		Pagination: paginationDTO{NextCursor: nextCursor, HasMore: hasMore, Limit: limit},
+	})
 }
 
 func (api *API) createPortfolio(c fiber.Ctx) error {
@@ -329,20 +392,44 @@ func (api *API) listTransactions(c fiber.Ctx) error {
 	if err != nil {
 		return writeMappedError(c, err)
 	}
-	if strings.TrimSpace(c.Query("cursor")) != "" {
-		return writeError(c, http.StatusBadRequest, "VALIDATION_ERROR", "cursor pagination is outside Stage 3.2 scope")
-	}
-	filter := verticalslice.TransactionFilter{
-		TransactionType: c.Query("transactionType"),
-		FromDate:        c.Query("fromDate"),
-		ToDate:          c.Query("toDate"),
-		Limit:           queryLimit(c, 50),
-	}
-	items, err := api.service.ListTransactions(c.Context(), subjectID, c.Params("portfolioId"), filter)
+	limit, err := queryLimitStrict(c, 50)
 	if err != nil {
 		return writeMappedError(c, err)
 	}
-	return writeOK(c, listData[transactionDTO]{Items: mapTransactions(items), Pagination: paginationDTO{Limit: queryLimit(c, 50)}})
+	portfolioID := c.Params("portfolioId")
+	filter := verticalslice.TransactionFilter{
+		TransactionType: strings.TrimSpace(c.Query("transactionType")),
+		FromDate:        strings.TrimSpace(c.Query("fromDate")),
+		ToDate:          strings.TrimSpace(c.Query("toDate")),
+	}
+	cursor, err := optionalQueryValue(c, "cursor")
+	if err != nil {
+		return writeMappedError(c, err)
+	}
+	if err := api.applyTransactionCursor(cursor, subjectID, portfolioID, &filter); err != nil {
+		return writeMappedError(c, err)
+	}
+	filter.Limit = limit + 1
+	items, err := api.service.ListTransactions(c.Context(), subjectID, portfolioID, filter)
+	if err != nil {
+		return writeMappedError(c, err)
+	}
+	hasMore := len(items) > limit
+	if hasMore {
+		items = items[:limit]
+	}
+	var nextCursor *string
+	if hasMore {
+		value, err := api.encodeTransactionCursor(subjectID, portfolioID, filter, items[len(items)-1])
+		if err != nil {
+			return writeMappedError(c, err)
+		}
+		nextCursor = &value
+	}
+	return writeOK(c, listData[transactionDTO]{
+		Items:      mapTransactions(items),
+		Pagination: paginationDTO{NextCursor: nextCursor, HasMore: hasMore, Limit: limit},
+	})
 }
 
 func (api *API) appendTransaction(c fiber.Ctx) error {
@@ -376,7 +463,7 @@ func (api *API) reviewImport(c fiber.Ctx) error {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
 	var request importReviewRequestDTO
-	if err := c.Bind().Body(&request); err != nil {
+	if err := decodeStrictJSON(c.Request().Body(), &request); err != nil {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")
 	}
 	if err := request.validate(); err != nil {
@@ -403,7 +490,11 @@ func (api *API) reviewImport(c fiber.Ctx) error {
 	if err := validateImportRowCount(review.Summary.TotalRows); err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
-	return writeStatusWithMeta(c, meta, http.StatusOK, mapImportReview(review))
+	reviewToken, err := api.signImportReviewToken(subjectID, review)
+	if err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
+	return writeStatusWithMeta(c, meta, http.StatusOK, mapImportReview(review, reviewToken))
 }
 
 func (api *API) appendImport(c fiber.Ctx) error {
@@ -416,7 +507,7 @@ func (api *API) appendImport(c fiber.Ctx) error {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
 	var request importAppendRequestDTO
-	if err := c.Bind().Body(&request); err != nil {
+	if err := decodeStrictJSON(c.Request().Body(), &request); err != nil {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")
 	}
 	if err := request.validate(); err != nil {
@@ -424,6 +515,12 @@ func (api *API) appendImport(c fiber.Ctx) error {
 	}
 	portfolioID := c.Params("portfolioId")
 	fileHash := importPayloadHash(request.CSVPayload)
+	if request.SourceFileHash != fileHash {
+		return writeMappedErrorWithMeta(c, meta, fmt.Errorf("%w: sourceFileHash does not match import payload", importer.ErrUnsafeAppend))
+	}
+	if err := api.verifyImportReviewToken(request.ReviewToken, subjectID, portfolioID, importer.SourceKindUserUploadedFile, request.SourceAccountLabel, fileHash, request.toAppDecisionIdentities()); err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
 	preflightReview, err := importer.ReviewCSV(importer.ReviewRequest{
 		SubjectID:          subjectID,
 		PortfolioID:        portfolioID,
@@ -438,8 +535,7 @@ func (api *API) appendImport(c fiber.Ctx) error {
 	if err := validateImportRowCount(preflightReview.Summary.TotalRows); err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
-	existing, err := api.service.ListTransactions(c.Context(), subjectID, portfolioID, verticalslice.TransactionFilter{Limit: 100})
-	if err != nil {
+	if err := importer.VerifyDecisionIdentities(preflightReview, request.toAppDecisionIdentities()); err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
 	result, err := importflow.ReviewAndAppend(c.Context(), api.service, importflow.Request{
@@ -451,9 +547,11 @@ func (api *API) appendImport(c fiber.Ctx) error {
 		SourceKind:         importer.SourceKindUserUploadedFile,
 		SourceAccountLabel: request.SourceAccountLabel,
 		SourceFileHash:     fileHash,
-		Existing:           existing,
-		Reader:             strings.NewReader(request.CSVPayload),
-		Decisions:          request.toAppDecisions(),
+		// The store performs the atomic duplicate check after reserving the command. Passing the
+		// mutable current ledger here would reject an idempotent retry before that reservation.
+		Existing:  nil,
+		Reader:    strings.NewReader(request.CSVPayload),
+		Decisions: request.toAppDecisions(),
 	})
 	if err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
@@ -868,6 +966,8 @@ func (request importReviewRequestDTO) validate() error {
 
 type importAppendRequestDTO struct {
 	SourceAccountLabel string              `json:"sourceAccountLabel"`
+	SourceFileHash     string              `json:"sourceFileHash"`
+	ReviewToken        string              `json:"reviewToken"`
 	CSVPayload         string              `json:"csvPayload"`
 	Decisions          []importDecisionDTO `json:"decisions"`
 }
@@ -885,19 +985,39 @@ func (request importAppendRequestDTO) validate() error {
 	if len(request.Decisions) > 100 {
 		return fmt.Errorf("%w: decisions must contain at most 100 rows", verticalslice.ErrInvalidInput)
 	}
+	if !validSHA256Hex(request.SourceFileHash) {
+		return fmt.Errorf("%w: sourceFileHash must be a SHA-256 hex digest from the review response", verticalslice.ErrInvalidInput)
+	}
+	if len(request.ReviewToken) < 32 || len(request.ReviewToken) > maxImportReviewTokenBytes {
+		return fmt.Errorf("%w: reviewToken must be between 32 and %d bytes", verticalslice.ErrInvalidInput, maxImportReviewTokenBytes)
+	}
+	for _, decision := range request.Decisions {
+		if !validSHA256Hex(decision.RowHash) {
+			return fmt.Errorf("%w: rowHash must be a SHA-256 hex digest from the review response", verticalslice.ErrInvalidInput)
+		}
+	}
 	return nil
 }
 
 func (request importAppendRequestDTO) toAppDecisions() []importer.Decision {
 	decisions := make([]importer.Decision, 0, len(request.Decisions))
 	for _, decision := range request.Decisions {
-		decisions = append(decisions, importer.Decision{RowNumber: decision.RowNumber, Action: decision.Action})
+		decisions = append(decisions, importer.Decision{RowNumber: decision.RowNumber, RowHash: decision.RowHash, Action: decision.Action})
 	}
 	return decisions
 }
 
+func (request importAppendRequestDTO) toAppDecisionIdentities() []importer.DecisionIdentity {
+	identities := make([]importer.DecisionIdentity, 0, len(request.Decisions))
+	for _, decision := range request.Decisions {
+		identities = append(identities, importer.DecisionIdentity{RowNumber: decision.RowNumber, RowHash: decision.RowHash})
+	}
+	return identities
+}
+
 type importDecisionDTO struct {
 	RowNumber int    `json:"rowNumber"`
+	RowHash   string `json:"rowHash"`
 	Action    string `json:"action"`
 }
 
@@ -987,21 +1107,21 @@ type transactionDTO struct {
 }
 
 type summaryDTO struct {
-	PortfolioID       string        `json:"portfolioId"`
-	AsOfDate          string        `json:"asOfDate"`
-	TotalValue        moneyDTO      `json:"totalValue"`
-	CashValue         moneyDTO      `json:"cashValue"`
-	StockValue        moneyDTO      `json:"stockValue"`
-	BondValue         moneyDTO      `json:"bondValue"`
-	InvestedCapital   moneyDTO      `json:"investedCapital"`
-	DividendsReceived moneyDTO      `json:"dividendsReceived"`
-	CouponsReceived   moneyDTO      `json:"couponsReceived"`
-	NominalReturnRate string        `json:"nominalReturnRate"`
-	XIRR              *string       `json:"xirr"`
-	RealReturn        realReturnDTO `json:"realReturn"`
-	PurchasingPower   powerDTO      `json:"purchasingPower"`
-	Positions         []any         `json:"positions"`
-	Calculation       calcDTO       `json:"calculation"`
+	PortfolioID       string         `json:"portfolioId"`
+	AsOfDate          string         `json:"asOfDate"`
+	TotalValue        moneyDTO       `json:"totalValue"`
+	CashValue         moneyDTO       `json:"cashValue"`
+	StockValue        moneyDTO       `json:"stockValue"`
+	BondValue         moneyDTO       `json:"bondValue"`
+	InvestedCapital   moneyDTO       `json:"investedCapital"`
+	DividendsReceived moneyDTO       `json:"dividendsReceived"`
+	CouponsReceived   moneyDTO       `json:"couponsReceived"`
+	NominalReturnRate *string        `json:"nominalReturnRate"`
+	XIRR              *string        `json:"xirr"`
+	RealReturn        *realReturnDTO `json:"realReturn"`
+	PurchasingPower   powerDTO       `json:"purchasingPower"`
+	Positions         []any          `json:"positions"`
+	Calculation       calcDTO        `json:"calculation"`
 }
 
 type realReturnDTO struct {
@@ -1032,6 +1152,7 @@ type importReviewDTO struct {
 	SourceKind         string               `json:"sourceKind"`
 	SourceAccountLabel string               `json:"sourceAccountLabel"`
 	SourceFileHash     string               `json:"sourceFileHash"`
+	ReviewToken        string               `json:"reviewToken"`
 	RetentionPolicy    string               `json:"retentionPolicy"`
 	ReviewGuarantee    string               `json:"reviewGuarantee"`
 	Summary            importSummaryDTO     `json:"summary"`
@@ -1186,18 +1307,9 @@ func mapSummary(item verticalslice.PortfolioSummary) summaryDTO {
 		InvestedCapital:   mapMoney(item.InvestedCapital),
 		DividendsReceived: mapMoney(item.DividendsReceived),
 		CouponsReceived:   mapMoney(item.CouponsReceived),
-		NominalReturnRate: item.NominalReturnRate.String(),
+		NominalReturnRate: nil,
 		XIRR:              nil,
-		RealReturn: realReturnDTO{
-			NominalReturnRate: item.RealReturn.NominalReturnRate.String(),
-			InflationRate:     item.RealReturn.InflationRate.String(),
-			RealReturnRate:    item.RealReturn.RealReturnRate.String(),
-			NominalGain:       mapMoney(item.RealReturn.NominalGain),
-			RealGain:          mapMoney(item.RealReturn.RealGain),
-			FromDate:          item.RealReturn.FromDate,
-			ToDate:            item.RealReturn.ToDate,
-			Methodology:       item.RealReturn.Methodology,
-		},
+		RealReturn:        nil,
 		PurchasingPower: powerDTO{
 			PortfolioValue: mapMoney(item.PurchasingPower.PortfolioValue),
 			AsOfDate:       item.PurchasingPower.AsOfDate,
@@ -1224,7 +1336,7 @@ func mapMoney(item verticalslice.Money) moneyDTO {
 	return moneyDTO{Amount: item.Amount.String(), Currency: item.Currency}
 }
 
-func mapImportReview(review importer.Review) importReviewDTO {
+func mapImportReview(review importer.Review, reviewToken string) importReviewDTO {
 	rows := make([]importRowReviewDTO, 0, len(review.Rows))
 	for _, row := range review.Rows {
 		rows = append(rows, mapImportRowReview(row))
@@ -1234,8 +1346,9 @@ func mapImportReview(review importer.Review) importReviewDTO {
 		SourceKind:         review.SourceKind,
 		SourceAccountLabel: review.SourceAccountLabel,
 		SourceFileHash:     review.FileHash,
+		ReviewToken:        reviewToken,
 		RetentionPolicy:    "TRANSIENT_NOT_STORED",
-		ReviewGuarantee:    "PREFLIGHT_ONLY_APPEND_RERUNS_REVIEW_AND_STORE_CHECKS",
+		ReviewGuarantee:    "SIGNED_REVIEW_TOKEN_APPEND_RERUNS_REVIEW_AND_STORE_CHECKS",
 		Summary: importSummaryDTO{
 			TotalRows:      review.Summary.TotalRows,
 			AppendableRows: review.Summary.AppendableRows,
@@ -1301,6 +1414,275 @@ func mapImportAppendResult(portfolioID string, sourceKind string, fileHash strin
 func importPayloadHash(payload string) string {
 	hash := sha256.Sum256([]byte(payload))
 	return hex.EncodeToString(hash[:])
+}
+
+type importReviewTokenPayload struct {
+	SubjectID          string                      `json:"subjectId"`
+	PortfolioID        string                      `json:"portfolioId"`
+	SourceKind         string                      `json:"sourceKind"`
+	SourceAccountLabel string                      `json:"sourceAccountLabel"`
+	SourceFileHash     string                      `json:"sourceFileHash"`
+	Rows               []importer.DecisionIdentity `json:"rows"`
+}
+
+func normalizedImportReviewSecret(configured []byte) ([]byte, error) {
+	secret := bytes.TrimSpace(configured)
+	if len(secret) < minImportReviewTokenSecretBytes {
+		return nil, fmt.Errorf("import review token secret must be at least %d bytes", minImportReviewTokenSecretBytes)
+	}
+	hash := sha256.Sum256(secret)
+	return hash[:], nil
+}
+
+func (api *API) signImportReviewToken(subjectID string, review importer.Review) (string, error) {
+	payload := importReviewTokenPayload{
+		SubjectID:          subjectID,
+		PortfolioID:        review.PortfolioID,
+		SourceKind:         review.SourceKind,
+		SourceAccountLabel: review.SourceAccountLabel,
+		SourceFileHash:     strings.ToLower(review.FileHash),
+		Rows:               make([]importer.DecisionIdentity, 0, len(review.Rows)),
+	}
+	for _, row := range review.Rows {
+		payload.Rows = append(payload.Rows, importer.DecisionIdentity{RowNumber: row.RowNumber, RowHash: row.RowHash})
+	}
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return "", err
+	}
+	bodyPart := base64.RawURLEncoding.EncodeToString(body)
+	signature := api.signImportReviewTokenPart(bodyPart)
+	return bodyPart + "." + signature, nil
+}
+
+func (api *API) verifyImportReviewToken(token string, subjectID string, portfolioID string, sourceKind string, sourceAccountLabel string, sourceFileHash string, decisions []importer.DecisionIdentity) error {
+	parts := strings.Split(strings.TrimSpace(token), ".")
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return fmt.Errorf("%w: reviewToken is invalid", verticalslice.ErrInvalidInput)
+	}
+	expectedSignature := api.signImportReviewTokenPart(parts[0])
+	if !hmac.Equal([]byte(parts[1]), []byte(expectedSignature)) {
+		return fmt.Errorf("%w: reviewToken signature is invalid", importer.ErrUnsafeAppend)
+	}
+	body, err := base64.RawURLEncoding.DecodeString(parts[0])
+	if err != nil {
+		return fmt.Errorf("%w: reviewToken payload is invalid", verticalslice.ErrInvalidInput)
+	}
+	var payload importReviewTokenPayload
+	if err := json.Unmarshal(body, &payload); err != nil {
+		return fmt.Errorf("%w: reviewToken payload is invalid", verticalslice.ErrInvalidInput)
+	}
+	if payload.SubjectID != subjectID ||
+		payload.PortfolioID != portfolioID ||
+		payload.SourceKind != sourceKind ||
+		payload.SourceAccountLabel != strings.TrimSpace(sourceAccountLabel) ||
+		payload.SourceFileHash != sourceFileHash {
+		return fmt.Errorf("%w: reviewToken does not match append context", importer.ErrUnsafeAppend)
+	}
+	reviewedRows := map[int]string{}
+	for _, row := range payload.Rows {
+		reviewedRows[row.RowNumber] = row.RowHash
+	}
+	for _, decision := range decisions {
+		if reviewedRows[decision.RowNumber] != decision.RowHash {
+			return fmt.Errorf("%w: reviewToken row identity does not match decision", importer.ErrUnsafeAppend)
+		}
+	}
+	return nil
+}
+
+func (api *API) signImportReviewTokenPart(bodyPart string) string {
+	mac := hmac.New(sha256.New, api.importReviewSecret)
+	_, _ = mac.Write([]byte(bodyPart))
+	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+}
+
+func validSHA256Hex(value string) bool {
+	if len(value) != sha256.Size*2 || value != strings.ToLower(value) {
+		return false
+	}
+	decoded, err := hex.DecodeString(value)
+	return err == nil && len(decoded) == sha256.Size
+}
+
+type paginationCursorPayload struct {
+	Version         int    `json:"v"`
+	Resource        string `json:"resource"`
+	SubjectID       string `json:"subjectId"`
+	PortfolioID     string `json:"portfolioId,omitempty"`
+	AssetType       string `json:"assetType,omitempty"`
+	QueryHash       string `json:"queryHash,omitempty"`
+	Ticker          string `json:"ticker,omitempty"`
+	TransactionType string `json:"transactionType,omitempty"`
+	FromDate        string `json:"fromDate,omitempty"`
+	ToDate          string `json:"toDate,omitempty"`
+	UpdatedAt       string `json:"updatedAt,omitempty"`
+	TradeDate       string `json:"tradeDate,omitempty"`
+	EntryID         string `json:"entryId"`
+}
+
+func derivePaginationCursorSecret(importReviewSecret []byte) []byte {
+	mac := hmac.New(sha256.New, importReviewSecret)
+	_, _ = mac.Write([]byte("openinvest/pagination-cursor/v1"))
+	return mac.Sum(nil)
+}
+
+func assetSearchQueryHash(query string) string {
+	sum := sha256.Sum256([]byte(query))
+	return hex.EncodeToString(sum[:])
+}
+
+func (api *API) encodeAssetCursor(query string, assetType string, ticker string) (string, error) {
+	if strings.TrimSpace(ticker) == "" {
+		return "", fmt.Errorf("asset cursor anchor is missing")
+	}
+	return api.signPaginationCursor(paginationCursorPayload{
+		Version:   1,
+		Resource:  "assets",
+		AssetType: assetType,
+		QueryHash: assetSearchQueryHash(query),
+		Ticker:    ticker,
+	})
+}
+
+func (api *API) applyAssetCursor(raw string, query string, assetType string, filter *verticalslice.AssetSearchFilter) error {
+	if raw == "" {
+		return nil
+	}
+	payload, err := api.verifyPaginationCursor(raw)
+	if err != nil {
+		return err
+	}
+	if payload.Version != 1 ||
+		payload.Resource != "assets" ||
+		payload.SubjectID != "" ||
+		payload.PortfolioID != "" ||
+		payload.AssetType != assetType ||
+		payload.QueryHash != assetSearchQueryHash(query) ||
+		payload.Ticker == "" ||
+		payload.TransactionType != "" ||
+		payload.FromDate != "" ||
+		payload.ToDate != "" ||
+		payload.UpdatedAt != "" ||
+		payload.TradeDate != "" ||
+		payload.EntryID != "" {
+		return invalidPaginationCursor()
+	}
+	filter.AfterTicker = payload.Ticker
+	return nil
+}
+
+func (api *API) encodePortfolioCursor(subjectID string, item verticalslice.Portfolio) (string, error) {
+	return api.signPaginationCursor(paginationCursorPayload{
+		Version:   1,
+		Resource:  "portfolios",
+		SubjectID: subjectID,
+		UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339Nano),
+		EntryID:   item.ID,
+	})
+}
+
+func (api *API) decodePortfolioCursor(raw string, subjectID string) (verticalslice.PortfolioFilter, error) {
+	if raw == "" {
+		return verticalslice.PortfolioFilter{}, nil
+	}
+	payload, err := api.verifyPaginationCursor(raw)
+	if err != nil {
+		return verticalslice.PortfolioFilter{}, err
+	}
+	if payload.Version != 1 || payload.Resource != "portfolios" || payload.SubjectID != subjectID || payload.PortfolioID != "" || payload.EntryID == "" || payload.UpdatedAt == "" {
+		return verticalslice.PortfolioFilter{}, invalidPaginationCursor()
+	}
+	updatedAt, err := time.Parse(time.RFC3339Nano, payload.UpdatedAt)
+	if err != nil {
+		return verticalslice.PortfolioFilter{}, invalidPaginationCursor()
+	}
+	return verticalslice.PortfolioFilter{BeforeUpdatedAt: &updatedAt, BeforeID: payload.EntryID}, nil
+}
+
+func (api *API) encodeTransactionCursor(subjectID string, portfolioID string, filter verticalslice.TransactionFilter, item verticalslice.Transaction) (string, error) {
+	if strings.TrimSpace(item.EntryID) == "" {
+		return "", fmt.Errorf("transaction cursor anchor is missing")
+	}
+	return api.signPaginationCursor(paginationCursorPayload{
+		Version:         1,
+		Resource:        "transactions",
+		SubjectID:       subjectID,
+		PortfolioID:     portfolioID,
+		TransactionType: filter.TransactionType,
+		FromDate:        filter.FromDate,
+		ToDate:          filter.ToDate,
+		TradeDate:       item.TradeDate,
+		EntryID:         item.EntryID,
+	})
+}
+
+func (api *API) applyTransactionCursor(raw string, subjectID string, portfolioID string, filter *verticalslice.TransactionFilter) error {
+	if raw == "" {
+		return nil
+	}
+	payload, err := api.verifyPaginationCursor(raw)
+	if err != nil {
+		return err
+	}
+	if payload.Version != 1 ||
+		payload.Resource != "transactions" ||
+		payload.SubjectID != subjectID ||
+		payload.PortfolioID != portfolioID ||
+		payload.TransactionType != filter.TransactionType ||
+		payload.FromDate != filter.FromDate ||
+		payload.ToDate != filter.ToDate ||
+		payload.TradeDate == "" ||
+		payload.EntryID == "" {
+		return invalidPaginationCursor()
+	}
+	if _, err := time.Parse("2006-01-02", payload.TradeDate); err != nil {
+		return invalidPaginationCursor()
+	}
+	filter.BeforeTradeDate = payload.TradeDate
+	filter.BeforeEntryID = payload.EntryID
+	return nil
+}
+
+func (api *API) signPaginationCursor(payload paginationCursorPayload) (string, error) {
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return "", err
+	}
+	bodyPart := base64.RawURLEncoding.EncodeToString(body)
+	mac := hmac.New(sha256.New, api.paginationCursorSecret)
+	_, _ = mac.Write([]byte(bodyPart))
+	signature := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+	return bodyPart + "." + signature, nil
+}
+
+func (api *API) verifyPaginationCursor(raw string) (paginationCursorPayload, error) {
+	if len(raw) == 0 || len(raw) > maxPaginationCursorBytes {
+		return paginationCursorPayload{}, invalidPaginationCursor()
+	}
+	parts := strings.Split(raw, ".")
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return paginationCursorPayload{}, invalidPaginationCursor()
+	}
+	mac := hmac.New(sha256.New, api.paginationCursorSecret)
+	_, _ = mac.Write([]byte(parts[0]))
+	expectedSignature := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+	if !hmac.Equal([]byte(parts[1]), []byte(expectedSignature)) {
+		return paginationCursorPayload{}, invalidPaginationCursor()
+	}
+	body, err := base64.RawURLEncoding.DecodeString(parts[0])
+	if err != nil {
+		return paginationCursorPayload{}, invalidPaginationCursor()
+	}
+	var payload paginationCursorPayload
+	if err := json.Unmarshal(body, &payload); err != nil {
+		return paginationCursorPayload{}, invalidPaginationCursor()
+	}
+	return payload, nil
+}
+
+func invalidPaginationCursor() error {
+	return fmt.Errorf("%w: cursor is invalid", verticalslice.ErrInvalidInput)
 }
 
 func validateImportRowCount(totalRows int) error {

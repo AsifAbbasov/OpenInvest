@@ -14,8 +14,9 @@
         "sourceKind": "USER_UPLOADED_FILE",
         "sourceAccountLabel": "Manual CSV import",
         "sourceFileHash": "dda34b32987bffbf66bacdd6c77452b5dfe5be9c0f55f98f5750fea7fb3d0893",
+        "reviewToken": "ZXhhbXBsZS1zaWduZWQtcmV2aWV3LXRva2Vu.c2lnbmF0dXJl",
         "retentionPolicy": "TRANSIENT_NOT_STORED",
-        "reviewGuarantee": "PREFLIGHT_ONLY_APPEND_RERUNS_REVIEW_AND_STORE_CHECKS",
+        "reviewGuarantee": "SIGNED_REVIEW_TOKEN_APPEND_RERUNS_REVIEW_AND_STORE_CHECKS",
         "summary": {
           "totalRows": 1,
           "appendableRows": 1,
@@ -56,8 +57,10 @@
     "summary": "Append only explicitly approved import rows",
     "value": {
       "sourceAccountLabel": "Manual CSV import",
+      "sourceFileHash": "dda34b32987bffbf66bacdd6c77452b5dfe5be9c0f55f98f5750fea7fb3d0893",
+      "reviewToken": "ZXhhbXBsZS1zaWduZWQtcmV2aWV3LXRva2Vu.c2lnbmF0dXJl",
       "csvPayload": "transaction_type,ticker,quantity,unit_price,gross_amount,commission,tax,trade_date,settlement_date,currency,broker_operation_id,note\nBUY,SBER,2.00000000,100.00000000,200.00000000,1.00000000,0.00000000,2026-01-10,2026-01-13,RUB,broker-row-1,Imported buy\n",
-      "decisions": [{ "rowNumber": 2, "action": "APPROVE" }]
+      "decisions": [{ "rowNumber": 2, "rowHash": "24f0a1dd41f968e875524a02379d9f826debcfac699ece349fe1a1598f367505", "action": "APPROVE" }]
     }
   },
   "appendResponse": {

@@ -17,6 +17,20 @@ jobs:
   go:
     name: Go tests
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: openinvest-ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
     defaults:
       run:
         working-directory: backend-go
@@ -28,7 +42,15 @@ jobs:
         with:
           go-version-file: backend-go/go.mod
           cache-dependency-path: backend-go/go.sum
+      - name: Apply PostgreSQL migrations
+        working-directory: .
+        run: |
+          for migration in infrastructure/postgres/migrations/*.up.sql; do
+            docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 < "$migration"
+          done
       - name: Run tests
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
         run: go test ./...
 
   python:
@@ -69,13 +91,15 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: "22"
+          node-version: "22.22.2"
       - name: Enable pinned pnpm
         run: corepack enable && corepack prepare pnpm@11.8.0 --activate
       - name: Install frozen dependencies
         run: pnpm install --frozen-lockfile
       - name: Typecheck
         run: pnpm run typecheck
+      - name: Test
+        run: pnpm test
       - name: Build
         run: pnpm run build
 
@@ -108,6 +132,20 @@ jobs:
   migrations:
     name: PostgreSQL migration validation
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest_migrations
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: openinvest-ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest_migrations"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - name: Check out repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -119,3 +157,70 @@ jobs:
       - name: Validate migration files
         working-directory: backend-go
         run: go run ./cmd/validate-migrations
+      - name: Apply migrations to PostgreSQL
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' migration; do
+            docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -v ON_ERROR_STOP=1 < "$migration"
+          done < <(find infrastructure/postgres/migrations -maxdepth 1 -type f -name '*.up.sql' -print0 | LC_ALL=C sort -z)
+      - name: Rehearse every migration rollback and full reapply
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' migration; do
+            rollback="${migration%.up.sql}.down.sql"
+            docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -v ON_ERROR_STOP=1 < "$rollback"
+          done < <(find infrastructure/postgres/migrations -maxdepth 1 -type f -name '*.up.sql' -print0 | LC_ALL=C sort -z -r)
+          while IFS= read -r -d '' migration; do
+            docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -v ON_ERROR_STOP=1 < "$migration"
+          done < <(find infrastructure/postgres/migrations -maxdepth 1 -type f -name '*.up.sql' -print0 | LC_ALL=C sort -z)
+          required_tables="$(docker exec "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -At -c "SELECT count(*) FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND (table_schema, table_name) IN (('identity', 'users'), ('identity', 'sessions'), ('investment', 'portfolios'), ('investment', 'transaction_entries'), ('audit', 'events'));")"
+          test "$required_tables" -eq 5
+          source_kind_column="$(docker exec "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -At -c "SELECT count(*) FROM information_schema.columns WHERE table_schema = 'investment' AND table_name = 'transaction_entries' AND column_name = 'source_kind' AND is_nullable = 'NO' AND column_default IS NOT NULL;")"
+          test "$source_kind_column" -eq 1
+          source_hash_column="$(docker exec "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -At -c "SELECT count(*) FROM information_schema.columns WHERE table_schema = 'investment' AND table_name = 'transaction_entries' AND column_name = 'source_file_hash' AND is_nullable = 'YES';")"
+          test "$source_hash_column" -eq 1
+          provenance_constraint="$(docker exec "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -At -c "SELECT count(*) FROM pg_constraint constraint_row JOIN pg_class table_row ON table_row.oid = constraint_row.conrelid JOIN pg_namespace schema_row ON schema_row.oid = table_row.relnamespace WHERE schema_row.nspname = 'investment' AND table_row.relname = 'transaction_entries' AND constraint_row.conname = 'transaction_entries_source_provenance' AND constraint_row.contype = 'c' AND pg_get_constraintdef(constraint_row.oid) LIKE '%source_kind%' AND pg_get_constraintdef(constraint_row.oid) LIKE '%source_file_hash%';")"
+          test "$provenance_constraint" -eq 1
+          provenance_index="$(docker exec "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -At -c "SELECT count(*) FROM pg_indexes WHERE schemaname = 'investment' AND tablename = 'transaction_entries' AND indexname = 'transaction_entries_portfolio_source_trade_idx' AND indexdef LIKE '%(portfolio_id, source_kind, trade_date DESC, entry_id DESC)%';")"
+          test "$provenance_index" -eq 1
+          docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -v ON_ERROR_STOP=1 <<'SQL'
+          BEGIN;
+          INSERT INTO investment.subjects (id) VALUES ('10000000-0000-4000-8000-000000000001');
+          INSERT INTO investment.portfolios (id, subject_id, name) VALUES ('10000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000001', 'migration verification');
+          INSERT INTO investment.transaction_entries (entry_id, transaction_id, portfolio_id, revision, transaction_type, gross_amount, trade_date)
+          VALUES ('10000000-0000-4000-8000-000000000003', '10000000-0000-4000-8000-000000000004', '10000000-0000-4000-8000-000000000002', 1, 'DEPOSIT', 0, '2026-08-08');
+          DO $$
+          DECLARE
+              source_kind_value TEXT;
+              source_file_hash_value TEXT;
+          BEGIN
+              SELECT source_kind, source_file_hash INTO source_kind_value, source_file_hash_value
+              FROM investment.transaction_entries
+              WHERE entry_id = '10000000-0000-4000-8000-000000000003';
+              IF source_kind_value <> 'MANUAL' OR source_file_hash_value IS NOT NULL THEN
+                  RAISE EXCEPTION 'transaction provenance default is invalid';
+              END IF;
+              BEGIN
+                  INSERT INTO investment.transaction_entries (entry_id, transaction_id, portfolio_id, revision, transaction_type, gross_amount, trade_date, source_kind)
+                  VALUES ('10000000-0000-4000-8000-000000000005', '10000000-0000-4000-8000-000000000006', '10000000-0000-4000-8000-000000000002', 1, 'DEPOSIT', 0, '2026-08-08', 'USER_UPLOADED_FILE');
+                  RAISE EXCEPTION 'expected imported provenance check to reject a missing source file hash';
+              EXCEPTION WHEN check_violation THEN
+                  NULL;
+              END;
+              BEGIN
+                  INSERT INTO investment.transaction_entries (entry_id, transaction_id, portfolio_id, revision, transaction_type, gross_amount, trade_date, source_kind, source_file_hash)
+                  VALUES ('10000000-0000-4000-8000-000000000007', '10000000-0000-4000-8000-000000000008', '10000000-0000-4000-8000-000000000002', 1, 'DEPOSIT', 0, '2026-08-08', 'MANUAL', 'unexpected-manual-file-hash');
+                  RAISE EXCEPTION 'expected manual provenance check to reject a source file hash';
+              EXCEPTION WHEN check_violation THEN
+                  NULL;
+              END;
+              BEGIN
+                  INSERT INTO investment.transaction_entries (entry_id, transaction_id, portfolio_id, revision, transaction_type, gross_amount, trade_date, source_kind)
+                  VALUES ('10000000-0000-4000-8000-000000000009', '10000000-0000-4000-8000-000000000010', '10000000-0000-4000-8000-000000000002', 1, 'DEPOSIT', 0, '2026-08-08', 'UNSUPPORTED');
+                  RAISE EXCEPTION 'expected source kind check to reject an unsupported source kind';
+              EXCEPTION WHEN check_violation THEN
+                  NULL;
+              END;
+          END $$;
+          ROLLBACK;
+          SQL

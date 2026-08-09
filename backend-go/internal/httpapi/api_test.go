@@ -4,18 +4,82 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/gofiber/fiber/v3"
+
 	"github.com/openinvest/openinvest/backend-go/internal/decimal"
+	"github.com/openinvest/openinvest/backend-go/internal/importer"
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
 const importCSV = "transaction_type,ticker,quantity,unit_price,gross_amount,commission,tax,trade_date,settlement_date,currency,broker_operation_id,note\n" +
 	"BUY,SBER,2.00000000,100.00000000,200.00000000,1.00000000,0.00000000,2026-01-10,2026-01-13,RUB,broker-row-1,Imported buy\n"
+
+func TestNewRejectsMissingOrShortImportReviewTokenSecret(t *testing.T) {
+	for _, secret := range [][]byte{nil, []byte("too-short")} {
+		app, err := New(nil, nil, secret)
+		if err == nil {
+			t.Fatalf("expected import review token secret validation error for %q", secret)
+		}
+		if app != nil {
+			t.Fatalf("expected no app when import review token secret is invalid")
+		}
+	}
+}
+
+func TestImportReviewTokenRejectsContextTampering(t *testing.T) {
+	secret, err := normalizedImportReviewSecret([]byte("test-import-review-token-secret-32-bytes"))
+	if err != nil {
+		t.Fatalf("normalize import review token secret: %v", err)
+	}
+	api := &API{importReviewSecret: secret}
+	rowHash := strings.Repeat("a", 64)
+	review := importer.Review{
+		PortfolioID:        "portfolio-a",
+		SourceKind:         importer.SourceKindUserUploadedFile,
+		SourceAccountLabel: "Broker A",
+		FileHash:           strings.Repeat("b", 64),
+		Rows:               []importer.RowReview{{RowNumber: 2, RowHash: rowHash}},
+	}
+	token, err := api.signImportReviewToken("subject-a", review)
+	if err != nil {
+		t.Fatalf("sign import review token: %v", err)
+	}
+	decision := []importer.DecisionIdentity{{RowNumber: 2, RowHash: rowHash}}
+
+	for _, testCase := range []struct {
+		name      string
+		subjectID string
+		portfolio string
+		label     string
+		fileHash  string
+		decisions []importer.DecisionIdentity
+	}{
+		{name: "subject", subjectID: "subject-b", portfolio: "portfolio-a", label: "Broker A", fileHash: review.FileHash, decisions: decision},
+		{name: "portfolio", subjectID: "subject-a", portfolio: "portfolio-b", label: "Broker A", fileHash: review.FileHash, decisions: decision},
+		{name: "source label", subjectID: "subject-a", portfolio: "portfolio-a", label: "Broker B", fileHash: review.FileHash, decisions: decision},
+		{name: "file hash", subjectID: "subject-a", portfolio: "portfolio-a", label: "Broker A", fileHash: strings.Repeat("c", 64), decisions: decision},
+		{name: "row identity", subjectID: "subject-a", portfolio: "portfolio-a", label: "Broker A", fileHash: review.FileHash, decisions: []importer.DecisionIdentity{{RowNumber: 2, RowHash: strings.Repeat("d", 64)}}},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			err := api.verifyImportReviewToken(token, testCase.subjectID, testCase.portfolio, importer.SourceKindUserUploadedFile, testCase.label, testCase.fileHash, testCase.decisions)
+			if !errors.Is(err, importer.ErrUnsafeAppend) {
+				t.Fatalf("expected unsafe append error, got %v", err)
+			}
+		})
+	}
+
+	err = api.verifyImportReviewToken(token+"x", "subject-a", "portfolio-a", importer.SourceKindUserUploadedFile, "Broker A", review.FileHash, decision)
+	if !errors.Is(err, importer.ErrUnsafeAppend) {
+		t.Fatalf("expected unsafe append error for a tampered signature, got %v", err)
+	}
+}
 
 func TestAssetSearchReturnsCatalogSummariesWithoutPriceOrSource(t *testing.T) {
 	app := NewDevelopment(verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}))
@@ -47,7 +111,181 @@ func TestAssetSearchReturnsCatalogSummariesWithoutPriceOrSource(t *testing.T) {
 	}
 }
 
-func TestAssetSearchReturnsOpaqueCursorForNextPage(t *testing.T) {
+func TestPortfolioAndTransactionListsExposeReachableNextPages(t *testing.T) {
+	now := time.Date(2026, 8, 8, 12, 0, 0, 0, time.UTC)
+	zero := verticalslice.ZeroMoney()
+	store := &importAPITestStore{
+		portfolios: []verticalslice.Portfolio{
+			{ID: "00000000-0000-4000-8000-000000000013", Name: "Three", BaseCurrency: verticalslice.RUB, Version: 1, CreatedAt: now, UpdatedAt: now},
+			{ID: "00000000-0000-4000-8000-000000000012", Name: "Two", BaseCurrency: verticalslice.RUB, Version: 1, CreatedAt: now, UpdatedAt: now},
+			{ID: "00000000-0000-4000-8000-000000000011", Name: "One", BaseCurrency: verticalslice.RUB, Version: 1, CreatedAt: now, UpdatedAt: now},
+		},
+		existingTransactions: []verticalslice.Transaction{
+			{ID: "00000000-0000-4000-8000-000000000021", EntryID: "00000000-0000-4000-8000-000000000031", PortfolioID: "00000000-0000-4000-8000-000000000002", TransactionType: "DEPOSIT", Status: "ACTIVE", GrossAmount: verticalslice.Money{Amount: decimal.Must("100.00000000"), Currency: verticalslice.RUB}, Commission: zero, Tax: zero, TradeDate: "2026-08-03", Revision: 1, CreatedAt: now, UpdatedAt: now},
+			{ID: "00000000-0000-4000-8000-000000000022", EntryID: "00000000-0000-4000-8000-000000000032", PortfolioID: "00000000-0000-4000-8000-000000000002", TransactionType: "DEPOSIT", Status: "ACTIVE", GrossAmount: verticalslice.Money{Amount: decimal.Must("200.00000000"), Currency: verticalslice.RUB}, Commission: zero, Tax: zero, TradeDate: "2026-08-02", Revision: 1, CreatedAt: now, UpdatedAt: now},
+			{ID: "00000000-0000-4000-8000-000000000023", EntryID: "00000000-0000-4000-8000-000000000033", PortfolioID: "00000000-0000-4000-8000-000000000002", TransactionType: "DEPOSIT", Status: "ACTIVE", GrossAmount: verticalslice.Money{Amount: decimal.Must("300.00000000"), Currency: verticalslice.RUB}, Commission: zero, Tax: zero, TradeDate: "2026-08-01", Revision: 1, CreatedAt: now, UpdatedAt: now},
+		},
+	}
+	app := NewDevelopment(verticalslice.NewService(store, fixedHTTPClock{}))
+
+	portfolioRequest := httptest.NewRequest(http.MethodGet, "/api/v1/portfolios?limit=2", nil)
+	portfolioResponse, err := app.Test(portfolioRequest)
+	if err != nil {
+		t.Fatalf("request portfolio page: %v", err)
+	}
+	defer portfolioResponse.Body.Close()
+	var portfolios struct {
+		Data listData[portfolioDTO] `json:"data"`
+	}
+	if err := json.NewDecoder(portfolioResponse.Body).Decode(&portfolios); err != nil {
+		t.Fatalf("decode portfolio page: %v", err)
+	}
+	if len(portfolios.Data.Items) != 2 || !portfolios.Data.Pagination.HasMore || portfolios.Data.Pagination.NextCursor == nil {
+		t.Fatalf("expected first portfolio page and a next cursor, got %+v", portfolios.Data)
+	}
+	if strings.Contains(*portfolios.Data.Pagination.NextCursor, "offset") {
+		t.Fatalf("expected an opaque portfolio cursor, got %q", *portfolios.Data.Pagination.NextCursor)
+	}
+	secondPortfolioRequest := httptest.NewRequest(http.MethodGet, "/api/v1/portfolios?limit=2&cursor="+*portfolios.Data.Pagination.NextCursor, nil)
+	secondPortfolioResponse, err := app.Test(secondPortfolioRequest)
+	if err != nil {
+		t.Fatalf("request second portfolio page: %v", err)
+	}
+	defer secondPortfolioResponse.Body.Close()
+	var secondPortfolios struct {
+		Data listData[portfolioDTO] `json:"data"`
+	}
+	if err := json.NewDecoder(secondPortfolioResponse.Body).Decode(&secondPortfolios); err != nil {
+		t.Fatalf("decode second portfolio page: %v", err)
+	}
+	if len(secondPortfolios.Data.Items) != 1 || secondPortfolios.Data.Items[0].Name != "One" || secondPortfolios.Data.Pagination.HasMore {
+		t.Fatalf("expected remaining portfolio page, got %+v", secondPortfolios.Data)
+	}
+
+	transactionRequest := httptest.NewRequest(http.MethodGet, "/api/v1/portfolios/00000000-0000-4000-8000-000000000002/transactions?limit=2", nil)
+	transactionResponse, err := app.Test(transactionRequest)
+	if err != nil {
+		t.Fatalf("request transaction page: %v", err)
+	}
+	defer transactionResponse.Body.Close()
+	var transactions struct {
+		Data listData[transactionDTO] `json:"data"`
+	}
+	if err := json.NewDecoder(transactionResponse.Body).Decode(&transactions); err != nil {
+		t.Fatalf("decode transaction page: %v", err)
+	}
+	if len(transactions.Data.Items) != 2 || !transactions.Data.Pagination.HasMore || transactions.Data.Pagination.NextCursor == nil {
+		t.Fatalf("expected first transaction page and a next cursor, got %+v", transactions.Data)
+	}
+	if strings.Contains(*transactions.Data.Pagination.NextCursor, "offset") {
+		t.Fatalf("expected an opaque transaction cursor, got %q", *transactions.Data.Pagination.NextCursor)
+	}
+	secondTransactionRequest := httptest.NewRequest(http.MethodGet, "/api/v1/portfolios/00000000-0000-4000-8000-000000000002/transactions?limit=2&cursor="+*transactions.Data.Pagination.NextCursor, nil)
+	secondTransactionResponse, err := app.Test(secondTransactionRequest)
+	if err != nil {
+		t.Fatalf("request second transaction page: %v", err)
+	}
+	defer secondTransactionResponse.Body.Close()
+	var secondTransactions struct {
+		Data listData[transactionDTO] `json:"data"`
+	}
+	if err := json.NewDecoder(secondTransactionResponse.Body).Decode(&secondTransactions); err != nil {
+		t.Fatalf("decode second transaction page: %v", err)
+	}
+	if len(secondTransactions.Data.Items) != 1 || secondTransactions.Data.Items[0].ID != "00000000-0000-4000-8000-000000000023" || secondTransactions.Data.Pagination.HasMore {
+		t.Fatalf("expected remaining transaction page, got %+v", secondTransactions.Data)
+	}
+}
+
+func TestPaginationCursorRejectsTamperingAndScopeChanges(t *testing.T) {
+	secret, err := normalizedImportReviewSecret([]byte("test-pagination-cursor-secret-32-bytes"))
+	if err != nil {
+		t.Fatalf("normalize cursor secret: %v", err)
+	}
+	api := &API{paginationCursorSecret: derivePaginationCursorSecret(secret)}
+	portfolio := verticalslice.Portfolio{
+		ID:        "00000000-0000-4000-8000-000000000010",
+		UpdatedAt: time.Date(2026, 8, 8, 12, 0, 0, 0, time.UTC),
+	}
+	cursor, err := api.encodePortfolioCursor("subject-a", portfolio)
+	if err != nil {
+		t.Fatalf("encode cursor: %v", err)
+	}
+	if _, err := api.decodePortfolioCursor(cursor+"x", "subject-a"); !errors.Is(err, verticalslice.ErrInvalidInput) {
+		t.Fatalf("expected tampered cursor rejection, got %v", err)
+	}
+	if _, err := api.decodePortfolioCursor(cursor, "subject-b"); !errors.Is(err, verticalslice.ErrInvalidInput) {
+		t.Fatalf("expected cross-subject cursor rejection, got %v", err)
+	}
+
+	transaction := verticalslice.Transaction{
+		ID:        "00000000-0000-4000-8000-000000000020",
+		EntryID:   "00000000-0000-4000-8000-000000000021",
+		TradeDate: "2026-08-08",
+	}
+	filter := verticalslice.TransactionFilter{TransactionType: "DEPOSIT", FromDate: "2026-08-01"}
+	transactionCursor, err := api.encodeTransactionCursor("subject-a", "portfolio-a", filter, transaction)
+	if err != nil {
+		t.Fatalf("encode transaction cursor: %v", err)
+	}
+	if err := api.applyTransactionCursor(transactionCursor, "subject-a", "portfolio-a", &verticalslice.TransactionFilter{TransactionType: "BUY", FromDate: "2026-08-01"}); !errors.Is(err, verticalslice.ErrInvalidInput) {
+		t.Fatalf("expected changed filter rejection, got %v", err)
+	}
+	if err := api.applyTransactionCursor(transactionCursor, "subject-a", "portfolio-b", &verticalslice.TransactionFilter{TransactionType: "DEPOSIT", FromDate: "2026-08-01"}); !errors.Is(err, verticalslice.ErrInvalidInput) {
+		t.Fatalf("expected changed portfolio rejection, got %v", err)
+	}
+	matchedFilter := verticalslice.TransactionFilter{TransactionType: "DEPOSIT", FromDate: "2026-08-01"}
+	if err := api.applyTransactionCursor(transactionCursor, "subject-a", "portfolio-a", &matchedFilter); err != nil {
+		t.Fatalf("expected matching transaction cursor to be accepted: %v", err)
+	}
+	if matchedFilter.BeforeEntryID != transaction.EntryID {
+		t.Fatalf("expected transaction cursor to preserve internal entry ID %q, got %q", transaction.EntryID, matchedFilter.BeforeEntryID)
+	}
+}
+
+func TestPrivatePaginationRejectsSuppliedEmptyCursors(t *testing.T) {
+	app := NewDevelopment(verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}))
+	for _, path := range []string{
+		"/api/v1/portfolios?cursor=",
+		"/api/v1/portfolios?cursor=%20%20",
+		"/api/v1/portfolios/00000000-0000-4000-8000-000000000002/transactions?cursor=",
+		"/api/v1/portfolios/00000000-0000-4000-8000-000000000002/transactions?cursor=%20%20",
+	} {
+		t.Run(path, func(t *testing.T) {
+			request := httptest.NewRequest(http.MethodGet, path, nil)
+			response, err := app.Test(request)
+			if err != nil {
+				t.Fatalf("request private listing: %v", err)
+			}
+			defer response.Body.Close()
+			if response.StatusCode != http.StatusBadRequest {
+				t.Fatalf("expected status %d, got %d", http.StatusBadRequest, response.StatusCode)
+			}
+		})
+	}
+}
+
+func TestImportAppendValidationMatchesOpenAPIBounds(t *testing.T) {
+	validHash := strings.Repeat("a", 64)
+	validToken := strings.Repeat("a", 32)
+	validDecision := []importDecisionDTO{{RowNumber: 2, RowHash: validHash, Action: "APPROVE"}}
+	valid := importAppendRequestDTO{CSVPayload: importCSV, SourceFileHash: validHash, ReviewToken: validToken, Decisions: validDecision}
+	if err := valid.validate(); err != nil {
+		t.Fatalf("expected valid OpenAPI-shaped append request: %v", err)
+	}
+	for _, testCase := range []importAppendRequestDTO{
+		{CSVPayload: importCSV, SourceFileHash: strings.ToUpper(validHash), ReviewToken: validToken, Decisions: validDecision},
+		{CSVPayload: importCSV, SourceFileHash: validHash, ReviewToken: strings.Repeat("a", 31), Decisions: validDecision},
+		{CSVPayload: importCSV, SourceFileHash: validHash, ReviewToken: strings.Repeat("a", maxImportReviewTokenBytes+1), Decisions: validDecision},
+		{CSVPayload: importCSV, SourceFileHash: validHash, ReviewToken: validToken, Decisions: []importDecisionDTO{{RowNumber: 2, RowHash: strings.ToUpper(validHash), Action: "APPROVE"}}},
+	} {
+		if err := testCase.validate(); !errors.Is(err, verticalslice.ErrInvalidInput) {
+			t.Fatalf("expected invalid OpenAPI boundary request, got %v", err)
+		}
+	}
+}
+
+func TestAssetSearchReturnsSignedOpaqueCursorForNextPage(t *testing.T) {
 	app := NewDevelopment(verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}))
 	request := httptest.NewRequest(http.MethodGet, "/api/v1/assets/search?query=S&limit=1", nil)
 
@@ -75,6 +313,9 @@ func TestAssetSearchReturnsOpaqueCursorForNextPage(t *testing.T) {
 	if !payload.Data.Pagination.HasMore || payload.Data.Pagination.NextCursor == nil {
 		t.Fatalf("expected next cursor, got %+v", payload.Data.Pagination)
 	}
+	if len(*payload.Data.Pagination.NextCursor) > maxPaginationCursorBytes || !strings.Contains(*payload.Data.Pagination.NextCursor, ".") {
+		t.Fatalf("expected a bounded signed cursor, got %q", *payload.Data.Pagination.NextCursor)
+	}
 
 	secondRequest := httptest.NewRequest(http.MethodGet, "/api/v1/assets/search?query=S&limit=1&cursor="+*payload.Data.Pagination.NextCursor, nil)
 	secondResponse, err := app.Test(secondRequest)
@@ -99,6 +340,21 @@ func TestAssetSearchReturnsOpaqueCursorForNextPage(t *testing.T) {
 	}
 	if secondPayload.Data.Pagination.HasMore || secondPayload.Data.Pagination.NextCursor != nil {
 		t.Fatalf("expected final page, got %+v", secondPayload.Data.Pagination)
+	}
+
+	for _, path := range []string{
+		"/api/v1/assets/search?query=S&limit=1&cursor=" + *payload.Data.Pagination.NextCursor + "x",
+		"/api/v1/assets/search?query=SU&limit=1&cursor=" + *payload.Data.Pagination.NextCursor,
+		"/api/v1/assets/search?query=S&assetType=STOCK&limit=1&cursor=" + *payload.Data.Pagination.NextCursor,
+	} {
+		response, err := app.Test(httptest.NewRequest(http.MethodGet, path, nil))
+		if err != nil {
+			t.Fatalf("request invalid asset cursor %s: %v", path, err)
+		}
+		response.Body.Close()
+		if response.StatusCode != http.StatusBadRequest {
+			t.Fatalf("expected invalid asset cursor request to return %d, got %d", http.StatusBadRequest, response.StatusCode)
+		}
 	}
 }
 
@@ -220,6 +476,26 @@ func TestImportReviewRejectsMoreThanOneHundredRows(t *testing.T) {
 	}
 }
 
+func TestImportReviewRejectsUnknownJSONFields(t *testing.T) {
+	store := &importAPITestStore{}
+	app := NewDevelopment(verticalslice.NewService(store, fixedHTTPClock{}))
+	body := []byte(`{"csvPayload":` + quote(importCSV) + `,"unexpected":true}`)
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/portfolios/00000000-0000-4000-8000-000000000002/imports/review", bytes.NewReader(body))
+	request.Header.Set("Content-Type", "application/json")
+
+	response, err := app.Test(request)
+	if err != nil {
+		t.Fatalf("request import review endpoint: %v", err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusBadRequest {
+		t.Fatalf("expected status %d, got %d", http.StatusBadRequest, response.StatusCode)
+	}
+	if store.listTransactionsCalls != 0 {
+		t.Fatalf("expected unknown field to be rejected before store work, got %d calls", store.listTransactionsCalls)
+	}
+}
+
 func TestImportAppendRequiresIdempotencyKey(t *testing.T) {
 	store := &importAPITestStore{}
 	app := NewDevelopment(verticalslice.NewService(store, fixedHTTPClock{}))
@@ -266,7 +542,7 @@ func TestImportAppendRejectsInvalidIdempotencyKeyBeforeStoreWork(t *testing.T) {
 func TestImportAppendUsesAtomicImportBatch(t *testing.T) {
 	store := &importAPITestStore{}
 	app := NewDevelopment(verticalslice.NewService(store, fixedHTTPClock{}))
-	body := []byte(`{"sourceAccountLabel":"Manual CSV","csvPayload":` + quote(importCSV) + `,"decisions":[{"rowNumber":2,"action":"APPROVE"}]}`)
+	body := validImportAppendBody(t, app, importCSV)
 	request := httptest.NewRequest(http.MethodPost, "/api/v1/portfolios/00000000-0000-4000-8000-000000000002/imports/append", bytes.NewReader(body))
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Idempotency-Key", "import-api-key-0001")
@@ -288,12 +564,90 @@ func TestImportAppendUsesAtomicImportBatch(t *testing.T) {
 	}
 }
 
+func TestImportAppendRejectsUnknownJSONFields(t *testing.T) {
+	for _, testCase := range []struct {
+		name   string
+		mutate func(t *testing.T, body []byte) []byte
+	}{
+		{
+			name: "top level",
+			mutate: func(t *testing.T, body []byte) []byte {
+				request := decodeJSONObject(t, body)
+				request["unexpected"] = true
+				return encodeJSONObject(t, request)
+			},
+		},
+		{
+			name: "decision",
+			mutate: func(t *testing.T, body []byte) []byte {
+				request := decodeJSONObject(t, body)
+				decisions, ok := request["decisions"].([]any)
+				if !ok || len(decisions) != 1 {
+					t.Fatalf("expected one decision, got %#v", request["decisions"])
+				}
+				decision, ok := decisions[0].(map[string]any)
+				if !ok {
+					t.Fatalf("expected object decision, got %#v", decisions[0])
+				}
+				decision["unexpected"] = true
+				return encodeJSONObject(t, request)
+			},
+		},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			store := &importAPITestStore{}
+			app := NewDevelopment(verticalslice.NewService(store, fixedHTTPClock{}))
+			body := testCase.mutate(t, validImportAppendBody(t, app, importCSV))
+			listCallsAfterReview := store.listTransactionsCalls
+			request := httptest.NewRequest(http.MethodPost, "/api/v1/portfolios/00000000-0000-4000-8000-000000000002/imports/append", bytes.NewReader(body))
+			request.Header.Set("Content-Type", "application/json")
+			request.Header.Set("Idempotency-Key", "import-api-key-unknown-field")
+
+			response, err := app.Test(request)
+			if err != nil {
+				t.Fatalf("request import append endpoint: %v", err)
+			}
+			defer response.Body.Close()
+			if response.StatusCode != http.StatusBadRequest {
+				t.Fatalf("expected status %d, got %d", http.StatusBadRequest, response.StatusCode)
+			}
+			if store.listTransactionsCalls != listCallsAfterReview || store.appendImportedCalls != 0 {
+				t.Fatalf("expected unknown field to be rejected before append work, got list=%d append=%d", store.listTransactionsCalls, store.appendImportedCalls)
+			}
+		})
+	}
+}
+
+func TestImportAppendRetryReachesIdempotentAppenderAfterLedgerChanges(t *testing.T) {
+	store := &importAPITestStore{}
+	app := NewDevelopment(verticalslice.NewService(store, fixedHTTPClock{}))
+	body := validImportAppendBody(t, app, importCSV)
+	for attempt := 0; attempt < 2; attempt++ {
+		request := httptest.NewRequest(http.MethodPost, "/api/v1/portfolios/00000000-0000-4000-8000-000000000002/imports/append", bytes.NewReader(body))
+		request.Header.Set("Content-Type", "application/json")
+		request.Header.Set("Idempotency-Key", "import-api-key-replay-0001")
+
+		response, err := app.Test(request)
+		if err != nil {
+			t.Fatalf("request import append attempt %d: %v", attempt+1, err)
+		}
+		defer response.Body.Close()
+		if response.StatusCode != http.StatusCreated {
+			t.Fatalf("expected retry attempt %d to reach the idempotent appender, got %d", attempt+1, response.StatusCode)
+		}
+	}
+	if store.appendImportedCalls != 2 {
+		t.Fatalf("expected both attempts to reach the appender for idempotent replay, got %d", store.appendImportedCalls)
+	}
+}
+
 func TestImportAppendRevalidatesAgainstCurrentLedger(t *testing.T) {
 	quantity := decimal.Must("2.00000000")
 	unitPrice := verticalslice.Money{Amount: decimal.Must("100.00000000"), Currency: verticalslice.RUB}
 	ticker := "SBER"
 	settlementDate := "2026-01-13"
 	store := &importAPITestStore{
+		appendImportedError: verticalslice.ErrInvalidInput,
 		existingTransactions: []verticalslice.Transaction{{
 			ID:              "00000000-0000-4000-8000-000000000201",
 			PortfolioID:     "00000000-0000-4000-8000-000000000002",
@@ -311,7 +665,7 @@ func TestImportAppendRevalidatesAgainstCurrentLedger(t *testing.T) {
 		}},
 	}
 	app := NewDevelopment(verticalslice.NewService(store, fixedHTTPClock{}))
-	body := []byte(`{"sourceAccountLabel":"Manual CSV","csvPayload":` + quote(importCSV) + `,"decisions":[{"rowNumber":2,"action":"APPROVE"}]}`)
+	body := validImportAppendBody(t, app, importCSV)
 	request := httptest.NewRequest(http.MethodPost, "/api/v1/portfolios/00000000-0000-4000-8000-000000000002/imports/append", bytes.NewReader(body))
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Idempotency-Key", "import-api-key-0002")
@@ -325,8 +679,34 @@ func TestImportAppendRevalidatesAgainstCurrentLedger(t *testing.T) {
 	if response.StatusCode != http.StatusBadRequest {
 		t.Fatalf("expected stale duplicate to be rejected with status %d, got %d", http.StatusBadRequest, response.StatusCode)
 	}
-	if store.appendImportedCalls != 0 {
-		t.Fatalf("expected stale duplicate to be rejected before append, got append calls=%d", store.appendImportedCalls)
+	if store.appendImportedCalls != 1 {
+		t.Fatalf("expected stale duplicate to be rejected by the atomic appender, got append calls=%d", store.appendImportedCalls)
+	}
+}
+
+func TestImportAppendRejectsPayloadChangedAfterReview(t *testing.T) {
+	store := &importAPITestStore{}
+	app := NewDevelopment(verticalslice.NewService(store, fixedHTTPClock{}))
+	review := mustReviewImportCSV(t, app, importCSV)
+	listCallsAfterReview := store.listTransactionsCalls
+	changedCSV := "transaction_type,ticker,quantity,unit_price,gross_amount,commission,tax,trade_date,settlement_date,currency,broker_operation_id,note\n" +
+		"BUY,SBER,2.00000000,999.00000000,1998.00000000,1.00000000,0.00000000,2026-01-10,2026-01-13,RUB,broker-row-1,Changed buy\n"
+	body := []byte(`{"sourceAccountLabel":"Manual CSV","sourceFileHash":"` + review.SourceFileHash + `","reviewToken":"` + review.ReviewToken + `","csvPayload":` + quote(changedCSV) + `,"decisions":[{"rowNumber":2,"rowHash":"` + review.Rows[0].RowHash + `","action":"APPROVE"}]}`)
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/portfolios/00000000-0000-4000-8000-000000000002/imports/append", bytes.NewReader(body))
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Idempotency-Key", "import-api-key-0003")
+
+	response, err := app.Test(request)
+	if err != nil {
+		t.Fatalf("request import append endpoint: %v", err)
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusBadRequest {
+		t.Fatalf("expected changed payload to be rejected with status %d, got %d", http.StatusBadRequest, response.StatusCode)
+	}
+	if store.listTransactionsCalls != listCallsAfterReview || store.appendImportedCalls != 0 {
+		t.Fatalf("expected changed payload to be rejected before store work, got list=%d append=%d", store.listTransactionsCalls, store.appendImportedCalls)
 	}
 }
 
@@ -336,6 +716,68 @@ func quote(value string) string {
 		panic(err)
 	}
 	return string(encoded)
+}
+
+func decodeJSONObject(t *testing.T, body []byte) map[string]any {
+	t.Helper()
+	var request map[string]any
+	if err := json.Unmarshal(body, &request); err != nil {
+		t.Fatalf("decode JSON object: %v", err)
+	}
+	return request
+}
+
+func encodeJSONObject(t *testing.T, request map[string]any) []byte {
+	t.Helper()
+	body, err := json.Marshal(request)
+	if err != nil {
+		t.Fatalf("encode JSON object: %v", err)
+	}
+	return body
+}
+
+func validImportAppendBody(t *testing.T, app *fiber.App, payload string) []byte {
+	t.Helper()
+	review := mustReviewImportCSV(t, app, payload)
+	return []byte(`{"sourceAccountLabel":"Manual CSV","sourceFileHash":"` + review.SourceFileHash + `","reviewToken":"` + review.ReviewToken + `","csvPayload":` + quote(payload) + `,"decisions":[{"rowNumber":2,"rowHash":"` + review.Rows[0].RowHash + `","action":"APPROVE"}]}`)
+}
+
+type importReviewTestResponse struct {
+	Data importReviewTestData `json:"data"`
+}
+
+type importReviewTestData struct {
+	SourceFileHash string                `json:"sourceFileHash"`
+	ReviewToken    string                `json:"reviewToken"`
+	Rows           []importReviewTestRow `json:"rows"`
+}
+
+type importReviewTestRow struct {
+	RowNumber int    `json:"rowNumber"`
+	RowHash   string `json:"rowHash"`
+}
+
+func mustReviewImportCSV(t *testing.T, app *fiber.App, payload string) importReviewTestData {
+	t.Helper()
+	body := []byte(`{"sourceAccountLabel":"Manual CSV","csvPayload":` + quote(payload) + `}`)
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/portfolios/00000000-0000-4000-8000-000000000002/imports/review", bytes.NewReader(body))
+	request.Header.Set("Content-Type", "application/json")
+	response, err := app.Test(request)
+	if err != nil {
+		t.Fatalf("request import review endpoint: %v", err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("expected review status %d, got %d", http.StatusOK, response.StatusCode)
+	}
+	var decoded importReviewTestResponse
+	if err := json.NewDecoder(response.Body).Decode(&decoded); err != nil {
+		t.Fatalf("decode review response: %v", err)
+	}
+	if decoded.Data.SourceFileHash == "" || decoded.Data.ReviewToken == "" || len(decoded.Data.Rows) == 0 {
+		t.Fatalf("review response missing import identity: %+v", decoded.Data)
+	}
+	return decoded.Data
 }
 
 func importCSVWithRows(rows int) string {
@@ -358,8 +800,10 @@ func (fixedHTTPClock) Now() time.Time {
 type importAPITestStore struct {
 	appendedBatch         *verticalslice.AppendImportBatchRequest
 	existingTransactions  []verticalslice.Transaction
+	portfolios            []verticalslice.Portfolio
 	listTransactionsCalls int
 	appendImportedCalls   int
+	appendImportedError   error
 }
 
 func (store *importAPITestStore) Ping(context.Context) error {
@@ -386,9 +830,9 @@ func (store *importAPITestStore) SearchAssets(_ context.Context, filter vertical
 		},
 	}
 	start := 0
-	if filter.Cursor != "" {
+	if filter.AfterTicker != "" {
 		for index, asset := range assets {
-			if asset.Ticker > filter.Cursor {
+			if asset.Ticker > filter.AfterTicker {
 				start = index
 				break
 			}
@@ -402,8 +846,22 @@ func (store *importAPITestStore) SearchAssets(_ context.Context, filter vertical
 	return assets[start:end], nil
 }
 
-func (store *importAPITestStore) ListPortfolios(context.Context, string, int) ([]verticalslice.Portfolio, error) {
-	return []verticalslice.Portfolio{}, nil
+func (store *importAPITestStore) ListPortfolios(_ context.Context, _ string, filter verticalslice.PortfolioFilter) ([]verticalslice.Portfolio, error) {
+	items := store.portfolios
+	if filter.BeforeUpdatedAt != nil {
+		start := len(items)
+		for index, item := range items {
+			if item.UpdatedAt.Before(*filter.BeforeUpdatedAt) || (item.UpdatedAt.Equal(*filter.BeforeUpdatedAt) && item.ID < filter.BeforeID) {
+				start = index
+				break
+			}
+		}
+		items = items[start:]
+	}
+	if filter.Limit < len(items) {
+		items = items[:filter.Limit]
+	}
+	return items, nil
 }
 
 func (store *importAPITestStore) CreatePortfolio(context.Context, verticalslice.CommandContext, verticalslice.CreatePortfolioRequest) (verticalslice.Portfolio, error) {
@@ -414,9 +872,23 @@ func (store *importAPITestStore) GetPortfolio(context.Context, string, string) (
 	return verticalslice.Portfolio{}, nil
 }
 
-func (store *importAPITestStore) ListTransactions(context.Context, string, string, verticalslice.TransactionFilter) ([]verticalslice.Transaction, error) {
+func (store *importAPITestStore) ListTransactions(_ context.Context, _ string, _ string, filter verticalslice.TransactionFilter) ([]verticalslice.Transaction, error) {
 	store.listTransactionsCalls++
-	return store.existingTransactions, nil
+	items := store.existingTransactions
+	if filter.BeforeTradeDate != "" {
+		start := len(items)
+		for index, item := range items {
+			if item.TradeDate < filter.BeforeTradeDate || (item.TradeDate == filter.BeforeTradeDate && item.EntryID < filter.BeforeEntryID) {
+				start = index
+				break
+			}
+		}
+		items = items[start:]
+	}
+	if filter.Limit < len(items) {
+		items = items[:filter.Limit]
+	}
+	return items, nil
 }
 
 func (store *importAPITestStore) AppendTransaction(context.Context, verticalslice.CommandContext, verticalslice.AppendTransactionRequest) (verticalslice.Transaction, error) {
@@ -426,11 +898,15 @@ func (store *importAPITestStore) AppendTransaction(context.Context, verticalslic
 func (store *importAPITestStore) AppendImportedTransactions(_ context.Context, _ verticalslice.CommandContext, request verticalslice.AppendImportBatchRequest) ([]verticalslice.Transaction, error) {
 	store.appendImportedCalls++
 	store.appendedBatch = &request
+	if store.appendImportedError != nil {
+		return nil, store.appendImportedError
+	}
 	quantity, _ := decimal.FromString("2.00000000")
 	unitPriceAmount, _ := decimal.FromString("100.00000000")
 	unitPrice := verticalslice.Money{Amount: unitPriceAmount, Currency: verticalslice.RUB}
 	transaction := verticalslice.Transaction{
 		ID:              "00000000-0000-4000-8000-000000000101",
+		EntryID:         "00000000-0000-4000-8000-000000000102",
 		PortfolioID:     request.PortfolioID,
 		TransactionType: "BUY",
 		Status:          "ACTIVE",
@@ -446,6 +922,7 @@ func (store *importAPITestStore) AppendImportedTransactions(_ context.Context, _
 		CreatedAt:       time.Date(2026, 1, 10, 12, 0, 0, 0, time.UTC),
 		UpdatedAt:       time.Date(2026, 1, 10, 12, 0, 0, 0, time.UTC),
 	}
+	store.existingTransactions = append(store.existingTransactions, transaction)
 	return []verticalslice.Transaction{transaction}, nil
 }
 

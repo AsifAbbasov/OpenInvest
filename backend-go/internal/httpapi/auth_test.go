@@ -19,7 +19,7 @@ import (
 func TestAuthRegisterSetsHttpOnlyRefreshCookieWithoutBodyLeak(t *testing.T) {
 	authStore := &httpAuthTestStore{}
 	authService := newHTTPAuthService(t, authStore)
-	app := New(verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}), authService)
+	app := newHTTPAuthApp(t, authService)
 
 	response := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", `{
 		"email":"Investor@Example.com",
@@ -59,7 +59,7 @@ func TestAuthRegisterSetsHttpOnlyRefreshCookieWithoutBodyLeak(t *testing.T) {
 
 func TestAuthRefreshRequiresCSRFAndRejectsReplay(t *testing.T) {
 	authService := newHTTPAuthService(t, &httpAuthTestStore{})
-	app := New(verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}), authService)
+	app := newHTTPAuthApp(t, authService)
 
 	registerResponse := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", `{
 		"email":"investor@example.com",
@@ -97,7 +97,7 @@ func TestAuthRefreshRequiresCSRFAndRejectsReplay(t *testing.T) {
 
 func TestAuthRegisterRejectsUnknownSensitiveFields(t *testing.T) {
 	authService := newHTTPAuthService(t, &httpAuthTestStore{})
-	app := New(verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}), authService)
+	app := newHTTPAuthApp(t, authService)
 
 	response := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", `{
 		"email":"investor@example.com",
@@ -160,7 +160,7 @@ func TestAuthLogoutIsNotRateLimitedBecauseContractDoesNotExpose429(t *testing.T)
 
 func TestAuthLogoutRequiresExplicitScopeBody(t *testing.T) {
 	authService := newHTTPAuthService(t, &httpAuthTestStore{})
-	app := New(verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}), authService)
+	app := newHTTPAuthApp(t, authService)
 
 	registerResponse := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", `{
 		"email":"investor@example.com",
@@ -188,7 +188,7 @@ func TestAuthLogoutRequiresExplicitScopeBody(t *testing.T) {
 
 func TestAuthLogoutClearsRefreshCookie(t *testing.T) {
 	authService := newHTTPAuthService(t, &httpAuthTestStore{})
-	app := New(verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}), authService)
+	app := newHTTPAuthApp(t, authService)
 
 	registerResponse := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", `{
 		"email":"investor@example.com",
@@ -222,6 +222,19 @@ func newHTTPAuthService(t *testing.T, store *httpAuthTestStore) *auth.Service {
 		t.Fatalf("new auth service: %v", err)
 	}
 	return service
+}
+
+func newHTTPAuthApp(t *testing.T, authService *auth.Service) *fiber.App {
+	t.Helper()
+	app, err := New(
+		verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}),
+		authService,
+		[]byte("test-import-review-token-secret-32-bytes"),
+	)
+	if err != nil {
+		t.Fatalf("new authenticated HTTP app: %v", err)
+	}
+	return app
 }
 
 func authRequest(t *testing.T, app *fiber.App, method string, path string, body string, refreshToken string, csrfToken string) *http.Response {

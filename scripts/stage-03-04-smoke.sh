@@ -136,6 +136,24 @@ apply_migration_if_needed() {
   else
     echo "Auth/privacy schema already exists; skipping Stage 3.11 migration replay."
   fi
+
+  exists="$(
+    docker compose exec -T postgres psql \
+      -U "$POSTGRES_USER" \
+      -d "$POSTGRES_DB" \
+      -Atqc "SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'investment' AND table_name = 'transaction_entries' AND column_name = 'source_kind');"
+  )"
+
+  if [[ "$exists" != "t" ]]; then
+    echo "Applying Stage 3.16 transaction provenance migration."
+    docker compose exec -T postgres psql \
+      -v ON_ERROR_STOP=1 \
+      -U "$POSTGRES_USER" \
+      -d "$POSTGRES_DB" \
+      < "$ROOT_DIR/infrastructure/postgres/migrations/000003_stage_03_16_transaction_source_provenance.up.sql"
+  else
+    echo "Stage 3.16 transaction provenance schema already exists; skipping migration replay."
+  fi
 }
 
 api_post() {
