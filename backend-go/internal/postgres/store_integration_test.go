@@ -913,8 +913,8 @@ func TestStoreAppendImportedTransactionsIsAtomicAndIdempotent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("list transactions: %v", err)
 	}
-	if len(listed) != 3 {
-		t.Fatalf("expected rollback to keep 3 transactions, got %d", len(listed))
+	if len(listed) != 2 {
+		t.Fatalf("expected rejected batch rollback to keep 2 transactions, got %d", len(listed))
 	}
 
 	db, err := sql.Open("pgx", databaseURL)
