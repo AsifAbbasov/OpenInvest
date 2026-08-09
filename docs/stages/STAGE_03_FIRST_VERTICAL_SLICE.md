@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.32 |
-| Status | Complete / closed through Stage 3.18 privacy contract/security proposal; Stage 3.19 proposal tracked separately |
+| Version | 0.1.33 |
+| Status | Complete / closed through Stage 3.19 privacy security/ADR proposal; Stage 3.20 proposal tracked separately |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before Stage 3.19 privacy security/ADR proposal approval |
+| Next Review Date | Before Stage 3.20 privacy threat-model proposal review |
 
 ## Purpose
 
@@ -836,10 +836,12 @@ Status:
   authorize implementation.
 - Stage 3.18 privacy contract/security proposal was squash-merged through PR #47 at
   `4680e9c1b7b916169972c84ad8c3879955c7f509`; it does not authorize implementation.
-- Stage 3.19 privacy security/ADR proposal is now the separate review gate for the provider-neutral
-  cryptographic-erasure, deletion-marker, restore, and separation-of-duties boundary; it does not
-  accept ADR-008 or authorize implementation, OpenAPI changes, migrations, provider selection, or
-  operations work.
+- Stage 3.19 privacy security/ADR proposal was squash-merged through PR #48 at
+  `fdf74c16446e7623f76882aa7add64554141abc6`; it does not accept ADR-008 or authorize
+  implementation, OpenAPI changes, migrations, provider selection, or operations work.
+- Stage 3.20 privacy threat-model proposal is the separate review gate for future browser/session,
+  privileged-access, key-custody, marker, restore, partial-failure, and indirect-reidentification
+  evidence; it does not authorize implementation.
 
 ## Stage 3 domain boundaries
 

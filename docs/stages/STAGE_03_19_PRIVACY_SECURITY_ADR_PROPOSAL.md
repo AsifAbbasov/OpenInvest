@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-19-PRIVACY-SECURITY-ADR-PROPOSAL |
-| Version | 0.1.0 |
-| Status | Active / proposal only |
+| Version | 0.1.1 |
+| Status | Complete / merged through PR #48 at `fdf74c16446e7623f76882aa7add64554141abc6` |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.18 privacy contract/security proposal |
 | Dependencies | `SOURCE_OF_TRUTH.md`; Documents 42-43; ADR-005; ADR-006; proposed ADR-008; Stage 2 ER model and migration strategy; Stage 3.17-3.18 privacy proposals |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before acceptance of ADR-008 or any privacy-lifecycle implementation proposal |
+| Next Review Date | Historical proposal closed; successor Stage 3.20 threat-model proposal |
 
 ## Purpose
 
@@ -112,6 +112,8 @@ This stage does not authorize:
 
 ## Recommended Next Step
 
-Stop for strict review of proposed ADR-008 and this Stage 3.19 dossier in the existing review task.
-Only a separately accepted ADR-008, Security Review, and explicit human authorization may open the
-remaining OpenAPI, migration, operations, and data-inventory proposal work.
+Stage 3.19 was reviewed and squash-merged through PR #48 at
+`fdf74c16446e7623f76882aa7add64554141abc6`. Its successor, Stage 3.20, prepares the required
+threat-model proposal. Only a separately accepted ADR-008, Security Review, and explicit human
+authorization may open the remaining OpenAPI, migration, operations, and data-inventory proposal
+work.
