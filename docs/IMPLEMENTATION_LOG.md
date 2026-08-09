@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.35 |
+| Version | 1.1.36 |
 | Status | Current |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
 | Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md` |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before the next separately reviewed planning stage |
+| Next Review Date | Before Stage 3.17 privacy-lifecycle planning approval |
 
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
 
@@ -48,6 +48,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.16 — Repository Audit Planning | Plan the mandatory full repository audit before the next implementation stage | Complete / merged into `develop` at `74eebe9ec8231764f21ce384c4690d073d0273da` | [Stage 3.16 plan](stages/STAGE_03_16_REPOSITORY_AUDIT_PLANNING.md) |
 | 3.16 — Repository Audit Report | Record mandatory full repository audit coverage, manifest, and verdict | Complete / returned `REQUEST CHANGES` | [Stage 3.16 audit report](stages/STAGE_03_16_REPOSITORY_AUDIT_REPORT.md) |
 | 3.16 — Repository Audit Fixes | Fix mandatory repository audit `REQUEST CHANGES` findings | Complete / closed; merged into `develop` at `9e6b8a753bf73ef020ce40461df25a5878344d92` | [Stage 3.16 audit fixes](stages/STAGE_03_16_REPOSITORY_AUDIT_FIXES.md) |
+| 3.17 — Privacy Lifecycle Planning | Define the future account-deletion, anonymization, backup-destruction, and retention execution boundary | Active / planning only | [Stage 3.17 plan](stages/STAGE_03_17_PRIVACY_LIFECYCLE_PLANNING.md) |
 
 ## Stage completion protocol
 
@@ -455,3 +456,12 @@ This log is the index of implementation stages. Every stage must document its pu
   implementation stage is authorized. The next work requires separately reviewed planning.
 - Follow-up closure review synchronized the umbrella Stage 3 plan status, recorded the location of
   human merge authorization, and distinguished it from an independently recorded external review.
+
+## 2026-08-09 — Stage 3.17 privacy lifecycle planning started
+
+- Began documentation-only planning for the remaining Stage 3.16 account-deletion, anonymization,
+  backup-destruction, and retention-execution blocker.
+- Anchored the future lifecycle in the existing identity state, anonymous subject state, and sole
+  identity-to-subject link while requiring a reviewed contract, migration, security, and restore path.
+- Kept runtime code, OpenAPI, SQL migrations, backup/KMS configuration, market data, financial
+  calculations, tax, mobile, AI, and all implementation work out of scope.

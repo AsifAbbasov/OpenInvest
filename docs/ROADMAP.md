@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.39 |
+| Version | 1.1.40 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
 | Dependencies | Architecture Freeze v1.2 |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before the next separately reviewed planning stage |
+| Next Review Date | Before Stage 3.17 privacy-lifecycle planning approval |
 
 | Stage | Outcome | State |
 | --- | --- | --- |
@@ -46,6 +46,7 @@
 | 3.16 — Repository audit planning | Plan the mandatory full repository audit before the next implementation stage | Complete |
 | 3.16 — Repository audit fixes | Fix mandatory audit `REQUEST CHANGES` findings before the next implementation stage | Complete / merged |
 | 3.16 — Closure governance | Record audit-fix completion and preserve the next planning gate | Complete |
+| 3.17 — Privacy lifecycle planning | Define the reviewed account deletion, anonymization, backup-destruction, and retention execution boundary | Active / planning only |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.

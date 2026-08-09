@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.42 |
+| Version | 1.4.43 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before the next separately reviewed planning stage |
+| Next Review Date | Before Stage 3.17 privacy-lifecycle planning approval |
 
 ## Architecture status
 
@@ -19,7 +19,7 @@
 **Last completed planning gate: Stage 3.16 — Repository Audit Planning**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
 **Current canonical implementation baseline: `develop` at `9e6b8a753bf73ef020ce40461df25a5878344d92`**
-**Current active work item: No implementation stage is authorized; the next work must be a separately reviewed planning gate**
+**Current active work item: Stage 3.17 privacy-lifecycle planning on `codex/stage-03-17-privacy-lifecycle-planning`; no implementation stage is authorized**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -169,7 +169,9 @@ Its in-scope blocking findings were resolved by the Stage 3.16 audit fixes, whic
 review and GitHub CI before PR #44 was squash-merged into `develop` at
 `9e6b8a753bf73ef020ce40461df25a5878344d92`. The original audit report retains its historical
 `REQUEST CHANGES` verdict. Neither the closure nor prior fixes authorize a subsequent
-implementation stage; the next work requires separately reviewed planning.
+implementation stage. Stage 3.17 privacy-lifecycle planning is the separately reviewed planning
+gate for the remaining deletion, anonymization, backup-destruction, and retention-execution blocker;
+it does not authorize implementation, OpenAPI changes, migrations, or operational configuration.
 
 ## Financial standard
 
