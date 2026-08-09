@@ -3,24 +3,26 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.1.46 |
+| Version | 1.1.47 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | Documents 42–43 |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before Stage 3.18 privacy contract/security proposal approval |
+| Next Review Date | Before Stage 3.19 privacy security/ADR proposal approval |
 
 | Range | Version | Status under Freeze v1.2 | Priority | Owner | Review |
 | --- | --- | --- | --- | --- | --- |
 | Document 43 | 1.2.0 | Final / current | 1 | Principal Architect | 2026-12-19 |
 | Document 42 | 1.1.0 | Approved / current | 2 | Principal Architect | 2026-12-19 |
 | ADR-001–007 | 1.0.0 | Accepted, subject to 42–43 | 3 | Principal Architect | 2026-12-25 |
+| ADR-008 privacy-lifecycle erasure and restore controls | 0.1.0 | Proposed / non-normative pending Security Review and human acceptance | N/A | Principal Architect | Before any privacy-lifecycle implementation proposal |
 | Stage 2 contract artifacts | 1.0.x | Closed / canonical baseline on `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | 3 | Principal Architect | 2026-12-25 |
 | Web presentation amendment | 1.0.x | Closed / canonical Web baseline on `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | 3 | Principal Architect | 2026-12-26 |
-| Stage 3 planning / umbrella closure | 0.1.31 | Initial planning merged into `develop` at `03908905b74da5c35d2fee71c2ed4956e4c06464`; closed through Stage 3.17 privacy-lifecycle planning at `1e8c240` / PR #46, with Stage 3.18 tracked separately | 3 | Principal Architect | Before Stage 3.18 privacy contract/security proposal approval |
+| Stage 3 planning / umbrella closure | 0.1.32 | Initial planning merged into `develop` at `03908905b74da5c35d2fee71c2ed4956e4c06464`; closed through Stage 3.18 privacy contract/security proposal at `4680e9c1b7b916169972c84ad8c3879955c7f509` / PR #47, with Stage 3.19 tracked separately | 3 | Principal Architect | Before Stage 3.19 privacy security/ADR proposal approval |
 | Stage 3.17 privacy lifecycle planning | 0.1.1 | Complete / merged through PR #46 at `1e8c240` | 3 | Principal Architect | Historical planning gate closed; successor Stage 3.18 |
-| Stage 3.18 privacy contract and security proposal | 0.1.0 | Active / proposal only on `codex/stage-03-18-privacy-contract-security` | 3 | Principal Architect | Before any privacy-lifecycle implementation proposal or OpenAPI change |
+| Stage 3.18 privacy contract and security proposal | 0.1.1 | Complete / merged through PR #47 at `4680e9c1b7b916169972c84ad8c3879955c7f509` | 3 | Principal Architect | Historical proposal closed; successor Stage 3.19 |
+| Stage 3.19 privacy security and ADR proposal | 0.1.0 | Active / proposal only on `codex/stage-03-19-privacy-security-adr` | 3 | Principal Architect | Before acceptance of ADR-008 or any privacy-lifecycle implementation proposal |
 | Stage 3.1 database foundation | 0.1.x | Closed / merged into `develop` at `b1a3f23` | 3 | Principal Architect | 2026-12-27 |
 | Stage 3.2 Go API vertical slice | 0.1.x | Closed / merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | 3 | Principal Architect | 2026-12-27 |
 | Product risk refinement | 1.0.x | Approved / merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | 3 | Principal Architect | Before public MVP |

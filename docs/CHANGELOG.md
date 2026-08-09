@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.40 |
+| Version | 1.1.41 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before Stage 3.18 privacy contract/security proposal approval |
+| Next Review Date | Before Stage 3.19 privacy security/ADR proposal approval |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -590,3 +590,13 @@
   active duplicate from the version matrix.
 - Did not change the frozen OpenAPI, runtime code, SQL schema, provider/key-management selection,
   backup operations, or any product scope.
+
+## 2026-08-09 — Stage 3.19 privacy security and ADR proposal started
+
+- Recorded Stage 3.18 as squash-merged through PR #47 at
+  `4680e9c1b7b916169972c84ad8c3879955c7f509`.
+- Added proposed ADR-008 and a documentation-only security dossier for provider-neutral
+  cryptographic erasure, deletion markers, restore isolation, separation of duties, backup evidence,
+  and partial-failure handling.
+- Did not accept ADR-008 or change runtime code, OpenAPI, SQL schema, dependencies, providers,
+  key-management configuration, backup operations, or product scope.

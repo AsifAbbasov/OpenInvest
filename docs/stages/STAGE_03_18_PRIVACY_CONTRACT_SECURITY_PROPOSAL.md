@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-18-PRIVACY-CONTRACT-SECURITY-PROPOSAL |
-| Version | 0.1.0 |
-| Status | Active / proposal only |
+| Version | 0.1.1 |
+| Status | Complete / merged into `develop` through PR #47 at `4680e9c1b7b916169972c84ad8c3879955c7f509` |
 | Owner | Principal Architect |
 | Supersedes | None; follows the Stage 3.17 privacy-lifecycle planning gate |
 | Dependencies | `SOURCE_OF_TRUTH.md`; Documents 42-43; ADR-005; ADR-006; Stage 2 API contract, ER model, and migration strategy; Stage 3.11 auth/privacy slice; Stage 3.17 privacy-lifecycle planning |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before any privacy-lifecycle implementation proposal or OpenAPI change |
+| Next Review Date | Historical proposal closed; successor Stage 3.19 |
 
 ## Purpose and Authority
 
@@ -214,11 +214,13 @@ This proposal does not authorize or add:
   the frozen OpenAPI or runtime.
 - Documents 42-43's complete identity deletion, no-reidentification, 10-year audit retention,
   immutable Anonymous Financial History, and maximum 90-day backup retention are preserved.
-- Required security, contract, migration, operations, ADR, evidence, and human gates are explicit.
+- Required security, contract, migration, operations, ADR, evidence, and human gates are explicit;
+  canonical governance records preserve this as a completed proposal without implementation authority.
 - No runtime, API, database, dependency, provider, or operational configuration change is included.
 
 ## Recommended Next Step
 
-Stop for strict contract and Security Review in the existing review task. Only an `APPROVED` review,
-the required ADR/security decisions, and explicit human authorization may open a separately scoped
+This proposal received strict review and was squash-merged through PR #47 at
+`4680e9c1b7b916169972c84ad8c3879955c7f509`. Its successor, Stage 3.19, prepares proposed ADR-008;
+only accepted ADR/security decisions and explicit human authorization may open a separately scoped
 privacy-lifecycle implementation proposal.

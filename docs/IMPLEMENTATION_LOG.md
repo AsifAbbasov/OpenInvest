@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.37 |
+| Version | 1.1.38 |
 | Status | Current |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
 | Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md` |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before Stage 3.18 privacy contract/security proposal approval |
+| Next Review Date | Before Stage 3.19 privacy security/ADR proposal approval |
 
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
 
@@ -19,7 +19,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 1 — Documentation Consolidation | Establish the repository-owned Source of Truth and freeze v1.2 | Complete; awaiting review | [Stage 1 report](stages/STAGE_01_DOCUMENTATION_CONSOLIDATION.md) |
 | 2 — Contract and Canonical Model Freeze | Freeze the MVP API, canonical DTOs, logical ER model, and migration strategy | Complete / closed; merged into `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | [Stage 2 report](stages/STAGE_02_CONTRACT_AND_CANONICAL_MODEL.md) |
 | Web architecture amendment | Replace the Web skeleton with presentation-only Next.js under ADR-007 | Complete / closed; merged into `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | [Amendment report](stages/WEB_FRONTEND_ARCHITECTURE_AMENDMENT.md) |
-| 3 — First Vertical Slice | Implement the first thin MVP path after contract and Web baseline approval | Implementation closed through Stage 3.16 audit-fix closure; Stage 3.17 planning is merged and Stage 3.18 proposal is active without implementation authorization | [Stage 3 plan](stages/STAGE_03_FIRST_VERTICAL_SLICE.md) |
+| 3 — First Vertical Slice | Implement the first thin MVP path after contract and Web baseline approval | Implementation closed through Stage 3.16 audit-fix closure; Stage 3.17/3.18 proposals are merged and Stage 3.19 security/ADR proposal is active without implementation authorization | [Stage 3 plan](stages/STAGE_03_FIRST_VERTICAL_SLICE.md) |
 | 3.1 — Local Database Foundation | Add minimal PostgreSQL structures and migration validation for the first vertical slice | Complete / closed; merged into `develop` at `b1a3f23` | [Stage 3.1 report](stages/STAGE_03_01_DATABASE_FOUNDATION.md) |
 | 3.2 — Go API Vertical-Slice Backend | Implement portfolio create, transaction append, snapshot rebuild, and summary read in Go | Complete / closed; merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | [Stage 3.2 report](stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md) |
 | Product risk refinement | Convert hard PRD criticism into controlled MVP risk decisions | Complete / closed; merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | [MVP product risk refinement](product/MVP_PRODUCT_RISK_REFINEMENT.md) |
@@ -49,7 +49,8 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.16 — Repository Audit Report | Record mandatory full repository audit coverage, manifest, and verdict | Complete / returned `REQUEST CHANGES` | [Stage 3.16 audit report](stages/STAGE_03_16_REPOSITORY_AUDIT_REPORT.md) |
 | 3.16 — Repository Audit Fixes | Fix mandatory repository audit `REQUEST CHANGES` findings | Complete / closed; merged into `develop` at `9e6b8a753bf73ef020ce40461df25a5878344d92` | [Stage 3.16 audit fixes](stages/STAGE_03_16_REPOSITORY_AUDIT_FIXES.md) |
 | 3.17 — Privacy Lifecycle Planning | Define the future account-deletion, anonymization, backup-destruction, and retention execution boundary | Complete / merged through PR #46 at `1e8c240` | [Stage 3.17 plan](stages/STAGE_03_17_PRIVACY_LIFECYCLE_PLANNING.md) |
-| 3.18 — Privacy Contract and Security Proposal | Define the candidate account-deletion contract, security, cryptographic-erasure, restore, and operational gates | Active / proposal only | [Stage 3.18 proposal](stages/STAGE_03_18_PRIVACY_CONTRACT_SECURITY_PROPOSAL.md) |
+| 3.18 — Privacy Contract and Security Proposal | Define the candidate account-deletion contract, security, cryptographic-erasure, restore, and operational gates | Complete / merged through PR #47 at `4680e9c1b7b916169972c84ad8c3879955c7f509` | [Stage 3.18 proposal](stages/STAGE_03_18_PRIVACY_CONTRACT_SECURITY_PROPOSAL.md) |
+| 3.19 — Privacy Security and ADR Proposal | Define provider-neutral cryptographic-erasure, deletion-marker, restore, and separation-of-duties controls | Active / proposal only | [Stage 3.19 dossier](stages/STAGE_03_19_PRIVACY_SECURITY_ADR_PROPOSAL.md) |
 
 ## Stage completion protocol
 
@@ -478,3 +479,14 @@ This log is the index of implementation stages. Every stage must document its pu
   duplicate from the version matrix.
 - Kept the OpenAPI, runtime, PostgreSQL schema, key-management/provider configuration, operations,
   market data, financial calculations, tax, mobile, AI, and all implementation work out of scope.
+
+## 2026-08-09 — Stage 3.19 privacy security and ADR proposal started
+
+- Squash-merged Stage 3.18 privacy contract/security proposal PR #47 into `develop` at
+  `4680e9c1b7b916169972c84ad8c3879955c7f509` after green GitHub Actions and the explicitly
+  recorded Principal Architect review-process exception.
+- Started proposed ADR-008 and a documentation-only security dossier for the per-subject erasure
+  boundary, non-identifying deletion markers, fail-closed restore, separation of duties, backup
+  evidence, and cross-system partial failure.
+- Kept ADR acceptance, Security Review approval, OpenAPI, runtime, PostgreSQL schema, key-management
+  or provider selection, backup operations, and all implementation work out of scope.

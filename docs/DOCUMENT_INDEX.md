@@ -3,19 +3,19 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.44 |
+| Version | 1.1.45 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before Stage 3.18 privacy contract/security proposal approval |
+| Next Review Date | Before Stage 3.19 privacy security/ADR proposal approval |
 
 ## Canonical control documents
 
 | ID | Title | Version | Status | Location |
 | --- | --- | --- | --- | --- |
-| SOT-001 | Source of Truth | 1.4.44 | Approved | `SOURCE_OF_TRUTH.md` |
+| SOT-001 | Source of Truth | 1.4.45 | Approved | `SOURCE_OF_TRUTH.md` |
 | 42 | Architecture Amendments | 1.1.0 | Approved | `specifications/current/DOCUMENT_42_ARCHITECTURE_AMENDMENTS_v1.1.md` |
 | 43 | Architecture Decision Closure | 1.2.0 | Final | `specifications/current/DOCUMENT_43_ARCHITECTURE_CLOSURE_v1.2.md` |
 
@@ -69,11 +69,17 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Migration strategy | Closed / canonical Stage 2 baseline | `database/MIGRATION_STRATEGY_STAGE_02.md` |
 | Stage report | Closed / merged into `develop` | `stages/STAGE_02_CONTRACT_AND_CANONICAL_MODEL.md` |
 
+## Proposed architecture decisions
+
+| Document | Status | Location |
+| --- | --- | --- |
+| ADR-008 privacy-lifecycle erasure and restore controls | Proposed / non-normative pending Security Review and human acceptance | `ADR/ADR-008-privacy-lifecycle-erasure-and-restore.md` |
+
 ## Stage 3 planning documents
 
 | Document | Status | Location |
 | --- | --- | --- |
-| Stage 3 plan | Closed through Stage 3.17 planning; Stage 3.18 contract/security proposal is active without implementation authorization | `stages/STAGE_03_FIRST_VERTICAL_SLICE.md` |
+| Stage 3 plan | Closed through Stage 3.18 proposal; Stage 3.19 security/ADR proposal is active without implementation authorization | `stages/STAGE_03_FIRST_VERTICAL_SLICE.md` |
 | Stage 3.1 database foundation | Complete / merged into `develop` | `stages/STAGE_03_01_DATABASE_FOUNDATION.md` |
 | Stage 3.2 Go API vertical slice | Complete / merged into `develop` | `stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md` |
 | Stage 3.3 Next.js presentation slice | Complete / merged into `develop` | `stages/STAGE_03_03_NEXTJS_PRESENTATION_SLICE.md` |
@@ -103,7 +109,8 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Stage 3.16 repository audit coverage manifest | Complete / immutable 200-path coverage record | `stages/STAGE_03_16_REPOSITORY_AUDIT_MANIFEST.md` |
 | Stage 3.16 repository audit fixes | Complete / merged into `develop` at `9e6b8a753bf73ef020ce40461df25a5878344d92` | `stages/STAGE_03_16_REPOSITORY_AUDIT_FIXES.md` |
 | Stage 3.17 privacy lifecycle planning | Complete / merged through PR #46 | `stages/STAGE_03_17_PRIVACY_LIFECYCLE_PLANNING.md` |
-| Stage 3.18 privacy contract and security proposal | Active / proposal only | `stages/STAGE_03_18_PRIVACY_CONTRACT_SECURITY_PROPOSAL.md` |
+| Stage 3.18 privacy contract and security proposal | Complete / merged through PR #47 | `stages/STAGE_03_18_PRIVACY_CONTRACT_SECURITY_PROPOSAL.md` |
+| Stage 3.19 privacy security and ADR proposal | Active / proposal only | `stages/STAGE_03_19_PRIVACY_SECURITY_ADR_PROPOSAL.md` |
 
 ## Product refinement documents
 
