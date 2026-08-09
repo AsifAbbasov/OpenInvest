@@ -16,9 +16,10 @@ fabricated data. Stage 3.16 repository audit planning and its audit-fix closure 
 fixes were squash-merged into `develop` through PR #44 at
 `9e6b8a753bf73ef020ce40461df25a5878344d92`. Stage 3.17 privacy-lifecycle planning and the
 Stage 3.18 contract/security proposal are closed through PRs #46 and #47. Stage 3.19 privacy
-security/ADR proposal is closed through PR #48. Stage 3.20 is the active documentation-only privacy
-threat-model proposal for the remaining deletion/anonymization/backup-retention blocker; it does not
-authorize an implementation stage.
+security/ADR proposal is closed through PR #48, and Stage 3.20 privacy threat model is closed through
+PR #49. Stage 3.21 is the active documentation-only privacy data-inventory proposal for the
+remaining deletion/anonymization/backup-retention blocker; it does not authorize an implementation
+stage.
 Product-risk refinement is closed and remains part of the MVP governance baseline.
 
 ## Components

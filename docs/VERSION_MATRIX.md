@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.1.49 |
+| Version | 1.1.50 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | Documents 42–43 |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before Stage 3.20 privacy threat-model proposal review |
+| Next Review Date | Before Stage 3.21 privacy data-inventory proposal review |
 
 | Range | Version | Status under Freeze v1.2 | Priority | Owner | Review |
 | --- | --- | --- | --- | --- | --- |
@@ -19,11 +19,12 @@
 | ADR-008 privacy-lifecycle erasure and restore controls | 0.1.0 | Proposed / non-normative pending Security Review and human acceptance | N/A | Principal Architect | Before any privacy-lifecycle implementation proposal |
 | Stage 2 contract artifacts | 1.0.x | Closed / canonical baseline on `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | 3 | Principal Architect | 2026-12-25 |
 | Web presentation amendment | 1.0.x | Closed / canonical Web baseline on `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | 3 | Principal Architect | 2026-12-26 |
-| Stage 3 planning / umbrella closure | 0.1.33 | Initial planning merged into `develop` at `03908905b74da5c35d2fee71c2ed4956e4c06464`; closed through Stage 3.19 privacy security/ADR proposal at `fdf74c16446e7623f76882aa7add64554141abc6` / PR #48, with Stage 3.20 tracked separately | 3 | Principal Architect | Before Stage 3.20 privacy threat-model proposal review |
+| Stage 3 planning / umbrella closure | 0.1.34 | Initial planning merged into `develop` at `03908905b74da5c35d2fee71c2ed4956e4c06464`; closed through Stage 3.20 privacy threat-model proposal at `849d934906f878a6d79ba89e940e5ba470e64c09` / PR #49, with Stage 3.21 tracked separately | 3 | Principal Architect | Before Stage 3.21 privacy data-inventory proposal review |
 | Stage 3.17 privacy lifecycle planning | 0.1.1 | Complete / merged through PR #46 at `1e8c240` | 3 | Principal Architect | Historical planning gate closed; successor Stage 3.18 |
 | Stage 3.18 privacy contract and security proposal | 0.1.1 | Complete / merged through PR #47 at `4680e9c1b7b916169972c84ad8c3879955c7f509` | 3 | Principal Architect | Historical proposal closed; successor Stage 3.19 |
 | Stage 3.19 privacy security and ADR proposal | 0.1.1 | Complete / merged through PR #48 at `fdf74c16446e7623f76882aa7add64554141abc6` | 3 | Principal Architect | Historical proposal closed; successor Stage 3.20 |
-| Stage 3.20 privacy lifecycle threat-model proposal | 0.1.1 | Active / proposal only; internal and blind external review evidence recorded on `codex/stage-03-20-privacy-threat-model` | 3 | Principal Architect | Before Security Review or acceptance of ADR-008 |
+| Stage 3.20 privacy lifecycle threat-model proposal | 0.1.2 | Complete / merged through PR #49 at `849d934906f878a6d79ba89e940e5ba470e64c09`; internal and blind external review evidence recorded | 3 | Principal Architect | Historical proposal closed; successor Stage 3.21 |
+| Stage 3.21 privacy data-inventory proposal | 0.1.0 | Active / proposal only on `codex/stage-03-21-privacy-data-inventory` | 3 | Principal Architect | Before Security Review, acceptance of ADR-008, or privacy-lifecycle migration proposal |
 | Stage 3.1 database foundation | 0.1.x | Closed / merged into `develop` at `b1a3f23` | 3 | Principal Architect | 2026-12-27 |
 | Stage 3.2 Go API vertical slice | 0.1.x | Closed / merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | 3 | Principal Architect | 2026-12-27 |
 | Product risk refinement | 1.0.x | Approved / merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | 3 | Principal Architect | Before public MVP |

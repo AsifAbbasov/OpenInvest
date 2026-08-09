@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.33 |
-| Status | Complete / closed through Stage 3.19 privacy security/ADR proposal; Stage 3.20 proposal tracked separately |
+| Version | 0.1.34 |
+| Status | Complete / closed through Stage 3.20 privacy threat-model proposal; Stage 3.21 proposal tracked separately |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before Stage 3.20 privacy threat-model proposal review |
+| Next Review Date | Before Stage 3.21 privacy data-inventory proposal review |
 
 ## Purpose
 
@@ -839,9 +839,11 @@ Status:
 - Stage 3.19 privacy security/ADR proposal was squash-merged through PR #48 at
   `fdf74c16446e7623f76882aa7add64554141abc6`; it does not accept ADR-008 or authorize
   implementation, OpenAPI changes, migrations, provider selection, or operations work.
-- Stage 3.20 privacy threat-model proposal is the separate review gate for future browser/session,
-  privileged-access, key-custody, marker, restore, partial-failure, and indirect-reidentification
-  evidence; it does not authorize implementation.
+- Stage 3.20 privacy threat-model proposal was squash-merged through PR #49 at
+  `849d934906f878a6d79ba89e940e5ba470e64c09`; it does not authorize implementation.
+- Stage 3.21 privacy data-inventory proposal is the separate review gate for observed field-level
+  disposition, free-form/correlation risks, and external backup/log/provider evidence; it does not
+  authorize implementation.
 
 ## Stage 3 domain boundaries
 

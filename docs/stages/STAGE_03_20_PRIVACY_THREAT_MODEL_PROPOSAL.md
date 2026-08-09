@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-20-PRIVACY-THREAT-MODEL-PROPOSAL |
-| Version | 0.1.1 |
-| Status | Active / proposal only |
+| Version | 0.1.2 |
+| Status | Complete / merged through PR #49 at `849d934906f878a6d79ba89e940e5ba470e64c09` |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.19 privacy security/ADR proposal |
 | Dependencies | Documents 42-43; ADR-005; ADR-006; proposed ADR-008; Stage 2 ER model and migration strategy; Stage 3.17-3.19 privacy proposals |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before Security Review or acceptance of ADR-008 |
+| Next Review Date | Historical proposal closed; successor Stage 3.21 |
 
 ## Purpose
 

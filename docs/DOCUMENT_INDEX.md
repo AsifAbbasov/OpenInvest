@@ -3,19 +3,19 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.47 |
+| Version | 1.1.48 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before Stage 3.20 privacy threat-model proposal review |
+| Next Review Date | Before Stage 3.21 privacy data-inventory proposal review |
 
 ## Canonical control documents
 
 | ID | Title | Version | Status | Location |
 | --- | --- | --- | --- | --- |
-| SOT-001 | Source of Truth | 1.4.46 | Approved | `SOURCE_OF_TRUTH.md` |
+| SOT-001 | Source of Truth | 1.4.47 | Approved | `SOURCE_OF_TRUTH.md` |
 | 42 | Architecture Amendments | 1.1.0 | Approved | `specifications/current/DOCUMENT_42_ARCHITECTURE_AMENDMENTS_v1.1.md` |
 | 43 | Architecture Decision Closure | 1.2.0 | Final | `specifications/current/DOCUMENT_43_ARCHITECTURE_CLOSURE_v1.2.md` |
 
@@ -79,7 +79,7 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 
 | Document | Status | Location |
 | --- | --- | --- |
-| Stage 3 plan | Closed through Stage 3.19 proposal; Stage 3.20 threat-model proposal is active without implementation authorization | `stages/STAGE_03_FIRST_VERTICAL_SLICE.md` |
+| Stage 3 plan | Closed through Stage 3.20 proposal; Stage 3.21 data-inventory proposal is active without implementation authorization | `stages/STAGE_03_FIRST_VERTICAL_SLICE.md` |
 | Stage 3.1 database foundation | Complete / merged into `develop` | `stages/STAGE_03_01_DATABASE_FOUNDATION.md` |
 | Stage 3.2 Go API vertical slice | Complete / merged into `develop` | `stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md` |
 | Stage 3.3 Next.js presentation slice | Complete / merged into `develop` | `stages/STAGE_03_03_NEXTJS_PRESENTATION_SLICE.md` |
@@ -111,7 +111,8 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Stage 3.17 privacy lifecycle planning | Complete / merged through PR #46 | `stages/STAGE_03_17_PRIVACY_LIFECYCLE_PLANNING.md` |
 | Stage 3.18 privacy contract and security proposal | Complete / merged through PR #47 | `stages/STAGE_03_18_PRIVACY_CONTRACT_SECURITY_PROPOSAL.md` |
 | Stage 3.19 privacy security and ADR proposal | Complete / merged through PR #48 | `stages/STAGE_03_19_PRIVACY_SECURITY_ADR_PROPOSAL.md` |
-| Stage 3.20 privacy lifecycle threat-model proposal | Active / proposal only; internal and blind external review evidence recorded | `stages/STAGE_03_20_PRIVACY_THREAT_MODEL_PROPOSAL.md` |
+| Stage 3.20 privacy lifecycle threat-model proposal | Complete / merged through PR #49; internal and blind external review evidence recorded | `stages/STAGE_03_20_PRIVACY_THREAT_MODEL_PROPOSAL.md` |
+| Stage 3.21 privacy data-inventory proposal | Active / proposal only | `stages/STAGE_03_21_PRIVACY_DATA_INVENTORY_PROPOSAL.md` |
 
 ## Product refinement documents
 
