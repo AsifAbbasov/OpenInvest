@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.37 |
+| Version | 1.1.38 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -568,3 +568,5 @@
 - Synchronized the umbrella Stage 3 plan with the closed Stage 3.16 governance state, recorded the
   human merge authorization location, and did not represent the existing read-only review as an
   independently recorded external review.
+- Updated the version matrix to distinguish the historical initial Stage 3 planning merge from the
+  current `0.1.29` umbrella-plan closure.
