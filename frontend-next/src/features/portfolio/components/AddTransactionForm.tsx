@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { appendTransaction, type CreateTransactionPayload, type TransactionType } from "@/common/api/openinvest";
+import { emptyIdempotencyIntent, idempotencyIntentFor } from "@/common/api/idempotency";
 
 type AddTransactionFormProps = {
   accessToken: string;
@@ -13,6 +14,7 @@ type AddTransactionFormProps = {
 const transactionTypes: TransactionType[] = ["BUY", "DEPOSIT", "WITHDRAWAL"];
 
 export function AddTransactionForm({ accessToken, portfolioId, onSaved }: AddTransactionFormProps) {
+  const idempotencyIntentRef = useRef(emptyIdempotencyIntent);
   const [transactionType, setTransactionType] = useState<TransactionType>("BUY");
   const [ticker, setTicker] = useState("SBER");
   const [quantity, setQuantity] = useState("10.00000000");
@@ -35,12 +37,18 @@ export function AddTransactionForm({ accessToken, portfolioId, onSaved }: AddTra
     setIsSubmitting(true);
     setStatus(null);
     const payload = buildPayload();
-    const result = await appendTransaction(portfolioId, payload, { accessToken });
+    const intent = JSON.stringify(payload);
+    idempotencyIntentRef.current = idempotencyIntentFor(idempotencyIntentRef.current, intent, () => crypto.randomUUID());
+    const result = await appendTransaction(portfolioId, payload, {
+      accessToken,
+      idempotencyKey: idempotencyIntentRef.current.key ?? undefined,
+    });
     setIsSubmitting(false);
     if (!result.ok) {
       setStatus(result.message);
       return;
     }
+    idempotencyIntentRef.current = emptyIdempotencyIntent;
     setStatus("Transaction appended. Summary and history are reloaded from the Go API.");
     onSaved();
   }

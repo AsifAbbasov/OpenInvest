@@ -8,6 +8,7 @@ import {
   getPortfolioSummary,
   listTransactions,
   type ApiResult,
+  type ListData,
   type Portfolio,
   type PortfolioSummary,
   type Transaction,
@@ -25,12 +26,14 @@ type PortfolioDetailSliceProps = {
 type PortfolioDetailState = {
   portfolio: ApiResult<Portfolio>;
   summary: ApiResult<PortfolioSummary>;
-  transactions: ApiResult<Transaction[]>;
+  transactions: ApiResult<ListData<Transaction>>;
 };
 
 export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps) {
   const { accessToken } = useAuth();
   const [state, setState] = useState<PortfolioDetailState | null>(null);
+  const [isLoadingMoreTransactions, setIsLoadingMoreTransactions] = useState(false);
+  const [moreTransactionsError, setMoreTransactionsError] = useState<string | null>(null);
   const loadGuard = useRef<PortfolioLoadGuardState>({ generation: 0, accessToken });
   loadGuard.current.accessToken = accessToken;
 
@@ -38,6 +41,8 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
     const { state: nextGuard, attempt } = startPortfolioLoad(loadGuard.current, loadGuard.current.accessToken);
     loadGuard.current = nextGuard;
     setState(null);
+    setIsLoadingMoreTransactions(false);
+    setMoreTransactionsError(null);
     const [portfolio, summary, transactions] = await Promise.all([
       getPortfolio(portfolioId, { accessToken: attempt.accessToken }),
       getPortfolioSummary(portfolioId, { accessToken: attempt.accessToken }),
@@ -52,9 +57,51 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
     void load();
   }, [load]);
 
+  async function loadMoreTransactions() {
+    const currentTransactions = state?.transactions;
+    if (!currentTransactions?.ok || !currentTransactions.data.pagination.nextCursor || isLoadingMoreTransactions) {
+      return;
+    }
+    const cursor = currentTransactions.data.pagination.nextCursor;
+    const { state: nextGuard, attempt } = startPortfolioLoad(loadGuard.current, loadGuard.current.accessToken);
+    loadGuard.current = nextGuard;
+    setIsLoadingMoreTransactions(true);
+    setMoreTransactionsError(null);
+
+    const nextTransactions = await listTransactions(
+      portfolioId,
+      { accessToken: attempt.accessToken },
+      { cursor },
+    );
+    if (!shouldCommitPortfolioLoad(loadGuard.current, attempt)) {
+      return;
+    }
+    setIsLoadingMoreTransactions(false);
+    if (!nextTransactions.ok) {
+      setMoreTransactionsError(nextTransactions.message);
+      return;
+    }
+    setState((current) => {
+      if (!current?.transactions.ok) {
+        return current;
+      }
+      return {
+        ...current,
+        transactions: {
+          ok: true,
+          requestId: nextTransactions.requestId,
+          data: {
+            items: [...current.transactions.data.items, ...nextTransactions.data.items],
+            pagination: nextTransactions.data.pagination,
+          },
+        },
+      };
+    });
+  }
+
   const portfolio = state?.portfolio.ok ? state.portfolio.data : null;
   const summary = state?.summary.ok ? state.summary.data : null;
-  const transactions = state?.transactions.ok ? state.transactions.data : [];
+  const transactions = state?.transactions.ok ? state.transactions.data.items : [];
 
   return (
     <main className="page-shell">
@@ -76,8 +123,8 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
           <p className="eyebrow">Portfolio detail</p>
           <h1>{portfolio.name}</h1>
           <p className="summary">
-            This page renders canonical API responses only. Financial math and snapshot rebuilds stay
-            in the Go backend.
+            This page renders canonical API responses only. Return methodology remains unavailable until
+            canonical calculation vectors are approved.
           </p>
         </section>
       ) : null}
@@ -88,9 +135,9 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
           <Metric label="Cash" value={formatMoney(summary.cashValue)} />
           <Metric label="Stocks" value={formatMoney(summary.stockValue)} />
           <Metric label="Invested capital" value={formatMoney(summary.investedCapital)} />
-          <Metric label="Nominal return rate" value={summary.nominalReturnRate} />
+          <Metric label="Nominal return rate" value={formatNullableDecimal(summary.nominalReturnRate)} />
           <Metric label="XIRR" value={formatNullableDecimal(summary.xirr)} />
-          <Metric label="Real gain" value={formatMoney(summary.realReturn.realGain)} />
+          <Metric label="Real gain" value={summary.realReturn ? formatMoney(summary.realReturn.realGain) : "Unavailable"} />
           <Metric label="Purchasing power basis" value={formatMoney(summary.purchasingPower.portfolioValue)} />
         </section>
       ) : null}
@@ -112,7 +159,7 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
             <p className="eyebrow">Immutable history</p>
             <h2>Transactions</h2>
           </div>
-          <button type="button" className="secondary-button" onClick={load}>
+          <button type="button" className="secondary-button" onClick={() => void load()}>
             Reload
           </button>
         </div>
@@ -145,6 +192,17 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
             </table>
           </div>
         )}
+        {state?.transactions.ok && state.transactions.data.pagination.hasMore && state.transactions.data.pagination.nextCursor ? (
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={isLoadingMoreTransactions}
+            onClick={() => void loadMoreTransactions()}
+          >
+            {isLoadingMoreTransactions ? "Loading transactions…" : "Load more transactions"}
+          </button>
+        ) : null}
+        {moreTransactionsError ? <p className="warning-text">{moreTransactionsError}</p> : null}
       </section>
     </main>
   );

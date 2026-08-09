@@ -2,6 +2,8 @@ package importflow
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"strings"
 	"testing"
@@ -27,6 +29,10 @@ func (appender *recordingAppender) AppendImportedTransactions(_ context.Context,
 
 func TestReviewAndAppendAppendsOnlyExplicitlyApprovedRows(t *testing.T) {
 	appender := &recordingAppender{}
+	payload := csvHeader +
+		"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,op-1,cash in\n" +
+		"BUY,SBER,2.00000000,100.00000000,200.00000000,1.00000000,0.00000000,2026-06-20,2026-06-21,RUB,op-2,buy\n"
+	review := mustReviewPayload(t, payload)
 
 	result, err := ReviewAndAppend(context.Background(), appender, Request{
 		SubjectID:          "subject-1",
@@ -34,12 +40,11 @@ func TestReviewAndAppendAppendsOnlyExplicitlyApprovedRows(t *testing.T) {
 		IdempotencyKey:     "import-flow-key-0001",
 		RequestPath:        "/internal/imports/review-append",
 		SourceAccountLabel: "manual-broker-label",
-		Reader: strings.NewReader(csvHeader +
-			"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,op-1,cash in\n" +
-			"BUY,SBER,2.00000000,100.00000000,200.00000000,1.00000000,0.00000000,2026-06-20,2026-06-21,RUB,op-2,buy\n"),
+		SourceFileHash:     review.FileHash,
+		Reader:             strings.NewReader(payload),
 		Decisions: []importer.Decision{
-			{RowNumber: 2, Action: importer.DecisionApprove},
-			{RowNumber: 3, Action: importer.DecisionIgnore},
+			{RowNumber: 2, RowHash: review.Rows[0].RowHash, Action: importer.DecisionApprove},
+			{RowNumber: 3, RowHash: review.Rows[1].RowHash, Action: importer.DecisionIgnore},
 		},
 	})
 	if err != nil {
@@ -76,15 +81,18 @@ func TestReviewAndAppendAppendsOnlyExplicitlyApprovedRows(t *testing.T) {
 
 func TestReviewAndAppendRejectsUnsafeApproval(t *testing.T) {
 	appender := &recordingAppender{}
+	payload := csvHeader +
+		"SELL,SBER,1.00000000,100.00000000,100.00000000,0.00000000,0.00000000,2026-06-20,,RUB,op-1,sell later\n"
+	review := mustReviewPayload(t, payload)
 
 	_, err := ReviewAndAppend(context.Background(), appender, Request{
 		SubjectID:      "subject-1",
 		PortfolioID:    "portfolio-1",
 		IdempotencyKey: "import-flow-key-0002",
 		RequestPath:    "/internal/imports/review-append",
-		Reader: strings.NewReader(csvHeader +
-			"SELL,SBER,1.00000000,100.00000000,100.00000000,0.00000000,0.00000000,2026-06-20,,RUB,op-1,sell later\n"),
-		Decisions: []importer.Decision{{RowNumber: 2, Action: importer.DecisionApprove}},
+		SourceFileHash: review.FileHash,
+		Reader:         strings.NewReader(payload),
+		Decisions:      []importer.Decision{{RowNumber: 2, RowHash: review.Rows[0].RowHash, Action: importer.DecisionApprove}},
 	})
 	if !errors.Is(err, importer.ErrUnsafeAppend) {
 		t.Fatalf("expected unsafe append error, got %v", err)
@@ -96,15 +104,18 @@ func TestReviewAndAppendRejectsUnsafeApproval(t *testing.T) {
 
 func TestReviewAndAppendRequiresApprovedRows(t *testing.T) {
 	appender := &recordingAppender{}
+	payload := csvHeader +
+		"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,op-1,cash in\n"
+	review := mustReviewPayload(t, payload)
 
 	_, err := ReviewAndAppend(context.Background(), appender, Request{
 		SubjectID:      "subject-1",
 		PortfolioID:    "portfolio-1",
 		IdempotencyKey: "import-flow-key-0003",
 		RequestPath:    "/internal/imports/review-append",
-		Reader: strings.NewReader(csvHeader +
-			"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,op-1,cash in\n"),
-		Decisions: []importer.Decision{{RowNumber: 2, Action: importer.DecisionIgnore}},
+		SourceFileHash: review.FileHash,
+		Reader:         strings.NewReader(payload),
+		Decisions:      []importer.Decision{{RowNumber: 2, RowHash: review.Rows[0].RowHash, Action: importer.DecisionIgnore}},
 	})
 	if !errors.Is(err, ErrNoApprovedRows) {
 		t.Fatalf("expected no approved rows error, got %v", err)
@@ -131,4 +142,51 @@ func TestReviewAndAppendRejectsOversizedPayload(t *testing.T) {
 	if appender.called {
 		t.Fatal("appender must not be called for oversized payload")
 	}
+}
+
+func TestReviewAndAppendRejectsSourceFileHashMismatch(t *testing.T) {
+	appender := &recordingAppender{}
+	reviewedPayload := csvHeader +
+		"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,op-1,cash in\n"
+	review := mustReviewPayload(t, reviewedPayload)
+	changedPayload := csvHeader +
+		"DEPOSIT,,,,9999.00000000,0.00000000,0.00000000,2026-06-19,,RUB,op-1,cash in\n"
+
+	_, err := ReviewAndAppend(context.Background(), appender, Request{
+		SubjectID:      "subject-1",
+		PortfolioID:    "portfolio-1",
+		IdempotencyKey: "import-flow-key-0005",
+		RequestPath:    "/internal/imports/review-append",
+		SourceFileHash: review.FileHash,
+		Reader:         strings.NewReader(changedPayload),
+		Decisions:      []importer.Decision{{RowNumber: 2, RowHash: review.Rows[0].RowHash, Action: importer.DecisionApprove}},
+	})
+	if !errors.Is(err, importer.ErrUnsafeAppend) {
+		t.Fatalf("expected unsafe append for changed payload, got %v", err)
+	}
+	if appender.called {
+		t.Fatal("appender must not be called for mismatched source file hash")
+	}
+}
+
+func mustReviewPayload(t *testing.T, payload string) importer.Review {
+	t.Helper()
+	fileHash := sourceFileHash(payload)
+	review, err := importer.ReviewCSV(importer.ReviewRequest{
+		SubjectID:          "subject-1",
+		PortfolioID:        "portfolio-1",
+		SourceKind:         importer.SourceKindUserUploadedFile,
+		SourceAccountLabel: "manual-broker-label",
+		FileHash:           fileHash,
+		Reader:             strings.NewReader(payload),
+	})
+	if err != nil {
+		t.Fatalf("review payload: %v", err)
+	}
+	return review
+}
+
+func sourceFileHash(payload string) string {
+	hash := sha256.Sum256([]byte(payload))
+	return hex.EncodeToString(hash[:])
 }

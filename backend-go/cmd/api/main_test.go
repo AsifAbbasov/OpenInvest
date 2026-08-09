@@ -8,6 +8,7 @@ import (
 )
 
 func TestHealth(t *testing.T) {
+	setExplicitDevelopmentEnvironment(t)
 	request := httptest.NewRequest(http.MethodGet, "/api/v1/health", nil)
 	response, err := newApp().Test(request)
 	if err != nil {
@@ -21,6 +22,7 @@ func TestHealth(t *testing.T) {
 }
 
 func TestReadyWithoutDatabase(t *testing.T) {
+	setExplicitDevelopmentEnvironment(t)
 	request := httptest.NewRequest(http.MethodGet, "/api/v1/ready", nil)
 	response, err := newApp().Test(request)
 	if err != nil {
@@ -34,6 +36,7 @@ func TestReadyWithoutDatabase(t *testing.T) {
 }
 
 func TestHealthPropagatesRequestAndTraceHeaders(t *testing.T) {
+	setExplicitDevelopmentEnvironment(t)
 	request := httptest.NewRequest(http.MethodGet, "/api/v1/health", nil)
 	request.Header.Set("X-Request-ID", "11111111-1111-4111-8111-111111111111")
 	request.Header.Set("traceparent", "00-11111111111111111111111111111111-2222222222222222-01")
@@ -53,6 +56,7 @@ func TestHealthPropagatesRequestAndTraceHeaders(t *testing.T) {
 }
 
 func TestLocalDevelopmentCORSPreflight(t *testing.T) {
+	setExplicitDevelopmentEnvironment(t)
 	for _, origin := range []string{"http://localhost:3000", "http://127.0.0.1:3000"} {
 		t.Run(origin, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodOptions, "/api/v1/portfolios", nil)
@@ -83,6 +87,7 @@ func TestLocalDevelopmentCORSPreflight(t *testing.T) {
 }
 
 func TestLocalDevelopmentCORSRejectsUnknownOrigin(t *testing.T) {
+	setExplicitDevelopmentEnvironment(t)
 	request := httptest.NewRequest(http.MethodOptions, "/api/v1/portfolios", nil)
 	request.Header.Set("Origin", "https://evil.example")
 
@@ -119,7 +124,48 @@ func TestValidateRuntimeSafetyAllowsUnsafeAuthFlagsOnlyInDevelopment(t *testing.
 	}
 }
 
+func TestValidateRuntimeSafetyRejectsMissingDatabaseOutsideExplicitDevelopment(t *testing.T) {
+	t.Setenv("OPENINVEST_ENV", "production")
+
+	if err := validateRuntimeSafety(""); err == nil {
+		t.Fatal("expected missing database URL to be rejected outside explicit development")
+	}
+}
+
+func TestValidateRuntimeSafetyAllowsMissingDatabaseOnlyInExplicitDevelopment(t *testing.T) {
+	t.Setenv("OPENINVEST_ENV", "local")
+
+	if err := validateRuntimeSafety(""); err != nil {
+		t.Fatalf("expected explicit local mode to permit the unavailable development store: %v", err)
+	}
+}
+
+func TestConfiguredImportReviewTokenSecretUsesFallbackOnlyInExplicitDevelopment(t *testing.T) {
+	t.Setenv("OPENINVEST_IMPORT_REVIEW_TOKEN_SECRET", "")
+	t.Setenv("OPENINVEST_ENV", "development")
+	if got := string(configuredImportReviewTokenSecret()); got != developmentImportReviewTokenSecret {
+		t.Fatalf("expected development-only fallback secret, got %q", got)
+	}
+
+	t.Setenv("OPENINVEST_ENV", "production")
+	if got := configuredImportReviewTokenSecret(); got != nil {
+		t.Fatalf("expected no production fallback secret, got %q", string(got))
+	}
+
+	t.Setenv("OPENINVEST_IMPORT_REVIEW_TOKEN_SECRET", "configured-import-review-token-secret-32bytes")
+	if got := string(configuredImportReviewTokenSecret()); got != "configured-import-review-token-secret-32bytes" {
+		t.Fatalf("expected configured import review secret, got %q", got)
+	}
+}
+
+func setExplicitDevelopmentEnvironment(t *testing.T) {
+	t.Helper()
+	t.Setenv("DATABASE_URL", "")
+	t.Setenv("OPENINVEST_ENV", "development")
+}
+
 func TestAppendTransactionRequiresSettlementDateField(t *testing.T) {
+	setExplicitDevelopmentEnvironment(t)
 	body := []byte(`{
 		"transactionType":"BUY",
 		"ticker":"SBER",

@@ -30,9 +30,9 @@ func (store *recordingStore) SearchAssets(_ context.Context, filter AssetSearchF
 		return []AssetSummary{}, nil
 	}
 	start := 0
-	if filter.Cursor != "" {
+	if filter.AfterTicker != "" {
 		for index, asset := range store.assets {
-			if asset.Ticker > filter.Cursor {
+			if asset.Ticker > filter.AfterTicker {
 				start = index
 				break
 			}
@@ -46,7 +46,7 @@ func (store *recordingStore) SearchAssets(_ context.Context, filter AssetSearchF
 	return store.assets[start:end], nil
 }
 
-func (store *recordingStore) ListPortfolios(context.Context, string, int) ([]Portfolio, error) {
+func (store *recordingStore) ListPortfolios(context.Context, string, PortfolioFilter) ([]Portfolio, error) {
 	return nil, nil
 }
 
@@ -135,7 +135,7 @@ func TestSearchAssetsNormalizesLimit(t *testing.T) {
 	}
 }
 
-func TestSearchAssetsUsesOpaqueCursorOverDeterministicTicker(t *testing.T) {
+func TestSearchAssetsUsesTickerKeysetAnchor(t *testing.T) {
 	store := &recordingStore{
 		assets: []AssetSummary{
 			{Ticker: "SBER", Name: "Sberbank ordinary shares", AssetType: "STOCK", Currency: RUB, LotSize: decimal.Must("10.00000000")},
@@ -148,31 +148,30 @@ func TestSearchAssetsUsesOpaqueCursorOverDeterministicTicker(t *testing.T) {
 	if err != nil {
 		t.Fatalf("search first page: %v", err)
 	}
-	if !first.HasMore || first.NextCursor == nil || len(first.Items) != 1 || first.Items[0].Ticker != "SBER" {
+	if !first.HasMore || first.NextTicker == nil || len(first.Items) != 1 || first.Items[0].Ticker != "SBER" {
 		t.Fatalf("unexpected first page: %+v", first)
 	}
 
-	second, err := service.SearchAssets(context.Background(), AssetSearchFilter{Query: "S", Cursor: *first.NextCursor, Limit: 1})
+	second, err := service.SearchAssets(context.Background(), AssetSearchFilter{Query: "S", AfterTicker: *first.NextTicker, Limit: 1})
 	if err != nil {
 		t.Fatalf("search second page: %v", err)
 	}
-	if second.HasMore || second.NextCursor != nil || len(second.Items) != 1 || second.Items[0].Ticker != "SU26238RMFS4" {
+	if second.HasMore || second.NextTicker != nil || len(second.Items) != 1 || second.Items[0].Ticker != "SU26238RMFS4" {
 		t.Fatalf("unexpected second page: %+v", second)
 	}
 }
 
-func TestSearchAssetsRejectsInvalidCursor(t *testing.T) {
+func TestSearchAssetsRejectsInvalidKeysetAnchor(t *testing.T) {
 	service := NewService(&recordingStore{}, fixedClock{})
 
-	for _, cursor := range []string{
-		"not-base64!",
-		" ",
-		encodeAssetCursor("SBER") + "==",
-		strings.Repeat("A", 513),
+	for _, anchor := range []string{
+		"sber",
+		"SBER!",
+		strings.Repeat("A", 33),
 	} {
-		_, err := service.SearchAssets(context.Background(), AssetSearchFilter{Query: "SBER", Cursor: cursor, Limit: 1})
+		_, err := service.SearchAssets(context.Background(), AssetSearchFilter{Query: "SBER", AfterTicker: anchor, Limit: 1})
 		if !errors.Is(err, ErrInvalidInput) {
-			t.Fatalf("expected invalid input for cursor %q, got %v", cursor, err)
+			t.Fatalf("expected invalid input for keyset anchor %q, got %v", anchor, err)
 		}
 	}
 }
@@ -380,7 +379,7 @@ func TestAppendImportedTransactionsRejectsDuplicateRows(t *testing.T) {
 		PortfolioID:    "portfolio-id",
 		Transactions:   []AppendTransactionRequest{request, request},
 		SourceKind:     "USER_UPLOADED_FILE",
-		SourceFileHash: "file-hash",
+		SourceFileHash: strings.Repeat("a", 64),
 	})
 
 	if !errors.Is(err, ErrInvalidInput) {
@@ -403,7 +402,7 @@ func TestAppendImportedTransactionsHashIncludesWholeBatch(t *testing.T) {
 			TradeDate:       "2026-06-26",
 		}},
 		SourceKind:     "USER_UPLOADED_FILE",
-		SourceFileHash: "file-hash",
+		SourceFileHash: strings.Repeat("a", 64),
 		Decisions:      []AppendImportDecision{{RowNumber: 2, Action: "APPROVE"}},
 	}
 	secondRequest := firstRequest
@@ -456,5 +455,19 @@ func TestAppendImportedTransactionsHashIncludesWholeBatch(t *testing.T) {
 
 	if firstStore.requestHash == fourthStore.requestHash {
 		t.Fatal("expected different request hashes for different import decisions")
+	}
+}
+
+func TestAppendImportedTransactionsRejectsInvalidSourceFileHash(t *testing.T) {
+	service := NewService(&recordingStore{}, fixedClock{})
+
+	_, err := service.AppendImportedTransactions(context.Background(), RequestContext{}, "subject", "import-batch-key-0002", "/internal/imports/append", AppendImportBatchRequest{
+		PortfolioID:    "portfolio-id",
+		SourceKind:     "USER_UPLOADED_FILE",
+		SourceFileHash: "not-a-sha256-digest",
+	})
+
+	if !errors.Is(err, ErrInvalidInput) {
+		t.Fatalf("expected invalid input, got %v", err)
 	}
 }

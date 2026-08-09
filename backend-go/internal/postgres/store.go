@@ -100,8 +100,8 @@ func (s *Store) SearchAssets(ctx context.Context, filter verticalslice.AssetSear
 		args = append(args, strings.ToLower(filter.AssetType))
 		conditions = append(conditions, "asset_type = $"+strconv.Itoa(len(args)))
 	}
-	if filter.Cursor != "" {
-		args = append(args, filter.Cursor)
+	if filter.AfterTicker != "" {
+		args = append(args, filter.AfterTicker)
 		conditions = append(conditions, "ticker > $"+strconv.Itoa(len(args)))
 	}
 	canonicalFixtureConditions := make([]string, 0, len(approvedTickers))
@@ -154,14 +154,21 @@ func (s *Store) SearchAssets(ctx context.Context, filter verticalslice.AssetSear
 	return assets, rows.Err()
 }
 
-func (s *Store) ListPortfolios(ctx context.Context, subjectID string, limit int) ([]verticalslice.Portfolio, error) {
+func (s *Store) ListPortfolios(ctx context.Context, subjectID string, filter verticalslice.PortfolioFilter) ([]verticalslice.Portfolio, error) {
+	args := []any{subjectID}
+	conditions := []string{"subject_id = $1", "portfolio_state = 'active'"}
+	if filter.BeforeUpdatedAt != nil {
+		args = append(args, *filter.BeforeUpdatedAt, filter.BeforeID)
+		conditions = append(conditions, "(updated_at, id) < ($"+strconv.Itoa(len(args)-1)+"::timestamptz, $"+strconv.Itoa(len(args))+"::uuid)")
+	}
+	args = append(args, filter.Limit)
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT id, name, base_currency, version, created_at, updated_at
 		FROM investment.portfolios
-		WHERE subject_id = $1 AND portfolio_state = 'active'
+		WHERE `+strings.Join(conditions, " AND ")+`
 		ORDER BY updated_at DESC, id DESC
-		LIMIT $2
-	`, subjectID, limit)
+		LIMIT $`+strconv.Itoa(len(args))+`
+	`, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -243,6 +250,10 @@ func (s *Store) ListTransactions(ctx context.Context, subjectID string, portfoli
 		args = append(args, filter.ToDate)
 		conditions = append(conditions, "te.trade_date <= $"+strconv.Itoa(len(args))+"::date")
 	}
+	if filter.BeforeTradeDate != "" {
+		args = append(args, filter.BeforeTradeDate, filter.BeforeEntryID)
+		conditions = append(conditions, "(te.trade_date, te.entry_id) < ($"+strconv.Itoa(len(args)-1)+"::date, $"+strconv.Itoa(len(args))+"::uuid)")
+	}
 	args = append(args, filter.Limit)
 	rows, err := s.db.QueryContext(ctx, transactionSelectSQL()+`
 			WHERE `+strings.Join(conditions, " AND ")+`
@@ -272,7 +283,7 @@ func (s *Store) AppendTransaction(ctx context.Context, command verticalslice.Com
 	}
 	defer rollback(tx)
 
-	if _, err := getPortfolioTx(ctx, tx, command.SubjectID, request.PortfolioID); err != nil {
+	if err := lockPortfolioTx(ctx, tx, command.SubjectID, request.PortfolioID); err != nil {
 		return verticalslice.Transaction{}, err
 	}
 
@@ -292,6 +303,13 @@ func (s *Store) AppendTransaction(ctx context.Context, command verticalslice.Com
 	if err != nil {
 		return verticalslice.Transaction{}, err
 	}
+	equivalentDuplicate, err := equivalentTransactionExists(ctx, tx, request, true)
+	if err != nil {
+		return verticalslice.Transaction{}, err
+	}
+	if equivalentDuplicate {
+		return verticalslice.Transaction{}, verticalslice.ErrInvalidInput
+	}
 	assetID, err := ensureAsset(ctx, tx, request)
 	if err != nil {
 		return verticalslice.Transaction{}, err
@@ -309,14 +327,14 @@ func (s *Store) AppendTransaction(ctx context.Context, command verticalslice.Com
 			quantity, unit_price_amount, unit_price_currency,
 			gross_amount, gross_currency, commission_amount, commission_currency,
 			tax_amount, tax_currency, trade_date, settlement_date, note,
-			created_at, request_id, trace_id
+			source_kind, source_file_hash, created_at, request_id, trace_id
 		)
 		VALUES (
 			$1, $2, $3, $4, 1, $5,
 			$6, $7, $8,
 			$9, 'RUB', $10, 'RUB',
 			$11, 'RUB', $12, $13, $14,
-			$15, NULLIF($16, '')::uuid, NULLIF($17, '')
+			'MANUAL', NULL, $15, NULLIF($16, '')::uuid, NULLIF($17, '')
 		)
 	`, entryID, transactionID, request.PortfolioID, assetID, request.TransactionType,
 		decimalString(request.Quantity), moneyAmount(request.UnitPrice), moneyCurrency(request.UnitPrice),
@@ -366,7 +384,7 @@ func (s *Store) AppendImportedTransactions(ctx context.Context, command vertical
 	}
 
 	for _, transactionRequest := range request.Transactions {
-		duplicate, err := equivalentTransactionExists(ctx, tx, transactionRequest)
+		duplicate, err := equivalentTransactionExists(ctx, tx, transactionRequest, false)
 		if err != nil {
 			return nil, err
 		}
@@ -393,7 +411,7 @@ func (s *Store) AppendImportedTransactions(ctx context.Context, command vertical
 		if err != nil {
 			return nil, err
 		}
-		if err := insertTransactionEntryWithID(ctx, tx, command, transactionRequest, entryID); err != nil {
+		if err := insertTransactionEntryWithID(ctx, tx, command, transactionRequest, entryID, request.SourceKind, request.SourceFileHash); err != nil {
 			return nil, err
 		}
 		entryIDs = append(entryIDs, entryID)
@@ -497,7 +515,7 @@ func ensureSubject(ctx context.Context, tx *sql.Tx, subjectID string) error {
 	return err
 }
 
-func equivalentTransactionExists(ctx context.Context, tx *sql.Tx, request verticalslice.AppendTransactionRequest) (bool, error) {
+func equivalentTransactionExists(ctx context.Context, tx *sql.Tx, request verticalslice.AppendTransactionRequest, importedOnly bool) (bool, error) {
 	gross, err := verticalslice.GrossFor(request)
 	if err != nil {
 		return false, err
@@ -534,10 +552,11 @@ func equivalentTransactionExists(ctx context.Context, tx *sql.Tx, request vertic
 				AND (($8::text IS NULL AND a.ticker IS NULL) OR a.ticker = $8::text)
 				AND (($9::numeric IS NULL AND te.quantity IS NULL) OR te.quantity = $9::numeric)
 				AND (($10::numeric IS NULL AND te.unit_price_amount IS NULL) OR te.unit_price_amount = $10::numeric)
-		)
+				AND (NOT $11::boolean OR te.source_kind = 'USER_UPLOADED_FILE')
+			)
 	`, request.PortfolioID, request.TransactionType, gross.Amount.String(),
 		request.Commission.Amount.String(), request.Tax.Amount.String(), request.TradeDate,
-		settlementDate, ticker, quantity, unitPrice).Scan(&exists)
+		settlementDate, ticker, quantity, unitPrice, importedOnly).Scan(&exists)
 	return exists, err
 }
 
@@ -605,13 +624,13 @@ func insertTransactionEntry(ctx context.Context, tx *sql.Tx, command verticalsli
 	if _, err := ensureAsset(ctx, tx, request); err != nil {
 		return "", err
 	}
-	if err := insertTransactionEntryWithID(ctx, tx, command, request, entryID); err != nil {
+	if err := insertTransactionEntryWithID(ctx, tx, command, request, entryID, "MANUAL", ""); err != nil {
 		return "", err
 	}
 	return entryID, nil
 }
 
-func insertTransactionEntryWithID(ctx context.Context, tx *sql.Tx, command verticalslice.CommandContext, request verticalslice.AppendTransactionRequest, entryID string) error {
+func insertTransactionEntryWithID(ctx context.Context, tx *sql.Tx, command verticalslice.CommandContext, request verticalslice.AppendTransactionRequest, entryID string, sourceKind string, sourceFileHash string) error {
 	gross, err := verticalslice.GrossFor(request)
 	if err != nil {
 		return err
@@ -628,20 +647,20 @@ func insertTransactionEntryWithID(ctx context.Context, tx *sql.Tx, command verti
 			quantity, unit_price_amount, unit_price_currency,
 			gross_amount, gross_currency, commission_amount, commission_currency,
 			tax_amount, tax_currency, trade_date, settlement_date, note,
-			created_at, request_id, trace_id
+			source_kind, source_file_hash, created_at, request_id, trace_id
 		)
 		VALUES (
 			$1, $2, $3, $4, 1, $5,
 			$6, $7, $8,
 			$9, 'RUB', $10, 'RUB',
 			$11, 'RUB', $12, $13, $14,
-			$15, NULLIF($16, '')::uuid, NULLIF($17, '')
+			$15, NULLIF($16, ''), $17, NULLIF($18, '')::uuid, NULLIF($19, '')
 		)
 	`, entryID, transactionID, request.PortfolioID, assetID, request.TransactionType,
 		decimalString(request.Quantity), moneyAmount(request.UnitPrice), moneyCurrency(request.UnitPrice),
 		gross.Amount.String(), request.Commission.Amount.String(),
 		request.Tax.Amount.String(), request.TradeDate, request.SettlementDate, request.Note,
-		command.Now, command.RequestID, command.TraceID)
+		sourceKind, sourceFileHash, command.Now, command.RequestID, command.TraceID)
 	if err != nil {
 		return err
 	}
@@ -745,7 +764,7 @@ func scanPortfolio(row scanner) (verticalslice.Portfolio, error) {
 func transactionSelectSQL() string {
 	return `
 		SELECT
-			te.transaction_id, te.portfolio_id, te.transaction_type,
+			te.entry_id, te.transaction_id, te.portfolio_id, te.transaction_type,
 			CASE
 				WHEN EXISTS (
 					SELECT 1 FROM investment.transaction_entries later
@@ -793,7 +812,7 @@ func scanTransaction(row scanner) (verticalslice.Transaction, error) {
 	var settlementDate sql.NullString
 	var note sql.NullString
 	err := row.Scan(
-		&transaction.ID, &transaction.PortfolioID, &transaction.TransactionType, &transaction.Status,
+		&transaction.EntryID, &transaction.ID, &transaction.PortfolioID, &transaction.TransactionType, &transaction.Status,
 		&ticker, &quantity, &unitPriceAmount, &unitPriceCurrency,
 		&grossAmount, &commissionAmount, &taxAmount,
 		&transaction.TradeDate, &settlementDate, &note,

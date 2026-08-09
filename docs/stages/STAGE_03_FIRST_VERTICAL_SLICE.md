@@ -807,15 +807,15 @@ Purpose:
 - plan the mandatory full repository audit before the next implementation stage;
 - make architecture, DDD, API, privacy/security, dependency, test, documentation, cost, and ADR
   drift visible before financial algorithms or source-backed read models begin;
-- define the future audit report, review evidence, and finding-resolution expectations.
+- define the audit report, review evidence, and finding-resolution expectations.
 
 Allowed:
 
 - documentation-only planning;
 - audit scope definition;
 - repository-area checklist definition;
-- acceptance criteria for the future audit stage;
-- governance updates to mark Stage 3.16 planning active.
+- acceptance criteria for the audit stage;
+- governance updates to mark Stage 3.16 planning closed after execution.
 
 Forbidden:
 
@@ -829,7 +829,8 @@ Forbidden:
 
 Status:
 
-- Active / planning on `stage-03-16-repository-audit-planning`.
+- Closed / merged into `develop` at `74eebe9ec8231764f21ce384c4690d073d0273da`; audit fixes
+  continue separately on `stage-03-16-audit-fixes`.
 
 ## Stage 3 domain boundaries
 

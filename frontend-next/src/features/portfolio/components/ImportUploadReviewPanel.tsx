@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import {
   appendReviewedPortfolioImport,
@@ -10,7 +10,16 @@ import {
   type ImportReviewResult,
   type ImportRowReview,
 } from "@/common/api/openinvest";
+import { emptyIdempotencyIntent, idempotencyIntentFor } from "@/common/api/idempotency";
 import { formatMoney } from "@/common/presentation/format";
+import {
+  shouldCommitImportAppend,
+  shouldCommitImportReview,
+  startImportAppend,
+  startImportReview,
+  synchronizeImportScope,
+  type ImportOperationGuardState,
+} from "@/features/portfolio/importOperationGuard";
 
 type ImportUploadReviewPanelProps = {
   accessToken: string;
@@ -21,9 +30,14 @@ type ImportUploadReviewPanelProps = {
 const maxCsvPayloadBytes = 2 * 1024 * 1024;
 
 export function ImportUploadReviewPanel({ accessToken, portfolioId, onImported }: ImportUploadReviewPanelProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+	const fileInputRef = useRef<HTMLInputElement>(null);
+	const importOperationGuardRef = useRef<ImportOperationGuardState>({ scope: "", reviewGeneration: 0, appendGeneration: 0 });
+	const appendIdempotencyIntentRef = useRef(emptyIdempotencyIntent);
+	const importScope = `${portfolioId}\u0000${accessToken}`;
   const [sourceAccountLabel, setSourceAccountLabel] = useState("Manual CSV import");
   const [csvPayload, setCsvPayload] = useState("");
+  const [reviewedCsvPayload, setReviewedCsvPayload] = useState("");
+  const [reviewedSourceAccountLabel, setReviewedSourceAccountLabel] = useState<string | undefined>(undefined);
   const [fileName, setFileName] = useState<string | null>(null);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [reviewResult, setReviewResult] = useState<ApiResult<ImportReviewResult> | null>(null);
@@ -32,15 +46,46 @@ export function ImportUploadReviewPanel({ accessToken, portfolioId, onImported }
   const [isReviewing, setIsReviewing] = useState(false);
   const [isAppending, setIsAppending] = useState(false);
 
-  const review = reviewResult?.ok ? reviewResult.data : null;
-  const selectedAppendableRows = review?.rows.filter((row) => row.status === "APPENDABLE" && selectedRows.has(row.rowNumber)) ?? [];
+	const review = reviewResult?.ok ? reviewResult.data : null;
+	const selectedAppendableRows = review?.rows.filter((row) => row.status === "APPENDABLE" && selectedRows.has(row.rowNumber)) ?? [];
 
-  async function loadFile(event: React.ChangeEvent<HTMLInputElement>) {
+	useLayoutEffect(() => {
+		importOperationGuardRef.current = synchronizeImportScope(importOperationGuardRef.current, importScope);
+	}, [importScope]);
+
+	useEffect(() => {
+		setCsvPayload("");
+		setReviewedCsvPayload("");
+		setReviewedSourceAccountLabel(undefined);
+		setFileName(null);
+		setSelectedRows(new Set());
+		setReviewResult(null);
+		setAppendResult(null);
+		setStatus(null);
+		setIsReviewing(false);
+		setIsAppending(false);
+		appendIdempotencyIntentRef.current = emptyIdempotencyIntent;
+		if (fileInputRef.current) {
+			fileInputRef.current.value = "";
+		}
+	}, [importScope]);
+
+	async function loadFile(event: React.ChangeEvent<HTMLInputElement>) {
+    if (isAppending) {
+      return;
+    }
+		const nextOperation = startImportReview(importOperationGuardRef.current, importScope);
+    importOperationGuardRef.current = nextOperation.state;
     const [file] = Array.from(event.target.files ?? []);
     setStatus(null);
     setReviewResult(null);
     setAppendResult(null);
+    setReviewedCsvPayload("");
+    setReviewedSourceAccountLabel(undefined);
     setSelectedRows(new Set());
+    setIsReviewing(false);
+    setIsAppending(false);
+    appendIdempotencyIntentRef.current = emptyIdempotencyIntent;
 
     if (!file) {
       setCsvPayload("");
@@ -58,28 +103,48 @@ export function ImportUploadReviewPanel({ accessToken, portfolioId, onImported }
       return;
     }
 
+    const payload = await file.text();
+    if (!shouldCommitImportReview(importOperationGuardRef.current, nextOperation.attempt)) {
+      return;
+    }
     setFileName(file.name);
-    setCsvPayload(await file.text());
+    setCsvPayload(payload);
   }
 
   async function submitReview(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isAppending) {
+      return;
+    }
+		const nextOperation = startImportReview(importOperationGuardRef.current, importScope);
+    importOperationGuardRef.current = nextOperation.state;
+    const payloadAtSubmit = csvPayload;
+    const sourceAccountLabelAtSubmit = sourceAccountLabel.trim() || undefined;
     setIsReviewing(true);
     setStatus(null);
     setAppendResult(null);
+    setReviewedCsvPayload("");
+    setReviewedSourceAccountLabel(undefined);
     setSelectedRows(new Set());
+    setIsAppending(false);
+    appendIdempotencyIntentRef.current = emptyIdempotencyIntent;
 
     const result = await reviewPortfolioImport(portfolioId, {
-      sourceAccountLabel: sourceAccountLabel.trim() || undefined,
-      csvPayload,
+      sourceAccountLabel: sourceAccountLabelAtSubmit,
+      csvPayload: payloadAtSubmit,
     }, { accessToken });
 
+    if (!shouldCommitImportReview(importOperationGuardRef.current, nextOperation.attempt)) {
+      return;
+    }
     setReviewResult(result);
     setIsReviewing(false);
     if (!result.ok) {
       setStatus(result.message);
       return;
     }
+    setReviewedCsvPayload(payloadAtSubmit);
+    setReviewedSourceAccountLabel(sourceAccountLabelAtSubmit);
     setStatus("Review received from the Go API. Select only rows you explicitly approve.");
   }
 
@@ -87,18 +152,45 @@ export function ImportUploadReviewPanel({ accessToken, portfolioId, onImported }
     if (!review || selectedAppendableRows.length === 0) {
       return;
     }
+    if (csvPayload !== reviewedCsvPayload) {
+			const nextOperation = startImportReview(importOperationGuardRef.current, importScope);
+      importOperationGuardRef.current = nextOperation.state;
+      setStatus("CSV changed after review. Run review again before append.");
+      setReviewResult(null);
+      setReviewedCsvPayload("");
+      setReviewedSourceAccountLabel(undefined);
+      setSelectedRows(new Set());
+      setIsReviewing(false);
+      setIsAppending(false);
+      appendIdempotencyIntentRef.current = emptyIdempotencyIntent;
+      return;
+    }
+		const nextOperation = startImportAppend(importOperationGuardRef.current, importScope);
+    importOperationGuardRef.current = nextOperation.state;
     setIsAppending(true);
     setStatus(null);
-
-    const result = await appendReviewedPortfolioImport(portfolioId, {
-      sourceAccountLabel: sourceAccountLabel.trim() || undefined,
-      csvPayload,
+    const appendPayload = {
+      sourceAccountLabel: reviewedSourceAccountLabel,
+      sourceFileHash: review.sourceFileHash,
+      reviewToken: review.reviewToken,
+      csvPayload: reviewedCsvPayload,
       decisions: selectedAppendableRows.map((row) => ({
         rowNumber: row.rowNumber,
-        action: "APPROVE",
+        rowHash: row.rowHash,
+        action: "APPROVE" as const,
       })),
-    }, { accessToken });
+    };
+    const intent = JSON.stringify(appendPayload);
+    appendIdempotencyIntentRef.current = idempotencyIntentFor(appendIdempotencyIntentRef.current, intent, () => crypto.randomUUID());
 
+    const result = await appendReviewedPortfolioImport(portfolioId, appendPayload, {
+      accessToken,
+      idempotencyKey: appendIdempotencyIntentRef.current.key ?? undefined,
+    });
+
+    if (!shouldCommitImportAppend(importOperationGuardRef.current, nextOperation.attempt)) {
+      return;
+    }
     setAppendResult(result);
     setIsAppending(false);
     if (!result.ok) {
@@ -107,6 +199,9 @@ export function ImportUploadReviewPanel({ accessToken, portfolioId, onImported }
     }
 
     setCsvPayload("");
+    setReviewedCsvPayload("");
+    setReviewedSourceAccountLabel(undefined);
+    appendIdempotencyIntentRef.current = emptyIdempotencyIntent;
     setFileName(null);
     setReviewResult(null);
     setSelectedRows(new Set());
@@ -118,7 +213,7 @@ export function ImportUploadReviewPanel({ accessToken, portfolioId, onImported }
   }
 
   function toggleRow(row: ImportRowReview) {
-    if (row.status !== "APPENDABLE") {
+    if (isAppending || row.status !== "APPENDABLE") {
       return;
     }
     setSelectedRows((currentRows) => {
@@ -151,14 +246,27 @@ export function ImportUploadReviewPanel({ accessToken, portfolioId, onImported }
           <input
             value={sourceAccountLabel}
             maxLength={120}
-            onChange={(event) => setSourceAccountLabel(event.target.value)}
+            onChange={(event) => {
+				const nextOperation = startImportReview(importOperationGuardRef.current, importScope);
+              importOperationGuardRef.current = nextOperation.state;
+              setSourceAccountLabel(event.target.value);
+              setReviewResult(null);
+              setAppendResult(null);
+              setReviewedCsvPayload("");
+              setReviewedSourceAccountLabel(undefined);
+              setSelectedRows(new Set());
+              setIsReviewing(false);
+              setIsAppending(false);
+              appendIdempotencyIntentRef.current = emptyIdempotencyIntent;
+            }}
+            disabled={isAppending}
           />
         </label>
         <label>
           CSV file
-          <input ref={fileInputRef} accept=".csv,text/csv" required type="file" onChange={loadFile} />
+          <input ref={fileInputRef} accept=".csv,text/csv" required type="file" onChange={loadFile} disabled={isAppending} />
         </label>
-        <button type="submit" disabled={isReviewing || csvPayload.trim() === ""}>
+        <button type="submit" disabled={isReviewing || isAppending || csvPayload.trim() === ""}>
           {isReviewing ? "Reviewing…" : "Review CSV"}
         </button>
         <p className="form-status">
@@ -181,7 +289,7 @@ export function ImportUploadReviewPanel({ accessToken, portfolioId, onImported }
           </div>
 
           <p className="muted">
-            Retention: {review.retentionPolicy}. Review is preflight only; append reruns backend checks.
+            Retention: {review.retentionPolicy}. The signed review token and backend checks are required before append.
           </p>
 
           <div className="table-wrap">
@@ -205,7 +313,7 @@ export function ImportUploadReviewPanel({ accessToken, portfolioId, onImported }
                       <input
                         aria-label={`Approve row ${row.rowNumber}`}
                         checked={selectedRows.has(row.rowNumber)}
-                        disabled={row.status !== "APPENDABLE"}
+                        disabled={isAppending || row.status !== "APPENDABLE"}
                         type="checkbox"
                         onChange={() => toggleRow(row)}
                       />

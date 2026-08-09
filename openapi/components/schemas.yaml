@@ -804,28 +804,41 @@ ImportDecisionAction:
 ImportDecision:
   type: object
   additionalProperties: false
-  required: [rowNumber, action]
+  required: [rowNumber, rowHash, action]
   properties:
     rowNumber:
       type: integer
       minimum: 2
       description: CSV data row number from the review response. Header is row 1.
+    rowHash:
+      type: string
+      pattern: "^[a-f0-9]{64}$"
+      description: SHA-256 row hash returned by review for this exact CSV row.
     action:
       $ref: "#/ImportDecisionAction"
 
 ImportAppendRequest:
   type: object
   additionalProperties: false
-  required: [csvPayload, decisions]
+  required: [sourceFileHash, reviewToken, csvPayload, decisions]
   properties:
     sourceAccountLabel:
       type: string
       maxLength: 120
+    sourceFileHash:
+      type: string
+      pattern: "^[a-f0-9]{64}$"
+      description: SHA-256 file hash returned by review for the exact CSV payload being appended.
+    reviewToken:
+      type: string
+      minLength: 32
+      maxLength: 16384
+      description: Backend-signed opaque token returned by review and bound to subject, portfolio, source label, file hash, and row identities.
     csvPayload:
       type: string
       minLength: 1
       maxLength: 2097152
-      description: Same CSV payload reviewed by the user. Append reruns review instead of trusting client state.
+      description: Same CSV payload reviewed by the user. Append reruns review and rejects payloads whose hash or row hashes differ from the review response.
     decisions:
       type: array
       minItems: 1
@@ -920,6 +933,7 @@ ImportReviewResult:
     - sourceKind
     - sourceAccountLabel
     - sourceFileHash
+    - reviewToken
     - retentionPolicy
     - reviewGuarantee
     - summary
@@ -937,12 +951,16 @@ ImportReviewResult:
     sourceFileHash:
       type: string
       pattern: "^[a-f0-9]{64}$"
+    reviewToken:
+      type: string
+      minLength: 32
+      maxLength: 16384
     retentionPolicy:
       type: string
       const: TRANSIENT_NOT_STORED
     reviewGuarantee:
       type: string
-      const: PREFLIGHT_ONLY_APPEND_RERUNS_REVIEW_AND_STORE_CHECKS
+      const: SIGNED_REVIEW_TOKEN_APPEND_RERUNS_REVIEW_AND_STORE_CHECKS
     summary:
       $ref: "#/ImportSummary"
     rows:
@@ -1157,14 +1175,20 @@ PortfolioSummary:
     couponsReceived:
       $ref: "#/NonNegativeMoney"
     nominalReturnRate:
-      $ref: "#/Decimal"
+      oneOf:
+        - $ref: "#/Decimal"
+        - type: "null"
+      description: Null until return methodology and canonical calculation vectors are approved.
     xirr:
       oneOf:
         - $ref: "#/Decimal"
         - type: "null"
       description: Null when cash-flow history cannot produce a defined XIRR.
     realReturn:
-      $ref: "#/RealReturn"
+      oneOf:
+        - $ref: "#/RealReturn"
+        - type: "null"
+      description: Null until real-return methodology, inflation source, and canonical calculation vectors are approved.
     purchasingPower:
       $ref: "#/PurchasingPower"
     positions:

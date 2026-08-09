@@ -89,7 +89,13 @@ type Candidate struct {
 
 type Decision struct {
 	RowNumber int
+	RowHash   string
 	Action    string
+}
+
+type DecisionIdentity struct {
+	RowNumber int
+	RowHash   string
 }
 
 func ReviewCSV(request ReviewRequest) (Review, error) {
@@ -187,6 +193,9 @@ func ReviewCSV(request ReviewRequest) (Review, error) {
 }
 
 func BuildAppendRequests(review Review, decisions []Decision) ([]verticalslice.AppendTransactionRequest, error) {
+	if err := VerifyDecisionIdentities(review, decisionIdentities(decisions)); err != nil {
+		return nil, err
+	}
 	rows := map[int]RowReview{}
 	for _, row := range review.Rows {
 		rows[row.RowNumber] = row
@@ -215,6 +224,34 @@ func BuildAppendRequests(review Review, decisions []Decision) ([]verticalslice.A
 		}
 	}
 	return appendRequests, nil
+}
+
+func VerifyDecisionIdentities(review Review, identities []DecisionIdentity) error {
+	rows := map[int]RowReview{}
+	for _, row := range review.Rows {
+		rows[row.RowNumber] = row
+	}
+	for _, identity := range identities {
+		row, ok := rows[identity.RowNumber]
+		if !ok {
+			return fmt.Errorf("%w: row %d is not in review", ErrUnsafeAppend, identity.RowNumber)
+		}
+		if strings.TrimSpace(identity.RowHash) == "" {
+			return fmt.Errorf("%w: row %d hash is required", ErrUnsafeAppend, identity.RowNumber)
+		}
+		if identity.RowHash != row.RowHash {
+			return fmt.Errorf("%w: row %d hash does not match reviewed row", ErrUnsafeAppend, identity.RowNumber)
+		}
+	}
+	return nil
+}
+
+func decisionIdentities(decisions []Decision) []DecisionIdentity {
+	identities := make([]DecisionIdentity, 0, len(decisions))
+	for _, decision := range decisions {
+		identities = append(identities, DecisionIdentity{RowNumber: decision.RowNumber, RowHash: decision.RowHash})
+	}
+	return identities
 }
 
 func reviewRow(portfolioID string, columns map[string]int, record []string, rowNumber int) RowReview {

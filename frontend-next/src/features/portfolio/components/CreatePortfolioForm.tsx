@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { createPortfolio } from "@/common/api/openinvest";
+import { emptyIdempotencyIntent, idempotencyIntentFor } from "@/common/api/idempotency";
 
 type CreatePortfolioFormProps = {
   accessToken: string;
@@ -10,6 +11,7 @@ type CreatePortfolioFormProps = {
 };
 
 export function CreatePortfolioForm({ accessToken, onCreated }: CreatePortfolioFormProps) {
+  const idempotencyIntentRef = useRef(emptyIdempotencyIntent);
   const [name, setName] = useState("Long-term RUB portfolio");
   const [status, setStatus] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -18,12 +20,19 @@ export function CreatePortfolioForm({ accessToken, onCreated }: CreatePortfolioF
     event.preventDefault();
     setIsSubmitting(true);
     setStatus(null);
-    const result = await createPortfolio({ name: name.trim(), baseCurrency: "RUB" }, { accessToken });
+    const payload = { name: name.trim(), baseCurrency: "RUB" as const };
+    const intent = JSON.stringify(payload);
+    idempotencyIntentRef.current = idempotencyIntentFor(idempotencyIntentRef.current, intent, () => crypto.randomUUID());
+    const result = await createPortfolio(
+      payload,
+      { accessToken, idempotencyKey: idempotencyIntentRef.current.key ?? undefined },
+    );
     setIsSubmitting(false);
     if (!result.ok) {
       setStatus(result.message);
       return;
     }
+    idempotencyIntentRef.current = emptyIdempotencyIntent;
     setStatus("Portfolio created. Loading portfolio data from Go API…");
     onCreated();
   }

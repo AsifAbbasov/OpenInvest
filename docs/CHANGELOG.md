@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.34 |
+| Version | 1.1.35 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-07-27 |
+| Last Review Date | 2026-08-08 |
 | Next Review Date | Before next approved implementation stage |
 
 ## 2026-06-19 — Architecture Freeze v1.2
@@ -516,3 +516,41 @@
   vendored, binary, or archival rationale.
 - Made SOLID, cost, and ADR-consistency review explicit in audit scope, evidence mapping, and
   acceptance criteria.
+
+## 2026-08-04 — Stage 3.16 repository audit fixes started
+
+- Squash-merged Stage 3.16 planning PR #43 into `develop` at
+  `74eebe9ec8231764f21ce384c4690d073d0273da`; mandatory full repository audit returned
+  `REQUEST CHANGES`.
+- Added the durable Stage 3.16 repository audit report with 200 tracked files and manifest SHA
+  `1fd740a8d5bca3afd05daa3268c079bae3a7a331a043ecdff5d35734ac77604e`.
+- Bound import append approvals to a server-signed review token over the reviewed import context, and
+  blocked stale Web review responses from being paired with changed CSV payloads or source labels.
+- Stopped exposing placeholder nominal, XIRR, and real-return figures as ordinary portfolio summary
+  outputs until canonical return methodology and vectors are approved.
+- Preserved browser idempotency keys across ambiguous retry attempts for portfolio, transaction, and
+  import append writes.
+- Added frontend tests and PostgreSQL-backed Go integration tests to CI, and aligned implemented list
+  pagination behavior with the OpenAPI contract.
+
+## 2026-08-08 — Stage 3.16 audit-fix hardening completed pending review
+
+- Removed the import review-token static fallback and require a configured 32-byte-or-longer secret
+  outside explicitly named local/development environments.
+- Added source-aware transaction provenance, strict SHA-256 import source validation, and coverage
+  for manual/import duplicate policy and shared append serialization.
+- Replaced client-controlled list offsets with signed opaque keyset cursors scoped to the
+  authenticated query and deterministic database anchors; frontend forwards them without parsing.
+- Made a missing database URL fail closed unless `OPENINVEST_ENV` explicitly declares development or
+  local, and aligned runtime import-token/hash validation with OpenAPI bounds and lowercase digests.
+- Extended migration CI to validate down migrations and rehearse every rollback, full reapply, and
+  schema assertions in disposable PostgreSQL.
+- Fixed import retry replay after ledger mutation, anchored transaction keysets on internal entry IDs,
+  restored an explicit development-only token-secret fallback, applied the provenance migration in
+  smoke, and scope-bound Web import async responses to the active portfolio/session.
+- Published the durable 200-path Stage 3.16 audit coverage manifest and synchronized governance
+  metadata. The separate review verdict remains `REQUEST CHANGES` until independently approved.
+- Signed asset-search continuations with query/type-bound HMAC keysets and synchronously invalidate
+  stale import operations before passive effects run after session or portfolio changes.
+- Hardened migration-rehearsal traversal and schema evidence, and added a mounted React lifecycle test
+  for stale review and append promises after a portfolio or session change.

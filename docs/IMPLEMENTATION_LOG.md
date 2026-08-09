@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.32 |
+| Version | 1.1.33 |
 | Status | Active |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
 | Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md` |
-| Last Review Date | 2026-07-27 |
+| Last Review Date | 2026-08-08 |
 | Next Review Date | Before next approved implementation stage |
 
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
@@ -45,7 +45,9 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.14 — Asset Search/Card API Boundary Slice | Expose the public Go API asset search boundary without fabricated market data or detail provenance | Complete / closed; merged into `develop` at `57a9404952cb65693614109dd4a14d41fa5c4295` | [Stage 3.14 implementation report](stages/STAGE_03_14_ASSET_API_BOUNDARY_SLICE.md) |
 | 3.15 — Web Asset Discovery UI Planning | Define the future Next.js presentation-only asset search entry and honest deferred card-state boundary | Complete / closed; merged into `develop` at `dfeab109b2825fe0e0317e87a7abf2e706a29ea6` | [Stage 3.15 plan](stages/STAGE_03_15_WEB_ASSET_DISCOVERY_UI_PLANNING.md) |
 | 3.15 — Web Asset Discovery UI Slice | Implement the reviewed Next.js presentation-only asset discovery boundary | Complete / closed; merged into `develop` at `22bede651a646d0e8b06568bda457d0626891e63` | [Stage 3.15 implementation report](stages/STAGE_03_15_WEB_ASSET_DISCOVERY_UI_SLICE.md) |
-| 3.16 — Repository Audit Planning | Plan the mandatory full repository audit before the next implementation stage | Active / planning on `stage-03-16-repository-audit-planning` | [Stage 3.16 plan](stages/STAGE_03_16_REPOSITORY_AUDIT_PLANNING.md) |
+| 3.16 — Repository Audit Planning | Plan the mandatory full repository audit before the next implementation stage | Complete / merged into `develop` at `74eebe9ec8231764f21ce384c4690d073d0273da` | [Stage 3.16 plan](stages/STAGE_03_16_REPOSITORY_AUDIT_PLANNING.md) |
+| 3.16 — Repository Audit Report | Record mandatory full repository audit coverage, manifest, and verdict | Complete / returned `REQUEST CHANGES` | [Stage 3.16 audit report](stages/STAGE_03_16_REPOSITORY_AUDIT_REPORT.md) |
+| 3.16 — Repository Audit Fixes | Fix mandatory repository audit `REQUEST CHANGES` findings | Active / fixes on `stage-03-16-audit-fixes` | [Stage 3.16 audit fixes](stages/STAGE_03_16_REPOSITORY_AUDIT_FIXES.md) |
 
 ## Stage completion protocol
 
@@ -388,16 +390,53 @@ This log is the index of implementation stages. Every stage must document its pu
   `9eec98c36d7aeffb21dc2d7e7e0eb1681106901d`.
 - Started documentation-only planning for the mandatory full repository audit before the next
   implementation stage.
-- Scoped the future audit to architecture, DDD, API, security, privacy, performance, dependencies,
+- Scoped the planned audit to architecture, DDD, API, security, privacy, performance, dependencies,
   tests, documentation, cost, and ADR consistency.
 - Kept implementation work, financial algorithms, OpenAPI changes, SQL migrations, dependency
   changes, market data, providers, workers, tax, mobile, and AI out of scope.
 
 ## 2026-07-27 — Stage 3.16 planning review findings fixed
 
-- Addressed strict separate-window review findings by making the future audit target reproducible:
+- Addressed strict separate-window review findings by making the planned audit target reproducible:
   after the planning PR merge, the audit stage must record the full post-planning `develop` SHA.
 - Required a tracked-file coverage manifest where every path is audited or excluded with a narrow
   generated, vendored, binary, or archival rationale.
 - Added explicit SOLID, cost, and ADR-consistency coverage to the audit method and acceptance
   criteria.
+
+## 2026-08-04 — Stage 3.16 repository audit fixes started
+
+- Squash-merged Stage 3.16 planning PR #43 into `develop` at
+  `74eebe9ec8231764f21ce384c4690d073d0273da`.
+- Completed strict separate-window full repository audit on that immutable SHA; verdict:
+  `REQUEST CHANGES`.
+- Started `stage-03-16-audit-fixes` and fixed the first blocking audit findings:
+  - import append approvals now require the reviewed source file hash and row hashes;
+  - Web import review state is invalidated on file/source-label changes and stale review responses;
+  - portfolio summary return fields are unavailable instead of exposing placeholder calculations;
+  - browser write intents preserve idempotency keys across ambiguous retry attempts;
+  - CI now runs frontend tests and PostgreSQL-backed Go integration tests.
+- Kept financial algorithms, market data, providers, workers, tax, mobile, and AI out of scope.
+
+## 2026-08-08 — Stage 3.16 audit-fix hardening completed pending review
+
+- Made import review-token configuration fail closed outside explicitly named local/development
+  environments; the service now requires a 32-byte-or-longer secret and hashes it before signing.
+- Added source-aware transaction provenance migration and integration coverage: independent matching
+  manual ledger entries remain allowed, while equivalent imports remain rejected under the shared lock.
+- Added an exact SHA-256 source-file-hash validation boundary for imported batches.
+- Replaced client-controlled list offsets with signed opaque keyset cursors bound to subject,
+  endpoint, portfolio/filter scope, and deterministic page anchors; the Web layer forwards only the
+  returned opaque token.
+- Made missing database configuration fail closed outside explicit local/development mode, matched
+  runtime import token/hash validation to OpenAPI bounds, and added CI rollback/reapply rehearsal for
+  every migration in disposable PostgreSQL.
+- Preserved HTTP import retry replay through the atomic store, switched SQL transaction cursors to
+  internal entry anchors, applied migration `000003` in smoke, and scope-bound in-flight Web import
+  operations to the active portfolio/session.
+- Added a durable 200-path Stage 3.16 coverage manifest and synchronized the audit report, document
+  index, and version matrix. The audit verdict remains `REQUEST CHANGES` pending separate review.
+- Signed asset-search continuations with query/type-bound HMAC keysets and synchronously invalidate
+  stale import operations before passive effects run after session or portfolio changes.
+- Hardened migration-rehearsal traversal and schema evidence, and added a mounted React lifecycle test
+  for stale review and append promises after a portfolio or session change.

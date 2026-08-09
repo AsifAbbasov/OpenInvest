@@ -23,9 +23,9 @@ func TestReviewCSVClassifiesAppendableRows(t *testing.T) {
 	}
 
 	appendRequests, err := BuildAppendRequests(review, []Decision{
-		{RowNumber: 2, Action: DecisionApprove},
-		{RowNumber: 3, Action: DecisionApprove},
-		{RowNumber: 4, Action: DecisionIgnore},
+		{RowNumber: 2, RowHash: review.Rows[0].RowHash, Action: DecisionApprove},
+		{RowNumber: 3, RowHash: review.Rows[1].RowHash, Action: DecisionApprove},
+		{RowNumber: 4, RowHash: review.Rows[2].RowHash, Action: DecisionIgnore},
 	})
 	if err != nil {
 		t.Fatalf("build append requests: %v", err)
@@ -130,7 +130,17 @@ func TestBuildAppendRequestsRejectsUnapprovedUnsafeRows(t *testing.T) {
 	review := mustReview(t, csvHeader+
 		"SELL,SBER,1.00000000,100.00000000,100.00000000,0.00000000,0.00000000,2026-06-20,,RUB,op-1,sell later\n", nil)
 
-	_, err := BuildAppendRequests(review, []Decision{{RowNumber: 2, Action: DecisionApprove}})
+	_, err := BuildAppendRequests(review, []Decision{{RowNumber: 2, RowHash: review.Rows[0].RowHash, Action: DecisionApprove}})
+	if !errors.Is(err, ErrUnsafeAppend) {
+		t.Fatalf("expected unsafe append error, got %v", err)
+	}
+}
+
+func TestBuildAppendRequestsRejectsRowHashMismatch(t *testing.T) {
+	review := mustReview(t, csvHeader+
+		"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,op-1,cash in\n", nil)
+
+	_, err := BuildAppendRequests(review, []Decision{{RowNumber: 2, RowHash: strings.Repeat("0", 64), Action: DecisionApprove}})
 	if !errors.Is(err, ErrUnsafeAppend) {
 		t.Fatalf("expected unsafe append error, got %v", err)
 	}
@@ -141,8 +151,8 @@ func TestBuildAppendRequestsRejectsDuplicateDecisions(t *testing.T) {
 		"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,op-1,cash in\n", nil)
 
 	_, err := BuildAppendRequests(review, []Decision{
-		{RowNumber: 2, Action: DecisionApprove},
-		{RowNumber: 2, Action: DecisionApprove},
+		{RowNumber: 2, RowHash: review.Rows[0].RowHash, Action: DecisionApprove},
+		{RowNumber: 2, RowHash: review.Rows[0].RowHash, Action: DecisionApprove},
 	})
 	if !errors.Is(err, ErrUnsafeAppend) {
 		t.Fatalf("expected unsafe append error, got %v", err)

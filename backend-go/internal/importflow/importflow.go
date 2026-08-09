@@ -73,8 +73,12 @@ func ReviewAndAppend(ctx context.Context, appender Appender, request Request) (R
 	}
 	sourceFileHash := strings.TrimSpace(request.SourceFileHash)
 	if sourceFileHash == "" {
-		hash := sha256.Sum256(payload)
-		sourceFileHash = hex.EncodeToString(hash[:])
+		return Result{}, fmt.Errorf("%w: sourceFileHash is required", ErrInvalidFlowInput)
+	}
+	hash := sha256.Sum256(payload)
+	actualFileHash := hex.EncodeToString(hash[:])
+	if !strings.EqualFold(sourceFileHash, actualFileHash) {
+		return Result{}, fmt.Errorf("%w: sourceFileHash does not match import payload", importer.ErrUnsafeAppend)
 	}
 
 	review, err := importer.ReviewCSV(importer.ReviewRequest{

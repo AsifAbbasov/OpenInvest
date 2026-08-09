@@ -112,18 +112,9 @@
         "investedCapital": { "amount": "2100000.00000000", "currency": "RUB" },
         "dividendsReceived": { "amount": "84000.00000000", "currency": "RUB" },
         "couponsReceived": { "amount": "31000.00000000", "currency": "RUB" },
-        "nominalReturnRate": "0.15714286",
-        "xirr": "0.14273125",
-        "realReturn": {
-          "nominalReturnRate": "0.15714286",
-          "inflationRate": "0.08700000",
-          "realReturnRate": "0.06452885",
-          "nominalGain": { "amount": "330000.00000000", "currency": "RUB" },
-          "realGain": { "amount": "135510.59000000", "currency": "RUB" },
-          "fromDate": "2025-06-19",
-          "toDate": "2026-06-19",
-          "methodologyVersion": "real-return-v1"
-        },
+        "nominalReturnRate": null,
+        "xirr": null,
+        "realReturn": null,
         "purchasingPower": {
           "portfolioValue": { "amount": "2430000.00000000", "currency": "RUB" },
           "asOfDate": "2026-06-19",

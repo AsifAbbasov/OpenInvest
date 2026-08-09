@@ -3,17 +3,18 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-16-REPOSITORY-AUDIT-PLAN |
-| Version | 0.1.1 |
-| Status | Active / planning |
+| Version | 0.1.2 |
+| Status | Closed / merged into `develop`; audit executed |
 | Owner | Builder Engineer |
 | Supersedes | Informal next-step discussion after Stage 3.15 |
+| Superseded By | `STAGE_03_16_REPOSITORY_AUDIT_REPORT.md`; `STAGE_03_16_REPOSITORY_AUDIT_FIXES.md` |
 | Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md`; Stage 3.15 closure governance |
-| Last Review Date | 2026-07-27 |
-| Next Review Date | Before repository audit execution |
+| Last Review Date | 2026-08-04 |
+| Next Review Date | None; retained as historical planning evidence |
 
 ## Purpose
 
-Stage 3.16 plans the mandatory full repository audit required before the next implementation stage.
+Stage 3.16 planned the mandatory full repository audit required before the next implementation stage.
 
 The audit exists to catch architecture, scope, documentation, dependency, test, and boundary drift
 after the completed Stage 3 increments and before financial algorithms such as WAC, XIRR, real
@@ -31,7 +32,7 @@ presentation and API-boundary slices. A repository audit is therefore the next s
 
 ## Audit Scope
 
-The future audit should inspect:
+The executed audit was required to inspect:
 
 - architecture freeze and accepted ADR consistency;
 - Source of Truth, roadmap, version matrix, document index, changelog, and implementation log
@@ -66,7 +67,7 @@ Stage 3.16 planning does not authorize:
 
 ## Audit Method
 
-The future audit should run as its own reviewed stage and produce a durable report. It should:
+The audit ran as its own reviewed stage and produced a durable report. It was required to:
 
 - start only after this planning PR is reviewed, merged, and the main checkout is fast-forwarded to
   `develop`;
@@ -89,20 +90,20 @@ The future audit should run as its own reviewed stage and produce a durable repo
 ## Acceptance Criteria
 
 - The audit plan is reviewed and merged before audit execution starts.
-- The future audit report names one immutable post-planning audit target SHA.
-- The future audit report includes a file-level coverage manifest for every tracked path at that
+- The audit report names one immutable post-planning audit target SHA.
+- The audit report includes a file-level coverage manifest for every tracked path at that
   SHA.
-- The future audit report covers every required category in `REVIEW_WORKFLOW.md`: architecture,
+- The audit report covers every required category in `REVIEW_WORKFLOW.md`: architecture,
   DDD, SOLID, API, security, privacy, performance, dependencies, tests, documentation, cost, and ADR
   consistency.
 - Every manifest entry is either audited with evidence or excluded with a narrow reviewed reason.
-- The future audit report does not silently authorize implementation work.
+- The audit report does not silently authorize implementation work.
 - Any financial-algorithm stage remains blocked until audit findings are resolved or explicitly
   accepted.
 - No market-data, provider, tax, mobile, AI, or worker scope enters through the audit gate.
 
-## Recommended Next Step
+## Closure
 
-After this planning document is reviewed and merged, execute the Stage 3.16 repository audit as a
-separate read-only audit stage. Only after that audit is approved, and any blocking findings are
-resolved or explicitly accepted, select the next implementation planning gate.
+This planning document was reviewed and merged before audit execution. The audit returned
+`REQUEST CHANGES`; the authoritative ongoing work is the Stage 3.16 audit fixes stage and its durable
+audit report.

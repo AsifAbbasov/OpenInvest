@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.39 |
+| Version | 1.4.41 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
-| Last Review Date | 2026-07-27 |
+| Last Review Date | 2026-08-08 |
 | Next Review Date | Before next approved implementation stage |
 
 ## Architecture status
@@ -16,10 +16,10 @@
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
 **Last completed implementation stage: Stage 3.15 — Web Asset Discovery UI Slice**
-**Last completed planning gate: Stage 3.15 — Web Asset Discovery UI Planning**
+**Last completed planning gate: Stage 3.16 — Repository Audit Planning**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `9eec98c36d7aeffb21dc2d7e7e0eb1681106901d`**
-**Current active work item: Stage 3.16 repository audit planning on `stage-03-16-repository-audit-planning`**
+**Current canonical implementation baseline: `develop` at `74eebe9ec8231764f21ce384c4690d073d0273da`**
+**Current active work item: Stage 3.16 repository audit fixes on `stage-03-16-audit-fixes`**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -163,7 +163,9 @@ Stage 3.15 Web asset discovery UI planning is closed and merged into `develop` a
 presentation-only asset discovery boundary over the existing Go API and does not authorize market
 data, stock/bond card calculations, provider integrations, workers, tax, mobile, or AI. Stage 3.15
 closure governance is merged into `develop` at `9eec98c36d7aeffb21dc2d7e7e0eb1681106901d`. Stage
-3.16 repository audit planning is active and must not authorize implementation work by itself.
+3.16 repository audit planning is closed and merged into `develop` at
+`74eebe9ec8231764f21ce384c4690d073d0273da`; the mandatory audit returned `REQUEST CHANGES`, and
+Stage 3.16 audit fixes are the only active work before the next implementation stage.
 
 ## Financial standard
 

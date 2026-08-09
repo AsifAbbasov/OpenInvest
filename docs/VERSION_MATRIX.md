@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.1.40 |
+| Version | 1.1.41 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | Documents 42–43 |
-| Last Review Date | 2026-07-27 |
+| Last Review Date | 2026-08-08 |
 | Next Review Date | Before next approved implementation stage |
 
 | Range | Version | Status under Freeze v1.2 | Priority | Owner | Review |
@@ -47,7 +47,10 @@
 | Stage 3.15 Web asset discovery UI planning | 0.1.x | Closed / merged into `develop` at `dfeab109b2825fe0e0317e87a7abf2e706a29ea6` | 3 | Principal Architect | Completed before Stage 3.15 implementation |
 | Stage 3.15 Web asset discovery UI slice | 0.1.x | Closed / merged into `develop` at `22bede651a646d0e8b06568bda457d0626891e63` | 3 | Principal Architect | Completed before Stage 3.15 closure governance |
 | Stage 3.15 closure governance | 0.1.x | Closed / merged into `develop` at `9eec98c36d7aeffb21dc2d7e7e0eb1681106901d` | 3 | Principal Architect | Completed before Stage 3.16 planning |
-| Stage 3.16 repository audit planning | 0.1.x | Active / planning on `stage-03-16-repository-audit-planning` | 3 | Principal Architect | Before repository audit execution; future audit must record immutable post-planning SHA and tracked-file coverage manifest |
+| Stage 3.16 repository audit planning | 0.1.x | Closed / merged into `develop` at `74eebe9ec8231764f21ce384c4690d073d0273da` | 3 | Principal Architect | Mandatory full repository audit returned `REQUEST CHANGES` |
+| Stage 3.16 repository audit report | 0.1.x | Complete / returned `REQUEST CHANGES` | 3 | Principal Architect | Manifest SHA `1fd740a8d5bca3afd05daa3268c079bae3a7a331a043ecdff5d35734ac77604e` |
+| Stage 3.16 repository audit coverage manifest | 0.1.x | Complete / 200-path immutable coverage record | 3 | Principal Architect | Audited target `74eebe9ec8231764f21ce384c4690d073d0273da` |
+| Stage 3.16 repository audit fixes | 0.1.x | Active / fixes on `stage-03-16-audit-fixes` | 3 | Principal Architect | Before any next implementation stage |
 | Documents 28–39 | 2.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Document 40 | 3.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Documents 1–27, 41 | 1.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
