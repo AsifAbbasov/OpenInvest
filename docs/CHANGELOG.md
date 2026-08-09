@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.38 |
+| Version | 1.1.39 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before the next separately reviewed planning stage |
+| Next Review Date | Before Stage 3.17 privacy-lifecycle planning approval |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -570,3 +570,12 @@
   independently recorded external review.
 - Updated the version matrix to distinguish the historical initial Stage 3 planning merge from the
   current `0.1.29` umbrella-plan closure.
+
+## 2026-08-09 — Stage 3.17 privacy lifecycle planning started
+
+- Added the documentation-only planning gate for account deletion, irreversible anonymization,
+  backup destruction, and retention execution left open by the Stage 3.16 audit.
+- Required separate reviewed contract, migration, security/key-destruction, backup-restore, and
+  operational evidence before any future implementation can begin.
+- Kept all runtime, OpenAPI, SQL, infrastructure, market-data, financial-calculation, tax, mobile,
+  and AI changes out of scope.
