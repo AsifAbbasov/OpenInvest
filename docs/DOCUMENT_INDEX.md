@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.46 |
+| Version | 1.1.47 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
@@ -111,7 +111,7 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Stage 3.17 privacy lifecycle planning | Complete / merged through PR #46 | `stages/STAGE_03_17_PRIVACY_LIFECYCLE_PLANNING.md` |
 | Stage 3.18 privacy contract and security proposal | Complete / merged through PR #47 | `stages/STAGE_03_18_PRIVACY_CONTRACT_SECURITY_PROPOSAL.md` |
 | Stage 3.19 privacy security and ADR proposal | Complete / merged through PR #48 | `stages/STAGE_03_19_PRIVACY_SECURITY_ADR_PROPOSAL.md` |
-| Stage 3.20 privacy lifecycle threat-model proposal | Active / proposal only | `stages/STAGE_03_20_PRIVACY_THREAT_MODEL_PROPOSAL.md` |
+| Stage 3.20 privacy lifecycle threat-model proposal | Active / proposal only; internal and blind external review evidence recorded | `stages/STAGE_03_20_PRIVACY_THREAT_MODEL_PROPOSAL.md` |
 
 ## Product refinement documents
 

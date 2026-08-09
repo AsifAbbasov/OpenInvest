@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.42 |
+| Version | 1.1.43 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -610,3 +610,10 @@
   failure, evidence redaction, and indirect reidentification.
 - Did not accept ADR-008 or Security Review, and did not change runtime code, OpenAPI, SQL schema,
   providers, key-management configuration, backup operations, or product scope.
+
+## 2026-08-09 — Stage 3.20 review evidence recorded
+
+- Published the previously withheld internal-review evidence only after the blind external review of
+  PR #49 reached `APPROVED`.
+- Recorded both `APPROVED` verdicts in the Stage 3.20 proposal without accepting ADR-008, claiming a
+  Security Review, or changing runtime, contract, schema, provider, backup, or operations scope.

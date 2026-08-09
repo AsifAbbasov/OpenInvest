@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-20-PRIVACY-THREAT-MODEL-PROPOSAL |
-| Version | 0.1.0 |
+| Version | 0.1.1 |
 | Status | Active / proposal only |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.19 privacy security/ADR proposal |
@@ -191,6 +191,21 @@ This proposal intentionally leaves the following risks unresolved rather than co
   gaps with assumptions.
 - No runtime, OpenAPI, SQL, infrastructure, dependency, secret, provider, backup, or product-scope
   change appears in this stage.
+
+## Review Evidence
+
+Internal-review evidence was withheld from PR #49 until the blind external reviewer reached an
+independent conclusion. Publication of this section records review evidence only. It does not accept
+ADR-008, constitute Security Review approval, or authorize implementation.
+
+| Gate | Evidence | Verdict |
+| --- | --- | --- |
+| Internal review | Existing dedicated read-only internal-review task reviewed the complete pre-commit Stage 3.20 diff, documentation boundaries, deployed-state claims, security properties, governance registers, `git diff --check`, and `pnpm run verify`. | `APPROVED` |
+| External review | Dedicated blind external-review task independently reviewed published PR #49, its complete 10-file diff, public CI, and governing sources without receiving the internal verdict or findings before its conclusion. | `APPROVED` |
+
+The review evidence is not operational proof. The provider-neutral key-custody design, marker design,
+field-level inventory, migration proposal, operations runbook, and adversarial restore rehearsal
+remain future evidence gates.
 
 ## Recommended Next Step
 

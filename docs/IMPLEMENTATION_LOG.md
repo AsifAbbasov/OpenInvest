@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.39 |
+| Version | 1.1.40 |
 | Status | Current |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
@@ -51,7 +51,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.17 — Privacy Lifecycle Planning | Define the future account-deletion, anonymization, backup-destruction, and retention execution boundary | Complete / merged through PR #46 at `1e8c240` | [Stage 3.17 plan](stages/STAGE_03_17_PRIVACY_LIFECYCLE_PLANNING.md) |
 | 3.18 — Privacy Contract and Security Proposal | Define the candidate account-deletion contract, security, cryptographic-erasure, restore, and operational gates | Complete / merged through PR #47 at `4680e9c1b7b916169972c84ad8c3879955c7f509` | [Stage 3.18 proposal](stages/STAGE_03_18_PRIVACY_CONTRACT_SECURITY_PROPOSAL.md) |
 | 3.19 — Privacy Security and ADR Proposal | Define provider-neutral cryptographic-erasure, deletion-marker, restore, and separation-of-duties controls | Complete / merged through PR #48 at `fdf74c1` | [Stage 3.19 dossier](stages/STAGE_03_19_PRIVACY_SECURITY_ADR_PROPOSAL.md) |
-| 3.20 — Privacy Lifecycle Threat-Model Proposal | Define the future privacy-lifecycle threat boundary, residual risks, and review evidence | Active / proposal only | [Stage 3.20 threat model](stages/STAGE_03_20_PRIVACY_THREAT_MODEL_PROPOSAL.md) |
+| 3.20 — Privacy Lifecycle Threat-Model Proposal | Define the future privacy-lifecycle threat boundary, residual risks, and review evidence | Active / proposal only; internal and blind external review evidence recorded | [Stage 3.20 threat model](stages/STAGE_03_20_PRIVACY_THREAT_MODEL_PROPOSAL.md) |
 
 ## Stage completion protocol
 
@@ -501,3 +501,10 @@ This log is the index of implementation stages. Every stage must document its pu
   failure, evidence redaction, and indirect-reidentification risks.
 - Kept ADR acceptance, Security Review approval, runtime, OpenAPI, PostgreSQL schema, providers,
   key-management configuration, backup operations, and all implementation work out of scope.
+
+## 2026-08-09 — Stage 3.20 review evidence recorded
+
+- Published the previously withheld internal-review evidence after the dedicated blind external task
+  independently reviewed PR #49 and returned `APPROVED`.
+- Recorded both `APPROVED` verdicts as governance evidence only; ADR-008, Security Review, runtime,
+  OpenAPI, PostgreSQL schema, providers, backup operations, and implementation remain unchanged.

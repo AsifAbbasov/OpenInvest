@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.43 |
+| Version | 1.1.44 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
@@ -49,7 +49,7 @@
 | 3.17 — Privacy lifecycle planning | Define the reviewed account deletion, anonymization, backup-destruction, and retention execution boundary | Complete / merged through PR #46 |
 | 3.18 — Privacy contract and security proposal | Define the candidate account-deletion contract, security, cryptographic-erasure, restore, and operational gates | Complete / merged through PR #47 |
 | 3.19 — Privacy security and ADR proposal | Define provider-neutral cryptographic-erasure, deletion-marker, restore, and separation-of-duties controls | Complete / merged through PR #48 |
-| 3.20 — Privacy lifecycle threat-model proposal | Define the future privacy-lifecycle threat boundary, residual risks, and review evidence | Active / proposal only |
+| 3.20 — Privacy lifecycle threat-model proposal | Define the future privacy-lifecycle threat boundary, residual risks, and review evidence | Active / proposal only; internal and blind external review evidence recorded |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
