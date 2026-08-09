@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.41 |
+| Version | 1.1.42 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before Stage 3.19 privacy security/ADR proposal approval |
+| Next Review Date | Before Stage 3.20 privacy threat-model proposal review |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -600,3 +600,13 @@
   and partial-failure handling.
 - Did not accept ADR-008 or change runtime code, OpenAPI, SQL schema, dependencies, providers,
   key-management configuration, backup operations, or product scope.
+
+## 2026-08-09 — Stage 3.20 privacy threat-model proposal started
+
+- Recorded Stage 3.19 as squash-merged through PR #48 at
+  `fdf74c16446e7623f76882aa7add64554141abc6`.
+- Added a documentation-only threat-model proposal covering browser/session abuse, application and
+  privileged-data access, key custody, marker correlation/availability, backup/restore, partial
+  failure, evidence redaction, and indirect reidentification.
+- Did not accept ADR-008 or Security Review, and did not change runtime code, OpenAPI, SQL schema,
+  providers, key-management configuration, backup operations, or product scope.

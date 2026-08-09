@@ -3,23 +3,23 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.45 |
+| Version | 1.4.46 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before Stage 3.19 privacy security/ADR proposal approval |
+| Next Review Date | Before Stage 3.20 privacy threat-model proposal review |
 
 ## Architecture status
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
 **Last completed implementation stage: Stage 3.16 — Repository Audit Fixes**
-**Last completed planning gate: Stage 3.18 — Privacy Contract and Security Proposal**
+**Last completed planning gate: Stage 3.19 — Privacy Security and ADR Proposal**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `4680e9c1b7b916169972c84ad8c3879955c7f509`**
-**Current active work item: Stage 3.19 privacy security/ADR proposal on `codex/stage-03-19-privacy-security-adr`; no implementation stage is authorized**
+**Current canonical implementation baseline: `develop` at `fdf74c16446e7623f76882aa7add64554141abc6`**
+**Current active work item: Stage 3.20 privacy threat-model proposal on `codex/stage-03-20-privacy-threat-model`; no implementation stage is authorized**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -172,11 +172,12 @@ review and GitHub CI before PR #44 was squash-merged into `develop` at
 implementation stage. Stage 3.17 privacy-lifecycle planning was squash-merged through PR #46 at
 `1e8c240`; it remains documentation-only evidence and does not authorize implementation. Stage 3.18
 was squash-merged through PR #47 at `4680e9c1b7b916169972c84ad8c3879955c7f509`; it preserved the
-contract/security boundary without authorizing implementation. Stage 3.19 is the separately reviewed
-provider-neutral security/ADR proposal for cryptographic erasure, deletion-marker replay, restore,
-and separation of duties. Proposed ADR-008 is non-normative until Security Review and explicit human
-acceptance; no implementation, OpenAPI change, migration, provider selection, or operational
-configuration is authorized.
+contract/security boundary without authorizing implementation. Stage 3.19 was squash-merged through
+PR #48 at `fdf74c16446e7623f76882aa7add64554141abc6`; it remains a provider-neutral security/ADR
+proposal for cryptographic erasure, deletion-marker replay, restore, and separation of duties. Stage
+3.20 is the separate threat-model proposal for the residual security boundary. Proposed ADR-008 is
+non-normative until Security Review and explicit human acceptance; no implementation, OpenAPI change,
+migration, provider selection, or operational configuration is authorized.
 
 ## Financial standard
 
