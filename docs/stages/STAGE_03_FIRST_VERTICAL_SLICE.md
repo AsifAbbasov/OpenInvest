@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.28 |
-| Status | Active / staged implementation |
+| Version | 0.1.29 |
+| Status | Complete / closed through Stage 3.16 audit-fix closure |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
-| Last Review Date | 2026-07-27 |
-| Next Review Date | Before next approved implementation stage |
+| Last Review Date | 2026-08-09 |
+| Next Review Date | Before the next separately reviewed planning stage |
 
 ## Purpose
 
@@ -829,8 +829,9 @@ Forbidden:
 
 Status:
 
-- Closed / merged into `develop` at `74eebe9ec8231764f21ce384c4690d073d0273da`; audit fixes
-  continue separately on `stage-03-16-audit-fixes`.
+- Closed / audit findings resolved by PR #44, squash-merged into `develop` at
+  `9e6b8a753bf73ef020ce40461df25a5878344d92`. No subsequent implementation stage is authorized
+  until a separately reviewed planning gate is complete.
 
 ## Stage 3 domain boundaries
 

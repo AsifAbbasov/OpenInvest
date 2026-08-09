@@ -105,5 +105,7 @@ The audit ran as its own reviewed stage and produced a durable report. It was re
 ## Closure
 
 This planning document was reviewed and merged before audit execution. The audit returned
-`REQUEST CHANGES`; the authoritative ongoing work is the Stage 3.16 audit fixes stage and its durable
-audit report.
+`REQUEST CHANGES`; its in-scope blocking findings were resolved by the Stage 3.16 audit fixes and
+PR #44 was squash-merged into `develop` at `9e6b8a753bf73ef020ce40461df25a5878344d92`. The durable
+audit report retains its historical verdict. No subsequent implementation stage is authorized; the
+next work requires a separately reviewed planning gate.

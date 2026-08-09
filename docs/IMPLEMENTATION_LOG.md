@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.33 |
-| Status | Active |
+| Version | 1.1.35 |
+| Status | Current |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
 | Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md` |
-| Last Review Date | 2026-08-08 |
-| Next Review Date | Before next approved implementation stage |
+| Last Review Date | 2026-08-09 |
+| Next Review Date | Before the next separately reviewed planning stage |
 
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
 
@@ -19,7 +19,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 1 — Documentation Consolidation | Establish the repository-owned Source of Truth and freeze v1.2 | Complete; awaiting review | [Stage 1 report](stages/STAGE_01_DOCUMENTATION_CONSOLIDATION.md) |
 | 2 — Contract and Canonical Model Freeze | Freeze the MVP API, canonical DTOs, logical ER model, and migration strategy | Complete / closed; merged into `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | [Stage 2 report](stages/STAGE_02_CONTRACT_AND_CANONICAL_MODEL.md) |
 | Web architecture amendment | Replace the Web skeleton with presentation-only Next.js under ADR-007 | Complete / closed; merged into `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | [Amendment report](stages/WEB_FRONTEND_ARCHITECTURE_AMENDMENT.md) |
-| 3 — First Vertical Slice | Implement the first thin MVP path after contract and Web baseline approval | Planning complete; implementation split into small PRs | [Stage 3 plan](stages/STAGE_03_FIRST_VERTICAL_SLICE.md) |
+| 3 — First Vertical Slice | Implement the first thin MVP path after contract and Web baseline approval | Complete / closed through Stage 3.16 audit-fix closure; next work requires separately reviewed planning | [Stage 3 plan](stages/STAGE_03_FIRST_VERTICAL_SLICE.md) |
 | 3.1 — Local Database Foundation | Add minimal PostgreSQL structures and migration validation for the first vertical slice | Complete / closed; merged into `develop` at `b1a3f23` | [Stage 3.1 report](stages/STAGE_03_01_DATABASE_FOUNDATION.md) |
 | 3.2 — Go API Vertical-Slice Backend | Implement portfolio create, transaction append, snapshot rebuild, and summary read in Go | Complete / closed; merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | [Stage 3.2 report](stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md) |
 | Product risk refinement | Convert hard PRD criticism into controlled MVP risk decisions | Complete / closed; merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | [MVP product risk refinement](product/MVP_PRODUCT_RISK_REFINEMENT.md) |
@@ -47,7 +47,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.15 — Web Asset Discovery UI Slice | Implement the reviewed Next.js presentation-only asset discovery boundary | Complete / closed; merged into `develop` at `22bede651a646d0e8b06568bda457d0626891e63` | [Stage 3.15 implementation report](stages/STAGE_03_15_WEB_ASSET_DISCOVERY_UI_SLICE.md) |
 | 3.16 — Repository Audit Planning | Plan the mandatory full repository audit before the next implementation stage | Complete / merged into `develop` at `74eebe9ec8231764f21ce384c4690d073d0273da` | [Stage 3.16 plan](stages/STAGE_03_16_REPOSITORY_AUDIT_PLANNING.md) |
 | 3.16 — Repository Audit Report | Record mandatory full repository audit coverage, manifest, and verdict | Complete / returned `REQUEST CHANGES` | [Stage 3.16 audit report](stages/STAGE_03_16_REPOSITORY_AUDIT_REPORT.md) |
-| 3.16 — Repository Audit Fixes | Fix mandatory repository audit `REQUEST CHANGES` findings | Active / fixes on `stage-03-16-audit-fixes` | [Stage 3.16 audit fixes](stages/STAGE_03_16_REPOSITORY_AUDIT_FIXES.md) |
+| 3.16 — Repository Audit Fixes | Fix mandatory repository audit `REQUEST CHANGES` findings | Complete / closed; merged into `develop` at `9e6b8a753bf73ef020ce40461df25a5878344d92` | [Stage 3.16 audit fixes](stages/STAGE_03_16_REPOSITORY_AUDIT_FIXES.md) |
 
 ## Stage completion protocol
 
@@ -435,8 +435,23 @@ This log is the index of implementation stages. Every stage must document its pu
   internal entry anchors, applied migration `000003` in smoke, and scope-bound in-flight Web import
   operations to the active portfolio/session.
 - Added a durable 200-path Stage 3.16 coverage manifest and synchronized the audit report, document
-  index, and version matrix. The audit verdict remains `REQUEST CHANGES` pending separate review.
+  index, and version matrix. The original audit verdict remains `REQUEST CHANGES` as historical
+  evidence pending the later fix disposition.
 - Signed asset-search continuations with query/type-bound HMAC keysets and synchronously invalidate
   stale import operations before passive effects run after session or portfolio changes.
 - Hardened migration-rehearsal traversal and schema evidence, and added a mounted React lifecycle test
   for stale review and append promises after a portfolio or session change.
+
+## 2026-08-09 — Stage 3.16 audit fixes closed
+
+- PR #44 was squash-merged into `develop` at
+  `9e6b8a753bf73ef020ce40461df25a5878344d92` after read-only review approval and green GitHub
+  Actions verification run `31300786551`.
+- CI initially exposed PostgreSQL `CHECK` NULL semantics and a stale rollback-test row count; the
+  follow-up fix corrected both before the final green rerun.
+- The immutable audit report retains its original `REQUEST CHANGES` verdict; its in-scope blocking
+  findings are resolved in the merged fix set.
+- No financial algorithms, market data, providers, workers, tax, mobile, AI, or subsequent
+  implementation stage is authorized. The next work requires separately reviewed planning.
+- Follow-up closure review synchronized the umbrella Stage 3 plan status, recorded the location of
+  human merge authorization, and distinguished it from an independently recorded external review.

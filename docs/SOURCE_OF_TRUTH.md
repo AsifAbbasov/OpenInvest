@@ -3,23 +3,23 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.41 |
+| Version | 1.4.42 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
-| Last Review Date | 2026-08-08 |
-| Next Review Date | Before next approved implementation stage |
+| Last Review Date | 2026-08-09 |
+| Next Review Date | Before the next separately reviewed planning stage |
 
 ## Architecture status
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.15 — Web Asset Discovery UI Slice**
+**Last completed implementation stage: Stage 3.16 — Repository Audit Fixes**
 **Last completed planning gate: Stage 3.16 — Repository Audit Planning**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `74eebe9ec8231764f21ce384c4690d073d0273da`**
-**Current active work item: Stage 3.16 repository audit fixes on `stage-03-16-audit-fixes`**
+**Current canonical implementation baseline: `develop` at `9e6b8a753bf73ef020ce40461df25a5878344d92`**
+**Current active work item: No implementation stage is authorized; the next work must be a separately reviewed planning gate**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -164,8 +164,12 @@ presentation-only asset discovery boundary over the existing Go API and does not
 data, stock/bond card calculations, provider integrations, workers, tax, mobile, or AI. Stage 3.15
 closure governance is merged into `develop` at `9eec98c36d7aeffb21dc2d7e7e0eb1681106901d`. Stage
 3.16 repository audit planning is closed and merged into `develop` at
-`74eebe9ec8231764f21ce384c4690d073d0273da`; the mandatory audit returned `REQUEST CHANGES`, and
-Stage 3.16 audit fixes are the only active work before the next implementation stage.
+`74eebe9ec8231764f21ce384c4690d073d0273da`; the mandatory audit returned `REQUEST CHANGES`.
+Its in-scope blocking findings were resolved by the Stage 3.16 audit fixes, which passed read-only
+review and GitHub CI before PR #44 was squash-merged into `develop` at
+`9e6b8a753bf73ef020ce40461df25a5878344d92`. The original audit report retains its historical
+`REQUEST CHANGES` verdict. Neither the closure nor prior fixes authorize a subsequent
+implementation stage; the next work requires separately reviewed planning.
 
 ## Financial standard
 

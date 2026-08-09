@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.38 |
+| Version | 1.1.39 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
 | Dependencies | Architecture Freeze v1.2 |
-| Last Review Date | 2026-08-08 |
-| Next Review Date | Before next approved implementation stage |
+| Last Review Date | 2026-08-09 |
+| Next Review Date | Before the next separately reviewed planning stage |
 
 | Stage | Outcome | State |
 | --- | --- | --- |
@@ -44,10 +44,14 @@
 | 3.15 — Web asset discovery UI slice | Implement the reviewed Next.js presentation-only asset discovery boundary | Complete |
 | 3.15 — Closure governance | Close Stage 3.15 implementation governance after PR #42 merge | Complete |
 | 3.16 — Repository audit planning | Plan the mandatory full repository audit before the next implementation stage | Complete |
-| 3.16 — Repository audit fixes | Fix mandatory audit `REQUEST CHANGES` findings before the next implementation stage | Active |
+| 3.16 — Repository audit fixes | Fix mandatory audit `REQUEST CHANGES` findings before the next implementation stage | Complete / merged |
+| 3.16 — Closure governance | Record audit-fix completion and preserve the next planning gate | Complete |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
+
+No subsequent implementation stage is authorized. Any next work begins with a separately reviewed
+planning stage.
 
 No AI, Tax Export, email, mobile, premium, direct broker API synchronization, credential scraping, or
 unnecessary worker implementation enters these stages without separate approval.
