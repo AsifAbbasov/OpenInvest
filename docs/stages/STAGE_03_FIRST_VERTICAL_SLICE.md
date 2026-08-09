@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.30 |
-| Status | Complete / closed through Stage 3.16 audit-fix closure; Stage 3.17 planning tracked separately |
+| Version | 0.1.31 |
+| Status | Complete / closed through Stage 3.17 privacy-lifecycle planning; Stage 3.18 proposal tracked separately |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before Stage 3.17 privacy-lifecycle planning approval |
+| Next Review Date | Before Stage 3.18 privacy contract/security proposal approval |
 
 ## Purpose
 
@@ -832,9 +832,11 @@ Status:
 - Closed / audit findings resolved by PR #44, squash-merged into `develop` at
   `9e6b8a753bf73ef020ce40461df25a5878344d92`. No subsequent implementation stage is authorized
   until a separately reviewed planning gate is complete.
-- Stage 3.17 privacy-lifecycle planning is now the separate planning gate for the remaining
-  account-deletion, anonymization, backup-destruction, and retention-execution blocker; it does not
+- Stage 3.17 privacy-lifecycle planning was squash-merged through PR #46 at `1e8c240`; it does not
   authorize implementation.
+- Stage 3.18 privacy contract/security proposal is now the separate review gate for the remaining
+  account-deletion, anonymization, backup-destruction, and retention-execution blocker; it does not
+  authorize implementation, OpenAPI changes, migrations, provider selection, or operations work.
 
 ## Stage 3 domain boundaries
 

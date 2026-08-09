@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-17-PRIVACY-LIFECYCLE-PLANNING |
-| Version | 0.1.0 |
-| Status | Active / planning only |
+| Version | 0.1.1 |
+| Status | Complete / merged into `develop` through PR #46 at `1e8c240` |
 | Owner | Principal Architect |
 | Supersedes | Informal disposition of the Stage 3.16 privacy-lifecycle audit blocker |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-005; Documents 42-43; Stage 2 API contract and ER model; Stage 3.11 auth/privacy slice; Stage 3.16 audit report and audit fixes |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before any privacy-lifecycle implementation or contract-change proposal |
+| Next Review Date | Historical planning gate closed; successor proposal is Stage 3.18 |
 
 ## Purpose
 
@@ -154,11 +154,13 @@ The future implementation cannot be accepted until it proves at least:
 - Anonymous Financial History is preserved without claiming that the current implementation already
   provides it.
 - Future implementation scope and exclusions are clear enough for independent review.
-- Canonical governance registers identify this as active planning only.
+- Canonical governance registers identify this as planning-only while active and preserve its merged
+  closure without granting implementation authorization.
 - No runtime code, OpenAPI, migration, dependency, or operational configuration changes are included.
 
 ## Recommended Next Step
 
-Stop after this planning gate for strict review. Only after an approved plan, a separately reviewed
-contract/security proposal, and explicit human authorization may a privacy-lifecycle implementation
-stage be proposed.
+This planning gate received strict read-only review and was squash-merged through PR #46 at
+`1e8c240`. Its successor, Stage 3.18, remains a separate contract/security proposal; only after
+that proposal's required approvals and explicit human authorization may a privacy-lifecycle
+implementation stage be proposed.
