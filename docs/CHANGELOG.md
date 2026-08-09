@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.39 |
+| Version | 1.1.40 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before Stage 3.17 privacy-lifecycle planning approval |
+| Next Review Date | Before Stage 3.18 privacy contract/security proposal approval |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -579,3 +579,14 @@
   operational evidence before any future implementation can begin.
 - Kept all runtime, OpenAPI, SQL, infrastructure, market-data, financial-calculation, tax, mobile,
   and AI changes out of scope.
+
+## 2026-08-09 — Stage 3.18 privacy contract and security proposal started
+
+- Recorded Stage 3.17 planning as squash-merged through PR #46 at `1e8c240`.
+- Added a documentation-only candidate contract and security design for the remaining privacy
+  lifecycle blocker, including the 30-day grace sequence, data dispositions, key-erasure/restore
+  requirements, threat model, partial-failure boundary, and required future review artifacts.
+- Closed the Stage 3.17 plan record with its PR #46 / `1e8c240` evidence and removed a stale
+  active duplicate from the version matrix.
+- Did not change the frozen OpenAPI, runtime code, SQL schema, provider/key-management selection,
+  backup operations, or any product scope.

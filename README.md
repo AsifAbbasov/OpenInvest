@@ -14,9 +14,10 @@ backend-owned catalog summaries with `lastPrice: null`; asset-card detail remain
 deferred until mandatory source provenance and required detail fields can be populated without
 fabricated data. Stage 3.16 repository audit planning and its audit-fix closure are closed; the
 fixes were squash-merged into `develop` through PR #44 at
-`9e6b8a753bf73ef020ce40461df25a5878344d92`. Stage 3.17 privacy-lifecycle planning is active to
-resolve the remaining deletion/anonymization/backup-retention blocker; it does not authorize an
-implementation stage.
+`9e6b8a753bf73ef020ce40461df25a5878344d92`. Stage 3.17 privacy-lifecycle planning is closed
+through PR #46. Stage 3.18 is the active documentation-only contract/security proposal for the
+remaining deletion/anonymization/backup-retention blocker; it does not authorize an implementation
+stage.
 Product-risk refinement is closed and remains part of the MVP governance baseline.
 
 ## Components
