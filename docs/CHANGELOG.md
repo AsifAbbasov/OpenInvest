@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.44 |
+| Version | 1.1.45 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before Stage 3.21 privacy data-inventory proposal review |
+| Next Review Date | Before Security Review, acceptance of ADR-008, or privacy-lifecycle migration proposal |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -629,3 +629,10 @@
   correlation, and unknown external persistence as completion blockers.
 - Did not accept ADR-008 or Security Review, nor change runtime, OpenAPI, SQL schema, providers,
   key-management, backup operations, or product scope.
+
+## 2026-08-09 — Stage 3.21 review evidence recorded
+
+- Published the previously withheld internal-review evidence only after the blind external review of
+  Draft PR #50 reached `APPROVED`.
+- Recorded both `APPROVED` verdicts as governance evidence only; ADR-008, Security Review, runtime,
+  contract, schema, provider, backup, operations, and implementation scope remain unchanged.

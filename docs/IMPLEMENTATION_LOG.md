@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.41 |
+| Version | 1.1.42 |
 | Status | Current |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
 | Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md` |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before Stage 3.21 privacy data-inventory proposal review |
+| Next Review Date | Before Security Review, acceptance of ADR-008, or privacy-lifecycle migration proposal |
 
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
 
@@ -52,7 +52,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.18 — Privacy Contract and Security Proposal | Define the candidate account-deletion contract, security, cryptographic-erasure, restore, and operational gates | Complete / merged through PR #47 at `4680e9c1b7b916169972c84ad8c3879955c7f509` | [Stage 3.18 proposal](stages/STAGE_03_18_PRIVACY_CONTRACT_SECURITY_PROPOSAL.md) |
 | 3.19 — Privacy Security and ADR Proposal | Define provider-neutral cryptographic-erasure, deletion-marker, restore, and separation-of-duties controls | Complete / merged through PR #48 at `fdf74c1` | [Stage 3.19 dossier](stages/STAGE_03_19_PRIVACY_SECURITY_ADR_PROPOSAL.md) |
 | 3.20 — Privacy Lifecycle Threat-Model Proposal | Define the future privacy-lifecycle threat boundary, residual risks, and review evidence | Complete / merged through PR #49 at `849d934906f878a6d79ba89e940e5ba470e64c09` | [Stage 3.20 threat model](stages/STAGE_03_20_PRIVACY_THREAT_MODEL_PROPOSAL.md) |
-| 3.21 — Privacy Data-Inventory Proposal | Map observed privacy-relevant fields and external evidence gaps before any deletion/anonymization design | Active / proposal only | [Stage 3.21 inventory](stages/STAGE_03_21_PRIVACY_DATA_INVENTORY_PROPOSAL.md) |
+| 3.21 — Privacy Data-Inventory Proposal | Map observed privacy-relevant fields and external evidence gaps before any deletion/anonymization design | Active / proposal only; internal and blind external review evidence recorded | [Stage 3.21 inventory](stages/STAGE_03_21_PRIVACY_DATA_INVENTORY_PROPOSAL.md) |
 
 ## Stage completion protocol
 
@@ -518,3 +518,10 @@ This log is the index of implementation stages. Every stage must document its pu
   code, browser, and import surfaces, with explicit external backup/log/provider/CI evidence gaps.
 - Kept Security Review approval, ADR-008 acceptance, production data discovery, runtime, OpenAPI,
   PostgreSQL schema, providers, key-management, backup operations, and implementation out of scope.
+
+## 2026-08-09 — Stage 3.21 review evidence recorded
+
+- Published the previously withheld internal-review evidence after the dedicated blind external task
+  independently reviewed Draft PR #50 and returned `APPROVED`.
+- Recorded both `APPROVED` verdicts as governance evidence only; ADR-008, Security Review, runtime,
+  OpenAPI, PostgreSQL schema, providers, backup operations, and implementation remain unchanged.

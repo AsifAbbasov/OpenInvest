@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-21-PRIVACY-DATA-INVENTORY-PROPOSAL |
-| Version | 0.1.0 |
+| Version | 0.1.1 |
 | Status | Active / proposal only |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.20 privacy threat-model proposal |
@@ -181,8 +181,24 @@ minimized audit evidence.
   claiming that the current system satisfies them.
 - It authorizes no runtime, OpenAPI, schema, provider, key-management, backup, or operational work.
 
+## Review Evidence
+
+Internal-review evidence was withheld from PR #50 until the blind external reviewer reached an
+independent conclusion. Publication of this section records review evidence only. It does not
+accept ADR-008, constitute Security Review approval, authorize implementation, or establish
+production compliance.
+
+| Gate | Evidence | Verdict |
+| --- | --- | --- |
+| Internal review | Existing dedicated read-only internal-review task reviewed the complete pre-commit Stage 3.21 diff, governing privacy sources, migrations, Go API/import-token construction, React import state, governance registers, and `git diff --check`. It reviewed the corrective revision after its initial findings. Builder and public-CI verification are recorded separately. | `APPROVED` |
+| External review | Dedicated blind external-review task independently reviewed published Draft PR #50, its complete 10-file diff, public CI, and governing sources without receiving the current internal verdict or findings before its conclusion. | `APPROVED` |
+
+The review evidence is not operational proof. Field-level production discovery, key custody,
+deletion-marker control, migration design, provider/backup evidence, operations runbook, and an
+adversarial restore rehearsal remain future gates.
+
 ## Recommended Next Step
 
-Stop for strict read-only review of this proposal. A later separately reviewed proposal may choose
-one of the required evidence gaps, beginning with a provider-neutral key-custody or deletion-marker
+No implementation follows from this proposed inventory. A later separately reviewed proposal may
+choose one required evidence gap, beginning with a provider-neutral key-custody or deletion-marker
 design, but no implementation becomes authorized by this inventory.

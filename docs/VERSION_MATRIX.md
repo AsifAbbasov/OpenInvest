@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.1.50 |
+| Version | 1.1.51 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | Documents 42–43 |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before Stage 3.21 privacy data-inventory proposal review |
+| Next Review Date | Before Security Review, acceptance of ADR-008, or privacy-lifecycle migration proposal |
 
 | Range | Version | Status under Freeze v1.2 | Priority | Owner | Review |
 | --- | --- | --- | --- | --- | --- |
@@ -24,7 +24,7 @@
 | Stage 3.18 privacy contract and security proposal | 0.1.1 | Complete / merged through PR #47 at `4680e9c1b7b916169972c84ad8c3879955c7f509` | 3 | Principal Architect | Historical proposal closed; successor Stage 3.19 |
 | Stage 3.19 privacy security and ADR proposal | 0.1.1 | Complete / merged through PR #48 at `fdf74c16446e7623f76882aa7add64554141abc6` | 3 | Principal Architect | Historical proposal closed; successor Stage 3.20 |
 | Stage 3.20 privacy lifecycle threat-model proposal | 0.1.2 | Complete / merged through PR #49 at `849d934906f878a6d79ba89e940e5ba470e64c09`; internal and blind external review evidence recorded | 3 | Principal Architect | Historical proposal closed; successor Stage 3.21 |
-| Stage 3.21 privacy data-inventory proposal | 0.1.0 | Active / proposal only on `codex/stage-03-21-privacy-data-inventory` | 3 | Principal Architect | Before Security Review, acceptance of ADR-008, or privacy-lifecycle migration proposal |
+| Stage 3.21 privacy data-inventory proposal | 0.1.1 | Active / proposal only; internal and blind external review evidence recorded on `codex/stage-03-21-privacy-data-inventory` | 3 | Principal Architect | Before Security Review, acceptance of ADR-008, or privacy-lifecycle migration proposal |
 | Stage 3.1 database foundation | 0.1.x | Closed / merged into `develop` at `b1a3f23` | 3 | Principal Architect | 2026-12-27 |
 | Stage 3.2 Go API vertical slice | 0.1.x | Closed / merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | 3 | Principal Architect | 2026-12-27 |
 | Product risk refinement | 1.0.x | Approved / merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | 3 | Principal Architect | Before public MVP |

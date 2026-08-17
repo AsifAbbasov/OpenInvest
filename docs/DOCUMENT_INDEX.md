@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.48 |
+| Version | 1.1.49 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-08-09 |
-| Next Review Date | Before Stage 3.21 privacy data-inventory proposal review |
+| Next Review Date | Before Security Review, acceptance of ADR-008, or privacy-lifecycle migration proposal |
 
 ## Canonical control documents
 
@@ -112,7 +112,7 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Stage 3.18 privacy contract and security proposal | Complete / merged through PR #47 | `stages/STAGE_03_18_PRIVACY_CONTRACT_SECURITY_PROPOSAL.md` |
 | Stage 3.19 privacy security and ADR proposal | Complete / merged through PR #48 | `stages/STAGE_03_19_PRIVACY_SECURITY_ADR_PROPOSAL.md` |
 | Stage 3.20 privacy lifecycle threat-model proposal | Complete / merged through PR #49; internal and blind external review evidence recorded | `stages/STAGE_03_20_PRIVACY_THREAT_MODEL_PROPOSAL.md` |
-| Stage 3.21 privacy data-inventory proposal | Active / proposal only | `stages/STAGE_03_21_PRIVACY_DATA_INVENTORY_PROPOSAL.md` |
+| Stage 3.21 privacy data-inventory proposal | Active / proposal only; internal and blind external review evidence recorded | `stages/STAGE_03_21_PRIVACY_DATA_INVENTORY_PROPOSAL.md` |
 
 ## Product refinement documents
 
