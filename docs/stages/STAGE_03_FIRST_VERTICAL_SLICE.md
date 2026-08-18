@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.36 |
-| Status | Complete / closed through Stage 3.21 privacy data-inventory proposal; Stage 3.22 proposal tracked separately |
+| Version | 0.1.37 |
+| Status | Complete / closed through Stage 3.22 privacy key-custody proposal; Stage 3.23 proposal tracked separately |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
 | Last Review Date | 2026-08-18 |
-| Next Review Date | Before Stage 3.22 privacy key-custody proposal review |
+| Next Review Date | Before Stage 3.23 privacy deletion-marker proposal review |
 
 ## Purpose
 
@@ -843,9 +843,12 @@ Status:
   `849d934906f878a6d79ba89e940e5ba470e64c09`; it does not authorize implementation.
 - Stage 3.21 privacy data-inventory proposal was squash-merged through PR #50 at
   `207325e0497cc2608b99366f7f840472d270b6ed`; it does not authorize implementation.
-- Stage 3.22 privacy key-custody and destruction-proof proposal is the separate review gate for
-  provider-neutral custody roles, irreversible key-destruction proof, and fail-closed evidence; it
-  does not authorize implementation or provider selection.
+- Stage 3.22 privacy key-custody and destruction-proof proposal was squash-merged through PR #51 at
+  `5f42d32db1e045c23fb99a5af8f136b7a49e3bc2`; it does not authorize implementation or provider
+  selection.
+- Stage 3.23 privacy deletion-marker control-plane proposal is the separate review gate for
+  restricted marker lifecycle, signed snapshot integrity, and fail-closed isolated restore replay;
+  it does not authorize implementation, provider selection, schema, or operations work.
 
 ## Stage 3 domain boundaries
 
