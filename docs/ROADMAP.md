@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.49 |
+| Version | 1.1.50 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
 | Dependencies | Architecture Freeze v1.2 |
 | Last Review Date | 2026-08-18 |
-| Next Review Date | Before Stage 3.23 deletion-marker proposal review, Security Review, acceptance of ADR-008, privacy-lifecycle migration, or restore-design approval |
+| Next Review Date | Before Stage 3.24 Security Review readiness review, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
 
 | Stage | Outcome | State |
 | --- | --- | --- |
@@ -52,7 +52,8 @@
 | 3.20 — Privacy lifecycle threat-model proposal | Define the future privacy-lifecycle threat boundary, residual risks, and review evidence | Complete / merged through PR #49 |
 | 3.21 — Privacy data-inventory proposal | Map observed privacy-relevant fields and external evidence gaps before any deletion/anonymization design | Complete / merged through PR #50 |
 | 3.22 — Privacy key-custody and destruction-proof proposal | Define provider-neutral custody, irreversible destruction proof, and fail-closed evidence requirements | Complete / merged through PR #51 |
-| 3.23 — Privacy deletion-marker control-plane proposal | Define restricted marker lifecycle, snapshot integrity, and fail-closed isolated restore replay | Active / proposal only |
+| 3.23 — Privacy deletion-marker control-plane proposal | Define restricted marker lifecycle, snapshot integrity, and fail-closed isolated restore replay | Complete / merged through PR #52 |
+| 3.24 — Privacy Security Review readiness dossier | Define required evidence, questions, outcomes, and record for the mandatory formal Security Review | Active / proposal only |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.

@@ -3,19 +3,19 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.51 |
+| Version | 1.1.52 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-08-18 |
-| Next Review Date | Before Stage 3.23 deletion-marker proposal review, Security Review, acceptance of ADR-008, privacy-lifecycle migration, or restore-design approval |
+| Next Review Date | Before Stage 3.24 Security Review readiness review, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
 
 ## Canonical control documents
 
 | ID | Title | Version | Status | Location |
 | --- | --- | --- | --- | --- |
-| SOT-001 | Source of Truth | 1.4.50 | Approved | `SOURCE_OF_TRUTH.md` |
+| SOT-001 | Source of Truth | 1.4.51 | Approved | `SOURCE_OF_TRUTH.md` |
 | 42 | Architecture Amendments | 1.1.0 | Approved | `specifications/current/DOCUMENT_42_ARCHITECTURE_AMENDMENTS_v1.1.md` |
 | 43 | Architecture Decision Closure | 1.2.0 | Final | `specifications/current/DOCUMENT_43_ARCHITECTURE_CLOSURE_v1.2.md` |
 
@@ -79,7 +79,7 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 
 | Document | Status | Location |
 | --- | --- | --- |
-| Stage 3 plan | Closed through Stage 3.22 proposal; Stage 3.23 deletion-marker proposal is active without implementation authorization | `stages/STAGE_03_FIRST_VERTICAL_SLICE.md` |
+| Stage 3 plan | Closed through Stage 3.23 proposal; Stage 3.24 Security Review readiness dossier is active without implementation authorization | `stages/STAGE_03_FIRST_VERTICAL_SLICE.md` |
 | Stage 3.1 database foundation | Complete / merged into `develop` | `stages/STAGE_03_01_DATABASE_FOUNDATION.md` |
 | Stage 3.2 Go API vertical slice | Complete / merged into `develop` | `stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md` |
 | Stage 3.3 Next.js presentation slice | Complete / merged into `develop` | `stages/STAGE_03_03_NEXTJS_PRESENTATION_SLICE.md` |
@@ -114,7 +114,8 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Stage 3.20 privacy lifecycle threat-model proposal | Complete / merged through PR #49; internal and blind external review evidence recorded | `stages/STAGE_03_20_PRIVACY_THREAT_MODEL_PROPOSAL.md` |
 | Stage 3.21 privacy data-inventory proposal | Complete / merged through PR #50; internal and blind external review evidence recorded | `stages/STAGE_03_21_PRIVACY_DATA_INVENTORY_PROPOSAL.md` |
 | Stage 3.22 privacy key-custody and destruction-proof proposal | Complete / merged through PR #51; internal and external review evidence recorded | `stages/STAGE_03_22_PRIVACY_KEY_CUSTODY_PROPOSAL.md` |
-| Stage 3.23 privacy deletion-marker control-plane proposal | Active / proposal only | `stages/STAGE_03_23_PRIVACY_DELETION_MARKER_PROPOSAL.md` |
+| Stage 3.23 privacy deletion-marker control-plane proposal | Complete / merged through PR #52; internal corrective and non-blind external review evidence recorded | `stages/STAGE_03_23_PRIVACY_DELETION_MARKER_PROPOSAL.md` |
+| Stage 3.24 privacy Security Review readiness dossier | Active / proposal only | `stages/STAGE_03_24_PRIVACY_SECURITY_REVIEW_READINESS.md` |
 
 ## Product refinement documents
 

@@ -3,23 +3,23 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.50 |
+| Version | 1.4.51 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
 | Last Review Date | 2026-08-18 |
-| Next Review Date | Before Stage 3.23 privacy deletion-marker proposal review |
+| Next Review Date | Before Stage 3.24 privacy Security Review readiness review |
 
 ## Architecture status
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
 **Last completed implementation stage: Stage 3.16 — Repository Audit Fixes**
-**Last completed planning gate: Stage 3.22 — Privacy Key-Custody and Destruction-Proof Proposal**
+**Last completed planning gate: Stage 3.23 — Privacy Deletion-Marker Control-Plane Proposal**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `5f42d32db1e045c23fb99a5af8f136b7a49e3bc2`**
-**Current active work item: Stage 3.23 privacy deletion-marker control-plane proposal on `codex/stage-03-23-deletion-marker-proposal`; no implementation stage is authorized**
+**Current canonical implementation baseline: `develop` at `f7f23bce33038f259c976db6375079c68209a7aa`**
+**Current active work item: Stage 3.24 privacy Security Review readiness dossier on `codex/stage-03-24-security-review-readiness`; no implementation stage is authorized**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -180,10 +180,12 @@ the residual threat boundary without claiming a Security Review or implementatio
 squash-merged through PR #50 at `207325e0497cc2608b99366f7f840472d270b6ed`; it inventories
 field-level disposition and external evidence gaps. Stage 3.22 was squash-merged through PR #51 at
 `5f42d32db1e045c23fb99a5af8f136b7a49e3bc2`; it defines provider-neutral key custody and
-destruction proof. Stage 3.23 is the separate non-identifying deletion-marker control-plane
-proposal for restore gating. Proposed ADR-008 is non-normative until Security Review and explicit
-human acceptance; no implementation, OpenAPI change, migration, provider selection, or operational
-configuration is authorized.
+destruction proof. Stage 3.23 was squash-merged through PR #52 at
+`f7f23bce33038f259c976db6375079c68209a7aa`; it defines the non-identifying deletion-marker
+control plane and restore gate. Stage 3.24 is the separate Security Review readiness dossier.
+Proposed ADR-008 is non-normative until formal Security Review and explicit human acceptance; no
+implementation, OpenAPI change, migration, provider selection, or operational configuration is
+authorized.
 
 ## Financial standard
 

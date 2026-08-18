@@ -18,9 +18,10 @@ fixes were squash-merged into `develop` through PR #44 at
 Stage 3.18 contract/security proposal are closed through PRs #46 and #47. Stage 3.19 privacy
 security/ADR proposal is closed through PR #48, and Stage 3.20 privacy threat model is closed through
 PR #49, Stage 3.21 privacy data inventory is closed through PR #50, and Stage 3.22 key custody is
-closed through PR #51. Stage 3.23 is the active documentation-only proposal for a non-identifying
-deletion-marker control plane and isolated restore gate; it does not authorize an implementation
-stage, provider, schema, or operational change.
+closed through PR #51, and Stage 3.23 deletion-marker control-plane planning is closed through PR
+#52. Stage 3.24 is the active documentation-only Security Review readiness dossier; it does not
+perform Security Review, accept ADR-008, or authorize an implementation stage, provider, schema,
+or operational change.
 Product-risk refinement is closed and remains part of the MVP governance baseline.
 
 ## Components

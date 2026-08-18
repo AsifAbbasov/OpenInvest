@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.47 |
+| Version | 1.1.48 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-08-18 |
-| Next Review Date | Before Stage 3.23 deletion-marker proposal review, Security Review, acceptance of ADR-008, privacy-lifecycle migration, or restore-design approval |
+| Next Review Date | Before Stage 3.24 Security Review readiness review, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -657,3 +657,14 @@
   and distinct 90-day backup versus ten-year minimum-audit evidence boundaries.
 - Did not accept ADR-008 or Security Review, select a provider, or change runtime code, OpenAPI,
   schema, migrations, credentials, dependencies, backups, CI, operations, or product scope.
+
+## 2026-08-18 — Stage 3.24 privacy Security Review readiness dossier started
+
+- Recorded Stage 3.23 as squash-merged through PR #52 at
+  `f7f23bce33038f259c976db6375079c68209a7aa` after internal corrective and non-blind external
+  review evidence and green GitHub Actions.
+- Added a documentation-only dossier that distinguishes proposal evidence from operational proof,
+  fixes the formal Security Review questions and evidence package, and prevents Security Review or
+  ADR-008 acceptance from being implied by a document or CI result.
+- Did not perform Security Review, accept ADR-008, select a provider, or change runtime code,
+  OpenAPI, schema, migrations, credentials, dependencies, backups, CI, operations, or product scope.

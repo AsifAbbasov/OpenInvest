@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-23-PRIVACY-DELETION-MARKER-PROPOSAL |
-| Version | 0.1.0 |
-| Status | Active / proposal only |
+| Version | 0.1.1 |
+| Status | Complete / merged through PR #52 at `f7f23bce33038f259c976db6375079c68209a7aa` |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.22 key-custody proposal |
 | Dependencies | Documents 42-43; proposed ADR-008; Stage 3.19-3.22 privacy proposals; Stage 3.21 inventory |
 | Last Review Date | 2026-08-18 |
-| Next Review Date | Before Security Review, acceptance of ADR-008, any privacy-lifecycle migration, or restore-design approval |
+| Next Review Date | Historical proposal closed; successor Stage 3.24 Security Review readiness dossier |
 
 ## Purpose
 
@@ -161,6 +161,7 @@ export, log, and CI evidence; retention/hold policy; monitoring and incident res
 rehearsed isolated restore with stale, missing, conflicting, forged, reordered, and unavailable
 marker states injected.
 
-No implementation is authorized by this document. The immediate next action is mandatory strict
-review. A field-level migration proposal may be considered only after this review, Security Review,
-ADR-008 acceptance, and the required evidence are complete.
+This proposal was strictly reviewed and squash-merged through PR #52 at
+`f7f23bce33038f259c976db6375079c68209a7aa`. Its successor, Stage 3.24, prepares the mandatory
+Security Review evidence and decision boundary. No field-level migration or runtime implementation
+is authorized by this historical closure.
