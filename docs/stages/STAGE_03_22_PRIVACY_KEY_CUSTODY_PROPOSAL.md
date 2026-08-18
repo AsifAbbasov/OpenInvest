@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-22-PRIVACY-KEY-CUSTODY-PROPOSAL |
-| Version | 0.1.1 |
-| Status | Active / proposal only |
+| Version | 0.1.2 |
+| Status | Complete / merged through PR #51 at `5f42d32db1e045c23fb99a5af8f136b7a49e3bc2` |
 | Owner | Principal Architect |
 | Supersedes | None; follows the merged Stage 3.21 privacy data-inventory proposal |
 | Dependencies | Documents 42-43; ADR-005; ADR-006; proposed ADR-008; Stage 2 ER model and migration strategy; Stage 3.17-3.21 privacy proposals |
 | Last Review Date | 2026-08-18 |
-| Next Review Date | Before Security Review, acceptance of ADR-008, or any privacy-lifecycle migration proposal |
+| Next Review Date | Historical proposal closed; successor Stage 3.23 deletion-marker control-plane proposal |
 
 ## Purpose
 
@@ -256,6 +256,7 @@ Redis, migrations, test fixtures, CI, infrastructure, providers, credentials, ba
 operational access. It does not authorize deletion, anonymization, encryption, key provisioning,
 key destruction, a provider trial, a production discovery, a restore, or an implementation stage.
 
-The next action is mandatory strict review of this proposal. A later proposal may design the
-non-identifying deletion marker/control plane or field-level migration only after this proposal is
-reviewed; neither is authorized by drafting this document.
+This proposal was strictly reviewed and squash-merged through PR #51 at
+`5f42d32db1e045c23fb99a5af8f136b7a49e3bc2`. Its successor, Stage 3.23, designs only the
+non-identifying deletion-marker control plane and restore gate. No field-level migration or runtime
+implementation is authorized by this historical closure.

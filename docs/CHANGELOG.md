@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.46 |
+| Version | 1.1.47 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-08-18 |
-| Next Review Date | Before Stage 3.22 key-custody proposal review, Security Review, acceptance of ADR-008, or privacy-lifecycle migration proposal |
+| Next Review Date | Before Stage 3.23 deletion-marker proposal review, Security Review, acceptance of ADR-008, privacy-lifecycle migration, or restore-design approval |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -645,4 +645,15 @@
   one-way per-subject erasure-material states, non-identifying destruction proof, proof validation,
   restore gating, provider evaluation, and adversarial evidence requirements.
 - Did not accept ADR-008 or Security Review, select a provider, or change runtime code, OpenAPI, SQL
+  schema, migrations, credentials, dependencies, backups, CI, operations, or product scope.
+
+## 2026-08-18 — Stage 3.23 privacy deletion-marker control-plane proposal started
+
+- Recorded Stage 3.22 as squash-merged through PR #51 at
+  `5f42d32db1e045c23fb99a5af8f136b7a49e3bc2` after internal and external review evidence and
+  green GitHub Actions.
+- Added a documentation-only control-plane proposal for a restricted, non-identifying marker,
+  monotonic state transitions, signed restore snapshots, fail-closed replay, authority separation,
+  and distinct 90-day backup versus ten-year minimum-audit evidence boundaries.
+- Did not accept ADR-008 or Security Review, select a provider, or change runtime code, OpenAPI,
   schema, migrations, credentials, dependencies, backups, CI, operations, or product scope.

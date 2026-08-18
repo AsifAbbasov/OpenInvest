@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.43 |
+| Version | 1.1.44 |
 | Status | Current |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
 | Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md` |
 | Last Review Date | 2026-08-18 |
-| Next Review Date | Before Stage 3.22 key-custody proposal review, Security Review, acceptance of ADR-008, or privacy-lifecycle migration proposal |
+| Next Review Date | Before Stage 3.23 deletion-marker proposal review, Security Review, acceptance of ADR-008, privacy-lifecycle migration, or restore-design approval |
 
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
 
@@ -19,7 +19,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 1 — Documentation Consolidation | Establish the repository-owned Source of Truth and freeze v1.2 | Complete; awaiting review | [Stage 1 report](stages/STAGE_01_DOCUMENTATION_CONSOLIDATION.md) |
 | 2 — Contract and Canonical Model Freeze | Freeze the MVP API, canonical DTOs, logical ER model, and migration strategy | Complete / closed; merged into `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | [Stage 2 report](stages/STAGE_02_CONTRACT_AND_CANONICAL_MODEL.md) |
 | Web architecture amendment | Replace the Web skeleton with presentation-only Next.js under ADR-007 | Complete / closed; merged into `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | [Amendment report](stages/WEB_FRONTEND_ARCHITECTURE_AMENDMENT.md) |
-| 3 — First Vertical Slice | Implement the first thin MVP path after contract and Web baseline approval | Implementation closed through Stage 3.16 audit-fix closure; Stage 3.17-3.21 proposals are merged and Stage 3.22 key-custody proposal is active without implementation authorization | [Stage 3 plan](stages/STAGE_03_FIRST_VERTICAL_SLICE.md) |
+| 3 — First Vertical Slice | Implement the first thin MVP path after contract and Web baseline approval | Implementation closed through Stage 3.16 audit-fix closure; Stage 3.17-3.22 proposals are merged and Stage 3.23 deletion-marker proposal is active without implementation authorization | [Stage 3 plan](stages/STAGE_03_FIRST_VERTICAL_SLICE.md) |
 | 3.1 — Local Database Foundation | Add minimal PostgreSQL structures and migration validation for the first vertical slice | Complete / closed; merged into `develop` at `b1a3f23` | [Stage 3.1 report](stages/STAGE_03_01_DATABASE_FOUNDATION.md) |
 | 3.2 — Go API Vertical-Slice Backend | Implement portfolio create, transaction append, snapshot rebuild, and summary read in Go | Complete / closed; merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | [Stage 3.2 report](stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md) |
 | Product risk refinement | Convert hard PRD criticism into controlled MVP risk decisions | Complete / closed; merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | [MVP product risk refinement](product/MVP_PRODUCT_RISK_REFINEMENT.md) |
@@ -53,7 +53,8 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.19 — Privacy Security and ADR Proposal | Define provider-neutral cryptographic-erasure, deletion-marker, restore, and separation-of-duties controls | Complete / merged through PR #48 at `fdf74c1` | [Stage 3.19 dossier](stages/STAGE_03_19_PRIVACY_SECURITY_ADR_PROPOSAL.md) |
 | 3.20 — Privacy Lifecycle Threat-Model Proposal | Define the future privacy-lifecycle threat boundary, residual risks, and review evidence | Complete / merged through PR #49 at `849d934906f878a6d79ba89e940e5ba470e64c09` | [Stage 3.20 threat model](stages/STAGE_03_20_PRIVACY_THREAT_MODEL_PROPOSAL.md) |
 | 3.21 — Privacy Data-Inventory Proposal | Map observed privacy-relevant fields and external evidence gaps before any deletion/anonymization design | Complete / merged through PR #50 at `207325e0497cc2608b99366f7f840472d270b6ed`; internal and blind external review evidence recorded | [Stage 3.21 inventory](stages/STAGE_03_21_PRIVACY_DATA_INVENTORY_PROPOSAL.md) |
-| 3.22 — Privacy Key-Custody and Destruction-Proof Proposal | Define provider-neutral custody, irreversible destruction proof, and fail-closed evidence requirements | Active / proposal only | [Stage 3.22 proposal](stages/STAGE_03_22_PRIVACY_KEY_CUSTODY_PROPOSAL.md) |
+| 3.22 — Privacy Key-Custody and Destruction-Proof Proposal | Define provider-neutral custody, irreversible destruction proof, and fail-closed evidence requirements | Complete / merged through PR #51 at `5f42d32db1e045c23fb99a5af8f136b7a49e3bc2` | [Stage 3.22 proposal](stages/STAGE_03_22_PRIVACY_KEY_CUSTODY_PROPOSAL.md) |
+| 3.23 — Privacy Deletion-Marker Control-Plane Proposal | Define a restricted non-identifying marker lifecycle, snapshot integrity, and fail-closed restore replay | Active / proposal only | [Stage 3.23 proposal](stages/STAGE_03_23_PRIVACY_DELETION_MARKER_PROPOSAL.md) |
 
 ## Stage completion protocol
 
@@ -536,3 +537,14 @@ This log is the index of implementation stages. Every stage must document its pu
   provider evaluation, restore gate, and required adversarial evidence.
 - No provider, Security Review, ADR-008 acceptance, implementation, API, schema, migration,
   credential, backup, CI, infrastructure, or product-scope change is authorized.
+
+## 2026-08-18 — Stage 3.23 privacy deletion-marker control-plane proposal started
+
+- Recorded Stage 3.22 as squash-merged through PR #51 at
+  `5f42d32db1e045c23fb99a5af8f136b7a49e3bc2` after recorded internal and external review
+  evidence and green GitHub Actions.
+- Started documentation-only design of a restricted deletion-marker control plane: monotonic
+  lifecycle, serialized-intent binding, marker integrity and availability, isolated restore replay,
+  fail-closed release, and retention boundaries.
+- Kept Security Review approval, ADR-008 acceptance, runtime, OpenAPI, PostgreSQL schema,
+  migrations, providers, custody configuration, backup operations, and implementation out of scope.
