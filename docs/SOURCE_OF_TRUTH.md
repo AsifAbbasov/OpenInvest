@@ -3,23 +3,23 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.47 |
+| Version | 1.4.49 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
-| Last Review Date | 2026-08-09 |
-| Next Review Date | Before Stage 3.21 privacy data-inventory proposal review |
+| Last Review Date | 2026-08-18 |
+| Next Review Date | Before Stage 3.22 privacy key-custody proposal review |
 
 ## Architecture status
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
 **Last completed implementation stage: Stage 3.16 — Repository Audit Fixes**
-**Last completed planning gate: Stage 3.20 — Privacy Lifecycle Threat Model Proposal**
+**Last completed planning gate: Stage 3.21 — Privacy Data-Inventory Proposal**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `849d934906f878a6d79ba89e940e5ba470e64c09`**
-**Current active work item: Stage 3.21 privacy data-inventory proposal on `codex/stage-03-21-privacy-data-inventory`; no implementation stage is authorized**
+**Current canonical implementation baseline: `develop` at `207325e0497cc2608b99366f7f840472d270b6ed`**
+**Current active work item: Stage 3.22 privacy key-custody and destruction-proof proposal on `codex/stage-03-22-key-custody-proposal`; no implementation stage is authorized**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -176,11 +176,12 @@ contract/security boundary without authorizing implementation. Stage 3.19 was sq
 PR #48 at `fdf74c16446e7623f76882aa7add64554141abc6`; it remains a provider-neutral security/ADR
 proposal for cryptographic erasure, deletion-marker replay, restore, and separation of duties. Stage
 3.20 was squash-merged through PR #49 at `849d934906f878a6d79ba89e940e5ba470e64c09`; it recorded
-the residual threat boundary without claiming a Security Review or implementation. Stage 3.21 is the
-separate repository-derived privacy data-inventory proposal for field-level disposition and external
-evidence gaps. Proposed ADR-008 is non-normative until Security Review and explicit human acceptance;
-no implementation, OpenAPI change, migration, provider selection, or operational configuration is
-authorized.
+the residual threat boundary without claiming a Security Review or implementation. Stage 3.21 was
+squash-merged through PR #50 at `207325e0497cc2608b99366f7f840472d270b6ed`; it inventories
+field-level disposition and external evidence gaps. Stage 3.22 is the separate provider-neutral
+key-custody and destruction-proof proposal. Proposed ADR-008 is non-normative until Security Review
+and explicit human acceptance; no implementation, OpenAPI change, migration, provider selection, or
+operational configuration is authorized.
 
 ## Financial standard
 

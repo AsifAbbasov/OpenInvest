@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.45 |
+| Version | 1.1.46 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-08-09 |
-| Next Review Date | Before Security Review, acceptance of ADR-008, or privacy-lifecycle migration proposal |
+| Last Review Date | 2026-08-18 |
+| Next Review Date | Before Stage 3.22 key-custody proposal review, Security Review, acceptance of ADR-008, or privacy-lifecycle migration proposal |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -636,3 +636,13 @@
   Draft PR #50 reached `APPROVED`.
 - Recorded both `APPROVED` verdicts as governance evidence only; ADR-008, Security Review, runtime,
   contract, schema, provider, backup, operations, and implementation scope remain unchanged.
+
+## 2026-08-18 — Stage 3.22 privacy key-custody and destruction-proof proposal started
+
+- Recorded Stage 3.21 as squash-merged through PR #50 at
+  `207325e0497cc2608b99366f7f840472d270b6ed`.
+- Added a documentation-only, provider-neutral custody proposal covering separated authorities,
+  one-way per-subject erasure-material states, non-identifying destruction proof, proof validation,
+  restore gating, provider evaluation, and adversarial evidence requirements.
+- Did not accept ADR-008 or Security Review, select a provider, or change runtime code, OpenAPI, SQL
+  schema, migrations, credentials, dependencies, backups, CI, operations, or product scope.
