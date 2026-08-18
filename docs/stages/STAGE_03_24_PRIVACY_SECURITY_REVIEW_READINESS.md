@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-24-PRIVACY-SECURITY-REVIEW-READINESS |
-| Version | 0.1.0 |
-| Status | Active / proposal only |
+| Version | 0.1.1 |
+| Status | Complete / merged through PR #53 at `544ad8cc7371caf93913ea7716f3feb68be0ea44` |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.23 deletion-marker control-plane proposal |
 | Dependencies | Documents 42-43; proposed ADR-008; Stage 3.20-3.23 privacy proposals; Stage 3.21 inventory |
 | Last Review Date | 2026-08-18 |
-| Next Review Date | Before formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
+| Next Review Date | Historical dossier closed; successor Stage 3.25 evidence-collection plan |
 
 ## Purpose
 
@@ -134,7 +134,7 @@ product behavior. It does not perform a Security Review, legal review, productio
 provider trial, backup deletion, restore, key operation, account deletion, anonymization, or
 ADR-008 acceptance.
 
-The immediate next action is mandatory strict review of this dossier. A formal Security Review
-remains blocked until the required evidence package is independently assembled; a later
-field-level migration proposal remains prohibited until Security Review and ADR-008 acceptance are
-recorded.
+This dossier was strictly reviewed and squash-merged through PR #53 at
+`544ad8cc7371caf93913ea7716f3feb68be0ea44`. Its successor, Stage 3.25, defines the evidence
+collection process without collecting evidence or conducting Security Review. Privacy-lifecycle
+implementation remains prohibited until formal Security Review and ADR-008 acceptance are recorded.

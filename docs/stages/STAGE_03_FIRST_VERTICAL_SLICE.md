@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.38 |
-| Status | Complete / closed through Stage 3.23 deletion-marker proposal; Stage 3.24 dossier tracked separately |
+| Version | 0.1.39 |
+| Status | Complete / closed through Stage 3.24 Security Review readiness dossier; Stage 3.25 plan tracked separately |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
 | Last Review Date | 2026-08-18 |
-| Next Review Date | Before Stage 3.24 privacy Security Review readiness review |
+| Next Review Date | Before Stage 3.25 privacy evidence-collection plan review |
 
 ## Purpose
 
@@ -849,9 +849,13 @@ Status:
 - Stage 3.23 privacy deletion-marker control-plane proposal was squash-merged through PR #52 at
   `f7f23bce33038f259c976db6375079c68209a7aa`; it does not authorize implementation, provider
   selection, schema, or operations work.
-- Stage 3.24 privacy Security Review readiness dossier is the separate review gate for mandatory
-  evidence, decision boundaries, and formal Security Review inputs; it does not perform Security
-  Review or authorize implementation, provider selection, schema, or operations work.
+- Stage 3.24 privacy Security Review readiness dossier was squash-merged through PR #53 at
+  `544ad8cc7371caf93913ea7716f3feb68be0ea44`; it does not perform Security Review or authorize
+  implementation, provider selection, schema, or operations work.
+- Stage 3.25 privacy Security Review evidence-collection plan is the separate review gate for
+  minimized, integrity-protected, independently verified evidence collection; it does not collect
+  evidence, perform Security Review, or authorize implementation, provider selection, schema, or
+  operations work.
 
 ## Stage 3 domain boundaries
 

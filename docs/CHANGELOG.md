@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.48 |
+| Version | 1.1.49 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-08-18 |
-| Next Review Date | Before Stage 3.24 Security Review readiness review, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
+| Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -668,3 +668,15 @@
   ADR-008 acceptance from being implied by a document or CI result.
 - Did not perform Security Review, accept ADR-008, select a provider, or change runtime code,
   OpenAPI, schema, migrations, credentials, dependencies, backups, CI, operations, or product scope.
+
+## 2026-08-18 — Stage 3.25 privacy Security Review evidence-collection plan started
+
+- Recorded Stage 3.24 as squash-merged through PR #53 at
+  `544ad8cc7371caf93913ea7716f3feb68be0ea44` after internal corrective and non-blind external
+  review evidence and green GitHub Actions.
+- Added the documentation-only process for minimized, integrity-protected, independently verified
+  evidence, including accountable owners, restricted-access handling, rejection criteria, and
+  fail-closed outcomes for every mandatory Security Review area.
+- Did not collect evidence, perform Security Review, accept ADR-008, select a provider, or change
+  runtime code, OpenAPI, schema, migrations, credentials, dependencies, backups, CI, operations,
+  or product scope.
