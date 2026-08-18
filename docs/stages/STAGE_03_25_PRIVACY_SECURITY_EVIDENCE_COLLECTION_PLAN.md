@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-25-PRIVACY-SECURITY-EVIDENCE-COLLECTION-PLAN |
-| Version | 0.1.0 |
-| Status | Active / proposal only |
+| Version | 0.1.1 |
+| Status | Complete / merged through PR #54 at `213d1d9b4369a5e046b26c3a08990aa571603eaa` |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.24 Security Review readiness dossier |
 | Dependencies | Documents 42-43; proposed ADR-008; Stage 3.20-3.24 privacy proposals |
 | Last Review Date | 2026-08-18 |
-| Next Review Date | Before evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
+| Next Review Date | Historical plan closed; successor Stage 3.26 restricted-access evidence intake |
 
 ## Purpose
 
@@ -120,7 +120,8 @@ credentials, inspect backups, run restores, select a provider, conduct a formal 
 accept ADR-008, change Go, Next.js, Python, OpenAPI, PostgreSQL, Redis, migrations, CI,
 infrastructure, backups, operations, or product behavior.
 
-The immediate next action is mandatory strict review of this plan. Actual evidence collection begins
-only under an explicitly approved restricted-access process with accountable owners and independent
-verifiers. Privacy-lifecycle implementation remains prohibited until the formal Security Review and
-ADR-008 acceptance are recorded.
+This plan was strictly reviewed and squash-merged through PR #54 at
+`213d1d9b4369a5e046b26c3a08990aa571603eaa`. Its successor, Stage 3.26, establishes the
+restricted-access intake prerequisites without collecting evidence or conducting Security Review.
+Privacy-lifecycle implementation remains prohibited until the formal Security Review and ADR-008
+acceptance are recorded.

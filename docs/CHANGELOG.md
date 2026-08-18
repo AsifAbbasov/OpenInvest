@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.49 |
+| Version | 1.1.50 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-08-18 |
-| Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
+| Next Review Date | Before Stage 3.26 restricted-access intake review, any evidence receipt, source inspection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -680,3 +680,15 @@
 - Did not collect evidence, perform Security Review, accept ADR-008, select a provider, or change
   runtime code, OpenAPI, schema, migrations, credentials, dependencies, backups, CI, operations,
   or product scope.
+
+## 2026-08-18 — Stage 3.26 privacy Security Review restricted-access evidence intake started
+
+- Recorded Stage 3.25 as squash-merged through PR #54 at
+  `213d1d9b4369a5e046b26c3a08990aa571603eaa` after internal corrective and non-blind external
+  review evidence and six green GitHub Actions checks.
+- Added the documentation-only intake boundary for named accountable source owners, independent
+  verifiers, source-owner-approved least-privilege access, minimized requests, restricted locations,
+  non-sensitive receipts, and clause-level `blocked_evidence` handling.
+- Did not receive evidence, inspect a source, grant access, perform Security Review, accept ADR-008,
+  select a provider, or change runtime code, OpenAPI, schema, migrations, credentials, dependencies,
+  backups, CI, operations, or product scope.

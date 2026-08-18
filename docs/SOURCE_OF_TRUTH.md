@@ -3,23 +3,23 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.52 |
+| Version | 1.4.53 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
 | Last Review Date | 2026-08-18 |
-| Next Review Date | Before Stage 3.25 privacy evidence-collection plan review |
+| Next Review Date | Before Stage 3.26 privacy restricted-access intake review or any evidence receipt |
 
 ## Architecture status
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
 **Last completed implementation stage: Stage 3.16 — Repository Audit Fixes**
-**Last completed planning gate: Stage 3.24 — Privacy Security Review Readiness Dossier**
+**Last completed planning gate: Stage 3.25 — Privacy Security Review Evidence-Collection Plan**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `544ad8cc7371caf93913ea7716f3feb68be0ea44`**
-**Current active work item: Stage 3.25 privacy Security Review evidence-collection plan on `codex/stage-03-25-security-evidence-plan`; no implementation stage is authorized**
+**Current canonical implementation baseline: `develop` at `213d1d9b4369a5e046b26c3a08990aa571603eaa`**
+**Current active work item: Stage 3.26 privacy Security Review restricted-access evidence intake on `codex/stage-03-26-evidence-intake`; no implementation stage is authorized**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -184,9 +184,10 @@ destruction proof. Stage 3.23 was squash-merged through PR #52 at
 `f7f23bce33038f259c976db6375079c68209a7aa`; it defines the non-identifying deletion-marker
 control plane and restore gate. Stage 3.24 was squash-merged through PR #53 at
 `544ad8cc7371caf93913ea7716f3feb68be0ea44`; it defines Security Review readiness. Stage 3.25
-is the separate evidence-collection plan. Proposed ADR-008 is non-normative until formal Security
-Review and explicit human acceptance; no implementation, OpenAPI change, migration, provider
-selection, or operational configuration is authorized.
+was squash-merged through PR #54 at `213d1d9b4369a5e046b26c3a08990aa571603eaa`; it defines
+evidence collection. Stage 3.26 is the separate restricted-access intake boundary. Proposed ADR-008
+is non-normative until formal Security Review and explicit human acceptance; no implementation,
+OpenAPI change, migration, provider selection, or operational configuration is authorized.
 
 ## Financial standard
 

@@ -19,9 +19,10 @@ Stage 3.18 contract/security proposal are closed through PRs #46 and #47. Stage 
 security/ADR proposal is closed through PR #48, and Stage 3.20 privacy threat model is closed through
 PR #49, Stage 3.21 privacy data inventory is closed through PR #50, and Stage 3.22 key custody is
 closed through PR #51, and Stage 3.23 deletion-marker control-plane planning is closed through PR
-#52, and Stage 3.24 Security Review readiness planning is closed through PR #53. Stage 3.25 is the
-active documentation-only evidence-collection plan; it does not collect evidence, perform Security
-Review, accept ADR-008, or authorize an implementation stage, provider, schema, or operational change.
+#52, Stage 3.24 Security Review readiness planning is closed through PR #53, and Stage 3.25
+evidence-collection planning is closed through PR #54. Stage 3.26 is the active documentation-only
+restricted-access evidence-intake boundary; it does not collect evidence, perform Security Review,
+accept ADR-008, or authorize an implementation stage, provider, schema, or operational change.
 Product-risk refinement is closed and remains part of the MVP governance baseline.
 
 ## Components

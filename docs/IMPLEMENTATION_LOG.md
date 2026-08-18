@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.46 |
+| Version | 1.1.47 |
 | Status | Current |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
 | Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md` |
 | Last Review Date | 2026-08-18 |
-| Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
+| Next Review Date | Before Stage 3.26 restricted-access intake review, any evidence receipt, source inspection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
 
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
 
@@ -19,7 +19,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 1 — Documentation Consolidation | Establish the repository-owned Source of Truth and freeze v1.2 | Complete; awaiting review | [Stage 1 report](stages/STAGE_01_DOCUMENTATION_CONSOLIDATION.md) |
 | 2 — Contract and Canonical Model Freeze | Freeze the MVP API, canonical DTOs, logical ER model, and migration strategy | Complete / closed; merged into `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | [Stage 2 report](stages/STAGE_02_CONTRACT_AND_CANONICAL_MODEL.md) |
 | Web architecture amendment | Replace the Web skeleton with presentation-only Next.js under ADR-007 | Complete / closed; merged into `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | [Amendment report](stages/WEB_FRONTEND_ARCHITECTURE_AMENDMENT.md) |
-| 3 — First Vertical Slice | Implement the first thin MVP path after contract and Web baseline approval | Implementation closed through Stage 3.16 audit-fix closure; Stage 3.17-3.24 proposals are merged and Stage 3.25 evidence-collection planning is active without implementation authorization | [Stage 3 plan](stages/STAGE_03_FIRST_VERTICAL_SLICE.md) |
+| 3 — First Vertical Slice | Implement the first thin MVP path after contract and Web baseline approval | Implementation closed through Stage 3.16 audit-fix closure; Stage 3.17-3.25 proposals are merged and Stage 3.26 restricted-access evidence intake is active without implementation authorization | [Stage 3 plan](stages/STAGE_03_FIRST_VERTICAL_SLICE.md) |
 | 3.1 — Local Database Foundation | Add minimal PostgreSQL structures and migration validation for the first vertical slice | Complete / closed; merged into `develop` at `b1a3f23` | [Stage 3.1 report](stages/STAGE_03_01_DATABASE_FOUNDATION.md) |
 | 3.2 — Go API Vertical-Slice Backend | Implement portfolio create, transaction append, snapshot rebuild, and summary read in Go | Complete / closed; merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | [Stage 3.2 report](stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md) |
 | Product risk refinement | Convert hard PRD criticism into controlled MVP risk decisions | Complete / closed; merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | [MVP product risk refinement](product/MVP_PRODUCT_RISK_REFINEMENT.md) |
@@ -56,7 +56,8 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.22 — Privacy Key-Custody and Destruction-Proof Proposal | Define provider-neutral custody, irreversible destruction proof, and fail-closed evidence requirements | Complete / merged through PR #51 at `5f42d32db1e045c23fb99a5af8f136b7a49e3bc2` | [Stage 3.22 proposal](stages/STAGE_03_22_PRIVACY_KEY_CUSTODY_PROPOSAL.md) |
 | 3.23 — Privacy Deletion-Marker Control-Plane Proposal | Define a restricted non-identifying marker lifecycle, snapshot integrity, and fail-closed restore replay | Complete / merged through PR #52 at `f7f23bce33038f259c976db6375079c68209a7aa` | [Stage 3.23 proposal](stages/STAGE_03_23_PRIVACY_DELETION_MARKER_PROPOSAL.md) |
 | 3.24 — Privacy Security Review Readiness Dossier | Define the mandatory evidence package, questions, outcomes, and residual decision boundary before formal Security Review | Complete / merged through PR #53 at `544ad8cc7371caf93913ea7716f3feb68be0ea44` | [Stage 3.24 dossier](stages/STAGE_03_24_PRIVACY_SECURITY_REVIEW_READINESS.md) |
-| 3.25 — Privacy Security Review Evidence-Collection Plan | Define minimal, integrity-protected, independently verified evidence collection before formal Security Review | Active / proposal only | [Stage 3.25 plan](stages/STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md) |
+| 3.25 — Privacy Security Review Evidence-Collection Plan | Define minimal, integrity-protected, independently verified evidence collection before formal Security Review | Complete / merged through PR #54 at `213d1d9b4369a5e046b26c3a08990aa571603eaa` | [Stage 3.25 plan](stages/STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md) |
+| 3.26 — Privacy Security Review Restricted-Access Evidence Intake | Define named-owner, restricted-access, minimized evidence intake before any source inspection | Active / intake authorization only | [Stage 3.26 intake](stages/STAGE_03_26_PRIVACY_SECURITY_RESTRICTED_EVIDENCE_INTAKE.md) |
 
 ## Stage completion protocol
 
@@ -573,3 +574,15 @@ This log is the index of implementation stages. Every stage must document its pu
 - Kept evidence collection, formal Security Review, ADR-008 acceptance, provider selection, runtime,
   OpenAPI, PostgreSQL schema, migrations, credentials, backup operations, and implementation out of
   scope.
+
+## 2026-08-18 — Stage 3.26 privacy Security Review restricted-access evidence intake started
+
+- Recorded Stage 3.25 as squash-merged through PR #54 at
+  `213d1d9b4369a5e046b26c3a08990aa571603eaa` after internal corrective and non-blind external
+  review evidence and six green GitHub Actions checks.
+- Started the documentation-only intake boundary that blocks every EC item until named accountable
+  owners, independent verifiers, source-owner approval, least-privilege access, minimized handling,
+  restricted storage, integrity/freshness evidence, and an escalation route are recorded.
+- Kept evidence receipt, source inspection, access grants, formal Security Review, ADR-008
+  acceptance, provider selection, runtime, OpenAPI, PostgreSQL schema, migrations, credentials,
+  backup operations, and implementation out of scope.

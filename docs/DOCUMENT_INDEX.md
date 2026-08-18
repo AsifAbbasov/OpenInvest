@@ -3,19 +3,19 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.53 |
+| Version | 1.1.54 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-08-18 |
-| Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
+| Next Review Date | Before Stage 3.26 restricted-access intake review, any evidence receipt, source inspection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
 
 ## Canonical control documents
 
 | ID | Title | Version | Status | Location |
 | --- | --- | --- | --- | --- |
-| SOT-001 | Source of Truth | 1.4.52 | Approved | `SOURCE_OF_TRUTH.md` |
+| SOT-001 | Source of Truth | 1.4.53 | Approved | `SOURCE_OF_TRUTH.md` |
 | 42 | Architecture Amendments | 1.1.0 | Approved | `specifications/current/DOCUMENT_42_ARCHITECTURE_AMENDMENTS_v1.1.md` |
 | 43 | Architecture Decision Closure | 1.2.0 | Final | `specifications/current/DOCUMENT_43_ARCHITECTURE_CLOSURE_v1.2.md` |
 
@@ -79,7 +79,7 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 
 | Document | Status | Location |
 | --- | --- | --- |
-| Stage 3 plan | Closed through Stage 3.24 dossier; Stage 3.25 evidence-collection plan is active without implementation authorization | `stages/STAGE_03_FIRST_VERTICAL_SLICE.md` |
+| Stage 3 plan | Closed through Stage 3.25 evidence-collection plan; Stage 3.26 restricted-access intake is active without implementation authorization | `stages/STAGE_03_FIRST_VERTICAL_SLICE.md` |
 | Stage 3.1 database foundation | Complete / merged into `develop` | `stages/STAGE_03_01_DATABASE_FOUNDATION.md` |
 | Stage 3.2 Go API vertical slice | Complete / merged into `develop` | `stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md` |
 | Stage 3.3 Next.js presentation slice | Complete / merged into `develop` | `stages/STAGE_03_03_NEXTJS_PRESENTATION_SLICE.md` |
@@ -116,7 +116,8 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Stage 3.22 privacy key-custody and destruction-proof proposal | Complete / merged through PR #51; internal and external review evidence recorded | `stages/STAGE_03_22_PRIVACY_KEY_CUSTODY_PROPOSAL.md` |
 | Stage 3.23 privacy deletion-marker control-plane proposal | Complete / merged through PR #52; internal corrective and non-blind external review evidence recorded | `stages/STAGE_03_23_PRIVACY_DELETION_MARKER_PROPOSAL.md` |
 | Stage 3.24 privacy Security Review readiness dossier | Complete / merged through PR #53; internal corrective and non-blind external review evidence recorded | `stages/STAGE_03_24_PRIVACY_SECURITY_REVIEW_READINESS.md` |
-| Stage 3.25 privacy Security Review evidence-collection plan | Active / proposal only | `stages/STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md` |
+| Stage 3.25 privacy Security Review evidence-collection plan | Complete / merged through PR #54; internal corrective and non-blind external review evidence recorded | `stages/STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md` |
+| Stage 3.26 privacy Security Review restricted-access evidence intake | Active / intake authorization only | `stages/STAGE_03_26_PRIVACY_SECURITY_RESTRICTED_EVIDENCE_INTAKE.md` |
 
 ## Product refinement documents
 

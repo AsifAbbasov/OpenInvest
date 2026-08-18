@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03 |
-| Version | 0.1.39 |
-| Status | Complete / closed through Stage 3.24 Security Review readiness dossier; Stage 3.25 plan tracked separately |
+| Version | 0.1.40 |
+| Status | Complete / closed through Stage 3.25 evidence-collection plan; Stage 3.26 intake tracked separately |
 | Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
 | Last Review Date | 2026-08-18 |
-| Next Review Date | Before Stage 3.25 privacy evidence-collection plan review |
+| Next Review Date | Before Stage 3.26 privacy restricted-access intake review or any evidence receipt |
 
 ## Purpose
 
@@ -853,9 +853,14 @@ Status:
   `544ad8cc7371caf93913ea7716f3feb68be0ea44`; it does not perform Security Review or authorize
   implementation, provider selection, schema, or operations work.
 - Stage 3.25 privacy Security Review evidence-collection plan is the separate review gate for
-  minimized, integrity-protected, independently verified evidence collection; it does not collect
+  minimized, integrity-protected, independently verified evidence collection; it was squash-merged
+  through PR #54 at `213d1d9b4369a5e046b26c3a08990aa571603eaa` and does not itself collect
   evidence, perform Security Review, or authorize implementation, provider selection, schema, or
   operations work.
+- Stage 3.26 privacy Security Review restricted-access evidence intake is the separate boundary for
+  named owners, independent verifiers, minimized requests, and restricted evidence locations before
+  source inspection; it does not collect evidence, perform Security Review, or authorize
+  implementation, provider selection, schema, or operations work.
 
 ## Stage 3 domain boundaries
 
