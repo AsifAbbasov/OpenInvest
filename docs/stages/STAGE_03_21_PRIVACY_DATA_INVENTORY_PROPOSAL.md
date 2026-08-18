@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-21-PRIVACY-DATA-INVENTORY-PROPOSAL |
-| Version | 0.1.1 |
-| Status | Active / proposal only |
+| Version | 0.1.2 |
+| Status | Complete / merged through PR #50 at `207325e0497cc2608b99366f7f840472d270b6ed` |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.20 privacy threat-model proposal |
 | Dependencies | Documents 42-43; ADR-005; ADR-006; proposed ADR-008; Stage 2 ER model and migration strategy; Stage 3.17-3.20 privacy proposals |
-| Last Review Date | 2026-08-09 |
-| Next Review Date | Before Security Review, acceptance of ADR-008, or any privacy-lifecycle migration proposal |
+| Last Review Date | 2026-08-18 |
+| Next Review Date | Historical proposal closed; successor Stage 3.22 |
 
 ## Purpose
 
@@ -197,8 +197,12 @@ The review evidence is not operational proof. Field-level production discovery, 
 deletion-marker control, migration design, provider/backup evidence, operations runbook, and an
 adversarial restore rehearsal remain future gates.
 
-## Recommended Next Step
+## Historical Closure
 
-No implementation follows from this proposed inventory. A later separately reviewed proposal may
-choose one required evidence gap, beginning with a provider-neutral key-custody or deletion-marker
-design, but no implementation becomes authorized by this inventory.
+Stage 3.21 was squash-merged through PR #50 at `207325e0497cc2608b99366f7f840472d270b6ed` after
+the recorded internal and blind external `APPROVED` verdicts. The merged proposal remains evidence
+only: it does not accept ADR-008, constitute Security Review approval, or authorize implementation.
+
+The successor Stage 3.22 separately addresses the provider-neutral key-custody and destruction-proof
+evidence gap. The deletion-marker/control-plane, migration, operations, and restore-rehearsal gaps
+remain separate future gates.
