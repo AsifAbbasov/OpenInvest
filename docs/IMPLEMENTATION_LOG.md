@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.47 |
+| Version | 1.1.48 |
 | Status | Current |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
@@ -19,7 +19,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 1 — Documentation Consolidation | Establish the repository-owned Source of Truth and freeze v1.2 | Complete; awaiting review | [Stage 1 report](stages/STAGE_01_DOCUMENTATION_CONSOLIDATION.md) |
 | 2 — Contract and Canonical Model Freeze | Freeze the MVP API, canonical DTOs, logical ER model, and migration strategy | Complete / closed; merged into `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | [Stage 2 report](stages/STAGE_02_CONTRACT_AND_CANONICAL_MODEL.md) |
 | Web architecture amendment | Replace the Web skeleton with presentation-only Next.js under ADR-007 | Complete / closed; merged into `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | [Amendment report](stages/WEB_FRONTEND_ARCHITECTURE_AMENDMENT.md) |
-| 3 — First Vertical Slice | Implement the first thin MVP path after contract and Web baseline approval | Implementation closed through Stage 3.16 audit-fix closure; Stage 3.17-3.24 proposals are merged; Stage 3.25 privacy evidence planning remains separate; Stage 3.27 audit remediation is implementation-verified and pre-commit approved pending PR/CI/merge | [Stage 3 plan](stages/STAGE_03_FIRST_VERTICAL_SLICE.md) |
+| 3 — First Vertical Slice | Implement the first thin MVP path after contract and Web baseline approval | Implementation closed through Stage 3.16 audit-fix closure; Stage 3.17-3.24 proposals are merged; Stage 3.25 privacy evidence planning remains separate; Stage 3.27 audit remediation is implementation-verified and pre-commit approved; implementation commit `19a8abb` is pushed, Draft PR #55 is open, and CI run #83 passed on that implementation head; final-head CI/review/human approval/squash-merge gates remain | [Stage 3 plan](stages/STAGE_03_FIRST_VERTICAL_SLICE.md) |
 | 3.1 — Local Database Foundation | Add minimal PostgreSQL structures and migration validation for the first vertical slice | Complete / closed; merged into `develop` at `b1a3f23` | [Stage 3.1 report](stages/STAGE_03_01_DATABASE_FOUNDATION.md) |
 | 3.2 — Go API Vertical-Slice Backend | Implement portfolio create, transaction append, snapshot rebuild, and summary read in Go | Complete / closed; merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | [Stage 3.2 report](stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md) |
 | Product risk refinement | Convert hard PRD criticism into controlled MVP risk decisions | Complete / closed; merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | [MVP product risk refinement](product/MVP_PRODUCT_RISK_REFINEMENT.md) |
@@ -57,7 +57,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.23 — Privacy Deletion-Marker Control-Plane Proposal | Define a restricted non-identifying marker lifecycle, snapshot integrity, and fail-closed restore replay | Complete / merged through PR #52 at `f7f23bce33038f259c976db6375079c68209a7aa` | [Stage 3.23 proposal](stages/STAGE_03_23_PRIVACY_DELETION_MARKER_PROPOSAL.md) |
 | 3.24 — Privacy Security Review Readiness Dossier | Define the mandatory evidence package, questions, outcomes, and residual decision boundary before formal Security Review | Complete / merged through PR #53 at `544ad8cc7371caf93913ea7716f3feb68be0ea44` | [Stage 3.24 dossier](stages/STAGE_03_24_PRIVACY_SECURITY_REVIEW_READINESS.md) |
 | 3.25 — Privacy Security Review Evidence-Collection Plan | Define minimal, integrity-protected, independently verified evidence collection before formal Security Review | Active / proposal only | [Stage 3.25 plan](stages/STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md) |
-| 3.27 — Import Financial Identity and Cash-Flow Semantics Remediation | Remediate repository-audit P1-02/P1-03/P1-04 across import identity, reconciliation, cash-flow semantics, PostgreSQL, and OpenAPI | Implementation verified / independent pre-commit review approved / pending PR, CI, and merge | [Stage 3.27 report](stages/STAGE_03_27_IMPORT_FINANCIAL_IDENTITY_REMEDIATION.md) |
+| 3.27 — Import Financial Identity and Cash-Flow Semantics Remediation | Remediate repository-audit P1-02/P1-03/P1-04 across import identity, reconciliation, cash-flow semantics, PostgreSQL, and OpenAPI | Implementation verified / independent pre-commit review approved / implementation commit `19a8abb` pushed / Draft PR #55 open / CI run #83 passed on implementation head / closure requires final-head green CI, required PR review, explicit human approval, and squash merge | [Stage 3.27 report](stages/STAGE_03_27_IMPORT_FINANCIAL_IDENTITY_REMEDIATION.md) |
 
 ## Stage completion protocol
 

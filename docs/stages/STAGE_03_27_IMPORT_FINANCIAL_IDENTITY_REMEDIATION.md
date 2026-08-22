@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementation verified / independent pre-commit review approved / pending PR, CI, and merge |
+| Status | Open / implementation verified / independent pre-commit review approved / implementation commit pushed / Draft PR #55 open / CI run #83 passed on implementation head / closure requires final-head green CI, required PR review, explicit human approval, and squash merge |
 | Owner | Principal Architect |
 | Baseline | `develop` at `213d1d9b4369a5e046b26c3a08990aa571603eaa` |
 | Branch | `fix/stage-03-27-import-financial-identity` |
@@ -251,6 +251,11 @@ Verified against Go 1.25.14 and PostgreSQL 18:
 The independent pre-commit review returned `APPROVED` with no remaining P0, P1, or P2 blocker for
 the Stage 3.27 commit candidate.
 
-This approval does not mean the stage is merged or closed. Canonical closure still requires the
-feature-branch commit, push, Draft PR, green GitHub CI, required PR review, explicit human merge
-approval, and squash merge into `develop`.
+This approval does not mean the stage is merged or closed. The implementation candidate was
+committed and pushed as `19a8abbb0c07ded7441839bfa99b538739e21fbc`, Draft PR #55 was opened
+against `develop`, and GitHub Actions CI run #83 passed on that implementation head.
+
+Because any subsequent governance-only correction advances the PR head, CI evidence is head-specific:
+historical run #83 must not be treated as approval of a later commit. Canonical closure requires green
+CI on the final PR head, required PR review, explicit human merge approval, and squash merge into
+`develop`.

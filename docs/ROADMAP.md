@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.52 |
+| Version | 1.1.53 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
@@ -55,7 +55,7 @@
 | 3.23 — Privacy deletion-marker control-plane proposal | Define restricted marker lifecycle, snapshot integrity, and fail-closed isolated restore replay | Complete / merged through PR #52 |
 | 3.24 — Privacy Security Review readiness dossier | Define required evidence, questions, outcomes, and record for the mandatory formal Security Review | Complete / merged through PR #53 |
 | 3.25 — Privacy Security Review evidence-collection plan | Define minimized, integrity-protected, independently verified evidence collection before formal Security Review | Active / proposal only |
-| 3.27 — Import financial identity and cash-flow semantics remediation | Close audit P1-02/P1-03/P1-04 with persisted import identity, amount-aware cash reconciliation, and fail-closed cash-flow fee semantics | Implementation verified / pre-commit review approved / pending PR, CI, and merge |
+| 3.27 — Import financial identity and cash-flow semantics remediation | Close audit P1-02/P1-03/P1-04 with persisted import identity, amount-aware cash reconciliation, and fail-closed cash-flow fee semantics | Implementation verified / pre-commit review approved / implementation commit `19a8abb` pushed / Draft PR #55 open / CI run #83 passed on implementation head / closure requires final-head green CI, required PR review, explicit human approval, and squash merge |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.

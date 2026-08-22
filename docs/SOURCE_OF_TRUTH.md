@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.53 |
+| Version | 1.4.54 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -20,7 +20,7 @@
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
 **Current canonical implementation baseline: `develop` at `544ad8cc7371caf93913ea7716f3feb68be0ea44`**
 **Current privacy-planning work item: Stage 3.25 privacy Security Review evidence-collection plan; it remains documentation-only and does not authorize privacy-lifecycle implementation**
-**Current remediation delivery item: Stage 3.27 Import Financial Identity and Cash-Flow Semantics Remediation; implementation and local verification are complete and independent pre-commit review is approved, pending commit, Draft PR, CI, required PR review, human approval, and merge**
+**Current remediation delivery item: Stage 3.27 Import Financial Identity and Cash-Flow Semantics Remediation; implementation/local verification and independent pre-commit review are complete; implementation commit `19a8abbb0c07ded7441839bfa99b538739e21fbc` is pushed, Draft PR #55 is open, and CI run #83 passed on that implementation head; closure still requires green CI on the final PR head, required PR review, explicit human merge approval, and squash merge into `develop`**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -198,10 +198,13 @@ market-data, tax, mobile, AI, or provider work that remains governed separately.
 The remediation candidate is based on `develop` at
 `213d1d9b4369a5e046b26c3a08990aa571603eaa`. Local Go 1.25.14/PostgreSQL 18 verification,
 migration apply/rollback/reapply, OpenAPI validation, full Go tests, `go vet`, direct database
-constraint regression coverage, and independent pre-commit review have passed.
+constraint regression coverage, and independent pre-commit review have passed. The implementation
+candidate was committed and pushed as `19a8abbb0c07ded7441839bfa99b538739e21fbc`, Draft PR #55
+was opened against `develop`, and GitHub Actions CI run #83 passed on that implementation head.
 
-Stage 3.27 is not canonical and must not be described as closed until the feature branch has passed
-Draft PR CI and required PR review and has been squash-merged into `develop`.
+Stage 3.27 is not canonical and must not be described as closed until the final PR head has green CI,
+the required PR review is approved, explicit human merge approval is given, and the PR is
+squash-merged into `develop`.
 
 ## Financial standard
 

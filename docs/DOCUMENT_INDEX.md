@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.54 |
+| Version | 1.1.55 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
@@ -15,7 +15,7 @@
 
 | ID | Title | Version | Status | Location |
 | --- | --- | --- | --- | --- |
-| SOT-001 | Source of Truth | 1.4.53 | Approved | `SOURCE_OF_TRUTH.md` |
+| SOT-001 | Source of Truth | 1.4.54 | Approved | `SOURCE_OF_TRUTH.md` |
 | 42 | Architecture Amendments | 1.1.0 | Approved | `specifications/current/DOCUMENT_42_ARCHITECTURE_AMENDMENTS_v1.1.md` |
 | 43 | Architecture Decision Closure | 1.2.0 | Final | `specifications/current/DOCUMENT_43_ARCHITECTURE_CLOSURE_v1.2.md` |
 
@@ -117,7 +117,7 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Stage 3.23 privacy deletion-marker control-plane proposal | Complete / merged through PR #52; internal corrective and non-blind external review evidence recorded | `stages/STAGE_03_23_PRIVACY_DELETION_MARKER_PROPOSAL.md` |
 | Stage 3.24 privacy Security Review readiness dossier | Complete / merged through PR #53; internal corrective and non-blind external review evidence recorded | `stages/STAGE_03_24_PRIVACY_SECURITY_REVIEW_READINESS.md` |
 | Stage 3.25 privacy Security Review evidence-collection plan | Active / proposal only | `stages/STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md` |
-| Stage 3.27 import financial identity and cash-flow semantics remediation | Implementation verified / independent pre-commit review approved / pending PR, CI, and merge | `stages/STAGE_03_27_IMPORT_FINANCIAL_IDENTITY_REMEDIATION.md` |
+| Stage 3.27 import financial identity and cash-flow semantics remediation | Implementation verified / independent pre-commit review approved / implementation commit `19a8abb` pushed / Draft PR #55 open / CI run #83 passed on implementation head / final-head CI, required PR review, human approval, and squash-merge closure gates remain | `stages/STAGE_03_27_IMPORT_FINANCIAL_IDENTITY_REMEDIATION.md` |
 
 ## Product refinement documents
 

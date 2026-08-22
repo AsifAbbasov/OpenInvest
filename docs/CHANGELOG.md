@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.50 |
+| Version | 1.1.51 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -699,5 +699,8 @@
   `go test -count=1 ./...`, `go vet ./...`, `git diff --check`, and direct database negative tests.
 - Independent pre-commit review returned `APPROVED` with no remaining P0/P1/P2 blocker in the
   Stage 3.27 commit candidate.
-- Stage 3.27 remains open pending commit, Draft PR, green CI, required PR review, explicit human
-  merge approval, and squash merge into `develop`.
+- The implementation candidate was committed and pushed as
+  `19a8abbb0c07ded7441839bfa99b538739e21fbc`; Draft PR #55 was opened against `develop`, and
+  GitHub Actions CI run #83 passed on that implementation head.
+- Stage 3.27 remains open until the final PR head has green CI, required PR review is approved,
+  explicit human merge approval is given, and squash merge into `develop` completes.

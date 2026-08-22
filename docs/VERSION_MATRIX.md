@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.1.58 |
+| Version | 1.1.59 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -29,7 +29,7 @@
 | Stage 3.23 privacy deletion-marker control-plane proposal | 0.1.1 | Complete / merged through PR #52 at `f7f23bce33038f259c976db6375079c68209a7aa`; internal corrective and non-blind external review evidence recorded | 3 | Principal Architect | Historical proposal closed; successor Stage 3.24 |
 | Stage 3.24 privacy Security Review readiness dossier | 0.1.1 | Complete / merged through PR #53 at `544ad8cc7371caf93913ea7716f3feb68be0ea44`; internal corrective and non-blind external review evidence recorded | 3 | Principal Architect | Historical dossier closed; successor Stage 3.25 |
 | Stage 3.25 privacy Security Review evidence-collection plan | 0.1.0 | Active / proposal only | 3 | Principal Architect | Before evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
-| Stage 3.27 import financial identity and cash-flow semantics remediation | 0.1.0 | Implementation verified / independent pre-commit review approved / pending PR, CI, and merge | 3 | Principal Architect | Before Stage 3.27 merge |
+| Stage 3.27 import financial identity and cash-flow semantics remediation | 0.1.0 | Implementation verified / independent pre-commit review approved / implementation commit `19a8abb` pushed / Draft PR #55 open / CI run #83 passed on implementation head / closure requires final-head green CI, required PR review, explicit human approval, and squash merge | 3 | Principal Architect | Before Stage 3.27 merge |
 | Stage 3.1 database foundation | 0.1.x | Closed / merged into `develop` at `b1a3f23` | 3 | Principal Architect | 2026-12-27 |
 | Stage 3.2 Go API vertical slice | 0.1.x | Closed / merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | 3 | Principal Architect | 2026-12-27 |
 | Product risk refinement | 1.0.x | Approved / merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | 3 | Principal Architect | Before public MVP |
