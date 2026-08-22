@@ -102,7 +102,7 @@ func (s *Store) SearchAssets(ctx context.Context, filter verticalslice.AssetSear
 	}
 	if filter.AfterTicker != "" {
 		args = append(args, filter.AfterTicker)
-		conditions = append(conditions, "ticker > $"+strconv.Itoa(len(args))+"::text")
+		conditions = append(conditions, "ticker > $"+strconv.Itoa(len(args)))
 	}
 	canonicalFixtureConditions := make([]string, 0, len(approvedTickers))
 	for _, ticker := range approvedTickers {

@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.51 |
+| Version | 1.1.52 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -704,3 +704,13 @@
   GitHub Actions CI run #83 passed on that implementation head.
 - Stage 3.27 remains open until the final PR head has green CI, required PR review is approved,
   explicit human merge approval is given, and squash merge into `develop` completes.
+
+
+## 2026-08-22 — Stage 3.27 final-review identity-transition correction
+
+- Final independent review of PR #55 at `c6c3a4c91a108426448a2bc230873ab9e479a335` returned `REQUEST CHANGES` after identifying an order-dependent P1-02 fallback-to-strong identity transition that could double-count one economic operation.
+- Corrected importer review, import-batch validation, PostgreSQL store lookup, and database defense in depth so fallback `F` plus strong `B/F` fails closed in either arrival order.
+- Preserved the intended rule that distinct strong broker identities `A/F` and `B/F` may coexist when they represent independently identified broker executions with identical economics.
+- Added direct PostgreSQL and service/store regressions for both arrival orders plus a concurrent mixed-strength insertion test; the database guard serializes the scoped fingerprint check with a transaction-level advisory lock.
+- Temporary corrective CI run #85 passed all repository jobs, including PostgreSQL migration validation/apply/rollback/reapply and Go integration tests. This run is not final PR-head evidence because later governance synchronization advances the candidate head.
+- Stage 3.27 remains open; closure still requires green CI on the final PR #55 head, renewed required PR review, explicit human merge approval, and squash merge into `develop`.

@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Open / implementation verified / independent pre-commit review approved / implementation commit pushed / Draft PR #55 open / CI run #83 passed on implementation head / closure requires final-head green CI, required PR review, explicit human approval, and squash merge |
+| Status | Open / final PR review returned `REQUEST CHANGES` on pre-correction head `c6c3a4c` / fallback-to-strong identity blocker corrected / temporary CI #85 passed / closure requires final-head green CI, renewed required PR review, explicit human approval, and squash merge |
 | Owner | Principal Architect |
 | Baseline | `develop` at `213d1d9b4369a5e046b26c3a08990aa571603eaa` |
 | Branch | `fix/stage-03-27-import-financial-identity` |
@@ -168,6 +168,9 @@ The Stage 3.27 test set covers the following cases:
 | Repeated broker operation in the same source scope | Classified/rejected as duplicate according to persisted identity. |
 | Same broker identity submitted later | Existing persisted identity is detected. |
 | Same broker identity with changed financial fields | Fail-closed identity conflict. |
+| Existing fallback fingerprint `F`, then strong broker identity `B/F` | Fail closed; ambiguous identity-strength transition cannot auto-append. |
+| Existing strong broker identity `B/F`, then fallback fingerprint `F` | Rejected; result is independent of import order. |
+| Distinct strong broker identities `A/F` and `B/F` | Both may persist as independently identified broker operations. |
 | Conflicting same broker identity inside one CSV | Fail-closed identity conflict before append. |
 | Same-day deposits of 1,000 and 2,000 | Both are valid independent cash operations. |
 | Non-zero deposit/withdrawal commission or tax | Rejected before persistence; database constraint provides defense in depth. |
@@ -210,6 +213,14 @@ contract regression, not as a bypassed test.
   risks changing financial outputs without an approved model.
 - **Silently ignore cash-flow fee fields:** preserves the original inconsistency and makes stored data
   misleading.
+
+## Final-review corrective cycle
+
+Final independent review of PR #55 at pre-correction head `c6c3a4c91a108426448a2bc230873ab9e479a335` returned `REQUEST CHANGES`. The review found that the original Stage 3.27 identity policy was asymmetric across identity-strength transitions: a fallback row identified only by financial fingerprint could be stored first, then a later row carrying a broker-operation key and the same financial fingerprint could bypass the strong-key lookup and coexist with it. The inverse arrival order was rejected, so financial state could depend on import order and double-count one operation.
+
+The correction makes mixed-strength identity fail closed at four boundaries: importer reconciliation against persisted rows, same-file review, vertical-slice batch validation, and PostgreSQL store/database enforcement. The database guard takes a transaction-scoped advisory lock derived from portfolio, source-account scope, identity version, and financial fingerprint before checking for a fallback/strong collision, preventing concurrent direct inserts from racing through the check. Distinct non-null broker-operation identities with the same financial fingerprint remain allowed.
+
+Temporary corrective CI run #85 passed all six repository jobs, including full Go integration tests and PostgreSQL migration validation/apply/rollback/reapply. Because governance synchronization and cleanup occur after that run, #85 is historical technical evidence only; the final PR #55 head must run green CI again before renewed independent review and human merge approval.
 
 ## Residual risks and next work
 
