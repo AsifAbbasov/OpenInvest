@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.57 |
+| Version | 1.1.58 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
 | Dependencies | Architecture Freeze v1.2 |
-| Last Review Date | 2026-08-22 |
+| Last Review Date | 2026-08-23 |
 | Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
 
 | Stage | Outcome | State |
@@ -57,13 +57,16 @@
 | 3.25 — Privacy Security Review evidence-collection plan | Define minimized, integrity-protected, independently verified evidence collection before formal Security Review | Active / proposal only |
 | 3.27 — Import financial identity and cash-flow semantics remediation | Close audit P1-02/P1-03/P1-04 with persisted import identity, amount-aware cash reconciliation, and fail-closed cash-flow fee semantics | Complete / merged through PR #55 at `6e8c806de857f844954f1db513487357dfe90187` |
 | 3.27 — Closure governance | Record canonical merge, final review, CI, and human approval evidence | Complete / PR #58 |
+| 3.28 — Authentication security remediation | Close audit P1-01/P1-05 with refresh-family replay containment and bounded Argon2 admission | Implementation complete / merged through PR #59 at `dc83f5f3a11da164e6809593861d96ccf47b29ca` |
+| 3.28 — Closure governance | Record canonical merge, CI #114, renewed independent approval, human authorization, and residual P2/P3 scope | Complete when this record is canonical on `develop` / PR #60 |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
 
-Stage 3.27 is a separately authorized narrow repository-audit remediation and does not authorize
-product-scope expansion. No further implementation stage begins without a separately reviewed
-planning or remediation gate.
+Stages 3.27 and 3.28 are separately authorized narrow repository-audit remediations and do not
+authorize product-scope expansion. Stage 3.25 privacy evidence planning and the P2/P3 backlog
+remain separate. No further implementation stage begins without a separately reviewed planning
+or remediation gate.
 
 No AI, Tax Export, email, mobile, premium, direct broker API synchronization, credential scraping, or
 unnecessary worker implementation enters these stages without separate approval.

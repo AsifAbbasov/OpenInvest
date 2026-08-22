@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.1.63 |
+| Version | 1.1.64 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | Documents 42–43 |
-| Last Review Date | 2026-08-22 |
+| Last Review Date | 2026-08-23 |
 | Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
 
 | Range | Version | Status under Freeze v1.2 | Priority | Owner | Review |
@@ -30,6 +30,7 @@
 | Stage 3.24 privacy Security Review readiness dossier | 0.1.1 | Complete / merged through PR #53 at `544ad8cc7371caf93913ea7716f3feb68be0ea44`; internal corrective and non-blind external review evidence recorded | 3 | Principal Architect | Historical dossier closed; successor Stage 3.25 |
 | Stage 3.25 privacy Security Review evidence-collection plan | 0.1.0 | Active / proposal only | 3 | Principal Architect | Before evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
 | Stage 3.27 import financial identity and cash-flow semantics remediation | 0.1.0 | Complete / closed for P1-02/P1-03/P1-04; implementation merged through PR #55 at `6e8c806de857f844954f1db513487357dfe90187` after exact-head CI #90, renewed independent `APPROVED`, and explicit human merge approval; closure governance recorded through PR #58 | 3 | Principal Architect | P1-01/P1-05 remain separate future remediation |
+| Stage 3.28 authentication security remediation | 0.1.0 | Complete when closure record is canonical on `develop`; P1-01/P1-05 implementation merged through PR #59 at `dc83f5f3a11da164e6809593861d96ccf47b29ca` after exact-head CI #114, renewed independent `APPROVED` on `92edab5d3e93dafe2fcc6247644e38e878a4202f`, and explicit human approval; closure governance through PR #60 | 3 | Principal Architect | Stage 3.25 and P2/P3 remain separate; `503 + Retry-After` is optional non-blocking hardening |
 | Stage 3.1 database foundation | 0.1.x | Closed / merged into `develop` at `b1a3f23` | 3 | Principal Architect | 2026-12-27 |
 | Stage 3.2 Go API vertical slice | 0.1.x | Closed / merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | 3 | Principal Architect | 2026-12-27 |
 | Product risk refinement | 1.0.x | Approved / merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | 3 | Principal Architect | Before public MVP |
