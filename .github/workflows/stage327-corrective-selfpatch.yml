@@ -1,0 +1,221 @@
+name: Stage 3.27 corrective self-patch
+
+on:
+  push:
+    branches:
+      - fix/stage-03-27-fallback-strong-correction
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out correction branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: fix/stage-03-27-fallback-strong-correction
+          fetch-depth: 0
+
+      - name: Apply narrowly scoped correction cleanup and governance sync
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          def read(path):
+              return Path(path).read_text()
+
+          def write(path, text):
+              Path(path).write_text(text)
+
+          def replace_once(text, old, new, label):
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{label}: expected exactly one match, found {count}")
+              return text.replace(old, new, 1)
+
+          def replace_line(text, pattern, replacement, label):
+              result, count = re.subn(pattern, replacement, text, count=1, flags=re.MULTILINE)
+              if count != 1:
+                  raise SystemExit(f"{label}: expected exactly one line match, found {count}")
+              return result
+
+          # Remove an unrelated no-op cast that entered an intermediate store commit.
+          path = "backend-go/internal/postgres/store.go"
+          text = read(path)
+          text = replace_once(
+              text,
+              'conditions = append(conditions, "ticker > $"+strconv.Itoa(len(args))+"::text")',
+              'conditions = append(conditions, "ticker > $"+strconv.Itoa(len(args)))',
+              "store unrelated cast cleanup",
+          )
+          write(path, text)
+
+          corrected_status = (
+              "final independent PR review of pre-correction head `c6c3a4c` returned `REQUEST CHANGES` for an "
+              "order-dependent fallback-to-strong import-identity transition; the corrective candidate now fails closed "
+              "when fallback and strong identities share the same scoped financial fingerprint while preserving distinct "
+              "strong broker identities; temporary corrective CI run #85 passed, but it is not final-head CI; closure "
+              "still requires green CI on the final PR #55 head, renewed required PR review, explicit human merge approval, "
+              "and squash merge into `develop`"
+          )
+
+          # SOURCE_OF_TRUTH
+          path = "docs/SOURCE_OF_TRUTH.md"
+          text = read(path)
+          text = replace_once(text, "| Version | 1.4.54 |", "| Version | 1.4.55 |", "SOT version")
+          text = replace_line(
+              text,
+              r"^\*\*Current remediation delivery item: Stage 3\.27.*$",
+              "**Current remediation delivery item: Stage 3.27 Import Financial Identity and Cash-Flow Semantics Remediation; " + corrected_status + "**",
+              "SOT current remediation status",
+          )
+          marker = "\n## Financial standard\n"
+          correction = (
+              "\n### Stage 3.27 final-review correction\n\n"
+              "Final independent review of PR #55 at pre-correction head "
+              "`c6c3a4c91a108426448a2bc230873ab9e479a335` identified a blocking P1-02 order-dependence: "
+              "a fallback fingerprint row could be persisted first and then coexist with a later strong broker-keyed row "
+              "carrying the same scoped financial fingerprint. The corrective candidate rejects mixed fallback/strong "
+              "identity in importer review, batch validation, PostgreSQL store lookup, and a concurrency-serialized database "
+              "guard, while still allowing distinct non-null broker identities with identical economics. Temporary CI run "
+              "#85 passed on the corrective code candidate before final governance synchronization; it is historical, "
+              "head-specific evidence and does not satisfy the required final PR-head CI gate.\n"
+          )
+          text = replace_once(text, marker, correction + marker, "SOT correction insertion")
+          write(path, text)
+
+          # IMPLEMENTATION_LOG
+          path = "docs/IMPLEMENTATION_LOG.md"
+          text = read(path)
+          text = replace_once(text, "| Version | 1.1.48 |", "| Version | 1.1.49 |", "implementation log version")
+          text = replace_line(
+              text,
+              r"^\| 3 — First Vertical Slice \|.*$",
+              "| 3 — First Vertical Slice | Implement the first thin MVP path after contract and Web baseline approval | Implementation closed through Stage 3.16 audit-fix closure; Stage 3.17-3.24 proposals are merged; Stage 3.25 privacy evidence planning remains separate; Stage 3.27 remains open after final review found an order-dependent fallback/strong identity blocker; corrective code has temporary CI #85 validation, while final-head CI/review/human approval/squash-merge gates remain | [Stage 3 plan](stages/STAGE_03_FIRST_VERTICAL_SLICE.md) |",
+              "implementation log stage 3 overview",
+          )
+          text = replace_line(
+              text,
+              r"^\| 3\.27 — Import Financial Identity and Cash-Flow Semantics Remediation \|.*$",
+              "| 3.27 — Import Financial Identity and Cash-Flow Semantics Remediation | Remediate repository-audit P1-02/P1-03/P1-04 across import identity, reconciliation, cash-flow semantics, PostgreSQL, and OpenAPI | Final PR review returned `REQUEST CHANGES` on `c6c3a4c`; mixed fallback/strong identity correction implemented and temporary CI #85 passed; pending final PR-head CI, renewed required review, explicit human approval, and squash merge | [Stage 3.27 report](stages/STAGE_03_27_IMPORT_FINANCIAL_IDENTITY_REMEDIATION.md) |",
+              "implementation log stage 3.27 row",
+          )
+          write(path, text)
+
+          # CHANGELOG
+          path = "docs/CHANGELOG.md"
+          text = read(path)
+          text = replace_once(text, "| Version | 1.1.51 |", "| Version | 1.1.52 |", "changelog version")
+          text += (
+              "\n\n## 2026-08-22 — Stage 3.27 final-review identity-transition correction\n\n"
+              "- Final independent review of PR #55 at `c6c3a4c91a108426448a2bc230873ab9e479a335` returned `REQUEST CHANGES` after identifying an order-dependent P1-02 fallback-to-strong identity transition that could double-count one economic operation.\n"
+              "- Corrected importer review, import-batch validation, PostgreSQL store lookup, and database defense in depth so fallback `F` plus strong `B/F` fails closed in either arrival order.\n"
+              "- Preserved the intended rule that distinct strong broker identities `A/F` and `B/F` may coexist when they represent independently identified broker executions with identical economics.\n"
+              "- Added direct PostgreSQL and service/store regressions for both arrival orders plus a concurrent mixed-strength insertion test; the database guard serializes the scoped fingerprint check with a transaction-level advisory lock.\n"
+              "- Temporary corrective CI run #85 passed all repository jobs, including PostgreSQL migration validation/apply/rollback/reapply and Go integration tests. This run is not final PR-head evidence because later governance synchronization advances the candidate head.\n"
+              "- Stage 3.27 remains open; closure still requires green CI on the final PR #55 head, renewed required PR review, explicit human merge approval, and squash merge into `develop`.\n"
+          )
+          write(path, text)
+
+          # DOCUMENT_INDEX
+          path = "docs/DOCUMENT_INDEX.md"
+          text = read(path)
+          text = replace_once(text, "| Version | 1.1.55 |", "| Version | 1.1.56 |", "document index version")
+          text = replace_once(text, "| SOT-001 | Source of Truth | 1.4.54 |", "| SOT-001 | Source of Truth | 1.4.55 |", "document index SOT version")
+          text = replace_line(
+              text,
+              r"^\| Stage 3\.27 import financial identity and cash-flow semantics remediation \|.*$",
+              "| Stage 3.27 import financial identity and cash-flow semantics remediation | Final review `REQUEST CHANGES` on `c6c3a4c`; fallback/strong identity correction implemented; temporary CI #85 passed; final-head CI, renewed required review, human approval, and squash-merge gates remain | `stages/STAGE_03_27_IMPORT_FINANCIAL_IDENTITY_REMEDIATION.md` |",
+              "document index stage 3.27 row",
+          )
+          write(path, text)
+
+          # ROADMAP
+          path = "docs/ROADMAP.md"
+          text = read(path)
+          text = replace_once(text, "| Version | 1.1.53 |", "| Version | 1.1.54 |", "roadmap version")
+          text = replace_line(
+              text,
+              r"^\| 3\.27 — Import financial identity and cash-flow semantics remediation \|.*$",
+              "| 3.27 — Import financial identity and cash-flow semantics remediation | Close audit P1-02/P1-03/P1-04 with persisted import identity, amount-aware cash reconciliation, and fail-closed cash-flow fee semantics | Final review `REQUEST CHANGES` on `c6c3a4c`; mixed fallback/strong identity correction implemented and temporary CI #85 passed; final-head CI, renewed review, human approval, and squash merge remain |",
+              "roadmap stage 3.27 row",
+          )
+          write(path, text)
+
+          # VERSION_MATRIX
+          path = "docs/VERSION_MATRIX.md"
+          text = read(path)
+          text = replace_once(text, "| Version | 1.1.59 |", "| Version | 1.1.60 |", "version matrix version")
+          text = replace_line(
+              text,
+              r"^\| Stage 3\.27 import financial identity and cash-flow semantics remediation \|.*$",
+              "| Stage 3.27 import financial identity and cash-flow semantics remediation | 0.1.0 | Final review `REQUEST CHANGES` on `c6c3a4c`; mixed fallback/strong identity correction implemented; temporary CI #85 passed; closure requires final-head CI, renewed required review, human approval, and squash merge | 3 | Principal Architect | Before Stage 3.27 merge |",
+              "version matrix stage 3.27 row",
+          )
+          write(path, text)
+
+          # Stage report: truthfully record the blocker and the corrected semantics.
+          path = "docs/stages/STAGE_03_27_IMPORT_FINANCIAL_IDENTITY_REMEDIATION.md"
+          text = read(path)
+          text = replace_line(
+              text,
+              r"^\| Status \|.*$",
+              "| Status | Open / final PR review returned `REQUEST CHANGES` on pre-correction head `c6c3a4c` / fallback-to-strong identity blocker corrected / temporary CI #85 passed / closure requires final-head green CI, renewed required PR review, explicit human approval, and squash merge |",
+              "stage report status",
+          )
+          old_row = "| Same broker identity with changed financial fields | Fail-closed identity conflict. |"
+          new_rows = (
+              old_row + "\n"
+              "| Existing fallback fingerprint `F`, then strong broker identity `B/F` | Fail closed; ambiguous identity-strength transition cannot auto-append. |\n"
+              "| Existing strong broker identity `B/F`, then fallback fingerprint `F` | Rejected; result is independent of import order. |\n"
+              "| Distinct strong broker identities `A/F` and `B/F` | Both may persist as independently identified broker operations. |"
+          )
+          text = replace_once(text, old_row, new_rows, "stage report regression rows")
+          residual_marker = "\n## Residual risks and next work\n"
+          review_section = (
+              "\n## Final-review corrective cycle\n\n"
+              "Final independent review of PR #55 at pre-correction head "
+              "`c6c3a4c91a108426448a2bc230873ab9e479a335` returned `REQUEST CHANGES`. The review found that "
+              "the original Stage 3.27 identity policy was asymmetric across identity-strength transitions: a fallback row "
+              "identified only by financial fingerprint could be stored first, then a later row carrying a broker-operation "
+              "key and the same financial fingerprint could bypass the strong-key lookup and coexist with it. The inverse "
+              "arrival order was rejected, so financial state could depend on import order and double-count one operation.\n\n"
+              "The correction makes mixed-strength identity fail closed at four boundaries: importer reconciliation against "
+              "persisted rows, same-file review, vertical-slice batch validation, and PostgreSQL store/database enforcement. "
+              "The database guard takes a transaction-scoped advisory lock derived from portfolio, source-account scope, "
+              "identity version, and financial fingerprint before checking for a fallback/strong collision, preventing "
+              "concurrent direct inserts from racing through the check. Distinct non-null broker-operation identities with "
+              "the same financial fingerprint remain allowed.\n\n"
+              "Temporary corrective CI run #85 passed all six repository jobs, including full Go integration tests and "
+              "PostgreSQL migration validation/apply/rollback/reapply. Because governance synchronization and cleanup occur "
+              "after that run, #85 is historical technical evidence only; the final PR #55 head must run green CI again "
+              "before renewed independent review and human merge approval.\n"
+          )
+          text = replace_once(text, residual_marker, review_section + residual_marker, "stage report corrective section")
+          write(path, text)
+
+      - name: Remove one-time workflow and verify delta
+        run: |
+          git rm .github/workflows/stage327-corrective-selfpatch.yml
+          git diff --check
+          git status --short
+
+      - name: Commit self-cleaned correction
+        run: |
+          git config user.name "OpenInvest corrective automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add -- \
+            backend-go/internal/postgres/store.go \
+            docs/CHANGELOG.md \
+            docs/DOCUMENT_INDEX.md \
+            docs/IMPLEMENTATION_LOG.md \
+            docs/ROADMAP.md \
+            docs/SOURCE_OF_TRUTH.md \
+            docs/VERSION_MATRIX.md \
+            docs/stages/STAGE_03_27_IMPORT_FINANCIAL_IDENTITY_REMEDIATION.md
+          git diff --cached --check
+          git commit -m "docs: record Stage 3.27 final-review correction"
+          git push origin HEAD:fix/stage-03-27-fallback-strong-correction
