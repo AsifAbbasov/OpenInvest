@@ -3,24 +3,24 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.57 |
+| Version | 1.4.58 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
-| Last Review Date | 2026-08-18 |
+| Last Review Date | 2026-08-22 |
 | Next Review Date | Before Stage 3.25 privacy evidence-collection plan review |
 
 ## Architecture status
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.16 — Repository Audit Fixes**
+**Last completed implementation stage: Stage 3.27 — Import Financial Identity and Cash-Flow Semantics Remediation**
 **Last completed planning gate: Stage 3.24 — Privacy Security Review Readiness Dossier**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
 **Current canonical implementation baseline: `develop` at `6e8c806de857f844954f1db513487357dfe90187`**
 **Current privacy-planning work item: Stage 3.25 privacy Security Review evidence-collection plan; it remains documentation-only and does not authorize privacy-lifecycle implementation**
-**Stage 3.27 remediation implementation is merged into `develop` through PR #55 at `6e8c806de857f844954f1db513487357dfe90187` after exact-head CI #90, renewed independent `APPROVED` review on `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c`, and explicit human squash-merge authorization; closure governance is recorded by PR #58 and becomes canonical only when that closure PR passes its own required gates and is squash-merged; P1-01 and P1-05 remain separate future remediation**
+**Stage 3.27 remediation: CLOSED for P1-02, P1-03, and P1-04; implementation PR #55 was squash-merged into `develop` at `6e8c806de857f844954f1db513487357dfe90187` after exact-head CI #90, renewed independent `APPROVED` review on `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c`, and explicit human squash-merge authorization; closure governance is recorded through PR #58; P1-01 and P1-05 remain separate future remediation**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -211,7 +211,7 @@ squash-merged into `develop`.
 Final independent review of PR #55 at pre-correction head `c6c3a4c91a108426448a2bc230873ab9e479a335` identified a blocking P1-02 order-dependence: a fallback fingerprint row could be persisted first and then coexist with a later strong broker-keyed row carrying the same scoped financial fingerprint. The corrective candidate rejects mixed fallback/strong identity in importer review, batch validation, PostgreSQL store lookup, and a concurrency-serialized database guard, while still allowing distinct non-null broker identities with identical economics. Temporary CI run #85 passed on the corrective code candidate before final governance synchronization; it remains historical, head-specific evidence. Current CI state is intentionally not pinned to a run number in tracked governance: the authoritative gate is the required PR checks attached to the exact merge-candidate head.
 
 
-### Stage 3.27 closure governance candidate
+### Stage 3.27 closure governance
 
 Implementation PR #55 was squash-merged into `develop` at `6e8c806de857f844954f1db513487357dfe90187`.
 Its exact merge-candidate head `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c` passed GitHub Actions CI #90
@@ -220,10 +220,9 @@ of the earlier order-dependent fallback-to-strong identity blocker.
 
 Explicit human authorization approved the squash merge.
 
-This closure record is delivered through PR #58 and is not canonical merely
-because it exists on this branch. It becomes canonical only after PR #58
-passes its own required CI/review/human-approval gates and is squash-merged
-into `develop`.
+Closure governance is recorded through PR #58. Once this document is canonical
+on `develop`, Stage 3.27 is closed for P1-02, P1-03, and P1-04; the remaining
+P1-01 and P1-05 findings continue under separate future remediation.
 
 Stage 3.27 closes only P1-02, P1-03, and P1-04. P1-01 refresh-token family
 replay and P1-05 Argon2 resource-exhaustion remain separate future

@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementation complete / merged; closure governance candidate PR #58 becomes canonical only after its own required gates and squash merge |
+| Status | Complete / closed for P1-02, P1-03, and P1-04; implementation merged through PR #55; closure governance recorded through PR #58 |
 | Owner | Principal Architect |
 | Baseline | `develop` at `213d1d9b4369a5e046b26c3a08990aa571603eaa` |
 | Branch | `fix/stage-03-27-import-financial-identity` |
@@ -10,7 +10,7 @@
 | Final Review | `APPROVED` on `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c` after earlier `REQUEST CHANGES` was corrected |
 | Final CI | GitHub Actions #90 `SUCCESS` on `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c` |
 | Human Merge Authorization | Explicit user approval on 2026-08-22 |
-| Closure Governance | PR #58; non-canonical until its required gates and squash merge complete |
+| Closure Governance | PR #58 |
 | Trigger | Repository audit P1 findings P1-02, P1-03, and P1-04 |
 | Scope | Import identity/provenance, duplicate/conflict classification, cash-flow fee semantics, PostgreSQL constraints, OpenAPI contract, regression coverage |
 | Out of scope | Authentication/session hardening, Argon2 availability controls, unrelated P2/P3 findings, product feature expansion |
@@ -228,7 +228,7 @@ The correction makes mixed-strength identity fail closed at four boundaries: imp
 Temporary corrective CI run #85 passed all six repository jobs, including full Go integration tests and PostgreSQL migration validation/apply/rollback/reapply. Because later governance synchronization advances the head, #85 remains historical technical evidence only. Tracked governance intentionally does not pin the current CI run number: the authoritative CI gate is the required PR checks on the exact merge-candidate head before renewed independent review and human merge approval.
 
 
-## Closure governance candidate
+## Closure governance
 
 - Final merge-candidate head `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c` passed GitHub Actions CI #90
   across frontend, PostgreSQL migration apply/rollback/reapply, Go tests,
@@ -240,9 +240,8 @@ Temporary corrective CI run #85 passed all six repository jobs, including full G
   contains its correction and regression coverage.
 - Explicit human authorization approved squash merge of PR #55.
 - PR #55 was squash-merged into `develop` at `6e8c806de857f844954f1db513487357dfe90187`.
-- PR #58 carries this closure record. The record becomes canonical only after
-  PR #58 passes its own CI, independent review, explicit human merge approval,
-  and squash merge.
+- PR #58 records the closure governance for Stage 3.27. Once this document is
+  canonical on `develop`, P1-02/P1-03/P1-04 are closed.
 - Closure scope is P1-02, P1-03, and P1-04 only.
 - P1-01 and P1-05 remain unresolved separate audit-remediation items.
 - Stage 3.25 remains separate proposal-only privacy evidence planning.
