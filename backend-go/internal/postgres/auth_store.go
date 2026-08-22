@@ -104,7 +104,7 @@ func (s *Store) RotateSession(ctx context.Context, currentRefreshTokenHash strin
 	}
 	defer rollback(tx)
 
-	current, err := lockRefreshSession(ctx, tx, currentRefreshTokenHash, currentCSRFTokenHash)
+	familyID, err := lookupRefreshSessionFamily(ctx, tx, currentRefreshTokenHash, currentCSRFTokenHash)
 	if err != nil {
 		if errors.Is(err, auth.ErrInvalidSession) {
 			if auditErr := recordAuthAudit(ctx, tx, "", "AUTH_REFRESH_REJECTED", "session", "", "failure", now); auditErr != nil {
@@ -115,6 +115,17 @@ func (s *Store) RotateSession(ctx context.Context, currentRefreshTokenHash strin
 			}
 		}
 		return auth.StoredUser{}, err
+	}
+	if err := lockSessionFamily(ctx, tx, familyID); err != nil {
+		return auth.StoredUser{}, err
+	}
+
+	current, err := lockRefreshSession(ctx, tx, currentRefreshTokenHash, currentCSRFTokenHash)
+	if err != nil {
+		return auth.StoredUser{}, err
+	}
+	if current.SessionFamilyID != familyID {
+		return auth.StoredUser{}, auth.ErrInvalidSession
 	}
 
 	if current.SessionState != "active" {
@@ -268,6 +279,27 @@ func recordAuthAudit(ctx context.Context, tx *sql.Tx, actorID string, actionCode
 			NULL, NULL, $7, 1
 		)
 	`, uuid.NewString(), actorID, actionCode, targetKind, targetID, outcome, now)
+	return err
+}
+
+func lookupRefreshSessionFamily(ctx context.Context, tx *sql.Tx, refreshTokenHash string, csrfTokenHash string) (string, error) {
+	var familyID string
+	err := tx.QueryRowContext(ctx, `
+		SELECT session_family_id
+		FROM identity.sessions
+		WHERE refresh_token_hash = $1
+			AND csrf_token_hash = $2
+	`, refreshTokenHash, csrfTokenHash).Scan(&familyID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", auth.ErrInvalidSession
+	}
+	return familyID, err
+}
+
+func lockSessionFamily(ctx context.Context, tx *sql.Tx, sessionFamilyID string) error {
+	_, err := tx.ExecContext(ctx, `
+		SELECT pg_advisory_xact_lock(hashtextextended($1, 0))
+	`, sessionFamilyID)
 	return err
 }
 
