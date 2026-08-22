@@ -3,24 +3,24 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.56 |
+| Version | 1.4.58 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
-| Last Review Date | 2026-08-18 |
+| Last Review Date | 2026-08-22 |
 | Next Review Date | Before Stage 3.25 privacy evidence-collection plan review |
 
 ## Architecture status
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.16 — Repository Audit Fixes**
+**Last completed implementation stage: Stage 3.27 — Import Financial Identity and Cash-Flow Semantics Remediation**
 **Last completed planning gate: Stage 3.24 — Privacy Security Review Readiness Dossier**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `544ad8cc7371caf93913ea7716f3feb68be0ea44`**
+**Current canonical implementation baseline: `develop` at `6e8c806de857f844954f1db513487357dfe90187`**
 **Current privacy-planning work item: Stage 3.25 privacy Security Review evidence-collection plan; it remains documentation-only and does not authorize privacy-lifecycle implementation**
-**Current remediation delivery item: Stage 3.27 Import Financial Identity and Cash-Flow Semantics Remediation; final independent PR review of pre-correction head `c6c3a4c` returned `REQUEST CHANGES` for an order-dependent fallback-to-strong import-identity transition; the corrective candidate now fails closed when fallback and strong identities share the same scoped financial fingerprint while preserving distinct strong broker identities; CI evidence is head-specific and authoritative only through the required PR checks attached to the exact merge-candidate head; closure requires those checks to be green, renewed required PR review, explicit human merge approval, and squash merge into `develop`**
+**Stage 3.27 remediation: CLOSED for P1-02, P1-03, and P1-04; implementation PR #55 was squash-merged into `develop` at `6e8c806de857f844954f1db513487357dfe90187` after exact-head CI #90, renewed independent `APPROVED` review on `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c`, and explicit human squash-merge authorization; closure governance is recorded through PR #58; P1-01 and P1-05 remain separate future remediation**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -209,6 +209,24 @@ squash-merged into `develop`.
 ### Stage 3.27 final-review correction
 
 Final independent review of PR #55 at pre-correction head `c6c3a4c91a108426448a2bc230873ab9e479a335` identified a blocking P1-02 order-dependence: a fallback fingerprint row could be persisted first and then coexist with a later strong broker-keyed row carrying the same scoped financial fingerprint. The corrective candidate rejects mixed fallback/strong identity in importer review, batch validation, PostgreSQL store lookup, and a concurrency-serialized database guard, while still allowing distinct non-null broker identities with identical economics. Temporary CI run #85 passed on the corrective code candidate before final governance synchronization; it remains historical, head-specific evidence. Current CI state is intentionally not pinned to a run number in tracked governance: the authoritative gate is the required PR checks attached to the exact merge-candidate head.
+
+
+### Stage 3.27 closure governance
+
+Implementation PR #55 was squash-merged into `develop` at `6e8c806de857f844954f1db513487357dfe90187`.
+Its exact merge-candidate head `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c` passed GitHub Actions CI #90
+and renewed independent external review returned `APPROVED` after correction
+of the earlier order-dependent fallback-to-strong identity blocker.
+
+Explicit human authorization approved the squash merge.
+
+Closure governance is recorded through PR #58. Once this document is canonical
+on `develop`, Stage 3.27 is closed for P1-02, P1-03, and P1-04; the remaining
+P1-01 and P1-05 findings continue under separate future remediation.
+
+Stage 3.27 closes only P1-02, P1-03, and P1-04. P1-01 refresh-token family
+replay and P1-05 Argon2 resource-exhaustion remain separate future
+audit-remediation work. Stage 3.25 privacy evidence planning remains separate.
 
 ## Financial standard
 

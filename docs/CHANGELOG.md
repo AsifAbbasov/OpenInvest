@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.53 |
+| Version | 1.1.55 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-08-18 |
+| Last Review Date | 2026-08-22 |
 | Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
 
 ## 2026-06-19 — Architecture Freeze v1.2
@@ -714,3 +714,17 @@
 - Added direct PostgreSQL and service/store regressions for both arrival orders plus a concurrent mixed-strength insertion test; the database guard serializes the scoped fingerprint check with a transaction-level advisory lock.
 - Temporary corrective CI run #85 passed all repository jobs, including PostgreSQL migration validation/apply/rollback/reapply and Go integration tests. This run is not final PR-head evidence because later governance synchronization advances the candidate head.
 - Stage 3.27 remains open; exact-head CI evidence is authoritative through PR checks rather than a pinned run number, and closure still requires renewed required PR review, explicit human merge approval, and squash merge into `develop`.
+
+
+## 2026-08-22 — Stage 3.27 closure governance
+
+- Recorded exact-head CI #90 success on `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c`.
+- Recorded renewed independent review `APPROVED` after correction of the
+  P1-02 fallback/strong identity defect.
+- Recorded explicit human squash-merge authorization.
+- Recorded PR #55 squash merge into `develop` at `6e8c806de857f844954f1db513487357dfe90187`.
+- PR #58 records closure governance for Stage 3.27; once this record is canonical
+  on `develop`, P1-02/P1-03/P1-04 are closed.
+- Stage 3.27 scope remains P1-02/P1-03/P1-04 only.
+- P1-01 and P1-05 remain separate future remediation.
+- Stage 3.25 remains separate.
