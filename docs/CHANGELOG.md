@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.52 |
+| Version | 1.1.53 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -702,8 +702,8 @@
 - The implementation candidate was committed and pushed as
   `19a8abbb0c07ded7441839bfa99b538739e21fbc`; Draft PR #55 was opened against `develop`, and
   GitHub Actions CI run #83 passed on that implementation head.
-- Stage 3.27 remains open until the final PR head has green CI, required PR review is approved,
-  explicit human merge approval is given, and squash merge into `develop` completes.
+- Stage 3.27 remains open. Canonical closure requires the required PR checks to be green on the exact
+  merge-candidate head, required PR review approval, explicit human merge approval, and squash merge into `develop`.
 
 
 ## 2026-08-22 — Stage 3.27 final-review identity-transition correction
@@ -713,4 +713,4 @@
 - Preserved the intended rule that distinct strong broker identities `A/F` and `B/F` may coexist when they represent independently identified broker executions with identical economics.
 - Added direct PostgreSQL and service/store regressions for both arrival orders plus a concurrent mixed-strength insertion test; the database guard serializes the scoped fingerprint check with a transaction-level advisory lock.
 - Temporary corrective CI run #85 passed all repository jobs, including PostgreSQL migration validation/apply/rollback/reapply and Go integration tests. This run is not final PR-head evidence because later governance synchronization advances the candidate head.
-- Stage 3.27 remains open; closure still requires green CI on the final PR #55 head, renewed required PR review, explicit human merge approval, and squash merge into `develop`.
+- Stage 3.27 remains open; exact-head CI evidence is authoritative through PR checks rather than a pinned run number, and closure still requires renewed required PR review, explicit human merge approval, and squash merge into `develop`.

@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Open / final PR review returned `REQUEST CHANGES` on pre-correction head `c6c3a4c` / fallback-to-strong identity blocker corrected / temporary CI #85 passed / closure requires final-head green CI, renewed required PR review, explicit human approval, and squash merge |
+| Status | Open / final PR review returned `REQUEST CHANGES` on pre-correction head `c6c3a4c` / fallback-to-strong identity blocker corrected / exact-head CI governed by required PR checks / closure requires renewed required PR review, explicit human approval, and squash merge |
 | Owner | Principal Architect |
 | Baseline | `develop` at `213d1d9b4369a5e046b26c3a08990aa571603eaa` |
 | Branch | `fix/stage-03-27-import-financial-identity` |
@@ -220,7 +220,7 @@ Final independent review of PR #55 at pre-correction head `c6c3a4c91a108426448a2
 
 The correction makes mixed-strength identity fail closed at four boundaries: importer reconciliation against persisted rows, same-file review, vertical-slice batch validation, and PostgreSQL store/database enforcement. The database guard takes a transaction-scoped advisory lock derived from portfolio, source-account scope, identity version, and financial fingerprint before checking for a fallback/strong collision, preventing concurrent direct inserts from racing through the check. Distinct non-null broker-operation identities with the same financial fingerprint remain allowed.
 
-Temporary corrective CI run #85 passed all six repository jobs, including full Go integration tests and PostgreSQL migration validation/apply/rollback/reapply. Because governance synchronization and cleanup occur after that run, #85 is historical technical evidence only; the final PR #55 head must run green CI again before renewed independent review and human merge approval.
+Temporary corrective CI run #85 passed all six repository jobs, including full Go integration tests and PostgreSQL migration validation/apply/rollback/reapply. Because later governance synchronization advances the head, #85 remains historical technical evidence only. Tracked governance intentionally does not pin the current CI run number: the authoritative CI gate is the required PR checks on the exact merge-candidate head before renewed independent review and human merge approval.
 
 ## Residual risks and next work
 
