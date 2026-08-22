@@ -1,0 +1,90 @@
+name: Stage 3.27 final review bundle
+
+on:
+  pull_request:
+    types: [synchronize]
+    branches: [develop]
+
+permissions:
+  contents: read
+
+jobs:
+  bundle:
+    if: github.head_ref == 'fix/stage-03-27-ci-neutral-governance'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Build exact PR #55 review bundle
+        run: |
+          git fetch origin develop fix/stage-03-27-import-financial-identity
+          HEAD_SHA="$(git rev-parse origin/fix/stage-03-27-import-financial-identity)"
+          test "$HEAD_SHA" = "b281d5bdc1c28ca4f4ac6d913ca9683859209e4c"
+          git diff --binary origin/develop...origin/fix/stage-03-27-import-financial-identity > OpenInvest-PR55-final-review-b281d5bd.diff
+          cat > OpenInvest-PR55-review-context.txt <<'EOF'
+          Repository: AsifAbbasov/OpenInvest
+          Pull request: #55
+          Base: develop
+          Canonical baseline: 213d1d9b4369a5e046b26c3a08990aa571603eaa
+          Exact merge-candidate head: b281d5bdc1c28ca4f4ac6d913ca9683859209e4c
+          PR state: Draft / open / not merged
+          Changed files: 23
+          Exact-head GitHub Actions CI: run #90 SUCCESS
+          Required CI jobs passed: Frontend build and typecheck; PostgreSQL migration validation including apply/rollback/reapply; Go tests with PostgreSQL; Docker Compose config; Python tests; OpenAPI contract.
+
+          Previous final review of pre-correction head c6c3a4c91a108426448a2bc230873ab9e479a335 returned REQUEST CHANGES for an order-dependent fallback/strong import-identity transition.
+          The current exact head includes the correction plus CI-neutral governance wording. Stage 3.25 privacy planning remains separate. Stage 3.27 is not merged, canonical, complete, or closed.
+          Remaining gates after an APPROVED independent review are explicit human merge approval and squash merge into develop.
+          EOF
+          cat > reviewer-prompt.txt <<'EOF'
+          This is the renewed final independent review of OpenInvest PR #55 after correcting the blocking P1-02 order-dependent fallback/strong import-identity transition.
+
+          Review the complete attached PR diff against develop, not only the latest governance commit.
+
+          Exact merge-candidate head:
+          b281d5bdc1c28ca4f4ac6d913ca9683859209e4c
+
+          Verification evidence outside the tracked diff:
+          - PR #55 is Draft, open, and not merged.
+          - GitHub Actions CI run #90 completed SUCCESS on this exact head.
+          - All six required jobs passed: Frontend build and typecheck; PostgreSQL migration validation including apply/rollback/reapply; Go tests with PostgreSQL; Docker Compose config; Python tests; OpenAPI contract.
+
+          Verify especially that:
+          - P1-02 import identity is correct across importer review, append planning, vertical-slice validation, PostgreSQL store lookup, persistence, and database defense in depth;
+          - fallback F plus strong B/F for the same scoped financial fingerprint fails closed in BOTH arrival orders;
+          - concurrent direct database inserts cannot race around the mixed-strength rule;
+          - distinct strong broker identities A/F and B/F remain allowed as separate broker executions;
+          - repeated broker identity with changed economics fails closed;
+          - raw broker operation identifiers are not persisted;
+          - P1-03 cash near-match identity includes gross amount so different same-day cash amounts do not false-conflict;
+          - P1-04 nonzero commission/tax for DEPOSIT/WITHDRAWAL is rejected consistently in importer, application validation, OpenAPI, and PostgreSQL;
+          - migration 000004 applies, rolls back, and reapplies coherently and the down migration removes the trigger/function/indexes/constraints/columns it owns;
+          - tests cover the materially dangerous paths, including direct PostgreSQL bypass and concurrency;
+          - Stage 3.27 governance is mutually consistent across SOURCE_OF_TRUTH, IMPLEMENTATION_LOG, CHANGELOG, DOCUMENT_INDEX, ROADMAP, VERSION_MATRIX, and the Stage 3.27 report;
+          - tracked governance treats CI as head-specific PR-check evidence without pinning a current run number and therefore does not create a documentation→commit→stale-CI recursion;
+          - the historical REQUEST CHANGES and historical CI evidence are represented accurately;
+          - Stage 3.25 privacy planning remains separate and is not superseded;
+          - Stage 3.27 is NOT described as merged, canonical, complete, or closed;
+          - no unrelated architecture/product-scope expansion or unsupported review/merge evidence is introduced.
+
+          Do not edit anything.
+
+          Final verdict must be exactly one of:
+
+          APPROVED
+          REQUEST CHANGES
+
+          If there is any blocking technical or governance inconsistency, list it before REQUEST CHANGES.
+          Otherwise return APPROVED.
+          EOF
+          zip -q OpenInvest-PR55-final-review-b281d5bd.zip OpenInvest-PR55-final-review-b281d5bd.diff OpenInvest-PR55-review-context.txt reviewer-prompt.txt
+          sha256sum OpenInvest-PR55-final-review-b281d5bd.zip > OpenInvest-PR55-final-review-b281d5bd.sha256
+          cat OpenInvest-PR55-final-review-b281d5bd.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OpenInvest-PR55-final-review-b281d5bd
+          path: |
+            OpenInvest-PR55-final-review-b281d5bd.zip
+            OpenInvest-PR55-final-review-b281d5bd.sha256
+          retention-days: 1
