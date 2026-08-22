@@ -8,7 +8,10 @@ import (
 	"strings"
 )
 
-const Scale = 8
+const (
+	Scale     = 8
+	Precision = 28
+)
 
 var scaleFactor = big.NewInt(100000000)
 
@@ -54,6 +57,10 @@ func FromString(input string) (Decimal, error) {
 	}
 
 	fraction = fraction + strings.Repeat("0", Scale-len(fraction))
+	canonicalDigits := strings.TrimLeft(whole+fraction, "0")
+	if len(canonicalDigits) > Precision {
+		return Zero(), fmt.Errorf("decimal %q exceeds NUMERIC(%d,%d) precision", input, Precision, Scale)
+	}
 	unscaled := new(big.Int)
 	if _, ok := unscaled.SetString(whole+fraction, 10); !ok {
 		return Zero(), fmt.Errorf("invalid decimal %q", input)
@@ -130,6 +137,17 @@ func (d Decimal) IsZero() bool {
 
 func (d Decimal) IsPositive() bool {
 	return d.value.Sign() > 0
+}
+
+// FitsStorage reports whether the normalized value fits the canonical PostgreSQL
+// NUMERIC(28,8) storage contract. Arithmetic can grow beyond the ingress precision,
+// so persistence-bound derived values must re-check this invariant.
+func (d Decimal) FitsStorage() bool {
+	if d.value == nil {
+		return false
+	}
+	value := new(big.Int).Abs(new(big.Int).Set(d.value))
+	return len(value.Text(10)) <= Precision
 }
 
 func divHalfEven(numerator *big.Int, denominator *big.Int) *big.Int {

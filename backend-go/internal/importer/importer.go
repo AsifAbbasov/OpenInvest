@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/openinvest/openinvest/backend-go/internal/decimal"
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
@@ -355,6 +356,9 @@ func normalizeCandidate(columns map[string]int, record []string) (*Candidate, st
 	safeBrokerOperationID := neutralizeSpreadsheetText(brokerOperationID)
 	brokerOperationKey := verticalslice.BrokerOperationKey(brokerOperationID)
 	note := neutralizeSpreadsheetText(value(record, columns, "note"))
+	if utf8.RuneCountInString(note) > 500 {
+		return nil, safeBrokerOperationID, brokerOperationKey, []string{"NOTE_TOO_LONG"}
+	}
 
 	gross, err := parseMoney(grossText, "GROSS_AMOUNT")
 	grossParsed := err == nil
@@ -419,7 +423,9 @@ func normalizeCandidate(columns map[string]int, record []string) (*Candidate, st
 		}
 		if grossParsed && candidate.Quantity != nil && candidate.UnitPrice != nil {
 			expectedGross := candidate.Quantity.Mul(candidate.UnitPrice.Amount)
-			if !expectedGross.Equal(candidate.GrossAmount.Amount) {
+			if !expectedGross.FitsStorage() {
+				reasons = append(reasons, "GROSS_AMOUNT_OUT_OF_RANGE")
+			} else if !expectedGross.Equal(candidate.GrossAmount.Amount) {
 				reasons = append(reasons, "GROSS_AMOUNT_MISMATCH")
 			}
 		}
@@ -446,7 +452,11 @@ func mapColumns(header []string) (map[string]int, error) {
 	}
 	columns := map[string]int{}
 	for index, value := range header {
-		columns[strings.ToLower(strings.TrimSpace(value))] = index
+		normalized := strings.ToLower(strings.TrimSpace(value))
+		if _, exists := columns[normalized]; exists {
+			return nil, fmt.Errorf("%w: duplicate CSV column %q", ErrInvalidImport, normalized)
+		}
+		columns[normalized] = index
 	}
 	for _, column := range required {
 		if _, ok := columns[column]; !ok {
