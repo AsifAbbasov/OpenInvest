@@ -85,10 +85,16 @@ func (s *Service) Login(ctx context.Context, request LoginRequest) (AuthResult, 
 	}
 	user, passwordHash, err := s.store.FindUserByEmail(ctx, email)
 	if err != nil {
-		verifyPasswordAgainstDummy(request.Password)
+		if capacityErr := verifyPasswordAgainstDummy(request.Password); capacityErr != nil {
+			return AuthResult{}, capacityErr
+		}
 		return AuthResult{}, ErrInvalidCredentials
 	}
-	if !verifyPassword(request.Password, passwordHash) {
+	verified, err := verifyPassword(request.Password, passwordHash)
+	if err != nil {
+		return AuthResult{}, err
+	}
+	if !verified {
 		return AuthResult{}, ErrInvalidCredentials
 	}
 	refreshToken, csrfToken, session, err := s.newSessionRecord(user.ID)
