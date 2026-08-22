@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.49 |
+| Version | 1.1.53 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -680,3 +680,37 @@
 - Did not collect evidence, perform Security Review, accept ADR-008, select a provider, or change
   runtime code, OpenAPI, schema, migrations, credentials, dependencies, backups, CI, operations,
   or product scope.
+
+## 2026-08-22 — Stage 3.27 import financial-identity remediation verified
+
+- Remediated repository-audit findings P1-02, P1-03, and P1-04 without expanding product scope.
+- Preserved per-row imported-operation identity through review, append, and PostgreSQL persistence
+  using source-account scope, versioned normalized financial fingerprints, and SHA-256 broker
+  operation identity keys without persisting raw broker operation identifiers.
+- Corrected cash near-match classification so distinct same-day deposits or withdrawals with
+  different gross amounts are not collapsed into one conflict bucket.
+- Failed closed on non-zero commission or tax for `DEPOSIT` and `WITHDRAWAL` until an approved
+  accounting methodology defines those semantics, enforcing the rule in importer, application
+  validation, OpenAPI, and PostgreSQL.
+- Added migration `000004` with partial unique import-identity indexes, consistency constraints,
+  rollback support, and PostgreSQL defense-in-depth enforcement.
+- Verified the candidate with PostgreSQL 18, Go 1.25.14, OpenAPI validation, four migration pairs,
+  full migration rollback/reapply, targeted integration/concurrency regressions, full
+  `go test -count=1 ./...`, `go vet ./...`, `git diff --check`, and direct database negative tests.
+- Independent pre-commit review returned `APPROVED` with no remaining P0/P1/P2 blocker in the
+  Stage 3.27 commit candidate.
+- The implementation candidate was committed and pushed as
+  `19a8abbb0c07ded7441839bfa99b538739e21fbc`; Draft PR #55 was opened against `develop`, and
+  GitHub Actions CI run #83 passed on that implementation head.
+- Stage 3.27 remains open. Canonical closure requires the required PR checks to be green on the exact
+  merge-candidate head, required PR review approval, explicit human merge approval, and squash merge into `develop`.
+
+
+## 2026-08-22 — Stage 3.27 final-review identity-transition correction
+
+- Final independent review of PR #55 at `c6c3a4c91a108426448a2bc230873ab9e479a335` returned `REQUEST CHANGES` after identifying an order-dependent P1-02 fallback-to-strong identity transition that could double-count one economic operation.
+- Corrected importer review, import-batch validation, PostgreSQL store lookup, and database defense in depth so fallback `F` plus strong `B/F` fails closed in either arrival order.
+- Preserved the intended rule that distinct strong broker identities `A/F` and `B/F` may coexist when they represent independently identified broker executions with identical economics.
+- Added direct PostgreSQL and service/store regressions for both arrival orders plus a concurrent mixed-strength insertion test; the database guard serializes the scoped fingerprint check with a transaction-level advisory lock.
+- Temporary corrective CI run #85 passed all repository jobs, including PostgreSQL migration validation/apply/rollback/reapply and Go integration tests. This run is not final PR-head evidence because later governance synchronization advances the candidate head.
+- Stage 3.27 remains open; exact-head CI evidence is authoritative through PR checks rather than a pinned run number, and closure still requires renewed required PR review, explicit human merge approval, and squash merge into `develop`.

@@ -24,6 +24,17 @@ active documentation-only evidence-collection plan; it does not collect evidence
 Review, accept ADR-008, or authorize an implementation stage, provider, schema, or operational change.
 Product-risk refinement is closed and remains part of the MVP governance baseline.
 
+## Current audit remediation
+
+Stage 3.27 is an audit-remediation slice for import financial identity and cash-flow semantics. The
+repository audit identified three P1 defects: broker-operation identity was not persisted through the
+append boundary, cash near-match classification omitted the transaction amount, and deposits/withdrawals
+accepted fee fields whose economic effect was undefined. The remediation uses versioned persisted import
+identity, amount-aware cash reconciliation, and fail-closed zero-fee cash-flow semantics. Detailed root
+cause, design rationale, migration impact, regression coverage, and verification evidence are recorded in
+[`docs/stages/STAGE_03_27_IMPORT_FINANCIAL_IDENTITY_REMEDIATION.md`](docs/stages/STAGE_03_27_IMPORT_FINANCIAL_IDENTITY_REMEDIATION.md).
+Stage 3.27 remains open until its runtime, PostgreSQL, review, and governance gates are complete.
+
 ## Components
 
 - `backend-go/` — Go 1.24+ API using Fiber.

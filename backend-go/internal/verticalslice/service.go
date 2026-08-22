@@ -174,6 +174,11 @@ func (s *Service) AppendImportedTransactions(ctx context.Context, requestContext
 	if err := ValidateIdempotencyKey(idempotencyKey); err != nil {
 		return nil, err
 	}
+	prepared, err := prepareAppendImportBatch(request)
+	if err != nil {
+		return nil, err
+	}
+	request = prepared
 	if err := validateAppendImportBatch(request); err != nil {
 		return nil, err
 	}
@@ -219,6 +224,9 @@ func validateAppendImportBatch(request AppendImportBatchRequest) error {
 	if request.SourceKind != "USER_UPLOADED_FILE" {
 		return fmt.Errorf("%w: sourceKind must be USER_UPLOADED_FILE", ErrInvalidInput)
 	}
+	if len(request.SourceAccountLabel) > 120 {
+		return fmt.Errorf("%w: sourceAccountLabel must be at most 120 characters", ErrInvalidInput)
+	}
 	sourceFileHash := strings.TrimSpace(request.SourceFileHash)
 	if sourceFileHash == "" {
 		return fmt.Errorf("%w: sourceFileHash is required", ErrInvalidInput)
@@ -236,6 +244,7 @@ func validateAppendImportBatch(request AppendImportBatchRequest) error {
 		return fmt.Errorf("%w: imported transaction batch must contain at most 100 rows", ErrInvalidInput)
 	}
 	seen := map[string]struct{}{}
+	seenIdentityStrength := map[string]int{}
 	for index, transaction := range request.Transactions {
 		if transaction.PortfolioID != request.PortfolioID {
 			return fmt.Errorf("%w: imported transaction %d portfolioId does not match batch portfolioId", ErrInvalidInput, index+1)
@@ -243,6 +252,18 @@ func validateAppendImportBatch(request AppendImportBatchRequest) error {
 		if err := validateAppendTransaction(transaction); err != nil {
 			return fmt.Errorf("%w: imported transaction %d is invalid", err, index+1)
 		}
+		if err := validateImportProvenance(transaction.ImportProvenance); err != nil {
+			return fmt.Errorf("%w: imported transaction %d has invalid provenance", err, index+1)
+		}
+		provenance := transaction.ImportProvenance
+		identityStrength := 1
+		if provenance.BrokerOperationKey != "" {
+			identityStrength = 2
+		}
+		if previousStrength, ok := seenIdentityStrength[provenance.SourceFingerprint]; ok && previousStrength != identityStrength {
+			return fmt.Errorf("%w: imported transaction %d mixes fallback and broker identity for the same financial fingerprint", ErrInvalidInput, index+1)
+		}
+		seenIdentityStrength[provenance.SourceFingerprint] = identityStrength
 		key, err := appendRequestBusinessKey(transaction)
 		if err != nil {
 			return err
@@ -273,6 +294,9 @@ func validateAppendTransaction(request AppendTransactionRequest) error {
 		if request.Ticker != nil || request.Quantity != nil || request.UnitPrice != nil {
 			return fmt.Errorf("%w: cash flows must not include ticker, quantity, or unitPrice", ErrInvalidInput)
 		}
+		if !request.Commission.Amount.IsZero() || !request.Tax.Amount.IsZero() {
+			return fmt.Errorf("%w: cash flow commission and tax are unsupported and must be zero", ErrInvalidInput)
+		}
 	default:
 		return fmt.Errorf("%w: transactionType is outside Stage 3.2 scope", ErrInvalidInput)
 	}
@@ -298,6 +322,13 @@ func validateAppendTransaction(request AppendTransactionRequest) error {
 }
 
 func appendRequestBusinessKey(request AppendTransactionRequest) (string, error) {
+	if request.ImportProvenance != nil && request.ImportProvenance.IdentityVersion == ImportIdentityVersion {
+		if request.ImportProvenance.BrokerOperationKey != "" {
+			return "broker|" + request.ImportProvenance.BrokerOperationKey, nil
+		}
+		return "fingerprint|" + request.ImportProvenance.SourceFingerprint, nil
+	}
+
 	gross, err := GrossFor(request)
 	if err != nil {
 		return "", err
@@ -331,6 +362,62 @@ func appendRequestBusinessKey(request AppendTransactionRequest) (string, error) 
 		settlementDate,
 	}
 	return strings.Join(parts, "|"), nil
+}
+
+func prepareAppendImportBatch(request AppendImportBatchRequest) (AppendImportBatchRequest, error) {
+	request.SourceAccountLabel = strings.TrimSpace(request.SourceAccountLabel)
+	prepared := make([]AppendTransactionRequest, len(request.Transactions))
+	for index, transaction := range request.Transactions {
+		fingerprint, err := NormalizedTransactionFingerprint(transaction)
+		if err != nil {
+			return AppendImportBatchRequest{}, err
+		}
+
+		provenance := transaction.ImportProvenance
+		if provenance == nil {
+			provenance = &ImportProvenance{
+				IdentityVersion:   ImportIdentityVersion,
+				SourceFingerprint: fingerprint,
+			}
+		} else {
+			copyProvenance := *provenance
+			copyProvenance.BrokerOperationKey = strings.TrimSpace(copyProvenance.BrokerOperationKey)
+			copyProvenance.SourceFingerprint = strings.TrimSpace(copyProvenance.SourceFingerprint)
+			provenance = &copyProvenance
+			if provenance.SourceFingerprint != fingerprint {
+				return AppendImportBatchRequest{}, fmt.Errorf("%w: import source fingerprint does not match normalized transaction", ErrInvalidInput)
+			}
+		}
+
+		transaction.ImportProvenance = provenance
+		prepared[index] = transaction
+	}
+	request.Transactions = prepared
+	return request, nil
+}
+
+func validateImportProvenance(provenance *ImportProvenance) error {
+	if provenance == nil {
+		return fmt.Errorf("%w: import provenance is required", ErrInvalidInput)
+	}
+	if provenance.IdentityVersion != ImportIdentityVersion {
+		return fmt.Errorf("%w: unsupported import identity version", ErrInvalidInput)
+	}
+	if !isSHA256Hex(provenance.SourceFingerprint) {
+		return fmt.Errorf("%w: source fingerprint must be a SHA-256 hex digest", ErrInvalidInput)
+	}
+	if provenance.BrokerOperationKey != "" && !isSHA256Hex(provenance.BrokerOperationKey) {
+		return fmt.Errorf("%w: broker operation key must be a SHA-256 hex digest", ErrInvalidInput)
+	}
+	return nil
+}
+
+func isSHA256Hex(value string) bool {
+	if len(value) != hex.EncodedLen(sha256.Size) {
+		return false
+	}
+	decoded, err := hex.DecodeString(value)
+	return err == nil && len(decoded) == sha256.Size && value == strings.ToLower(value)
 }
 
 func ValidateIdempotencyKey(value string) error {

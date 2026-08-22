@@ -384,11 +384,18 @@ func (s *Store) AppendImportedTransactions(ctx context.Context, command vertical
 	}
 
 	for _, transactionRequest := range request.Transactions {
-		duplicate, err := equivalentTransactionExists(ctx, tx, transactionRequest, false)
+		duplicate, err := importIdentityExists(ctx, tx, transactionRequest, request.SourceAccountLabel)
 		if err != nil {
 			return nil, err
 		}
 		if duplicate {
+			return nil, verticalslice.ErrInvalidInput
+		}
+		legacyOrManualDuplicate, err := legacyOrManualEquivalentTransactionExists(ctx, tx, transactionRequest)
+		if err != nil {
+			return nil, err
+		}
+		if legacyOrManualDuplicate {
 			return nil, verticalslice.ErrInvalidInput
 		}
 		conflict, err := nearConflictTransactionExists(ctx, tx, transactionRequest)
@@ -411,7 +418,7 @@ func (s *Store) AppendImportedTransactions(ctx context.Context, command vertical
 		if err != nil {
 			return nil, err
 		}
-		if err := insertTransactionEntryWithID(ctx, tx, command, transactionRequest, entryID, request.SourceKind, request.SourceFileHash); err != nil {
+		if err := insertTransactionEntryWithID(ctx, tx, command, transactionRequest, entryID, request.SourceKind, request.SourceFileHash, request.SourceAccountLabel); err != nil {
 			return nil, err
 		}
 		entryIDs = append(entryIDs, entryID)
@@ -560,6 +567,96 @@ func equivalentTransactionExists(ctx context.Context, tx *sql.Tx, request vertic
 	return exists, err
 }
 
+func importIdentityExists(ctx context.Context, tx *sql.Tx, request verticalslice.AppendTransactionRequest, sourceAccountLabel string) (bool, error) {
+	provenance := request.ImportProvenance
+	if provenance == nil || provenance.IdentityVersion != verticalslice.ImportIdentityVersion {
+		return false, verticalslice.ErrInvalidInput
+	}
+
+	var exists bool
+	if provenance.BrokerOperationKey != "" {
+		err := tx.QueryRowContext(ctx, `
+			SELECT EXISTS (
+				SELECT 1
+				FROM investment.transaction_entries te
+				WHERE te.portfolio_id = $1
+					AND te.source_kind = 'USER_UPLOADED_FILE'
+					AND te.source_identity_version = $2
+					AND te.source_account_label = $3
+					AND (
+						te.source_broker_operation_key = $4
+						OR (
+							te.source_broker_operation_key IS NULL
+							AND te.source_fingerprint = $5
+						)
+					)
+			)
+		`, request.PortfolioID, provenance.IdentityVersion, strings.TrimSpace(sourceAccountLabel), provenance.BrokerOperationKey, provenance.SourceFingerprint).Scan(&exists)
+		return exists, err
+	}
+
+	err := tx.QueryRowContext(ctx, `
+		SELECT EXISTS (
+			SELECT 1
+			FROM investment.transaction_entries te
+			WHERE te.portfolio_id = $1
+				AND te.source_kind = 'USER_UPLOADED_FILE'
+				AND te.source_identity_version = $2
+				AND te.source_account_label = $3
+				AND te.source_fingerprint = $4
+		)
+	`, request.PortfolioID, provenance.IdentityVersion, strings.TrimSpace(sourceAccountLabel), provenance.SourceFingerprint).Scan(&exists)
+	return exists, err
+}
+
+func legacyOrManualEquivalentTransactionExists(ctx context.Context, tx *sql.Tx, request verticalslice.AppendTransactionRequest) (bool, error) {
+	gross, err := verticalslice.GrossFor(request)
+	if err != nil {
+		return false, err
+	}
+	var ticker any
+	if request.Ticker != nil {
+		ticker = *request.Ticker
+	}
+	var quantity any
+	if request.Quantity != nil {
+		quantity = request.Quantity.String()
+	}
+	var unitPrice any
+	if request.UnitPrice != nil {
+		unitPrice = request.UnitPrice.Amount.String()
+	}
+	var settlementDate any
+	if request.SettlementDate != nil {
+		settlementDate = *request.SettlementDate
+	}
+	var exists bool
+	err = tx.QueryRowContext(ctx, `
+		SELECT EXISTS (
+			SELECT 1
+			FROM investment.transaction_entries te
+			LEFT JOIN investment.assets a ON a.id = te.asset_id
+			WHERE te.portfolio_id = $1
+				AND te.transaction_type = $2
+				AND te.gross_amount = $3::numeric
+				AND te.commission_amount = $4::numeric
+				AND te.tax_amount = $5::numeric
+				AND te.trade_date = $6::date
+				AND (($7::date IS NULL AND te.settlement_date IS NULL) OR te.settlement_date = $7::date)
+				AND (($8::text IS NULL AND a.ticker IS NULL) OR a.ticker = $8::text)
+				AND (($9::numeric IS NULL AND te.quantity IS NULL) OR te.quantity = $9::numeric)
+				AND (($10::numeric IS NULL AND te.unit_price_amount IS NULL) OR te.unit_price_amount = $10::numeric)
+				AND (
+					te.source_kind = 'MANUAL'
+					OR (te.source_kind = 'USER_UPLOADED_FILE' AND te.source_identity_version IS NULL)
+				)
+			)
+	`, request.PortfolioID, request.TransactionType, gross.Amount.String(),
+		request.Commission.Amount.String(), request.Tax.Amount.String(), request.TradeDate,
+		settlementDate, ticker, quantity, unitPrice).Scan(&exists)
+	return exists, err
+}
+
 func nearConflictTransactionExists(ctx context.Context, tx *sql.Tx, request verticalslice.AppendTransactionRequest) (bool, error) {
 	gross, err := verticalslice.GrossFor(request)
 	if err != nil {
@@ -584,6 +681,7 @@ func nearConflictTransactionExists(ctx context.Context, tx *sql.Tx, request vert
 				AND te.trade_date = $3::date
 				AND (($4::text IS NULL AND a.ticker IS NULL) OR a.ticker = $4::text)
 				AND (($5::numeric IS NULL AND te.quantity IS NULL) OR te.quantity = $5::numeric)
+				AND (te.transaction_type NOT IN ('DEPOSIT', 'WITHDRAWAL') OR te.gross_amount = $6::numeric)
 				AND (
 					te.gross_amount <> $6::numeric
 					OR te.commission_amount <> $7::numeric
@@ -624,13 +722,13 @@ func insertTransactionEntry(ctx context.Context, tx *sql.Tx, command verticalsli
 	if _, err := ensureAsset(ctx, tx, request); err != nil {
 		return "", err
 	}
-	if err := insertTransactionEntryWithID(ctx, tx, command, request, entryID, "MANUAL", ""); err != nil {
+	if err := insertTransactionEntryWithID(ctx, tx, command, request, entryID, "MANUAL", "", ""); err != nil {
 		return "", err
 	}
 	return entryID, nil
 }
 
-func insertTransactionEntryWithID(ctx context.Context, tx *sql.Tx, command verticalslice.CommandContext, request verticalslice.AppendTransactionRequest, entryID string, sourceKind string, sourceFileHash string) error {
+func insertTransactionEntryWithID(ctx context.Context, tx *sql.Tx, command verticalslice.CommandContext, request verticalslice.AppendTransactionRequest, entryID string, sourceKind string, sourceFileHash string, sourceAccountLabel string) error {
 	gross, err := verticalslice.GrossFor(request)
 	if err != nil {
 		return err
@@ -641,26 +739,40 @@ func insertTransactionEntryWithID(ctx context.Context, tx *sql.Tx, command verti
 	}
 
 	transactionID := uuid.NewString()
+	brokerOperationKey := ""
+	sourceFingerprint := ""
+	var sourceIdentityVersion any
+	if request.ImportProvenance != nil {
+		brokerOperationKey = request.ImportProvenance.BrokerOperationKey
+		sourceFingerprint = request.ImportProvenance.SourceFingerprint
+		sourceIdentityVersion = request.ImportProvenance.IdentityVersion
+	}
 	_, err = tx.ExecContext(ctx, `
 		INSERT INTO investment.transaction_entries (
 			entry_id, transaction_id, portfolio_id, asset_id, revision, transaction_type,
 			quantity, unit_price_amount, unit_price_currency,
 			gross_amount, gross_currency, commission_amount, commission_currency,
 			tax_amount, tax_currency, trade_date, settlement_date, note,
-			source_kind, source_file_hash, created_at, request_id, trace_id
+			source_kind, source_file_hash, source_account_label,
+			source_broker_operation_key, source_fingerprint, source_identity_version,
+			created_at, request_id, trace_id
 		)
 		VALUES (
 			$1, $2, $3, $4, 1, $5,
 			$6, $7, $8,
 			$9, 'RUB', $10, 'RUB',
 			$11, 'RUB', $12, $13, $14,
-			$15, NULLIF($16, ''), $17, NULLIF($18, '')::uuid, NULLIF($19, '')
+			$15, NULLIF($16, ''), $17,
+			NULLIF($18, ''), NULLIF($19, ''), $20,
+			$21, NULLIF($22, '')::uuid, NULLIF($23, '')
 		)
 	`, entryID, transactionID, request.PortfolioID, assetID, request.TransactionType,
 		decimalString(request.Quantity), moneyAmount(request.UnitPrice), moneyCurrency(request.UnitPrice),
 		gross.Amount.String(), request.Commission.Amount.String(),
 		request.Tax.Amount.String(), request.TradeDate, request.SettlementDate, request.Note,
-		sourceKind, sourceFileHash, command.Now, command.RequestID, command.TraceID)
+		sourceKind, sourceFileHash, strings.TrimSpace(sourceAccountLabel),
+		brokerOperationKey, sourceFingerprint, sourceIdentityVersion,
+		command.Now, command.RequestID, command.TraceID)
 	if err != nil {
 		return err
 	}
@@ -786,6 +898,11 @@ func transactionSelectSQL() string {
 			te.trade_date::text,
 			te.settlement_date::text,
 			te.note,
+			te.source_kind,
+			te.source_account_label,
+			COALESCE(te.source_broker_operation_key, ''),
+			COALESCE(te.source_fingerprint, ''),
+			COALESCE(te.source_identity_version, 0),
 			te.revision,
 			te.created_at,
 			te.created_at AS updated_at
@@ -816,6 +933,8 @@ func scanTransaction(row scanner) (verticalslice.Transaction, error) {
 		&ticker, &quantity, &unitPriceAmount, &unitPriceCurrency,
 		&grossAmount, &commissionAmount, &taxAmount,
 		&transaction.TradeDate, &settlementDate, &note,
+		&transaction.SourceKind, &transaction.SourceAccountLabel,
+		&transaction.SourceBrokerOperationKey, &transaction.SourceFingerprint, &transaction.SourceIdentityVersion,
 		&transaction.Revision, &transaction.CreatedAt, &transaction.UpdatedAt,
 	)
 	if errors.Is(err, sql.ErrNoRows) {

@@ -937,6 +937,234 @@ func TestStoreAppendImportedTransactionsIsAtomicAndIdempotent(t *testing.T) {
 	}
 }
 
+func TestImportFlowPersistsDistinctBrokerOperationsWithIdenticalEconomics(t *testing.T) {
+	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
+	if databaseURL == "" {
+		t.Skip("OPENINVEST_DATABASE_TEST_URL is not set")
+	}
+
+	store, err := postgres.Open(databaseURL)
+	if err != nil {
+		t.Fatalf("open postgres store: %v", err)
+	}
+	defer store.Close()
+
+	db, err := sql.Open("pgx", databaseURL)
+	if err != nil {
+		t.Fatalf("open provenance database: %v", err)
+	}
+	closeDBOnCleanup(t, db, "broker identity provenance")
+
+	service := verticalslice.NewService(store, verticalslice.SystemClock{})
+	ctx := context.Background()
+	subjectID := uuid.NewString()
+	portfolio, err := service.CreatePortfolio(ctx, verticalslice.RequestContext{}, subjectID, "portfolio-broker-id-01", "/api/v1/portfolios", verticalslice.CreatePortfolioRequest{
+		Name:         "Broker identity",
+		BaseCurrency: verticalslice.RUB,
+	})
+	if err != nil {
+		t.Fatalf("create portfolio: %v", err)
+	}
+	t.Cleanup(func() {
+		cleanupPortfolioRows(t, ctx, db, portfolio.ID)
+	})
+
+	const sourceAccountLabel = "broker-account-a"
+	payload := importCSVHeader +
+		"BUY,SBER,2.00000000,100.00000000,200.00000000,1.00000000,0.00000000,2026-07-02,,RUB,broker-op-a,first execution\n" +
+		"BUY,SBER,2.00000000,100.00000000,200.00000000,1.00000000,0.00000000,2026-07-02,,RUB,broker-op-b,second execution\n"
+	review := mustReviewImportPayload(t, subjectID, portfolio.ID, sourceAccountLabel, payload, nil)
+	if review.Summary.AppendableRows != 2 {
+		t.Fatalf("expected two appendable broker operations, got %+v", review.Summary)
+	}
+	fileHash := sha256.Sum256([]byte(payload))
+	result, err := importflow.ReviewAndAppend(ctx, service, importflow.Request{
+		SubjectID:          subjectID,
+		PortfolioID:        portfolio.ID,
+		IdempotencyKey:     "broker-identity-import-01",
+		RequestPath:        "/internal/imports/append",
+		SourceKind:         importer.SourceKindUserUploadedFile,
+		SourceAccountLabel: sourceAccountLabel,
+		SourceFileHash:     hex.EncodeToString(fileHash[:]),
+		Reader:             strings.NewReader(payload),
+		Decisions: []importer.Decision{
+			{RowNumber: 2, RowHash: review.Rows[0].RowHash, Action: importer.DecisionApprove},
+			{RowNumber: 3, RowHash: review.Rows[1].RowHash, Action: importer.DecisionApprove},
+		},
+	})
+	if err != nil {
+		t.Fatalf("append broker operations: %v", err)
+	}
+	if result.AcceptedRowCount != 2 {
+		t.Fatalf("expected 2 accepted rows, got %+v", result)
+	}
+
+	var rowCount int
+	var distinctBrokerKeys int
+	var distinctFingerprints int
+	var identityVersionCount int
+	err = db.QueryRowContext(ctx, `
+		SELECT
+			count(*),
+			count(DISTINCT source_broker_operation_key),
+			count(DISTINCT source_fingerprint),
+			count(*) FILTER (WHERE source_identity_version = 1 AND source_account_label = $2)
+		FROM investment.transaction_entries
+		WHERE portfolio_id = $1 AND source_kind = 'USER_UPLOADED_FILE'
+	`, portfolio.ID, sourceAccountLabel).Scan(&rowCount, &distinctBrokerKeys, &distinctFingerprints, &identityVersionCount)
+	if err != nil {
+		t.Fatalf("query import identity provenance: %v", err)
+	}
+	if rowCount != 2 || distinctBrokerKeys != 2 || distinctFingerprints != 1 || identityVersionCount != 2 {
+		t.Fatalf("unexpected persisted identity evidence: rows=%d brokerKeys=%d fingerprints=%d versioned=%d", rowCount, distinctBrokerKeys, distinctFingerprints, identityVersionCount)
+	}
+
+	changedPayload := importCSVHeader +
+		"BUY,SBER,2.00000000,101.00000000,202.00000000,1.00000000,0.00000000,2026-07-02,,RUB,broker-op-a,mutated execution\n"
+	changedReview := mustReviewImportPayload(t, subjectID, portfolio.ID, sourceAccountLabel, changedPayload, nil)
+	changedHash := sha256.Sum256([]byte(changedPayload))
+	_, err = importflow.ReviewAndAppend(ctx, service, importflow.Request{
+		SubjectID:          subjectID,
+		PortfolioID:        portfolio.ID,
+		IdempotencyKey:     "broker-identity-import-02",
+		RequestPath:        "/internal/imports/append",
+		SourceKind:         importer.SourceKindUserUploadedFile,
+		SourceAccountLabel: sourceAccountLabel,
+		SourceFileHash:     hex.EncodeToString(changedHash[:]),
+		Reader:             strings.NewReader(changedPayload),
+		Decisions: []importer.Decision{{
+			RowNumber: 2,
+			RowHash:   changedReview.Rows[0].RowHash,
+			Action:    importer.DecisionApprove,
+		}},
+	})
+	if !errors.Is(err, verticalslice.ErrInvalidInput) {
+		t.Fatalf("expected reused broker identity with changed economics to fail closed, got %v", err)
+	}
+}
+
+func TestStoreAllowsDifferentSameDayCashAmounts(t *testing.T) {
+	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
+	if databaseURL == "" {
+		t.Skip("OPENINVEST_DATABASE_TEST_URL is not set")
+	}
+
+	store, err := postgres.Open(databaseURL)
+	if err != nil {
+		t.Fatalf("open postgres store: %v", err)
+	}
+	defer store.Close()
+
+	db, err := sql.Open("pgx", databaseURL)
+	if err != nil {
+		t.Fatalf("open cash identity database: %v", err)
+	}
+	closeDBOnCleanup(t, db, "cash near-match")
+
+	service := verticalslice.NewService(store, verticalslice.SystemClock{})
+	ctx := context.Background()
+	subjectID := uuid.NewString()
+	portfolio, err := service.CreatePortfolio(ctx, verticalslice.RequestContext{}, subjectID, "portfolio-cash-near-01", "/api/v1/portfolios", verticalslice.CreatePortfolioRequest{
+		Name:         "Cash near-match",
+		BaseCurrency: verticalslice.RUB,
+	})
+	if err != nil {
+		t.Fatalf("create portfolio: %v", err)
+	}
+	t.Cleanup(func() {
+		cleanupPortfolioRows(t, ctx, db, portfolio.ID)
+	})
+
+	for index, amount := range []string{"1000.00000000", "2000.00000000"} {
+		gross := verticalslice.Money{Amount: decimal.Must(amount), Currency: verticalslice.RUB}
+		_, err := service.AppendImportedTransactions(ctx, verticalslice.RequestContext{}, subjectID, "cash-near-import-0"+string(rune('1'+index)), "/internal/imports/append", verticalslice.AppendImportBatchRequest{
+			PortfolioID: portfolio.ID,
+			Transactions: []verticalslice.AppendTransactionRequest{{
+				PortfolioID:     portfolio.ID,
+				TransactionType: "DEPOSIT",
+				GrossAmount:     &gross,
+				Commission:      verticalslice.ZeroMoney(),
+				Tax:             verticalslice.ZeroMoney(),
+				TradeDate:       "2026-07-03",
+			}},
+			SourceKind:         importer.SourceKindUserUploadedFile,
+			SourceAccountLabel: "cash-account",
+			SourceFileHash:     strings.Repeat(string(rune('a'+index)), 64),
+		})
+		if err != nil {
+			t.Fatalf("append same-day cash amount %s: %v", amount, err)
+		}
+	}
+
+	listed, err := service.ListTransactions(ctx, subjectID, portfolio.ID, verticalslice.TransactionFilter{Limit: 10})
+	if err != nil {
+		t.Fatalf("list cash transactions: %v", err)
+	}
+	if len(listed) != 2 {
+		t.Fatalf("expected both different same-day cash amounts to persist, got %d", len(listed))
+	}
+}
+
+func TestDatabaseRejectsNonZeroCashFlowFees(t *testing.T) {
+	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
+	if databaseURL == "" {
+		t.Skip("OPENINVEST_DATABASE_TEST_URL is not set")
+	}
+
+	store, err := postgres.Open(databaseURL)
+	if err != nil {
+		t.Fatalf("open postgres store: %v", err)
+	}
+	defer store.Close()
+
+	db, err := sql.Open("pgx", databaseURL)
+	if err != nil {
+		t.Fatalf("open cash fee constraint database: %v", err)
+	}
+	closeDBOnCleanup(t, db, "cash fee constraint")
+
+	service := verticalslice.NewService(store, verticalslice.SystemClock{})
+	ctx := context.Background()
+	subjectID := uuid.NewString()
+	portfolio, err := service.CreatePortfolio(ctx, verticalslice.RequestContext{}, subjectID, "portfolio-cash-fee-db-01", "/api/v1/portfolios", verticalslice.CreatePortfolioRequest{
+		Name:         "Cash fee constraint",
+		BaseCurrency: verticalslice.RUB,
+	})
+	if err != nil {
+		t.Fatalf("create portfolio: %v", err)
+	}
+	t.Cleanup(func() {
+		cleanupPortfolioRows(t, ctx, db, portfolio.ID)
+	})
+
+	cases := []struct {
+		name             string
+		transactionType  string
+		commissionAmount string
+		taxAmount        string
+	}{
+		{name: "deposit commission", transactionType: "DEPOSIT", commissionAmount: "1.00000000", taxAmount: "0.00000000"},
+		{name: "withdrawal tax", transactionType: "WITHDRAWAL", commissionAmount: "0.00000000", taxAmount: "1.00000000"},
+	}
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			_, err := db.ExecContext(ctx, `
+				INSERT INTO investment.transaction_entries (
+					entry_id, transaction_id, portfolio_id, revision, transaction_type,
+					gross_amount, commission_amount, tax_amount, trade_date
+				)
+				VALUES ($1, $2, $3, 1, $4, 1000.00000000, $5::numeric, $6::numeric, '2026-07-04')
+			`, uuid.NewString(), uuid.NewString(), portfolio.ID, testCase.transactionType, testCase.commissionAmount, testCase.taxAmount)
+			if err == nil {
+				t.Fatalf("expected PostgreSQL to reject %s with non-zero cash-flow fees", testCase.transactionType)
+			}
+			if !strings.Contains(err.Error(), "transaction_entries_cash_flow_fees_zero") {
+				t.Fatalf("expected cash-flow fee constraint violation, got %v", err)
+			}
+		})
+	}
+}
+
 func TestStoreAllowsIdenticalManualTransactionsButRejectsEquivalentImport(t *testing.T) {
 	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
 	if databaseURL == "" {
@@ -1020,18 +1248,29 @@ func TestStoreAppendImportedTransactionsSerializesConcurrentDuplicateBatches(t *
 	}
 
 	gross := verticalslice.Money{Amount: decimal.Must("750.00000000"), Currency: verticalslice.RUB}
+	transaction := verticalslice.AppendTransactionRequest{
+		PortfolioID:     portfolio.ID,
+		TransactionType: "DEPOSIT",
+		GrossAmount:     &gross,
+		Commission:      verticalslice.ZeroMoney(),
+		Tax:             verticalslice.ZeroMoney(),
+		TradeDate:       "2026-06-23",
+	}
+	fingerprint, err := verticalslice.NormalizedTransactionFingerprint(transaction)
+	if err != nil {
+		t.Fatalf("fingerprint concurrent import: %v", err)
+	}
+	transaction.ImportProvenance = &verticalslice.ImportProvenance{
+		IdentityVersion:    verticalslice.ImportIdentityVersion,
+		BrokerOperationKey: verticalslice.BrokerOperationKey("concurrent-broker-op-1"),
+		SourceFingerprint:  fingerprint,
+	}
 	batch := verticalslice.AppendImportBatchRequest{
-		PortfolioID: portfolio.ID,
-		Transactions: []verticalslice.AppendTransactionRequest{{
-			PortfolioID:     portfolio.ID,
-			TransactionType: "DEPOSIT",
-			GrossAmount:     &gross,
-			Commission:      verticalslice.ZeroMoney(),
-			Tax:             verticalslice.ZeroMoney(),
-			TradeDate:       "2026-06-23",
-		}},
-		SourceKind:     "USER_UPLOADED_FILE",
-		SourceFileHash: testImportFileHashD,
+		PortfolioID:        portfolio.ID,
+		Transactions:       []verticalslice.AppendTransactionRequest{transaction},
+		SourceKind:         "USER_UPLOADED_FILE",
+		SourceAccountLabel: "concurrent-broker-account",
+		SourceFileHash:     testImportFileHashD,
 	}
 
 	start := make(chan struct{})

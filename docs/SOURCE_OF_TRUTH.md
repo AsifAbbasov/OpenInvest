@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.52 |
+| Version | 1.4.56 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -19,7 +19,8 @@
 **Last completed planning gate: Stage 3.24 — Privacy Security Review Readiness Dossier**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
 **Current canonical implementation baseline: `develop` at `544ad8cc7371caf93913ea7716f3feb68be0ea44`**
-**Current active work item: Stage 3.25 privacy Security Review evidence-collection plan on `codex/stage-03-25-security-evidence-plan`; no implementation stage is authorized**
+**Current privacy-planning work item: Stage 3.25 privacy Security Review evidence-collection plan; it remains documentation-only and does not authorize privacy-lifecycle implementation**
+**Current remediation delivery item: Stage 3.27 Import Financial Identity and Cash-Flow Semantics Remediation; final independent PR review of pre-correction head `c6c3a4c` returned `REQUEST CHANGES` for an order-dependent fallback-to-strong import-identity transition; the corrective candidate now fails closed when fallback and strong identities share the same scoped financial fingerprint while preserving distinct strong broker identities; CI evidence is head-specific and authoritative only through the required PR checks attached to the exact merge-candidate head; closure requires those checks to be green, renewed required PR review, explicit human merge approval, and squash merge into `develop`**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -187,6 +188,27 @@ control plane and restore gate. Stage 3.24 was squash-merged through PR #53 at
 is the separate evidence-collection plan. Proposed ADR-008 is non-normative until formal Security
 Review and explicit human acceptance; no implementation, OpenAPI change, migration, provider
 selection, or operational configuration is authorized.
+
+## Stage 3.27 audit remediation status
+
+Stage 3.27 is a separately authorized, narrowly scoped remediation of repository-audit findings
+P1-02, P1-03, and P1-04. It does not expand product scope or authorize the privacy-lifecycle,
+market-data, tax, mobile, AI, or provider work that remains governed separately.
+
+The remediation candidate is based on `develop` at
+`213d1d9b4369a5e046b26c3a08990aa571603eaa`. Local Go 1.25.14/PostgreSQL 18 verification,
+migration apply/rollback/reapply, OpenAPI validation, full Go tests, `go vet`, direct database
+constraint regression coverage, and independent pre-commit review have passed. The implementation
+candidate was committed and pushed as `19a8abbb0c07ded7441839bfa99b538739e21fbc`, Draft PR #55
+was opened against `develop`, and GitHub Actions CI run #83 passed on that implementation head.
+
+Stage 3.27 is not canonical and must not be described as closed until the final PR head has green CI,
+the required PR review is approved, explicit human merge approval is given, and the PR is
+squash-merged into `develop`.
+
+### Stage 3.27 final-review correction
+
+Final independent review of PR #55 at pre-correction head `c6c3a4c91a108426448a2bc230873ab9e479a335` identified a blocking P1-02 order-dependence: a fallback fingerprint row could be persisted first and then coexist with a later strong broker-keyed row carrying the same scoped financial fingerprint. The corrective candidate rejects mixed fallback/strong identity in importer review, batch validation, PostgreSQL store lookup, and a concurrency-serialized database guard, while still allowing distinct non-null broker identities with identical economics. Temporary CI run #85 passed on the corrective code candidate before final governance synchronization; it remains historical, head-specific evidence. Current CI state is intentionally not pinned to a run number in tracked governance: the authoritative gate is the required PR checks attached to the exact merge-candidate head.
 
 ## Financial standard
 

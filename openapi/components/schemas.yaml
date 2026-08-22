@@ -42,6 +42,19 @@ NonNegativeMoney:
       type: string
       const: RUB
 
+ZeroMoney:
+  type: object
+  additionalProperties: false
+  required: [amount, currency]
+  properties:
+    amount:
+      type: string
+      pattern: "^0(\\.0{1,8})?$"
+      description: Zero-valued decimal amount. Cash-flow fees are not modeled in the current methodology.
+    currency:
+      type: string
+      const: RUB
+
 PositiveMoney:
   type: object
   additionalProperties: false
@@ -699,9 +712,9 @@ CashTransactionRequest:
     grossAmount:
       $ref: "#/NonNegativeMoney"
     commission:
-      $ref: "#/NonNegativeMoney"
+      $ref: "#/ZeroMoney"
     tax:
-      $ref: "#/NonNegativeMoney"
+      $ref: "#/ZeroMoney"
     tradeDate:
       $ref: "#/BusinessDate"
     settlementDate:

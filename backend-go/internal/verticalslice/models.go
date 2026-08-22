@@ -81,17 +81,24 @@ type CreatePortfolioRequest struct {
 }
 
 type AppendTransactionRequest struct {
-	PortfolioID     string
-	TransactionType string
-	Ticker          *string
-	Quantity        *decimal.Decimal
-	UnitPrice       *Money
-	GrossAmount     *Money
-	Commission      Money
-	Tax             Money
-	TradeDate       string
-	SettlementDate  *string
-	Note            *string
+	PortfolioID      string
+	TransactionType  string
+	Ticker           *string
+	Quantity         *decimal.Decimal
+	UnitPrice        *Money
+	GrossAmount      *Money
+	Commission       Money
+	Tax              Money
+	TradeDate        string
+	SettlementDate   *string
+	Note             *string
+	ImportProvenance *ImportProvenance `json:"importProvenance,omitempty"`
+}
+
+type ImportProvenance struct {
+	IdentityVersion    int    `json:"identityVersion"`
+	BrokerOperationKey string `json:"brokerOperationKey,omitempty"`
+	SourceFingerprint  string `json:"sourceFingerprint"`
 }
 
 type AppendImportBatchRequest struct {
@@ -136,23 +143,28 @@ type Portfolio struct {
 }
 
 type Transaction struct {
-	ID              string
-	EntryID         string
-	PortfolioID     string
-	TransactionType string
-	Status          string
-	Ticker          *string
-	Quantity        *decimal.Decimal
-	UnitPrice       *Money
-	GrossAmount     Money
-	Commission      Money
-	Tax             Money
-	TradeDate       string
-	SettlementDate  *string
-	Note            *string
-	Revision        int
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
+	ID                       string
+	EntryID                  string
+	PortfolioID              string
+	TransactionType          string
+	Status                   string
+	Ticker                   *string
+	Quantity                 *decimal.Decimal
+	UnitPrice                *Money
+	GrossAmount              Money
+	Commission               Money
+	Tax                      Money
+	TradeDate                string
+	SettlementDate           *string
+	Note                     *string
+	Revision                 int
+	CreatedAt                time.Time
+	UpdatedAt                time.Time
+	SourceKind               string `json:"-"`
+	SourceAccountLabel       string `json:"-"`
+	SourceBrokerOperationKey string `json:"-"`
+	SourceFingerprint        string `json:"-"`
+	SourceIdentityVersion    int    `json:"-"`
 }
 
 type PortfolioSummary struct {
