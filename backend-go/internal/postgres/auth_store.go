@@ -57,7 +57,7 @@ func (s *Store) RegisterUser(ctx context.Context, record auth.RegistrationRecord
 	`, record.UserID, record.Now); err != nil {
 		return auth.StoredUser{}, err
 	}
-	if err := insertSession(ctx, tx, record.Session); err != nil {
+	if err := insertSession(ctx, tx, record.Session, record.Session.SessionID); err != nil {
 		return auth.StoredUser{}, err
 	}
 	if err := recordAuthAudit(ctx, tx, record.UserID, "AUTH_REGISTER", "user", record.UserID, "success", record.Now); err != nil {
@@ -88,7 +88,7 @@ func (s *Store) CreateSession(ctx context.Context, record auth.SessionRecord) er
 		return err
 	}
 	defer rollback(tx)
-	if err := insertSession(ctx, tx, record); err != nil {
+	if err := insertSession(ctx, tx, record, record.SessionID); err != nil {
 		return err
 	}
 	if err := recordAuthAudit(ctx, tx, record.UserID, "AUTH_LOGIN", "session", record.SessionID, "success", record.Now); err != nil {
@@ -104,7 +104,7 @@ func (s *Store) RotateSession(ctx context.Context, currentRefreshTokenHash strin
 	}
 	defer rollback(tx)
 
-	current, err := lockActiveSession(ctx, tx, currentRefreshTokenHash, currentCSRFTokenHash, now)
+	ownerID, err := lookupRefreshSessionOwner(ctx, tx, currentRefreshTokenHash, currentCSRFTokenHash)
 	if err != nil {
 		if errors.Is(err, auth.ErrInvalidSession) {
 			if auditErr := recordAuthAudit(ctx, tx, "", "AUTH_REFRESH_REJECTED", "session", "", "failure", now); auditErr != nil {
@@ -116,6 +116,47 @@ func (s *Store) RotateSession(ctx context.Context, currentRefreshTokenHash strin
 		}
 		return auth.StoredUser{}, err
 	}
+	if err := lockUserRefreshes(ctx, tx, ownerID); err != nil {
+		return auth.StoredUser{}, err
+	}
+
+	current, err := lockRefreshSession(ctx, tx, currentRefreshTokenHash, currentCSRFTokenHash)
+	if err != nil {
+		return auth.StoredUser{}, err
+	}
+	if current.UserID != ownerID {
+		return auth.StoredUser{}, auth.ErrInvalidSession
+	}
+
+	if current.SessionState != "active" {
+		if current.SessionFamilyID.Valid {
+			if err := revokeActiveSessionFamily(ctx, tx, current.SessionFamilyID.String, now); err != nil {
+				return auth.StoredUser{}, err
+			}
+		} else {
+			if err := revokeActiveUserSessions(ctx, tx, current.UserID, now); err != nil {
+				return auth.StoredUser{}, err
+			}
+		}
+		if err := recordAuthAudit(ctx, tx, current.UserID, "AUTH_REFRESH_REPLAY", "session", current.SessionID, "failure", now); err != nil {
+			return auth.StoredUser{}, err
+		}
+		if err := tx.Commit(); err != nil {
+			return auth.StoredUser{}, err
+		}
+		return auth.StoredUser{}, auth.ErrInvalidSession
+	}
+
+	if !current.ExpiresAt.After(now) {
+		if err := recordAuthAudit(ctx, tx, current.UserID, "AUTH_REFRESH_REJECTED", "session", current.SessionID, "failure", now); err != nil {
+			return auth.StoredUser{}, err
+		}
+		if err := tx.Commit(); err != nil {
+			return auth.StoredUser{}, err
+		}
+		return auth.StoredUser{}, auth.ErrInvalidSession
+	}
+
 	if _, err := tx.ExecContext(ctx, `
 		UPDATE identity.sessions
 		SET session_state = 'revoked', revoked_at = $2
@@ -124,7 +165,11 @@ func (s *Store) RotateSession(ctx context.Context, currentRefreshTokenHash strin
 		return auth.StoredUser{}, err
 	}
 	next.UserID = current.UserID
-	if err := insertSession(ctx, tx, next); err != nil {
+	familyID := current.SessionID
+	if current.SessionFamilyID.Valid {
+		familyID = current.SessionFamilyID.String
+	}
+	if err := insertSession(ctx, tx, next, familyID); err != nil {
 		return auth.StoredUser{}, err
 	}
 	if err := recordAuthAudit(ctx, tx, current.UserID, "AUTH_REFRESH", "session", next.SessionID, "success", now); err != nil {
@@ -144,7 +189,7 @@ func (s *Store) RevokeSession(ctx context.Context, refreshTokenHash string, csrf
 	}
 	defer rollback(tx)
 
-	current, err := lockActiveSession(ctx, tx, refreshTokenHash, csrfTokenHash, now)
+	ownerID, err := lookupRefreshSessionOwner(ctx, tx, refreshTokenHash, csrfTokenHash)
 	if err != nil {
 		if errors.Is(err, auth.ErrInvalidSession) {
 			if auditErr := recordAuthAudit(ctx, tx, "", "AUTH_LOGOUT_REJECTED", "session", "", "failure", now); auditErr != nil {
@@ -156,31 +201,46 @@ func (s *Store) RevokeSession(ctx context.Context, refreshTokenHash string, csrf
 		}
 		return false, err
 	}
-	var result sql.Result
+	if err := lockUserRefreshes(ctx, tx, ownerID); err != nil {
+		return false, err
+	}
+	current, err := lockRefreshSession(ctx, tx, refreshTokenHash, csrfTokenHash)
+	if err != nil {
+		return false, err
+	}
+	if current.UserID != ownerID {
+		return false, auth.ErrInvalidSession
+	}
+
 	if allSessions {
-		result, err = tx.ExecContext(ctx, `
-			UPDATE identity.sessions
-			SET session_state = 'revoked', revoked_at = $2
-			WHERE user_id = $1 AND session_state = 'active'
-		`, current.UserID, now)
-	} else {
-		result, err = tx.ExecContext(ctx, `
+		if err := revokeActiveUserSessions(ctx, tx, current.UserID, now); err != nil {
+			return false, err
+		}
+	} else if current.SessionState == "active" {
+		if _, err := tx.ExecContext(ctx, `
 			UPDATE identity.sessions
 			SET session_state = 'revoked', revoked_at = $2
 			WHERE id = $1 AND session_state = 'active'
-		`, current.SessionID, now)
+		`, current.SessionID, now); err != nil {
+			return false, err
+		}
+	} else if current.SessionFamilyID.Valid {
+		if err := revokeActiveSessionFamily(ctx, tx, current.SessionFamilyID.String, now); err != nil {
+			return false, err
+		}
+	} else {
+		if err := revokeActiveUserSessions(ctx, tx, current.UserID, now); err != nil {
+			return false, err
+		}
 	}
-	if err != nil {
-		return false, err
-	}
-	affected, err := result.RowsAffected()
-	if err != nil {
-		return false, err
-	}
+
 	if err := recordAuthAudit(ctx, tx, current.UserID, "AUTH_LOGOUT", "session", current.SessionID, "success", now); err != nil {
 		return false, err
 	}
-	return affected > 0, tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (s *Store) RecordAuthEvent(ctx context.Context, record auth.AuthAuditRecord) error {
@@ -196,18 +256,41 @@ func (s *Store) RecordAuthEvent(ctx context.Context, record auth.AuthAuditRecord
 }
 
 type storedSession struct {
-	SessionID string
-	UserID    string
+	SessionID       string
+	UserID          string
+	SessionFamilyID sql.NullString
+	SessionState    string
+	ExpiresAt       time.Time
 }
 
-func insertSession(ctx context.Context, tx *sql.Tx, record auth.SessionRecord) error {
+func insertSession(ctx context.Context, tx *sql.Tx, record auth.SessionRecord, sessionFamilyID string) error {
 	_, err := tx.ExecContext(ctx, `
 		INSERT INTO identity.sessions (
-			id, user_id, refresh_token_hash, csrf_token_hash, session_state,
+			id, user_id, session_family_id, refresh_token_hash, csrf_token_hash, session_state,
 			expires_at, created_at, last_rotated_at
 		)
-		VALUES ($1, $2, $3, $4, 'active', $5, $6, $6)
-	`, record.SessionID, record.UserID, record.RefreshTokenHash, record.CSRFTokenHash, record.ExpiresAt, record.Now)
+		VALUES ($1, $2, $3, $4, $5, 'active', $6, $7, $7)
+	`, record.SessionID, record.UserID, sessionFamilyID, record.RefreshTokenHash, record.CSRFTokenHash, record.ExpiresAt, record.Now)
+	return err
+}
+
+func revokeActiveSessionFamily(ctx context.Context, tx *sql.Tx, sessionFamilyID string, now time.Time) error {
+	_, err := tx.ExecContext(ctx, `
+		UPDATE identity.sessions
+		SET session_state = 'revoked', revoked_at = $2
+		WHERE session_family_id = $1
+			AND session_state = 'active'
+	`, sessionFamilyID, now)
+	return err
+}
+
+func revokeActiveUserSessions(ctx context.Context, tx *sql.Tx, userID string, now time.Time) error {
+	_, err := tx.ExecContext(ctx, `
+		UPDATE identity.sessions
+		SET session_state = 'revoked', revoked_at = $2
+		WHERE user_id = $1
+			AND session_state = 'active'
+	`, userID, now)
 	return err
 }
 
@@ -234,17 +317,42 @@ func recordAuthAudit(ctx context.Context, tx *sql.Tx, actorID string, actionCode
 	return err
 }
 
-func lockActiveSession(ctx context.Context, tx *sql.Tx, refreshTokenHash string, csrfTokenHash string, now time.Time) (storedSession, error) {
-	var session storedSession
+func lookupRefreshSessionOwner(ctx context.Context, tx *sql.Tx, refreshTokenHash string, csrfTokenHash string) (string, error) {
+	var userID string
 	err := tx.QueryRowContext(ctx, `
-		SELECT id, user_id
+		SELECT user_id
 		FROM identity.sessions
 		WHERE refresh_token_hash = $1
 			AND csrf_token_hash = $2
-			AND session_state = 'active'
-			AND expires_at > $3
+	`, refreshTokenHash, csrfTokenHash).Scan(&userID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", auth.ErrInvalidSession
+	}
+	return userID, err
+}
+
+func lockUserRefreshes(ctx context.Context, tx *sql.Tx, userID string) error {
+	_, err := tx.ExecContext(ctx, `
+		SELECT pg_advisory_xact_lock(hashtextextended($1, 0))
+	`, "openinvest/auth-refresh/"+userID)
+	return err
+}
+
+func lockRefreshSession(ctx context.Context, tx *sql.Tx, refreshTokenHash string, csrfTokenHash string) (storedSession, error) {
+	var session storedSession
+	err := tx.QueryRowContext(ctx, `
+		SELECT id, user_id, session_family_id, session_state, expires_at
+		FROM identity.sessions
+		WHERE refresh_token_hash = $1
+			AND csrf_token_hash = $2
 		FOR UPDATE
-	`, refreshTokenHash, csrfTokenHash, now).Scan(&session.SessionID, &session.UserID)
+	`, refreshTokenHash, csrfTokenHash).Scan(
+		&session.SessionID,
+		&session.UserID,
+		&session.SessionFamilyID,
+		&session.SessionState,
+		&session.ExpiresAt,
+	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return storedSession{}, auth.ErrInvalidSession
 	}
