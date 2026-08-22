@@ -56,4 +56,69 @@ CREATE UNIQUE INDEX transaction_entries_import_fingerprint_identity_uidx
         AND source_identity_version = 1
         AND source_broker_operation_key IS NULL;
 
+CREATE FUNCTION investment.enforce_import_identity_strength_consistency()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    scoped_fingerprint_lock BIGINT;
+BEGIN
+    IF NEW.source_kind <> 'USER_UPLOADED_FILE'
+        OR NEW.source_identity_version IS DISTINCT FROM 1
+        OR NEW.source_fingerprint IS NULL THEN
+        RETURN NEW;
+    END IF;
+
+    scoped_fingerprint_lock := hashtextextended(
+        NEW.portfolio_id::text || '|' ||
+        NEW.source_account_label || '|' ||
+        NEW.source_identity_version::text || '|' ||
+        NEW.source_fingerprint,
+        0
+    );
+    PERFORM pg_advisory_xact_lock(scoped_fingerprint_lock);
+
+    IF NEW.source_broker_operation_key IS NULL THEN
+        IF EXISTS (
+            SELECT 1
+            FROM investment.transaction_entries te
+            WHERE te.portfolio_id = NEW.portfolio_id
+                AND te.source_kind = 'USER_UPLOADED_FILE'
+                AND te.source_identity_version = NEW.source_identity_version
+                AND te.source_account_label = NEW.source_account_label
+                AND te.source_fingerprint = NEW.source_fingerprint
+                AND te.source_broker_operation_key IS NOT NULL
+                AND te.entry_id <> NEW.entry_id
+        ) THEN
+            RAISE EXCEPTION 'mixed fallback/strong import identity is not allowed'
+                USING ERRCODE = '23505',
+                    CONSTRAINT = 'transaction_entries_import_identity_strength_conflict';
+        END IF;
+    ELSE
+        IF EXISTS (
+            SELECT 1
+            FROM investment.transaction_entries te
+            WHERE te.portfolio_id = NEW.portfolio_id
+                AND te.source_kind = 'USER_UPLOADED_FILE'
+                AND te.source_identity_version = NEW.source_identity_version
+                AND te.source_account_label = NEW.source_account_label
+                AND te.source_fingerprint = NEW.source_fingerprint
+                AND te.source_broker_operation_key IS NULL
+                AND te.entry_id <> NEW.entry_id
+        ) THEN
+            RAISE EXCEPTION 'mixed fallback/strong import identity is not allowed'
+                USING ERRCODE = '23505',
+                    CONSTRAINT = 'transaction_entries_import_identity_strength_conflict';
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER transaction_entries_import_identity_strength_guard
+    BEFORE INSERT OR UPDATE ON investment.transaction_entries
+    FOR EACH ROW
+    EXECUTE FUNCTION investment.enforce_import_identity_strength_consistency();
+
 COMMIT;
