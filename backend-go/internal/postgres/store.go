@@ -102,7 +102,7 @@ func (s *Store) SearchAssets(ctx context.Context, filter verticalslice.AssetSear
 	}
 	if filter.AfterTicker != "" {
 		args = append(args, filter.AfterTicker)
-		conditions = append(conditions, "ticker > $"+strconv.Itoa(len(args)))
+		conditions = append(conditions, "ticker > $"+strconv.Itoa(len(args))+"::text")
 	}
 	canonicalFixtureConditions := make([]string, 0, len(approvedTickers))
 	for _, ticker := range approvedTickers {
@@ -583,9 +583,15 @@ func importIdentityExists(ctx context.Context, tx *sql.Tx, request verticalslice
 					AND te.source_kind = 'USER_UPLOADED_FILE'
 					AND te.source_identity_version = $2
 					AND te.source_account_label = $3
-					AND te.source_broker_operation_key = $4
+					AND (
+						te.source_broker_operation_key = $4
+						OR (
+							te.source_broker_operation_key IS NULL
+							AND te.source_fingerprint = $5
+						)
+					)
 			)
-		`, request.PortfolioID, provenance.IdentityVersion, strings.TrimSpace(sourceAccountLabel), provenance.BrokerOperationKey).Scan(&exists)
+		`, request.PortfolioID, provenance.IdentityVersion, strings.TrimSpace(sourceAccountLabel), provenance.BrokerOperationKey, provenance.SourceFingerprint).Scan(&exists)
 		return exists, err
 	}
 
