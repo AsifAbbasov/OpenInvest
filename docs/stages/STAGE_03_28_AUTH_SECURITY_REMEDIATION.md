@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Open / implementation candidate / Draft PR #59 |
+| Status | Open / implementation candidate / PR #59 ready for independent review |
 | Owner | Principal Architect |
 | Baseline | `develop` at `6f50c39ee19834f1b2ff354230b727019be64369` |
 | Branch | `fix/stage-03-28-auth-security-remediation` |
