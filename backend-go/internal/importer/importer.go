@@ -142,6 +142,8 @@ func ReviewCSV(request ReviewRequest) (Review, error) {
 		sourceFingerprint string
 	}
 	seenBrokerOperationIDs := map[string]brokerIdentitySeen{}
+	seenFallbackFingerprints := map[string]int{}
+	seenStrongFingerprints := map[string]int{}
 	seenNearMatchCandidates := map[string]RowReview{}
 
 	rowNumber := 1
@@ -170,6 +172,25 @@ func ReviewCSV(request ReviewRequest) (Review, error) {
 				row.ReasonCodes = appendReason(row.ReasonCodes, fmt.Sprintf("DUPLICATE_IMPORTED_ROW_%d", firstRow))
 			} else if row.Fingerprint != "" {
 				seenFingerprints[row.Fingerprint] = row.RowNumber
+			}
+			if row.sourceFingerprint != "" {
+				if row.brokerOperationKey == "" {
+					if firstRow, ok := seenStrongFingerprints[row.sourceFingerprint]; ok {
+						row.Status = ReviewStatusConflict
+						row.ReasonCodes = appendReason(row.ReasonCodes, fmt.Sprintf("MIXED_IMPORT_IDENTITY_STRENGTH_ROW_%d", firstRow))
+					}
+					if _, ok := seenFallbackFingerprints[row.sourceFingerprint]; !ok {
+						seenFallbackFingerprints[row.sourceFingerprint] = row.RowNumber
+					}
+				} else {
+					if firstRow, ok := seenFallbackFingerprints[row.sourceFingerprint]; ok {
+						row.Status = ReviewStatusConflict
+						row.ReasonCodes = appendReason(row.ReasonCodes, fmt.Sprintf("MIXED_IMPORT_IDENTITY_STRENGTH_ROW_%d", firstRow))
+					}
+					if _, ok := seenStrongFingerprints[row.sourceFingerprint]; !ok {
+						seenStrongFingerprints[row.sourceFingerprint] = row.RowNumber
+					}
+				}
 			}
 			if row.BrokerOperationID != "" {
 				brokerScopeKey := request.SubjectID + "|" + request.PortfolioID + "|" + review.SourceAccountLabel + "|" + sourceKind + "|" + row.brokerOperationKey
@@ -501,13 +522,16 @@ func existingIdentityMatch(row RowReview, portfolioID string, sourceAccountLabel
 				continue
 			}
 			if row.brokerOperationKey != "" {
-				if transaction.SourceBrokerOperationKey != row.brokerOperationKey {
-					continue
+				if transaction.SourceBrokerOperationKey == row.brokerOperationKey {
+					if transaction.SourceFingerprint == row.sourceFingerprint {
+						return true, false
+					}
+					return false, true
 				}
-				if transaction.SourceFingerprint == row.sourceFingerprint {
-					return true, false
+				if transaction.SourceBrokerOperationKey == "" && transaction.SourceFingerprint == row.sourceFingerprint {
+					return false, true
 				}
-				return false, true
+				continue
 			}
 			if transaction.SourceFingerprint == row.sourceFingerprint {
 				return true, false
