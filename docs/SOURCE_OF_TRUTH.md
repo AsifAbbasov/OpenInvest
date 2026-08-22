@@ -3,24 +3,25 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.58 |
+| Version | 1.4.59 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
-| Last Review Date | 2026-08-22 |
+| Last Review Date | 2026-08-23 |
 | Next Review Date | Before Stage 3.25 privacy evidence-collection plan review |
 
 ## Architecture status
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.27 — Import Financial Identity and Cash-Flow Semantics Remediation**
+**Last completed implementation stage: Stage 3.28 — Authentication Security Remediation**
 **Last completed planning gate: Stage 3.24 — Privacy Security Review Readiness Dossier**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `6e8c806de857f844954f1db513487357dfe90187`**
+**Current canonical implementation baseline: `develop` at `dc83f5f3a11da164e6809593861d96ccf47b29ca`**
 **Current privacy-planning work item: Stage 3.25 privacy Security Review evidence-collection plan; it remains documentation-only and does not authorize privacy-lifecycle implementation**
-**Stage 3.27 remediation: CLOSED for P1-02, P1-03, and P1-04; implementation PR #55 was squash-merged into `develop` at `6e8c806de857f844954f1db513487357dfe90187` after exact-head CI #90, renewed independent `APPROVED` review on `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c`, and explicit human squash-merge authorization; closure governance is recorded through PR #58; P1-01 and P1-05 remain separate future remediation**
+**Stage 3.27 remediation: CLOSED for P1-02, P1-03, and P1-04; implementation PR #55 was squash-merged into `develop` at `6e8c806de857f844954f1db513487357dfe90187` after exact-head CI #90, renewed independent `APPROVED` review on `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c`, explicit human squash-merge authorization, and closure governance through PR #58**
+**Stage 3.28 remediation: implementation PR #59 was squash-merged into `develop` at `dc83f5f3a11da164e6809593861d96ccf47b29ca` after exact-head CI #114, renewed independent `APPROVED` review on `92edab5d3e93dafe2fcc6247644e38e878a4202f`, and explicit human squash-merge authorization; closure governance is recorded through PR #60; when this line is canonical on `develop`, P1-01 and P1-05 are CLOSED; Stage 3.25 and P2/P3 remain separate**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -220,13 +221,38 @@ of the earlier order-dependent fallback-to-strong identity blocker.
 
 Explicit human authorization approved the squash merge.
 
-Closure governance is recorded through PR #58. Once this document is canonical
-on `develop`, Stage 3.27 is closed for P1-02, P1-03, and P1-04; the remaining
-P1-01 and P1-05 findings continue under separate future remediation.
+Closure governance is recorded through PR #58. Stage 3.27 is closed for P1-02,
+P1-03, and P1-04. The then-remaining P1-01/P1-05 findings were subsequently
+addressed by the separately governed Stage 3.28 remediation. Stage 3.25 privacy
+evidence planning remains separate.
 
-Stage 3.27 closes only P1-02, P1-03, and P1-04. P1-01 refresh-token family
-replay and P1-05 Argon2 resource-exhaustion remain separate future
-audit-remediation work. Stage 3.25 privacy evidence planning remains separate.
+## Stage 3.28 audit remediation closure governance
+
+Stage 3.28 is the separately authorized remediation of repository-audit findings P1-01 and P1-05.
+It does not reopen Stage 3.27, authorize Stage 3.25 privacy implementation, or close any P2/P3 item.
+
+Implementation PR #59 was squash-merged into `develop` at `dc83f5f3a11da164e6809593861d96ccf47b29ca`. Its exact
+merge-candidate head `92edab5d3e93dafe2fcc6247644e38e878a4202f` passed GitHub Actions CI #114. The first independent review
+returned `REQUEST CHANGES` for one governance-status mismatch only and reported no additional
+blocking P1-01/P1-05 security or correctness issue. After the one-line governance correction,
+renewed independent review returned `APPROVED` on the exact final head. Explicit human
+squash-merge authorization was then given.
+
+P1-01 is remediated through persisted session-family identity for new sessions, conservative
+legacy-session containment, serialized refresh/logout mutation paths, replay-triggered family
+revocation, and PostgreSQL defense in depth.
+
+P1-05 is remediated without weakening Argon2id parameters: the approved 64 MiB / t=3 / p=1
+cost remains, while hash/verify/dummy work shares a process-wide fail-fast two-operation capacity
+gate and over-budget stored encodings are rejected before expensive work.
+
+The independent reviewer treated the current generic HTTP 500 mapping for `ErrAuthCapacity` as
+non-blocking for the P1-05 resource-exhaustion finding. Dedicated `503 + Retry-After` semantics
+remain optional HTTP-contract hardening.
+
+Closure governance is recorded through PR #60. When this document is canonical on `develop`,
+Stage 3.28 is closed for P1-01 and P1-05. Stage 3.25 privacy evidence planning and all P2/P3
+findings remain separate.
 
 ## Financial standard
 

@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.55 |
+| Version | 1.1.56 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-08-22 |
+| Last Review Date | 2026-08-23 |
 | Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
 
 ## 2026-06-19 — Architecture Freeze v1.2
@@ -728,3 +728,14 @@
 - Stage 3.27 scope remains P1-02/P1-03/P1-04 only.
 - P1-01 and P1-05 remain separate future remediation.
 - Stage 3.25 remains separate.
+
+## 2026-08-23 — Stage 3.28 authentication security remediation closure
+
+- Squash-merged implementation PR #59 into `develop` at `dc83f5f3a11da164e6809593861d96ccf47b29ca` for repository-audit P1-01 and P1-05.
+- Exact implementation head `92edab5d3e93dafe2fcc6247644e38e878a4202f` passed GitHub Actions CI #114.
+- Recorded the initial governance-only `REQUEST CHANGES`, its one-line correction, renewed independent `APPROVED`, and explicit human merge authorization.
+- Closed refresh-token replay/session-family containment with persisted family identity, serialized mutation paths, replay containment, legacy fail-closed behavior, and PostgreSQL insertion defense.
+- Closed the Argon2 resource-exhaustion finding without weakening 64 MiB / t=3 / p=1 by adding a process-wide fail-fast two-operation admission gate and strict stored-encoding budget checks.
+- Dedicated `ErrAuthCapacity` HTTP `503 + Retry-After` semantics remain optional non-blocking contract hardening.
+- Closure governance is recorded through PR #60 when canonical on `develop`.
+- Stage 3.25 and all P2/P3 findings remain separate.
