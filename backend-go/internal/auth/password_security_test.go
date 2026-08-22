@@ -2,85 +2,63 @@ package auth
 
 import (
 	"encoding/base64"
+	"errors"
 	"sync"
-	"sync/atomic"
 	"testing"
 	"time"
 )
 
-func TestArgonWorkLimiterCapsConcurrentWork(t *testing.T) {
+func TestArgonWorkLimiterFailsFastAtConfiguredCapacity(t *testing.T) {
 	const limit = 2
 	limiter := newArgonWorkLimiter(limit)
 
-	begin := make(chan struct{})
-	started := make(chan struct{}, limit+1)
-	release := make(chan struct{}, limit+1)
-	done := make(chan struct{}, limit+1)
-
+	started := make(chan struct{}, limit)
+	release := make(chan struct{})
+	done := make(chan error, limit)
 	var ready sync.WaitGroup
-	ready.Add(limit + 1)
-	var active atomic.Int32
-	var maximum atomic.Int32
+	ready.Add(limit)
 
-	worker := func() {
-		ready.Done()
-		<-begin
-		limiter.run(func() {
-			current := active.Add(1)
-			for {
-				observed := maximum.Load()
-				if current <= observed || maximum.CompareAndSwap(observed, current) {
-					break
-				}
-			}
-			started <- struct{}{}
-			<-release
-			active.Add(-1)
-		})
-		done <- struct{}{}
-	}
-
-	for i := 0; i < limit+1; i++ {
-		go worker()
+	for i := 0; i < limit; i++ {
+		go func() {
+			ready.Done()
+			done <- limiter.run(func() {
+				started <- struct{}{}
+				<-release
+			})
+		}()
 	}
 	ready.Wait()
-	close(begin)
-
 	for i := 0; i < limit; i++ {
 		select {
 		case <-started:
 		case <-time.After(time.Second):
-			t.Fatal("expected bounded Argon2 work to start")
+			t.Fatal("expected Argon2 work slot to be occupied")
 		}
 	}
 
-	select {
-	case <-started:
-		t.Fatal("more Argon2 work started than the configured process-wide limit")
-	case <-time.After(100 * time.Millisecond):
+	begin := time.Now()
+	err := limiter.run(func() { t.Fatal("capacity-exhausted work must not execute") })
+	if !errors.Is(err, ErrAuthCapacity) {
+		t.Fatalf("expected ErrAuthCapacity, got %v", err)
+	}
+	if elapsed := time.Since(begin); elapsed > 100*time.Millisecond {
+		t.Fatalf("capacity rejection blocked for %s", elapsed)
 	}
 
-	release <- struct{}{}
-
-	select {
-	case <-started:
-	case <-time.After(time.Second):
-		t.Fatal("expected queued Argon2 work to start after a slot was released")
-	}
-
+	close(release)
 	for i := 0; i < limit; i++ {
-		release <- struct{}{}
-	}
-	for i := 0; i < limit+1; i++ {
 		select {
-		case <-done:
+		case err := <-done:
+			if err != nil {
+				t.Fatalf("occupied Argon2 work failed: %v", err)
+			}
 		case <-time.After(time.Second):
-			t.Fatal("timed out waiting for bounded Argon2 work")
+			t.Fatal("timed out waiting for Argon2 work to finish")
 		}
 	}
 
-	if got := maximum.Load(); got > limit {
-		t.Fatalf("maximum concurrent Argon2 work = %d, want <= %d", got, limit)
+	if err := limiter.run(func() {}); err != nil {
+		t.Fatalf("expected capacity to recover after slots are released: %v", err)
 	}
 }
 
@@ -89,7 +67,11 @@ func TestVerifyPasswordRejectsArgonParametersOutsideApprovedBudget(t *testing.T)
 	hash := base64.RawStdEncoding.EncodeToString(make([]byte, argonKeyLen))
 	encoded := "argon2id$v=19$m=131072,t=3,p=1$" + salt + "$" + hash
 
-	if verifyPassword("password", encoded) {
+	verified, err := verifyPassword("password", encoded)
+	if err != nil {
+		t.Fatalf("over-budget encoded hash must fail validation before Argon2 work: %v", err)
+	}
+	if verified {
 		t.Fatal("expected over-budget Argon2 parameters to be rejected")
 	}
 }
