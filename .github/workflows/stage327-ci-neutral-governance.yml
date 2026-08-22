@@ -1,0 +1,132 @@
+name: Stage 3.27 CI-neutral governance sync
+
+on:
+  push:
+    branches:
+      - fix/stage-03-27-fallback-strong-correction
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out correction branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: fix/stage-03-27-fallback-strong-correction
+          fetch-depth: 0
+
+      - name: Make tracked governance CI-head-neutral
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          def load(path):
+              return Path(path).read_text()
+          def save(path, text):
+              Path(path).write_text(text)
+          def once(text, old, new, label):
+              n = text.count(old)
+              if n != 1:
+                  raise SystemExit(f"{label}: expected 1 match, found {n}")
+              return text.replace(old, new, 1)
+          def line(text, pattern, replacement, label):
+              out, n = re.subn(pattern, replacement, text, count=1, flags=re.MULTILINE)
+              if n != 1:
+                  raise SystemExit(f"{label}: expected 1 line, found {n}")
+              return out
+
+          # SOURCE_OF_TRUTH
+          p = "docs/SOURCE_OF_TRUTH.md"; t = load(p)
+          t = once(t, "| Version | 1.4.55 |", "| Version | 1.4.56 |", "SOT version")
+          t = line(t, r"^\*\*Current remediation delivery item: Stage 3\.27.*$",
+              "**Current remediation delivery item: Stage 3.27 Import Financial Identity and Cash-Flow Semantics Remediation; final independent PR review of pre-correction head `c6c3a4c` returned `REQUEST CHANGES` for an order-dependent fallback-to-strong import-identity transition; the corrective candidate now fails closed when fallback and strong identities share the same scoped financial fingerprint while preserving distinct strong broker identities; CI evidence is head-specific and the exact merge-candidate head must be green in PR required checks/metadata; tracked governance intentionally does not pin a final CI run number because any governance commit advances the head; renewed required PR review, explicit human merge approval, and squash merge into `develop` are still required**",
+              "SOT current status")
+          old = "Temporary CI run #85 passed on the corrective code candidate before final governance synchronization; it is historical, head-specific evidence and does not satisfy the required final PR-head CI gate."
+          new = "Temporary CI run #85 passed on the corrective code candidate before final governance synchronization and remains historical evidence. Final-head CI is deliberately not hard-coded into tracked governance because every governance commit changes the head; the authoritative requirement is that PR required checks/metadata are green on the exact merge-candidate head before renewed review and merge."
+          t = once(t, old, new, "SOT CI-neutral paragraph")
+          save(p, t)
+
+          # IMPLEMENTATION_LOG
+          p = "docs/IMPLEMENTATION_LOG.md"; t = load(p)
+          t = once(t, "| Version | 1.1.49 |", "| Version | 1.1.50 |", "implementation version")
+          t = line(t, r"^\| 3 — First Vertical Slice \|.*$",
+              "| 3 — First Vertical Slice | Implement the first thin MVP path after contract and Web baseline approval | Implementation closed through Stage 3.16 audit-fix closure; Stage 3.17-3.24 proposals are merged; Stage 3.25 privacy evidence planning remains separate; Stage 3.27 remains open after final review found an order-dependent fallback/strong identity blocker; the correction is implemented, and CI must be green on the exact merge-candidate head as evidenced by PR checks/metadata; renewed review, human approval, and squash merge remain | [Stage 3 plan](stages/STAGE_03_FIRST_VERTICAL_SLICE.md) |",
+              "implementation stage 3")
+          t = line(t, r"^\| 3\.27 — Import Financial Identity and Cash-Flow Semantics Remediation \|.*$",
+              "| 3.27 — Import Financial Identity and Cash-Flow Semantics Remediation | Remediate repository-audit P1-02/P1-03/P1-04 across import identity, reconciliation, cash-flow semantics, PostgreSQL, and OpenAPI | Final PR review returned `REQUEST CHANGES` on `c6c3a4c`; mixed fallback/strong identity correction implemented; exact merge-candidate CI is evaluated through PR required checks/metadata rather than pinned in tracked docs; pending renewed required review, explicit human approval, and squash merge | [Stage 3.27 report](stages/STAGE_03_27_IMPORT_FINANCIAL_IDENTITY_REMEDIATION.md) |",
+              "implementation 3.27")
+          save(p, t)
+
+          # CHANGELOG
+          p = "docs/CHANGELOG.md"; t = load(p)
+          t = once(t, "| Version | 1.1.52 |", "| Version | 1.1.53 |", "changelog version")
+          t += """
+
+## 2026-08-22 — Stage 3.27 head-specific CI governance normalization
+
+- Normalized Stage 3.27 tracked status so it does not claim that a particular CI run is either current or still pending after a later governance commit.
+- Final-head CI remains mandatory, but authoritative evidence is the PR required-check state/metadata for the exact merge-candidate head; tracked governance intentionally does not pin the final CI run number because doing so would advance the head and immediately stale that evidence.
+- This documentation-only normalization does not change runtime, migration, OpenAPI, financial semantics, product scope, or the prior `REQUEST CHANGES` correction.
+- Stage 3.27 remains open pending renewed required independent review, explicit human merge approval, and squash merge, with green CI required on the exact merge-candidate head.
+"""
+          save(p, t)
+
+          # DOCUMENT_INDEX
+          p = "docs/DOCUMENT_INDEX.md"; t = load(p)
+          t = once(t, "| Version | 1.1.56 |", "| Version | 1.1.57 |", "index version")
+          t = once(t, "| SOT-001 | Source of Truth | 1.4.55 |", "| SOT-001 | Source of Truth | 1.4.56 |", "index SOT")
+          t = line(t, r"^\| Stage 3\.27 import financial identity and cash-flow semantics remediation \|.*$",
+              "| Stage 3.27 import financial identity and cash-flow semantics remediation | Final review `REQUEST CHANGES` on `c6c3a4c`; fallback/strong identity correction implemented; exact merge-candidate CI is authoritative via PR required checks/metadata; renewed required review, human approval, and squash-merge gates remain | `stages/STAGE_03_27_IMPORT_FINANCIAL_IDENTITY_REMEDIATION.md` |",
+              "index 3.27")
+          save(p, t)
+
+          # ROADMAP
+          p = "docs/ROADMAP.md"; t = load(p)
+          t = once(t, "| Version | 1.1.54 |", "| Version | 1.1.55 |", "roadmap version")
+          t = line(t, r"^\| 3\.27 — Import financial identity and cash-flow semantics remediation \|.*$",
+              "| 3.27 — Import financial identity and cash-flow semantics remediation | Close audit P1-02/P1-03/P1-04 with persisted import identity, amount-aware cash reconciliation, and fail-closed cash-flow fee semantics | Final review `REQUEST CHANGES` on `c6c3a4c`; mixed fallback/strong identity correction implemented; exact merge-candidate CI must be green in PR required checks/metadata; renewed review, human approval, and squash merge remain |",
+              "roadmap 3.27")
+          save(p, t)
+
+          # VERSION_MATRIX
+          p = "docs/VERSION_MATRIX.md"; t = load(p)
+          t = once(t, "| Version | 1.1.60 |", "| Version | 1.1.61 |", "matrix version")
+          t = line(t, r"^\| Stage 3\.27 import financial identity and cash-flow semantics remediation \|.*$",
+              "| Stage 3.27 import financial identity and cash-flow semantics remediation | 0.1.0 | Final review `REQUEST CHANGES` on `c6c3a4c`; mixed fallback/strong identity correction implemented; exact merge-candidate CI is evaluated in PR required checks/metadata; closure still requires renewed required review, human approval, and squash merge | 3 | Principal Architect | Before Stage 3.27 merge |",
+              "matrix 3.27")
+          save(p, t)
+
+          # Stage report
+          p = "docs/stages/STAGE_03_27_IMPORT_FINANCIAL_IDENTITY_REMEDIATION.md"; t = load(p)
+          t = line(t, r"^\| Status \|.*$",
+              "| Status | Open / final PR review returned `REQUEST CHANGES` on pre-correction head `c6c3a4c` / fallback-to-strong identity blocker corrected / exact merge-candidate CI must be green in PR required checks/metadata / closure still requires renewed required PR review, explicit human approval, and squash merge |",
+              "stage status")
+          old = "Temporary corrective CI run #85 passed all six repository jobs, including full Go integration tests and PostgreSQL migration validation/apply/rollback/reapply. Because governance synchronization and cleanup occur after that run, #85 is historical technical evidence only; the final PR #55 head must run green CI again before renewed independent review and human merge approval."
+          new = "Temporary corrective CI run #85 passed all six repository jobs, including full Go integration tests and PostgreSQL migration validation/apply/rollback/reapply, and remains historical technical evidence. The final CI run number is intentionally not pinned in this tracked report because any documentation commit advances the head; before renewed independent review and merge, PR required checks/metadata must show green CI on the exact merge-candidate head."
+          t = once(t, old, new, "stage CI-neutral paragraph")
+          save(p, t)
+
+      - name: Remove one-time workflow and verify
+        run: |
+          git rm .github/workflows/stage327-ci-neutral-governance.yml
+          git diff --check
+
+      - name: Commit CI-neutral governance delta
+        run: |
+          git config user.name "OpenInvest governance automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add -- \
+            docs/CHANGELOG.md \
+            docs/DOCUMENT_INDEX.md \
+            docs/IMPLEMENTATION_LOG.md \
+            docs/ROADMAP.md \
+            docs/SOURCE_OF_TRUTH.md \
+            docs/VERSION_MATRIX.md \
+            docs/stages/STAGE_03_27_IMPORT_FINANCIAL_IDENTITY_REMEDIATION.md
+          git diff --cached --check
+          git commit -m "docs: make Stage 3.27 CI evidence head-neutral"
+          git push origin HEAD:fix/stage-03-27-fallback-strong-correction
