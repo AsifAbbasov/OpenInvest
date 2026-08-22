@@ -244,6 +244,7 @@ func validateAppendImportBatch(request AppendImportBatchRequest) error {
 		return fmt.Errorf("%w: imported transaction batch must contain at most 100 rows", ErrInvalidInput)
 	}
 	seen := map[string]struct{}{}
+	seenIdentityStrength := map[string]int{}
 	for index, transaction := range request.Transactions {
 		if transaction.PortfolioID != request.PortfolioID {
 			return fmt.Errorf("%w: imported transaction %d portfolioId does not match batch portfolioId", ErrInvalidInput, index+1)
@@ -254,6 +255,15 @@ func validateAppendImportBatch(request AppendImportBatchRequest) error {
 		if err := validateImportProvenance(transaction.ImportProvenance); err != nil {
 			return fmt.Errorf("%w: imported transaction %d has invalid provenance", err, index+1)
 		}
+		provenance := transaction.ImportProvenance
+		identityStrength := 1
+		if provenance.BrokerOperationKey != "" {
+			identityStrength = 2
+		}
+		if previousStrength, ok := seenIdentityStrength[provenance.SourceFingerprint]; ok && previousStrength != identityStrength {
+			return fmt.Errorf("%w: imported transaction %d mixes fallback and broker identity for the same financial fingerprint", ErrInvalidInput, index+1)
+		}
+		seenIdentityStrength[provenance.SourceFingerprint] = identityStrength
 		key, err := appendRequestBusinessKey(transaction)
 		if err != nil {
 			return err
