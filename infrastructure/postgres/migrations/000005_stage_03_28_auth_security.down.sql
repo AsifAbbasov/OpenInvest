@@ -2,6 +2,8 @@
 
 BEGIN;
 
+DROP TRIGGER IF EXISTS sessions_require_family_on_insert ON identity.sessions;
+DROP FUNCTION IF EXISTS identity.require_session_family_on_insert();
 DROP INDEX IF EXISTS identity.sessions_family_state_expires_idx;
 
 ALTER TABLE identity.sessions
