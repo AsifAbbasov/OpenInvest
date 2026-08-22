@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.52 |
+| Version | 1.4.53 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -19,7 +19,8 @@
 **Last completed planning gate: Stage 3.24 — Privacy Security Review Readiness Dossier**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
 **Current canonical implementation baseline: `develop` at `544ad8cc7371caf93913ea7716f3feb68be0ea44`**
-**Current active work item: Stage 3.25 privacy Security Review evidence-collection plan on `codex/stage-03-25-security-evidence-plan`; no implementation stage is authorized**
+**Current privacy-planning work item: Stage 3.25 privacy Security Review evidence-collection plan; it remains documentation-only and does not authorize privacy-lifecycle implementation**
+**Current remediation delivery item: Stage 3.27 Import Financial Identity and Cash-Flow Semantics Remediation; implementation and local verification are complete and independent pre-commit review is approved, pending commit, Draft PR, CI, required PR review, human approval, and merge**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -187,6 +188,20 @@ control plane and restore gate. Stage 3.24 was squash-merged through PR #53 at
 is the separate evidence-collection plan. Proposed ADR-008 is non-normative until formal Security
 Review and explicit human acceptance; no implementation, OpenAPI change, migration, provider
 selection, or operational configuration is authorized.
+
+## Stage 3.27 audit remediation status
+
+Stage 3.27 is a separately authorized, narrowly scoped remediation of repository-audit findings
+P1-02, P1-03, and P1-04. It does not expand product scope or authorize the privacy-lifecycle,
+market-data, tax, mobile, AI, or provider work that remains governed separately.
+
+The remediation candidate is based on `develop` at
+`213d1d9b4369a5e046b26c3a08990aa571603eaa`. Local Go 1.25.14/PostgreSQL 18 verification,
+migration apply/rollback/reapply, OpenAPI validation, full Go tests, `go vet`, direct database
+constraint regression coverage, and independent pre-commit review have passed.
+
+Stage 3.27 is not canonical and must not be described as closed until the feature branch has passed
+Draft PR CI and required PR review and has been squash-merged into `develop`.
 
 ## Financial standard
 

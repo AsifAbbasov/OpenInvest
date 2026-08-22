@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.49 |
+| Version | 1.1.50 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -680,3 +680,24 @@
 - Did not collect evidence, perform Security Review, accept ADR-008, select a provider, or change
   runtime code, OpenAPI, schema, migrations, credentials, dependencies, backups, CI, operations,
   or product scope.
+
+## 2026-08-22 — Stage 3.27 import financial-identity remediation verified
+
+- Remediated repository-audit findings P1-02, P1-03, and P1-04 without expanding product scope.
+- Preserved per-row imported-operation identity through review, append, and PostgreSQL persistence
+  using source-account scope, versioned normalized financial fingerprints, and SHA-256 broker
+  operation identity keys without persisting raw broker operation identifiers.
+- Corrected cash near-match classification so distinct same-day deposits or withdrawals with
+  different gross amounts are not collapsed into one conflict bucket.
+- Failed closed on non-zero commission or tax for `DEPOSIT` and `WITHDRAWAL` until an approved
+  accounting methodology defines those semantics, enforcing the rule in importer, application
+  validation, OpenAPI, and PostgreSQL.
+- Added migration `000004` with partial unique import-identity indexes, consistency constraints,
+  rollback support, and PostgreSQL defense-in-depth enforcement.
+- Verified the candidate with PostgreSQL 18, Go 1.25.14, OpenAPI validation, four migration pairs,
+  full migration rollback/reapply, targeted integration/concurrency regressions, full
+  `go test -count=1 ./...`, `go vet ./...`, `git diff --check`, and direct database negative tests.
+- Independent pre-commit review returned `APPROVED` with no remaining P0/P1/P2 blocker in the
+  Stage 3.27 commit candidate.
+- Stage 3.27 remains open pending commit, Draft PR, green CI, required PR review, explicit human
+  merge approval, and squash merge into `develop`.

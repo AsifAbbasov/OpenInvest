@@ -17,9 +17,10 @@ func (fixedClock) Now() time.Time {
 }
 
 type recordingStore struct {
-	requestHash string
-	assetFilter AssetSearchFilter
-	assets      []AssetSummary
+	requestHash   string
+	assetFilter   AssetSearchFilter
+	assets        []AssetSummary
+	importRequest AppendImportBatchRequest
 }
 
 func (store *recordingStore) Ping(context.Context) error { return nil }
@@ -68,8 +69,9 @@ func (store *recordingStore) AppendTransaction(_ context.Context, command Comman
 	return Transaction{}, nil
 }
 
-func (store *recordingStore) AppendImportedTransactions(_ context.Context, command CommandContext, _ AppendImportBatchRequest) ([]Transaction, error) {
+func (store *recordingStore) AppendImportedTransactions(_ context.Context, command CommandContext, request AppendImportBatchRequest) ([]Transaction, error) {
 	store.requestHash = command.RequestHash
+	store.importRequest = request
 	return []Transaction{}, nil
 }
 
@@ -384,6 +386,133 @@ func TestAppendImportedTransactionsRejectsDuplicateRows(t *testing.T) {
 
 	if !errors.Is(err, ErrInvalidInput) {
 		t.Fatalf("expected invalid input, got %v", err)
+	}
+}
+
+func TestAppendTransactionRejectsNonZeroCashFlowFees(t *testing.T) {
+	store := &recordingStore{}
+	service := NewService(store, fixedClock{})
+	gross := Money{Amount: decimal.Must("1000.00000000"), Currency: RUB}
+	commission := Money{Amount: decimal.Must("1.00000000"), Currency: RUB}
+
+	_, err := service.AppendTransaction(context.Background(), RequestContext{}, "subject", "cash-fee-key-0001", "/path", AppendTransactionRequest{
+		PortfolioID:     "portfolio-id",
+		TransactionType: "DEPOSIT",
+		GrossAmount:     &gross,
+		Commission:      commission,
+		Tax:             ZeroMoney(),
+		TradeDate:       "2026-06-26",
+	})
+	if !errors.Is(err, ErrInvalidInput) {
+		t.Fatalf("expected unsupported cash-flow fee to be rejected, got %v", err)
+	}
+	if store.requestHash != "" {
+		t.Fatal("expected rejected cash-flow fee to stop before persistence")
+	}
+}
+
+func TestAppendImportedTransactionsPreservesCanonicalBrokerIdentity(t *testing.T) {
+	store := &recordingStore{}
+	service := NewService(store, fixedClock{})
+	gross := Money{Amount: decimal.Must("1000.00000000"), Currency: RUB}
+	transaction := AppendTransactionRequest{
+		PortfolioID:     "portfolio-id",
+		TransactionType: "DEPOSIT",
+		GrossAmount:     &gross,
+		Commission:      ZeroMoney(),
+		Tax:             ZeroMoney(),
+		TradeDate:       "2026-06-26",
+	}
+	fingerprint, err := NormalizedTransactionFingerprint(transaction)
+	if err != nil {
+		t.Fatalf("fingerprint transaction: %v", err)
+	}
+	transaction.ImportProvenance = &ImportProvenance{
+		IdentityVersion:    ImportIdentityVersion,
+		BrokerOperationKey: BrokerOperationKey("broker-operation-123"),
+		SourceFingerprint:  fingerprint,
+	}
+
+	_, err = service.AppendImportedTransactions(context.Background(), RequestContext{}, "subject", "broker-import-key-01", "/internal/imports/append", AppendImportBatchRequest{
+		PortfolioID:        "portfolio-id",
+		Transactions:       []AppendTransactionRequest{transaction},
+		SourceKind:         "USER_UPLOADED_FILE",
+		SourceAccountLabel: " Broker account A ",
+		SourceFileHash:     strings.Repeat("a", 64),
+	})
+	if err != nil {
+		t.Fatalf("append imported transaction: %v", err)
+	}
+	if len(store.importRequest.Transactions) != 1 || store.importRequest.Transactions[0].ImportProvenance == nil {
+		t.Fatalf("expected persisted import provenance, got %+v", store.importRequest)
+	}
+	got := store.importRequest.Transactions[0].ImportProvenance
+	if got.BrokerOperationKey != BrokerOperationKey("broker-operation-123") || got.SourceFingerprint != fingerprint {
+		t.Fatalf("unexpected canonical import provenance: %+v", got)
+	}
+	if store.importRequest.SourceAccountLabel != "Broker account A" {
+		t.Fatalf("expected normalized source account label, got %q", store.importRequest.SourceAccountLabel)
+	}
+}
+
+func TestAppendImportedTransactionsRejectsTamperedSourceFingerprint(t *testing.T) {
+	store := &recordingStore{}
+	service := NewService(store, fixedClock{})
+	gross := Money{Amount: decimal.Must("1000.00000000"), Currency: RUB}
+	transaction := AppendTransactionRequest{
+		PortfolioID:     "portfolio-id",
+		TransactionType: "DEPOSIT",
+		GrossAmount:     &gross,
+		Commission:      ZeroMoney(),
+		Tax:             ZeroMoney(),
+		TradeDate:       "2026-06-26",
+		ImportProvenance: &ImportProvenance{
+			IdentityVersion:    ImportIdentityVersion,
+			BrokerOperationKey: BrokerOperationKey("broker-operation-123"),
+			SourceFingerprint:  strings.Repeat("f", 64),
+		},
+	}
+
+	_, err := service.AppendImportedTransactions(context.Background(), RequestContext{}, "subject", "tampered-fingerprint-key", "/internal/imports/append", AppendImportBatchRequest{
+		PortfolioID:        "portfolio-id",
+		Transactions:       []AppendTransactionRequest{transaction},
+		SourceKind:         "USER_UPLOADED_FILE",
+		SourceAccountLabel: "Broker account A",
+		SourceFileHash:     strings.Repeat("a", 64),
+	})
+	if !errors.Is(err, ErrInvalidInput) {
+		t.Fatalf("expected tampered source fingerprint to fail closed, got %v", err)
+	}
+	if len(store.importRequest.Transactions) != 0 {
+		t.Fatalf("expected tampered provenance to stop before persistence, got %+v", store.importRequest)
+	}
+}
+
+func TestAppendImportedTransactionsDerivesFallbackIdentityWithoutBrokerOperation(t *testing.T) {
+	store := &recordingStore{}
+	service := NewService(store, fixedClock{})
+	gross := Money{Amount: decimal.Must("1000.00000000"), Currency: RUB}
+	transaction := AppendTransactionRequest{
+		PortfolioID:     "portfolio-id",
+		TransactionType: "DEPOSIT",
+		GrossAmount:     &gross,
+		Commission:      ZeroMoney(),
+		Tax:             ZeroMoney(),
+		TradeDate:       "2026-06-26",
+	}
+
+	_, err := service.AppendImportedTransactions(context.Background(), RequestContext{}, "subject", "fallback-import-key", "/internal/imports/append", AppendImportBatchRequest{
+		PortfolioID:    "portfolio-id",
+		Transactions:   []AppendTransactionRequest{transaction},
+		SourceKind:     "USER_UPLOADED_FILE",
+		SourceFileHash: strings.Repeat("b", 64),
+	})
+	if err != nil {
+		t.Fatalf("append imported transaction: %v", err)
+	}
+	got := store.importRequest.Transactions[0].ImportProvenance
+	if got == nil || got.IdentityVersion != ImportIdentityVersion || got.SourceFingerprint == "" || got.BrokerOperationKey != "" {
+		t.Fatalf("expected normalized fallback import identity, got %+v", got)
 	}
 }
 

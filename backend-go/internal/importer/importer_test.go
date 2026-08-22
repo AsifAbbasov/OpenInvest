@@ -71,6 +71,129 @@ func TestReviewCSVDetectsScopedBrokerOperationDuplicateInsideFile(t *testing.T) 
 	}
 }
 
+func TestReviewCSVRejectsBrokerIdentityCollisionInsideFile(t *testing.T) {
+	review := mustReview(t, csvHeader+
+		"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,broker-op-1,first cash in\n"+
+		"DEPOSIT,,,,2000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,broker-op-1,mutated cash in\n", nil)
+
+	if got := review.Rows[1].Status; got != ReviewStatusConflict {
+		t.Fatalf("expected broker identity collision to be a conflict, got %s with reasons %v", got, review.Rows[1].ReasonCodes)
+	}
+	assertHasReason(t, review.Rows[1], "BROKER_OPERATION_IDENTITY_CONFLICT_ROW_2")
+}
+
+func TestReviewCSVKeepsDistinctBrokerOperationsWithIdenticalEconomics(t *testing.T) {
+	review := mustReview(t, csvHeader+
+		"BUY,SBER,2.00000000,100.00000000,200.00000000,1.00000000,0.00000000,2026-06-20,,RUB,broker-op-a,first execution\n"+
+		"BUY,SBER,2.00000000,100.00000000,200.00000000,1.00000000,0.00000000,2026-06-20,,RUB,broker-op-b,second execution\n", nil)
+
+	if review.Summary.AppendableRows != 2 {
+		t.Fatalf("expected both independent broker operations to remain appendable, got %+v", review.Summary)
+	}
+
+	requests, err := BuildAppendRequests(review, []Decision{
+		{RowNumber: 2, RowHash: review.Rows[0].RowHash, Action: DecisionApprove},
+		{RowNumber: 3, RowHash: review.Rows[1].RowHash, Action: DecisionApprove},
+	})
+	if err != nil {
+		t.Fatalf("build append requests: %v", err)
+	}
+	if len(requests) != 2 || requests[0].ImportProvenance == nil || requests[1].ImportProvenance == nil {
+		t.Fatalf("expected per-row import provenance, got %+v", requests)
+	}
+	if requests[0].ImportProvenance.SourceFingerprint != requests[1].ImportProvenance.SourceFingerprint {
+		t.Fatal("expected identical economics to share the normalized source fingerprint")
+	}
+	if requests[0].ImportProvenance.BrokerOperationKey == requests[1].ImportProvenance.BrokerOperationKey {
+		t.Fatal("expected distinct broker operations to have distinct persisted identity keys")
+	}
+}
+
+func TestReviewCSVAllowsDifferentCashAmountsOnSameDate(t *testing.T) {
+	review := mustReview(t, csvHeader+
+		"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,broker-op-a,first cash in\n"+
+		"DEPOSIT,,,,2000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,broker-op-b,second cash in\n", nil)
+
+	if review.Summary.AppendableRows != 2 || review.Summary.ConflictRows != 0 {
+		t.Fatalf("expected different same-day cash amounts to be independent, got %+v", review.Summary)
+	}
+}
+
+func TestReviewCSVRejectsCashFlowFeesUntilMethodologyExists(t *testing.T) {
+	review := mustReview(t, csvHeader+
+		"DEPOSIT,,,,1000.00000000,1.00000000,0.00000000,2026-06-19,,RUB,broker-op-a,cash fee unsupported\n", nil)
+
+	if got := review.Rows[0].Status; got != ReviewStatusConflict {
+		t.Fatalf("expected unsupported cash-flow fee conflict, got %s with reasons %v", got, review.Rows[0].ReasonCodes)
+	}
+	assertHasReason(t, review.Rows[0], "CASH_FLOW_FEES_UNSUPPORTED")
+}
+
+func TestReviewCSVUsesPersistedBrokerIdentityForExistingRows(t *testing.T) {
+	first := mustReview(t, csvHeader+
+		"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,broker-op-stable,first cash in\n", nil)
+	requests, err := BuildAppendRequests(first, []Decision{{RowNumber: 2, RowHash: first.Rows[0].RowHash, Action: DecisionApprove}})
+	if err != nil {
+		t.Fatalf("build first append request: %v", err)
+	}
+	request := requests[0]
+	existing := verticalslice.Transaction{
+		PortfolioID:              request.PortfolioID,
+		TransactionType:          request.TransactionType,
+		GrossAmount:              *request.GrossAmount,
+		Commission:               request.Commission,
+		Tax:                      request.Tax,
+		TradeDate:                request.TradeDate,
+		SourceKind:               SourceKindUserUploadedFile,
+		SourceAccountLabel:       "manual-broker-label",
+		SourceBrokerOperationKey: request.ImportProvenance.BrokerOperationKey,
+		SourceFingerprint:        request.ImportProvenance.SourceFingerprint,
+		SourceIdentityVersion:    verticalslice.ImportIdentityVersion,
+	}
+
+	repeated := mustReview(t, csvHeader+
+		"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,broker-op-stable,repeated cash in\n", []verticalslice.Transaction{existing})
+	if got := repeated.Rows[0].Status; got != ReviewStatusDuplicate {
+		t.Fatalf("expected persisted broker identity duplicate, got %s with reasons %v", got, repeated.Rows[0].ReasonCodes)
+	}
+
+	changed := mustReview(t, csvHeader+
+		"DEPOSIT,,,,2000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,broker-op-stable,changed economics\n", []verticalslice.Transaction{existing})
+	if got := changed.Rows[0].Status; got != ReviewStatusConflict {
+		t.Fatalf("expected broker identity collision to fail closed, got %s with reasons %v", got, changed.Rows[0].ReasonCodes)
+	}
+	assertHasReason(t, changed.Rows[0], "BROKER_OPERATION_IDENTITY_CONFLICT")
+}
+
+func TestReviewCSVScopesPersistedBrokerIdentityBySourceAccount(t *testing.T) {
+	first := mustReview(t, csvHeader+
+		"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,broker-op-scoped,cash in\n", nil)
+	requests, err := BuildAppendRequests(first, []Decision{{RowNumber: 2, RowHash: first.Rows[0].RowHash, Action: DecisionApprove}})
+	if err != nil {
+		t.Fatalf("build first append request: %v", err)
+	}
+	request := requests[0]
+	existing := verticalslice.Transaction{
+		PortfolioID:              request.PortfolioID,
+		TransactionType:          request.TransactionType,
+		GrossAmount:              *request.GrossAmount,
+		Commission:               request.Commission,
+		Tax:                      request.Tax,
+		TradeDate:                request.TradeDate,
+		SourceKind:               SourceKindUserUploadedFile,
+		SourceAccountLabel:       "another-broker-account",
+		SourceBrokerOperationKey: request.ImportProvenance.BrokerOperationKey,
+		SourceFingerprint:        request.ImportProvenance.SourceFingerprint,
+		SourceIdentityVersion:    verticalslice.ImportIdentityVersion,
+	}
+
+	review := mustReview(t, csvHeader+
+		"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,broker-op-scoped,cash in on scoped account\n", []verticalslice.Transaction{existing})
+	if got := review.Rows[0].Status; got != ReviewStatusAppendable {
+		t.Fatalf("expected same broker operation key in another source account to remain appendable, got %s with reasons %v", got, review.Rows[0].ReasonCodes)
+	}
+}
+
 func TestReviewCSVMarksGrossAmountMismatchForBuyAsConflict(t *testing.T) {
 	review := mustReview(t, csvHeader+
 		"BUY,SBER,2.00000000,100.00000000,199.99000000,1.00000000,0.00000000,2026-06-20,,RUB,op-1,gross mismatch\n", nil)
@@ -123,6 +246,13 @@ func TestReviewCSVNeutralizesSpreadsheetFormulaPayloads(t *testing.T) {
 	}
 	if !strings.HasPrefix(review.Rows[0].BrokerOperationID, "'=") {
 		t.Fatalf("expected neutralized broker operation id, got %q", review.Rows[0].BrokerOperationID)
+	}
+	requests, err := BuildAppendRequests(review, []Decision{{RowNumber: 2, RowHash: review.Rows[0].RowHash, Action: DecisionApprove}})
+	if err != nil {
+		t.Fatalf("build append request: %v", err)
+	}
+	if got := requests[0].ImportProvenance.BrokerOperationKey; got != verticalslice.BrokerOperationKey("=BROKEROP()") {
+		t.Fatalf("expected identity key from raw broker operation id, got %q", got)
 	}
 }
 

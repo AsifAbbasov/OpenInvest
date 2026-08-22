@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.51 |
+| Version | 1.1.52 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
@@ -55,12 +55,14 @@
 | 3.23 — Privacy deletion-marker control-plane proposal | Define restricted marker lifecycle, snapshot integrity, and fail-closed isolated restore replay | Complete / merged through PR #52 |
 | 3.24 — Privacy Security Review readiness dossier | Define required evidence, questions, outcomes, and record for the mandatory formal Security Review | Complete / merged through PR #53 |
 | 3.25 — Privacy Security Review evidence-collection plan | Define minimized, integrity-protected, independently verified evidence collection before formal Security Review | Active / proposal only |
+| 3.27 — Import financial identity and cash-flow semantics remediation | Close audit P1-02/P1-03/P1-04 with persisted import identity, amount-aware cash reconciliation, and fail-closed cash-flow fee semantics | Implementation verified / pre-commit review approved / pending PR, CI, and merge |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
 
-No subsequent implementation stage is authorized. Any next work begins with a separately reviewed
-planning stage.
+Stage 3.27 is a separately authorized narrow repository-audit remediation and does not authorize
+product-scope expansion. No further implementation stage begins without a separately reviewed
+planning or remediation gate.
 
 No AI, Tax Export, email, mobile, premium, direct broker API synchronization, credential scraping, or
 unnecessary worker implementation enters these stages without separate approval.
