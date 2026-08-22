@@ -21,6 +21,7 @@ var (
 	ErrEmailAlreadyExists = errors.New("email already exists")
 	ErrInvalidSession     = errors.New("invalid session")
 	ErrInvalidCSRF        = errors.New("invalid csrf token")
+	ErrAuthCapacity       = errors.New("authentication capacity exhausted")
 )
 
 type Clock interface {
