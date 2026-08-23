@@ -387,4 +387,6 @@ jobs:
           cache-dependency-glob: microservice-python/uv.lock
       - name: Audit Python lockfile with pinned pip-audit
         working-directory: microservice-python
-        run: uvx --from pip-audit==2.10.1 pip-audit --locked . --strict --progress-spinner off
+        run: |
+          uv export --frozen --format requirements.txt --all-extras --no-emit-project --output-file /tmp/openinvest-python-requirements.txt
+          uvx --from pip-audit==2.10.1 pip-audit -r /tmp/openinvest-python-requirements.txt --strict --progress-spinner off
