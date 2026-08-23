@@ -339,9 +339,14 @@ Decimal/OpenAPI magnitude with `NUMERIC(28,8)` and guards persistence-bound deri
 snapshot values. P2-08 makes portfolio/transaction JSON writes fail closed on unknown fields.
 P2-15 rejects duplicate normalized CSV headers before row normalization.
 
-Closure governance is tracked through PR #62. When this closure record is canonical on `develop`,
-P2-05/P2-06/P2-07/P2-08/P2-15 are closed. The remaining audit backlog is 12 P2 and 10 P3 findings.
-Stage 3.25 privacy Security Review evidence planning remains separate and is not superseded.
+Closure governance PR #62 passed exact-head CI #127 on
+`d70cf8322bae8713e6a6808624fa1493a46ed0ad`, received independent closure `APPROVED` review and
+fresh explicit human squash-merge authorization, and was squash-merged into `develop` at
+`0bfb3ea9f8e4cc7337a92caef5c7a73f9a8921bc`.
+
+Stage 3.29 is CLOSED for P2-05/P2-06/P2-07/P2-08/P2-15. At Stage 3.29 closure, the original audit
+backlog contained 12 P2 and 10 P3 findings. Later remediation does not alter that historical closure
+scope. Stage 3.25 privacy Security Review evidence planning remains separate and is not superseded.
 
 
 ## Stage 3.30 audit remediation closure governance
