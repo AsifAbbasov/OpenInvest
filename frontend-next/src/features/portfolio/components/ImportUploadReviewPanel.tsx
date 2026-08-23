@@ -14,6 +14,7 @@ import {
   clearBrowserIdempotencyIntent,
   emptyIdempotencyIntent,
   idempotencyIntentForBrowser,
+  principalScopedIdempotencyScope,
 } from "@/common/api/idempotency";
 import { formatMoney } from "@/common/presentation/format";
 import {
@@ -27,6 +28,7 @@ import {
 
 type ImportUploadReviewPanelProps = {
   accessToken: string;
+  principalId: string;
   portfolioId: string;
   onImported: () => void;
 };
@@ -34,12 +36,12 @@ type ImportUploadReviewPanelProps = {
 const maxCsvPayloadBytes = 2 * 1024 * 1024;
 const idempotencyConflictMessage = "Idempotency-Key is already bound to another request";
 
-export function ImportUploadReviewPanel({ accessToken, portfolioId, onImported }: ImportUploadReviewPanelProps) {
-	const fileInputRef = useRef<HTMLInputElement>(null);
-	const importOperationGuardRef = useRef<ImportOperationGuardState>({ scope: "", reviewGeneration: 0, appendGeneration: 0 });
-	const appendIdempotencyIntentRef = useRef(emptyIdempotencyIntent);
-	const importScope = `${portfolioId}\u0000${accessToken}`;
-  const retryScope = `import-append:${portfolioId}`;
+export function ImportUploadReviewPanel({ accessToken, principalId, portfolioId, onImported }: ImportUploadReviewPanelProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const importOperationGuardRef = useRef<ImportOperationGuardState>({ scope: "", reviewGeneration: 0, appendGeneration: 0 });
+  const appendIdempotencyIntentRef = useRef(emptyIdempotencyIntent);
+  const importScope = `${portfolioId}\u0000${accessToken}`;
+  const retryScope = principalScopedIdempotencyScope(principalId, `import-append:${portfolioId}`);
   const [sourceAccountLabel, setSourceAccountLabel] = useState("Manual CSV import");
   const [csvPayload, setCsvPayload] = useState("");
   const [reviewedCsvPayload, setReviewedCsvPayload] = useState("");
@@ -52,35 +54,35 @@ export function ImportUploadReviewPanel({ accessToken, portfolioId, onImported }
   const [isReviewing, setIsReviewing] = useState(false);
   const [isAppending, setIsAppending] = useState(false);
 
-	const review = reviewResult?.ok ? reviewResult.data : null;
-	const selectedAppendableRows = review?.rows.filter((row) => row.status === "APPENDABLE" && selectedRows.has(row.rowNumber)) ?? [];
+  const review = reviewResult?.ok ? reviewResult.data : null;
+  const selectedAppendableRows = review?.rows.filter((row) => row.status === "APPENDABLE" && selectedRows.has(row.rowNumber)) ?? [];
 
-	useLayoutEffect(() => {
-		importOperationGuardRef.current = synchronizeImportScope(importOperationGuardRef.current, importScope);
-	}, [importScope]);
+  useLayoutEffect(() => {
+    importOperationGuardRef.current = synchronizeImportScope(importOperationGuardRef.current, importScope);
+  }, [importScope]);
 
-	useEffect(() => {
-		setCsvPayload("");
-		setReviewedCsvPayload("");
-		setReviewedSourceAccountLabel(undefined);
-		setFileName(null);
-		setSelectedRows(new Set());
-		setReviewResult(null);
-		setAppendResult(null);
-		setStatus(null);
-		setIsReviewing(false);
-		setIsAppending(false);
-		appendIdempotencyIntentRef.current = emptyIdempotencyIntent;
-		if (fileInputRef.current) {
-			fileInputRef.current.value = "";
-		}
-	}, [importScope]);
+  useEffect(() => {
+    setCsvPayload("");
+    setReviewedCsvPayload("");
+    setReviewedSourceAccountLabel(undefined);
+    setFileName(null);
+    setSelectedRows(new Set());
+    setReviewResult(null);
+    setAppendResult(null);
+    setStatus(null);
+    setIsReviewing(false);
+    setIsAppending(false);
+    appendIdempotencyIntentRef.current = emptyIdempotencyIntent;
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }, [importScope]);
 
-	async function loadFile(event: React.ChangeEvent<HTMLInputElement>) {
+  async function loadFile(event: React.ChangeEvent<HTMLInputElement>) {
     if (isAppending) {
       return;
     }
-		const nextOperation = startImportReview(importOperationGuardRef.current, importScope);
+    const nextOperation = startImportReview(importOperationGuardRef.current, importScope);
     importOperationGuardRef.current = nextOperation.state;
     const [file] = Array.from(event.target.files ?? []);
     setStatus(null);
@@ -122,7 +124,7 @@ export function ImportUploadReviewPanel({ accessToken, portfolioId, onImported }
     if (isAppending) {
       return;
     }
-		const nextOperation = startImportReview(importOperationGuardRef.current, importScope);
+    const nextOperation = startImportReview(importOperationGuardRef.current, importScope);
     importOperationGuardRef.current = nextOperation.state;
     const payloadAtSubmit = csvPayload;
     const sourceAccountLabelAtSubmit = sourceAccountLabel.trim() || undefined;
@@ -159,7 +161,7 @@ export function ImportUploadReviewPanel({ accessToken, portfolioId, onImported }
       return;
     }
     if (csvPayload !== reviewedCsvPayload) {
-			const nextOperation = startImportReview(importOperationGuardRef.current, importScope);
+      const nextOperation = startImportReview(importOperationGuardRef.current, importScope);
       importOperationGuardRef.current = nextOperation.state;
       setStatus("CSV changed after review. Run review again before append.");
       setReviewResult(null);
@@ -171,7 +173,7 @@ export function ImportUploadReviewPanel({ accessToken, portfolioId, onImported }
       appendIdempotencyIntentRef.current = emptyIdempotencyIntent;
       return;
     }
-		const nextOperation = startImportAppend(importOperationGuardRef.current, importScope);
+    const nextOperation = startImportAppend(importOperationGuardRef.current, importScope);
     importOperationGuardRef.current = nextOperation.state;
     setIsAppending(true);
     setStatus(null);
@@ -262,7 +264,7 @@ export function ImportUploadReviewPanel({ accessToken, portfolioId, onImported }
             value={sourceAccountLabel}
             maxLength={120}
             onChange={(event) => {
-				const nextOperation = startImportReview(importOperationGuardRef.current, importScope);
+              const nextOperation = startImportReview(importOperationGuardRef.current, importScope);
               importOperationGuardRef.current = nextOperation.state;
               setSourceAccountLabel(event.target.value);
               setReviewResult(null);
