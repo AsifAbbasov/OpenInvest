@@ -111,7 +111,7 @@ func (store *stage32ImportReplayStore) LookupReplayArtifact(
 	if store.requestHash != command.RequestHash {
 		return verticalslice.CommandReplayArtifact{}, false, errors.New("unexpected idempotency request hash mismatch")
 	}
-	return store.artifact, true, nil
+	return cloneStage0332ReplayArtifact(store.artifact), true, nil
 }
 
 func (store *stage32ImportReplayStore) CreatePortfolioWithReplay(
@@ -145,7 +145,7 @@ func (store *stage32ImportReplayStore) AppendImportedTransactionsWithReplay(
 	transactions := make([]verticalslice.Transaction, 0, len(request.Transactions))
 	for index, item := range request.Transactions {
 		transactions = append(transactions, verticalslice.Transaction{
-			ID:              "00000000-0000-4000-8000-00000000010" + string(rune('0'+index)),
+			ID:              "stage-03-32-import-transaction-" + string(rune('a'+index)),
 			PortfolioID:     request.PortfolioID,
 			TransactionType: item.TransactionType,
 			TradeDate:       item.TradeDate,
@@ -156,6 +156,6 @@ func (store *stage32ImportReplayStore) AppendImportedTransactionsWithReplay(
 		return nil, verticalslice.CommandReplayArtifact{}, err
 	}
 	store.requestHash = command.RequestHash
-	store.artifact = artifact
+	store.artifact = cloneStage0332ReplayArtifact(artifact)
 	return transactions, artifact, nil
 }
