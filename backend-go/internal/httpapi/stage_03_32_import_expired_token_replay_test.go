@@ -136,16 +136,33 @@ func (store *stage32ImportReplayStore) AppendTransactionWithReplay(
 }
 
 func (store *stage32ImportReplayStore) AppendImportedTransactionsWithReplay(
-	_ context.Context,
+	ctx context.Context,
 	command verticalslice.CommandContext,
 	request verticalslice.AppendImportBatchRequest,
 	build verticalslice.ImportedTransactionsReplayBuilder,
+) ([]verticalslice.Transaction, verticalslice.CommandReplayArtifact, error) {
+	return store.AppendImportedTransactionsWithOutcomeReplay(
+		ctx,
+		command,
+		request,
+		func(outcome verticalslice.ImportAppendOutcome) (verticalslice.CommandReplayArtifact, error) {
+			return build(outcome.Transactions)
+		},
+	)
+}
+
+func (store *stage32ImportReplayStore) AppendImportedTransactionsWithOutcomeReplay(
+	_ context.Context,
+	command verticalslice.CommandContext,
+	request verticalslice.AppendImportBatchRequest,
+	build verticalslice.ImportedTransactionsOutcomeReplayBuilder,
 ) ([]verticalslice.Transaction, verticalslice.CommandReplayArtifact, error) {
 	if store.requestHash != "" {
 		return nil, verticalslice.CommandReplayArtifact{}, errors.New("financial append was executed more than once")
 	}
 	store.appendReplayCalls++
 	transactions := make([]verticalslice.Transaction, 0, len(request.Transactions))
+	snapshotDates := make([]string, 0, len(request.Transactions))
 	for index, item := range request.Transactions {
 		transactions = append(transactions, verticalslice.Transaction{
 			ID:              "stage-03-32-import-transaction-" + string(rune('a'+index)),
@@ -153,8 +170,12 @@ func (store *stage32ImportReplayStore) AppendImportedTransactionsWithReplay(
 			TransactionType: item.TransactionType,
 			TradeDate:       item.TradeDate,
 		})
+		snapshotDates = append(snapshotDates, item.TradeDate)
 	}
-	artifact, err := build(transactions)
+	artifact, err := build(verticalslice.ImportAppendOutcome{
+		Transactions:         transactions,
+		SnapshotDatesRebuilt: snapshotDates,
+	})
 	if err != nil {
 		return nil, verticalslice.CommandReplayArtifact{}, err
 	}

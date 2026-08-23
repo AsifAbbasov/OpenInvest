@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"sort"
 	"strings"
 
 	"github.com/openinvest/openinvest/backend-go/internal/importer"
@@ -23,7 +22,14 @@ var (
 const maxImportPayloadBytes int64 = 2 * 1024 * 1024
 
 type Appender interface {
-	AppendImportedTransactions(ctx context.Context, requestContext verticalslice.RequestContext, subjectID string, idempotencyKey string, requestPath string, request verticalslice.AppendImportBatchRequest) ([]verticalslice.Transaction, error)
+	AppendImportedTransactionsWithOutcome(
+		ctx context.Context,
+		requestContext verticalslice.RequestContext,
+		subjectID string,
+		idempotencyKey string,
+		requestPath string,
+		request verticalslice.AppendImportBatchRequest,
+	) (verticalslice.ImportAppendOutcome, error)
 }
 
 type Request struct {
@@ -102,14 +108,21 @@ func ReviewAndAppend(ctx context.Context, appender Appender, request Request) (R
 		return Result{}, ErrNoApprovedRows
 	}
 
-	transactions, err := appender.AppendImportedTransactions(ctx, request.RequestContext, request.SubjectID, request.IdempotencyKey, request.RequestPath, verticalslice.AppendImportBatchRequest{
-		PortfolioID:        request.PortfolioID,
-		Transactions:       appendRequests,
-		SourceKind:         review.SourceKind,
-		SourceAccountLabel: review.SourceAccountLabel,
-		SourceFileHash:     review.FileHash,
-		Decisions:          importDecisions(request.Decisions),
-	})
+	outcome, err := appender.AppendImportedTransactionsWithOutcome(
+		ctx,
+		request.RequestContext,
+		request.SubjectID,
+		request.IdempotencyKey,
+		request.RequestPath,
+		verticalslice.AppendImportBatchRequest{
+			PortfolioID:        request.PortfolioID,
+			Transactions:       appendRequests,
+			SourceKind:         review.SourceKind,
+			SourceAccountLabel: review.SourceAccountLabel,
+			SourceFileHash:     review.FileHash,
+			Decisions:          importDecisions(request.Decisions),
+		},
+	)
 	if err != nil {
 		return Result{}, err
 	}
@@ -118,8 +131,8 @@ func ReviewAndAppend(ctx context.Context, appender Appender, request Request) (R
 		ParsedRowCount:         review.Summary.TotalRows,
 		AcceptedRowCount:       len(appendRequests),
 		NonAppendedRowCount:    review.Summary.TotalRows - len(appendRequests),
-		AppendedTransactionIDs: transactionIDs(transactions),
-		SnapshotDatesRebuilt:   snapshotDates(appendRequests),
+		AppendedTransactionIDs: transactionIDs(outcome.Transactions),
+		SnapshotDatesRebuilt:   append([]string(nil), outcome.SnapshotDatesRebuilt...),
 		AuditActionCode:        "IMPORT_APPEND_BATCH",
 		NonSensitiveWarnings:   nonSensitiveWarnings(review, len(request.Decisions), len(appendRequests)),
 	}
@@ -143,19 +156,6 @@ func transactionIDs(transactions []verticalslice.Transaction) []string {
 		ids = append(ids, transaction.ID)
 	}
 	return ids
-}
-
-func snapshotDates(requests []verticalslice.AppendTransactionRequest) []string {
-	seen := map[string]struct{}{}
-	for _, request := range requests {
-		seen[request.TradeDate] = struct{}{}
-	}
-	dates := make([]string, 0, len(seen))
-	for date := range seen {
-		dates = append(dates, date)
-	}
-	sort.Strings(dates)
-	return dates
 }
 
 func nonSensitiveWarnings(review importer.Review, decisionCount int, appendCount int) []string {

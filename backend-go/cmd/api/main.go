@@ -28,7 +28,7 @@ func newApp() *fiber.App {
 		store := unavailableStore{}
 		return httpapi.NewDevelopmentReplay(verticalslice.NewService(store, verticalslice.SystemClock{}))
 	}
-	store, err := postgres.Open(databaseURL)
+	store, err := openPostgresStore(databaseURL)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -50,6 +50,15 @@ func newApp() *fiber.App {
 		log.Fatal(err)
 	}
 	return app
+}
+
+func openPostgresStore(databaseURL string) (*postgres.Store, error) {
+	if isExplicitDevelopmentEnvironment() {
+		// Local development may use the schema owner for migration convenience. Staging and
+		// production must prove the dedicated append-only runtime privilege boundary at startup.
+		return postgres.Open(databaseURL)
+	}
+	return postgres.OpenRuntime(databaseURL)
 }
 
 func validateRuntimeSafety(databaseURL string) error {

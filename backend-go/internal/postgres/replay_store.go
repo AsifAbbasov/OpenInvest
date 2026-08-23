@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/google/uuid"
@@ -151,98 +150,14 @@ func (s *Store) AppendImportedTransactionsWithReplay(
 	request verticalslice.AppendImportBatchRequest,
 	build verticalslice.ImportedTransactionsReplayBuilder,
 ) ([]verticalslice.Transaction, verticalslice.CommandReplayArtifact, error) {
-	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
-	if err != nil {
-		return nil, verticalslice.CommandReplayArtifact{}, err
-	}
-	defer rollback(tx)
-
-	// A completed import replay is independent of current portfolio state. New commands continue
-	// to acquire the portfolio lock before any financial duplicate/conflict checks or ledger writes.
-	reservation, err := reserveReplayCommand(ctx, tx, command, "POST")
-	if err != nil {
-		return nil, verticalslice.CommandReplayArtifact{}, err
-	}
-	if reservation.Duplicate {
-		if err := tx.Commit(); err != nil {
-			return nil, verticalslice.CommandReplayArtifact{}, err
-		}
-		return nil, reservation.Artifact, nil
-	}
-
-	if err := lockPortfolioTx(ctx, tx, command.SubjectID, request.PortfolioID); err != nil {
-		return nil, verticalslice.CommandReplayArtifact{}, err
-	}
-
-	for _, transactionRequest := range request.Transactions {
-		duplicate, err := importIdentityExists(ctx, tx, transactionRequest, request.SourceAccountLabel)
-		if err != nil {
-			return nil, verticalslice.CommandReplayArtifact{}, err
-		}
-		if duplicate {
-			return nil, verticalslice.CommandReplayArtifact{}, verticalslice.ErrInvalidInput
-		}
-		legacyOrManualDuplicate, err := legacyOrManualEquivalentTransactionExists(ctx, tx, transactionRequest)
-		if err != nil {
-			return nil, verticalslice.CommandReplayArtifact{}, err
-		}
-		if legacyOrManualDuplicate {
-			return nil, verticalslice.CommandReplayArtifact{}, verticalslice.ErrInvalidInput
-		}
-		conflict, err := nearConflictTransactionExists(ctx, tx, transactionRequest)
-		if err != nil {
-			return nil, verticalslice.CommandReplayArtifact{}, err
-		}
-		if conflict {
-			return nil, verticalslice.CommandReplayArtifact{}, verticalslice.ErrInvalidInput
-		}
-	}
-
-	if err := ensureAssets(ctx, tx, request.Transactions); err != nil {
-		return nil, verticalslice.CommandReplayArtifact{}, err
-	}
-
-	snapshotDateSet := map[string]struct{}{}
-	for index, transactionRequest := range request.Transactions {
-		entryID, err := importEntryID(reservation.ID, index)
-		if err != nil {
-			return nil, verticalslice.CommandReplayArtifact{}, err
-		}
-		if err := insertTransactionEntryWithID(ctx, tx, command, transactionRequest, entryID, request.SourceKind, request.SourceFileHash, request.SourceAccountLabel); err != nil {
-			return nil, verticalslice.CommandReplayArtifact{}, err
-		}
-		snapshotDateSet[transactionRequest.TradeDate] = struct{}{}
-	}
-
-	snapshotDates := make([]string, 0, len(snapshotDateSet))
-	for snapshotDate := range snapshotDateSet {
-		snapshotDates = append(snapshotDates, snapshotDate)
-	}
-	sort.Strings(snapshotDates)
-	for _, snapshotDate := range snapshotDates {
-		if err := rebuildAffectedSnapshots(ctx, tx, request.PortfolioID, snapshotDate, command.Now); err != nil {
-			return nil, verticalslice.CommandReplayArtifact{}, err
-		}
-	}
-	if err := recordImportAppendAudit(ctx, tx, command, request.PortfolioID); err != nil {
-		return nil, verticalslice.CommandReplayArtifact{}, err
-	}
-
-	transactions, err := getImportedTransactionsByCommandTx(ctx, tx, reservation.ID, request)
-	if err != nil {
-		return nil, verticalslice.CommandReplayArtifact{}, err
-	}
-	artifact, err := build(transactions)
-	if err != nil {
-		return nil, verticalslice.CommandReplayArtifact{}, err
-	}
-	if err := completeReplayCommand(ctx, tx, reservation.ID, artifact); err != nil {
-		return nil, verticalslice.CommandReplayArtifact{}, err
-	}
-	if err := tx.Commit(); err != nil {
-		return nil, verticalslice.CommandReplayArtifact{}, err
-	}
-	return transactions, artifact, nil
+	return s.AppendImportedTransactionsWithOutcomeReplay(
+		ctx,
+		command,
+		request,
+		func(outcome verticalslice.ImportAppendOutcome) (verticalslice.CommandReplayArtifact, error) {
+			return build(outcome.Transactions)
+		},
+	)
 }
 
 func reserveReplayCommand(ctx context.Context, tx *sql.Tx, command verticalslice.CommandContext, method string) (replayReservation, error) {
