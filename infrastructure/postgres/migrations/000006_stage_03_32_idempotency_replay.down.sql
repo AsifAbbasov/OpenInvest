@@ -10,10 +10,9 @@ ALTER TABLE investment.command_deduplication
     DROP COLUMN IF EXISTS response_status,
     DROP COLUMN IF EXISTS response_version;
 
--- Restore the pre-Stage-3.32 placeholder behavior for rollback compatibility.
+-- Restore the pre-Stage-3.32 placeholder behavior for full rollback compatibility.
 UPDATE investment.command_deduplication
 SET response_hash = request_hash
-WHERE terminal_status = 'success'
-  AND response_hash IS NULL;
+WHERE terminal_status = 'success';
 
 COMMIT;
