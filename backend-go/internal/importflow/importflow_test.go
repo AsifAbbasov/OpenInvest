@@ -19,11 +19,21 @@ type recordingAppender struct {
 	called  bool
 }
 
-func (appender *recordingAppender) AppendImportedTransactions(_ context.Context, _ verticalslice.RequestContext, _ string, _ string, _ string, request verticalslice.AppendImportBatchRequest) ([]verticalslice.Transaction, error) {
+func (appender *recordingAppender) AppendImportedTransactionsWithOutcome(
+	_ context.Context,
+	_ verticalslice.RequestContext,
+	_ string,
+	_ string,
+	_ string,
+	request verticalslice.AppendImportBatchRequest,
+) (verticalslice.ImportAppendOutcome, error) {
 	appender.called = true
 	appender.request = request
-	return []verticalslice.Transaction{
-		{ID: "tx-1", TradeDate: request.Transactions[0].TradeDate},
+	return verticalslice.ImportAppendOutcome{
+		Transactions: []verticalslice.Transaction{
+			{ID: "tx-1", TradeDate: request.Transactions[0].TradeDate},
+		},
+		SnapshotDatesRebuilt: []string{"2026-06-19", "2026-06-25"},
 	}, nil
 }
 
@@ -68,8 +78,8 @@ func TestReviewAndAppendAppendsOnlyExplicitlyApprovedRows(t *testing.T) {
 	if len(result.AppendedTransactionIDs) != 1 || result.AppendedTransactionIDs[0] != "tx-1" {
 		t.Fatalf("unexpected transaction ids: %v", result.AppendedTransactionIDs)
 	}
-	if len(result.SnapshotDatesRebuilt) != 1 || result.SnapshotDatesRebuilt[0] != "2026-06-19" {
-		t.Fatalf("unexpected snapshot dates: %v", result.SnapshotDatesRebuilt)
+	if len(result.SnapshotDatesRebuilt) != 2 || result.SnapshotDatesRebuilt[0] != "2026-06-19" || result.SnapshotDatesRebuilt[1] != "2026-06-25" {
+		t.Fatalf("expected appender-owned exact snapshot dates, got %v", result.SnapshotDatesRebuilt)
 	}
 	if result.AuditActionCode != "IMPORT_APPEND_BATCH" {
 		t.Fatalf("unexpected audit action code: %s", result.AuditActionCode)
