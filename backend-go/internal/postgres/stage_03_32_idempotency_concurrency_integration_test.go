@@ -85,6 +85,6 @@ func TestStage0332ConcurrentIdenticalCreateProducesOneEffectAndOneArtifact(t *te
 		t.Fatalf("concurrent callers did not receive the same artifact: first=%+v second=%+v", results[0].artifact, results[1].artifact)
 	}
 
-	assertStage0332CountArgs(t, store, `SELECT count(*) FROM investment.portfolios WHERE subject_id = $1`, 1, subjectID)
-	assertStage0332CountArgs(t, store, `SELECT count(*) FROM investment.command_deduplication WHERE principal_id = $1 AND idempotency_key = $2`, 1, subjectID, key)
+	assertStage0332Count(t, store, `SELECT count(*) FROM investment.portfolios WHERE subject_id = $1`, 1, subjectID)
+	assertStage0332Count(t, store, `SELECT count(*) FROM investment.command_deduplication WHERE principal_id = $1 AND idempotency_key = $2`, 1, subjectID, key)
 }
