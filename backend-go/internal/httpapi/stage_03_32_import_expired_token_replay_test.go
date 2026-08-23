@@ -54,6 +54,9 @@ func TestStage0332CompletedImportReplaysAfterReviewTokenExpires(t *testing.T) {
 	if store.appendReplayCalls != 1 {
 		t.Fatalf("expected one financial append, got %d", store.appendReplayCalls)
 	}
+	if store.lookupCalls != 0 {
+		t.Fatalf("fresh valid import must not perform recovery lookup, got %d calls", store.lookupCalls)
+	}
 
 	// The signed review token has a 15-minute lifetime. Advance beyond it while keeping the
 	// command inside the 24-hour idempotency replay window.
@@ -86,8 +89,8 @@ func TestStage0332CompletedImportReplaysAfterReviewTokenExpires(t *testing.T) {
 	if store.appendReplayCalls != 1 {
 		t.Fatalf("expired-token replay executed financial append again: calls=%d", store.appendReplayCalls)
 	}
-	if store.lookupCalls < 2 {
-		t.Fatalf("expected read-only lookup on original request and retry, got %d", store.lookupCalls)
+	if store.lookupCalls != 1 {
+		t.Fatalf("expected one recovery lookup only after proof expiry, got %d", store.lookupCalls)
 	}
 }
 
