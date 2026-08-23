@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.63 |
+| Version | 1.1.64 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
@@ -15,7 +15,7 @@
 
 | ID | Title | Version | Status | Location |
 | --- | --- | --- | --- | --- |
-| SOT-001 | Source of Truth | 1.4.62 | Approved | `SOURCE_OF_TRUTH.md` |
+| SOT-001 | Source of Truth | 1.4.63 | Approved | `SOURCE_OF_TRUTH.md` |
 | 42 | Architecture Amendments | 1.1.0 | Approved | `specifications/current/DOCUMENT_42_ARCHITECTURE_AMENDMENTS_v1.1.md` |
 | 43 | Architecture Decision Closure | 1.2.0 | Final | `specifications/current/DOCUMENT_43_ARCHITECTURE_CLOSURE_v1.2.md` |
 
@@ -121,7 +121,8 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Stage 3.28 authentication security remediation | Complete / closed for P1-01/P1-05; implementation merged through PR #59 at `dc83f5f3a11da164e6809593861d96ccf47b29ca` after CI #114, renewed independent `APPROVED`, and explicit human approval; closure governance merged through PR #60 at `0ddc618a3450ea81fd4befb3b10c959b3cb82a25` | `stages/STAGE_03_28_AUTH_SECURITY_REMEDIATION.md` |
 | Stage 3.29 input and contract hardening | Complete / closed for P2-05/P2-06/P2-07/P2-08/P2-15; implementation merged through PR #61 at `7331d3f34783baec3997497d1a79b78eaa558bd4` after CI #124 and renewed independent `APPROVED`; closure governance merged through PR #62 at `0bfb3ea9f8e4cc7337a92caef5c7a73f9a8921bc` | `stages/STAGE_03_29_INPUT_CONTRACT_HARDENING.md` |
 | Stage 3.30 import review integrity | Complete / closed for P2-02/P2-03/P2-04; implementation merged through PR #63 at `8f68dd18800918e6a9882e995e13dba2723dc929`; closure governance merged through PR #64 at `ae6497050692798795efb85678af64db97cc5f53` | `stages/STAGE_03_30_IMPORT_REVIEW_INTEGRITY.md` |
-| Stage 3.31 authentication operational hardening | Implementation merged through PR #65 at `9bf4d1d31597918eacf0c3358bf6caa2aa9db897` after exact-head CI #133 and independent `APPROVED`; closure governance through PR #66 closes P2-01/P2-14 when canonical; 7 P2 and 10 P3 remain | `stages/STAGE_03_31_AUTH_OPERATIONAL_HARDENING.md` |
+| Stage 3.31 authentication operational hardening | Complete / closed for P2-01/P2-14; implementation merged through PR #65 at `9bf4d1d31597918eacf0c3358bf6caa2aa9db897`; closure governance merged through PR #66 at `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746` | `stages/STAGE_03_31_AUTH_OPERATIONAL_HARDENING.md` |
+| Stage 3.32 exact idempotency replay and browser retry recovery | Implementation merged through PR #67 at `0623d5ef326cd783b7dc0417dbcb02f18c506171` after exact-head CI #181, repeat independent `APPROVED`, and explicit human squash-merge authorization; when closure governance is canonical, P2-09/P2-13 are closed and 5 P2 plus 10 P3 remain | `stages/STAGE_03_32_IDEMPOTENCY_REPLAY_BROWSER_RECOVERY.md` |
 
 ## Product refinement documents
 

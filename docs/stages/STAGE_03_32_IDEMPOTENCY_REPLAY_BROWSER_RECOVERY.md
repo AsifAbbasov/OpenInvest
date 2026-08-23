@@ -2,17 +2,17 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementation candidate; first independent review requested changes for P2-13; remediation verification green; repeat independent review and human merge authorization pending |
+| Status | Implementation merged; closure governance pending canonical merge |
 | Owner | Principal Architect |
 | Baseline | `develop` at `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746` |
 | Branch | `fix/stage-03-32-idempotency-recovery` |
 | Implementation PR | #67 |
-| Implementation merge | Pending |
-| Verified remediation code head | `13dbf3ad06ed35bd643c6810e383713ea2463baa` |
-| Remediation code CI | GitHub Actions #173 — SUCCESS, all six jobs passed |
+| Implementation merge | Squash-merged into `develop` at `0623d5ef326cd783b7dc0417dbcb02f18c506171` |
+| Exact independently reviewed head | `02aa2417a3caca79e2afc4e7b598b92055de96b7` |
+| Exact-head CI | GitHub Actions #181 — SUCCESS, all six jobs passed |
 | First independent review | `REQUEST CHANGES` on `57fcc25e949277a0e933f290998e41d0f7476b5c`: P2-09 CLOSED; P2-13 NOT CLOSED because browser retry slots were not principal-scoped |
-| Repeat independent review | Pending; exact immutable review SHA and exact-head CI are supplied in PR #67 metadata/review packet after the final branch head is fixed |
-| Human implementation merge authorization | Pending |
+| Repeat independent review | `APPROVED` on `02aa2417a3caca79e2afc4e7b598b92055de96b7`: P2-09 CLOSED; P2-13 CLOSED; new blocking regressions none |
+| Human implementation merge authorization | Received before squash merge of PR #67 |
 | Trigger | Repository-audit P2-09 and P2-13 |
 | Scope | Exact original-response idempotent replay, atomic replay-artifact persistence, import retry recovery across review-token expiry, principal-isolated short-lived browser retry identity, regression and migration coverage |
 | Out of scope | P2-10/P2-11/P2-12/P2-16/P2-17, all P3 findings, Stage 3.25 privacy Security Review evidence work, provider/backup retention, product-scope expansion |
@@ -114,8 +114,8 @@ stored bytes directly and restores the original request/trace response headers, 
 and technical identity are not regenerated from the retry request.
 
 The first independent remediation review marked P2-09 CLOSED on exact head
-`57fcc25e949277a0e933f290998e41d0f7476b5c`. Later P2-13 remediation did not alter the backend replay
-transaction path, but the final stage verdict still requires a repeat exact-head independent review.
+`57fcc25e949277a0e933f290998e41d0f7476b5c`. The repeat independent review on final exact head
+`02aa2417a3caca79e2afc4e7b598b92055de96b7` reconfirmed P2-09 CLOSED.
 
 ## P2-13 — browser retry identity was lost on reload/remount
 
@@ -146,7 +146,7 @@ portfolio scoped but did not include the stable authenticated principal. In a sh
 User A could leave an unresolved `portfolio-create` retry key, sign out, and User B could then restore
 and clear that same browser slot. Backend principal scoping prevented BOLA or cross-user response
 replay, but User A's unresolved retry identity could be consumed by another account. P2-13 therefore
-remained open.
+remained open after the first review.
 
 ### Post-review remediation
 
@@ -178,6 +178,10 @@ Existing reload, changed-intent, TTL, malformed-state, scope-minimization, and s
 regressions remain active. Import component fixtures were also updated to supply the stable principal
 without changing their stale-response/token-rotation semantics.
 
+The repeat independent review on exact head
+`02aa2417a3caca79e2afc4e7b598b92055de96b7` marked P2-13 CLOSED and reported no new blocking
+P1/P2 regression.
+
 ## Regression evidence
 
 The Stage 3.32 test set includes:
@@ -201,11 +205,10 @@ The Stage 3.32 test set includes:
 - successful writes clear the applicable principal-scoped retry journal;
 - full frontend typecheck, tests, and production build remain green.
 
-The P2-13 remediation code head `13dbf3ad06ed35bd643c6810e383713ea2463baa` passed CI #173 with all six
-jobs successful. Subsequent documentation-only states were repeatedly reverified by full CI while the
-review record was finalized. The immutable exact SHA used for the repeat independent review and its
-matching exact-head CI run are intentionally recorded in PR #67 metadata/review packet after the
-branch head is fixed; this stage document does not self-reference its own mutable commit SHA.
+Exact final implementation head `02aa2417a3caca79e2afc4e7b598b92055de96b7` passed GitHub Actions CI #181
+with all six jobs successful: Go tests with PostgreSQL/migrations, PostgreSQL migration validation,
+frontend build/typecheck/tests, Python tests, OpenAPI contract validation, and Docker Compose
+configuration validation.
 
 ## Review history and implementation findings
 
@@ -231,9 +234,11 @@ than waived:
 - a documentation-only truncation while finalizing review metadata was detected immediately and
   restored from the previously verified blob; no runtime code was lost or altered by that recovery.
 
-The first independent verdict was `REQUEST CHANGES`; it is not treated as approval. A fresh repeat
-review must evaluate the immutable PR head SHA supplied in the PR review packet before any human
-merge authorization.
+The first independent verdict was `REQUEST CHANGES`; it remains historical evidence. The repeat
+independent review on final exact head `02aa2417a3caca79e2afc4e7b598b92055de96b7` returned
+`APPROVED`, with P2-09 and P2-13 both marked CLOSED and no new blocking regression. Explicit human
+squash-merge authorization was then received, and PR #67 was squash-merged into `develop` at
+`0623d5ef326cd783b7dc0417dbcb02f18c506171`.
 
 ## Privacy and retention boundary
 
@@ -252,15 +257,14 @@ The browser remediation stores no raw principal identifier. The stable authentic
 only as transient input to the SHA-256 technical slot derivation together with operation/portfolio
 scope.
 
-## Scope boundary and next gate
+## Closure governance
 
-Stage 3.32 is not CLOSED by this implementation record. P2-09/P2-13 may be marked closed only after:
+Implementation PR #67 was squash-merged into `develop` at
+`0623d5ef326cd783b7dc0417dbcb02f18c506171` after exact-head CI #181, repeat independent
+`APPROVED` review on `02aa2417a3caca79e2afc4e7b598b92055de96b7`, and explicit human
+squash-merge authorization.
 
-1. the final fixed implementation/documentation head passes exact-head CI;
-2. a repeat independent final review returns `APPROVED` with no unresolved blocker;
-3. explicit human implementation merge authorization is given;
-4. PR #67 is squash-merged into `develop`;
-5. separate closure governance records the canonical merge and updates the repository status.
-
-P2-10/P2-11/P2-12/P2-16/P2-17 and all P3 findings remain outside this stage. Stage 3.25 privacy
-Security Review evidence planning remains separate and is not superseded.
+When this closure record is canonical on `develop`, Stage 3.32 is CLOSED for P2-09 and P2-13. The
+remaining original repository-audit backlog is 5 P2 and 10 P3 findings: P2-10/P2-11/P2-12/P2-16/P2-17
+plus all P3 findings. Stage 3.25 privacy Security Review evidence planning remains separate and is not
+superseded. No architecture or product-scope expansion is introduced by closure governance.

@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.56 |
+| Version | 1.1.57 |
 | Status | Current |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
@@ -19,7 +19,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 1 — Documentation Consolidation | Establish the repository-owned Source of Truth and freeze v1.2 | Complete; awaiting review | [Stage 1 report](stages/STAGE_01_DOCUMENTATION_CONSOLIDATION.md) |
 | 2 — Contract and Canonical Model Freeze | Freeze the MVP API, canonical DTOs, logical ER model, and migration strategy | Complete / closed; merged into `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | [Stage 2 report](stages/STAGE_02_CONTRACT_AND_CANONICAL_MODEL.md) |
 | Web architecture amendment | Replace the Web skeleton with presentation-only Next.js under ADR-007 | Complete / closed; merged into `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | [Amendment report](stages/WEB_FRONTEND_ARCHITECTURE_AMENDMENT.md) |
-| 3 — First Vertical Slice | Implement the first thin MVP path after contract and Web baseline approval | Implementation closed through Stage 3.16 audit-fix closure; Stage 3.17-3.24 proposals are merged; Stage 3.25 privacy evidence planning remains separate; Stages 3.27-3.30 audit remediation are closed; Stage 3.31 P2-01/P2-14 implementation is merged and closure governance is tracked through PR #66 | [Stage 3 plan](stages/STAGE_03_FIRST_VERTICAL_SLICE.md) |
+| 3 — First Vertical Slice | Implement the first thin MVP path after contract and Web baseline approval | Implementation closed through Stage 3.16 audit-fix closure; Stage 3.17-3.24 proposals are merged; Stage 3.25 privacy evidence planning remains separate; Stages 3.27-3.31 audit remediation are closed; Stage 3.32 P2-09/P2-13 implementation is merged and closure governance is tracked on the current docs branch | [Stage 3 plan](stages/STAGE_03_FIRST_VERTICAL_SLICE.md) |
 | 3.1 — Local Database Foundation | Add minimal PostgreSQL structures and migration validation for the first vertical slice | Complete / closed; merged into `develop` at `b1a3f23` | [Stage 3.1 report](stages/STAGE_03_01_DATABASE_FOUNDATION.md) |
 | 3.2 — Go API Vertical-Slice Backend | Implement portfolio create, transaction append, snapshot rebuild, and summary read in Go | Complete / closed; merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | [Stage 3.2 report](stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md) |
 | Product risk refinement | Convert hard PRD criticism into controlled MVP risk decisions | Complete / closed; merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | [MVP product risk refinement](product/MVP_PRODUCT_RISK_REFINEMENT.md) |
@@ -61,7 +61,8 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.28 — Authentication Security Remediation | Remediate repository-audit P1-01/P1-05 across refresh-token replay/session-family containment and bounded Argon2 work | Complete / closed; implementation merged through PR #59 at `dc83f5f3a11da164e6809593861d96ccf47b29ca` after CI #114, renewed independent `APPROVED`, and human approval; closure governance merged through PR #60 at `0ddc618a3450ea81fd4befb3b10c959b3cb82a25` | [Stage 3.28 report](stages/STAGE_03_28_AUTH_SECURITY_REMEDIATION.md) |
 | 3.29 — Input and Contract Hardening | Remediate audit P2-05/P2-06/P2-07/P2-08/P2-15 across client validation, exact-decimal/storage bounds, strict JSON commands, note length, CSV schema ambiguity, and snapshot aggregate arithmetic | Complete / closed; implementation merged through PR #61 at `7331d3f34783baec3997497d1a79b78eaa558bd4`; closure governance merged through PR #62 at `0bfb3ea9f8e4cc7337a92caef5c7a73f9a8921bc` | [Stage 3.29 report](stages/STAGE_03_29_INPUT_CONTRACT_HARDENING.md) |
 | 3.30 — Import Review Integrity | Remediate audit P2-02/P2-03/P2-04 across review-token semantics, parser-owned row bounds, and full-history targeted reconciliation | Complete / closed; implementation merged through PR #63 at `8f68dd18800918e6a9882e995e13dba2723dc929`; closure governance merged through PR #64 at `ae6497050692798795efb85678af64db97cc5f53` | [Stage 3.30 report](stages/STAGE_03_30_IMPORT_REVIEW_INTEGRITY.md) |
-| 3.31 — Authentication Operational Hardening | Remediate audit P2-01/P2-14 across logout admission and bounded auth-limiter lifecycle | Implementation merged through PR #65 at `9bf4d1d31597918eacf0c3358bf6caa2aa9db897` after CI #133 and independent `APPROVED`; closure governance tracked through PR #66 and closes the two findings when canonical on `develop` | [Stage 3.31 report](stages/STAGE_03_31_AUTH_OPERATIONAL_HARDENING.md) |
+| 3.31 — Authentication Operational Hardening | Remediate audit P2-01/P2-14 across logout admission and bounded auth-limiter lifecycle | Complete / closed; implementation merged through PR #65 at `9bf4d1d31597918eacf0c3358bf6caa2aa9db897`; closure governance merged through PR #66 at `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746` | [Stage 3.31 report](stages/STAGE_03_31_AUTH_OPERATIONAL_HARDENING.md) |
+| 3.32 — Exact Idempotency Replay and Browser Retry Recovery | Remediate audit P2-09/P2-13 across exact original-response replay and browser retry continuity/isolation | Implementation merged through PR #67 at `0623d5ef326cd783b7dc0417dbcb02f18c506171` after CI #181 and repeat independent `APPROVED`; closure governance closes the findings when canonical and leaves 5 P2 plus 10 P3 | [Stage 3.32 report](stages/STAGE_03_32_IDEMPOTENCY_REPLAY_BROWSER_RECOVERY.md) |
 
 ## Stage completion protocol
 
@@ -648,5 +649,16 @@ This log is the index of implementation stages. Every stage must document its pu
 - Independent final implementation review returned `APPROVED`; explicit human squash-merge authorization
   was received before PR #65 merged.
 - No Redis, distributed limiter, migration, or product-scope expansion was introduced.
-- Closure governance is tracked through PR #66. When canonical, the remaining original audit backlog
-  is 7 P2 and 10 P3 findings. P2-09/P2-13 and Stage 3.25 remain separate.
+- Closure governance was squash-merged through PR #66 at `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746`; P2-01/P2-14 are CLOSED and 7 P2 plus 10 P3 findings remained.
+
+## 2026-08-23 — Stage 3.32 exact idempotency replay and browser retry recovery implementation merged
+
+- Squash-merged implementation PR #67 into `develop` at `0623d5ef326cd783b7dc0417dbcb02f18c506171`.
+- P2-09 now persists the exact original versioned HTTP response artifact in the same PostgreSQL transaction as the financial mutation and returns stored response bytes/status/request/trace identity on duplicate replay rather than rereading mutable resource state.
+- P2-13 now preserves unresolved browser retry identity across reload/remount using a short-lived `sessionStorage` journal scoped by stable authenticated principal + operation + optional portfolio before SHA-256 slot derivation; raw principal, portfolio scope, financial payload, CSV, review token, and auth tokens are not stored.
+- The first independent remediation review returned `REQUEST CHANGES`: P2-09 was CLOSED, but P2-13 remained open because User A/User B could share the same browser-tab retry slot.
+- The remediation added stable-principal scoping across Create Portfolio, Add Transaction, and Import Append plus an explicit A→B→A isolation regression.
+- Repeat independent review on exact head `02aa2417a3caca79e2afc4e7b598b92055de96b7` returned `APPROVED`, marking P2-09 and P2-13 CLOSED with no new blocking P1/P2 regression.
+- Exact-head CI #181 passed all six jobs, including PostgreSQL-backed Go tests, migration validation/apply/rollback/reapply, frontend typecheck/tests/build, Python tests, OpenAPI validation, and Docker Compose validation.
+- Explicit human squash-merge authorization was received before PR #67 merged.
+- Closure governance is tracked on `docs/stage-03-32-closure`; when canonical on `develop`, the remaining original audit backlog is 5 P2 and 10 P3 findings: P2-10/P2-11/P2-12/P2-16/P2-17 plus all P3 findings. Stage 3.25 remains separate.

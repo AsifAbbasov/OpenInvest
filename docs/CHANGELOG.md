@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.59 |
+| Version | 1.1.60 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -705,7 +705,6 @@
 - Stage 3.27 remains open. Canonical closure requires the required PR checks to be green on the exact
   merge-candidate head, required PR review approval, explicit human merge approval, and squash merge into `develop`.
 
-
 ## 2026-08-22 — Stage 3.27 final-review identity-transition correction
 
 - Final independent review of PR #55 at `c6c3a4c91a108426448a2bc230873ab9e479a335` returned `REQUEST CHANGES` after identifying an order-dependent P1-02 fallback-to-strong identity transition that could double-count one economic operation.
@@ -714,7 +713,6 @@
 - Added direct PostgreSQL and service/store regressions for both arrival orders plus a concurrent mixed-strength insertion test; the database guard serializes the scoped fingerprint check with a transaction-level advisory lock.
 - Temporary corrective CI run #85 passed all repository jobs, including PostgreSQL migration validation/apply/rollback/reapply and Go integration tests. This run is not final PR-head evidence because later governance synchronization advances the candidate head.
 - Stage 3.27 remains open; exact-head CI evidence is authoritative through PR checks rather than a pinned run number, and closure still requires renewed required PR review, explicit human merge approval, and squash merge into `develop`.
-
 
 ## 2026-08-22 — Stage 3.27 closure governance
 
@@ -740,7 +738,6 @@
 - Closure governance is recorded through PR #60 when canonical on `develop`.
 - Stage 3.25 and all P2/P3 findings remain separate.
 
-
 ## 2026-08-23 — Stage 3.29 input and contract hardening
 
 - Squash-merged implementation PR #61 into `develop` at `7331d3f34783baec3997497d1a79b78eaa558bd4`.
@@ -755,7 +752,6 @@
 - Detailed engineering rationale and rejected alternatives remain in the Stage 3.29 report.
 - Closure governance is tracked through PR #62. Once canonical, these five P2 findings are closed;
   12 P2 and 10 P3 findings remain. Stage 3.25 privacy work remains separate.
-
 
 ## 2026-08-23 — Stage 3.30 import review integrity
 
@@ -772,7 +768,6 @@
 - Closure governance is tracked through PR #64. Once canonical, P2-02/P2-03/P2-04 are closed and
   9 P2 plus 10 P3 findings remain. Stage 3.25 privacy work remains separate.
 
-
 ## 2026-08-23 — Stage 3.31 authentication operational hardening
 
 - Squash-merged implementation PR #65 into `develop` at `9bf4d1d31597918eacf0c3358bf6caa2aa9db897`.
@@ -782,5 +777,16 @@
 - Logout OpenAPI now advertises the existing 429 `RateLimited` response.
 - Exact-head CI #133 completed `SUCCESS` on `82557c55c0772a66707088b858ec9eafc2073119`; independent final implementation review
   returned `APPROVED`, followed by explicit human merge authorization.
-- Closure governance is tracked through PR #66. Once canonical, P2-01/P2-14 are closed and
-  7 P2 plus 10 P3 findings remain. Stage 3.25 remains separate.
+- Closure governance was squash-merged through PR #66 at `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746`; P2-01/P2-14 are closed and 7 P2 plus 10 P3 findings remained. Stage 3.25 remains separate.
+
+## 2026-08-23 — Stage 3.32 exact idempotency replay and browser retry recovery
+
+- Squash-merged implementation PR #67 into `develop` at `0623d5ef326cd783b7dc0417dbcb02f18c506171`.
+- P2-09 now persists the original versioned HTTP response artifact in the same PostgreSQL transaction as the financial mutation and returns stored response bytes/status/request/trace identity on duplicate replay rather than rereading mutable resource state.
+- P2-13 now preserves unresolved browser retry identity across reload/remount using a short-lived principal-scoped `sessionStorage` journal while avoiding raw principal, portfolio, financial payload, CSV, review-token, or auth-token persistence.
+- The first independent remediation review returned `REQUEST CHANGES`: P2-09 was CLOSED; P2-13 remained open because the browser retry namespace was not stable-principal scoped.
+- The remediation added stable authenticated principal ownership to Create Portfolio, Add Transaction, and Import Append plus an explicit User A → User B → User A regression.
+- Repeat independent review on exact head `02aa2417a3caca79e2afc4e7b598b92055de96b7` returned `APPROVED`: P2-09 CLOSED, P2-13 CLOSED, new blocking regressions none.
+- Exact-head GitHub Actions CI #181 completed `SUCCESS` across all six jobs.
+- Explicit human squash-merge authorization was received before PR #67 merged.
+- Closure governance records the canonical merge and leaves 5 P2 plus 10 P3 original audit findings: P2-10/P2-11/P2-12/P2-16/P2-17 plus all P3. Stage 3.25 privacy evidence planning remains separate and is not superseded.
