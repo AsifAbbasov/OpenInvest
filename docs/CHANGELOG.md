@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.57 |
+| Version | 1.1.58 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -755,3 +755,19 @@
 - Detailed engineering rationale and rejected alternatives remain in the Stage 3.29 report.
 - Closure governance is tracked through PR #62. Once canonical, these five P2 findings are closed;
   12 P2 and 10 P3 findings remain. Stage 3.25 privacy work remains separate.
+
+
+## 2026-08-23 — Stage 3.30 import review integrity
+
+- Squash-merged implementation PR #63 into `develop` at `8f68dd18800918e6a9882e995e13dba2723dc929`.
+- P2-02 now uses a versioned 15-minute signed review token that commits to normalized parser
+  semantics, review-time final semantics, row identity, and APPENDABLE status; token expiry or parser
+  semantic drift fails closed.
+- P2-03 now fails on the 101st CSV data row inside `ReviewCSV`.
+- P2-04 replaces latest-100 ledger reconciliation with bounded targeted full-history PostgreSQL
+  retrieval over trade dates and privacy-minimized import identity keys.
+- Exact-head CI #128 completed `SUCCESS` on `2f788e0811d78c9def0502676a74bee2f9922bf5` with PostgreSQL integration coverage enabled.
+- Independent final implementation review returned `APPROVED`, followed by explicit human merge
+  authorization.
+- Closure governance is tracked through PR #64. Once canonical, P2-02/P2-03/P2-04 are closed and
+  9 P2 plus 10 P3 findings remain. Stage 3.25 privacy work remains separate.

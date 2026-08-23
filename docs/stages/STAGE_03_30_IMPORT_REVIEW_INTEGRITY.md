@@ -2,10 +2,17 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementation candidate / verification and independent review pending |
+| Status | Closure record; when canonical on `develop`, Stage 3.30 is closed for P2-02/P2-03/P2-04 |
 | Owner | Principal Architect |
 | Baseline | `develop` at `0bfb3ea9f8e4cc7337a92caef5c7a73f9a8921bc` |
 | Branch | `fix/stage-03-30-import-review-integrity` |
+| Implementation PR | #63 |
+| Implementation merge | `8f68dd18800918e6a9882e995e13dba2723dc929` |
+| Reviewed exact head | `2f788e0811d78c9def0502676a74bee2f9922bf5` |
+| Exact-head CI | GitHub Actions #128 — SUCCESS |
+| Independent final review | `APPROVED` |
+| Human implementation merge authorization | 2026-08-23 |
+| Closure PR | #64 |
 | Trigger | Repository-audit P2-02, P2-03, P2-04 |
 | Scope | Review-token semantic binding, parser row admission, targeted full-history reconciliation, HTTP/OpenAPI and regression coverage |
 | Out of scope | Remaining P2/P3 findings, Stage 3.25 privacy work, product-scope expansion |
@@ -147,7 +154,7 @@ unbounded full-ledger application scan.
 
 The targeted-query dimensions must evolve together with reconciliation semantics and parser version.
 
-## Regression evidence planned in this candidate
+## Regression evidence
 
 - exactly 100 rows accepted; 101st fails during parse;
 - semantic digest changes with normalized candidate/status changes;
@@ -160,10 +167,41 @@ The targeted-query dimensions must evolve together with reconciliation semantics
   reconciliation;
 - Stage 3.29 duplicate-header fail-closed behavior remains intact and now fails before history lookup.
 
-## Scope boundary
+## Verification and implementation merge evidence
 
-This stage closes only P2-02/P2-03/P2-04 after verification, exact-head CI, independent final review,
-explicit human merge authorization, squash merge, and separate canonical closure governance.
+- Local targeted importer/verticalslice/httpapi/postgres tests passed after correcting the stale-ledger
+  regression to model the actual race as `review → concurrent ledger mutation → append`.
+- `go vet ./...`, migration validation, OpenAPI validation, and full `go test ./...` passed locally.
+- Extending `verticalslice.Store` exposed the development-only `unavailableStore` interface gap;
+  it was completed with the same fail-closed `database url is not configured` behavior before commit.
+- Implementation PR #63 was squash-merged into `develop` at `8f68dd18800918e6a9882e995e13dba2723dc929`.
+- Final independently reviewed implementation head: `2f788e0811d78c9def0502676a74bee2f9922bf5`.
+- Exact-head GitHub Actions CI #128 completed `SUCCESS`; all six workflow jobs passed.
+- The Go CI job exported `OPENINVEST_DATABASE_TEST_URL`, so PostgreSQL integration tests executed
+  against the service container rather than taking the no-database skip path.
+- Independent final implementation review returned `APPROVED`.
+- Explicit human authorization was received before the implementation squash merge.
+
+## Residual boundaries
+
+- Review tokens intentionally expire after 15 minutes; an expired token requires a fresh review.
+- Stage 3.30 does not close P2-09 original-response idempotent replay or P2-13 browser idempotency
+  persistence/recovery.
+- The targeted-history dimensions are coupled to reconciliation semantics; future semantic changes
+  must update the filter and bump `ReviewParserVersion` when normalized meaning changes.
+- The locked PostgreSQL append path remains the final authority for races that occur after review.
+
+## Canonical closure statement
+
+Implementation prerequisites are satisfied, but this report is not canonical closure until PR #64
+passes its own exact-head CI, independent closure-governance review, fresh explicit human merge
+authorization, and squash merge into `develop`.
+
+When that closure record is canonical, Stage 3.30 is closed only for P2-02/P2-03/P2-04. The original
+audit backlog then contains 9 P2 and 10 P3 findings. Stage 3.25 privacy Security Review evidence
+planning remains separate and is not superseded.
+
+## Scope boundary
 
 P2-01/P2-09/P2-10/P2-11/P2-12/P2-13/P2-14/P2-16/P2-17 and all P3 findings remain separate.
 Stage 3.25 privacy evidence planning remains separate.

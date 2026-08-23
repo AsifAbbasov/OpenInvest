@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.1.65 |
+| Version | 1.1.66 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -31,7 +31,8 @@
 | Stage 3.25 privacy Security Review evidence-collection plan | 0.1.0 | Active / proposal only | 3 | Principal Architect | Before evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
 | Stage 3.27 import financial identity and cash-flow semantics remediation | 0.1.0 | Complete / closed for P1-02/P1-03/P1-04; implementation merged through PR #55 at `6e8c806de857f844954f1db513487357dfe90187` after exact-head CI #90, renewed independent `APPROVED`, and explicit human merge approval; closure governance recorded through PR #58 | 3 | Principal Architect | P1-01/P1-05 were intentionally deferred to the separate Stage 3.28 remediation; Stage 3.28 implementation is merged and its closure governance is tracked through PR #60 |
 | Stage 3.28 authentication security remediation | 0.1.0 | Complete / closed for P1-01/P1-05; implementation merged through PR #59 at `dc83f5f3a11da164e6809593861d96ccf47b29ca` after exact-head CI #114, renewed independent `APPROVED` on `92edab5d3e93dafe2fcc6247644e38e878a4202f`, explicit human approval, and closure governance merged through PR #60 at `0ddc618a3450ea81fd4befb3b10c959b3cb82a25` | 3 | Principal Architect | Stage 3.25 and P2/P3 remain separate; `503 + Retry-After` is optional non-blocking hardening |
-| Stage 3.29 input and contract hardening | 0.1.0 | Complete when closure record is canonical on `develop`; P2-05/P2-06/P2-07/P2-08/P2-15 implementation merged through PR #61 at `7331d3f34783baec3997497d1a79b78eaa558bd4` after exact-head CI #124, first independent `REQUEST CHANGES` for P2-07 aggregate snapshot arithmetic, remediation on `f9e70e70956c76edbc2ab02c52d45124b2dea525`, renewed independent `APPROVED`, and explicit human approval; closure governance through PR #62 | 3 | Principal Architect | When canonical, five P2 findings close; 12 P2 and 10 P3 remain; Stage 3.25 remains separate |
+| Stage 3.29 input and contract hardening | 0.1.0 | Complete / closed for P2-05/P2-06/P2-07/P2-08/P2-15; implementation merged through PR #61 at `7331d3f34783baec3997497d1a79b78eaa558bd4` after exact-head CI #124, first independent `REQUEST CHANGES`, remediation on `f9e70e70956c76edbc2ab02c52d45124b2dea525`, renewed independent `APPROVED`, explicit human approval, and closure governance merged through PR #62 at `0bfb3ea9f8e4cc7337a92caef5c7a73f9a8921bc` | 3 | Principal Architect | Stage 3.25 and remaining P2/P3 stay separate |
+| Stage 3.30 import review integrity | 0.1.0 | Complete when closure record is canonical on `develop`; P2-02/P2-03/P2-04 implementation merged through PR #63 at `8f68dd18800918e6a9882e995e13dba2723dc929` after exact-head CI #128, independent final `APPROVED` on `2f788e0811d78c9def0502676a74bee2f9922bf5`, and explicit human approval; closure governance through PR #64 | 3 | Principal Architect | When canonical, three P2 findings close; 9 P2 and 10 P3 remain; P2-09/P2-13 and Stage 3.25 remain separate |
 | Stage 3.1 database foundation | 0.1.x | Closed / merged into `develop` at `b1a3f23` | 3 | Principal Architect | 2026-12-27 |
 | Stage 3.2 Go API vertical slice | 0.1.x | Closed / merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | 3 | Principal Architect | 2026-12-27 |
 | Product risk refinement | 1.0.x | Approved / merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | 3 | Principal Architect | Before public MVP |
