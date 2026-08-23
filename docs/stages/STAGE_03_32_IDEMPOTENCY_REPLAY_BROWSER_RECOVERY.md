@@ -2,18 +2,19 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementation candidate; code verification green; independent final review and human merge authorization pending |
+| Status | Implementation candidate; first independent review requested changes for P2-13; remediation verification green; repeat independent review and human merge authorization pending |
 | Owner | Principal Architect |
 | Baseline | `develop` at `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746` |
 | Branch | `fix/stage-03-32-idempotency-recovery` |
 | Implementation PR | #67 |
 | Implementation merge | Pending |
-| Code-verification head | `52d329bf0567c5223038aaa24e2f531df1e9e4a9` |
-| Code-verification CI | GitHub Actions #163 — SUCCESS, all six jobs passed |
-| Independent final review | Pending |
+| Remediation code head | `13dbf3ad06ed35bd643c6810e383713ea2463baa` |
+| Remediation code CI | GitHub Actions #173 — SUCCESS, all six jobs passed |
+| First independent review | `REQUEST CHANGES` on `57fcc25e949277a0e933f290998e41d0f7476b5c`: P2-09 CLOSED; P2-13 NOT CLOSED because browser retry slots were not principal-scoped |
+| Repeat independent review | Pending on the post-review remediation head |
 | Human implementation merge authorization | Pending |
 | Trigger | Repository-audit P2-09 and P2-13 |
-| Scope | Exact original-response idempotent replay, atomic replay-artifact persistence, import retry recovery across review-token expiry, short-lived browser retry identity, regression and migration coverage |
+| Scope | Exact original-response idempotent replay, atomic replay-artifact persistence, import retry recovery across review-token expiry, principal-isolated short-lived browser retry identity, regression and migration coverage |
 | Out of scope | P2-10/P2-11/P2-12/P2-16/P2-17, all P3 findings, Stage 3.25 privacy Security Review evidence work, provider/backup retention, product-scope expansion |
 
 ## Purpose
@@ -112,6 +113,10 @@ stored SHA-256 are structurally valid. Corrupt artifacts fail closed. The HTTP b
 stored bytes directly and restores the original request/trace response headers, so the response body
 and technical identity are not regenerated from the retry request.
 
+The first independent remediation review marked P2-09 CLOSED on exact head
+`57fcc25e949277a0e933f290998e41d0f7476b5c`. Later P2-13 remediation did not alter the backend replay
+transaction path, but the final stage verdict still requires a repeat exact-head independent review.
+
 ## P2-13 — browser retry identity was lost on reload/remount
 
 ### Observed defect
@@ -120,11 +125,9 @@ The browser kept the current idempotency intent only in React `useRef`. Same-mou
 key, but reload/remount lost it. After an ambiguous server success, the next submission could receive
 a new UUID and become a second command.
 
-### Remediation
+### Initial remediation
 
-The Web layer now maintains a short-lived technical retry journal in `sessionStorage`.
-
-The durable browser record contains only:
+The Web layer added a short-lived technical retry journal in `sessionStorage` containing only:
 
 - version;
 - opaque idempotency key;
@@ -132,15 +135,48 @@ The durable browser record contains only:
 
 The storage slot name is derived from SHA-256 of a technical scope. It does not persist the financial
 payload, transaction amounts, CSV, source-account label, portfolio data, review token, access token,
-or CSRF token. The journal therefore remains a retry-control record, not browser business-data
-storage.
+or CSRF token. Within the same mounted interaction, a changed intent rotates to a new key. Across
+reload/remount, an unresolved technical key is recovered and sent again. Confirmed success or a proven
+idempotency conflict clears the applicable journal entry.
 
-Within the same mounted interaction, a changed intent rotates to a new key. Across reload/remount,
-an unresolved technical key is recovered and sent again. The backend remains authoritative: a
-matching command replays the original response, while a proven idempotency conflict allows the
-browser to discard the stale retry key. Confirmed success also clears the journal.
+### Independent review finding — cross-principal retry-slot collision
 
-The journal is applied to portfolio create, manual transaction append, and import append.
+The first independent review correctly identified that the initial technical scope was operation/
+portfolio scoped but did not include the stable authenticated principal. In a shared browser tab,
+User A could leave an unresolved `portfolio-create` retry key, sign out, and User B could then restore
+and clear that same browser slot. Backend principal scoping prevented BOLA or cross-user response
+replay, but User A's unresolved retry identity could be consumed by another account. P2-13 therefore
+remained open.
+
+### Post-review remediation
+
+The browser retry namespace now includes the stable authenticated `user.id` before hashing:
+
+`principal + operation + optional portfolio scope → SHA-256 storage slot`
+
+`AuthShell` exposes the already-present stable `AuthUser.id` to authenticated child presentation
+components. The access token is deliberately not used as the retry owner because token refresh would
+change it and break continuity. Portfolio creation, manual transaction append, and import append all
+construct their retry scopes through the same principal-scoped helper.
+
+The raw principal ID and raw portfolio/operation scope are never written to `sessionStorage`; only the
+SHA-256-derived slot name and `{version, opaque idempotency key, expiresAt}` value persist. A logout
+therefore does not destroy an unresolved key, User B uses a different slot, and if User A later signs
+back in within the retry TTL the original User A key remains recoverable.
+
+### Post-review regression
+
+A dedicated regression models the exact review scenario:
+
+1. User A persists an unresolved portfolio-create key;
+2. User B signs in in the same logical browser-tab storage and receives a different key/slot;
+3. User B clears the successful B slot;
+4. User A returns and recovers the original unresolved A key;
+5. serialized storage contains neither principal ID nor business payload text.
+
+Existing reload, changed-intent, TTL, malformed-state, scope-minimization, and success-clearing
+regressions remain active. Import component fixtures were also updated to supply the stable principal
+without changing their stale-response/token-rotation semantics.
 
 ## Regression evidence
 
@@ -160,18 +196,20 @@ The Stage 3.32 test set includes:
 - browser retry key survives reload/remount through session storage;
 - changed same-mount intent rotates the key;
 - expired browser retry state is discarded;
-- browser storage exposes neither raw intent/payload nor raw technical scope;
-- successful writes clear the retry journal;
+- browser storage exposes neither raw intent/payload, raw principal identity, nor raw technical scope;
+- User A/User B browser retry journals remain independent in the same tab and clearing B does not clear A;
+- successful writes clear the applicable principal-scoped retry journal;
 - full frontend typecheck, tests, and production build remain green.
 
-Code-verification head `52d329bf0567c5223038aaa24e2f531df1e9e4a9` passed GitHub Actions CI
-#163 with all six workflow jobs successful: Go tests with PostgreSQL/migrations, PostgreSQL migration
+Post-review remediation head `13dbf3ad06ed35bd643c6810e383713ea2463baa` passed GitHub Actions CI
+#173 with all six workflow jobs successful: Go tests with PostgreSQL/migrations, PostgreSQL migration
 validation, frontend build/typecheck/tests, Python tests, OpenAPI contract validation, and Docker
 Compose configuration validation.
 
-## Adversarial implementation review findings resolved before independent review
+## Review history and implementation findings
 
-During the implementation pass, the following defects were found and corrected rather than waived:
+During implementation and independent review, the following defects were found and corrected rather
+than waived:
 
 - the first migration draft used `UPDATE` in an up migration and was rejected by the repository
   migration validator; the final up migration is additive with no data rewrite;
@@ -185,10 +223,13 @@ During the implementation pass, the following defects were found and corrected r
   bytes; the fakes now clone artifacts so they model PostgreSQL persistence while keeping the strict
   exact-header assertions;
 - a concurrency regression initially referenced the wrong helper name; it was corrected before the
-  successful code-verification run.
+  successful verification run;
+- the first independent review marked P2-09 CLOSED but correctly kept P2-13 open because browser
+  retry storage was not principal-scoped; the retry namespace is now stable-principal + operation/
+  portfolio scoped before SHA-256 derivation and has an A→B→A regression.
 
-No unresolved code blocker is recorded by this implementation pass. This is not an independent final
-review verdict.
+The first independent verdict was `REQUEST CHANGES`; it is not treated as approval. A fresh repeat
+review must evaluate the post-review remediation exact head before any human merge authorization.
 
 ## Privacy and retention boundary
 
@@ -203,12 +244,16 @@ Security Review evidence. The pre-existing `expires_at` field and the browser re
 operational retry metadata; physical database/provider lifecycle remains a separate privacy track.
 This residual boundary must not be cited as privacy closure.
 
+The browser remediation stores no raw principal identifier. The stable authenticated user ID is used
+only as transient input to the SHA-256 technical slot derivation together with operation/portfolio
+scope.
+
 ## Scope boundary and next gate
 
 Stage 3.32 is not CLOSED by this implementation record. P2-09/P2-13 may be marked closed only after:
 
-1. the final implementation head passes exact-head CI;
-2. an independent final review returns `APPROVED` with no unresolved blocker;
+1. the final post-review implementation/documentation head passes exact-head CI;
+2. a repeat independent final review returns `APPROVED` with no unresolved blocker;
 3. explicit human implementation merge authorization is given;
 4. PR #67 is squash-merged into `develop`;
 5. separate closure governance records the canonical merge and updates the repository status.
