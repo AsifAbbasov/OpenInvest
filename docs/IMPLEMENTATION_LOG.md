@@ -3,15 +3,15 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.57 |
+| Version | 1.1.65 |
 | Status | Current |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
-| Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md` |
-| Last Review Date | 2026-08-23 |
-| Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
+| Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md`; `audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md`; `audit/REMEDIATION_DOCUMENTATION_STANDARD.md` |
+| Last Review Date | 2026-08-24 |
+| Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, privacy-lifecycle migration proposal, or the next repository-audit remediation closure |
 
-This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
+This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. Repository-audit remediation stages beginning with Stage 3.34 must also satisfy all 18 evidence classes in `audit/REMEDIATION_DOCUMENTATION_STANDARD.md`. At the end of each stage, implementation stops for a user-facing report and confirmation before any push or merge gate that requires explicit human authorization.
 
 | Stage | Purpose | Status | Report |
 | --- | --- | --- | --- |
@@ -19,7 +19,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 1 — Documentation Consolidation | Establish the repository-owned Source of Truth and freeze v1.2 | Complete; awaiting review | [Stage 1 report](stages/STAGE_01_DOCUMENTATION_CONSOLIDATION.md) |
 | 2 — Contract and Canonical Model Freeze | Freeze the MVP API, canonical DTOs, logical ER model, and migration strategy | Complete / closed; merged into `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | [Stage 2 report](stages/STAGE_02_CONTRACT_AND_CANONICAL_MODEL.md) |
 | Web architecture amendment | Replace the Web skeleton with presentation-only Next.js under ADR-007 | Complete / closed; merged into `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | [Amendment report](stages/WEB_FRONTEND_ARCHITECTURE_AMENDMENT.md) |
-| 3 — First Vertical Slice | Implement the first thin MVP path after contract and Web baseline approval | Implementation closed through Stage 3.16 audit-fix closure; Stage 3.17-3.24 proposals are merged; Stage 3.25 privacy evidence planning remains separate; Stages 3.27-3.31 audit remediation are closed; Stage 3.32 P2-09/P2-13 implementation is merged and closure governance is tracked on the current docs branch | [Stage 3 plan](stages/STAGE_03_FIRST_VERTICAL_SLICE.md) |
+| 3 — First Vertical Slice | Implement the first thin MVP path after contract and Web baseline approval | Implementation closed through Stage 3.16 audit-fix closure; Stage 3.17-3.24 proposals are merged; Stage 3.25 privacy evidence planning remains separate; Stages 3.27-3.33 repository-audit remediation are canonically closed; exactly P2-16/P2-17 plus ten P3 findings remain | [Stage 3 plan](stages/STAGE_03_FIRST_VERTICAL_SLICE.md) |
 | 3.1 — Local Database Foundation | Add minimal PostgreSQL structures and migration validation for the first vertical slice | Complete / closed; merged into `develop` at `b1a3f23` | [Stage 3.1 report](stages/STAGE_03_01_DATABASE_FOUNDATION.md) |
 | 3.2 — Go API Vertical-Slice Backend | Implement portfolio create, transaction append, snapshot rebuild, and summary read in Go | Complete / closed; merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | [Stage 3.2 report](stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md) |
 | Product risk refinement | Convert hard PRD criticism into controlled MVP risk decisions | Complete / closed; merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | [MVP product risk refinement](product/MVP_PRODUCT_RISK_REFINEMENT.md) |
@@ -62,15 +62,18 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.29 — Input and Contract Hardening | Remediate audit P2-05/P2-06/P2-07/P2-08/P2-15 across client validation, exact-decimal/storage bounds, strict JSON commands, note length, CSV schema ambiguity, and snapshot aggregate arithmetic | Complete / closed; implementation merged through PR #61 at `7331d3f34783baec3997497d1a79b78eaa558bd4`; closure governance merged through PR #62 at `0bfb3ea9f8e4cc7337a92caef5c7a73f9a8921bc` | [Stage 3.29 report](stages/STAGE_03_29_INPUT_CONTRACT_HARDENING.md) |
 | 3.30 — Import Review Integrity | Remediate audit P2-02/P2-03/P2-04 across review-token semantics, parser-owned row bounds, and full-history targeted reconciliation | Complete / closed; implementation merged through PR #63 at `8f68dd18800918e6a9882e995e13dba2723dc929`; closure governance merged through PR #64 at `ae6497050692798795efb85678af64db97cc5f53` | [Stage 3.30 report](stages/STAGE_03_30_IMPORT_REVIEW_INTEGRITY.md) |
 | 3.31 — Authentication Operational Hardening | Remediate audit P2-01/P2-14 across logout admission and bounded auth-limiter lifecycle | Complete / closed; implementation merged through PR #65 at `9bf4d1d31597918eacf0c3358bf6caa2aa9db897`; closure governance merged through PR #66 at `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746` | [Stage 3.31 report](stages/STAGE_03_31_AUTH_OPERATIONAL_HARDENING.md) |
-| 3.32 — Exact Idempotency Replay and Browser Retry Recovery | Remediate audit P2-09/P2-13 across exact original-response replay and browser retry continuity/isolation | Implementation merged through PR #67 at `0623d5ef326cd783b7dc0417dbcb02f18c506171` after CI #181 and repeat independent `APPROVED`; closure governance closes the findings when canonical and leaves 5 P2 plus 10 P3 | [Stage 3.32 report](stages/STAGE_03_32_IDEMPOTENCY_REPLAY_BROWSER_RECOVERY.md) |
+| 3.32 — Exact Idempotency Replay and Browser Retry Recovery | Remediate audit P2-09/P2-13 across exact original-response replay and browser retry continuity/isolation | Complete / closed; implementation merged through PR #67 at `0623d5ef326cd783b7dc0417dbcb02f18c506171`; closure governance merged through PR #68 at `a73b7f8c008d2f903e22e9b8a85b7c6248d6d3be`; 5 P2 plus 10 P3 remained | [Stage 3.32 report](stages/STAGE_03_32_IDEMPOTENCY_REPLAY_BROWSER_RECOVERY.md) |
+| 3.33 — Snapshot Rebuild Accuracy and PostgreSQL Runtime Immutability | Remediate audit P2-10/P2-11/P2-12 across exact snapshot rebuild reporting, one-pass rebuild planning, and runtime PostgreSQL append-only privilege enforcement | Complete / closed; implementation merged through PR #69 at `87a7c38e16062a5f3fcef3727f60c0c6741eb805`; closure governance merged through PR #70 at `71a1faeb97d33d05f2936111b53f1285edddabe9`; 2 P2 plus 10 P3 remain | [Stage 3.33 report](stages/STAGE_03_33_SNAPSHOT_REBUILD_POSTGRES_IMMUTABILITY.md) |
+| 3.33 — Closure Governance | Preserve final implementation/closure CI, both P2-12 `REQUEST CHANGES` cycles, final `APPROVED`, separate human authorization, and canonical backlog state | Complete / canonical at `71a1faeb97d33d05f2936111b53f1285edddabe9` | [Stage 3.33 closure](stages/STAGE_03_33_CLOSURE.md) |
 
 ## Stage completion protocol
 
 1. Finish only the approved stage scope.
 2. Run checks proportionate to the changes.
 3. Update this log and the stage report.
-4. Report created or changed files, commands, checks, risks, and the recommended next step.
-5. Stop and request explicit confirmation before commit/push or the next stage when required.
+4. For audit remediation, update `audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md` and satisfy `audit/REMEDIATION_DOCUMENTATION_STANDARD.md`.
+5. Report created or changed files, commands, checks, risks, and the recommended next step.
+6. Stop and request explicit confirmation before commit/push, squash merge, or the next stage when required.
 
 ## 2026-07-02 — Stage 3.6 closed
 
@@ -133,7 +136,7 @@ This log is the index of implementation stages. Every stage must document its pu
   metadata.
 - Resolved independent review finding that initially exposed full review rows through the append
   result.
-- Kept public import endpoints, OpenAPI changes, upload UI, SQL import-session persistence, raw file
+- Kept public import API, OpenAPI changes, upload UI, SQL import-session persistence, raw file
   persistence, workers, provider integrations, tax, mobile, AI, and Stage 3.9 work out of scope.
 
 ## 2026-07-08 — Stage 3.9 import API boundary planning started
@@ -661,4 +664,24 @@ This log is the index of implementation stages. Every stage must document its pu
 - Repeat independent review on exact head `02aa2417a3caca79e2afc4e7b598b92055de96b7` returned `APPROVED`, marking P2-09 and P2-13 CLOSED with no new blocking P1/P2 regression.
 - Exact-head CI #181 passed all six jobs, including PostgreSQL-backed Go tests, migration validation/apply/rollback/reapply, frontend typecheck/tests/build, Python tests, OpenAPI validation, and Docker Compose validation.
 - Explicit human squash-merge authorization was received before PR #67 merged.
-- Closure governance is tracked on `docs/stage-03-32-closure`; when canonical on `develop`, the remaining original audit backlog is 5 P2 and 10 P3 findings: P2-10/P2-11/P2-12/P2-16/P2-17 plus all P3 findings. Stage 3.25 remains separate.
+- Closure governance was squash-merged through PR #68 at `a73b7f8c008d2f903e22e9b8a85b7c6248d6d3be`; P2-09/P2-13 are canonically CLOSED and 5 P2 plus 10 P3 findings remained: P2-10/P2-11/P2-12/P2-16/P2-17 plus all P3 findings. Stage 3.25 remains separate.
+
+## 2026-08-24 — Stage 3.33 snapshot rebuild and PostgreSQL runtime immutability canonically closed
+
+- Implementation PR #69 was squash-merged into `develop` at `87a7c38e16062a5f3fcef3727f60c0c6741eb805`.
+- Final independently reviewed implementation head `88ec8f739f7bcc96267c25f41560e1960d4d48d5` passed exact-head GitHub Actions CI #199 with all six jobs successful.
+- P2-10 moved exact `snapshotDatesRebuilt` ownership into PostgreSQL; P2-11 replaced repeated cascading rebuilds with one sorted unique affected-date plan.
+- P2-12 required two successive independent `REQUEST CHANGES` corrections: first for masked `session_user` / SET-reachable escalation, then for `ADMIN TRUE, INHERIT FALSE, SET FALSE` role-administration escalation.
+- Final repeat independent implementation review returned P2-10 CLOSED, P2-11 CLOSED, P2-12 CLOSED, no new blocking regressions, and `APPROVED`.
+- Explicit human squash-merge authorization was received before PR #69 merged.
+- Closure PR #70 exact head `79d68dfde879010e404aa4b72a75bc00549439be` passed CI #201, received independent governance-only `APPROVED`, and received separate explicit human squash-merge authorization.
+- PR #70 was squash-merged into `develop` at `71a1faeb97d33d05f2936111b53f1285edddabe9`.
+- Stage 3.33 is canonically CLOSED for P2-10/P2-11/P2-12. Exactly 2 P2 plus 10 P3 findings remain; the remaining P2 findings are P2-16/P2-17.
+- Cross-stage audit status is indexed in `audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md`.
+
+## 2026-08-24 — Audit-remediation documentation standardization prepared
+
+- Added `audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md` as the single cross-stage index for the original 32 findings.
+- Added `audit/REMEDIATION_DOCUMENTATION_STANDARD.md` as the mandatory 18-part evidence and reasoning standard for Stage 3.34 and every remaining P3 remediation.
+- The standard requires preservation of finding/symptom, root cause, failure scenario, project impact, severity rationale, violated invariant, alternatives, chosen remediation, rationale, rejected alternatives, trade-offs, regression proof, independent review findings, remediation iterations, residual risk, operational consequences, exact evidence, and final canonical status.
+- Historical Stage 3.27–3.33 dossiers remain authoritative; synchronization adds current canonical status without deleting prior `REQUEST CHANGES` history.
