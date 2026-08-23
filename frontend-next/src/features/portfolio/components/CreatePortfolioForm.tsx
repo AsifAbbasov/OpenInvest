@@ -3,12 +3,19 @@
 import { useRef, useState } from "react";
 
 import { createPortfolio } from "@/common/api/openinvest";
-import { emptyIdempotencyIntent, idempotencyIntentFor } from "@/common/api/idempotency";
+import {
+  clearBrowserIdempotencyIntent,
+  emptyIdempotencyIntent,
+  idempotencyIntentForBrowser,
+} from "@/common/api/idempotency";
 
 type CreatePortfolioFormProps = {
   accessToken: string;
   onCreated: () => void;
 };
+
+const createPortfolioRetryScope = "portfolio-create";
+const idempotencyConflictMessage = "Idempotency-Key is already bound to another request";
 
 export function CreatePortfolioForm({ accessToken, onCreated }: CreatePortfolioFormProps) {
   const idempotencyIntentRef = useRef(emptyIdempotencyIntent);
@@ -22,16 +29,28 @@ export function CreatePortfolioForm({ accessToken, onCreated }: CreatePortfolioF
     setStatus(null);
     const payload = { name: name.trim(), baseCurrency: "RUB" as const };
     const intent = JSON.stringify(payload);
-    idempotencyIntentRef.current = idempotencyIntentFor(idempotencyIntentRef.current, intent, () => crypto.randomUUID());
+    idempotencyIntentRef.current = await idempotencyIntentForBrowser(
+      idempotencyIntentRef.current,
+      intent,
+      createPortfolioRetryScope,
+    );
     const result = await createPortfolio(
       payload,
       { accessToken, idempotencyKey: idempotencyIntentRef.current.key ?? undefined },
     );
     setIsSubmitting(false);
     if (!result.ok) {
+      if (result.status === 409 && result.message === idempotencyConflictMessage) {
+        // After a reload the browser deliberately retries the unresolved technical key without
+        // persisting the business payload. A server conflict proves the current payload is a new
+        // intent, so the old retry key can now be safely abandoned.
+        await clearBrowserIdempotencyIntent(createPortfolioRetryScope);
+        idempotencyIntentRef.current = emptyIdempotencyIntent;
+      }
       setStatus(result.message);
       return;
     }
+    await clearBrowserIdempotencyIntent(createPortfolioRetryScope);
     idempotencyIntentRef.current = emptyIdempotencyIntent;
     setStatus("Portfolio created. Loading portfolio data from Go API…");
     onCreated();
