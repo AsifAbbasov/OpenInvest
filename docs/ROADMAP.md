@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.61 |
+| Version | 1.1.62 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
@@ -64,14 +64,16 @@
 | 3.30 — Import review integrity | Close audit P2-02/P2-03/P2-04 with semantic review-token binding, parser-owned row admission, and targeted full-history reconciliation | Implementation complete / merged through PR #63 at `8f68dd18800918e6a9882e995e13dba2723dc929` |
 | 3.30 — Closure governance | Record canonical implementation merge, CI #128, independent approval, human authorization, and remaining 9 P2 / 10 P3 scope | Complete / merged through PR #64 at `ae6497050692798795efb85678af64db97cc5f53` |
 | 3.31 — Authentication operational hardening | Close audit P2-01/P2-14 with bounded logout admission and finite auth-limiter lifecycle | Implementation complete / merged through PR #65 at `9bf4d1d31597918eacf0c3358bf6caa2aa9db897` |
-| 3.31 — Closure governance | Record canonical implementation merge, CI #133, independent approval, human authorization, and remaining 7 P2 / 10 P3 scope | Complete when this record is canonical on `develop` / PR #66 |
+| 3.31 — Closure governance | Record canonical implementation merge, CI #133, independent approval, human authorization, and remaining 7 P2 / 10 P3 scope | Complete / merged through PR #66 at `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746` |
+| 3.32 — Exact idempotency replay and browser retry recovery | Close audit P2-09/P2-13 with exact original-response replay and principal-isolated browser retry identity | Implementation complete / merged through PR #67 at `0623d5ef326cd783b7dc0417dbcb02f18c506171` |
+| 3.32 — Closure governance | Record canonical implementation merge, CI #181, first `REQUEST CHANGES`, P2-13 remediation, repeat independent `APPROVED`, human authorization, and remaining 5 P2 / 10 P3 scope | Complete when this record is canonical on `develop` |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
 
-Stages 3.27, 3.28, 3.29, 3.30, and 3.31 are separately authorized narrow repository-audit remediations and do not
+Stages 3.27, 3.28, 3.29, 3.30, 3.31, and 3.32 are separately authorized narrow repository-audit remediations and do not
 authorize product-scope expansion. Stage 3.25 privacy evidence planning remains separate. After
-Stage 3.31 closure, the original audit backlog contains 7 P2 and 10 P3 findings. No further implementation stage begins without a separately reviewed planning
+Stage 3.32 closure, the original audit backlog contains 5 P2 and 10 P3 findings. No further implementation stage begins without a separately reviewed planning
 or remediation gate.
 
 No AI, Tax Export, email, mobile, premium, direct broker API synchronization, credential scraping, or
