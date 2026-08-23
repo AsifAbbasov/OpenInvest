@@ -12,10 +12,11 @@ import (
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
-// appendImportReplaySafe performs an exact completed-command lookup before rechecking the signed
-// review token lifetime. The lookup is read-only and is bound to the authenticated principal,
-// canonical path, idempotency key, and canonical import request hash. If no exact completion exists,
-// the normal signed-review verification and atomic append path remains mandatory.
+// appendImportReplaySafe preserves the normal signed-review validation path for fresh writes.
+// Only when that time-sensitive proof no longer validates does it attempt a read-only exact replay
+// lookup. The lookup is bound to principal, method, canonical path, idempotency key, and canonical
+// request hash, so an already committed import can still return its original response after the
+// short-lived review token expires without weakening authorization for a new financial write.
 func (api *API) appendImportReplaySafe(c fiber.Ctx) error {
 	meta := requestMeta(c)
 	subjectID, err := api.subjectID(c)
@@ -55,31 +56,7 @@ func (api *API) appendImportReplaySafe(c fiber.Ctx) error {
 	}
 
 	decisions := request.toAppDecisions()
-	if appendRequests, buildErr := importer.BuildAppendRequests(preflightReview, decisions); buildErr == nil && len(appendRequests) > 0 {
-		artifact, found, lookupErr := api.service.LookupImportedTransactionsReplay(
-			c.Context(),
-			meta.toApp(),
-			subjectID,
-			c.Get("Idempotency-Key"),
-			c.Path(),
-			verticalslice.AppendImportBatchRequest{
-				PortfolioID:        portfolioID,
-				Transactions:       appendRequests,
-				SourceKind:         preflightReview.SourceKind,
-				SourceAccountLabel: preflightReview.SourceAccountLabel,
-				SourceFileHash:     preflightReview.FileHash,
-				Decisions:          stage0332ImportDecisions(decisions),
-			},
-		)
-		if lookupErr != nil {
-			return writeReplayAwareError(c, meta, lookupErr)
-		}
-		if found {
-			return writeCommandReplayArtifact(c, artifact)
-		}
-	}
-
-	if err := api.verifyImportReviewToken(
+	verifyErr := api.verifyImportReviewToken(
 		request.ReviewToken,
 		subjectID,
 		portfolioID,
@@ -88,9 +65,35 @@ func (api *API) appendImportReplaySafe(c fiber.Ctx) error {
 		fileHash,
 		preflightReview,
 		decisions,
-	); err != nil {
-		return writeMappedErrorWithMeta(c, meta, err)
+	)
+	if verifyErr != nil {
+		// A failed proof must never authorize a new write. It may only recover a response for a
+		// command that is already durably completed and whose canonical request hash matches.
+		if appendRequests, buildErr := importer.BuildAppendRequests(preflightReview, decisions); buildErr == nil && len(appendRequests) > 0 {
+			artifact, found, lookupErr := api.service.LookupImportedTransactionsReplay(
+				c.Context(),
+				meta.toApp(),
+				subjectID,
+				c.Get("Idempotency-Key"),
+				c.Path(),
+				verticalslice.AppendImportBatchRequest{
+					PortfolioID:        portfolioID,
+					Transactions:       appendRequests,
+					SourceKind:         preflightReview.SourceKind,
+					SourceAccountLabel: preflightReview.SourceAccountLabel,
+					SourceFileHash:     preflightReview.FileHash,
+					Decisions:          stage0332ImportDecisions(decisions),
+				},
+			)
+			if lookupErr == nil && found {
+				return writeCommandReplayArtifact(c, artifact)
+			}
+		}
+		// Preserve the original proof failure unless an exact completed response was recovered.
+		// A replay lookup is recovery-only and must not change validation/error ordering.
+		return writeMappedErrorWithMeta(c, meta, verifyErr)
 	}
+
 	if err := importer.VerifyDecisionIdentities(preflightReview, request.toAppDecisionIdentities()); err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
