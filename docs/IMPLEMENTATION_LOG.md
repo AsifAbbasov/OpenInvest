@@ -95,7 +95,7 @@ This log is the index of implementation stages. Every stage must document its pu
 
 - Started the internal implementation slice for atomic append of user-approved import rows.
 - Added no public import API, frontend upload UI, SQL import-session table, worker, provider
-  integration, tax logic, mobile implementation, AI functionality, or Stage 3.8 scope.
+  integration, tax logic, mobile, or AI scope.
 - Required live PostgreSQL verification for atomicity, idempotency, snapshot rebuild, rollback, and
   audit evidence.
 
@@ -121,7 +121,7 @@ This log is the index of implementation stages. Every stage must document its pu
 
 - Started the internal implementation slice for parse/review/approve/append orchestration.
 - Added no public import API, OpenAPI changes, upload UI, SQL import-session table, raw file
-  persistence, worker, provider integration, tax logic, mobile, AI, or Stage 3.9 scope.
+  persistence, worker, provider integration, tax logic, mobile, or AI scope.
 - Required live PostgreSQL verification for full parse/review/approve/append behavior and stale
   duplicate rollback.
 
@@ -580,6 +580,7 @@ This log is the index of implementation stages. Every stage must document its pu
   OpenAPI, PostgreSQL schema, migrations, credentials, backup operations, and implementation out of
   scope.
 
+
 ## 2026-08-22 — Stage 3.27 closure governance
 
 - PR #55 passed exact-head CI #90 on `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c`.
@@ -604,6 +605,7 @@ This log is the index of implementation stages. Every stage must document its pu
   canonical on `develop`.
 - Stage 3.25 privacy evidence planning and the P2/P3 audit backlog remain separate.
 
+
 ## 2026-08-23 — Stage 3.29 input and contract hardening implementation merged
 
 - Squash-merged implementation PR #61 into `develop` at `7331d3f34783baec3997497d1a79b78eaa558bd4`.
@@ -617,6 +619,7 @@ This log is the index of implementation stages. Every stage must document its pu
   and review history in `STAGE_03_29_INPUT_CONTRACT_HARDENING.md`.
 - Closure governance is tracked through PR #62; when canonical, the remaining original audit backlog
   is 12 P2 and 10 P3 findings. Stage 3.25 privacy evidence planning remains separate.
+
 
 ## 2026-08-23 — Stage 3.30 import review integrity implementation merged
 
@@ -635,6 +638,7 @@ This log is the index of implementation stages. Every stage must document its pu
   `unavailableStore` was extended fail-closed for the new history-read interface.
 - Closure governance is tracked through PR #64. When canonical, the remaining original audit backlog
   is 9 P2 and 10 P3 findings. Stage 3.25 privacy evidence planning remains separate.
+
 
 ## 2026-08-23 — Stage 3.31 authentication operational hardening implementation merged
 
