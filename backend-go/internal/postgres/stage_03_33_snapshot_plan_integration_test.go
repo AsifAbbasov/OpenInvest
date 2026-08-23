@@ -94,10 +94,6 @@ func TestStage0333ImportRebuildsExactAffectedSnapshotDatesOnce(t *testing.T) {
 				Commission: verticalslice.Money{Amount: decimal.Zero(), Currency: verticalslice.RUB},
 				Tax:        verticalslice.Money{Amount: decimal.Zero(), Currency: verticalslice.RUB},
 				TradeDate:  "2026-06-15",
-				ImportProvenance: &verticalslice.ImportProvenance{
-					IdentityVersion:   verticalslice.ImportIdentityVersion,
-					SourceFingerprint: "1111111111111111111111111111111111111111111111111111111111111111",
-				},
 			},
 			{
 				PortfolioID:     portfolio.ID,
@@ -109,12 +105,18 @@ func TestStage0333ImportRebuildsExactAffectedSnapshotDatesOnce(t *testing.T) {
 				Commission: verticalslice.Money{Amount: decimal.Zero(), Currency: verticalslice.RUB},
 				Tax:        verticalslice.Money{Amount: decimal.Zero(), Currency: verticalslice.RUB},
 				TradeDate:  "2026-06-25",
-				ImportProvenance: &verticalslice.ImportProvenance{
-					IdentityVersion:   verticalslice.ImportIdentityVersion,
-					SourceFingerprint: "2222222222222222222222222222222222222222222222222222222222222222",
-				},
 			},
 		},
+	}
+	for index := range request.Transactions {
+		fingerprint, err := verticalslice.NormalizedTransactionFingerprint(request.Transactions[index])
+		if err != nil {
+			t.Fatalf("compute normalized import fingerprint for row %d: %v", index+1, err)
+		}
+		request.Transactions[index].ImportProvenance = &verticalslice.ImportProvenance{
+			IdentityVersion:   verticalslice.ImportIdentityVersion,
+			SourceFingerprint: fingerprint,
+		}
 	}
 
 	var builderOutcome verticalslice.ImportAppendOutcome
