@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementation candidate; exact-head CI and independent review pending |
+| Status | Implementation candidate; final exact-head CI and independent review pending |
 | Canonical base | `develop` at `b4299bcdc28202c27388642dc7b426b159bb315c` |
 | Branch | `fix/stage-03-34-ci-security-hardening-final` |
 | Finding | P2-17 |
@@ -71,7 +71,14 @@ The first exact execution exposed real stale dependencies. The minimum security 
 
 Next.js 16.2.11 was explicitly tested as the smaller candidate but rejected because its locked dependency graph still produced 7 audit findings (5 high, 2 moderate), including vulnerable `sharp`, `postcss`, and `nanoid`. Next.js 16.3.2 passed typecheck, tests, build, and `pnpm audit` with zero advisories in the builder evidence.
 
-For Python, `pip-audit --locked .` was rejected after real execution because pip-audit does not treat `uv.lock` as a supported lockfile. The final gate exports the existing `uv.lock` without re-locking using `uv export --frozen --format requirements.txt`, then audits that pinned export with `pip-audit -r ... --strict`. `uv.lock` remains the only committed Python lock source of truth.
+For Python, `pip-audit --locked .` was rejected after real execution because pip-audit does not treat `uv.lock` as a supported lockfile. The final gate exports the existing lock without re-locking:
+
+```sh
+uv export --frozen --format requirements.txt --all-extras --no-emit-project --output-file /tmp/openinvest-python-requirements.txt
+uvx --from pip-audit==2.10.1 pip-audit -r /tmp/openinvest-python-requirements.txt --strict --progress-spinner off
+```
+
+`uv.lock` remains the only committed Python lock source of truth.
 
 ## 9. Why this solution was chosen
 
@@ -99,7 +106,7 @@ Rejected after real builder verification: typecheck/tests/build passed, but audi
 
 ### `pip-audit --locked` directly against `uv.lock`
 
-Rejected after real execution: the scanner reported `no lockfiles found`. The approved replacement preserves `uv.lock` as source of truth and audits a frozen export.
+Rejected after real execution: the scanner reported `no lockfiles found`. The final replacement preserves `uv.lock` as source of truth and audits a frozen requirements export.
 
 ### Broad dependency modernization
 
@@ -150,9 +157,11 @@ Independent review must verify:
 - patched Go candidate: tests=0, vet=0, govulncheck=0; govulncheck output `No vulnerabilities found`;
 - Next 16.2.11: typecheck=0, tests=0, build=0, audit=1 with 7 residual advisories;
 - Next 16.3.2: typecheck=0, tests=0, build=0, audit=0 with zero advisories;
-- direct `pip-audit --locked .` against the uv project: exit=1 because the tool supports pylock, not uv.lock.
+- direct `pip-audit --locked .` against the uv project: exit=1 because the tool does not parse `uv.lock` as a lockfile input.
 
-The generated Next 16.3.2 lockfile SHA-256 is `f492c1d06aff6bed6e21d839fc510e3402615fa624ef59215d9b12c444314336`. A disposable never-merged builder workflow is used only to regenerate that lockfile from the reviewed package manifest and push it to the implementation branch if and only if the digest matches exactly.
+**Iteration 5 — verified generated lockfile:** the selected Next 16.3.2 `pnpm-lock.yaml` has SHA-256 `f492c1d06aff6bed6e21d839fc510e3402615fa624ef59215d9b12c444314336`. Disposable promoter PR #79 was never merged. Its run #224 regenerated the lockfile from the reviewed manifest, verified the digest byte-for-byte, and committed only that lockfile to the implementation branch. PR #79 was then closed without merge.
+
+**Iteration 6 — Python lock audit correction:** the canonical CI gate was changed from unsupported `pip-audit --locked .` usage to a frozen `uv export` followed by pinned `pip-audit -r`. This changes only the scanner input adapter; it does not alter `uv.lock` or dependency resolution.
 
 ## 15. Residual risk / limitations
 
@@ -177,11 +186,12 @@ Planning:
 
 Implementation history:
 
-- #74/#75: historical builder/bootstrap PRs, closed without merge;
-- #76: active implementation PR;
-- exact run #216 proved ten jobs execute and exposed the dependency baseline failures;
-- disposable dependency builder PRs #77/#78 are never-merge tooling only;
-- final immutable implementation head, final green workflow run, independent reviewer verdict, and merge SHA remain pending.
+- #74/#75: historical bootstrap/verification PRs, closed without merge;
+- #76: historical implementation/evidence PR used for CI run #216 and subsequent remediation, to be superseded before final review;
+- exact run #216 proved all ten jobs execute and exposed the dependency baseline failures;
+- #77/#78: disposable dependency-builder PRs, closed without merge;
+- #79: disposable digest-verified lockfile promoter, run #224 SUCCESS, closed without merge;
+- final immutable implementation head, final review PR, final green workflow run, independent reviewer verdict, and merge SHA remain pending.
 
 ## 18. Canonical status
 
