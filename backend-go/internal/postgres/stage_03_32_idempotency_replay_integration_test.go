@@ -86,8 +86,8 @@ func TestStage0332CreatePortfolioReplayIsExactAndDoesNotReexecute(t *testing.T) 
 		t.Fatalf("replay artifact changed: first=%+v replay=%+v", firstArtifact, replayArtifact)
 	}
 
-	assertStage0332Count(t, store, `SELECT count(*) FROM investment.portfolios WHERE subject_id = $1`, subjectID, 1)
-	assertStage0332Count(t, store, `SELECT count(*) FROM investment.command_deduplication WHERE principal_id = $1 AND idempotency_key = $2`, subjectID, key, 1)
+	assertStage0332Count(t, store, `SELECT count(*) FROM investment.portfolios WHERE subject_id = $1`, 1, subjectID)
+	assertStage0332Count(t, store, `SELECT count(*) FROM investment.command_deduplication WHERE principal_id = $1 AND idempotency_key = $2`, 1, subjectID, key)
 }
 
 func TestStage0332ReplayRejectsDifferentPayload(t *testing.T) {
@@ -124,7 +124,7 @@ func TestStage0332ReplayRejectsDifferentPayload(t *testing.T) {
 	if !errors.Is(err, ErrIdempotencyConflict) {
 		t.Fatalf("expected ErrIdempotencyConflict, got %v", err)
 	}
-	assertStage0332Count(t, store, `SELECT count(*) FROM investment.portfolios WHERE subject_id = $1`, subjectID, 1)
+	assertStage0332Count(t, store, `SELECT count(*) FROM investment.portfolios WHERE subject_id = $1`, 1, subjectID)
 }
 
 func TestStage0332ReplayArtifactFailureRollsBackBusinessWrite(t *testing.T) {
@@ -150,8 +150,8 @@ func TestStage0332ReplayArtifactFailureRollsBackBusinessWrite(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected replay builder failure")
 	}
-	assertStage0332Count(t, store, `SELECT count(*) FROM investment.portfolios WHERE subject_id = $1`, subjectID, 0)
-	assertStage0332Count(t, store, `SELECT count(*) FROM investment.command_deduplication WHERE principal_id = $1`, subjectID, 0)
+	assertStage0332Count(t, store, `SELECT count(*) FROM investment.portfolios WHERE subject_id = $1`, 0, subjectID)
+	assertStage0332Count(t, store, `SELECT count(*) FROM investment.command_deduplication WHERE principal_id = $1`, 0, subjectID)
 
 	requestContext := verticalslice.RequestContext{RequestID: uuid.NewString(), TraceID: "66666666666666666666666666666666"}
 	portfolio, _, err := service.CreatePortfolioWithReplay(
@@ -253,7 +253,7 @@ func TestStage0332TransactionReplayDoesNotDuplicateLedger(t *testing.T) {
 	if !bytes.Equal(firstArtifact.Body, replayArtifact.Body) || firstArtifact.RequestID != replayArtifact.RequestID {
 		t.Fatalf("transaction replay artifact changed: first=%+v replay=%+v", firstArtifact, replayArtifact)
 	}
-	assertStage0332Count(t, store, `SELECT count(*) FROM investment.transaction_entries WHERE portfolio_id = $1`, portfolio.ID, 1)
+	assertStage0332Count(t, store, `SELECT count(*) FROM investment.transaction_entries WHERE portfolio_id = $1`, 1, portfolio.ID)
 }
 
 func openStage0332Store(t *testing.T) *Store {
@@ -285,21 +285,10 @@ func stage0332ArtifactBuilder(requestContext verticalslice.RequestContext, body 
 	}
 }
 
-func assertStage0332Count(t *testing.T, store *Store, query string, arg any, want int) {
+func assertStage0332Count(t *testing.T, store *Store, query string, want int, args ...any) {
 	t.Helper()
 	var got int
-	if err := store.db.QueryRowContext(context.Background(), query, arg).Scan(&got); err != nil {
-		t.Fatalf("count query: %v", err)
-	}
-	if got != want {
-		t.Fatalf("count mismatch: got %d want %d", got, want)
-	}
-}
-
-func assertStage0332Count(t *testing.T, store *Store, query string, arg1 any, arg2 any, want int) {
-	t.Helper()
-	var got int
-	if err := store.db.QueryRowContext(context.Background(), query, arg1, arg2).Scan(&got); err != nil {
+	if err := store.db.QueryRowContext(context.Background(), query, args...).Scan(&got); err != nil {
 		t.Fatalf("count query: %v", err)
 	}
 	if got != want {
