@@ -2,11 +2,15 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Closure candidate; independent governance review and explicit human squash-merge authorization pending |
+| Status | Complete / canonical |
 | Baseline | `develop` at `87a7c38e16062a5f3fcef3727f60c0c6741eb805` |
 | Implementation PR | #69 |
 | Reviewed implementation head | `88ec8f739f7bcc96267c25f41560e1960d4d48d5` |
 | Exact-head implementation CI | GitHub Actions #199 — SUCCESS, all six jobs passed |
+| Closure PR | #70 |
+| Reviewed closure head | `79d68dfde879010e404aa4b72a75bc00549439be` |
+| Exact-head closure CI | GitHub Actions #201 — SUCCESS, all six jobs passed |
+| Canonical closure commit | `71a1faeb97d33d05f2936111b53f1285edddabe9` |
 | Findings | P2-10, P2-11, P2-12 |
 | Scope | Documentation/governance closure only; no runtime, migration, OpenAPI, dependency, architecture, product, or privacy-lifecycle changes |
 
@@ -39,9 +43,20 @@ The independent review history is intentionally retained:
    - New blocking regressions: None
    - Final verdict: APPROVED
 
-## Closure semantics
+## Closure review and merge evidence
 
-When this closure record is squash-merged into `develop`, Stage 3.33 is canonically CLOSED for:
+Closure PR #70 changed governance documentation only. Its exact reviewed head
+`79d68dfde879010e404aa4b72a75bc00549439be` passed GitHub Actions CI #201 with all six jobs
+successful. Independent governance-only review returned `APPROVED`.
+
+A separate explicit human authorization was then given for squash merge of PR #70. PR #70 was
+squash-merged into `develop` at `71a1faeb97d33d05f2936111b53f1285edddabe9`.
+
+That commit is the canonical Stage 3.33 closure point.
+
+## Canonical closure semantics
+
+Stage 3.33 is canonically CLOSED for:
 
 - **P2-10** — exact `snapshotDatesRebuilt` reporting is database-owned and includes all actually
   affected existing snapshots;
@@ -51,7 +66,7 @@ When this closure record is squash-merged into `develop`, Stage 3.33 is canonica
   inherited, SET-reachable, masked-session, and ADMIN OPTION paths capable of mutating the protected
   append-only ledger/audit boundary.
 
-The original 32-finding repository audit will then have exactly **12 findings remaining**:
+The original 32-finding repository audit has exactly **12 findings remaining** after this closure:
 
 - P0: 0
 - P1: 0
@@ -64,17 +79,17 @@ The remaining P2 findings are exactly:
 - **P2-17** — CI security/concurrency hardening including the missing race/vet/vulnerability and
   dependency/security class of checks.
 
+The cross-stage audit status and remediation rationale are indexed in
+`docs/audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md`.
+
 Stage 3.25 privacy Security Review evidence planning remains separate and unchanged.
 
 ## Scope boundary
 
-This closure PR must remain documentation/governance-only. It does not authorize implementation of
+This closure record documents completed governance only. It does not authorize implementation of
 P2-16, P2-17, any P3 finding, Stage 3.25 privacy lifecycle work, provider selection, product scope,
 mobile, tax, AI, broker API synchronization, or any architecture amendment.
 
-No Stage 3.34 implementation may begin until this closure candidate has:
-
-1. exact-head green CI;
-2. independent governance-only review returning APPROVED;
-3. explicit human squash-merge authorization; and
-4. squash merge into `develop`.
+Future audit-remediation stages must preserve root cause, failure impact, solution rationale,
+rejected alternatives, regression proof, review iterations, residual risk, deployment consequences,
+and exact canonical evidence under `docs/audit/REMEDIATION_DOCUMENTATION_STANDARD.md`.

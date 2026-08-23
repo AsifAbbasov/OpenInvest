@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.64 |
+| Version | 1.4.65 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -18,15 +18,16 @@
 **Last completed implementation stage: Stage 3.33 — Snapshot Rebuild Accuracy and PostgreSQL Runtime Immutability**
 **Last completed planning gate: Stage 3.24 — Privacy Security Review Readiness Dossier**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `87a7c38e16062a5f3fcef3727f60c0c6741eb805`**
+**Current canonical implementation baseline: Stage 3.33 implementation at `87a7c38e16062a5f3fcef3727f60c0c6741eb805`; canonical Stage 3.33 closure governance at `71a1faeb97d33d05f2936111b53f1285edddabe9`**
 **Current privacy-planning work item: Stage 3.25 privacy Security Review evidence-collection plan; it remains documentation-only and does not authorize privacy-lifecycle implementation**
+**Repository-audit remediation register: `audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md`; mandatory future remediation evidence standard: `audit/REMEDIATION_DOCUMENTATION_STANDARD.md`**
 **Stage 3.27 remediation: CLOSED for P1-02, P1-03, and P1-04; implementation PR #55 was squash-merged into `develop` at `6e8c806de857f844954f1db513487357dfe90187` after exact-head CI #90, renewed independent `APPROVED` review on `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c`, explicit human squash-merge authorization, and closure governance through PR #58**
 **Stage 3.28 remediation: CLOSED for P1-01 and P1-05; implementation PR #59 was squash-merged into `develop` at `dc83f5f3a11da164e6809593861d96ccf47b29ca` after exact-head CI #114, renewed independent `APPROVED` review on `92edab5d3e93dafe2fcc6247644e38e878a4202f`, explicit human squash-merge authorization, and closure governance squash-merged through PR #60 at `0ddc618a3450ea81fd4befb3b10c959b3cb82a25`; Stage 3.25 and P2/P3 remain separate**
 **Stage 3.29 remediation: CLOSED for P2-05/P2-06/P2-07/P2-08/P2-15; implementation PR #61 was squash-merged into `develop` at `7331d3f34783baec3997497d1a79b78eaa558bd4` after exact-head CI #124, first independent `REQUEST CHANGES`, blocker remediation on `f9e70e70956c76edbc2ab02c52d45124b2dea525`, renewed independent `APPROVED`, explicit human squash-merge authorization, and closure governance squash-merged through PR #62 at `0bfb3ea9f8e4cc7337a92caef5c7a73f9a8921bc`; Stage 3.25 and remaining P2/P3 stay separate**
 **Stage 3.30 remediation: CLOSED for P2-02/P2-03/P2-04; implementation PR #63 was squash-merged into `develop` at `8f68dd18800918e6a9882e995e13dba2723dc929` after exact-head CI #128, independent final `APPROVED`, explicit human merge authorization, and closure governance squash-merged through PR #64 at `ae6497050692798795efb85678af64db97cc5f53`; Stage 3.25 and remaining P2/P3 stay separate**
 **Stage 3.31 remediation: CLOSED for P2-01/P2-14; implementation PR #65 was squash-merged into `develop` at `9bf4d1d31597918eacf0c3358bf6caa2aa9db897` after exact-head CI #133, independent final `APPROVED` review on `82557c55c0772a66707088b858ec9eafc2073119`, explicit human squash-merge authorization, and closure governance squash-merged through PR #66 at `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746`; Stage 3.25 remains separate**
 **Stage 3.32 remediation: CLOSED for P2-09/P2-13; implementation PR #67 was squash-merged into `develop` at `0623d5ef326cd783b7dc0417dbcb02f18c506171` after exact-head CI #181, first independent `REQUEST CHANGES` for the P2-13 cross-principal browser retry-slot collision, remediation, repeat independent `APPROVED` review on `02aa2417a3caca79e2afc4e7b598b92055de96b7`, explicit human squash-merge authorization, and closure governance squash-merged through PR #68 at `a73b7f8c008d2f903e22e9b8a85b7c6248d6d3be`; 5 P2 plus 10 P3 findings remained after closure; Stage 3.25 remains separate**
-**Stage 3.33 remediation: implementation PR #69 was squash-merged into `develop` at `87a7c38e16062a5f3fcef3727f60c0c6741eb805` after exact-head CI #199, two independent `REQUEST CHANGES` cycles for P2-12 credential-graph escalation gaps, both remediations, final independent `APPROVED` review on `88ec8f739f7bcc96267c25f41560e1960d4d48d5`, and explicit human squash-merge authorization; when this closure record is canonical on `develop`, P2-10/P2-11/P2-12 are CLOSED and exactly 2 P2 plus 10 P3 findings remain; the remaining P2 findings are P2-16/P2-17; Stage 3.25 remains separate**
+**Stage 3.33 remediation: CLOSED for P2-10/P2-11/P2-12; implementation PR #69 was squash-merged into `develop` at `87a7c38e16062a5f3fcef3727f60c0c6741eb805` after exact-head CI #199, two independent `REQUEST CHANGES` cycles for P2-12 credential-graph escalation gaps, both remediations, final independent `APPROVED` review on `88ec8f739f7bcc96267c25f41560e1960d4d48d5`, and explicit human squash-merge authorization; closure PR #70 exact head `79d68dfde879010e404aa4b72a75bc00549439be` passed CI #201, received independent governance-only `APPROVED` and separate explicit human squash-merge authorization, and was squash-merged at `71a1faeb97d33d05f2936111b53f1285edddabe9`; exactly 2 P2 plus 10 P3 findings remain; the remaining P2 findings are P2-16/P2-17; Stage 3.25 remains separate**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -78,6 +79,7 @@ optimized for casual brokerage-app users who only need a simple green/red return
   an independent conclusion before review evidence is compared.
 - Every fifth completed stage requires a full repository line-by-line audit before proceeding.
 - A review gate may add evidence and reject scope; it cannot silently change frozen architecture.
+- Every repository-audit remediation stage from Stage 3.34 onward must preserve the 18 required evidence classes in `audit/REMEDIATION_DOCUMENTATION_STANDARD.md` before canonical closure.
 
 ## MVP scope
 
@@ -317,7 +319,7 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 
 ## Version matrix
 
-The complete version and legacy-document matrix is maintained in `VERSION_MATRIX.md`. `DOCUMENT_INDEX.md` is the navigation registry.
+The complete version and legacy-document matrix is maintained in `VERSION_MATRIX.md`. `DOCUMENT_INDEX.md` is the navigation registry. The original repository-audit finding lifecycle is maintained in `audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md`.
 
 ## Open questions
 
@@ -475,7 +477,6 @@ for the authenticated principal and all SET-reachable roles. Final repeat indepe
 P2-10 CLOSED, P2-11 CLOSED, P2-12 CLOSED, no new blocking regressions, and `APPROVED`. Explicit human
 squash-merge authorization was received before PR #69 merged.
 
-When this closure governance is canonical on `develop`, Stage 3.33 is CLOSED for P2-10/P2-11/P2-12.
-The remaining original repository-audit backlog is exactly 2 P2 and 10 P3 findings. The remaining P2
-findings are P2-16 and P2-17. Stage 3.25 privacy Security Review evidence planning remains separate
-and is not superseded.
+Closure PR #70 exact head `79d68dfde879010e404aa4b72a75bc00549439be` passed CI #201 with all six jobs successful, received independent governance-only `APPROVED`, and received a separate explicit human squash-merge authorization. PR #70 was squash-merged into `develop` at `71a1faeb97d33d05f2936111b53f1285edddabe9`.
+
+Stage 3.33 is canonically CLOSED for P2-10/P2-11/P2-12. The remaining original repository-audit backlog is exactly 2 P2 and 10 P3 findings. The remaining P2 findings are P2-16 and P2-17. Stage 3.25 privacy Security Review evidence planning remains separate and is not superseded.

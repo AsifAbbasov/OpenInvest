@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.63 |
+| Version | 1.1.64 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
@@ -68,15 +68,16 @@
 | 3.32 — Exact idempotency replay and browser retry recovery | Close audit P2-09/P2-13 with exact original-response replay and principal-isolated browser retry identity | Implementation complete / merged through PR #67 at `0623d5ef326cd783b7dc0417dbcb02f18c506171` |
 | 3.32 — Closure governance | Record canonical implementation merge, CI #181, first `REQUEST CHANGES`, P2-13 remediation, repeat independent `APPROVED`, human authorization, and remaining 5 P2 / 10 P3 scope | Complete / merged through PR #68 at `a73b7f8c008d2f903e22e9b8a85b7c6248d6d3be` |
 | 3.33 — Snapshot rebuild accuracy and PostgreSQL runtime immutability | Close audit P2-10/P2-11/P2-12 with DB-owned exact snapshot rebuild reporting, one-pass rebuild planning, and fail-closed runtime credential-graph enforcement | Implementation complete / merged through PR #69 at `87a7c38e16062a5f3fcef3727f60c0c6741eb805` |
-| 3.33 — Closure governance | Record implementation merge, CI #199, two independent `REQUEST CHANGES` cycles, final independent `APPROVED`, explicit human squash-merge authorization, and remaining 2 P2 / 10 P3 scope | Complete when this closure record is canonical on `develop` |
+| 3.33 — Closure governance | Preserve CI #199, two independent P2-12 `REQUEST CHANGES` cycles, final independent `APPROVED`, separate closure CI/review/human authorization, and remaining 2 P2 / 10 P3 scope | Complete / canonical through PR #70 at `71a1faeb97d33d05f2936111b53f1285edddabe9` |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
 
 Stages 3.27, 3.28, 3.29, 3.30, 3.31, 3.32, and 3.33 are separately authorized narrow repository-audit remediations and do not
 authorize product-scope expansion. Stage 3.25 privacy evidence planning remains separate. After
-Stage 3.33 closure, the original audit backlog contains exactly 2 P2 and 10 P3 findings. The remaining P2 findings are P2-16 and P2-17. No further implementation stage begins without a separately reviewed planning
-or remediation gate.
+Stage 3.33 canonical closure, the original audit backlog contains exactly 2 P2 and 10 P3 findings. The remaining P2 findings are P2-16 and P2-17. The cross-stage audit register is `audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md`, and all future remediation dossiers must satisfy `audit/REMEDIATION_DOCUMENTATION_STANDARD.md`.
+
+No further implementation stage begins without a separately reviewed planning or remediation gate.
 
 No AI, Tax Export, email, mobile, premium, direct broker API synchronization, credential scraping, or
 unnecessary worker implementation enters these stages without separate approval.
