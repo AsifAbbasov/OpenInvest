@@ -8,7 +8,7 @@
 | Branch | `fix/stage-03-33-snapshot-immutability` |
 | Implementation PR | #69 |
 | Trigger | Repository-audit P2-10, P2-11, and P2-12 |
-| Scope | Exact import snapshot rebuild reporting, one-pass affected-snapshot rebuild planning, authenticated PostgreSQL runtime append-only privilege enforcement, startup privilege validation, regression/CI evidence |
+| Scope | Exact import snapshot rebuild reporting, one-pass affected-snapshot rebuild planning, authenticated PostgreSQL runtime append-only privilege enforcement, startup credential-graph validation, regression/CI evidence |
 | Out of scope | P2-16/P2-17, all P3 findings, Stage 3.25 privacy Security Review evidence work, provider credential provisioning, product-scope expansion, snapshot methodology redesign |
 
 ## Purpose
@@ -29,7 +29,7 @@ The PostgreSQL mutation returns `ImportAppendOutcome` containing inserted transa
 
 On the replay-aware production path, the exact HTTP artifact is built from this outcome before the same PostgreSQL transaction commits. Stage 3.32 exact replay ordering is preserved: reservation, portfolio lock, ledger mutation, exact snapshot plan/rebuild, response-artifact construction, command completion, commit. A completed duplicate still resolves the persisted artifact before mutable portfolio state.
 
-The first independent Stage 3.33 review marked P2-10 CLOSED.
+Both independent Stage 3.33 reviews to date marked P2-10 CLOSED.
 
 ## P2-11 — one rebuild per affected date
 
@@ -45,7 +45,7 @@ The PostgreSQL regression creates baseline snapshots on 10, 20, and 30 June, the
 - 25 June is version 1;
 - 30 June advances to version 2.
 
-The first independent Stage 3.33 review marked P2-11 CLOSED. It noted the old direct non-replay PostgreSQL compatibility method still contains the historical cascading implementation, but confirmed that method is not the canonical production HTTP/importflow path. Removal/deprecation remains a non-blocking maintainability cleanup.
+Both independent Stage 3.33 reviews to date marked P2-11 CLOSED. The first review noted the old direct non-replay PostgreSQL compatibility method still contains the historical cascading implementation, but confirmed that method is not the canonical production HTTP/importflow path. Removal/deprecation remains a non-blocking maintainability cleanup.
 
 ## P2-12 — PostgreSQL runtime append-only boundary
 
@@ -62,7 +62,7 @@ Outside explicit `development`/`local` mode, `cmd/api` opens PostgreSQL through 
 
 CI provisions a separate runtime LOGIN and proves normal portfolio/transaction writes succeed while direct ledger UPDATE and DELETE fail with PostgreSQL permission denial and TRUNCATE capability is absent. Migration validation independently checks the ACL shape after migration rollback/reapply.
 
-### First independent review finding
+### First independent review finding — masked authenticated principal
 
 The first independent Stage 3.33 review marked P2-12 NOT CLOSED because the startup validator inspected only `current_user`.
 
@@ -70,9 +70,9 @@ PostgreSQL distinguishes the authenticated `session_user` from the effective `cu
 
 This was a valid P2 blocker because it meant the startup check could prove only the currently selected effective role, not that the authenticated runtime credentials themselves were incapable of escaping the append-only boundary.
 
-### Post-review remediation
+### First post-review remediation
 
-`ValidateRuntimePrivileges` now performs the complete validation on one physical `database/sql` connection so every identity and ACL check describes the same PostgreSQL session.
+`ValidateRuntimePrivileges` was changed to perform validation on one physical `database/sql` connection so every identity and ACL check describes the same PostgreSQL session.
 
 It now:
 
@@ -85,19 +85,48 @@ It now:
 7. enumerates every role reachable from the authenticated LOGIN through `pg_has_role(session_user, role, 'SET')`;
 8. applies the elevated-role, schema-CREATE, owner-membership, and protected-table mutation checks to every SET-reachable role.
 
-This preserves provider flexibility around the LOGIN name while making the actual authenticated credential graph fail closed. The safe `openinvest_runtime` capability role itself is SET-reachable from the dedicated LOGIN and passes because it has no forbidden capabilities.
+Two adversarial PostgreSQL regressions were added:
 
-### Adversarial PostgreSQL regressions
+**Privileged session masked by `SET ROLE`:** owner/superuser credentials connect with a connection-time role setting that produces `session_user != current_user` and `current_user = openinvest_runtime`. The fixture verifies the split exists, then proves `OpenRuntime` rejects it.
 
-Two new regressions directly cover the reviewer scenarios.
+**Latent SET-role escalation:** a NOLOGIN role receives schema USAGE plus UPDATE on `investment.transaction_entries`, is granted to the clean runtime LOGIN with `INHERIT FALSE, SET TRUE`, and the fixture proves UPDATE is not directly inherited while SET capability exists. `OpenRuntime` rejects the LOGIN.
 
-**Privileged session masked by `SET ROLE`:** the owner/superuser credentials connect with a connection-time role setting that produces `session_user != current_user` and `current_user = openinvest_runtime`. The fixture verifies the split exists, then proves `OpenRuntime` rejects it.
+The code-only remediation head `64190a2cc42dfc50f747e63b508a23aa0d6a79da` passed CI #190 with all six jobs successful. Evidence-only follow-up head `35960c7821e8fce9577bd674ee5f2c7e06be2f61` passed CI #191 with all six jobs successful.
 
-**Latent SET-role escalation:** the test creates a NOLOGIN role with schema USAGE plus UPDATE on `investment.transaction_entries`, grants it to the clean runtime LOGIN with `INHERIT FALSE, SET TRUE`, and verifies the LOGIN does not directly inherit UPDATE but can SET ROLE to the mutator. `OpenRuntime` must reject that LOGIN because the dangerous role is reachable through SET.
+### Second independent review finding — latent ADMIN OPTION escalation
 
-The existing clean runtime test remains and proves legitimate business append still works while direct ledger mutation remains denied.
+The repeat independent review reconfirmed P2-10 and P2-11 CLOSED and confirmed the previous P2-12 blocker was fixed, but correctly kept P2-12 OPEN because the credential graph still considered only roles already reachable through `SET ROLE`.
 
-The code-only post-review remediation head `64190a2cc42dfc50f747e63b508a23aa0d6a79da` passed GitHub Actions CI #190 with all six jobs successful, including the full PostgreSQL-backed Go suite. Final immutable review head and final exact-head CI are recorded in PR metadata after this evidence update rather than self-referenced in this mutable stage document.
+PostgreSQL role membership has a separate `ADMIN OPTION`. A runtime LOGIN can hold membership in a ledger-mutating role with `ADMIN TRUE, INHERIT FALSE, SET FALSE`. That role is neither directly inherited nor currently SET-reachable, so the first credential-graph validator could accept the LOGIN. However, ADMIN OPTION allows the runtime principal to administer membership in that role and manufacture a later SET/INHERIT path for itself. The API has no legitimate need to administer PostgreSQL roles, so any such capability is incompatible with the fail-closed runtime boundary.
+
+### ADMIN OPTION remediation
+
+The runtime validator now rejects role-administration capability as a class, rather than attempting to decide whether an administrable role is currently dangerous.
+
+`validateNoRoleAdministration` uses PostgreSQL's role-membership capability model to reject any role for which the checked runtime identity holds `MEMBER WITH ADMIN OPTION`. The check is applied to:
+
+1. the authenticated `session_user` itself; and
+2. every role already reachable from that authenticated principal through `SET ROLE`.
+
+This closes both direct and reachable role-administration paths. A runtime credential therefore cannot pass startup validation while retaining authority to grant itself a new SET/INHERIT path later.
+
+The clean `openinvest_runtime` capability membership remains valid because it is granted without ADMIN OPTION.
+
+### ADMIN OPTION adversarial regression
+
+A third PostgreSQL attack regression creates a NOLOGIN role with UPDATE on `investment.transaction_entries` and grants it to the clean runtime LOGIN using:
+
+`ADMIN TRUE, INHERIT FALSE, SET FALSE`.
+
+Before calling `OpenRuntime`, the fixture proves all three required facts independently:
+
+- direct ledger UPDATE is false;
+- `pg_has_role(session_user, role, 'SET')` is false;
+- `pg_has_role(session_user, role, 'MEMBER WITH ADMIN OPTION')` is true.
+
+`OpenRuntime` must reject that credential despite the dangerous role not yet being SET-reachable. The original clean runtime regression and the prior masked-session/latent-SET regressions remain active.
+
+The code-plus-regression ADMIN OPTION remediation passed GitHub Actions CI #193 with all six jobs successful, including the full PostgreSQL-backed Go suite. Final immutable repeat-review head and final exact-head CI are recorded in PR metadata after this evidence update rather than self-referenced in this mutable stage document.
 
 ## Atomicity and concurrency boundaries
 
@@ -112,8 +141,8 @@ For non-development environments the required sequence is:
 1. apply migrations with the owner/migration connection;
 2. apply `infrastructure/postgres/runtime/openinvest_runtime_role.sql` with the privileged operator connection;
 3. provision a dedicated API LOGIN through the provider;
-4. grant that LOGIN membership in `openinvest_runtime`;
-5. ensure the LOGIN has no separate elevated memberships or SET-reachable mutation roles;
+4. grant that LOGIN ordinary membership in `openinvest_runtime` without ADMIN OPTION;
+5. ensure the LOGIN has no separate elevated memberships, SET-reachable mutation roles, schema CREATE capability, or role ADMIN OPTION memberships;
 6. configure staging/production `DATABASE_URL` with that dedicated LOGIN.
 
 A provider setup that cannot establish these grants has not satisfied P2-12. Production/staging fails startup rather than falling back to owner credentials.
@@ -124,11 +153,13 @@ A provider setup that cannot establish these grants has not satisfied P2-12. Pro
 - The fixture was changed to derive the production `NormalizedTransactionFingerprint`; no runtime validation was weakened.
 - CI #187 passed all six jobs.
 - Evidence-only update produced CI #188, also 6/6.
-- First independent review: P2-10 CLOSED, P2-11 CLOSED, P2-12 NOT CLOSED; final verdict REQUEST CHANGES because `current_user` validation did not prove authenticated/session principal safety or latent SET-role safety.
-- Post-review implementation validates `session_user`, requires `session_user = current_user`, checks runtime-schema CREATE, checks protected-table owner/mutation capabilities, enumerates all SET-reachable roles, and validates them too.
-- New PostgreSQL attack regressions cover masked privileged session and non-inherited SET-reachable ledger mutator.
-- Code-only remediation CI #190 passed all six jobs.
-- Repeat independent review remains required before merge.
+- First independent review: P2-10 CLOSED, P2-11 CLOSED, P2-12 NOT CLOSED; REQUEST CHANGES because `current_user` validation did not prove authenticated/session principal safety or latent SET-role safety.
+- First post-review remediation added `session_user` validation, same-connection identity checks, runtime-schema CREATE checks, protected-table owner/mutation checks, SET-reachable role enumeration, and two PostgreSQL attack regressions.
+- CI #190 and evidence-head CI #191 passed all six jobs.
+- Second independent review: P2-10 CLOSED, P2-11 CLOSED, P2-12 NOT CLOSED; REQUEST CHANGES because a role membership with ADMIN TRUE / INHERIT FALSE / SET FALSE could manufacture its own later escalation path.
+- Second post-review remediation rejects all ADMIN OPTION memberships held by the authenticated principal or any SET-reachable role and adds a PostgreSQL ADMIN-option attack regression.
+- Code-plus-regression CI #193 passed all six jobs.
+- Repeat independent review on the final immutable head remains required before merge.
 
 ## Scope boundary and next gate
 
