@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.61 |
+| Version | 1.1.62 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
@@ -15,7 +15,7 @@
 
 | ID | Title | Version | Status | Location |
 | --- | --- | --- | --- | --- |
-| SOT-001 | Source of Truth | 1.4.60 | Approved | `SOURCE_OF_TRUTH.md` |
+| SOT-001 | Source of Truth | 1.4.61 | Approved | `SOURCE_OF_TRUTH.md` |
 | 42 | Architecture Amendments | 1.1.0 | Approved | `specifications/current/DOCUMENT_42_ARCHITECTURE_AMENDMENTS_v1.1.md` |
 | 43 | Architecture Decision Closure | 1.2.0 | Final | `specifications/current/DOCUMENT_43_ARCHITECTURE_CLOSURE_v1.2.md` |
 
@@ -119,7 +119,8 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Stage 3.25 privacy Security Review evidence-collection plan | Active / proposal only | `stages/STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md` |
 | Stage 3.27 import financial identity and cash-flow semantics remediation | Complete / closed for P1-02/P1-03/P1-04; implementation merged through PR #55 at `6e8c806de857f844954f1db513487357dfe90187` after exact-head CI #90, renewed independent `APPROVED`, and explicit human merge approval; closure governance recorded through PR #58 | `stages/STAGE_03_27_IMPORT_FINANCIAL_IDENTITY_REMEDIATION.md` |
 | Stage 3.28 authentication security remediation | Complete / closed for P1-01/P1-05; implementation merged through PR #59 at `dc83f5f3a11da164e6809593861d96ccf47b29ca` after CI #114, renewed independent `APPROVED`, and explicit human approval; closure governance merged through PR #60 at `0ddc618a3450ea81fd4befb3b10c959b3cb82a25` | `stages/STAGE_03_28_AUTH_SECURITY_REMEDIATION.md` |
-| Stage 3.29 input and contract hardening | Implementation merged through PR #61 at `7331d3f34783baec3997497d1a79b78eaa558bd4` after CI #124 and renewed independent `APPROVED`; closure governance through PR #62 closes P2-05/P2-06/P2-07/P2-08/P2-15 when canonical; 12 P2 and 10 P3 remain | `stages/STAGE_03_29_INPUT_CONTRACT_HARDENING.md` |
+| Stage 3.29 input and contract hardening | Complete / closed for P2-05/P2-06/P2-07/P2-08/P2-15; implementation merged through PR #61 at `7331d3f34783baec3997497d1a79b78eaa558bd4` after CI #124 and renewed independent `APPROVED`; closure governance merged through PR #62 at `0bfb3ea9f8e4cc7337a92caef5c7a73f9a8921bc` | `stages/STAGE_03_29_INPUT_CONTRACT_HARDENING.md` |
+| Stage 3.30 import review integrity | Implementation merged through PR #63 at `8f68dd18800918e6a9882e995e13dba2723dc929` after exact-head CI #128 and independent `APPROVED`; closure governance through PR #64 closes P2-02/P2-03/P2-04 when canonical; 9 P2 and 10 P3 remain | `stages/STAGE_03_30_IMPORT_REVIEW_INTEGRITY.md` |
 
 ## Product refinement documents
 
