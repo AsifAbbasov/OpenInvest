@@ -79,7 +79,7 @@ This log is the index of implementation stages. Every stage must document its pu
   fixes, and independent follow-up review approval.
 - Added internal CSV parse, normalization, duplicate/conflict detection, safe review model, and
   explicit append-plan generation.
-- Kept public import endpoints, upload UI, SQL import-session persistence, broker/provider
+- Kept public import endpoints, upload UI, SQL import-session tables, workers, broker/provider
   integrations, credential scraping, XLSX/PDF parsing, automatic ledger append, and Stage 3.7 work
   out of scope.
 
@@ -95,7 +95,7 @@ This log is the index of implementation stages. Every stage must document its pu
 
 - Started the internal implementation slice for atomic append of user-approved import rows.
 - Added no public import API, frontend upload UI, SQL import-session table, worker, provider
-  integration, tax logic, mobile, or AI scope.
+  integration, tax logic, mobile implementation, AI functionality, or Stage 3.8 scope.
 - Required live PostgreSQL verification for atomicity, idempotency, snapshot rebuild, rollback, and
   audit evidence.
 
@@ -121,7 +121,7 @@ This log is the index of implementation stages. Every stage must document its pu
 
 - Started the internal implementation slice for parse/review/approve/append orchestration.
 - Added no public import API, OpenAPI changes, upload UI, SQL import-session table, raw file
-  persistence, worker, provider integration, tax logic, mobile, or AI scope.
+  persistence, worker, provider integration, tax logic, mobile, AI, or Stage 3.9 scope.
 - Required live PostgreSQL verification for full parse/review/approve/append behavior and stale
   duplicate rollback.
 
@@ -171,11 +171,9 @@ This log is the index of implementation stages. Every stage must document its pu
 
 - Squash-merged Stage 3.9 closure governance into `develop` at
   `682ffd856395a6e3e988817551a512898fda2d38`.
-- Started documentation-only planning for a future Next.js CSV import upload/review UI over the existing
-  Stage 3.9 Go API boundary.
-- Kept Next.js implementation, OpenAPI changes, Go handlers, SQL migrations, import-session persistence,
-  raw file persistence, workers, provider integrations, tax logic, mobile, AI, and implementation out of
-  scope.
+- Started the documentation-only Stage 3.10 planning scope for a future Web import upload/review UI.
+- Kept Next.js implementation, OpenAPI changes, Go handlers, SQL migrations, import-session
+  persistence, business logic, provider integrations, workers, tax, mobile, and AI out of scope.
 
 ## 2026-07-09 — Stage 3.10 import upload/review UI slice started
 
@@ -185,7 +183,7 @@ This log is the index of implementation stages. Every stage must document its pu
 - Scoped implementation to typed Go API calls, transient in-memory file handling, review display,
   explicit row approval, append submission, and UI feedback only.
 - Kept OpenAPI changes, backend handlers, SQL migrations, import-session persistence, raw file
-  persistence, provider integrations, workers, tax, mobile, AI, and Stage 3.11 out of scope.
+  persistence, provider integrations, workers, tax, mobile, and AI out of scope.
 
 ## 2026-07-09 — Stage 3.10 import upload/review UI slice closed
 
@@ -352,12 +350,11 @@ This log is the index of implementation stages. Every stage must document its pu
 
 ## 2026-07-26 — Stage 3.15 planning review findings fixed
 
-- Addressed strict separate-window review findings by making the planned audit target reproducible:
-  after the planning PR merge, the audit stage must record the full post-planning `develop` SHA.
-- Required a tracked-file coverage manifest where every path is audited or excluded with a narrow
-  generated, vendored, binary, or archival rationale.
-- Added explicit SOLID, cost, and ADR-consistency coverage to the audit method and acceptance
-  criteria.
+- Addressed strict separate-window review findings for underspecified cursor/stale-response
+  behavior, missing public-endpoint credential minimization, and incomplete accessibility criteria.
+- Added planning requirements for query/type cursor reset, accepted cursor-chain appends,
+  stale-response guards, public asset API calls with `credentials: "omit"`, keyboard/focus behavior,
+  focus destination/restoration, and asynchronous live-region/error announcements.
 
 ## 2026-07-26 — Stage 3.15 Web asset discovery UI slice started
 
