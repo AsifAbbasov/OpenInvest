@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -98,7 +99,7 @@ func (store *stage32HTTPReplayStore) CreatePortfolioWithReplay(
 		if store.createRequestHash != command.RequestHash {
 			return verticalslice.Portfolio{}, verticalslice.CommandReplayArtifact{}, errors.New("idempotency conflict")
 		}
-		return verticalslice.Portfolio{}, store.createArtifact, nil
+		return verticalslice.Portfolio{}, cloneStage0332ReplayArtifact(store.createArtifact), nil
 	}
 	portfolio := verticalslice.Portfolio{
 		ID:           "00000000-0000-4000-8000-000000000032",
@@ -114,7 +115,9 @@ func (store *stage32HTTPReplayStore) CreatePortfolioWithReplay(
 		return verticalslice.Portfolio{}, verticalslice.CommandReplayArtifact{}, err
 	}
 	store.createRequestHash = command.RequestHash
-	store.createArtifact = artifact
+	// Fiber request strings are handler-lifetime values. A persistent replay store owns its bytes;
+	// clone them here so the fake models PostgreSQL rather than retaining request-buffer aliases.
+	store.createArtifact = cloneStage0332ReplayArtifact(artifact)
 	return portfolio, artifact, nil
 }
 
@@ -134,4 +137,13 @@ func (store *stage32HTTPReplayStore) AppendImportedTransactionsWithReplay(
 	verticalslice.ImportedTransactionsReplayBuilder,
 ) ([]verticalslice.Transaction, verticalslice.CommandReplayArtifact, error) {
 	return nil, verticalslice.CommandReplayArtifact{}, errors.New("not used")
+}
+
+func cloneStage0332ReplayArtifact(artifact verticalslice.CommandReplayArtifact) verticalslice.CommandReplayArtifact {
+	return verticalslice.CommandReplayArtifact{
+		StatusCode: artifact.StatusCode,
+		Body:       append([]byte(nil), artifact.Body...),
+		RequestID:  strings.Clone(artifact.RequestID),
+		TraceID:    strings.Clone(artifact.TraceID),
+	}
 }
