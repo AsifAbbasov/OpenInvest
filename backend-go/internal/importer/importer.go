@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/csv"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -19,6 +20,11 @@ import (
 
 const (
 	SourceKindUserUploadedFile = "USER_UPLOADED_FILE"
+
+	// ReviewParserVersion is part of the signed review-token contract. Any change
+	// that can alter normalized candidate/status semantics must bump this version.
+	ReviewParserVersion = 1
+	MaxReviewRows       = 100
 
 	ReviewStatusAppendable = "APPENDABLE"
 	ReviewStatusDuplicate  = "DUPLICATE"
@@ -101,6 +107,142 @@ type DecisionIdentity struct {
 	RowHash   string
 }
 
+// ReviewHistoryFilter returns the bounded set of ledger dimensions that can
+// influence duplicate/conflict classification for this parsed batch.
+func ReviewHistoryFilter(review Review) verticalslice.ImportReviewHistoryFilter {
+	tradeDates := map[string]struct{}{}
+	brokerOperationKeys := map[string]struct{}{}
+	sourceFingerprints := map[string]struct{}{}
+	for _, row := range review.Rows {
+		if row.Candidate != nil {
+			tradeDates[row.Candidate.TradeDate] = struct{}{}
+		}
+		if row.brokerOperationKey != "" {
+			brokerOperationKeys[row.brokerOperationKey] = struct{}{}
+		}
+		if row.sourceFingerprint != "" {
+			sourceFingerprints[row.sourceFingerprint] = struct{}{}
+		}
+	}
+	return verticalslice.ImportReviewHistoryFilter{
+		SourceAccountLabel:  strings.TrimSpace(review.SourceAccountLabel),
+		TradeDates:          sortedSet(tradeDates),
+		BrokerOperationKeys: sortedSet(brokerOperationKeys),
+		SourceFingerprints:  sortedSet(sourceFingerprints),
+	}
+}
+
+type reviewSemanticMoney struct {
+	Amount   string `json:"amount"`
+	Currency string `json:"currency"`
+}
+
+type reviewSemanticCandidate struct {
+	TransactionType string               `json:"transactionType"`
+	Ticker          *string              `json:"ticker"`
+	Quantity        *string              `json:"quantity"`
+	UnitPrice       *reviewSemanticMoney `json:"unitPrice"`
+	GrossAmount     reviewSemanticMoney  `json:"grossAmount"`
+	Commission      reviewSemanticMoney  `json:"commission"`
+	Tax             reviewSemanticMoney  `json:"tax"`
+	TradeDate       string               `json:"tradeDate"`
+	SettlementDate  *string              `json:"settlementDate"`
+	SafeNote        *string              `json:"safeNote"`
+}
+
+type reviewSemanticRow struct {
+	RowNumber          int                      `json:"rowNumber"`
+	RowHash            string                   `json:"rowHash"`
+	Status             string                   `json:"status"`
+	ReasonCodes        []string                 `json:"reasonCodes"`
+	Fingerprint        string                   `json:"fingerprint"`
+	SourceFingerprint  string                   `json:"sourceFingerprint"`
+	BrokerOperationKey string                   `json:"brokerOperationKey"`
+	Candidate          *reviewSemanticCandidate `json:"candidate"`
+}
+
+// ReviewSemanticDigest binds the exact normalized parser/reconciliation meaning of
+// every reviewed row without exposing raw broker operation identifiers.
+func ReviewSemanticDigest(review Review) (string, error) {
+	rows := make([]reviewSemanticRow, 0, len(review.Rows))
+	for _, row := range review.Rows {
+		reasons := append([]string(nil), row.ReasonCodes...)
+		sort.Strings(reasons)
+		rows = append(rows, reviewSemanticRow{
+			RowNumber:          row.RowNumber,
+			RowHash:            row.RowHash,
+			Status:             row.Status,
+			ReasonCodes:        reasons,
+			Fingerprint:        row.Fingerprint,
+			SourceFingerprint:  row.sourceFingerprint,
+			BrokerOperationKey: row.brokerOperationKey,
+			Candidate:          semanticCandidate(row.Candidate),
+		})
+	}
+	encoded, err := json.Marshal(struct {
+		ParserVersion int                 `json:"parserVersion"`
+		Rows          []reviewSemanticRow `json:"rows"`
+	}{
+		ParserVersion: ReviewParserVersion,
+		Rows:          rows,
+	})
+	if err != nil {
+		return "", err
+	}
+	sum := sha256.Sum256(encoded)
+	return hex.EncodeToString(sum[:]), nil
+}
+
+func semanticCandidate(candidate *Candidate) *reviewSemanticCandidate {
+	if candidate == nil {
+		return nil
+	}
+	var quantity *string
+	if candidate.Quantity != nil {
+		value := candidate.Quantity.String()
+		quantity = &value
+	}
+	var unitPrice *reviewSemanticMoney
+	if candidate.UnitPrice != nil {
+		unitPrice = &reviewSemanticMoney{
+			Amount:   candidate.UnitPrice.Amount.String(),
+			Currency: candidate.UnitPrice.Currency,
+		}
+	}
+	return &reviewSemanticCandidate{
+		TransactionType: candidate.TransactionType,
+		Ticker:          candidate.Ticker,
+		Quantity:        quantity,
+		UnitPrice:       unitPrice,
+		GrossAmount: reviewSemanticMoney{
+			Amount:   candidate.GrossAmount.Amount.String(),
+			Currency: candidate.GrossAmount.Currency,
+		},
+		Commission: reviewSemanticMoney{
+			Amount:   candidate.Commission.Amount.String(),
+			Currency: candidate.Commission.Currency,
+		},
+		Tax: reviewSemanticMoney{
+			Amount:   candidate.Tax.Amount.String(),
+			Currency: candidate.Tax.Currency,
+		},
+		TradeDate:      candidate.TradeDate,
+		SettlementDate: candidate.SettlementDate,
+		SafeNote:       candidate.SafeNote,
+	}
+}
+
+func sortedSet(values map[string]struct{}) []string {
+	result := make([]string, 0, len(values))
+	for value := range values {
+		if value != "" {
+			result = append(result, value)
+		}
+	}
+	sort.Strings(result)
+	return result
+}
+
 func ReviewCSV(request ReviewRequest) (Review, error) {
 	if strings.TrimSpace(request.SubjectID) == "" {
 		return Review{}, fmt.Errorf("%w: subjectId is required", ErrInvalidImport)
@@ -154,6 +296,9 @@ func ReviewCSV(request ReviewRequest) (Review, error) {
 			break
 		}
 		rowNumber++
+		if rowNumber-1 > MaxReviewRows {
+			return Review{}, fmt.Errorf("%w: CSV must contain at most %d data rows", ErrInvalidImport, MaxReviewRows)
+		}
 		if err != nil {
 			review.Rows = append(review.Rows, invalidRow(rowNumber, nil, "MALFORMED_CSV_ROW"))
 			continue

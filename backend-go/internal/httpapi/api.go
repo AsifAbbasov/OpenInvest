@@ -36,6 +36,8 @@ const authRateLimitRetryAfterSeconds = "60"
 const minImportReviewTokenSecretBytes = 32
 const maxPaginationCursorBytes = 512
 const maxImportReviewTokenBytes = 16384
+const importReviewTokenVersion = 1
+const importReviewTokenTTL = 15 * time.Minute
 
 var errAuthRateLimited = errors.New("auth rate limited")
 
@@ -46,6 +48,7 @@ type API struct {
 	authLimiter             *authRateLimiter
 	importReviewSecret      []byte
 	paginationCursorSecret  []byte
+	now                     func() time.Time
 }
 
 func New(service *verticalslice.Service, authService *auth.Service, importReviewTokenSecret []byte) (*fiber.App, error) {
@@ -470,11 +473,33 @@ func (api *API) reviewImport(c fiber.Ctx) error {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
 	portfolioID := c.Params("portfolioId")
-	existing, err := api.service.ListTransactions(c.Context(), subjectID, portfolioID, verticalslice.TransactionFilter{Limit: 100})
+	fileHash := importPayloadHash(request.CSVPayload)
+
+	parserReview, err := importer.ReviewCSV(importer.ReviewRequest{
+		SubjectID:          subjectID,
+		PortfolioID:        portfolioID,
+		SourceKind:         importer.SourceKindUserUploadedFile,
+		SourceAccountLabel: request.SourceAccountLabel,
+		FileHash:           fileHash,
+		Reader:             strings.NewReader(request.CSVPayload),
+	})
 	if err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
-	fileHash := importPayloadHash(request.CSVPayload)
+	if err := validateImportRowCount(parserReview.Summary.TotalRows); err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
+
+	existing, err := api.service.ListImportReviewTransactions(
+		c.Context(),
+		subjectID,
+		portfolioID,
+		importer.ReviewHistoryFilter(parserReview),
+	)
+	if err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
+
 	review, err := importer.ReviewCSV(importer.ReviewRequest{
 		SubjectID:          subjectID,
 		PortfolioID:        portfolioID,
@@ -487,10 +512,8 @@ func (api *API) reviewImport(c fiber.Ctx) error {
 	if err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
-	if err := validateImportRowCount(review.Summary.TotalRows); err != nil {
-		return writeMappedErrorWithMeta(c, meta, err)
-	}
-	reviewToken, err := api.signImportReviewToken(subjectID, review)
+
+	reviewToken, err := api.signImportReviewToken(subjectID, parserReview, review)
 	if err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
@@ -518,9 +541,6 @@ func (api *API) appendImport(c fiber.Ctx) error {
 	if request.SourceFileHash != fileHash {
 		return writeMappedErrorWithMeta(c, meta, fmt.Errorf("%w: sourceFileHash does not match import payload", importer.ErrUnsafeAppend))
 	}
-	if err := api.verifyImportReviewToken(request.ReviewToken, subjectID, portfolioID, importer.SourceKindUserUploadedFile, request.SourceAccountLabel, fileHash, request.toAppDecisionIdentities()); err != nil {
-		return writeMappedErrorWithMeta(c, meta, err)
-	}
 	preflightReview, err := importer.ReviewCSV(importer.ReviewRequest{
 		SubjectID:          subjectID,
 		PortfolioID:        portfolioID,
@@ -533,6 +553,18 @@ func (api *API) appendImport(c fiber.Ctx) error {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
 	if err := validateImportRowCount(preflightReview.Summary.TotalRows); err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
+	if err := api.verifyImportReviewToken(
+		request.ReviewToken,
+		subjectID,
+		portfolioID,
+		importer.SourceKindUserUploadedFile,
+		request.SourceAccountLabel,
+		fileHash,
+		preflightReview,
+		request.toAppDecisions(),
+	); err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
 	if err := importer.VerifyDecisionIdentities(preflightReview, request.toAppDecisionIdentities()); err != nil {
@@ -1416,13 +1448,25 @@ func importPayloadHash(payload string) string {
 	return hex.EncodeToString(hash[:])
 }
 
+type importReviewTokenRowIdentity struct {
+	RowNumber int    `json:"n"`
+	RowHash   string `json:"h"`
+}
+
 type importReviewTokenPayload struct {
-	SubjectID          string                      `json:"subjectId"`
-	PortfolioID        string                      `json:"portfolioId"`
-	SourceKind         string                      `json:"sourceKind"`
-	SourceAccountLabel string                      `json:"sourceAccountLabel"`
-	SourceFileHash     string                      `json:"sourceFileHash"`
-	Rows               []importer.DecisionIdentity `json:"rows"`
+	Version            int                            `json:"v"`
+	ParserVersion      int                            `json:"pv"`
+	IssuedAt           int64                          `json:"iat"`
+	ExpiresAt          int64                          `json:"exp"`
+	SubjectID          string                         `json:"s"`
+	PortfolioID        string                         `json:"p"`
+	SourceKind         string                         `json:"k"`
+	SourceAccountLabel string                         `json:"l"`
+	SourceFileHash     string                         `json:"f"`
+	ParserReviewDigest string                         `json:"pd"`
+	FinalReviewDigest  string                         `json:"fd"`
+	AppendableRows     []int                          `json:"a"`
+	Rows               []importReviewTokenRowIdentity `json:"r"`
 }
 
 func normalizedImportReviewSecret(configured []byte) ([]byte, error) {
@@ -1434,17 +1478,62 @@ func normalizedImportReviewSecret(configured []byte) ([]byte, error) {
 	return hash[:], nil
 }
 
-func (api *API) signImportReviewToken(subjectID string, review importer.Review) (string, error) {
-	payload := importReviewTokenPayload{
-		SubjectID:          subjectID,
-		PortfolioID:        review.PortfolioID,
-		SourceKind:         review.SourceKind,
-		SourceAccountLabel: review.SourceAccountLabel,
-		SourceFileHash:     strings.ToLower(review.FileHash),
-		Rows:               make([]importer.DecisionIdentity, 0, len(review.Rows)),
+func (api *API) nowUTC() time.Time {
+	if api.now != nil {
+		return api.now().UTC()
 	}
-	for _, row := range review.Rows {
-		payload.Rows = append(payload.Rows, importer.DecisionIdentity{RowNumber: row.RowNumber, RowHash: row.RowHash})
+	return time.Now().UTC()
+}
+
+func (api *API) signImportReviewToken(subjectID string, parserReview importer.Review, finalReview importer.Review) (string, error) {
+	if parserReview.PortfolioID != finalReview.PortfolioID ||
+		parserReview.SourceKind != finalReview.SourceKind ||
+		parserReview.SourceAccountLabel != finalReview.SourceAccountLabel ||
+		!strings.EqualFold(parserReview.FileHash, finalReview.FileHash) ||
+		len(parserReview.Rows) != len(finalReview.Rows) {
+		return "", fmt.Errorf("import review phases do not share the same source context")
+	}
+
+	parserDigest, err := importer.ReviewSemanticDigest(parserReview)
+	if err != nil {
+		return "", err
+	}
+	finalDigest, err := importer.ReviewSemanticDigest(finalReview)
+	if err != nil {
+		return "", err
+	}
+
+	rows := make([]importReviewTokenRowIdentity, 0, len(parserReview.Rows))
+	appendableRows := []int{}
+	for index, parserRow := range parserReview.Rows {
+		finalRow := finalReview.Rows[index]
+		if parserRow.RowNumber != finalRow.RowNumber || parserRow.RowHash != finalRow.RowHash {
+			return "", fmt.Errorf("import review phases do not share row identity")
+		}
+		rows = append(rows, importReviewTokenRowIdentity{
+			RowNumber: parserRow.RowNumber,
+			RowHash:   parserRow.RowHash,
+		})
+		if finalRow.Status == importer.ReviewStatusAppendable {
+			appendableRows = append(appendableRows, finalRow.RowNumber)
+		}
+	}
+
+	issuedAt := api.nowUTC()
+	payload := importReviewTokenPayload{
+		Version:            importReviewTokenVersion,
+		ParserVersion:      importer.ReviewParserVersion,
+		IssuedAt:           issuedAt.Unix(),
+		ExpiresAt:          issuedAt.Add(importReviewTokenTTL).Unix(),
+		SubjectID:          subjectID,
+		PortfolioID:        finalReview.PortfolioID,
+		SourceKind:         finalReview.SourceKind,
+		SourceAccountLabel: finalReview.SourceAccountLabel,
+		SourceFileHash:     strings.ToLower(finalReview.FileHash),
+		ParserReviewDigest: parserDigest,
+		FinalReviewDigest:  finalDigest,
+		AppendableRows:     appendableRows,
+		Rows:               rows,
 	}
 	body, err := json.Marshal(payload)
 	if err != nil {
@@ -1452,11 +1541,28 @@ func (api *API) signImportReviewToken(subjectID string, review importer.Review) 
 	}
 	bodyPart := base64.RawURLEncoding.EncodeToString(body)
 	signature := api.signImportReviewTokenPart(bodyPart)
-	return bodyPart + "." + signature, nil
+	token := bodyPart + "." + signature
+	if len(token) > maxImportReviewTokenBytes {
+		return "", fmt.Errorf("import review token exceeds %d bytes", maxImportReviewTokenBytes)
+	}
+	return token, nil
 }
 
-func (api *API) verifyImportReviewToken(token string, subjectID string, portfolioID string, sourceKind string, sourceAccountLabel string, sourceFileHash string, decisions []importer.DecisionIdentity) error {
-	parts := strings.Split(strings.TrimSpace(token), ".")
+func (api *API) verifyImportReviewToken(
+	token string,
+	subjectID string,
+	portfolioID string,
+	sourceKind string,
+	sourceAccountLabel string,
+	sourceFileHash string,
+	parserReview importer.Review,
+	decisions []importer.Decision,
+) error {
+	token = strings.TrimSpace(token)
+	if len(token) == 0 || len(token) > maxImportReviewTokenBytes {
+		return fmt.Errorf("%w: reviewToken is invalid", verticalslice.ErrInvalidInput)
+	}
+	parts := strings.Split(token, ".")
 	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
 		return fmt.Errorf("%w: reviewToken is invalid", verticalslice.ErrInvalidInput)
 	}
@@ -1472,6 +1578,20 @@ func (api *API) verifyImportReviewToken(token string, subjectID string, portfoli
 	if err := json.Unmarshal(body, &payload); err != nil {
 		return fmt.Errorf("%w: reviewToken payload is invalid", verticalslice.ErrInvalidInput)
 	}
+
+	if payload.Version != importReviewTokenVersion ||
+		payload.ParserVersion != importer.ReviewParserVersion ||
+		payload.ExpiresAt-payload.IssuedAt != int64(importReviewTokenTTL/time.Second) ||
+		payload.IssuedAt <= 0 {
+		return fmt.Errorf("%w: reviewToken version or lifetime is invalid", importer.ErrUnsafeAppend)
+	}
+	now := api.nowUTC()
+	issuedAt := time.Unix(payload.IssuedAt, 0).UTC()
+	expiresAt := time.Unix(payload.ExpiresAt, 0).UTC()
+	if now.Before(issuedAt.Add(-time.Minute)) || !now.Before(expiresAt) {
+		return fmt.Errorf("%w: reviewToken is expired or not yet valid", importer.ErrUnsafeAppend)
+	}
+
 	if payload.SubjectID != subjectID ||
 		payload.PortfolioID != portfolioID ||
 		payload.SourceKind != sourceKind ||
@@ -1479,13 +1599,56 @@ func (api *API) verifyImportReviewToken(token string, subjectID string, portfoli
 		payload.SourceFileHash != sourceFileHash {
 		return fmt.Errorf("%w: reviewToken does not match append context", importer.ErrUnsafeAppend)
 	}
-	reviewedRows := map[int]string{}
-	for _, row := range payload.Rows {
-		reviewedRows[row.RowNumber] = row.RowHash
+	if !validSHA256Hex(payload.ParserReviewDigest) || !validSHA256Hex(payload.FinalReviewDigest) {
+		return fmt.Errorf("%w: reviewToken semantic digest is invalid", importer.ErrUnsafeAppend)
 	}
+
+	parserDigest, err := importer.ReviewSemanticDigest(parserReview)
+	if err != nil {
+		return err
+	}
+	if parserDigest != payload.ParserReviewDigest {
+		return fmt.Errorf("%w: normalized import semantics changed; review again", importer.ErrUnsafeAppend)
+	}
+	if len(payload.Rows) != len(parserReview.Rows) {
+		return fmt.Errorf("%w: reviewToken row set does not match parser review", importer.ErrUnsafeAppend)
+	}
+
+	tokenRows := map[int]string{}
+	for _, row := range payload.Rows {
+		if row.RowNumber < 2 || !validSHA256Hex(row.RowHash) {
+			return fmt.Errorf("%w: reviewToken row identity is invalid", importer.ErrUnsafeAppend)
+		}
+		if _, exists := tokenRows[row.RowNumber]; exists {
+			return fmt.Errorf("%w: reviewToken contains duplicate row identity", importer.ErrUnsafeAppend)
+		}
+		tokenRows[row.RowNumber] = row.RowHash
+	}
+	for _, row := range parserReview.Rows {
+		if tokenRows[row.RowNumber] != row.RowHash {
+			return fmt.Errorf("%w: reviewToken row set does not match parser review", importer.ErrUnsafeAppend)
+		}
+	}
+
+	appendableRows := map[int]struct{}{}
+	for _, rowNumber := range payload.AppendableRows {
+		if _, exists := appendableRows[rowNumber]; exists {
+			return fmt.Errorf("%w: reviewToken contains duplicate appendable row", importer.ErrUnsafeAppend)
+		}
+		if _, exists := tokenRows[rowNumber]; !exists {
+			return fmt.Errorf("%w: reviewToken appendable row is not in reviewed rows", importer.ErrUnsafeAppend)
+		}
+		appendableRows[rowNumber] = struct{}{}
+	}
+
 	for _, decision := range decisions {
-		if reviewedRows[decision.RowNumber] != decision.RowHash {
+		if tokenRows[decision.RowNumber] != decision.RowHash {
 			return fmt.Errorf("%w: reviewToken row identity does not match decision", importer.ErrUnsafeAppend)
+		}
+		if decision.Action == importer.DecisionApprove {
+			if _, ok := appendableRows[decision.RowNumber]; !ok {
+				return fmt.Errorf("%w: row %d was not appendable in the approved review", importer.ErrUnsafeAppend, decision.RowNumber)
+			}
 		}
 	}
 	return nil

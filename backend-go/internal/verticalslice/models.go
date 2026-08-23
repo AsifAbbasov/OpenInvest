@@ -26,6 +26,7 @@ type Store interface {
 	CreatePortfolio(ctx context.Context, command CommandContext, request CreatePortfolioRequest) (Portfolio, error)
 	GetPortfolio(ctx context.Context, subjectID string, portfolioID string) (Portfolio, error)
 	ListTransactions(ctx context.Context, subjectID string, portfolioID string, filter TransactionFilter) ([]Transaction, error)
+	ListImportReviewTransactions(ctx context.Context, subjectID string, portfolioID string, filter ImportReviewHistoryFilter) ([]Transaction, error)
 	AppendTransaction(ctx context.Context, command CommandContext, request AppendTransactionRequest) (Transaction, error)
 	AppendImportedTransactions(ctx context.Context, command CommandContext, request AppendImportBatchRequest) ([]Transaction, error)
 	GetPortfolioSummary(ctx context.Context, subjectID string, portfolioID string, asOfDate string) (PortfolioSummary, error)
@@ -122,6 +123,13 @@ type TransactionFilter struct {
 	Limit           int
 	BeforeTradeDate string
 	BeforeEntryID   string
+}
+
+type ImportReviewHistoryFilter struct {
+	SourceAccountLabel  string
+	TradeDates          []string
+	BrokerOperationKeys []string
+	SourceFingerprints  []string
 }
 
 type Money struct {

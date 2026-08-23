@@ -17,10 +17,11 @@ func (fixedClock) Now() time.Time {
 }
 
 type recordingStore struct {
-	requestHash   string
-	assetFilter   AssetSearchFilter
-	assets        []AssetSummary
-	importRequest AppendImportBatchRequest
+	requestHash         string
+	assetFilter         AssetSearchFilter
+	assets              []AssetSummary
+	importRequest       AppendImportBatchRequest
+	importHistoryFilter ImportReviewHistoryFilter
 }
 
 func (store *recordingStore) Ping(context.Context) error { return nil }
@@ -61,6 +62,11 @@ func (store *recordingStore) GetPortfolio(context.Context, string, string) (Port
 }
 
 func (store *recordingStore) ListTransactions(context.Context, string, string, TransactionFilter) ([]Transaction, error) {
+	return nil, nil
+}
+
+func (store *recordingStore) ListImportReviewTransactions(_ context.Context, _ string, _ string, filter ImportReviewHistoryFilter) ([]Transaction, error) {
+	store.importHistoryFilter = filter
 	return nil, nil
 }
 

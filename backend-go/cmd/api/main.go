@@ -130,6 +130,10 @@ func (unavailableStore) ListTransactions(context.Context, string, string, vertic
 	return nil, errors.New("database url is not configured")
 }
 
+func (unavailableStore) ListImportReviewTransactions(context.Context, string, string, verticalslice.ImportReviewHistoryFilter) ([]verticalslice.Transaction, error) {
+	return nil, errors.New("database url is not configured")
+}
+
 func (unavailableStore) AppendTransaction(context.Context, verticalslice.CommandContext, verticalslice.AppendTransactionRequest) (verticalslice.Transaction, error) {
 	return verticalslice.Transaction{}, errors.New("database url is not configured")
 }
