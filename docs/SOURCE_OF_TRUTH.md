@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.61 |
+| Version | 1.4.62 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -15,15 +15,16 @@
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.30 — Import Review Integrity**
+**Last completed implementation stage: Stage 3.31 — Authentication Operational Hardening**
 **Last completed planning gate: Stage 3.24 — Privacy Security Review Readiness Dossier**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `8f68dd18800918e6a9882e995e13dba2723dc929`**
+**Current canonical implementation baseline: `develop` at `9bf4d1d31597918eacf0c3358bf6caa2aa9db897`**
 **Current privacy-planning work item: Stage 3.25 privacy Security Review evidence-collection plan; it remains documentation-only and does not authorize privacy-lifecycle implementation**
 **Stage 3.27 remediation: CLOSED for P1-02, P1-03, and P1-04; implementation PR #55 was squash-merged into `develop` at `6e8c806de857f844954f1db513487357dfe90187` after exact-head CI #90, renewed independent `APPROVED` review on `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c`, explicit human squash-merge authorization, and closure governance through PR #58**
 **Stage 3.28 remediation: CLOSED for P1-01 and P1-05; implementation PR #59 was squash-merged into `develop` at `dc83f5f3a11da164e6809593861d96ccf47b29ca` after exact-head CI #114, renewed independent `APPROVED` review on `92edab5d3e93dafe2fcc6247644e38e878a4202f`, explicit human squash-merge authorization, and closure governance squash-merged through PR #60 at `0ddc618a3450ea81fd4befb3b10c959b3cb82a25`; Stage 3.25 and P2/P3 remain separate**
 **Stage 3.29 remediation: CLOSED for P2-05/P2-06/P2-07/P2-08/P2-15; implementation PR #61 was squash-merged into `develop` at `7331d3f34783baec3997497d1a79b78eaa558bd4` after exact-head CI #124, first independent `REQUEST CHANGES`, blocker remediation on `f9e70e70956c76edbc2ab02c52d45124b2dea525`, renewed independent `APPROVED`, explicit human squash-merge authorization, and closure governance squash-merged through PR #62 at `0bfb3ea9f8e4cc7337a92caef5c7a73f9a8921bc`; Stage 3.25 and remaining P2/P3 stay separate**
-**Stage 3.30 remediation: implementation PR #63 was squash-merged into `develop` at `8f68dd18800918e6a9882e995e13dba2723dc929` after exact-head CI #128, independent final `APPROVED` review on `2f788e0811d78c9def0502676a74bee2f9922bf5`, and explicit human squash-merge authorization; closure governance is tracked through PR #64; when this line is canonical on `develop`, P2-02/P2-03/P2-04 are CLOSED; 9 P2 and 10 P3 findings remain; Stage 3.25 remains separate**
+**Stage 3.30 remediation: CLOSED for P2-02/P2-03/P2-04; implementation PR #63 was squash-merged into `develop` at `8f68dd18800918e6a9882e995e13dba2723dc929` after exact-head CI #128, independent final `APPROVED`, explicit human merge authorization, and closure governance squash-merged through PR #64 at `ae6497050692798795efb85678af64db97cc5f53`; Stage 3.25 and remaining P2/P3 stay separate**
+**Stage 3.31 remediation: implementation PR #65 was squash-merged into `develop` at `9bf4d1d31597918eacf0c3358bf6caa2aa9db897` after exact-head CI #133, independent final `APPROVED` review on `82557c55c0772a66707088b858ec9eafc2073119`, and explicit human squash-merge authorization; closure governance is tracked through PR #66; when this line is canonical on `develop`, P2-01/P2-14 are CLOSED; 7 P2 and 10 P3 findings remain; Stage 3.25 remains separate**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -252,9 +253,12 @@ The independent reviewer treated the current generic HTTP 500 mapping for `ErrAu
 non-blocking for the P1-05 resource-exhaustion finding. Dedicated `503 + Retry-After` semantics
 remain optional HTTP-contract hardening.
 
-Closure governance is recorded through PR #60. When this document is canonical on `develop`,
-Stage 3.28 is closed for P1-01 and P1-05. Stage 3.25 privacy evidence planning and all P2/P3
-findings remain separate.
+Closure governance PR #60 was squash-merged into `develop` at
+`0ddc618a3450ea81fd4befb3b10c959b3cb82a25` after exact-head CI #122, independent closure
+`APPROVED` review, and fresh explicit human squash-merge authorization.
+
+Stage 3.28 is CLOSED for P1-01 and P1-05. Stage 3.25 privacy evidence planning and the then-remaining
+P2/P3 findings stayed separate.
 
 ## Financial standard
 
@@ -372,6 +376,32 @@ an arbitrary recency limit and without loading the entire portfolio ledger. CI #
 with PostgreSQL configured, including the regression proving an old relevant row outside the public
 latest-100 page is still returned.
 
-Closure governance is tracked through PR #64. When this closure record is canonical on `develop`,
-P2-02/P2-03/P2-04 are closed. The original audit backlog then contains 9 P2 and 10 P3 findings.
+Closure governance PR #64 passed exact-head CI #132 on
+`7d97f5f967074f98311adcd4b8f7962e0584c719`, received independent closure `APPROVED` review and
+fresh explicit human squash-merge authorization, and was squash-merged into `develop` at
+`ae6497050692798795efb85678af64db97cc5f53`.
+
+Stage 3.30 is CLOSED for P2-02/P2-03/P2-04. At Stage 3.30 closure, the original audit backlog
+contained 9 P2 and 10 P3 findings. Later remediation does not alter that historical closure scope.
 Stage 3.25 privacy Security Review evidence planning remains separate and is not superseded.
+
+
+## Stage 3.31 audit remediation closure governance
+
+Stage 3.31 is a narrow repository-audit remediation for P2-01 and P2-14 only.
+
+Implementation PR #65 was squash-merged into `develop` at `9bf4d1d31597918eacf0c3358bf6caa2aa9db897`. The independently reviewed
+exact implementation head was `82557c55c0772a66707088b858ec9eafc2073119`; exact-head GitHub Actions CI #133 completed `SUCCESS`.
+
+P2-01 is remediated by routing logout through authentication admission before request decoding,
+auth-service work, and rejected-auth persistence. Rate-limited requests therefore cannot create
+another rejected logout audit event. Logout now exposes the existing HTTP 429 `RateLimited` contract.
+
+P2-14 is remediated with finite per-key attempt count, finite global downstream-attempt budget per
+window, finite active key-bucket cardinality, and cross-key expired-bucket reclamation. Capacity
+exhaustion fails closed. The limiter remains process-local and no Redis/distributed limiter is claimed.
+
+Closure governance is tracked through PR #66. When this closure record is canonical on `develop`,
+P2-01/P2-14 are closed. The original audit backlog then contains 7 P2 and 10 P3 findings.
+P2-09/P2-13 remain separate for the following idempotency stage. Stage 3.25 privacy Security Review
+evidence planning remains separate and is not superseded.

@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Closure record; when canonical on `develop`, Stage 3.30 is closed for P2-02/P2-03/P2-04 |
+| Status | Complete / closed for P2-02/P2-03/P2-04 |
 | Owner | Principal Architect |
 | Baseline | `develop` at `0bfb3ea9f8e4cc7337a92caef5c7a73f9a8921bc` |
 | Branch | `fix/stage-03-30-import-review-integrity` |
@@ -193,15 +193,17 @@ The targeted-query dimensions must evolve together with reconciliation semantics
 
 ## Canonical closure statement
 
-Implementation prerequisites are satisfied, but this report is not canonical closure until PR #64
-passes its own exact-head CI, independent closure-governance review, fresh explicit human merge
-authorization, and squash merge into `develop`.
+Closure governance PR #64 passed exact-head CI #132 on `7d97f5f967074f98311adcd4b8f7962e0584c719`, received independent
+closure `APPROVED` review and fresh explicit human squash-merge authorization, and was squash-merged
+into `develop` at `ae6497050692798795efb85678af64db97cc5f53`.
 
-When that closure record is canonical, Stage 3.30 is closed only for P2-02/P2-03/P2-04. The original
-audit backlog then contains 9 P2 and 10 P3 findings. Stage 3.25 privacy Security Review evidence
-planning remains separate and is not superseded.
+Stage 3.30 is therefore CLOSED only for P2-02/P2-03/P2-04. At Stage 3.30 closure, the original audit
+backlog contained 9 P2 and 10 P3 findings. Later remediation does not broaden or retroactively change
+the Stage 3.30 closure scope. Stage 3.25 privacy Security Review evidence planning remains separate
+and is not superseded.
 
 ## Scope boundary
 
-P2-01/P2-09/P2-10/P2-11/P2-12/P2-13/P2-14/P2-16/P2-17 and all P3 findings remain separate.
-Stage 3.25 privacy evidence planning remains separate.
+At Stage 3.30 closure, P2-01/P2-09/P2-10/P2-11/P2-12/P2-13/P2-14/P2-16/P2-17 and all P3 findings
+remained separate. Later remediation does not broaden or retroactively change Stage 3.30's closure
+scope. Stage 3.25 privacy evidence planning remains separate.

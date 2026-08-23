@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.58 |
+| Version | 1.1.59 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -771,3 +771,16 @@
   authorization.
 - Closure governance is tracked through PR #64. Once canonical, P2-02/P2-03/P2-04 are closed and
   9 P2 plus 10 P3 findings remain. Stage 3.25 privacy work remains separate.
+
+
+## 2026-08-23 — Stage 3.31 authentication operational hardening
+
+- Squash-merged implementation PR #65 into `develop` at `9bf4d1d31597918eacf0c3358bf6caa2aa9db897`.
+- P2-01 now routes logout through bounded auth admission before rejected-auth audit persistence.
+- P2-14 now bounds active limiter keys, per-key attempts, and global downstream auth attempts per window,
+  with expired-bucket reclamation.
+- Logout OpenAPI now advertises the existing 429 `RateLimited` response.
+- Exact-head CI #133 completed `SUCCESS` on `82557c55c0772a66707088b858ec9eafc2073119`; independent final implementation review
+  returned `APPROVED`, followed by explicit human merge authorization.
+- Closure governance is tracked through PR #66. Once canonical, P2-01/P2-14 are closed and
+  7 P2 plus 10 P3 findings remain. Stage 3.25 remains separate.
