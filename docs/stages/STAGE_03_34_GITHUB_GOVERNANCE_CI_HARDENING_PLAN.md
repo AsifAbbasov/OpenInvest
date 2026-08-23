@@ -34,6 +34,13 @@ Read-only GitHub API inspection of canonical `develop` after Stage 3.33 closure 
 Therefore the repository does not mechanically enforce the frozen delivery policy. P2-16 remains
 OPEN.
 
+GitHub's current documented feature matrix states that protected branches/rulesets for private
+repositories require a plan that supports private-repository protection (for example GitHub Pro,
+Team, or Enterprise). The connected repository API does not expose the account's billing plan.
+Therefore Stage 3.34 must fail closed on feature availability: if protection/ruleset controls are not
+available for this private repository, P2-16 remains OPEN. Changing repository visibility merely to
+obtain protection is not authorized by this stage.
+
 ### P2-17 — CI/security class is incomplete
 
 The canonical repository currently has one workflow, `.github/workflows/ci.yml`, triggered only by
@@ -91,9 +98,11 @@ Required implementation outcomes:
    - add a PR-time dependency-change security gate covering the repository lock/module manifests;
    - prefer a GitHub-native dependency-review gate when it is actually supported for this private
      repository;
-   - if repository-plan/API support makes that gate unavailable, use a pinned, deterministic
+   - GitHub's documented dependency-review action requires GitHub Code Security or GitHub Advanced
+     Security for private repositories; do not assume that entitlement exists;
+   - if repository-plan/API support makes the native gate unavailable, use a pinned, deterministic
      equivalent scanner and document the exact coverage rather than claiming unsupported GitHub
-     Advanced Security behavior;
+     security-product behavior;
    - include the Go, pnpm, and Python locked dependency surfaces in the chosen supported approach.
 
 5. **Scheduled security verification**
@@ -135,6 +144,12 @@ and click path must be provided only after Track A establishes the final require
 assistant must then re-read the GitHub API state and refuse to close P2-16 if the effective settings do
 not match the reviewed policy.
 
+If the current GitHub plan does not expose branch protection/rulesets for this private repository,
+the human settings step must stop rather than weaken the acceptance criteria. P2-16 remains OPEN
+until the repository has a supported mechanical protection mechanism. Purchasing a GitHub plan or
+changing repository visibility is an account/product decision outside Stage 3.34 and requires a
+separate explicit user choice.
+
 ## Execution order
 
 1. independently review and approve this Stage 3.34 plan;
@@ -142,9 +157,10 @@ not match the reviewed policy.
 3. implement Track A CI/security changes only;
 4. run exact-head CI and independent implementation review;
 5. obtain explicit human authorization and squash-merge the CI implementation;
-6. apply the one human GitHub Settings change for Track B using the exact final check names;
+6. apply the one human GitHub Settings change for Track B using the exact final check names, if the
+   repository's GitHub plan supports the required protection controls;
 7. verify branch protection/repository merge settings read-only through GitHub API;
-8. if any protection requirement is missing, keep P2-16 OPEN and correct the settings;
+8. if any protection requirement or required GitHub feature is missing, keep P2-16 OPEN;
 9. record final independent evidence and closure governance;
 10. only after canonical closure may the project claim P2=0.
 
@@ -169,7 +185,9 @@ not match the reviewed policy.
 - force-push and branch deletion are blocked;
 - repository merge methods enforce squash-only policy;
 - any unavoidable administrator/owner bypass is accurately disclosed and judged acceptable by the
-  independent reviewer rather than hidden.
+  independent reviewer rather than hidden;
+- the protection mechanism is actually supported and active for this private repository; a plan
+  limitation cannot be documented away as if enforcement existed.
 
 ## Closure target
 
