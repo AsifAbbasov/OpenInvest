@@ -21,6 +21,15 @@ type StoredRetryIntent = {
   expiresAt: number;
 };
 
+export function principalScopedIdempotencyScope(principalId: string, operationScope: string): string {
+  const normalizedPrincipal = principalId.trim();
+  const normalizedOperation = operationScope.trim();
+  if (normalizedPrincipal === "" || normalizedOperation === "") {
+    throw new Error("principal and operation scopes are required for browser idempotency recovery");
+  }
+  return `principal:${normalizedPrincipal}\u0000${normalizedOperation}`;
+}
+
 export function idempotencyIntentFor(
   current: IdempotencyIntentState,
   intent: string,
