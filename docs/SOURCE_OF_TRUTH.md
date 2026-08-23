@@ -108,7 +108,7 @@ developer commands only. Stage 3.5 is closed and merged into `develop` at
 `072d38d94b529221d6467502f82f03a674a7d805`; it approved the design guardrails for user-supplied
 broker-file import. Stage 3.6 implementation is closed and merged into `develop` at
 `e2b05650a4422b97d4bd924254367106b6a4686b`, with closure governance merged at
-`fb651632036fabaa31ec92e5`; it added an internal CSV parse/normalize/review/
+`fb651632036fabaa31ec92e9d28b5782ca0f92e5`; it added an internal CSV parse/normalize/review/
 append-plan slice only. It does not authorize public import endpoints, broker API integration,
 upload UI, SQL migrations, workers, or automatic ledger append. Stage 3.7 import append planning is
 merged into `develop` at `36d86c7ff2a9c75478de155d4f60b979b8da9376`. Stage 3.7 implementation is
