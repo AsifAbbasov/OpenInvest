@@ -61,7 +61,7 @@ func newReplayApp(api *API) *fiber.App {
 	app.Get("/api/v1/portfolios/:portfolioId/transactions", api.listTransactions)
 	app.Post("/api/v1/portfolios/:portfolioId/transactions", api.appendTransactionReplay)
 	app.Post("/api/v1/portfolios/:portfolioId/imports/review", api.reviewImport)
-	app.Post("/api/v1/portfolios/:portfolioId/imports/append", api.appendImportReplay)
+	app.Post("/api/v1/portfolios/:portfolioId/imports/append", api.appendImportReplaySafe)
 
 	return app
 }
