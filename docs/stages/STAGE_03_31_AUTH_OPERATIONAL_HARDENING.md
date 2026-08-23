@@ -54,7 +54,7 @@ Whole-map timer clears and active-bucket eviction were rejected because they dis
 TTL without cardinality bounds was rejected because it still permits memory spikes; Redis is not
 required for the current single-process closure criterion.
 
-## Regression evidence in this candidate
+## Regression evidence
 
 - existing auth 429 response still includes `Retry-After`;
 - first invalid logout can record one rejected audit event;

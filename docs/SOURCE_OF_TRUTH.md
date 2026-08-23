@@ -253,9 +253,12 @@ The independent reviewer treated the current generic HTTP 500 mapping for `ErrAu
 non-blocking for the P1-05 resource-exhaustion finding. Dedicated `503 + Retry-After` semantics
 remain optional HTTP-contract hardening.
 
-Closure governance is recorded through PR #60. When this document is canonical on `develop`,
-Stage 3.28 is closed for P1-01 and P1-05. Stage 3.25 privacy evidence planning and all P2/P3
-findings remain separate.
+Closure governance PR #60 was squash-merged into `develop` at
+`0ddc618a3450ea81fd4befb3b10c959b3cb82a25` after exact-head CI #122, independent closure
+`APPROVED` review, and fresh explicit human squash-merge authorization.
+
+Stage 3.28 is CLOSED for P1-01 and P1-05. Stage 3.25 privacy evidence planning and the then-remaining
+P2/P3 findings stayed separate.
 
 ## Financial standard
 
@@ -373,8 +376,13 @@ an arbitrary recency limit and without loading the entire portfolio ledger. CI #
 with PostgreSQL configured, including the regression proving an old relevant row outside the public
 latest-100 page is still returned.
 
-Closure governance is tracked through PR #64. When this closure record is canonical on `develop`,
-P2-02/P2-03/P2-04 are closed. The original audit backlog then contains 9 P2 and 10 P3 findings.
+Closure governance PR #64 passed exact-head CI #132 on
+`7d97f5f967074f98311adcd4b8f7962e0584c719`, received independent closure `APPROVED` review and
+fresh explicit human squash-merge authorization, and was squash-merged into `develop` at
+`ae6497050692798795efb85678af64db97cc5f53`.
+
+Stage 3.30 is CLOSED for P2-02/P2-03/P2-04. At Stage 3.30 closure, the original audit backlog
+contained 9 P2 and 10 P3 findings. Later remediation does not alter that historical closure scope.
 Stage 3.25 privacy Security Review evidence planning remains separate and is not superseded.
 
 

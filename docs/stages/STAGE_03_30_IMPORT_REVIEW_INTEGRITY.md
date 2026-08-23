@@ -204,5 +204,6 @@ and is not superseded.
 
 ## Scope boundary
 
-P2-01/P2-09/P2-10/P2-11/P2-12/P2-13/P2-14/P2-16/P2-17 and all P3 findings remain separate.
-Stage 3.25 privacy evidence planning remains separate.
+At Stage 3.30 closure, P2-01/P2-09/P2-10/P2-11/P2-12/P2-13/P2-14/P2-16/P2-17 and all P3 findings
+remained separate. Later remediation does not broaden or retroactively change Stage 3.30's closure
+scope. Stage 3.25 privacy evidence planning remains separate.

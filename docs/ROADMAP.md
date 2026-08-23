@@ -69,7 +69,7 @@
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
 
-Stages 3.27, 3.28, 3.29, and 3.30 are separately authorized narrow repository-audit remediations and do not
+Stages 3.27, 3.28, 3.29, 3.30, and 3.31 are separately authorized narrow repository-audit remediations and do not
 authorize product-scope expansion. Stage 3.25 privacy evidence planning remains separate. After
 Stage 3.31 closure, the original audit backlog contains 7 P2 and 10 P3 findings. No further implementation stage begins without a separately reviewed planning
 or remediation gate.
