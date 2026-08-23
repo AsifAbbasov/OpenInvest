@@ -17,6 +17,7 @@ func TestStage0332PortfolioHTTPReplayReturnsOriginalStatusBodyAndTechnicalIdenti
 	store := &stage32HTTPReplayStore{}
 	app := NewDevelopmentReplay(verticalslice.NewService(store, fixedHTTPClock{}))
 	body := []byte(`{"name":"Replay portfolio","baseCurrency":"RUB"}`)
+	body = bytes.ReplaceAll(body, []byte(`\"`), []byte(`"`))
 	key := "stage-03-32-http-key-000001"
 
 	firstRequestID := "11111111-1111-4111-8111-111111111111"
