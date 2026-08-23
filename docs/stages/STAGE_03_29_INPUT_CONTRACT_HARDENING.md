@@ -108,10 +108,42 @@ Precision belongs to the canonical financial representation, not to PostgreSQL e
 Ingress validation prevents impossible values entering commands; `FitsStorage` is still required
 because multiplication can expand magnitude after ingress.
 
+### Aggregate and snapshot persistence boundary
+
+Independent final review identified that the first remediation candidate still left a second arithmetic
+growth boundary in PostgreSQL snapshot rebuilds. Individually valid transaction values can aggregate
+beyond `NUMERIC(28,8)` across multiple ledger rows, and a BUY can produce an out-of-range
+`gross_amount + commission_amount + tax_amount` snapshot metric even when each component is valid.
+
+`rebuildSnapshot` therefore guards the same prospective `computed` CTE that feeds snapshot persistence.
+All persistence-bound snapshot financial values (`cash`, `stock`, `bond`, `invested capital`, `total`,
+and nominal/real return rate) must round to scale 8 within the `NUMERIC(28,8)` magnitude before the
+`INSERT ... SELECT` is allowed to emit a row. A zero-row guarded insert is converted to
+`verticalslice.ErrInvalidInput`.
+
+This check runs after the prospective transaction entry is visible inside the locked SQL transaction
+but before snapshot persistence. Returning the controlled error causes the surrounding transaction to
+roll back the ledger write, idempotency reservation, asset creation if any, and snapshot mutation
+atomically.
+
+### Why the snapshot guard is in PostgreSQL
+
+Snapshot formulas are SQL-owned in the current architecture. Reimplementing the same aggregation in Go
+would create a second financial-calculation implementation that could drift from the persisted formula.
+Guarding the existing `computed` CTE keeps calculation and range admission adjacent and evaluates the
+prospective state in the same locked transaction.
+
+The guard checks `round(metric, 8)` because the target columns are fixed-scale `NUMERIC(28,8)`. This
+models the persistence-bound scale before comparing with the maximum representable magnitude, including
+the division-derived nominal return rate.
+
 ### Alternatives rejected
 
 - Increasing PostgreSQL precision: changes the frozen storage contract rather than fixing drift.
 - Checking only request strings: misses derived arithmetic overflow.
+- Checking only per-request `gross + commission + tax`: misses cumulative overflow across multiple valid ledger rows.
+- Recomputing prospective snapshots in Go: duplicates the SQL financial methodology and creates drift risk.
+- Letting the snapshot INSERT raise PostgreSQL numeric overflow: produces an uncontrolled storage error and generic HTTP 500.
 - Silently clamping integer magnitude: corrupts financial meaning.
 - Converting to floating point: violates exact-decimal financial invariants.
 
@@ -170,6 +202,8 @@ schema parsing is safer than choosing first-wins or last-wins semantics.
 | Decimal with 21 integer digits | HTTP 400 / parser rejection before persistence |
 | Maximum `NUMERIC(28,8)` value | Accepted by Decimal parser |
 | `quantity × unitPrice` grows beyond `NUMERIC(28,8)` | Application rejects before store |
+| Two individually valid maximum deposits overflow cumulative snapshot cash | Controlled invalid-input error; second write fully rolls back |
+| Individually valid BUY gross + commission overflow snapshot metrics | Controlled invalid-input error; ledger/idempotency/snapshot state fully rolls back |
 | Unknown portfolio command field | HTTP 400 |
 | Unknown transaction command field | HTTP 400 |
 | Manual 501-character note | HTTP 400 before store |
@@ -186,8 +220,19 @@ repository governance enforcement, and extended CI/security coverage.
 
 P3 findings remain separate. Stage 3.25 privacy evidence planning remains separate.
 
+## Independent review history
+
+The first independent final review on implementation head
+`41e798fc6a69209979d038d821a2ffe5defb57cb` returned `REQUEST CHANGES` for one blocking P2-07 gap:
+snapshot aggregate arithmetic could still exceed `NUMERIC(28,8)` after otherwise-valid transaction
+ingress. No additional blocking defect was identified in P2-05, P2-06, P2-08, or P2-15.
+
+The remediation adds the same-transaction guarded snapshot persistence and PostgreSQL integration
+coverage for cumulative deposits, BUY component-sum overflow, and rollback atomicity. A renewed
+independent review is required on the new exact head before merge.
+
 ## Closure rule
 
 This document must not be described as closed merely because the patch exists. Closure requires
-verification, exact-head CI, independent review, explicit human merge authorization, squash merge
-into `develop`, and canonical closure-governance evidence.
+verification, exact-head CI, renewed independent review, explicit human merge authorization, squash
+merge into `develop`, and canonical closure-governance evidence.

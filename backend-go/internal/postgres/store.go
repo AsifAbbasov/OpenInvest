@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -1083,7 +1084,7 @@ func rebuildAffectedSnapshots(ctx context.Context, tx *sql.Tx, portfolioID strin
 
 func rebuildSnapshot(ctx context.Context, tx *sql.Tx, portfolioID string, snapshotDate string, now time.Time) error {
 	snapshotID := uuid.NewString()
-	_, err := tx.ExecContext(ctx, `
+	result, err := tx.ExecContext(ctx, `
 		INSERT INTO analytics.portfolio_snapshots (
 			id, portfolio_id, snapshot_date,
 			total_value_amount, cash_value_amount, stock_value_amount, bond_value_amount,
@@ -1142,8 +1143,25 @@ func rebuildSnapshot(ctx context.Context, tx *sql.Tx, portfolioID string, snapsh
 				), 1),
 				'stage-03-02-local-cost-snapshot-v1', watermark, $4
 		FROM computed
+		WHERE
+			round(total_value, 8) BETWEEN -99999999999999999999.99999999 AND 99999999999999999999.99999999
+			AND round(cash_value, 8) BETWEEN -99999999999999999999.99999999 AND 99999999999999999999.99999999
+			AND round(stock_value, 8) BETWEEN -99999999999999999999.99999999 AND 99999999999999999999.99999999
+			AND round(bond_value, 8) BETWEEN -99999999999999999999.99999999 AND 99999999999999999999.99999999
+			AND round(invested_capital, 8) BETWEEN -99999999999999999999.99999999 AND 99999999999999999999.99999999
+			AND round(nominal_return_rate, 8) BETWEEN -99999999999999999999.99999999 AND 99999999999999999999.99999999
 	`, snapshotID, portfolioID, snapshotDate, now)
-	return err
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected != 1 {
+		return fmt.Errorf("%w: snapshot financial values exceed NUMERIC(28,8) storage precision", verticalslice.ErrInvalidInput)
+	}
+	return nil
 }
 
 func getPortfolioSummary(ctx context.Context, db *sql.DB, portfolioID string, asOfDate string) (verticalslice.PortfolioSummary, error) {
