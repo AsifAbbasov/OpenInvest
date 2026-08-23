@@ -2,16 +2,17 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementation candidate; first independent review requested changes for P2-13; remediation verification green; repeat independent review and human merge authorization pending |
+| Status | Implementation candidate; first independent review requested changes for P2-13; remediation and exact-head verification green; repeat independent review and human merge authorization pending |
 | Owner | Principal Architect |
 | Baseline | `develop` at `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746` |
 | Branch | `fix/stage-03-32-idempotency-recovery` |
 | Implementation PR | #67 |
 | Implementation merge | Pending |
-| Remediation code head | `13dbf3ad06ed35bd643c6810e383713ea2463baa` |
-| Remediation code CI | GitHub Actions #173 — SUCCESS, all six jobs passed |
+| Final remediation head before this record | `13dbf3ad06ed35bd643c6810e383713ea2463baa` |
+| Final implementation/documentation head | `b5be85b48ccb22c482368bb007d15a5197ca58a8` |
+| Exact-head CI | GitHub Actions #174 — SUCCESS, all six jobs passed |
 | First independent review | `REQUEST CHANGES` on `57fcc25e949277a0e933f290998e41d0f7476b5c`: P2-09 CLOSED; P2-13 NOT CLOSED because browser retry slots were not principal-scoped |
-| Repeat independent review | Pending on the post-review remediation head |
+| Repeat independent review | Pending on exact head `b5be85b48ccb22c482368bb007d15a5197ca58a8` |
 | Human implementation merge authorization | Pending |
 | Trigger | Repository-audit P2-09 and P2-13 |
 | Scope | Exact original-response idempotent replay, atomic replay-artifact persistence, import retry recovery across review-token expiry, principal-isolated short-lived browser retry identity, regression and migration coverage |
@@ -201,10 +202,11 @@ The Stage 3.32 test set includes:
 - successful writes clear the applicable principal-scoped retry journal;
 - full frontend typecheck, tests, and production build remain green.
 
-Post-review remediation head `13dbf3ad06ed35bd643c6810e383713ea2463baa` passed GitHub Actions CI
-#173 with all six workflow jobs successful: Go tests with PostgreSQL/migrations, PostgreSQL migration
-validation, frontend build/typecheck/tests, Python tests, OpenAPI contract validation, and Docker
-Compose configuration validation.
+Code remediation head `13dbf3ad06ed35bd643c6810e383713ea2463baa` passed CI #173 with all six
+jobs successful. Final implementation/documentation head
+`b5be85b48ccb22c482368bb007d15a5197ca58a8` passed exact-head CI #174 with all six jobs successful:
+Go tests with PostgreSQL/migrations, PostgreSQL migration validation, frontend build/typecheck/tests,
+Python tests, OpenAPI contract validation, and Docker Compose configuration validation.
 
 ## Review history and implementation findings
 
@@ -229,7 +231,8 @@ than waived:
   portfolio scoped before SHA-256 derivation and has an A→B→A regression.
 
 The first independent verdict was `REQUEST CHANGES`; it is not treated as approval. A fresh repeat
-review must evaluate the post-review remediation exact head before any human merge authorization.
+review must evaluate exact head `b5be85b48ccb22c482368bb007d15a5197ca58a8` before any human merge
+authorization.
 
 ## Privacy and retention boundary
 
