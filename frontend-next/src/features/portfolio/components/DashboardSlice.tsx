@@ -9,7 +9,7 @@ import { CreatePortfolioForm } from "@/features/portfolio/components/CreatePortf
 import { shouldCommitPortfolioLoad, startPortfolioLoad, type PortfolioLoadGuardState } from "@/features/portfolio/loadGuard";
 
 export function DashboardSlice() {
-  const { accessToken } = useAuth();
+  const { accessToken, principalId } = useAuth();
   const [result, setResult] = useState<ApiResult<ListData<Portfolio>> | null>(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const loadGuard = useRef<PortfolioLoadGuardState>({ generation: 0, accessToken });
@@ -69,7 +69,7 @@ export function DashboardSlice() {
       ) : null}
 
       {result?.ok === true && result.data.items.length === 0 ? (
-        <CreatePortfolioForm accessToken={accessToken} onCreated={load} />
+        <CreatePortfolioForm accessToken={accessToken} principalId={principalId} onCreated={load} />
       ) : null}
 
       {result?.ok === true && result.data.items.length > 0 ? (
