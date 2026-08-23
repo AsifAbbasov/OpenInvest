@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.56 |
+| Version | 1.1.57 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -739,3 +739,19 @@
 - Dedicated `ErrAuthCapacity` HTTP `503 + Retry-After` semantics remain optional non-blocking contract hardening.
 - Closure governance is recorded through PR #60 when canonical on `develop`.
 - Stage 3.25 and all P2/P3 findings remain separate.
+
+
+## 2026-08-23 — Stage 3.29 input and contract hardening
+
+- Squash-merged implementation PR #61 into `develop` at `7331d3f34783baec3997497d1a79b78eaa558bd4`.
+- Remediated P2-05 malformed-decimal HTTP semantics, P2-06 note-length boundary drift, P2-07
+  `NUMERIC(28,8)` ingress/derived/aggregate persistence bounds, P2-08 permissive financial JSON
+  commands, and P2-15 duplicate normalized CSV headers.
+- Exact-head CI #124 completed successfully on
+  `f9e70e70956c76edbc2ab02c52d45124b2dea525`.
+- First independent review returned `REQUEST CHANGES` for aggregate snapshot arithmetic not yet
+  failing closed; the final implementation added same-transaction PostgreSQL range admission and
+  atomic rollback integration coverage, then received renewed independent `APPROVED`.
+- Detailed engineering rationale and rejected alternatives remain in the Stage 3.29 report.
+- Closure governance is tracked through PR #62. Once canonical, these five P2 findings are closed;
+  12 P2 and 10 P3 findings remain. Stage 3.25 privacy work remains separate.

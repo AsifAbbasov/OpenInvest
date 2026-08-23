@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.53 |
+| Version | 1.1.54 |
 | Status | Current |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
@@ -19,7 +19,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 1 — Documentation Consolidation | Establish the repository-owned Source of Truth and freeze v1.2 | Complete; awaiting review | [Stage 1 report](stages/STAGE_01_DOCUMENTATION_CONSOLIDATION.md) |
 | 2 — Contract and Canonical Model Freeze | Freeze the MVP API, canonical DTOs, logical ER model, and migration strategy | Complete / closed; merged into `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | [Stage 2 report](stages/STAGE_02_CONTRACT_AND_CANONICAL_MODEL.md) |
 | Web architecture amendment | Replace the Web skeleton with presentation-only Next.js under ADR-007 | Complete / closed; merged into `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | [Amendment report](stages/WEB_FRONTEND_ARCHITECTURE_AMENDMENT.md) |
-| 3 — First Vertical Slice | Implement the first thin MVP path after contract and Web baseline approval | Implementation closed through Stage 3.16 audit-fix closure; Stage 3.17-3.24 proposals are merged; Stage 3.25 privacy evidence planning remains separate; Stage 3.27 P1-02/P1-03/P1-04 remediation is closed; Stage 3.28 P1-01/P1-05 implementation is merged and closure governance is recorded through PR #60 when canonical on `develop` | [Stage 3 plan](stages/STAGE_03_FIRST_VERTICAL_SLICE.md) |
+| 3 — First Vertical Slice | Implement the first thin MVP path after contract and Web baseline approval | Implementation closed through Stage 3.16 audit-fix closure; Stage 3.17-3.24 proposals are merged; Stage 3.25 privacy evidence planning remains separate; Stages 3.27 and 3.28 P1 remediation are closed; Stage 3.29 P2-05/P2-06/P2-07/P2-08/P2-15 implementation is merged and closure governance is tracked through PR #62 | [Stage 3 plan](stages/STAGE_03_FIRST_VERTICAL_SLICE.md) |
 | 3.1 — Local Database Foundation | Add minimal PostgreSQL structures and migration validation for the first vertical slice | Complete / closed; merged into `develop` at `b1a3f23` | [Stage 3.1 report](stages/STAGE_03_01_DATABASE_FOUNDATION.md) |
 | 3.2 — Go API Vertical-Slice Backend | Implement portfolio create, transaction append, snapshot rebuild, and summary read in Go | Complete / closed; merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | [Stage 3.2 report](stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md) |
 | Product risk refinement | Convert hard PRD criticism into controlled MVP risk decisions | Complete / closed; merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | [MVP product risk refinement](product/MVP_PRODUCT_RISK_REFINEMENT.md) |
@@ -58,7 +58,8 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.24 — Privacy Security Review Readiness Dossier | Define the mandatory evidence package, questions, outcomes, and residual decision boundary before formal Security Review | Complete / merged through PR #53 at `544ad8cc7371caf93913ea7716f3feb68be0ea44` | [Stage 3.24 dossier](stages/STAGE_03_24_PRIVACY_SECURITY_REVIEW_READINESS.md) |
 | 3.25 — Privacy Security Review Evidence-Collection Plan | Define minimal, integrity-protected, independently verified evidence collection before formal Security Review | Active / proposal only | [Stage 3.25 plan](stages/STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md) |
 | 3.27 — Import Financial Identity and Cash-Flow Semantics Remediation | Remediate repository-audit P1-02/P1-03/P1-04 across import identity, reconciliation, cash-flow semantics, PostgreSQL, and OpenAPI | Complete / closed; implementation merged through PR #55 at `6e8c806de857f844954f1db513487357dfe90187`; closure governance recorded through PR #58 | [Stage 3.27 report](stages/STAGE_03_27_IMPORT_FINANCIAL_IDENTITY_REMEDIATION.md) |
-| 3.28 — Authentication Security Remediation | Remediate repository-audit P1-01/P1-05 across refresh-token replay/session-family containment and bounded Argon2 work | Complete when closure record is canonical; implementation merged through PR #59 at `dc83f5f3a11da164e6809593861d96ccf47b29ca` after CI #114, renewed independent `APPROVED`, and human approval; closure governance through PR #60 | [Stage 3.28 report](stages/STAGE_03_28_AUTH_SECURITY_REMEDIATION.md) |
+| 3.28 — Authentication Security Remediation | Remediate repository-audit P1-01/P1-05 across refresh-token replay/session-family containment and bounded Argon2 work | Complete / closed; implementation merged through PR #59 at `dc83f5f3a11da164e6809593861d96ccf47b29ca` after CI #114, renewed independent `APPROVED`, and human approval; closure governance merged through PR #60 at `0ddc618a3450ea81fd4befb3b10c959b3cb82a25` | [Stage 3.28 report](stages/STAGE_03_28_AUTH_SECURITY_REMEDIATION.md) |
+| 3.29 — Input and Contract Hardening | Remediate audit P2-05/P2-06/P2-07/P2-08/P2-15 across client validation, exact-decimal/storage bounds, strict JSON commands, note length, CSV schema ambiguity, and snapshot aggregate arithmetic | Implementation merged through PR #61 at `7331d3f34783baec3997497d1a79b78eaa558bd4`; closure governance tracked through PR #62 and closes the five findings when canonical on `develop` | [Stage 3.29 report](stages/STAGE_03_29_INPUT_CONTRACT_HARDENING.md) |
 
 ## Stage completion protocol
 
@@ -600,3 +601,18 @@ This log is the index of implementation stages. Every stage must document its pu
 - Closure governance is delivered through PR #60 and becomes authoritative when this record is
   canonical on `develop`.
 - Stage 3.25 privacy evidence planning and the P2/P3 audit backlog remain separate.
+
+
+## 2026-08-23 — Stage 3.29 input and contract hardening implementation merged
+
+- Squash-merged implementation PR #61 into `develop` at `7331d3f34783baec3997497d1a79b78eaa558bd4`.
+- Closed the implementation work for P2-05, P2-06, P2-07, P2-08, and P2-15 after exact-head CI #124.
+- Recorded the first independent `REQUEST CHANGES` for incomplete P2-07 aggregate snapshot
+  arithmetic admission, the same-transaction PostgreSQL remediation on
+  `f9e70e70956c76edbc2ab02c52d45124b2dea525`, and renewed independent `APPROVED`.
+- Preserved atomic rollback for rejected snapshot-bound writes and kept the SQL snapshot methodology
+  as the single calculation source.
+- Recorded detailed root cause, failure mode, rationale, rejected alternatives, regression evidence,
+  and review history in `STAGE_03_29_INPUT_CONTRACT_HARDENING.md`.
+- Closure governance is tracked through PR #62; when canonical, the remaining original audit backlog
+  is 12 P2 and 10 P3 findings. Stage 3.25 privacy evidence planning remains separate.
