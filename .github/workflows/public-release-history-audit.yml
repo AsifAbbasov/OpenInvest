@@ -1,0 +1,61 @@
+name: Public release history audit
+
+on:
+  pull_request:
+    branches:
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-release-history-audit-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  full-history-secret-scan:
+    name: Full history secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out complete repository history
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+      - name: Scan all Git history with pinned Gitleaks
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          docker run --rm \
+            -v "$PWD:/repo" \
+            ghcr.io/gitleaks/gitleaks@sha256:b109bc5f8f76a38196a3e413704fc5b9e3c32360bce4e4b603bd6f45b3721dbb \
+            git --redact --report-format json --report-path /repo/gitleaks-report.json --log-opts="--all" /repo
+          status=$?
+          set -e
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = Path("gitleaks-report.json")
+          if not report.exists():
+              print("gitleaks_report_present=false")
+          else:
+              findings = json.loads(report.read_text())
+              print(f"gitleaks_findings={len(findings)}")
+              for finding in findings:
+                  rule = finding.get("RuleID", "unknown")
+                  file = finding.get("File", "unknown")
+                  commit = finding.get("Commit", "unknown")
+                  print(f"finding rule={rule} file={file} commit={commit}")
+          PY
+          exit "$status"
+      - name: Count public Git author-email exposure
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git log --all --format='%ae%n%ce' \
+            | sed '/^$/d' \
+            | sort -u \
+            | awk '!/users\.noreply\.github\.com$/ && !/noreply@github\.com$/ { count++ } END { print "non_noreply_git_emails=" (count+0) }'
