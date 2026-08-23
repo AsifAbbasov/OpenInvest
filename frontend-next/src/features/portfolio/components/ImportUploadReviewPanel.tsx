@@ -10,7 +10,11 @@ import {
   type ImportReviewResult,
   type ImportRowReview,
 } from "@/common/api/openinvest";
-import { emptyIdempotencyIntent, idempotencyIntentFor } from "@/common/api/idempotency";
+import {
+  clearBrowserIdempotencyIntent,
+  emptyIdempotencyIntent,
+  idempotencyIntentForBrowser,
+} from "@/common/api/idempotency";
 import { formatMoney } from "@/common/presentation/format";
 import {
   shouldCommitImportAppend,
@@ -28,12 +32,14 @@ type ImportUploadReviewPanelProps = {
 };
 
 const maxCsvPayloadBytes = 2 * 1024 * 1024;
+const idempotencyConflictMessage = "Idempotency-Key is already bound to another request";
 
 export function ImportUploadReviewPanel({ accessToken, portfolioId, onImported }: ImportUploadReviewPanelProps) {
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const importOperationGuardRef = useRef<ImportOperationGuardState>({ scope: "", reviewGeneration: 0, appendGeneration: 0 });
 	const appendIdempotencyIntentRef = useRef(emptyIdempotencyIntent);
 	const importScope = `${portfolioId}\u0000${accessToken}`;
+  const retryScope = `import-append:${portfolioId}`;
   const [sourceAccountLabel, setSourceAccountLabel] = useState("Manual CSV import");
   const [csvPayload, setCsvPayload] = useState("");
   const [reviewedCsvPayload, setReviewedCsvPayload] = useState("");
@@ -181,7 +187,11 @@ export function ImportUploadReviewPanel({ accessToken, portfolioId, onImported }
       })),
     };
     const intent = JSON.stringify(appendPayload);
-    appendIdempotencyIntentRef.current = idempotencyIntentFor(appendIdempotencyIntentRef.current, intent, () => crypto.randomUUID());
+    appendIdempotencyIntentRef.current = await idempotencyIntentForBrowser(
+      appendIdempotencyIntentRef.current,
+      intent,
+      retryScope,
+    );
 
     const result = await appendReviewedPortfolioImport(portfolioId, appendPayload, {
       accessToken,
@@ -194,10 +204,15 @@ export function ImportUploadReviewPanel({ accessToken, portfolioId, onImported }
     setAppendResult(result);
     setIsAppending(false);
     if (!result.ok) {
+      if (result.status === 409 && result.message === idempotencyConflictMessage) {
+        await clearBrowserIdempotencyIntent(retryScope);
+        appendIdempotencyIntentRef.current = emptyIdempotencyIntent;
+      }
       setStatus(result.message);
       return;
     }
 
+    await clearBrowserIdempotencyIntent(retryScope);
     setCsvPayload("");
     setReviewedCsvPayload("");
     setReviewedSourceAccountLabel(undefined);
