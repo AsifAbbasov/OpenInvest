@@ -48,9 +48,24 @@ jobs:
           for migration in infrastructure/postgres/migrations/*.up.sql; do
             docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 < "$migration"
           done
+      - name: Configure least-privilege PostgreSQL runtime role
+        working-directory: .
+        run: |
+          docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 < infrastructure/postgres/runtime/openinvest_runtime_role.sql
+          docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$
+          BEGIN
+              IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'openinvest_runtime_ci') THEN
+                  CREATE ROLE openinvest_runtime_ci LOGIN PASSWORD 'openinvest-runtime-ci';
+              END IF;
+          END
+          $$;
+          GRANT openinvest_runtime TO openinvest_runtime_ci;
+          SQL
       - name: Run tests
         env:
           OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+          OPENINVEST_DATABASE_RUNTIME_TEST_URL: postgres://openinvest_runtime_ci:openinvest-runtime-ci@127.0.0.1:5432/openinvest?sslmode=disable
         run: go test ./...
 
   python:
@@ -173,7 +188,7 @@ jobs:
           while IFS= read -r -d '' migration; do
             docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -v ON_ERROR_STOP=1 < "$migration"
           done < <(find infrastructure/postgres/migrations -maxdepth 1 -type f -name '*.up.sql' -print0 | LC_ALL=C sort -z)
-          required_tables="$(docker exec "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -At -c "SELECT count(*) FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND (table_schema, table_name) IN (('identity', 'users'), ('identity', 'sessions'), ('investment', 'portfolios'), ('investment', 'transaction_entries'), ('audit', 'events'));")"
+          required_tables="$(docker exec "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -At -c "SELECT count(*) FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND (table_schema, table_name) IN (('identity', 'users'), ('identity', 'sessions'), ('investment', 'portfolios'), ('investment', 'transaction_entries'), ('audit', 'events')); ")"
           test "$required_tables" -eq 5
           source_kind_column="$(docker exec "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -At -c "SELECT count(*) FROM information_schema.columns WHERE table_schema = 'investment' AND table_name = 'transaction_entries' AND column_name = 'source_kind' AND is_nullable = 'NO' AND column_default IS NOT NULL;")"
           test "$source_kind_column" -eq 1
@@ -223,4 +238,30 @@ jobs:
               END;
           END $$;
           ROLLBACK;
+          SQL
+      - name: Validate PostgreSQL runtime append-only privileges
+        run: |
+          set -euo pipefail
+          docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -v ON_ERROR_STOP=1 < infrastructure/postgres/runtime/openinvest_runtime_role.sql
+          docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -v ON_ERROR_STOP=1 <<'SQL'
+          SET ROLE openinvest_runtime;
+          DO $$
+          BEGIN
+              IF NOT has_table_privilege(current_user, 'investment.transaction_entries', 'SELECT')
+                 OR NOT has_table_privilege(current_user, 'investment.transaction_entries', 'INSERT') THEN
+                  RAISE EXCEPTION 'runtime role lacks required ledger append/read privileges';
+              END IF;
+              IF has_table_privilege(current_user, 'investment.transaction_entries', 'UPDATE')
+                 OR has_table_privilege(current_user, 'investment.transaction_entries', 'DELETE')
+                 OR has_table_privilege(current_user, 'investment.transaction_entries', 'TRUNCATE') THEN
+                  RAISE EXCEPTION 'runtime role has forbidden mutable ledger privileges';
+              END IF;
+              IF has_table_privilege(current_user, 'audit.events', 'UPDATE')
+                 OR has_table_privilege(current_user, 'audit.events', 'DELETE')
+                 OR has_table_privilege(current_user, 'audit.events', 'TRUNCATE') THEN
+                  RAISE EXCEPTION 'runtime role has forbidden mutable audit privileges';
+              END IF;
+          END
+          $$;
+          RESET ROLE;
           SQL
