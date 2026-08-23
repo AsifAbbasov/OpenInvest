@@ -8,11 +8,11 @@
 | Branch | `fix/stage-03-32-idempotency-recovery` |
 | Implementation PR | #67 |
 | Implementation merge | Pending |
-| Final remediation head before this record | `13dbf3ad06ed35bd643c6810e383713ea2463baa` |
-| Final implementation/documentation head | `b5be85b48ccb22c482368bb007d15a5197ca58a8` |
-| Exact-head CI | GitHub Actions #174 — SUCCESS, all six jobs passed |
+| Final remediation head before review record | `13dbf3ad06ed35bd643c6810e383713ea2463baa` |
+| Final exact head | `932143a409f89bec05c7ee066f340a590da4096d` |
+| Exact-head CI | GitHub Actions #177 — SUCCESS, all six jobs passed |
 | First independent review | `REQUEST CHANGES` on `57fcc25e949277a0e933f290998e41d0f7476b5c`: P2-09 CLOSED; P2-13 NOT CLOSED because browser retry slots were not principal-scoped |
-| Repeat independent review | Pending on exact head `b5be85b48ccb22c482368bb007d15a5197ca58a8` |
+| Repeat independent review | Pending on exact head `932143a409f89bec05c7ee066f340a590da4096d` |
 | Human implementation merge authorization | Pending |
 | Trigger | Repository-audit P2-09 and P2-13 |
 | Scope | Exact original-response idempotent replay, atomic replay-artifact persistence, import retry recovery across review-token expiry, principal-isolated short-lived browser retry identity, regression and migration coverage |
@@ -203,10 +203,12 @@ The Stage 3.32 test set includes:
 - full frontend typecheck, tests, and production build remain green.
 
 Code remediation head `13dbf3ad06ed35bd643c6810e383713ea2463baa` passed CI #173 with all six
-jobs successful. Final implementation/documentation head
-`b5be85b48ccb22c482368bb007d15a5197ca58a8` passed exact-head CI #174 with all six jobs successful:
-Go tests with PostgreSQL/migrations, PostgreSQL migration validation, frontend build/typecheck/tests,
-Python tests, OpenAPI contract validation, and Docker Compose configuration validation.
+jobs successful. The verified review-record head `37943b3c7770e285a86d60ded4de450b29c95b51`
+passed CI #175 with all six jobs successful. After an accidental documentation-only truncation was
+immediately restored to the exact prior blob, final exact head
+`932143a409f89bec05c7ee066f340a590da4096d` passed CI #177 with all six jobs successful: Go tests
+with PostgreSQL/migrations, PostgreSQL migration validation, frontend build/typecheck/tests, Python
+tests, OpenAPI contract validation, and Docker Compose configuration validation.
 
 ## Review history and implementation findings
 
@@ -228,10 +230,13 @@ than waived:
   successful verification run;
 - the first independent review marked P2-09 CLOSED but correctly kept P2-13 open because browser
   retry storage was not principal-scoped; the retry namespace is now stable-principal + operation/
-  portfolio scoped before SHA-256 derivation and has an A→B→A regression.
+  portfolio scoped before SHA-256 derivation and has an A→B→A regression;
+- an accidental documentation-only truncation after CI #175 was immediately restored from the
+  previously verified blob; no runtime code changed, and exact-head CI #177 reverified the restored
+  branch.
 
 The first independent verdict was `REQUEST CHANGES`; it is not treated as approval. A fresh repeat
-review must evaluate exact head `b5be85b48ccb22c482368bb007d15a5197ca58a8` before any human merge
+review must evaluate exact head `932143a409f89bec05c7ee066f340a590da4096d` before any human merge
 authorization.
 
 ## Privacy and retention boundary
