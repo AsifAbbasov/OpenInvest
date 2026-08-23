@@ -126,7 +126,7 @@ Before calling `OpenRuntime`, the fixture proves all three required facts indepe
 
 `OpenRuntime` must reject that credential despite the dangerous role not yet being SET-reachable. The original clean runtime regression and the prior masked-session/latent-SET regressions remain active.
 
-The code-plus-regression ADMIN OPTION remediation passed GitHub Actions CI #193 with all six jobs successful, including the full PostgreSQL-backed Go suite. Final immutable repeat-review head and final exact-head CI are recorded in PR metadata after this evidence update rather than self-referenced in this mutable stage document.
+The ADMIN OPTION remediation is verified on exact head `477e346e7569ab1281534655cf4bb0f8fa73024e` by GitHub Actions CI #194 with all six jobs successful, including the full PostgreSQL-backed Go suite.
 
 ## Atomicity and concurrency boundaries
 
@@ -158,8 +158,8 @@ A provider setup that cannot establish these grants has not satisfied P2-12. Pro
 - CI #190 and evidence-head CI #191 passed all six jobs.
 - Second independent review: P2-10 CLOSED, P2-11 CLOSED, P2-12 NOT CLOSED; REQUEST CHANGES because a role membership with ADMIN TRUE / INHERIT FALSE / SET FALSE could manufacture its own later escalation path.
 - Second post-review remediation rejects all ADMIN OPTION memberships held by the authenticated principal or any SET-reachable role and adds a PostgreSQL ADMIN-option attack regression.
-- Code-plus-regression CI #193 passed all six jobs.
-- Repeat independent review on the final immutable head remains required before merge.
+- Exact head `477e346e7569ab1281534655cf4bb0f8fa73024e` passed CI #194 with all six jobs successful.
+- Repeat independent review on that exact immutable head remains required before merge.
 
 ## Scope boundary and next gate
 
