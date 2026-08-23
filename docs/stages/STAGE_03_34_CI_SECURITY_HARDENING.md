@@ -5,6 +5,7 @@
 | Status | Implementation candidate; exact-head CI and independent review pending |
 | Canonical base | `develop` at `b4299bcdc28202c27388642dc7b426b159bb315c` |
 | Branch | `fix/stage-03-34-ci-security-hardening` |
+| Implementation PR | #74 |
 | Finding | P2-17 |
 | Scope | CI/security verification only |
 | Out of scope | P2-16 repository settings, all P3 findings, Stage 3.25 privacy work, runtime financial behavior, SQL/OpenAPI/product changes, unrelated dependency upgrades |
@@ -47,21 +48,21 @@ The implementation considered:
 
 1. GitHub-native Dependency Review for all dependency ecosystems;
 2. a third-party all-ecosystem GitHub Action scanner;
-3. ecosystem-native pinned tools combined into one repository security workflow;
-4. replacing the existing CI workflow with a monolithic security-heavy workflow.
+3. ecosystem-native pinned tools in a new dedicated security workflow;
+4. extending the already-canonical CI workflow with narrowly scoped security jobs while preserving its six existing jobs.
 
 ## 8. Chosen remediation
 
-A new `.github/workflows/security.yml` is added without replacing the existing six-job CI workflow.
+The existing `.github/workflows/ci.yml` remains the canonical workflow. Its six pre-existing jobs and check names are preserved, and four additional jobs plus scheduled/manual triggers are added to that same workflow.
 
-The `Security` workflow runs on pull requests to `develop`/`main`, on a nightly UTC schedule, and manually through `workflow_dispatch`. It uses repository-level `contents: read` only and bounded concurrency.
+The workflow continues to run on pull requests to `develop`/`main`, and now also runs nightly at `03:17 UTC` and manually through `workflow_dispatch`. Repository-level permissions remain `contents: read`, and the existing bounded concurrency policy remains active.
 
-It adds four stable check names:
+The four stable added check names are:
 
 - `Go vet` — `go vet ./...` using the Go version declared by `backend-go/go.mod`;
 - `Go race tests` — PostgreSQL-backed `go test -race ./...` with the same migration and least-privilege runtime-role setup as the existing Go suite;
 - `Go vulnerability scan` — official `govulncheck` pinned to `golang.org/x/vuln` v1.7.0 and run against `./...`;
-- `Dependency security scan` — pinned pnpm 11.8.0 `pnpm audit` against `frontend-next/pnpm-lock.yaml`, plus `pip-audit` 2.10.1 against the Python project lock with `--locked --strict`.
+- `Dependency security scan` — pinned pnpm 11.8.0 `pnpm audit` against `frontend-next/pnpm-lock.yaml`, plus `pip-audit` 2.10.1 against the Python locked project with `--locked --strict`.
 
 The Go dependency surface is covered by `govulncheck`, which evaluates the module graph and narrows blocking findings to vulnerabilities reachable from the source build configuration. The pnpm and Python dependency surfaces are audited directly from their locked dependency state.
 
@@ -69,9 +70,9 @@ The Go dependency surface is covered by `govulncheck`, which evaluates the modul
 
 The ecosystem-native approach avoids assuming that this private repository has GitHub Code Security / Advanced Security entitlement. It provides real vulnerability gates using public ecosystem services while keeping tool versions explicit and reviewable.
 
-The existing functional CI remains intact, reducing regression risk and preserving previously reviewed check behavior. Race testing duplicates the proven PostgreSQL/runtime-role setup rather than creating a weaker in-memory or owner-only test environment.
+Extending the existing CI workflow has an additional governance advantage: the workflow already exists on canonical `develop`, so a pull request changing it can produce exact-head evidence for the newly added jobs before merge. This avoids a bootstrap gap where a brand-new scheduled/security workflow might not provide usable pre-merge evidence on its first introduction.
 
-A separate security workflow gives final required-check names that can later be enforced by P2-16 branch protection without renaming the six existing CI jobs.
+The existing six functional CI jobs remain intact. Race testing duplicates the proven PostgreSQL/runtime-role setup rather than creating a weaker in-memory or owner-only test environment.
 
 ## 10. Rejected alternatives
 
@@ -79,9 +80,13 @@ A separate security workflow gives final required-check names that can later be 
 
 Rejected as an unconditional implementation because private-repository availability depends on GitHub security entitlement that has not been established. Stage 3.34 must fail closed rather than claim an unavailable product feature.
 
-### Replacing the existing CI workflow
+### Separate new security workflow as the final shape
 
-Rejected because P2-17 does not require redesigning already-green functional gates. Replacing them would create unnecessary review surface and could destabilize names needed by future branch protection.
+Initially attempted, then rejected during builder verification because its first-introduction PR did not provide the independent workflow run needed for exact-head pre-merge evidence. Keeping unverified checks until after merge would invert the reviewed workflow gate. The jobs were therefore moved into the already-canonical CI workflow and the temporary standalone workflow was removed.
+
+### Replacing or weakening the existing six CI jobs
+
+Rejected because P2-17 does not require redesigning already-green functional gates. The implementation extends the existing workflow and preserves those jobs.
 
 ### Running race tests without PostgreSQL
 
@@ -93,20 +98,23 @@ Rejected because tool drift between PRs would make failures harder to reproduce 
 
 ## 11. Trade-offs
 
-The new workflow increases GitHub Actions time and external vulnerability-database dependency. Nightly checks can fail without a source change when a new advisory is published; that behavior is intentional because the control is designed to detect newly disclosed risk.
+The extended workflow increases GitHub Actions time. Because the schedule is attached to the canonical CI workflow, nightly runs execute both the six functional jobs and the four security jobs. This costs more runner time than a security-only scheduled workflow, but it provides one mechanically testable workflow surface and stronger nightly regression evidence without a first-merge bootstrap exception.
+
+Nightly dependency/vulnerability checks can fail without a source change when a new advisory is published; that behavior is intentional.
 
 `govulncheck` focuses on reachable Go vulnerabilities and therefore is intentionally lower-noise than a module-only block on every advisory in unused code. Dependency audit results still require engineering judgment before any remediation upgrade; Stage 3.34 does not authorize unrelated dependency churn.
 
 ## 12. Regression / verification coverage
 
-The implementation itself is verified by GitHub Actions on the implementation PR. Required evidence before P2-17 can close:
+The implementation itself is verified by GitHub Actions on PR #74. Required evidence before P2-17 can close:
 
 - all six pre-existing CI jobs remain green;
 - `Go vet` is green;
 - `Go race tests` is green against PostgreSQL and the least-privilege runtime role;
 - `Go vulnerability scan` is green with pinned govulncheck v1.7.0;
 - `Dependency security scan` is green for pnpm and Python locked dependencies;
-- the workflow parses and the nightly schedule is registered by GitHub;
+- GitHub accepts the modified workflow and exposes the added check names on the PR;
+- the nightly schedule is present in the canonical workflow definition;
 - no job receives write-capable repository permissions.
 
 ## 13. Adversarial review requirements
@@ -119,13 +127,18 @@ Independent review must verify at minimum:
 - pnpm and Python audits use locked dependency state;
 - scheduled runs do not require secrets and cannot write repository contents;
 - all referenced GitHub Actions remain pinned to immutable commit SHAs;
-- check names are stable enough for later P2-16 branch protection.
+- added check names are stable enough for later P2-16 branch protection;
+- moving the jobs into existing `ci.yml` does not alter the established least-privilege/concurrency semantics.
 
 Any blocking review finding must be preserved here with its root cause, impact, remediation iteration, and new exact-head evidence.
 
 ## 14. Remediation iterations
 
-Initial implementation adds the four security jobs and nightly schedule. No reviewer-driven remediation has occurred yet. This section must be updated if the independent implementation review returns `REQUEST CHANGES`.
+**Builder verification iteration 1:** a standalone `.github/workflows/security.yml` was created with the four new jobs. After PR #74 opened, the existing CI ran but the newly introduced standalone workflow did not provide the required pre-merge PR evidence. Because P2-17 acceptance requires exact-head proof rather than trusting a workflow that would run only after becoming canonical, the standalone file was rejected as the final shape.
+
+**Builder verification iteration 2:** the four jobs and nightly/manual triggers were integrated into the already-canonical `.github/workflows/ci.yml`, preserving all six existing jobs. The temporary standalone security workflow was deleted. Exact-head CI on this shape is pending.
+
+No independent-review remediation has occurred yet. This section must be extended if the independent implementation review returns `REQUEST CHANGES`.
 
 ## 15. Residual risk / limitations
 
@@ -133,11 +146,11 @@ P2-17 closure does not itself protect `develop`; P2-16 remains OPEN until GitHub
 
 Vulnerability databases are external and can change independently of source control. A green scan proves the database/tool result at the run time, not the permanent absence of future advisories.
 
-The security workflow does not perform SAST, secret scanning, container-image scanning, or license-policy enforcement because those were not part of P2-17's approved audit scope.
+The workflow does not add SAST, secret scanning, container-image scanning, or license-policy enforcement because those were not part of P2-17's approved audit scope.
 
 ## 16. Operational / deployment consequences
 
-There is no application deployment or database migration consequence. Repository operations gain four additional PR checks and a nightly security run. After the implementation is merged, the exact final check names become inputs to the manual P2-16 GitHub Settings enforcement step.
+There is no application deployment or database migration consequence. Repository operations gain four additional PR checks and a nightly full CI/security run. After the implementation is merged, the exact final check names become inputs to the manual P2-16 GitHub Settings enforcement step.
 
 ## 17. Exact evidence
 
@@ -150,7 +163,11 @@ Planning gate:
 - explicit human squash-merge authorization;
 - planning squash merge: `b4299bcdc28202c27388642dc7b426b159bb315c`.
 
-Implementation exact head, PR number, workflow run numbers, reviewer verdict, and merge SHA are pending and must be added before closure.
+Implementation:
+
+- PR #74;
+- implementation branch `fix/stage-03-34-ci-security-hardening`;
+- final exact implementation head, workflow run, reviewer verdict, and merge SHA are pending and must be recorded before closure.
 
 ## 18. Canonical status
 
