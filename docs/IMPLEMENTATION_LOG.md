@@ -136,7 +136,7 @@ This log is the index of implementation stages. Every stage must document its pu
   metadata.
 - Resolved independent review finding that initially exposed full review rows through the append
   result.
-- Kept public import API, OpenAPI changes, upload UI, SQL import-session persistence, raw file
+- Kept public import endpoints, OpenAPI changes, upload UI, SQL import-session persistence, raw file
   persistence, workers, provider integrations, tax, mobile, AI, and Stage 3.9 work out of scope.
 
 ## 2026-07-08 — Stage 3.9 import API boundary planning started
@@ -165,8 +165,8 @@ This log is the index of implementation stages. Every stage must document its pu
   approval.
 - Added transient CSV import review and explicit append endpoints backed by the Stage 3.8
   review→append flow and Stage 3.7 atomic store append.
-- Resolved independent review findings for current-ledger revalidation, exact replay of original
-  imported transactions, complete append idempotency hashing, and append payload validator coverage.
+- Resolved independent review findings for current-ledger revalidation, deterministic idempotent
+  replay, full import append request hashing, and append-payload example validation.
 - Kept frontend upload UI, SQL import-session persistence, raw CSV persistence, workers,
   broker/provider integrations, tax, mobile, AI, and Stage 3.10 implementation out of scope.
 
