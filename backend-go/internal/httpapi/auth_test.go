@@ -142,19 +142,77 @@ func TestAuthRateLimitedResponseIncludesRetryAfter(t *testing.T) {
 	}
 }
 
-func TestAuthLogoutIsNotRateLimitedBecauseContractDoesNotExpose429(t *testing.T) {
-	authService := newHTTPAuthService(t, &httpAuthTestStore{})
+func TestAuthLogoutRateLimitBoundsRejectedAuditWrites(t *testing.T) {
+	store := &httpAuthTestStore{}
+	authService := newHTTPAuthService(t, store)
 	app := newApp(&API{
 		service:     verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}),
 		auth:        authService,
-		authLimiter: newAuthRateLimiter(0, time.Minute),
+		authLimiter: newBoundedAuthRateLimiter(1, 1, 8, time.Minute),
+		now:         func() time.Time { return time.Date(2026, 8, 23, 10, 0, 0, 0, time.UTC) },
 	})
 
-	logout := authRequest(t, app, http.MethodPost, "/api/v1/auth/logout", `{"allSessions":false}`, "missing-refresh", "missing-csrf")
-	defer logout.Body.Close()
+	first := authRequest(t, app, http.MethodPost, "/api/v1/auth/logout", `{"allSessions":false}`, "", "")
+	defer first.Body.Close()
+	if first.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("expected first invalid logout to return %d, got %d", http.StatusUnauthorized, first.StatusCode)
+	}
+	if len(store.authEvents) != 1 || store.authEvents[0].ActionCode != "AUTH_LOGOUT_REJECTED" {
+		t.Fatalf("expected one rejected logout audit event, got %+v", store.authEvents)
+	}
 
-	if logout.StatusCode == http.StatusTooManyRequests {
-		t.Fatalf("logout must not return 429 while the frozen OpenAPI logout contract omits RateLimited")
+	second := authRequest(t, app, http.MethodPost, "/api/v1/auth/logout", `{"allSessions":false}`, "", "")
+	defer second.Body.Close()
+	if second.StatusCode != http.StatusTooManyRequests {
+		t.Fatalf("expected repeated invalid logout to be rate limited with %d, got %d", http.StatusTooManyRequests, second.StatusCode)
+	}
+	if got := second.Header.Get("Retry-After"); got != authRateLimitRetryAfterSeconds {
+		t.Fatalf("expected Retry-After %q, got %q", authRateLimitRetryAfterSeconds, got)
+	}
+	if len(store.authEvents) != 1 {
+		t.Fatalf("rate-limited logout must not create another audit write, got %d events", len(store.authEvents))
+	}
+}
+
+func TestAuthRateLimiterBoundsUniqueKeyCardinalityAndReclaimsExpiredBuckets(t *testing.T) {
+	limiter := newBoundedAuthRateLimiter(2, 100, 2, time.Minute)
+	now := time.Date(2026, 8, 23, 10, 0, 0, 0, time.UTC)
+
+	if !limiter.allow("/login|192.0.2.1", now) || !limiter.allow("/login|192.0.2.2", now) {
+		t.Fatal("expected first two keys to be admitted")
+	}
+	if limiter.allow("/login|192.0.2.3", now) {
+		t.Fatal("expected new key to fail closed at active-key capacity")
+	}
+	if got := len(limiter.attempts); got != 2 {
+		t.Fatalf("expected key map bounded at 2, got %d", got)
+	}
+
+	afterExpiry := now.Add(2 * time.Minute)
+	if !limiter.allow("/login|192.0.2.3", afterExpiry) {
+		t.Fatal("expected expired buckets to be reclaimed")
+	}
+	if got := len(limiter.attempts); got != 1 {
+		t.Fatalf("expected one active key after reclamation, got %d", got)
+	}
+}
+
+func TestAuthRateLimiterAppliesGlobalBudgetAcrossUniqueKeys(t *testing.T) {
+	limiter := newBoundedAuthRateLimiter(20, 2, 16, time.Minute)
+	now := time.Date(2026, 8, 23, 10, 0, 0, 0, time.UTC)
+
+	if !limiter.allow("/logout|192.0.2.1", now) || !limiter.allow("/logout|192.0.2.2", now) {
+		t.Fatal("expected first two global attempts to be admitted")
+	}
+	if limiter.allow("/logout|192.0.2.3", now) {
+		t.Fatal("expected third unique-key attempt to fail at global budget")
+	}
+	if got := len(limiter.globalAttempts); got != 2 {
+		t.Fatalf("expected bounded global memory of 2, got %d", got)
+	}
+
+	if !limiter.allow("/logout|192.0.2.3", now.Add(2*time.Minute)) {
+		t.Fatal("expected global budget reset after window")
 	}
 }
 
@@ -286,9 +344,10 @@ func readCSRFToken(t *testing.T, response *http.Response) string {
 }
 
 type httpAuthTestStore struct {
-	user     auth.StoredUser
-	password string
-	sessions map[string]auth.SessionRecord
+	user       auth.StoredUser
+	password   string
+	sessions   map[string]auth.SessionRecord
+	authEvents []auth.AuthAuditRecord
 }
 
 func (store *httpAuthTestStore) RegisterUser(_ context.Context, record auth.RegistrationRecord) (auth.StoredUser, error) {
@@ -346,6 +405,7 @@ func (store *httpAuthTestStore) RevokeSession(_ context.Context, refreshTokenHas
 	return true, nil
 }
 
-func (store *httpAuthTestStore) RecordAuthEvent(context.Context, auth.AuthAuditRecord) error {
+func (store *httpAuthTestStore) RecordAuthEvent(_ context.Context, record auth.AuthAuditRecord) error {
+	store.authEvents = append(store.authEvents, record)
 	return nil
 }

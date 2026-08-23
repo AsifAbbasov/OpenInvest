@@ -162,6 +162,7 @@ paths:
         "200": { $ref: "./components/responses.yaml#/responses/Logout" }
         "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
         "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
 
   /api/v1/assets/search:
     parameters:
