@@ -1,4 +1,4 @@
-name: Dependency remediation builder
+name: Stage 3.34 lockfile promoter
 
 on:
   pull_request:
@@ -6,120 +6,37 @@ on:
       - develop
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  build-candidates:
-    name: Build dependency remediation candidates
+  promote-lockfile:
+    name: Promote verified Next.js lockfile
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
+      - name: Check out implementation branch
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-
-      - name: Set up Go 1.25.14
-        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: "1.25.14"
-          cache-dependency-path: backend-go/go.sum
-
-      - name: Generate Go security-patched candidate
-        shell: bash
-        working-directory: backend-go
-        run: |
-          set -euo pipefail
-          mkdir -p /tmp/remediation
-          go mod edit -go=1.25.14
-          go get github.com/jackc/pgx/v5@v5.9.2 golang.org/x/net@v0.55.0 golang.org/x/text@v0.39.0
-          go mod tidy
-          cp go.mod /tmp/remediation/go.mod
-          cp go.sum /tmp/remediation/go.sum
-          set +e
-          go test ./... > /tmp/remediation/go-test.txt 2>&1
-          echo "$?" > /tmp/remediation/go-test.exit
-          go vet ./... > /tmp/remediation/go-vet.txt 2>&1
-          echo "$?" > /tmp/remediation/go-vet.exit
-          go install golang.org/x/vuln/cmd/govulncheck@v1.7.0
-          "$(go env GOPATH)/bin/govulncheck" ./... > /tmp/remediation/go-govulncheck.txt 2>&1
-          echo "$?" > /tmp/remediation/go-govulncheck.exit
-          set -e
-
+          ref: fix/stage-03-34-ci-security-hardening-final
+          fetch-depth: 0
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22.22.2"
-
       - name: Enable pinned pnpm
         run: corepack enable && corepack prepare pnpm@11.8.0 --activate
-
-      - name: Generate Next.js 16.2.11 candidate
-        shell: bash
+      - name: Regenerate lockfile from reviewed package manifest
+        working-directory: frontend-next
+        run: pnpm install --lockfile-only --no-frozen-lockfile
+      - name: Verify byte-for-byte candidate digest
+        working-directory: frontend-next
+        run: echo "f492c1d06aff6bed6e21d839fc510e3402615fa624ef59215d9b12c444314336  pnpm-lock.yaml" | sha256sum -c -
+      - name: Commit only the verified lockfile
         run: |
           set -euo pipefail
-          mkdir -p /tmp/remediation/next-16.2.11
-          cp -R frontend-next/. /tmp/remediation/next-16.2.11/
-          cd /tmp/remediation/next-16.2.11
-          pnpm add next@16.2.11 --save-exact
-          pnpm install --frozen-lockfile
-          cp package.json /tmp/remediation/next-16.2.11-package.json
-          cp pnpm-lock.yaml /tmp/remediation/next-16.2.11-pnpm-lock.yaml
-          set +e
-          pnpm run typecheck > /tmp/remediation/next-16.2.11-typecheck.txt 2>&1
-          echo "$?" > /tmp/remediation/next-16.2.11-typecheck.exit
-          pnpm test > /tmp/remediation/next-16.2.11-test.txt 2>&1
-          echo "$?" > /tmp/remediation/next-16.2.11-test.exit
-          pnpm run build > /tmp/remediation/next-16.2.11-build.txt 2>&1
-          echo "$?" > /tmp/remediation/next-16.2.11-build.exit
-          pnpm audit --json > /tmp/remediation/next-16.2.11-audit.json 2>&1
-          echo "$?" > /tmp/remediation/next-16.2.11-audit.exit
-          set -e
-
-      - name: Generate Next.js 16.3.2 candidate
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p /tmp/remediation/next-16.3.2
-          cp -R frontend-next/. /tmp/remediation/next-16.3.2/
-          cd /tmp/remediation/next-16.3.2
-          pnpm add next@16.3.2 --save-exact
-          pnpm install --frozen-lockfile
-          cp package.json /tmp/remediation/next-16.3.2-package.json
-          cp pnpm-lock.yaml /tmp/remediation/next-16.3.2-pnpm-lock.yaml
-          set +e
-          pnpm run typecheck > /tmp/remediation/next-16.3.2-typecheck.txt 2>&1
-          echo "$?" > /tmp/remediation/next-16.3.2-typecheck.exit
-          pnpm test > /tmp/remediation/next-16.3.2-test.txt 2>&1
-          echo "$?" > /tmp/remediation/next-16.3.2-test.exit
-          pnpm run build > /tmp/remediation/next-16.3.2-build.txt 2>&1
-          echo "$?" > /tmp/remediation/next-16.3.2-build.exit
-          pnpm audit --json > /tmp/remediation/next-16.3.2-audit.json 2>&1
-          echo "$?" > /tmp/remediation/next-16.3.2-audit.exit
-          set -e
-
-      - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
-        with:
-          python-version: "3.12"
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@d0d8abe699bfb85fec6de9f7adb5ae17292296ff # v6
-        with:
-          version: "0.11.21"
-          enable-cache: true
-          cache-dependency-glob: microservice-python/uv.lock
-
-      - name: Audit Python locked dependencies
-        shell: bash
-        working-directory: microservice-python
-        run: |
-          set +e
-          uvx --from pip-audit==2.10.1 pip-audit --locked . --strict --progress-spinner off > /tmp/remediation/python-pip-audit.txt 2>&1
-          echo "$?" > /tmp/remediation/python-pip-audit.exit
-          set -e
-
-      - name: Upload candidate evidence
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: stage-03-34-dependency-remediation
-          path: /tmp/remediation
-          if-no-files-found: error
-          retention-days: 3
+          test -z "$(git status --porcelain --untracked-files=no | grep -v '^ M frontend-next/pnpm-lock.yaml$' || true)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend-next/pnpm-lock.yaml
+          git diff --cached --quiet && exit 0
+          git commit -m "security: refresh Next.js lockfile"
+          git push origin HEAD:fix/stage-03-34-ci-security-hardening-final
