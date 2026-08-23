@@ -13,10 +13,8 @@ import (
 )
 
 // appendImportReplaySafe preserves the normal signed-review validation path for fresh writes.
-// Only when that time-sensitive proof no longer validates does it attempt a read-only exact replay
-// lookup. The lookup is bound to principal, method, canonical path, idempotency key, and canonical
-// request hash, so an already committed import can still return its original response after the
-// short-lived review token expires without weakening authorization for a new financial write.
+// Only an otherwise-valid token whose lifetime has expired may enter read-only replay recovery.
+// Signature, context, parser semantics, row identities, and decisions remain mandatory for recovery.
 func (api *API) appendImportReplaySafe(c fiber.Ctx) error {
 	meta := requestMeta(c)
 	subjectID, err := api.subjectID(c)
@@ -67,30 +65,40 @@ func (api *API) appendImportReplaySafe(c fiber.Ctx) error {
 		decisions,
 	)
 	if verifyErr != nil {
-		// A failed proof must never authorize a new write. It may only recover a response for a
-		// command that is already durably completed and whose canonical request hash matches.
-		if appendRequests, buildErr := importer.BuildAppendRequests(preflightReview, decisions); buildErr == nil && len(appendRequests) > 0 {
-			artifact, found, lookupErr := api.service.LookupImportedTransactionsReplay(
-				c.Context(),
-				meta.toApp(),
-				subjectID,
-				c.Get("Idempotency-Key"),
-				c.Path(),
-				verticalslice.AppendImportBatchRequest{
-					PortfolioID:        portfolioID,
-					Transactions:       appendRequests,
-					SourceKind:         preflightReview.SourceKind,
-					SourceAccountLabel: preflightReview.SourceAccountLabel,
-					SourceFileHash:     preflightReview.FileHash,
-					Decisions:          stage0332ImportDecisions(decisions),
-				},
-			)
-			if lookupErr == nil && found {
-				return writeCommandReplayArtifact(c, artifact)
+		// A failed proof must never authorize a new write. Recovery is allowed only when the token
+		// is authentic, context/semantics-valid, and failed solely because its lifetime elapsed.
+		if api.expiredImportReviewTokenCanRecover(
+			request.ReviewToken,
+			subjectID,
+			portfolioID,
+			importer.SourceKindUserUploadedFile,
+			request.SourceAccountLabel,
+			fileHash,
+			preflightReview,
+			decisions,
+		) {
+			if appendRequests, buildErr := importer.BuildAppendRequests(preflightReview, decisions); buildErr == nil && len(appendRequests) > 0 {
+				artifact, found, lookupErr := api.service.LookupImportedTransactionsReplay(
+					c.Context(),
+					meta.toApp(),
+					subjectID,
+					c.Get("Idempotency-Key"),
+					c.Path(),
+					verticalslice.AppendImportBatchRequest{
+						PortfolioID:        portfolioID,
+						Transactions:       appendRequests,
+						SourceKind:         preflightReview.SourceKind,
+						SourceAccountLabel: preflightReview.SourceAccountLabel,
+						SourceFileHash:     preflightReview.FileHash,
+						Decisions:          stage0332ImportDecisions(decisions),
+					},
+				)
+				if lookupErr == nil && found {
+					return writeCommandReplayArtifact(c, artifact)
+				}
 			}
 		}
 		// Preserve the original proof failure unless an exact completed response was recovered.
-		// A replay lookup is recovery-only and must not change validation/error ordering.
 		return writeMappedErrorWithMeta(c, meta, verifyErr)
 	}
 
