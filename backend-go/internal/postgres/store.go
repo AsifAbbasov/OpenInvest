@@ -277,6 +277,77 @@ func (s *Store) ListTransactions(ctx context.Context, subjectID string, portfoli
 	return transactions, rows.Err()
 }
 
+func (s *Store) ListImportReviewTransactions(ctx context.Context, subjectID string, portfolioID string, filter verticalslice.ImportReviewHistoryFilter) ([]verticalslice.Transaction, error) {
+	if _, err := s.GetPortfolio(ctx, subjectID, portfolioID); err != nil {
+		return nil, err
+	}
+
+	args := []any{portfolioID}
+	relevant := []string{}
+
+	if len(filter.TradeDates) > 0 {
+		placeholders := make([]string, 0, len(filter.TradeDates))
+		for _, value := range filter.TradeDates {
+			args = append(args, value)
+			placeholders = append(placeholders, "$"+strconv.Itoa(len(args))+"::date")
+		}
+		relevant = append(relevant, "te.trade_date IN ("+strings.Join(placeholders, ", ")+")")
+	}
+
+	identityMatches := []string{}
+	if len(filter.BrokerOperationKeys) > 0 {
+		placeholders := make([]string, 0, len(filter.BrokerOperationKeys))
+		for _, value := range filter.BrokerOperationKeys {
+			args = append(args, value)
+			placeholders = append(placeholders, "$"+strconv.Itoa(len(args)))
+		}
+		identityMatches = append(identityMatches, "te.source_broker_operation_key IN ("+strings.Join(placeholders, ", ")+")")
+	}
+	if len(filter.SourceFingerprints) > 0 {
+		placeholders := make([]string, 0, len(filter.SourceFingerprints))
+		for _, value := range filter.SourceFingerprints {
+			args = append(args, value)
+			placeholders = append(placeholders, "$"+strconv.Itoa(len(args)))
+		}
+		identityMatches = append(identityMatches, "te.source_fingerprint IN ("+strings.Join(placeholders, ", ")+")")
+	}
+	if len(identityMatches) > 0 {
+		args = append(args, verticalslice.ImportIdentityVersion)
+		versionPlaceholder := "$" + strconv.Itoa(len(args))
+		args = append(args, strings.TrimSpace(filter.SourceAccountLabel))
+		labelPlaceholder := "$" + strconv.Itoa(len(args))
+		relevant = append(relevant,
+			"(te.source_kind = 'USER_UPLOADED_FILE'"+
+				" AND te.source_identity_version = "+versionPlaceholder+
+				" AND COALESCE(te.source_account_label, '') = "+labelPlaceholder+
+				" AND ("+strings.Join(identityMatches, " OR ")+"))",
+		)
+	}
+	if len(relevant) == 0 {
+		return []verticalslice.Transaction{}, nil
+	}
+
+	rows, err := s.db.QueryContext(ctx, transactionSelectSQL()+`
+		WHERE te.portfolio_id = $1
+			AND (`+strings.Join(relevant, " OR ")+`)
+		ORDER BY te.trade_date DESC, te.entry_id DESC
+	`, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	transactions := []verticalslice.Transaction{}
+	for rows.Next() {
+		transaction, err := scanTransaction(rows)
+		if err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, transaction)
+	}
+	return transactions, rows.Err()
+}
+
 func (s *Store) AppendTransaction(ctx context.Context, command verticalslice.CommandContext, request verticalslice.AppendTransactionRequest) (verticalslice.Transaction, error) {
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {

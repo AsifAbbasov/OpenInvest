@@ -38,20 +38,22 @@ func TestImportReviewTokenRejectsContextTampering(t *testing.T) {
 	if err != nil {
 		t.Fatalf("normalize import review token secret: %v", err)
 	}
-	api := &API{importReviewSecret: secret}
+	now := time.Date(2026, 8, 23, 8, 0, 0, 0, time.UTC)
+	api := &API{importReviewSecret: secret, now: func() time.Time { return now }}
 	rowHash := strings.Repeat("a", 64)
 	review := importer.Review{
 		PortfolioID:        "portfolio-a",
 		SourceKind:         importer.SourceKindUserUploadedFile,
 		SourceAccountLabel: "Broker A",
 		FileHash:           strings.Repeat("b", 64),
-		Rows:               []importer.RowReview{{RowNumber: 2, RowHash: rowHash}},
+		Rows:               []importer.RowReview{{RowNumber: 2, RowHash: rowHash, Status: importer.ReviewStatusAppendable}},
 	}
-	token, err := api.signImportReviewToken("subject-a", review)
+	review.Summary = importer.Summary{TotalRows: 1, AppendableRows: 1}
+	token, err := api.signImportReviewToken("subject-a", review, review)
 	if err != nil {
 		t.Fatalf("sign import review token: %v", err)
 	}
-	decision := []importer.DecisionIdentity{{RowNumber: 2, RowHash: rowHash}}
+	decision := []importer.Decision{{RowNumber: 2, RowHash: rowHash, Action: importer.DecisionApprove}}
 
 	for _, testCase := range []struct {
 		name      string
@@ -59,23 +61,23 @@ func TestImportReviewTokenRejectsContextTampering(t *testing.T) {
 		portfolio string
 		label     string
 		fileHash  string
-		decisions []importer.DecisionIdentity
+		decisions []importer.Decision
 	}{
 		{name: "subject", subjectID: "subject-b", portfolio: "portfolio-a", label: "Broker A", fileHash: review.FileHash, decisions: decision},
 		{name: "portfolio", subjectID: "subject-a", portfolio: "portfolio-b", label: "Broker A", fileHash: review.FileHash, decisions: decision},
 		{name: "source label", subjectID: "subject-a", portfolio: "portfolio-a", label: "Broker B", fileHash: review.FileHash, decisions: decision},
 		{name: "file hash", subjectID: "subject-a", portfolio: "portfolio-a", label: "Broker A", fileHash: strings.Repeat("c", 64), decisions: decision},
-		{name: "row identity", subjectID: "subject-a", portfolio: "portfolio-a", label: "Broker A", fileHash: review.FileHash, decisions: []importer.DecisionIdentity{{RowNumber: 2, RowHash: strings.Repeat("d", 64)}}},
+		{name: "row identity", subjectID: "subject-a", portfolio: "portfolio-a", label: "Broker A", fileHash: review.FileHash, decisions: []importer.Decision{{RowNumber: 2, RowHash: strings.Repeat("d", 64), Action: importer.DecisionApprove}}},
 	} {
 		t.Run(testCase.name, func(t *testing.T) {
-			err := api.verifyImportReviewToken(token, testCase.subjectID, testCase.portfolio, importer.SourceKindUserUploadedFile, testCase.label, testCase.fileHash, testCase.decisions)
+			err := api.verifyImportReviewToken(token, testCase.subjectID, testCase.portfolio, importer.SourceKindUserUploadedFile, testCase.label, testCase.fileHash, review, testCase.decisions)
 			if !errors.Is(err, importer.ErrUnsafeAppend) {
 				t.Fatalf("expected unsafe append error, got %v", err)
 			}
 		})
 	}
 
-	err = api.verifyImportReviewToken(token+"x", "subject-a", "portfolio-a", importer.SourceKindUserUploadedFile, "Broker A", review.FileHash, decision)
+	err = api.verifyImportReviewToken(token+"x", "subject-a", "portfolio-a", importer.SourceKindUserUploadedFile, "Broker A", review.FileHash, review, decision)
 	if !errors.Is(err, importer.ErrUnsafeAppend) {
 		t.Fatalf("expected unsafe append error for a tampered signature, got %v", err)
 	}
@@ -646,26 +648,31 @@ func TestImportAppendRevalidatesAgainstCurrentLedger(t *testing.T) {
 	unitPrice := verticalslice.Money{Amount: decimal.Must("100.00000000"), Currency: verticalslice.RUB}
 	ticker := "SBER"
 	settlementDate := "2026-01-13"
-	store := &importAPITestStore{
-		appendImportedError: verticalslice.ErrInvalidInput,
-		existingTransactions: []verticalslice.Transaction{{
-			ID:              "00000000-0000-4000-8000-000000000201",
-			PortfolioID:     "00000000-0000-4000-8000-000000000002",
-			TransactionType: "BUY",
-			Status:          "ACTIVE",
-			Ticker:          &ticker,
-			Quantity:        &quantity,
-			UnitPrice:       &unitPrice,
-			GrossAmount:     verticalslice.Money{Amount: decimal.Must("200.00000000"), Currency: verticalslice.RUB},
-			Commission:      verticalslice.Money{Amount: decimal.Must("1.00000000"), Currency: verticalslice.RUB},
-			Tax:             verticalslice.ZeroMoney(),
-			TradeDate:       "2026-01-10",
-			SettlementDate:  &settlementDate,
-			Revision:        1,
-		}},
-	}
+
+	// Review first against a clean ledger so the row is legitimately APPENDABLE
+	// in the signed review. Then simulate a concurrent writer creating the same
+	// financial identity before append reaches the locked store.
+	store := &importAPITestStore{}
 	app := NewDevelopment(verticalslice.NewService(store, fixedHTTPClock{}))
 	body := validImportAppendBody(t, app, importCSV)
+
+	store.appendImportedError = verticalslice.ErrInvalidInput
+	store.existingTransactions = []verticalslice.Transaction{{
+		ID:              "00000000-0000-4000-8000-000000000201",
+		PortfolioID:     "00000000-0000-4000-8000-000000000002",
+		TransactionType: "BUY",
+		Status:          "ACTIVE",
+		Ticker:          &ticker,
+		Quantity:        &quantity,
+		UnitPrice:       &unitPrice,
+		GrossAmount:     verticalslice.Money{Amount: decimal.Must("200.00000000"), Currency: verticalslice.RUB},
+		Commission:      verticalslice.Money{Amount: decimal.Must("1.00000000"), Currency: verticalslice.RUB},
+		Tax:             verticalslice.ZeroMoney(),
+		TradeDate:       "2026-01-10",
+		SettlementDate:  &settlementDate,
+		Revision:        1,
+	}}
+
 	request := httptest.NewRequest(http.MethodPost, "/api/v1/portfolios/00000000-0000-4000-8000-000000000002/imports/append", bytes.NewReader(body))
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Idempotency-Key", "import-api-key-0002")
@@ -689,6 +696,7 @@ func TestImportAppendRejectsPayloadChangedAfterReview(t *testing.T) {
 	app := NewDevelopment(verticalslice.NewService(store, fixedHTTPClock{}))
 	review := mustReviewImportCSV(t, app, importCSV)
 	listCallsAfterReview := store.listTransactionsCalls
+	reviewHistoryCallsAfterReview := store.listImportReviewCalls
 	changedCSV := "transaction_type,ticker,quantity,unit_price,gross_amount,commission,tax,trade_date,settlement_date,currency,broker_operation_id,note\n" +
 		"BUY,SBER,2.00000000,999.00000000,1998.00000000,1.00000000,0.00000000,2026-01-10,2026-01-13,RUB,broker-row-1,Changed buy\n"
 	body := []byte(`{"sourceAccountLabel":"Manual CSV","sourceFileHash":"` + review.SourceFileHash + `","reviewToken":"` + review.ReviewToken + `","csvPayload":` + quote(changedCSV) + `,"decisions":[{"rowNumber":2,"rowHash":"` + review.Rows[0].RowHash + `","action":"APPROVE"}]}`)
@@ -705,8 +713,15 @@ func TestImportAppendRejectsPayloadChangedAfterReview(t *testing.T) {
 	if response.StatusCode != http.StatusBadRequest {
 		t.Fatalf("expected changed payload to be rejected with status %d, got %d", http.StatusBadRequest, response.StatusCode)
 	}
-	if store.listTransactionsCalls != listCallsAfterReview || store.appendImportedCalls != 0 {
-		t.Fatalf("expected changed payload to be rejected before store work, got list=%d append=%d", store.listTransactionsCalls, store.appendImportedCalls)
+	if store.listTransactionsCalls != listCallsAfterReview ||
+		store.listImportReviewCalls != reviewHistoryCallsAfterReview ||
+		store.appendImportedCalls != 0 {
+		t.Fatalf(
+			"expected changed payload to be rejected before store work, got list=%d reviewHistory=%d append=%d",
+			store.listTransactionsCalls,
+			store.listImportReviewCalls,
+			store.appendImportedCalls,
+		)
 	}
 }
 
@@ -802,6 +817,8 @@ type importAPITestStore struct {
 	existingTransactions  []verticalslice.Transaction
 	portfolios            []verticalslice.Portfolio
 	listTransactionsCalls int
+	listImportReviewCalls int
+	importReviewFilter    verticalslice.ImportReviewHistoryFilter
 	appendImportedCalls   int
 	appendImportedError   error
 }
@@ -889,6 +906,12 @@ func (store *importAPITestStore) ListTransactions(_ context.Context, _ string, _
 		items = items[:filter.Limit]
 	}
 	return items, nil
+}
+
+func (store *importAPITestStore) ListImportReviewTransactions(_ context.Context, _ string, _ string, filter verticalslice.ImportReviewHistoryFilter) ([]verticalslice.Transaction, error) {
+	store.listImportReviewCalls++
+	store.importReviewFilter = filter
+	return store.existingTransactions, nil
 }
 
 func (store *importAPITestStore) AppendTransaction(context.Context, verticalslice.CommandContext, verticalslice.AppendTransactionRequest) (verticalslice.Transaction, error) {

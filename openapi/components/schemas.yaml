@@ -847,7 +847,11 @@ ImportAppendRequest:
       type: string
       minLength: 32
       maxLength: 16384
-      description: Backend-signed opaque token returned by review and bound to subject, portfolio, source label, file hash, and row identities.
+      description: >-
+        Short-lived backend-signed opaque token bound to subject, portfolio, source label, file hash,
+        parser version, every row identity, the normalized parser-review semantic digest, the final
+        review semantic digest, and the set of rows that were APPENDABLE at review time. Append reparses
+        the same payload and rejects expired tokens or normalized semantic drift before store execution.
     csvPayload:
       type: string
       minLength: 1

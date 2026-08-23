@@ -159,7 +159,7 @@ func TestStage329DuplicateCSVHeaderReturns400(t *testing.T) {
 	if response.StatusCode != http.StatusBadRequest {
 		t.Fatalf("expected 400 for duplicate CSV header, got %d", response.StatusCode)
 	}
-	if store.listTransactionsCalls != 1 {
-		t.Fatalf("expected one existing-transaction read before CSV validation, got %d", store.listTransactionsCalls)
+	if store.listTransactionsCalls != 0 || store.listImportReviewCalls != 0 {
+		t.Fatalf("expected malformed import schema to fail before any ledger-history lookup, got list=%d reviewHistory=%d", store.listTransactionsCalls, store.listImportReviewCalls)
 	}
 }

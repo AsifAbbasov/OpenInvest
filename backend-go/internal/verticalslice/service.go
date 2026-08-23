@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -153,6 +154,76 @@ func (s *Service) ListTransactions(ctx context.Context, subjectID string, portfo
 		}
 	}
 	return s.store.ListTransactions(ctx, subjectID, portfolioID, filter)
+}
+
+func (s *Service) ListImportReviewTransactions(ctx context.Context, subjectID string, portfolioID string, filter ImportReviewHistoryFilter) ([]Transaction, error) {
+	filter.SourceAccountLabel = strings.TrimSpace(filter.SourceAccountLabel)
+	if utf8.RuneCountInString(filter.SourceAccountLabel) > 120 {
+		return nil, fmt.Errorf("%w: sourceAccountLabel must be at most 120 characters", ErrInvalidInput)
+	}
+	var err error
+	filter.TradeDates, err = normalizeImportReviewDates(filter.TradeDates)
+	if err != nil {
+		return nil, err
+	}
+	filter.BrokerOperationKeys, err = normalizeImportReviewHashes(filter.BrokerOperationKeys, "brokerOperationKeys")
+	if err != nil {
+		return nil, err
+	}
+	filter.SourceFingerprints, err = normalizeImportReviewHashes(filter.SourceFingerprints, "sourceFingerprints")
+	if err != nil {
+		return nil, err
+	}
+	if len(filter.TradeDates) == 0 && len(filter.BrokerOperationKeys) == 0 && len(filter.SourceFingerprints) == 0 {
+		return []Transaction{}, nil
+	}
+	return s.store.ListImportReviewTransactions(ctx, subjectID, portfolioID, filter)
+}
+
+func normalizeImportReviewDates(values []string) ([]string, error) {
+	if len(values) > 100 {
+		return nil, fmt.Errorf("%w: import review date filter exceeds 100 keys", ErrInvalidInput)
+	}
+	seen := map[string]struct{}{}
+	result := make([]string, 0, len(values))
+	for _, raw := range values {
+		value := strings.TrimSpace(raw)
+		if _, err := time.Parse("2006-01-02", value); err != nil {
+			return nil, fmt.Errorf("%w: import review trade date is invalid", ErrInvalidInput)
+		}
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		result = append(result, value)
+	}
+	sort.Strings(result)
+	return result, nil
+}
+
+func normalizeImportReviewHashes(values []string, field string) ([]string, error) {
+	if len(values) > 100 {
+		return nil, fmt.Errorf("%w: import review %s exceeds 100 keys", ErrInvalidInput, field)
+	}
+	seen := map[string]struct{}{}
+	result := make([]string, 0, len(values))
+	for _, raw := range values {
+		value := strings.TrimSpace(raw)
+		if len(value) != sha256.Size*2 || value != strings.ToLower(value) {
+			return nil, fmt.Errorf("%w: import review %s contains invalid SHA-256 key", ErrInvalidInput, field)
+		}
+		decoded, err := hex.DecodeString(value)
+		if err != nil || len(decoded) != sha256.Size {
+			return nil, fmt.Errorf("%w: import review %s contains invalid SHA-256 key", ErrInvalidInput, field)
+		}
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		result = append(result, value)
+	}
+	sort.Strings(result)
+	return result, nil
 }
 
 func (s *Service) AppendTransaction(ctx context.Context, requestContext RequestContext, subjectID string, idempotencyKey string, requestPath string, request AppendTransactionRequest) (Transaction, error) {
