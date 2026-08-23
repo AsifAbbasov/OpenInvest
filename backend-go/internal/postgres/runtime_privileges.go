@@ -22,7 +22,8 @@ var protectedAppendOnlyRuntimeTables = []struct {
 var runtimeSchemas = []string{"identity", "investment", "analytics", "audit"}
 
 // OpenRuntime opens the application store and verifies that the authenticated database LOGIN and
-// every role it can enter with SET ROLE are incapable of mutating the protected append-only tables.
+// every role it can enter with SET ROLE are incapable of mutating the protected append-only tables
+// or administering PostgreSQL role memberships that could manufacture a later escalation path.
 // Migration/schema-owner connections must use Open instead.
 func OpenRuntime(databaseURL string) (*Store, error) {
 	store, err := Open(databaseURL)
@@ -78,6 +79,9 @@ func (s *Store) ValidateRuntimePrivileges(ctx context.Context) error {
 	if err := validateRuntimeRoleCapabilities(ctx, conn, sessionUser, true, "authenticated principal"); err != nil {
 		return err
 	}
+	if err := validateNoRoleAdministration(ctx, conn, sessionUser, "authenticated principal"); err != nil {
+		return err
+	}
 
 	setReachableRoles, err := listSetReachableRoles(ctx, conn, sessionUser)
 	if err != nil {
@@ -88,6 +92,9 @@ func (s *Store) ValidateRuntimePrivileges(ctx context.Context) error {
 			return err
 		}
 		if err := validateRuntimeRoleCapabilities(ctx, conn, roleName, false, "SET-reachable role"); err != nil {
+			return err
+		}
+		if err := validateNoRoleAdministration(ctx, conn, roleName, "SET-reachable role"); err != nil {
 			return err
 		}
 	}
@@ -220,6 +227,44 @@ func validateRuntimeRoleCapabilities(
 		}
 	}
 	return nil
+}
+
+// validateNoRoleAdministration rejects any ADMIN OPTION reachable from a runtime identity.
+// The application has no legitimate need to administer PostgreSQL role membership. Keeping this
+// capability out of both the authenticated LOGIN and every role it can SET ROLE into prevents a
+// credential from manufacturing a new SET/INHERIT path after startup validation.
+func validateNoRoleAdministration(
+	ctx context.Context,
+	conn *sql.Conn,
+	roleName string,
+	roleKind string,
+) error {
+	var administrableRole string
+	err := conn.QueryRowContext(ctx, `
+		SELECT target_role.rolname::text
+		FROM pg_roles target_role
+		WHERE target_role.rolname <> $1::name
+			AND pg_has_role($1::name, target_role.oid, 'MEMBER WITH ADMIN OPTION')
+		ORDER BY target_role.rolname
+		LIMIT 1
+	`, roleName).Scan(&administrableRole)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		}
+		return fmt.Errorf("%w: inspect %s %s role administration capability: %v", ErrUnsafeRuntimeDatabaseRole, roleKind, roleName, err)
+	}
+	administrableRole = strings.TrimSpace(administrableRole)
+	if administrableRole == "" {
+		return fmt.Errorf("%w: %s %s has an unresolved PostgreSQL ADMIN OPTION membership", ErrUnsafeRuntimeDatabaseRole, roleKind, roleName)
+	}
+	return fmt.Errorf(
+		"%w: %s %s can administer PostgreSQL role membership for %s",
+		ErrUnsafeRuntimeDatabaseRole,
+		roleKind,
+		roleName,
+		administrableRole,
+	)
 }
 
 func listSetReachableRoles(ctx context.Context, conn *sql.Conn, sessionUser string) ([]string, error) {
