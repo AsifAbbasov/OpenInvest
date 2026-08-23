@@ -36,10 +36,8 @@ func (s *Store) CreatePortfolioWithReplay(
 	}
 	defer rollback(tx)
 
-	if err := ensureSubject(ctx, tx, command.SubjectID); err != nil {
-		return verticalslice.Portfolio{}, verticalslice.CommandReplayArtifact{}, err
-	}
-
+	// Resolve an already completed command before consulting or mutating current business state.
+	// Exact replay must remain observable even if the resource has changed since the first success.
 	reservation, err := reserveReplayCommand(ctx, tx, command, "POST")
 	if err != nil {
 		return verticalslice.Portfolio{}, verticalslice.CommandReplayArtifact{}, err
@@ -49,6 +47,10 @@ func (s *Store) CreatePortfolioWithReplay(
 			return verticalslice.Portfolio{}, verticalslice.CommandReplayArtifact{}, err
 		}
 		return verticalslice.Portfolio{}, reservation.Artifact, nil
+	}
+
+	if err := ensureSubject(ctx, tx, command.SubjectID); err != nil {
+		return verticalslice.Portfolio{}, verticalslice.CommandReplayArtifact{}, err
 	}
 
 	_, err = tx.ExecContext(ctx, `
@@ -89,10 +91,8 @@ func (s *Store) AppendTransactionWithReplay(
 	}
 	defer rollback(tx)
 
-	if err := lockPortfolioTx(ctx, tx, command.SubjectID, request.PortfolioID); err != nil {
-		return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
-	}
-
+	// Resolve exact replay before locking or validating mutable portfolio state. For a brand-new
+	// command the reservation is part of this same transaction and rolls back with any later error.
 	reservation, err := reserveReplayCommand(ctx, tx, command, "POST")
 	if err != nil {
 		return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
@@ -102,6 +102,10 @@ func (s *Store) AppendTransactionWithReplay(
 			return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
 		}
 		return verticalslice.Transaction{}, reservation.Artifact, nil
+	}
+
+	if err := lockPortfolioTx(ctx, tx, command.SubjectID, request.PortfolioID); err != nil {
+		return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
 	}
 
 	if _, err := verticalslice.GrossFor(request); err != nil {
@@ -153,10 +157,8 @@ func (s *Store) AppendImportedTransactionsWithReplay(
 	}
 	defer rollback(tx)
 
-	if err := lockPortfolioTx(ctx, tx, command.SubjectID, request.PortfolioID); err != nil {
-		return nil, verticalslice.CommandReplayArtifact{}, err
-	}
-
+	// A completed import replay is independent of current portfolio state. New commands continue
+	// to acquire the portfolio lock before any financial duplicate/conflict checks or ledger writes.
 	reservation, err := reserveReplayCommand(ctx, tx, command, "POST")
 	if err != nil {
 		return nil, verticalslice.CommandReplayArtifact{}, err
@@ -166,6 +168,10 @@ func (s *Store) AppendImportedTransactionsWithReplay(
 			return nil, verticalslice.CommandReplayArtifact{}, err
 		}
 		return nil, reservation.Artifact, nil
+	}
+
+	if err := lockPortfolioTx(ctx, tx, command.SubjectID, request.PortfolioID); err != nil {
+		return nil, verticalslice.CommandReplayArtifact{}, err
 	}
 
 	for _, transactionRequest := range request.Transactions {
