@@ -132,23 +132,27 @@ Required `develop` enforcement:
 6. require linear history where supported;
 7. leave squash merge enabled and disable merge-commit and rebase-merge repository methods so the
    repository policy is squash-only;
-8. keep administrator/bypass behavior no broader than necessary and document any unavoidable owner
-   bypass explicitly rather than claiming it is impossible;
-9. verify the resulting effective protection/ruleset state through the GitHub API after the settings
-   change.
+8. disable the normal administrator/owner bypass for the required PR/check/protection policy and
+   enforce the reviewed protection rules against administrators/owners whenever the selected GitHub
+   protection mechanism supports that control;
+9. verify through the GitHub API that the effective protection/ruleset state applies to the
+   administrator/owner path as well as ordinary contributors;
+10. if the repository/account configuration cannot mechanically prevent administrator/owner bypass,
+    P2-16 remains OPEN; disclosure of that bypass is not sufficient for closure.
 
 The connected GitHub tool available to this workflow can inspect repository and branch protection
 state but does not expose a mutation for branch protection/rulesets or repository merge-method
 settings. Therefore Track B contains one unavoidable human GitHub Settings action. The exact values
 and click path must be provided only after Track A establishes the final required check names. The
 assistant must then re-read the GitHub API state and refuse to close P2-16 if the effective settings do
-not match the reviewed policy.
+not match the reviewed policy, including the administrator/owner enforcement path.
 
-If the current GitHub plan does not expose branch protection/rulesets for this private repository,
-the human settings step must stop rather than weaken the acceptance criteria. P2-16 remains OPEN
-until the repository has a supported mechanical protection mechanism. Purchasing a GitHub plan or
-changing repository visibility is an account/product decision outside Stage 3.34 and requires a
-separate explicit user choice.
+If the current GitHub plan does not expose branch protection/rulesets for this private repository, or
+if the available protection mechanism cannot enforce the reviewed policy against the repository
+administrator/owner path, the human settings step must stop rather than weaken the acceptance
+criteria. P2-16 remains OPEN until the repository has a supported mechanical protection mechanism
+that also covers administrators/owners. Purchasing a GitHub plan or changing repository visibility is
+an account/product decision outside Stage 3.34 and requires a separate explicit user choice.
 
 ## Execution order
 
@@ -159,8 +163,10 @@ separate explicit user choice.
 5. obtain explicit human authorization and squash-merge the CI implementation;
 6. apply the one human GitHub Settings change for Track B using the exact final check names, if the
    repository's GitHub plan supports the required protection controls;
-7. verify branch protection/repository merge settings read-only through GitHub API;
-8. if any protection requirement or required GitHub feature is missing, keep P2-16 OPEN;
+7. verify branch protection/repository merge settings read-only through GitHub API, including that
+   the required policy applies to the administrator/owner path;
+8. if any protection requirement, required GitHub feature, or administrator/owner enforcement is
+   missing, keep P2-16 OPEN;
 9. record final independent evidence and closure governance;
 10. only after canonical closure may the project claim P2=0.
 
@@ -184,10 +190,14 @@ separate explicit user choice.
 - conversation resolution is enforced;
 - force-push and branch deletion are blocked;
 - repository merge methods enforce squash-only policy;
-- any unavoidable administrator/owner bypass is accurately disclosed and judged acceptable by the
-  independent reviewer rather than hidden;
-- the protection mechanism is actually supported and active for this private repository; a plan
-  limitation cannot be documented away as if enforcement existed.
+- the protection/ruleset configuration mechanically applies the required PR/check/protection policy
+  to administrators/owners rather than leaving the normal administrator bypass available;
+- API verification confirms the effective administrator/owner path is covered by the reviewed
+  enforcement policy;
+- the protection mechanism is actually supported and active for this private repository; a plan or
+  account limitation cannot be documented away as if enforcement existed;
+- if administrator/owner bypass cannot be mechanically disabled under the available repository/account
+  configuration, P2-16 remains OPEN. Disclosure alone is not sufficient for closure.
 
 ## Closure target
 
