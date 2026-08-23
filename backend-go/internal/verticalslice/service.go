@@ -285,8 +285,14 @@ func validateAppendTransaction(request AppendTransactionRequest) error {
 		if request.Quantity == nil || !request.Quantity.IsPositive() {
 			return fmt.Errorf("%w: positive quantity is required for trades", ErrInvalidInput)
 		}
+		if !request.Quantity.FitsStorage() {
+			return fmt.Errorf("%w: quantity exceeds NUMERIC(28,8) storage precision", ErrInvalidInput)
+		}
 		if request.UnitPrice == nil || !request.UnitPrice.Amount.IsPositive() || request.UnitPrice.Currency != RUB {
 			return fmt.Errorf("%w: positive RUB unitPrice is required for trades", ErrInvalidInput)
+		}
+		if !request.UnitPrice.Amount.FitsStorage() {
+			return fmt.Errorf("%w: unitPrice exceeds NUMERIC(28,8) storage precision", ErrInvalidInput)
 		}
 	case "SELL":
 		return fmt.Errorf("%w: SELL is outside Stage 3.2 scope until cost-basis position rebuild is implemented", ErrInvalidInput)
@@ -307,6 +313,12 @@ func validateAppendTransaction(request AppendTransactionRequest) error {
 	if request.Commission.Amount.IsNegative() || request.Tax.Amount.IsNegative() {
 		return fmt.Errorf("%w: commission and tax must be non-negative", ErrInvalidInput)
 	}
+	if !request.Commission.Amount.FitsStorage() || !request.Tax.Amount.FitsStorage() {
+		return fmt.Errorf("%w: commission and tax must fit NUMERIC(28,8) storage precision", ErrInvalidInput)
+	}
+	if request.Note != nil && utf8.RuneCountInString(*request.Note) > 500 {
+		return fmt.Errorf("%w: note must be at most 500 characters", ErrInvalidInput)
+	}
 	if strings.TrimSpace(request.TradeDate) == "" {
 		return fmt.Errorf("%w: tradeDate is required", ErrInvalidInput)
 	}
@@ -317,6 +329,9 @@ func validateAppendTransaction(request AppendTransactionRequest) error {
 		if _, err := time.Parse("2006-01-02", *request.SettlementDate); err != nil {
 			return fmt.Errorf("%w: settlementDate must be YYYY-MM-DD", ErrInvalidInput)
 		}
+	}
+	if _, err := GrossFor(request); err != nil {
+		return err
 	}
 	return nil
 }
@@ -446,12 +461,21 @@ func GrossFor(request AppendTransactionRequest) (Money, error) {
 			if request.GrossAmount.Currency != RUB || request.GrossAmount.Amount.IsNegative() {
 				return Money{}, fmt.Errorf("%w: grossAmount must be non-negative RUB", ErrInvalidInput)
 			}
+			if !request.GrossAmount.Amount.FitsStorage() {
+				return Money{}, fmt.Errorf("%w: grossAmount exceeds NUMERIC(28,8) storage precision", ErrInvalidInput)
+			}
 			return *request.GrossAmount, nil
 		}
 		return Money{}, fmt.Errorf("%w: grossAmount is required for cash flows", ErrInvalidInput)
 	}
 	derived := Money{Amount: request.Quantity.Mul(request.UnitPrice.Amount), Currency: RUB}
+	if !derived.Amount.FitsStorage() {
+		return Money{}, fmt.Errorf("%w: derived grossAmount exceeds NUMERIC(28,8) storage precision", ErrInvalidInput)
+	}
 	if request.GrossAmount != nil {
+		if !request.GrossAmount.Amount.FitsStorage() {
+			return Money{}, fmt.Errorf("%w: grossAmount exceeds NUMERIC(28,8) storage precision", ErrInvalidInput)
+		}
 		if request.GrossAmount.Currency != RUB || !request.GrossAmount.Amount.Equal(derived.Amount) {
 			return Money{}, fmt.Errorf("%w: grossAmount must equal quantity multiplied by unitPrice", ErrInvalidInput)
 		}

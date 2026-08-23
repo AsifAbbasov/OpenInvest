@@ -362,7 +362,7 @@ func (api *API) createPortfolio(c fiber.Ctx) error {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
 	var request createPortfolioRequestDTO
-	if err := c.Bind().Body(&request); err != nil {
+	if err := decodeStrictJSON(c.Request().Body(), &request); err != nil {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")
 	}
 	portfolio, err := api.service.CreatePortfolio(c.Context(), meta.toApp(), subjectID, c.Get("Idempotency-Key"), c.Path(), verticalslice.CreatePortfolioRequest{
@@ -442,7 +442,7 @@ func (api *API) appendTransaction(c fiber.Ctx) error {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "settlementDate is required")
 	}
 	var request appendTransactionRequestDTO
-	if err := c.Bind().Body(&request); err != nil {
+	if err := decodeStrictJSON(c.Request().Body(), &request); err != nil {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")
 	}
 	appRequest, err := request.toApp(c.Params("portfolioId"))
@@ -1063,7 +1063,7 @@ func parseOptionalDecimal(value *string) (*decimal.Decimal, error) {
 	}
 	parsed, err := decimal.FromString(*value)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: decimal value is invalid", verticalslice.ErrInvalidInput)
 	}
 	return &parsed, nil
 }
@@ -1082,7 +1082,7 @@ func parseOptionalMoney(value *moneyDTO) (*verticalslice.Money, error) {
 func parseMoney(value moneyDTO) (verticalslice.Money, error) {
 	amount, err := decimal.FromString(value.Amount)
 	if err != nil {
-		return verticalslice.Money{}, err
+		return verticalslice.Money{}, fmt.Errorf("%w: money amount is invalid", verticalslice.ErrInvalidInput)
 	}
 	return verticalslice.Money{Amount: amount, Currency: value.Currency}, nil
 }
