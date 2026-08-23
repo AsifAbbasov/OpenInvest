@@ -27,6 +27,7 @@ import {
 type AuthContextValue = {
   state: AuthState;
   accessToken: string;
+  principalId: string;
   pendingOperation: SessionOperation | null;
   refresh: () => Promise<ApiResult<AuthSession>>;
   signOut: (allSessions?: boolean) => Promise<ApiResult<{ revoked: boolean }>>;
@@ -84,6 +85,7 @@ export function AuthShell({ children }: Readonly<{ children: ReactNode }>) {
     () => ({
       state,
       accessToken: state.status === "authenticated" ? state.session.accessToken : "",
+      principalId: state.status === "authenticated" ? state.user.id : "",
       pendingOperation,
       refresh,
       signOut,

@@ -30,7 +30,7 @@ type PortfolioDetailState = {
 };
 
 export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps) {
-  const { accessToken } = useAuth();
+  const { accessToken, principalId } = useAuth();
   const [state, setState] = useState<PortfolioDetailState | null>(null);
   const [isLoadingMoreTransactions, setIsLoadingMoreTransactions] = useState(false);
   const [moreTransactionsError, setMoreTransactionsError] = useState<string | null>(null);
@@ -149,9 +149,9 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
         </section>
       ) : null}
 
-      <AddTransactionForm accessToken={accessToken} portfolioId={portfolioId} onSaved={load} />
+      <AddTransactionForm accessToken={accessToken} principalId={principalId} portfolioId={portfolioId} onSaved={load} />
 
-      <ImportUploadReviewPanel accessToken={accessToken} portfolioId={portfolioId} onImported={load} />
+      <ImportUploadReviewPanel accessToken={accessToken} principalId={principalId} portfolioId={portfolioId} onImported={load} />
 
       <section className="panel">
         <div className="section-heading">

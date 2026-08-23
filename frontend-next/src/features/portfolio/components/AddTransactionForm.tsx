@@ -3,17 +3,24 @@
 import { useRef, useState } from "react";
 
 import { appendTransaction, type CreateTransactionPayload, type TransactionType } from "@/common/api/openinvest";
-import { emptyIdempotencyIntent, idempotencyIntentFor } from "@/common/api/idempotency";
+import {
+  clearBrowserIdempotencyIntent,
+  emptyIdempotencyIntent,
+  idempotencyIntentForBrowser,
+  principalScopedIdempotencyScope,
+} from "@/common/api/idempotency";
 
 type AddTransactionFormProps = {
   accessToken: string;
+  principalId: string;
   portfolioId: string;
   onSaved: () => void;
 };
 
 const transactionTypes: TransactionType[] = ["BUY", "DEPOSIT", "WITHDRAWAL"];
+const idempotencyConflictMessage = "Idempotency-Key is already bound to another request";
 
-export function AddTransactionForm({ accessToken, portfolioId, onSaved }: AddTransactionFormProps) {
+export function AddTransactionForm({ accessToken, principalId, portfolioId, onSaved }: AddTransactionFormProps) {
   const idempotencyIntentRef = useRef(emptyIdempotencyIntent);
   const [transactionType, setTransactionType] = useState<TransactionType>("BUY");
   const [ticker, setTicker] = useState("SBER");
@@ -31,6 +38,7 @@ export function AddTransactionForm({ accessToken, portfolioId, onSaved }: AddTra
   const isTrade = transactionType === "BUY" || transactionType === "SELL";
   const isAssetIncome = transactionType === "DIVIDEND" || transactionType === "COUPON";
   const isCashFlow = transactionType === "DEPOSIT" || transactionType === "WITHDRAWAL";
+  const retryScope = principalScopedIdempotencyScope(principalId, `transaction-append:${portfolioId}`);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -38,16 +46,25 @@ export function AddTransactionForm({ accessToken, portfolioId, onSaved }: AddTra
     setStatus(null);
     const payload = buildPayload();
     const intent = JSON.stringify(payload);
-    idempotencyIntentRef.current = idempotencyIntentFor(idempotencyIntentRef.current, intent, () => crypto.randomUUID());
+    idempotencyIntentRef.current = await idempotencyIntentForBrowser(
+      idempotencyIntentRef.current,
+      intent,
+      retryScope,
+    );
     const result = await appendTransaction(portfolioId, payload, {
       accessToken,
       idempotencyKey: idempotencyIntentRef.current.key ?? undefined,
     });
     setIsSubmitting(false);
     if (!result.ok) {
+      if (result.status === 409 && result.message === idempotencyConflictMessage) {
+        await clearBrowserIdempotencyIntent(retryScope);
+        idempotencyIntentRef.current = emptyIdempotencyIntent;
+      }
       setStatus(result.message);
       return;
     }
+    await clearBrowserIdempotencyIntent(retryScope);
     idempotencyIntentRef.current = emptyIdempotencyIntent;
     setStatus("Transaction appended. Summary and history are reloaded from the Go API.");
     onSaved();

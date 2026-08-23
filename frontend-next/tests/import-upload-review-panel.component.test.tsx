@@ -12,6 +12,7 @@ import { ImportUploadReviewPanel } from "../src/features/portfolio/components/Im
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 const importCSV = "transaction_type,gross_amount,commission,tax,trade_date,currency\nDEPOSIT,100.00000000,0,0,2026-08-08,RUB\n";
+const principalId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 
 function apiResponse(data: unknown) {
   return new Response(JSON.stringify({
@@ -124,10 +125,10 @@ test("mounted panel ignores a stale review response after a portfolio or token r
     globalThis.fetch = originalFetch;
   });
 
-  await act(async () => root.render(<ImportUploadReviewPanel accessToken="token-a" portfolioId="portfolio-a" onImported={() => { imported += 1; }} />));
+  await act(async () => root.render(<ImportUploadReviewPanel accessToken="token-a" principalId={principalId} portfolioId="portfolio-a" onImported={() => { imported += 1; }} />));
   await selectCSV(container);
   await submitReview(container);
-  await act(async () => root.render(<ImportUploadReviewPanel accessToken="token-b" portfolioId="portfolio-b" onImported={() => { imported += 1; }} />));
+  await act(async () => root.render(<ImportUploadReviewPanel accessToken="token-b" principalId={principalId} portfolioId="portfolio-b" onImported={() => { imported += 1; }} />));
   await act(async () => {
     review.resolve(apiResponse(reviewData("portfolio-a")));
     await review.promise;
@@ -159,7 +160,7 @@ test("mounted panel does not invoke onImported for a stale append response", asy
     globalThis.fetch = originalFetch;
   });
 
-  await act(async () => root.render(<ImportUploadReviewPanel accessToken="token-a" portfolioId="portfolio-a" onImported={() => { imported += 1; }} />));
+  await act(async () => root.render(<ImportUploadReviewPanel accessToken="token-a" principalId={principalId} portfolioId="portfolio-a" onImported={() => { imported += 1; }} />));
   await selectCSV(container);
   await submitReview(container);
   assert.ok(container.querySelector(".import-review"));
@@ -170,7 +171,7 @@ test("mounted panel does not invoke onImported for a stale append response", asy
     [...container.querySelectorAll("button")].find((button) => button.textContent?.startsWith("Append"))!.click();
     await Promise.resolve();
   });
-  await act(async () => root.render(<ImportUploadReviewPanel accessToken="token-b" portfolioId="portfolio-b" onImported={() => { imported += 1; }} />));
+  await act(async () => root.render(<ImportUploadReviewPanel accessToken="token-b" principalId={principalId} portfolioId="portfolio-b" onImported={() => { imported += 1; }} />));
   await act(async () => {
     append.resolve(apiResponse(appendData("portfolio-a")));
     await append.promise;

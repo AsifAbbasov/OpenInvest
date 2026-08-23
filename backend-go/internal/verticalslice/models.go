@@ -19,6 +19,17 @@ func (SystemClock) Now() time.Time {
 	return time.Now().UTC()
 }
 
+type CommandReplayArtifact struct {
+	StatusCode int
+	Body       []byte
+	RequestID  string
+	TraceID    string
+}
+
+type PortfolioReplayBuilder func(Portfolio) (CommandReplayArtifact, error)
+type TransactionReplayBuilder func(Transaction) (CommandReplayArtifact, error)
+type ImportedTransactionsReplayBuilder func([]Transaction) (CommandReplayArtifact, error)
+
 type Store interface {
 	Ping(ctx context.Context) error
 	SearchAssets(ctx context.Context, filter AssetSearchFilter) ([]AssetSummary, error)
@@ -30,6 +41,12 @@ type Store interface {
 	AppendTransaction(ctx context.Context, command CommandContext, request AppendTransactionRequest) (Transaction, error)
 	AppendImportedTransactions(ctx context.Context, command CommandContext, request AppendImportBatchRequest) ([]Transaction, error)
 	GetPortfolioSummary(ctx context.Context, subjectID string, portfolioID string, asOfDate string) (PortfolioSummary, error)
+}
+
+type ReplayStore interface {
+	CreatePortfolioWithReplay(ctx context.Context, command CommandContext, request CreatePortfolioRequest, build PortfolioReplayBuilder) (Portfolio, CommandReplayArtifact, error)
+	AppendTransactionWithReplay(ctx context.Context, command CommandContext, request AppendTransactionRequest, build TransactionReplayBuilder) (Transaction, CommandReplayArtifact, error)
+	AppendImportedTransactionsWithReplay(ctx context.Context, command CommandContext, request AppendImportBatchRequest, build ImportedTransactionsReplayBuilder) ([]Transaction, CommandReplayArtifact, error)
 }
 
 type CommandContext struct {

@@ -20,6 +20,7 @@ var (
 	ErrInvalidInput       = errors.New("invalid input")
 	ErrMissingIdempotency = errors.New("missing idempotency key")
 	ErrNotFound           = errors.New("not found")
+	ErrReplayUnavailable  = errors.New("idempotency replay persistence unavailable")
 )
 
 var tickerPattern = regexp.MustCompile(`^[A-Z0-9]{1,32}$`)
@@ -112,6 +113,32 @@ func (s *Service) CreatePortfolio(ctx context.Context, requestContext RequestCon
 		return Portfolio{}, err
 	}
 	return s.store.CreatePortfolio(ctx, command, request)
+}
+
+func (s *Service) CreatePortfolioWithReplay(ctx context.Context, requestContext RequestContext, subjectID string, idempotencyKey string, requestPath string, request CreatePortfolioRequest, build PortfolioReplayBuilder) (Portfolio, CommandReplayArtifact, error) {
+	if err := ValidateIdempotencyKey(idempotencyKey); err != nil {
+		return Portfolio{}, CommandReplayArtifact{}, err
+	}
+	request.Name = strings.TrimSpace(request.Name)
+	if request.Name == "" || len(request.Name) > 100 {
+		return Portfolio{}, CommandReplayArtifact{}, fmt.Errorf("%w: portfolio name must be 1..100 characters", ErrInvalidInput)
+	}
+	if request.BaseCurrency != RUB {
+		return Portfolio{}, CommandReplayArtifact{}, fmt.Errorf("%w: baseCurrency must be RUB", ErrInvalidInput)
+	}
+	if build == nil {
+		return Portfolio{}, CommandReplayArtifact{}, fmt.Errorf("%w: portfolio replay builder is required", ErrReplayUnavailable)
+	}
+
+	command, err := s.command(requestContext, subjectID, idempotencyKey, requestPath, request)
+	if err != nil {
+		return Portfolio{}, CommandReplayArtifact{}, err
+	}
+	replayStore, ok := s.store.(ReplayStore)
+	if !ok {
+		return Portfolio{}, CommandReplayArtifact{}, ErrReplayUnavailable
+	}
+	return replayStore.CreatePortfolioWithReplay(ctx, command, request, build)
 }
 
 func (s *Service) GetPortfolio(ctx context.Context, subjectID string, portfolioID string) (Portfolio, error) {
@@ -241,6 +268,28 @@ func (s *Service) AppendTransaction(ctx context.Context, requestContext RequestC
 	return s.store.AppendTransaction(ctx, command, request)
 }
 
+func (s *Service) AppendTransactionWithReplay(ctx context.Context, requestContext RequestContext, subjectID string, idempotencyKey string, requestPath string, request AppendTransactionRequest, build TransactionReplayBuilder) (Transaction, CommandReplayArtifact, error) {
+	if err := ValidateIdempotencyKey(idempotencyKey); err != nil {
+		return Transaction{}, CommandReplayArtifact{}, err
+	}
+	if err := validateAppendTransaction(request); err != nil {
+		return Transaction{}, CommandReplayArtifact{}, err
+	}
+	if build == nil {
+		return Transaction{}, CommandReplayArtifact{}, fmt.Errorf("%w: transaction replay builder is required", ErrReplayUnavailable)
+	}
+
+	command, err := s.command(requestContext, subjectID, idempotencyKey, requestPath, request)
+	if err != nil {
+		return Transaction{}, CommandReplayArtifact{}, err
+	}
+	replayStore, ok := s.store.(ReplayStore)
+	if !ok {
+		return Transaction{}, CommandReplayArtifact{}, ErrReplayUnavailable
+	}
+	return replayStore.AppendTransactionWithReplay(ctx, command, request, build)
+}
+
 func (s *Service) AppendImportedTransactions(ctx context.Context, requestContext RequestContext, subjectID string, idempotencyKey string, requestPath string, request AppendImportBatchRequest) ([]Transaction, error) {
 	if err := ValidateIdempotencyKey(idempotencyKey); err != nil {
 		return nil, err
@@ -259,6 +308,33 @@ func (s *Service) AppendImportedTransactions(ctx context.Context, requestContext
 		return nil, err
 	}
 	return s.store.AppendImportedTransactions(ctx, command, request)
+}
+
+func (s *Service) AppendImportedTransactionsWithReplay(ctx context.Context, requestContext RequestContext, subjectID string, idempotencyKey string, requestPath string, request AppendImportBatchRequest, build ImportedTransactionsReplayBuilder) ([]Transaction, CommandReplayArtifact, error) {
+	if err := ValidateIdempotencyKey(idempotencyKey); err != nil {
+		return nil, CommandReplayArtifact{}, err
+	}
+	prepared, err := prepareAppendImportBatch(request)
+	if err != nil {
+		return nil, CommandReplayArtifact{}, err
+	}
+	request = prepared
+	if err := validateAppendImportBatch(request); err != nil {
+		return nil, CommandReplayArtifact{}, err
+	}
+	if build == nil {
+		return nil, CommandReplayArtifact{}, fmt.Errorf("%w: import replay builder is required", ErrReplayUnavailable)
+	}
+
+	command, err := s.command(requestContext, subjectID, idempotencyKey, requestPath, request)
+	if err != nil {
+		return nil, CommandReplayArtifact{}, err
+	}
+	replayStore, ok := s.store.(ReplayStore)
+	if !ok {
+		return nil, CommandReplayArtifact{}, ErrReplayUnavailable
+	}
+	return replayStore.AppendImportedTransactionsWithReplay(ctx, command, request, build)
 }
 
 func (s *Service) GetPortfolioSummary(ctx context.Context, subjectID string, portfolioID string, asOfDate string) (PortfolioSummary, error) {

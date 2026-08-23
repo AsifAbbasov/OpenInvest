@@ -26,7 +26,7 @@ func newApp() *fiber.App {
 	}
 	if databaseURL == "" {
 		store := unavailableStore{}
-		return httpapi.NewDevelopment(verticalslice.NewService(store, verticalslice.SystemClock{}))
+		return httpapi.NewDevelopmentReplay(verticalslice.NewService(store, verticalslice.SystemClock{}))
 	}
 	store, err := postgres.Open(databaseURL)
 	if err != nil {
@@ -41,7 +41,7 @@ func newApp() *fiber.App {
 	if err != nil {
 		log.Fatal(err)
 	}
-	app, err := httpapi.New(
+	app, err := httpapi.NewReplay(
 		verticalslice.NewService(store, verticalslice.SystemClock{}),
 		authService,
 		configuredImportReviewTokenSecret(),
