@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Closure record; when canonical on `develop`, Stage 3.29 is closed for P2-05/P2-06/P2-07/P2-08/P2-15 |
+| Status | Complete / closed for P2-05/P2-06/P2-07/P2-08/P2-15 |
 | Owner | Principal Architect |
 | Baseline | `develop` at `0ddc618a3450ea81fd4befb3b10c959b3cb82a25` |
 | Branch | `fix/stage-03-29-input-contract-hardening` |
@@ -220,10 +220,12 @@ schema parsing is safer than choosing first-wins or last-wins semantics.
 
 ## Scope boundary and residual work
 
-This stage does not claim the whole P2 backlog is closed. Remaining P2 findings stay in separate
-coherent remediation increments: import review integrity/limits, idempotency semantics, snapshot
-rebuild reporting/performance, database privileges, browser recovery, auth limiter lifecycle,
-repository governance enforcement, and extended CI/security coverage.
+This stage does not claim the whole P2 backlog is closed. At Stage 3.29 closure, the remaining
+P2 findings stayed in separate coherent remediation increments covering import review integrity/limits,
+idempotency semantics, snapshot rebuild reporting/performance, database privileges, browser recovery,
+auth limiter lifecycle, repository governance enforcement, and extended CI/security coverage.
+Subsequent remediation stages may close those findings independently without changing this stage's
+closure scope.
 
 P3 findings remain separate. Stage 3.25 privacy evidence planning remains separate.
 
@@ -249,14 +251,18 @@ independent final review on exact head `f9e70e70956c76edbc2ab02c52d45124b2dea525
   arithmetic gap; no additional blocker identified in P2-05/P2-06/P2-08/P2-15.
 - Renewed independent final review after remediation: `APPROVED`.
 - Explicit human authorization was received before the implementation squash merge.
-- Closure governance is tracked separately through PR #62.
+- Closure governance PR #62 passed exact-head CI #127 on
+  `d70cf8322bae8713e6a6808624fa1493a46ed0ad`, received independent closure `APPROVED` review and
+  fresh explicit human squash-merge authorization, and was squash-merged into `develop` at
+  `0bfb3ea9f8e4cc7337a92caef5c7a73f9a8921bc`.
 
 ## Canonical closure statement
 
-The implementation prerequisites are satisfied, but this report is not itself canonical closure
-until PR #62 passes its own exact-head CI, independent closure-governance review, fresh explicit human
-merge authorization, and squash merge into `develop`.
+Closure governance PR #62 was squash-merged into `develop` at
+`0bfb3ea9f8e4cc7337a92caef5c7a73f9a8921bc` after exact-head CI #127, independent closure
+`APPROVED` review, and fresh explicit human merge authorization.
 
-When this closure record is canonical on `develop`, Stage 3.29 is closed for P2-05, P2-06, P2-07,
-P2-08, and P2-15. The original audit backlog then contains 12 P2 and 10 P3 findings. Stage 3.25
-privacy Security Review evidence planning remains separate and is not superseded.
+Stage 3.29 is therefore CLOSED for P2-05, P2-06, P2-07, P2-08, and P2-15. At Stage 3.29 closure,
+the original audit backlog contained 12 P2 and 10 P3 findings. Later remediation does not broaden or
+retroactively change the Stage 3.29 closure scope. Stage 3.25 privacy Security Review evidence
+planning remains separate and is not superseded.
