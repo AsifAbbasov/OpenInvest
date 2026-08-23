@@ -165,8 +165,8 @@ This log is the index of implementation stages. Every stage must document its pu
   approval.
 - Added transient CSV import review and explicit append endpoints backed by the Stage 3.8
   review→append flow and Stage 3.7 atomic store append.
-- Resolved independent review findings for current-ledger revalidation, deterministic idempotent
-  replay, full import append request hashing, and append-payload example validation.
+- Resolved independent review findings for current-ledger revalidation, exact replay of original
+  imported transactions, complete append idempotency hashing, and append payload validator coverage.
 - Kept frontend upload UI, SQL import-session persistence, raw CSV persistence, workers,
   broker/provider integrations, tax, mobile, AI, and Stage 3.10 implementation out of scope.
 
