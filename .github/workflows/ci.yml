@@ -358,7 +358,7 @@ jobs:
       - name: Install pinned govulncheck
         run: go install golang.org/x/vuln/cmd/govulncheck@v1.7.0
       - name: Scan reachable Go vulnerabilities
-        run: "$(go env GOPATH)/bin/govulncheck" ./...
+        run: $(go env GOPATH)/bin/govulncheck ./...
 
   dependency-security:
     name: Dependency security scan
