@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.60 |
+| Version | 1.1.65 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-08-23 |
-| Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
+| Last Review Date | 2026-08-24 |
+| Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, privacy-lifecycle migration proposal, or the next repository-audit remediation closure |
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
@@ -790,3 +790,18 @@
 - Exact-head GitHub Actions CI #181 completed `SUCCESS` across all six jobs.
 - Explicit human squash-merge authorization was received before PR #67 merged.
 - Closure governance records the canonical merge and leaves 5 P2 plus 10 P3 original audit findings: P2-10/P2-11/P2-12/P2-16/P2-17 plus all P3. Stage 3.25 privacy evidence planning remains separate and is not superseded.
+
+## 2026-08-24 — Stage 3.33 snapshot rebuild and PostgreSQL runtime immutability closed
+
+- Squash-merged implementation PR #69 into `develop` at `87a7c38e16062a5f3fcef3727f60c0c6741eb805` after exact-head CI #199 on final reviewed head `88ec8f739f7bcc96267c25f41560e1960d4d48d5`.
+- Preserved two independent `REQUEST CHANGES` cycles for P2-12: first for masked authenticated `session_user` / SET-role escalation, then for latent `ADMIN TRUE, INHERIT FALSE, SET FALSE` escalation.
+- Final repeat review returned P2-10 CLOSED, P2-11 CLOSED, P2-12 CLOSED, no new blocking regressions, and `APPROVED`.
+- Closure PR #70 exact head `79d68dfde879010e404aa4b72a75bc00549439be` passed CI #201, received independent governance-only `APPROVED`, received separate explicit human authorization, and was squash-merged into `develop` at `71a1faeb97d33d05f2936111b53f1285edddabe9`.
+- Canonical Stage 3.33 closure leaves exactly 2 P2 and 10 P3 original audit findings. The remaining P2 findings are P2-16 and P2-17.
+
+## 2026-08-24 — Repository-audit documentation standardization
+
+- Added `audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md` as the single cross-stage index for all 32 original audit findings, including root-cause/impact summaries, remediation rationale, evidence, and current status.
+- Added `audit/REMEDIATION_DOCUMENTATION_STANDARD.md` as a mandatory 18-part finding record for Stage 3.34 and all remaining P3 remediation work.
+- Required future remediation dossiers to preserve root cause, failure scenario, project impact, severity rationale, violated invariant, alternatives, chosen remediation, rationale, rejected alternatives, trade-offs, regression proof, independent review findings, remediation iterations, residual risk, operational consequences, exact evidence, and final canonical status.
+- Synchronized README, Source of Truth, Roadmap, Document Index, Implementation Log, Stage 3.33 implementation dossier, and Stage 3.33 closure record without deleting historical `REQUEST CHANGES` evidence.
