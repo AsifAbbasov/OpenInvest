@@ -217,6 +217,82 @@ func TestStage0333OpenRuntimeRejectsLatentSetRoleMutationPath(t *testing.T) {
 	}
 }
 
+func TestStage0333OpenRuntimeRejectsLatentAdminOptionMutationPath(t *testing.T) {
+	ownerURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
+	runtimeURL := os.Getenv("OPENINVEST_DATABASE_RUNTIME_TEST_URL")
+	if ownerURL == "" || runtimeURL == "" {
+		t.Skip("runtime privilege integration URLs are not set")
+	}
+
+	ownerDB, err := sql.Open("pgx", ownerURL)
+	if err != nil {
+		t.Fatalf("open owner role-admin db: %v", err)
+	}
+	closeDBOnCleanup(t, ownerDB, "stage 3.33 admin escalation owner")
+
+	runtimeDB, err := sql.Open("pgx", runtimeURL)
+	if err != nil {
+		t.Fatalf("open runtime admin escalation db: %v", err)
+	}
+	closeDBOnCleanup(t, runtimeDB, "stage 3.33 admin escalation runtime")
+
+	ctx := context.Background()
+	var runtimeLoginQuoted string
+	if err := runtimeDB.QueryRowContext(ctx, `SELECT quote_ident(session_user::text)`).Scan(&runtimeLoginQuoted); err != nil {
+		t.Fatalf("read runtime login identifier: %v", err)
+	}
+
+	adminRole := "openinvest_runtime_admin_escalation_" + strings.ReplaceAll(uuid.NewString(), "-", "")
+	if _, err := ownerDB.ExecContext(ctx, "CREATE ROLE "+adminRole+" NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION"); err != nil {
+		t.Fatalf("create admin escalation role: %v", err)
+	}
+	t.Cleanup(func() {
+		_, _ = ownerDB.ExecContext(context.Background(), "REVOKE "+adminRole+" FROM "+runtimeLoginQuoted)
+		_, _ = ownerDB.ExecContext(context.Background(), "DROP OWNED BY "+adminRole)
+		if _, err := ownerDB.ExecContext(context.Background(), "DROP ROLE "+adminRole); err != nil {
+			t.Errorf("drop admin escalation role %s: %v", adminRole, err)
+		}
+	})
+
+	if _, err := ownerDB.ExecContext(ctx, "GRANT USAGE ON SCHEMA investment TO "+adminRole); err != nil {
+		t.Fatalf("grant admin escalation schema usage: %v", err)
+	}
+	if _, err := ownerDB.ExecContext(ctx, "GRANT UPDATE ON investment.transaction_entries TO "+adminRole); err != nil {
+		t.Fatalf("grant admin escalation ledger update: %v", err)
+	}
+	if _, err := ownerDB.ExecContext(ctx, "GRANT "+adminRole+" TO "+runtimeLoginQuoted+" WITH ADMIN TRUE, INHERIT FALSE, SET FALSE"); err != nil {
+		t.Fatalf("grant latent ADMIN OPTION escalation path: %v", err)
+	}
+
+	var directlyCanUpdate bool
+	var canSetAdminRole bool
+	var hasAdminOption bool
+	if err := runtimeDB.QueryRowContext(ctx, `
+		SELECT
+			has_table_privilege(session_user, 'investment.transaction_entries', 'UPDATE'),
+			pg_has_role(session_user, $1::name, 'SET'),
+			pg_has_role(session_user, $1::name, 'MEMBER WITH ADMIN OPTION')
+	`, adminRole).Scan(&directlyCanUpdate, &canSetAdminRole, &hasAdminOption); err != nil {
+		t.Fatalf("verify latent ADMIN OPTION fixture: %v", err)
+	}
+	if directlyCanUpdate {
+		t.Fatal("admin escalation fixture accidentally granted UPDATE through inheritance")
+	}
+	if canSetAdminRole {
+		t.Fatal("admin escalation fixture accidentally granted SET ROLE capability")
+	}
+	if !hasAdminOption {
+		t.Fatal("admin escalation fixture did not establish ADMIN OPTION capability")
+	}
+
+	if store, err := postgres.OpenRuntime(runtimeURL); err == nil {
+		_ = store.Close()
+		t.Fatal("runtime login with latent ADMIN OPTION ledger escalation unexpectedly passed validation")
+	} else if !errors.Is(err, postgres.ErrUnsafeRuntimeDatabaseRole) {
+		t.Fatalf("expected unsafe runtime role error for latent ADMIN OPTION escalation, got %v", err)
+	}
+}
+
 func databaseURLWithRole(databaseURL string, role string) (string, error) {
 	parsed, err := url.Parse(databaseURL)
 	if err != nil {
