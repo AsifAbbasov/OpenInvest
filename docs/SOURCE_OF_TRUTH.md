@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.59 |
+| Version | 1.4.60 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -15,13 +15,14 @@
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.28 — Authentication Security Remediation**
+**Last completed implementation stage: Stage 3.29 — Input and Contract Hardening**
 **Last completed planning gate: Stage 3.24 — Privacy Security Review Readiness Dossier**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `dc83f5f3a11da164e6809593861d96ccf47b29ca`**
+**Current canonical implementation baseline: `develop` at `7331d3f34783baec3997497d1a79b78eaa558bd4`**
 **Current privacy-planning work item: Stage 3.25 privacy Security Review evidence-collection plan; it remains documentation-only and does not authorize privacy-lifecycle implementation**
 **Stage 3.27 remediation: CLOSED for P1-02, P1-03, and P1-04; implementation PR #55 was squash-merged into `develop` at `6e8c806de857f844954f1db513487357dfe90187` after exact-head CI #90, renewed independent `APPROVED` review on `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c`, explicit human squash-merge authorization, and closure governance through PR #58**
-**Stage 3.28 remediation: implementation PR #59 was squash-merged into `develop` at `dc83f5f3a11da164e6809593861d96ccf47b29ca` after exact-head CI #114, renewed independent `APPROVED` review on `92edab5d3e93dafe2fcc6247644e38e878a4202f`, and explicit human squash-merge authorization; closure governance is recorded through PR #60; when this line is canonical on `develop`, P1-01 and P1-05 are CLOSED; Stage 3.25 and P2/P3 remain separate**
+**Stage 3.28 remediation: CLOSED for P1-01 and P1-05; implementation PR #59 was squash-merged into `develop` at `dc83f5f3a11da164e6809593861d96ccf47b29ca` after exact-head CI #114, renewed independent `APPROVED` review on `92edab5d3e93dafe2fcc6247644e38e878a4202f`, explicit human squash-merge authorization, and closure governance squash-merged through PR #60 at `0ddc618a3450ea81fd4befb3b10c959b3cb82a25`; Stage 3.25 and P2/P3 remain separate**
+**Stage 3.29 remediation: implementation PR #61 was squash-merged into `develop` at `7331d3f34783baec3997497d1a79b78eaa558bd4` after exact-head CI #124, first independent `REQUEST CHANGES` for the P2-07 aggregate snapshot arithmetic gap, remediation on exact head `f9e70e70956c76edbc2ab02c52d45124b2dea525`, renewed independent `APPROVED`, and explicit human squash-merge authorization; closure governance is tracked through PR #62; when this line is canonical on `develop`, P2-05/P2-06/P2-07/P2-08/P2-15 are CLOSED; 12 P2 and 10 P3 findings remain; Stage 3.25 remains separate**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -314,3 +315,29 @@ The complete version and legacy-document matrix is maintained in `VERSION_MATRIX
 ## Open questions
 
 No unresolved architecture questions exist at Freeze v1.2 activation. See `OPEN_QUESTIONS.md` for the controlled process.
+
+
+## Stage 3.29 audit remediation closure governance
+
+Stage 3.29 is a narrow repository-audit remediation for P2-05, P2-06, P2-07, P2-08, and P2-15 only.
+
+Implementation PR #61 was squash-merged into `develop` at
+`7331d3f34783baec3997497d1a79b78eaa558bd4`. The reviewed implementation head was
+`f9e70e70956c76edbc2ab02c52d45124b2dea525`; exact-head GitHub Actions CI #124 completed
+`SUCCESS`. The first independent final review returned `REQUEST CHANGES` for one P2-07 gap:
+otherwise-valid financial inputs could still overflow `analytics.portfolio_snapshots`
+`NUMERIC(28,8)` aggregate/derived values. The remediation kept snapshot methodology SQL-owned,
+added same-transaction pre-persistence range admission for all persistence-bound snapshot metrics,
+and added PostgreSQL integration proof for cumulative deposit overflow, BUY component-sum overflow,
+and rollback atomicity. Renewed independent final review on the exact head returned `APPROVED`.
+Explicit human authorization was received before the squash merge.
+
+P2-05 maps malformed decimal command input to deterministic validation semantics. P2-06 enforces
+the 500-character stored-note contract at application/import boundaries. P2-07 aligns canonical
+Decimal/OpenAPI magnitude with `NUMERIC(28,8)` and guards persistence-bound derived and aggregate
+snapshot values. P2-08 makes portfolio/transaction JSON writes fail closed on unknown fields.
+P2-15 rejects duplicate normalized CSV headers before row normalization.
+
+Closure governance is tracked through PR #62. When this closure record is canonical on `develop`,
+P2-05/P2-06/P2-07/P2-08/P2-15 are closed. The remaining audit backlog is 12 P2 and 10 P3 findings.
+Stage 3.25 privacy Security Review evidence planning remains separate and is not superseded.

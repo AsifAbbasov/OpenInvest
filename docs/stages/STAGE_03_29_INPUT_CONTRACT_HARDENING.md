@@ -2,10 +2,17 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementation candidate / verification and independent review pending |
+| Status | Closure record; when canonical on `develop`, Stage 3.29 is closed for P2-05/P2-06/P2-07/P2-08/P2-15 |
 | Owner | Principal Architect |
 | Baseline | `develop` at `0ddc618a3450ea81fd4befb3b10c959b3cb82a25` |
 | Branch | `fix/stage-03-29-input-contract-hardening` |
+| Implementation PR | #61 |
+| Implementation merge | `7331d3f34783baec3997497d1a79b78eaa558bd4` |
+| Reviewed exact head | `f9e70e70956c76edbc2ab02c52d45124b2dea525` |
+| Exact-head CI | GitHub Actions #124 — SUCCESS |
+| Independent final review | First `REQUEST CHANGES`; renewed `APPROVED` on final exact head |
+| Human implementation merge authorization | 2026-08-23 |
+| Closure PR | #62 |
 | Trigger | Repository-audit P2 findings P2-05, P2-06, P2-07, P2-08, and P2-15 |
 | Scope | JSON command strictness, decimal error semantics, NUMERIC(28,8) bounds, note length, duplicate CSV headers, regression coverage |
 | Out of scope | P2-01..04, P2-09..14, P2-16..17, all P3 findings, Stage 3.25 privacy work, product expansion |
@@ -227,12 +234,29 @@ The first independent final review on implementation head
 snapshot aggregate arithmetic could still exceed `NUMERIC(28,8)` after otherwise-valid transaction
 ingress. No additional blocking defect was identified in P2-05, P2-06, P2-08, or P2-15.
 
-The remediation adds the same-transaction guarded snapshot persistence and PostgreSQL integration
-coverage for cumulative deposits, BUY component-sum overflow, and rollback atomicity. A renewed
-independent review is required on the new exact head before merge.
+The remediation added same-transaction guarded snapshot persistence and PostgreSQL integration
+coverage for cumulative deposits, BUY component-sum overflow, and rollback atomicity. Renewed
+independent final review on exact head `f9e70e70956c76edbc2ab02c52d45124b2dea525` returned `APPROVED`.
 
-## Closure rule
+## Verification and implementation merge evidence
 
-This document must not be described as closed merely because the patch exists. Closure requires
-verification, exact-head CI, renewed independent review, explicit human merge authorization, squash
-merge into `develop`, and canonical closure-governance evidence.
+- Implementation PR #61 was squash-merged into `develop` at
+  `7331d3f34783baec3997497d1a79b78eaa558bd4`.
+- Final reviewed implementation head:
+  `f9e70e70956c76edbc2ab02c52d45124b2dea525`.
+- Exact-head GitHub Actions CI #124: `SUCCESS`.
+- First independent final review: `REQUEST CHANGES` for one blocking P2-07 aggregate snapshot
+  arithmetic gap; no additional blocker identified in P2-05/P2-06/P2-08/P2-15.
+- Renewed independent final review after remediation: `APPROVED`.
+- Explicit human authorization was received before the implementation squash merge.
+- Closure governance is tracked separately through PR #62.
+
+## Canonical closure statement
+
+The implementation prerequisites are satisfied, but this report is not itself canonical closure
+until PR #62 passes its own exact-head CI, independent closure-governance review, fresh explicit human
+merge authorization, and squash merge into `develop`.
+
+When this closure record is canonical on `develop`, Stage 3.29 is closed for P2-05, P2-06, P2-07,
+P2-08, and P2-15. The original audit backlog then contains 12 P2 and 10 P3 findings. Stage 3.25
+privacy Security Review evidence planning remains separate and is not superseded.
