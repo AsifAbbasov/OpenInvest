@@ -7,14 +7,9 @@ ALTER TABLE investment.command_deduplication
     ADD COLUMN response_request_id UUID,
     ADD COLUMN response_trace_id TEXT;
 
--- Pre-Stage-3.32 rows used response_hash=request_hash as a placeholder rather than a hash of
--- the observable response. Clear only that known placeholder so new rows can distinguish a real
--- replay artifact from legacy completed commands that cannot be reconstructed exactly.
-UPDATE investment.command_deduplication
-SET response_hash = NULL
-WHERE terminal_status = 'success'
-  AND response_hash = request_hash;
-
+-- Pre-Stage-3.32 completed rows have response_version IS NULL and therefore remain
+-- distinguishable from exact replay artifacts without rewriting existing financial metadata.
+-- New Stage 3.32 completions set response_version=1 together with the complete artifact.
 ALTER TABLE investment.command_deduplication
     ADD CONSTRAINT command_deduplication_response_artifact_shape CHECK (
         (
