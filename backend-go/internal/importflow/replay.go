@@ -14,14 +14,14 @@ import (
 )
 
 type ReplayAppender interface {
-	AppendImportedTransactionsWithReplay(
+	AppendImportedTransactionsWithOutcomeReplay(
 		ctx context.Context,
 		requestContext verticalslice.RequestContext,
 		subjectID string,
 		idempotencyKey string,
 		requestPath string,
 		request verticalslice.AppendImportBatchRequest,
-		build verticalslice.ImportedTransactionsReplayBuilder,
+		build verticalslice.ImportedTransactionsOutcomeReplayBuilder,
 	) ([]verticalslice.Transaction, verticalslice.CommandReplayArtifact, error)
 }
 
@@ -88,7 +88,7 @@ func ReviewAndAppendWithReplay(
 	}
 
 	var result Result
-	transactions, artifact, err := appender.AppendImportedTransactionsWithReplay(
+	transactions, artifact, err := appender.AppendImportedTransactionsWithOutcomeReplay(
 		ctx,
 		request.RequestContext,
 		request.SubjectID,
@@ -102,13 +102,13 @@ func ReviewAndAppendWithReplay(
 			SourceFileHash:     review.FileHash,
 			Decisions:          importDecisions(request.Decisions),
 		},
-		func(transactions []verticalslice.Transaction) (verticalslice.CommandReplayArtifact, error) {
+		func(outcome verticalslice.ImportAppendOutcome) (verticalslice.CommandReplayArtifact, error) {
 			result = Result{
 				ParsedRowCount:         review.Summary.TotalRows,
 				AcceptedRowCount:       len(appendRequests),
 				NonAppendedRowCount:    review.Summary.TotalRows - len(appendRequests),
-				AppendedTransactionIDs: transactionIDs(transactions),
-				SnapshotDatesRebuilt:   snapshotDates(appendRequests),
+				AppendedTransactionIDs: transactionIDs(outcome.Transactions),
+				SnapshotDatesRebuilt:   append([]string(nil), outcome.SnapshotDatesRebuilt...),
 				AuditActionCode:        "IMPORT_APPEND_BATCH",
 				NonSensitiveWarnings:   nonSensitiveWarnings(review, len(request.Decisions), len(appendRequests)),
 			}
