@@ -344,13 +344,16 @@ func readCSRFToken(t *testing.T, response *http.Response) string {
 }
 
 type httpAuthTestStore struct {
-	user       auth.StoredUser
-	password   string
-	sessions   map[string]auth.SessionRecord
-	authEvents []auth.AuthAuditRecord
+	user          auth.StoredUser
+	password      string
+	sessions      map[string]auth.SessionRecord
+	authEvents    []auth.AuthAuditRecord
+	registerCalls int
+	findCalls     int
 }
 
 func (store *httpAuthTestStore) RegisterUser(_ context.Context, record auth.RegistrationRecord) (auth.StoredUser, error) {
+	store.registerCalls++
 	store.password = record.PasswordHash
 	store.user = auth.StoredUser{
 		ID:                  record.UserID,
@@ -367,6 +370,7 @@ func (store *httpAuthTestStore) RegisterUser(_ context.Context, record auth.Regi
 }
 
 func (store *httpAuthTestStore) FindUserByEmail(_ context.Context, email string) (auth.StoredUser, string, error) {
+	store.findCalls++
 	if email != store.user.Email {
 		return auth.StoredUser{}, "", auth.ErrInvalidCredentials
 	}
