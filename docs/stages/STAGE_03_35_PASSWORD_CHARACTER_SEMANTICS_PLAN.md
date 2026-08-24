@@ -6,7 +6,7 @@
 | Date | 2026-08-24 |
 | Canonical base | `develop` at `ae5a152114cc163867a363953f8a3202396b1f6c` |
 | Finding | P3-01 |
-| Scope | Password length semantics only |
+| Scope | Password length and exact-secret admission semantics only |
 | Runtime implementation authorized here | No |
 
 ## 1. Finding / symptom
@@ -15,9 +15,13 @@ P3-01: password length semantics use bytes rather than the intended user-facing 
 
 `backend-go/internal/auth/service.go` says passwords must be 12..256 characters but uses Go `len(string)`, which counts UTF-8 bytes. `openapi/components/schemas.yaml` expresses the same rule with `minLength`/`maxLength`, while the Web form relies on browser `minLength`. Non-ASCII input can therefore be counted differently across layers.
 
+A related exact-secret inconsistency exists in login admission: registration does not trim a password, but login currently rejects `strings.TrimSpace(request.Password) == ""`. A password consisting entirely of whitespace can therefore be accepted at registration and later rejected before exact hash verification.
+
 ## 2. Root cause
 
 No canonical password-length unit was defined. Go byte length, OpenAPI character length, and browser/JavaScript string behavior were treated as equivalent when they are not.
+
+The login path also uses whitespace normalization as an emptiness test even though password identity is otherwise exact-byte based.
 
 Argon2 hashing itself is not the defect; it should continue receiving the exact submitted password bytes.
 
@@ -27,10 +31,11 @@ Argon2 hashing itself is not the defect; it should continue receiving the exact 
 - A 256-code-point password can exceed 256 UTF-8 bytes and be rejected although the contract permits 256 characters.
 - Astral Unicode can produce Web/backend disagreement.
 - Enforcing the corrected registration minimum during login could lock out credentials historically accepted under the old byte-based rule.
+- A 12-space password can be accepted at registration but cannot currently authenticate because login treats its trimmed value as empty.
 
 ## 4. Impact
 
-Contract/runtime inconsistency, multilingual UX defects, misleading password policy enforcement, and possible legacy-login lockout during remediation. No plaintext-password exposure or Argon2 cryptographic defect is claimed.
+Contract/runtime inconsistency, multilingual UX defects, misleading password policy enforcement, and possible credential lockout during remediation or for exact whitespace-only secrets already accepted by registration. No plaintext-password exposure or Argon2 cryptographic defect is claimed.
 
 ## 5. Severity rationale
 
@@ -41,7 +46,7 @@ P3 is appropriate: the defect is real and security-adjacent but is not known to 
 - OpenAPI and runtime validation must agree.
 - User-facing validation must be deterministic across supported clients and backend.
 - Maintenance must not invalidate previously accepted credentials.
-- Password hashing must preserve the exact secret without hidden normalization.
+- Password hashing and authentication must preserve the exact secret without hidden trimming or normalization.
 
 ## 7. Considered solutions
 
@@ -49,10 +54,11 @@ A. Redefine the public policy as UTF-8 bytes.
 B. Define registration length as Unicode code points.
 C. Define length as grapheme clusters.
 D. Normalize Unicode before validation/hash.
+E. Keep login whitespace trimming as a special emptiness rule.
 
 ## 8. Chosen remediation
 
-Choose **B: Unicode code points** for new-registration length.
+Choose **B: Unicode code points** for new-registration length and exact submitted bytes for credential identity.
 
 Canonical semantics:
 
@@ -60,18 +66,20 @@ Canonical semantics:
 - Hash/verify: exact UTF-8 bytes of the submitted password; no trimming, case folding, NFC/NFKC, or other normalization.
 - Registration from internal/non-HTTP callers must fail closed on malformed UTF-8.
 - Login must not apply the new 12-code-point creation minimum to existing credentials.
+- Login emptiness means exactly `password == ""`; whitespace-only passwords must not be rewritten or rejected merely because trimming would make them empty.
 - Login public contract should accept non-empty passwords up to 256 code points; creation policy belongs to registration.
 
 Expected implementation primitives:
 
-- Go: `unicode/utf8.ValidString` + `utf8.RuneCountInString`.
+- Go registration: `unicode/utf8.ValidString` + `utf8.RuneCountInString`.
+- Go login admission: exact empty-string check plus a 256-code-point upper bound; no `strings.TrimSpace` password check.
 - Web: explicit code-point count such as `Array.from(password).length`; do not rely on HTML `minLength` as the canonical rule.
 - OpenAPI RegisterRequest: retain `minLength: 12`, `maxLength: 256`, document code-point/no-normalization semantics.
-- OpenAPI LoginRequest: `minLength: 1`, `maxLength: 256`, document legacy-compatible authentication semantics.
+- OpenAPI LoginRequest: `minLength: 1`, `maxLength: 256`, document legacy-compatible exact-secret authentication semantics.
 
 ## 9. Why this solution
 
-It aligns Go, OpenAPI, and Web with one deterministic unit, supports multilingual secrets, preserves exact bytes for Argon2, avoids hidden normalization, and prevents legacy lockout without expanding scope.
+It aligns Go, OpenAPI, and Web with one deterministic unit, supports multilingual secrets, preserves exact bytes for Argon2, eliminates the whitespace-only registration/login contradiction, avoids hidden normalization, and prevents legacy lockout without expanding scope.
 
 ## 10. Rejected alternatives
 
@@ -79,12 +87,15 @@ It aligns Go, OpenAPI, and Web with one deterministic unit, supports multilingua
 - Grapheme clusters: unnecessary segmentation complexity for this P3.
 - Unicode normalization: changes credential identity and risks compatibility.
 - Registration minimum on login: risks locking out historically accepted multibyte credentials.
+- Trim-based login emptiness: changes admission based on password content even though registration/hash identity is exact; a valid stored whitespace-only secret could become unusable.
 
 ## 11. Trade-offs
 
 A 256-code-point password can use up to 1024 UTF-8 bytes, versus the old effective 256-byte registration ceiling. This input increase is negligible relative to the existing Argon2 64 MiB memory cost and does not authorize any Argon2 parameter/concurrency change.
 
 Code points are intentionally not grapheme clusters; combining sequences can count as multiple characters under this contract.
+
+Registration and login intentionally differ at the lower bound: registration enforces password-creation policy, while login must verify historically accepted exact credentials.
 
 ## 12. Required regression tests
 
@@ -94,29 +105,34 @@ Backend:
 2. 11 Cyrillic code points whose byte count is >=12 rejected; 12 accepted.
 3. 256 emoji/supplementary code points accepted despite >256 UTF-8 bytes; 257 rejected.
 4. malformed internal UTF-8 registration input rejected.
-5. no trimming/normalization introduced.
+5. canonically equivalent but byte-distinct Unicode sequences remain distinct secrets; no normalization introduced.
 6. legacy stored multibyte password shorter than 12 code points still logs in, while new registration with it is rejected.
+7. a valid 12-space password can register and subsequently authenticate unchanged.
+8. login rejects only the truly empty password for emptiness and does not trim before verification.
 
 OpenAPI:
 
-7. Register password remains 12..256 with explicit semantics.
-8. Login becomes 1..256 with compatibility semantics.
-9. contract validation stays green.
+9. Register password remains 12..256 with explicit code-point/exact-secret semantics.
+10. Login becomes 1..256 with compatibility semantics.
+11. contract validation stays green.
 
 Web:
 
-10. registration explicitly counts code points.
-11. six emoji do not pass merely because UTF-16 length reaches twelve.
-12. 12 code points pass; 256 pass; 257 fail.
-13. login can submit the legacy compatibility vector.
+12. registration explicitly counts code points.
+13. six emoji do not pass merely because UTF-16 code units reach twelve.
+14. 12 code points pass; 256 pass; 257 fail.
+15. login can submit the legacy multibyte compatibility vector.
+16. login does not trim or block a non-empty whitespace-only exact secret before submission.
 
 ## 13. Adversarial review requirements
 
-Reviewer must challenge cross-layer counting parity, accidental UTF-16 dependence, normalization/trimming, legacy lockout, unintended weakening of registration policy, P3-04 scope creep, and any unauthorized Argon2 changes.
+Reviewer must challenge cross-layer counting parity, accidental UTF-16 dependence, normalization/trimming, whitespace-only credential handling, legacy lockout, unintended weakening of registration policy, P3-04 scope creep, and any unauthorized Argon2 changes.
 
 ## 14. Remediation iterations
 
-Any implementation-review blocker must be preserved in the Stage 3.35 dossier. Every changed implementation head requires fresh exact-head CI and fresh independent review.
+The planning phase itself recorded one pre-review hardening iteration: inspection found that the existing login `strings.TrimSpace` emptiness guard conflicts with exact-secret semantics and with registration behavior. This plan therefore explicitly includes exact-empty login admission and whitespace-only regression coverage before independent review.
+
+Any later implementation-review blocker must be preserved in the Stage 3.35 dossier. Every changed implementation head requires fresh exact-head CI and fresh independent review.
 
 ## 15. Residual risk / limitations
 
