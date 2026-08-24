@@ -32,6 +32,7 @@ Argon2 hashing itself is not the defect; it should continue receiving the exact 
 - Astral Unicode can produce Web/backend disagreement.
 - Enforcing the corrected registration minimum during login could lock out credentials historically accepted under the old byte-based rule.
 - A 12-space password can be accepted at registration but cannot currently authenticate because login treats its trimmed value as empty.
+- If login gains a code-point upper bound without also validating UTF-8, internal/non-HTTP callers could still bypass the contract's Unicode-string model with malformed Go strings.
 
 ## 4. Impact
 
@@ -67,19 +68,22 @@ Canonical semantics:
 - Registration from internal/non-HTTP callers must fail closed on malformed UTF-8.
 - Login must not apply the new 12-code-point creation minimum to existing credentials.
 - Login emptiness means exactly `password == ""`; whitespace-only passwords must not be rewritten or rejected merely because trimming would make them empty.
-- Login public contract should accept non-empty passwords up to 256 code points; creation policy belongs to registration.
+- Login accepts only valid UTF-8, non-empty passwords of at most 256 Unicode code points. Invalid/oversized login input must fail as invalid credentials before Argon2, preserving generic authentication failure semantics.
+- Login public contract should therefore use 1..256 code points; creation policy belongs to registration.
 
 Expected implementation primitives:
 
 - Go registration: `unicode/utf8.ValidString` + `utf8.RuneCountInString`.
-- Go login admission: exact empty-string check plus a 256-code-point upper bound; no `strings.TrimSpace` password check.
+- Go login admission: `utf8.ValidString`, exact empty-string check, and `utf8.RuneCountInString <= 256`; no `strings.TrimSpace` password check.
 - Web: explicit code-point count such as `Array.from(password).length`; do not rely on HTML `minLength` as the canonical rule.
 - OpenAPI RegisterRequest: retain `minLength: 12`, `maxLength: 256`, document code-point/no-normalization semantics.
 - OpenAPI LoginRequest: `minLength: 1`, `maxLength: 256`, document legacy-compatible exact-secret authentication semantics.
 
+Any credential accepted through the historical public JSON registration path was valid Unicode and, because the old registration ceiling was 256 UTF-8 bytes, necessarily had no more than 256 Unicode code points. The login validity/upper-bound rule therefore does not lock out historically valid public credentials.
+
 ## 9. Why this solution
 
-It aligns Go, OpenAPI, and Web with one deterministic unit, supports multilingual secrets, preserves exact bytes for Argon2, eliminates the whitespace-only registration/login contradiction, avoids hidden normalization, and prevents legacy lockout without expanding scope.
+It aligns Go, OpenAPI, and Web with one deterministic unit, supports multilingual secrets, preserves exact bytes for Argon2, eliminates the whitespace-only registration/login contradiction, closes the internal Unicode boundary, avoids hidden normalization, and prevents legacy lockout without expanding scope.
 
 ## 10. Rejected alternatives
 
@@ -109,28 +113,29 @@ Backend:
 6. legacy stored multibyte password shorter than 12 code points still logs in, while new registration with it is rejected.
 7. a valid 12-space password can register and subsequently authenticate unchanged.
 8. login rejects only the truly empty password for emptiness and does not trim before verification.
+9. malformed internal UTF-8 login input and 257-code-point login input are rejected as invalid credentials before Argon2.
 
 OpenAPI:
 
-9. Register password remains 12..256 with explicit code-point/exact-secret semantics.
-10. Login becomes 1..256 with compatibility semantics.
-11. contract validation stays green.
+10. Register password remains 12..256 with explicit code-point/exact-secret semantics.
+11. Login becomes 1..256 with compatibility semantics.
+12. contract validation stays green.
 
 Web:
 
-12. registration explicitly counts code points.
-13. six emoji do not pass merely because UTF-16 code units reach twelve.
-14. 12 code points pass; 256 pass; 257 fail.
-15. login can submit the legacy multibyte compatibility vector.
-16. login does not trim or block a non-empty whitespace-only exact secret before submission.
+13. registration explicitly counts code points.
+14. six emoji do not pass merely because UTF-16 code units reach twelve.
+15. 12 code points pass; 256 pass; 257 fail.
+16. login can submit the legacy multibyte compatibility vector.
+17. login does not trim or block a non-empty whitespace-only exact secret before submission.
 
 ## 13. Adversarial review requirements
 
-Reviewer must challenge cross-layer counting parity, accidental UTF-16 dependence, normalization/trimming, whitespace-only credential handling, legacy lockout, unintended weakening of registration policy, P3-04 scope creep, and any unauthorized Argon2 changes.
+Reviewer must challenge cross-layer counting parity, malformed-UTF-8 handling, accidental UTF-16 dependence, normalization/trimming, whitespace-only credential handling, legacy lockout, generic login-failure semantics, unintended weakening of registration policy, P3-04 scope creep, and any unauthorized Argon2 changes.
 
 ## 14. Remediation iterations
 
-The planning phase itself recorded one pre-review hardening iteration: inspection found that the existing login `strings.TrimSpace` emptiness guard conflicts with exact-secret semantics and with registration behavior. This plan therefore explicitly includes exact-empty login admission and whitespace-only regression coverage before independent review.
+The planning phase recorded two pre-review hardening iterations. First, inspection found that the existing login `strings.TrimSpace` emptiness guard conflicts with exact-secret semantics and registration behavior, so the plan added exact-empty login admission and whitespace-only regression coverage. Second, the login boundary was tightened to valid UTF-8 plus a 256-code-point maximum so the service and OpenAPI share the same Unicode-string model without affecting historical public credentials.
 
 Any later implementation-review blocker must be preserved in the Stage 3.35 dossier. Every changed implementation head requires fresh exact-head CI and fresh independent review.
 
