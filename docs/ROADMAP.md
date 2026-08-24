@@ -79,20 +79,20 @@ therefore implements the first vertical slice incrementally instead of recreatin
 
 Stages 3.27 through 3.34 are separately authorized narrow repository-audit remediations and do not
 authorize product-scope expansion. Stage 3.25 privacy evidence planning remains separate. Stage 3.33
-closure is definitively complete through PR #70. Stage 3.34 implementation is canonical at
-`c686a6721df51063ccf62a0303bb759d2215d60e`; P2-16 governance is mechanically enforced, while formal
-Stage 3.34 closure remains pending until PR #82 satisfies its governance gates and is canonical on
-`develop`.
+closure is definitively complete through PR #70. Stage 3.34 implementation is canonical through PR #82 at
+`ae5a152114cc163867a363953f8a3202396b1f6c`. Stage 3.35 P3-01 runtime implementation is canonical
+through PR #84 at `a47df19ccc7edff73f39f4e76aec47580c168c46`. Governance closure is completed through
+PR #85.
 
-When Stage 3.34 closure PR #82 is canonical, the original 32-finding repository-audit backlog is:
+After Stage 3.35 P3-01 closure, the original 32-finding repository-audit backlog is:
 
 - P0: 0
 - P1: 0
 - P2: 0
-- P3: 10
+- P3: 9
 
-The ten remaining findings are P3-01 through P3-10. P3-09 Next.js maintenance and P3-10 Fiber
-maintenance remain separately governed and are not silently closed by the Stage 3.34 security patch.
+The remaining findings are P3-02 through P3-10. P3-09 Next.js maintenance and P3-10 Fiber
+maintenance remain separately governed and are not silently closed by previous security patches.
 No further audit-remediation implementation begins without a separately reviewed planning/remediation
 gate.
 

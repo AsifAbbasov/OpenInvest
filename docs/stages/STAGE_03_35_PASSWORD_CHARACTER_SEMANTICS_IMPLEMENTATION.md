@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Runtime implementation candidate / pre-commit |
+| Status | Runtime implementation completed / canonical through PR #84; governance closure through PR #85 |
 | Date | 2026-08-24 |
 | Canonical base | `develop` at `2ac48b1333e121e2f9fa6722f6962202728082e7` |
 | Planning gate | PR #83 squash-merged |
@@ -93,4 +93,4 @@ The implementation is code/contract-only with no migration or stored-data rewrit
 
 ## Canonical status
 
-P3-01 remains **OPEN**. This candidate does not close the finding and does not authorize commit, push, PR creation, merge, or closure governance. Closure still requires approved implementation review, explicit human repository-mutation authorization, exact-head CI, independent published-head review, explicit squash-merge authorization, canonical merge, and separately governed closure evidence.
+P3-01 runtime implementation is **CLOSED** through PR #84 at `a47df19ccc7edff73f39f4e76aec47580c168c46`. Governance closure is completed separately through PR #85. The finding is not considered canonically CLOSED until the governance closure change is merged.
