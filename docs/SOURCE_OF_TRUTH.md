@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.65 |
+| Version | 1.4.66 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -16,7 +16,8 @@
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
 **Last completed implementation stage: Stage 3.34 — GitHub Governance and CI/Security Hardening implementation**
-**Last completed planning gate: Stage 3.24 — Privacy Security Review Readiness Dossier**
+**Last completed privacy planning gate: Stage 3.24 — Privacy Security Review Readiness Dossier**
+**Last completed audit-remediation planning gate: Stage 3.34 — GitHub Governance and CI/Security Hardening planning (PR #71)**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
 **Current canonical implementation baseline: `develop` at `c686a6721df51063ccf62a0303bb759d2215d60e`**
 **Current privacy-planning work item: Stage 3.25 privacy Security Review evidence-collection plan; it remains documentation-only and does not authorize privacy-lifecycle implementation**
