@@ -204,6 +204,7 @@ type memoryStore struct {
 	auditEvents []AuthAuditRecord
 	revoked     bool
 	rotateCalls int
+	findCalls   int
 }
 
 func (store *memoryStore) RegisterUser(_ context.Context, record RegistrationRecord) (StoredUser, error) {
@@ -224,6 +225,7 @@ func (store *memoryStore) RegisterUser(_ context.Context, record RegistrationRec
 }
 
 func (store *memoryStore) FindUserByEmail(_ context.Context, email string) (StoredUser, string, error) {
+	store.findCalls++
 	if email != store.user.Email {
 		return StoredUser{}, "", ErrInvalidCredentials
 	}

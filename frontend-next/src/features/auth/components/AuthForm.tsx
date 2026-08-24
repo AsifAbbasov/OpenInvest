@@ -4,6 +4,7 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 
 import type { ApiResult, AuthData, LoginPayload, RegisterPayload } from "@/common/api/openinvest";
+import { passwordValidationMessage } from "@/features/auth/passwordPolicy";
 
 type AuthMode = "login" | "register";
 
@@ -23,8 +24,13 @@ export function AuthForm({ message, onLogin, onRegister }: AuthFormProps) {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsSubmitting(true);
     setStatus(null);
+    const passwordError = passwordValidationMessage(password, mode);
+    if (passwordError !== null) {
+      setStatus(passwordError);
+      return;
+    }
+    setIsSubmitting(true);
     const result =
       mode === "register"
         ? await onRegister({ email, password, language: "en", theme: "system", timezone })
@@ -82,7 +88,6 @@ export function AuthForm({ message, onLogin, onRegister }: AuthFormProps) {
             <input
               type="password"
               autoComplete={mode === "register" ? "new-password" : "current-password"}
-              minLength={12}
               value={password}
               required
               onChange={(event) => setPassword(event.target.value)}

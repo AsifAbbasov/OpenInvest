@@ -8,6 +8,7 @@ import (
 	"net/mail"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
 )
@@ -80,7 +81,7 @@ func (s *Service) Register(ctx context.Context, request RegistrationRequest) (Au
 
 func (s *Service) Login(ctx context.Context, request LoginRequest) (AuthResult, error) {
 	email := normalizeEmail(request.Email)
-	if !validNormalizedEmail(email) || strings.TrimSpace(request.Password) == "" {
+	if !validNormalizedEmail(email) || !validLoginPassword(request.Password) {
 		return AuthResult{}, ErrInvalidCredentials
 	}
 	user, passwordHash, err := s.store.FindUserByEmail(ctx, email)
@@ -222,7 +223,11 @@ func validateRegistration(request RegistrationRequest) error {
 	if !validNormalizedEmail(request.Email) {
 		return fmt.Errorf("%w: email is invalid", ErrInvalidInput)
 	}
-	if len(request.Password) < 12 || len(request.Password) > 256 {
+	if !utf8.ValidString(request.Password) {
+		return fmt.Errorf("%w: password must contain valid Unicode", ErrInvalidInput)
+	}
+	passwordLength := utf8.RuneCountInString(request.Password)
+	if passwordLength < 12 || passwordLength > 256 {
 		return fmt.Errorf("%w: password must be 12..256 characters", ErrInvalidInput)
 	}
 	if request.Language != LanguageRU && request.Language != LanguageEN {
@@ -235,6 +240,13 @@ func validateRegistration(request RegistrationRequest) error {
 		return fmt.Errorf("%w: timezone is required", ErrInvalidInput)
 	}
 	return nil
+}
+
+func validLoginPassword(password string) bool {
+	if password == "" || !utf8.ValidString(password) {
+		return false
+	}
+	return utf8.RuneCountInString(password) <= 256
 }
 
 func normalizeEmail(email string) string {

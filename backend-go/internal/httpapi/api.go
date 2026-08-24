@@ -273,7 +273,7 @@ func (api *API) register(c fiber.Ctx) error {
 	}
 	result, err := api.auth.Register(c.Context(), auth.RegistrationRequest{
 		Email:    request.Email,
-		Password: request.Password,
+		Password: string(request.Password),
 		Language: request.Language,
 		Theme:    request.Theme,
 		Timezone: request.Timezone,
@@ -297,7 +297,7 @@ func (api *API) login(c fiber.Ctx) error {
 	if err := decodeStrictJSON(c.Request().Body(), &request); err != nil {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")
 	}
-	result, err := api.auth.Login(c.Context(), auth.LoginRequest{Email: request.Email, Password: request.Password})
+	result, err := api.auth.Login(c.Context(), auth.LoginRequest{Email: request.Email, Password: string(request.Password)})
 	if err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
@@ -972,16 +972,16 @@ type listData[T any] struct {
 }
 
 type registerRequestDTO struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Language string `json:"language"`
-	Theme    string `json:"theme"`
-	Timezone string `json:"timezone"`
+	Email    string           `json:"email"`
+	Password losslessPassword `json:"password"`
+	Language string           `json:"language"`
+	Theme    string           `json:"theme"`
+	Timezone string           `json:"timezone"`
 }
 
 type loginRequestDTO struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string           `json:"email"`
+	Password losslessPassword `json:"password"`
 }
 
 type logoutRequestDTO struct {
