@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.66 |
+| Version | 1.1.67 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
@@ -79,27 +79,41 @@
 | 3.36 — OpenAPI Decimal Grammar planning | Define exact contract-to-parser Decimal lexical parity and parser-version replay compatibility for P3-03 | Complete / merged through PR #87 at `251296e0831cbb0b81c7799cc82cbdf3b451ae6e` |
 | 3.36 — OpenAPI Decimal Grammar implementation | Enforce the published Decimal language, bounded admission, parser-v2 write safety, and exact authenticated completed replay | Complete / merged through PR #88 at `ebbc1c17b905e60d9e82337fc4a1ecd6cf9bccaa` |
 | 3.36 — Closure governance | Independently verify the merged runtime evidence and synchronize P3-03 canonical closure without absorbing another P3 item | Complete / merged through PR #89 at `9c83b68e28bbb8bc971620d3e00be5e177ce0820` |
+| 3.37 — True IANA Timezone Semantics planning | Define exact resolver-backed timezone admission without normalization or financial-date coupling for P3-02 | Complete / merged through PR #90 at `46f74528dcc19424ad087d30d4f2f778e2079b87` |
+| 3.37 — True IANA Timezone Semantics implementation | Enforce exact timezone admission, pre-resolver whitespace/raw-offset rejection, resolver fallback semantics, exact persistence identity, and OpenAPI parity | Complete / merged through PR #91 at `cb6d9b28cd47b1cd283b5861b916e0be627d0ac2` |
+| 3.37 — Closure governance | Independently verify the merged runtime evidence and synchronize P3-02 canonical closure without absorbing another P3 item | Closure candidate on `docs/stage-03-37-p3-02-closure`; merge not authorized |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
 
-Stages 3.27 through 3.36 are separately authorized narrow repository-audit remediations and do not
+Stages 3.27 through 3.37 are separately authorized narrow repository-audit remediations and do not
 authorize product-scope expansion. Stage 3.25 privacy evidence planning remains separate. Stage 3.34
 closure is canonical through PR #82 at `ae5a152114cc163867a363953f8a3202396b1f6c`. Stage 3.35 P3-01
 runtime implementation is canonical through PR #84 at `a47df19ccc7edff73f39f4e76aec47580c168c46`
 and governance closure is canonical through PR #85. Stage 3.36 P3-03 planning is canonical through
 PR #87 at `251296e0831cbb0b81c7799cc82cbdf3b451ae6e`, its runtime implementation is canonical through
 PR #88 at `ebbc1c17b905e60d9e82337fc4a1ecd6cf9bccaa`, and closure governance is canonical through
-PR #89 at `9c83b68e28bbb8bc971620d3e00be5e177ce0820`. P3-03 is CLOSED.
+PR #89 at `9c83b68e28bbb8bc971620d3e00be5e177ce0820`. P3-03 is CLOSED. Stage 3.37 P3-02 planning is
+canonical through PR #90 at `46f74528dcc19424ad087d30d4f2f778e2079b87`, and runtime implementation
+is canonical through PR #91 at `cb6d9b28cd47b1cd283b5861b916e0be627d0ac2`. P3-02 closure governance
+is the active candidate and is not merged or authorized by this roadmap entry.
 
-The current original 32-finding repository-audit backlog is:
+At the base of the Stage 3.37 closure candidate, the current original 32-finding repository-audit backlog is:
 
 - P0: 0
 - P1: 0
 - P2: 0
 - P3: 8
 
-The remaining findings are P3-02, P3-04, P3-05, P3-06, P3-07, P3-08, P3-09, and P3-10. P3-09
+P3-02 runtime remediation is canonical but remains in that count until separately reviewed closure
+governance is merged. After canonical Stage 3.37 closure, the resulting backlog is:
+
+- P0: 0
+- P1: 0
+- P2: 0
+- P3: 7
+
+The post-closure findings are P3-04, P3-05, P3-06, P3-07, P3-08, P3-09, and P3-10. P3-09
 Next.js maintenance and P3-10 Fiber maintenance remain separately governed and are not silently closed
 by previous security patches. Stage 3.25 privacy Security Review evidence planning remains separate.
 No further audit-remediation implementation begins without a separately reviewed planning/remediation gate.
