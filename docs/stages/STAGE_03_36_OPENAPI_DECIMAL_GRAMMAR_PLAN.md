@@ -103,6 +103,18 @@ After this plan receives the required review and approval, the implementation ma
   review errors and cannot reach append. Because this changes normalized candidate/status semantics,
   the implementation must bump `importer.ReviewParserVersion` and preserve the signed review-token
   invalidation contract;
+- the narrow completed-command replay boundary in
+  `backend-go/internal/httpapi/idempotent_import_handler.go`,
+  `backend-go/internal/httpapi/import_replay_recovery.go`, and the existing replay
+  lookup/request-identity code, only as needed to preserve exact read-only replay of a command that
+  completed before the parser-version change. Parser-version invalidation must continue to reject
+  every new financial write authorized by an old review token. It must not make an already-completed
+  command return a current parser or token-validation failure merely because its original request
+  can no longer be parsed under the new semantics. If the current canonical command hash cannot be
+  reconstructed after the semantic change, the implementation may introduce the smallest stable,
+  completed-replay identity mechanism that is bound to the same principal, path, idempotency key,
+  and original request. It must perform a read-only exact-artifact lookup and must never use an old
+  parser-version token to authorize a new append;
 - `backend-go/internal/postgres` focused disposable-PostgreSQL integration tests proving canonical
   persisted Decimal text remains readable through the affected transaction and summary paths;
 - `backend-go/cmd/validate-openapi` contract-parity validation and tests, if needed to prevent future
@@ -159,14 +171,26 @@ make a migration, change snapshots, or split unrelated HTTP code.
     semantic change and requires a fresh review. A newly issued token under the bumped version still
     authorizes an otherwise valid review; the regression must exercise the existing signed-token
     verification path rather than a test-only shortcut.
+11. Parser-version invalidation blocks new financial writes but does not destroy exact read-only
+    replay of an import append that completed before deployment. The regression must persist a
+    completed replay artifact under the prior parser version, bump the version, and retry the exact
+    original request with the same principal, path, and idempotency key. It must return the original
+    status, body, request ID, and trace ID with zero new writes. The suite must cover both a formerly
+    permissive spelling such as `001.25`, which the new parser cannot reconstruct, and a
+    contract-conforming Decimal, so the guarantee cannot accidentally depend on current parsing.
+12. An old parser-version token paired with a new idempotency key, a different principal/path, an
+    altered original request under the same principal/path/idempotency key, or no completed replay
+    artifact must be rejected with zero writes and must not return the prior artifact. The
+    implementation must prove this through the real replay boundary, not by accepting old tokens for
+    fresh appends.
 
 ### Persistence and bounded admission
 
-11. A disposable-PostgreSQL integration test proves canonical stored Decimal text remains readable
+13. A disposable-PostgreSQL integration test proves canonical stored Decimal text remains readable
     through all existing summary/transaction paths.
-12. The parser rejects an oversized lexical input before big-integer conversion. The test must make
+14. The parser rejects an oversized lexical input before big-integer conversion. The test must make
     the bound observable without relying on wall-clock timing alone.
-13. No test, error, trace, or audit entry records raw rejected financial payloads beyond the existing
+15. No test, error, trace, or audit entry records raw rejected financial payloads beyond the existing
     safe error contract.
 
 ## 7. Alternatives rejected
@@ -178,6 +202,7 @@ make a migration, change snapshots, or split unrelated HTTP code.
 | Require exactly eight fractional digits for inputs | Breaks already conforming forms such as `1` and `1.2` without a correctness benefit. |
 | Let PostgreSQL reject malformed or oversized values | Validation would occur too late and may become a generic persistence error. |
 | Permit JSON numeric values | Reintroduces binary floating-point ambiguity and violates the frozen Decimal contract. |
+| Accept a prior parser-version token after deployment | Would let a stale review authorize a new financial write. Exact replay must instead be limited to a completed immutable artifact. |
 | Change Decimal arithmetic while fixing lexical admission | Expands a narrow P3 remediation into unreviewed financial-calculation work. |
 | Add a permissive CSV exception | Creates another client/runtime contract mismatch at the ledger boundary. |
 
@@ -226,7 +251,8 @@ planning remains active and separate.
 
 No implementation begins under this planning document. This stage does not authorize changes to
 financial arithmetic, rounding, database schemas, migrations, stored ledger/history, snapshots,
-import identity, idempotency, session cleanup, account deletion/anonymization, audit retention,
-OpenAPI endpoints, frontend product behavior, global Unicode/maxLength policy, HTTP decomposition,
-dependencies, infrastructure, tax, AI, mobile, broker integrations, or any P3 finding other than
-P3-03.
+session cleanup, account deletion/anonymization, audit retention, OpenAPI endpoints, frontend
+product behavior, global Unicode/maxLength policy, HTTP decomposition, dependencies, infrastructure,
+tax, AI, mobile, broker integrations, or any P3 finding other than P3-03. The sole idempotency or
+import-identity exception is the narrow completed-command replay preservation explicitly defined in
+Section 5 and its required regressions; it must not change fresh-write authorization.
