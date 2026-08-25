@@ -55,13 +55,15 @@ The future implementation must make the Go parser and the public OpenAPI Decimal
 same complete UTF-8 string language:
 
 ```text
-^-?(0|[1-9][0-9]{0,19})(\\.[0-9]{1,8})?$
+^-?(0|[1-9][0-9]{0,19})(\.[0-9]{1,8})?$
 ```
 
 The grammar is ASCII-only and whole-string anchored. It permits `0`, `-0`, `1`, `-1`, `0.5`, and up to
 20 integer plus eight fractional digits. It rejects a leading plus, whitespace, scientific notation,
 locale separators, signs separated from digits, an empty fraction, leading zeroes other than the
 single zero, a decimal point with no digits, and any value outside `NUMERIC(28,8)` lexical capacity.
+The OpenAPI YAML double-quoted scalar encodes the regex token `\.` as `\\.`; that source escaping is
+not part of the Decimal language the runtime parser must recognize.
 
 The internal Decimal value remains fixed at eight fractional digits. Thus a valid input such as `1.2`
 continues to serialize as `"1.20000000"`; output formatting is not a request for callers to submit only
