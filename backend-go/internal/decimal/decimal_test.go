@@ -1,6 +1,51 @@
 package decimal
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
+
+func TestFromStringMatchesPublishedDecimalGrammar(t *testing.T) {
+	for _, input := range []string{
+		"0",
+		"-0",
+		"1",
+		"-1",
+		"0.5",
+		"99999999999999999999.99999999",
+	} {
+		if _, err := FromString(input); err != nil {
+			t.Fatalf("expected published Decimal form %q to parse: %v", input, err)
+		}
+	}
+
+	for _, input := range []string{
+		"+1", "001", "01.0", " 1.25 ", "1  .25", "1.", ".1",
+		"1.000000000", "1e2", "1,25", "\u0661", "-", "+", "",
+		"0000000000000000000000000000000001", "100000000000000000000",
+	} {
+		if _, err := FromString(input); err == nil {
+			t.Fatalf("expected non-contract Decimal form %q to be rejected", input)
+		}
+	}
+}
+
+func TestFromStringRejectsOversizedLexemeBeforeConversion(t *testing.T) {
+	input := strings.Repeat("0", maxLexicalBytes+1)
+	if _, err := FromString(input); err == nil {
+		t.Fatalf("expected %d-byte Decimal lexeme to be rejected", len(input))
+	}
+}
+
+func TestFromLegacyStringForReplayNormalizesLongLeadingZeroPrefixBeforeConversion(t *testing.T) {
+	value, err := FromLegacyStringForReplay(strings.Repeat("0", 4096) + "1.25")
+	if err != nil {
+		t.Fatalf("parse historic Decimal: %v", err)
+	}
+	if got := value.String(); got != "1.25000000" {
+		t.Fatalf("expected historic Decimal value to remain exact, got %q", got)
+	}
+}
 
 func TestDecimalPreservesEightFractionalDigits(t *testing.T) {
 	value, err := FromString("12.34")

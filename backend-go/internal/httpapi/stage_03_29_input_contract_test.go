@@ -81,6 +81,13 @@ func TestStage329InvalidAndOversizedDecimalsReturn400BeforeStore(t *testing.T) {
 		quantity string
 	}{
 		{name: "malformed", quantity: "abc"},
+		{name: "leading plus", quantity: "+1"},
+		{name: "leading zero", quantity: "001.25"},
+		{name: "surrounding whitespace", quantity: " 1.25 "},
+		{name: "empty fraction", quantity: "1."},
+		{name: "scientific notation", quantity: "1e2"},
+		{name: "unicode digit", quantity: "\u0661"},
+		{name: "long leading zero prefix", quantity: strings.Repeat("0", 31)},
 		{name: "outside NUMERIC(28,8)", quantity: "100000000000000000000.00000000"},
 	} {
 		t.Run(testCase.name, func(t *testing.T) {

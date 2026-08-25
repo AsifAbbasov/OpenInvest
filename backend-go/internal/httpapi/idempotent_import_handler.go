@@ -13,8 +13,8 @@ import (
 )
 
 // appendImportReplaySafe preserves the normal signed-review validation path for fresh writes.
-// Only an otherwise-valid token whose lifetime has expired may enter read-only replay recovery.
-// Signature, context, parser semantics, row identities, and decisions remain mandatory for recovery.
+// Recovery can only return an exact completed artifact after independently verifying the historic
+// signed proof; it never lets an old parser version authorize a new financial write.
 func (api *API) appendImportReplaySafe(c fiber.Ctx) error {
 	meta := requestMeta(c)
 	subjectID, err := api.subjectID(c)
@@ -38,7 +38,8 @@ func (api *API) appendImportReplaySafe(c fiber.Ctx) error {
 		return writeMappedErrorWithMeta(c, meta, fmt.Errorf("%w: sourceFileHash does not match import payload", importer.ErrUnsafeAppend))
 	}
 
-	preflightReview, err := importer.ReviewCSV(importer.ReviewRequest{
+	decisions := request.toAppDecisions()
+	preflightReview, reviewErr := importer.ReviewCSV(importer.ReviewRequest{
 		SubjectID:          subjectID,
 		PortfolioID:        portfolioID,
 		SourceKind:         importer.SourceKindUserUploadedFile,
@@ -46,14 +47,19 @@ func (api *API) appendImportReplaySafe(c fiber.Ctx) error {
 		FileHash:           fileHash,
 		Reader:             strings.NewReader(request.CSVPayload),
 	})
-	if err != nil {
-		return writeMappedErrorWithMeta(c, meta, err)
+	if reviewErr != nil {
+		if artifact, found := api.recoverCompletedImportReplay(
+			c.Context(), meta.toApp(), subjectID, portfolioID, c.Get("Idempotency-Key"), c.Path(),
+			request.SourceAccountLabel, fileHash, request.ReviewToken, request.CSVPayload, decisions,
+		); found {
+			return writeCommandReplayArtifact(c, artifact)
+		}
+		return writeMappedErrorWithMeta(c, meta, reviewErr)
 	}
 	if err := validateImportRowCount(preflightReview.Summary.TotalRows); err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
 
-	decisions := request.toAppDecisions()
 	verifyErr := api.verifyImportReviewToken(
 		request.ReviewToken,
 		subjectID,
@@ -65,38 +71,13 @@ func (api *API) appendImportReplaySafe(c fiber.Ctx) error {
 		decisions,
 	)
 	if verifyErr != nil {
-		// A failed proof must never authorize a new write. Recovery is allowed only when the token
-		// is authentic, context/semantics-valid, and failed solely because its lifetime elapsed.
-		if api.expiredImportReviewTokenCanRecover(
-			request.ReviewToken,
-			subjectID,
-			portfolioID,
-			importer.SourceKindUserUploadedFile,
-			request.SourceAccountLabel,
-			fileHash,
-			preflightReview,
-			decisions,
-		) {
-			if appendRequests, buildErr := importer.BuildAppendRequests(preflightReview, decisions); buildErr == nil && len(appendRequests) > 0 {
-				artifact, found, lookupErr := api.service.LookupImportedTransactionsReplay(
-					c.Context(),
-					meta.toApp(),
-					subjectID,
-					c.Get("Idempotency-Key"),
-					c.Path(),
-					verticalslice.AppendImportBatchRequest{
-						PortfolioID:        portfolioID,
-						Transactions:       appendRequests,
-						SourceKind:         preflightReview.SourceKind,
-						SourceAccountLabel: preflightReview.SourceAccountLabel,
-						SourceFileHash:     preflightReview.FileHash,
-						Decisions:          stage0332ImportDecisions(decisions),
-					},
-				)
-				if lookupErr == nil && found {
-					return writeCommandReplayArtifact(c, artifact)
-				}
-			}
+		// A failed proof must never authorize a new write. The recovery path itself
+		// rechecks the complete historic proof before its read-only exact-artifact lookup.
+		if artifact, found := api.recoverCompletedImportReplay(
+			c.Context(), meta.toApp(), subjectID, portfolioID, c.Get("Idempotency-Key"), c.Path(),
+			request.SourceAccountLabel, fileHash, request.ReviewToken, request.CSVPayload, decisions,
+		); found {
+			return writeCommandReplayArtifact(c, artifact)
 		}
 		// Preserve the original proof failure unless an exact completed response was recovered.
 		return writeMappedErrorWithMeta(c, meta, verifyErr)

@@ -23,8 +23,9 @@ const (
 
 	// ReviewParserVersion is part of the signed review-token contract. Any change
 	// that can alter normalized candidate/status semantics must bump this version.
-	ReviewParserVersion = 1
-	MaxReviewRows       = 100
+	ReviewParserVersion         = 2
+	previousReviewParserVersion = 1
+	MaxReviewRows               = 100
 
 	ReviewStatusAppendable = "APPENDABLE"
 	ReviewStatusDuplicate  = "DUPLICATE"
@@ -164,6 +165,16 @@ type reviewSemanticRow struct {
 // ReviewSemanticDigest binds the exact normalized parser/reconciliation meaning of
 // every reviewed row without exposing raw broker operation identifiers.
 func ReviewSemanticDigest(review Review) (string, error) {
+	return ReviewSemanticDigestForParserVersion(review, ReviewParserVersion)
+}
+
+// ReviewSemanticDigestForParserVersion recreates the digest that was signed for
+// a supported historic parser version. It is used only to authenticate completed
+// command replay; fresh review and append paths always use ReviewParserVersion.
+func ReviewSemanticDigestForParserVersion(review Review, parserVersion int) (string, error) {
+	if parserVersion != ReviewParserVersion && parserVersion != previousReviewParserVersion {
+		return "", fmt.Errorf("%w: unsupported review parser version", ErrUnsafeAppend)
+	}
 	rows := make([]reviewSemanticRow, 0, len(review.Rows))
 	for _, row := range review.Rows {
 		reasons := append([]string(nil), row.ReasonCodes...)
@@ -183,7 +194,7 @@ func ReviewSemanticDigest(review Review) (string, error) {
 		ParserVersion int                 `json:"parserVersion"`
 		Rows          []reviewSemanticRow `json:"rows"`
 	}{
-		ParserVersion: ReviewParserVersion,
+		ParserVersion: parserVersion,
 		Rows:          rows,
 	})
 	if err != nil {
@@ -244,6 +255,26 @@ func sortedSet(values map[string]struct{}) []string {
 }
 
 func ReviewCSV(request ReviewRequest) (Review, error) {
+	return reviewCSV(request, decimal.FromString)
+}
+
+// ReviewCSVForParserVersion reconstructs only a supported historical review for
+// completed-command replay. Callers must validate a signed token before using its
+// result; it is not a public admission path for fresh imports.
+func ReviewCSVForParserVersion(request ReviewRequest, parserVersion int) (Review, error) {
+	switch parserVersion {
+	case ReviewParserVersion:
+		return reviewCSV(request, decimal.FromString)
+	case previousReviewParserVersion:
+		return reviewCSV(request, decimal.FromLegacyStringForReplay)
+	default:
+		return Review{}, fmt.Errorf("%w: unsupported review parser version", ErrUnsafeAppend)
+	}
+}
+
+type decimalParser func(string) (decimal.Decimal, error)
+
+func reviewCSV(request ReviewRequest, parseDecimal decimalParser) (Review, error) {
 	if strings.TrimSpace(request.SubjectID) == "" {
 		return Review{}, fmt.Errorf("%w: subjectId is required", ErrInvalidImport)
 	}
@@ -303,7 +334,7 @@ func ReviewCSV(request ReviewRequest) (Review, error) {
 			review.Rows = append(review.Rows, invalidRow(rowNumber, nil, "MALFORMED_CSV_ROW"))
 			continue
 		}
-		row := reviewRow(request.PortfolioID, columns, record, rowNumber)
+		row := reviewRow(request.PortfolioID, columns, record, rowNumber, parseDecimal)
 		if row.Candidate != nil {
 			duplicate, identityConflict := existingIdentityMatch(row, request.PortfolioID, review.SourceAccountLabel, request.Existing)
 			if duplicate {
@@ -443,9 +474,9 @@ func decisionIdentities(decisions []Decision) []DecisionIdentity {
 	return identities
 }
 
-func reviewRow(portfolioID string, columns map[string]int, record []string, rowNumber int) RowReview {
+func reviewRow(portfolioID string, columns map[string]int, record []string, rowNumber int, parseDecimal decimalParser) RowReview {
 	rowHash := hashRecord(record)
-	candidate, brokerOperationID, brokerOperationKey, reasons := normalizeCandidate(columns, record)
+	candidate, brokerOperationID, brokerOperationKey, reasons := normalizeCandidate(columns, record, parseDecimal)
 	if len(reasons) > 0 && candidate == nil {
 		return RowReview{RowNumber: rowNumber, RowHash: rowHash, Status: ReviewStatusInvalid, ReasonCodes: reasons}
 	}
@@ -478,7 +509,7 @@ func reviewRow(portfolioID string, columns map[string]int, record []string, rowN
 	}
 }
 
-func normalizeCandidate(columns map[string]int, record []string) (*Candidate, string, string, []string) {
+func normalizeCandidate(columns map[string]int, record []string, parseDecimal decimalParser) (*Candidate, string, string, []string) {
 	reasons := []string{}
 	transactionType := strings.ToUpper(strings.TrimSpace(value(record, columns, "transaction_type")))
 	currency := strings.ToUpper(strings.TrimSpace(value(record, columns, "currency")))
@@ -505,16 +536,16 @@ func normalizeCandidate(columns map[string]int, record []string) (*Candidate, st
 		return nil, safeBrokerOperationID, brokerOperationKey, []string{"NOTE_TOO_LONG"}
 	}
 
-	gross, err := parseMoney(grossText, "GROSS_AMOUNT")
+	gross, err := parseMoney(grossText, "GROSS_AMOUNT", parseDecimal)
 	grossParsed := err == nil
 	if err != nil {
 		reasons = append(reasons, err.Error())
 	}
-	commission, err := parseOptionalMoney(commissionText, "COMMISSION")
+	commission, err := parseOptionalMoney(commissionText, "COMMISSION", parseDecimal)
 	if err != nil {
 		reasons = append(reasons, err.Error())
 	}
-	tax, err := parseOptionalMoney(taxText, "TAX")
+	tax, err := parseOptionalMoney(taxText, "TAX", parseDecimal)
 	if err != nil {
 		reasons = append(reasons, err.Error())
 	}
@@ -552,13 +583,13 @@ func normalizeCandidate(columns map[string]int, record []string) (*Candidate, st
 		} else {
 			candidate.Ticker = &ticker
 		}
-		quantity, err := parsePositiveDecimal(quantityText, "QUANTITY")
+		quantity, err := parsePositiveDecimal(quantityText, "QUANTITY", parseDecimal)
 		if err != nil {
 			reasons = append(reasons, err.Error())
 		} else {
 			candidate.Quantity = &quantity
 		}
-		unitPrice, err := parseMoney(unitPriceText, "UNIT_PRICE")
+		unitPrice, err := parseMoney(unitPriceText, "UNIT_PRICE", parseDecimal)
 		if err != nil {
 			reasons = append(reasons, err.Error())
 		} else if !unitPrice.Amount.IsPositive() {
@@ -619,8 +650,8 @@ func value(record []string, columns map[string]int, column string) string {
 	return strings.TrimSpace(record[index])
 }
 
-func parseMoney(input string, code string) (verticalslice.Money, error) {
-	amount, err := decimal.FromString(input)
+func parseMoney(input string, code string, parseDecimal decimalParser) (verticalslice.Money, error) {
+	amount, err := parseDecimal(input)
 	if err != nil {
 		return verticalslice.ZeroMoney(), fmt.Errorf("%s_INVALID", code)
 	}
@@ -630,15 +661,15 @@ func parseMoney(input string, code string) (verticalslice.Money, error) {
 	return verticalslice.Money{Amount: amount, Currency: verticalslice.RUB}, nil
 }
 
-func parseOptionalMoney(input string, code string) (verticalslice.Money, error) {
+func parseOptionalMoney(input string, code string, parseDecimal decimalParser) (verticalslice.Money, error) {
 	if strings.TrimSpace(input) == "" {
 		return verticalslice.ZeroMoney(), nil
 	}
-	return parseMoney(input, code)
+	return parseMoney(input, code, parseDecimal)
 }
 
-func parsePositiveDecimal(input string, code string) (decimal.Decimal, error) {
-	value, err := decimal.FromString(input)
+func parsePositiveDecimal(input string, code string, parseDecimal decimalParser) (decimal.Decimal, error) {
+	value, err := parseDecimal(input)
 	if err != nil {
 		return decimal.Zero(), fmt.Errorf("%s_INVALID", code)
 	}

@@ -97,6 +97,9 @@ func TestStage0332CompletedImportReplaysAfterReviewTokenExpires(t *testing.T) {
 type stage32ImportReplayStore struct {
 	importAPITestStore
 	requestHash       string
+	subjectID         string
+	idempotencyKey    string
+	requestPath       string
 	artifact          verticalslice.CommandReplayArtifact
 	appendReplayCalls int
 	lookupCalls       int
@@ -111,8 +114,11 @@ func (store *stage32ImportReplayStore) LookupReplayArtifact(
 	if store.requestHash == "" {
 		return verticalslice.CommandReplayArtifact{}, false, nil
 	}
-	if store.requestHash != command.RequestHash {
-		return verticalslice.CommandReplayArtifact{}, false, errors.New("unexpected idempotency request hash mismatch")
+	if store.requestHash != command.RequestHash ||
+		store.subjectID != command.SubjectID ||
+		store.idempotencyKey != command.IdempotencyKey ||
+		store.requestPath != command.RequestPath {
+		return verticalslice.CommandReplayArtifact{}, false, nil
 	}
 	return cloneStage0332ReplayArtifact(store.artifact), true, nil
 }
@@ -180,6 +186,9 @@ func (store *stage32ImportReplayStore) AppendImportedTransactionsWithOutcomeRepl
 		return nil, verticalslice.CommandReplayArtifact{}, err
 	}
 	store.requestHash = command.RequestHash
+	store.subjectID = command.SubjectID
+	store.idempotencyKey = command.IdempotencyKey
+	store.requestPath = command.RequestPath
 	store.artifact = cloneStage0332ReplayArtifact(artifact)
 	return transactions, artifact, nil
 }

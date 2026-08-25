@@ -9,8 +9,10 @@ import (
 )
 
 const (
-	Scale     = 8
-	Precision = 28
+	Scale            = 8
+	Precision        = 28
+	maxLexicalBytes  = 1 + 20 + 1 + Scale
+	maxIntegerDigits = Precision - Scale
 )
 
 var scaleFactor = big.NewInt(100000000)
@@ -24,30 +26,54 @@ func Zero() Decimal {
 }
 
 func FromString(input string) (Decimal, error) {
-	trimmed := strings.TrimSpace(input)
-	if trimmed == "" {
+	return parse(input, false)
+}
+
+// FromLegacyStringForReplay preserves the pre-Stage 3.36 Decimal grammar solely
+// while reconstructing an already-completed import command for a read-only replay.
+// It must never be used to authorize a fresh financial write.
+func FromLegacyStringForReplay(input string) (Decimal, error) {
+	return parse(input, true)
+}
+
+func parse(input string, legacy bool) (Decimal, error) {
+	if !legacy && len(input) > maxLexicalBytes {
+		return Zero(), fmt.Errorf("decimal exceeds %d lexical bytes", maxLexicalBytes)
+	}
+
+	value := input
+	if legacy {
+		value = strings.TrimSpace(value)
+	}
+	if value == "" {
 		return Zero(), errors.New("decimal is empty")
 	}
 
 	sign := 1
-	if strings.HasPrefix(trimmed, "-") {
+	if strings.HasPrefix(value, "-") {
 		sign = -1
-		trimmed = strings.TrimPrefix(trimmed, "-")
-	} else if strings.HasPrefix(trimmed, "+") {
-		trimmed = strings.TrimPrefix(trimmed, "+")
+		value = strings.TrimPrefix(value, "-")
+	} else if legacy && strings.HasPrefix(value, "+") {
+		value = strings.TrimPrefix(value, "+")
 	}
 
-	parts := strings.Split(trimmed, ".")
+	parts := strings.Split(value, ".")
 	if len(parts) > 2 || parts[0] == "" {
 		return Zero(), fmt.Errorf("invalid decimal %q", input)
 	}
-
 	whole := parts[0]
 	fraction := ""
 	if len(parts) == 2 {
 		fraction = parts[1]
 	}
-	if len(fraction) > Scale {
+	if !legacy {
+		if len(whole) > maxIntegerDigits ||
+			(len(whole) > 1 && whole[0] == '0') ||
+			len(fraction) > Scale ||
+			(len(parts) == 2 && len(fraction) == 0) {
+			return Zero(), fmt.Errorf("invalid decimal %q", input)
+		}
+	} else if len(fraction) > Scale {
 		return Zero(), fmt.Errorf("decimal %q exceeds %d fractional digits", input, Scale)
 	}
 	for _, char := range whole + fraction {
@@ -57,12 +83,23 @@ func FromString(input string) (Decimal, error) {
 	}
 
 	fraction = fraction + strings.Repeat("0", Scale-len(fraction))
-	canonicalDigits := strings.TrimLeft(whole+fraction, "0")
-	if len(canonicalDigits) > Precision {
-		return Zero(), fmt.Errorf("decimal %q exceeds NUMERIC(%d,%d) precision", input, Precision, Scale)
+	unscaledDigits := whole + fraction
+	if legacy {
+		canonicalDigits := strings.TrimLeft(unscaledDigits, "0")
+		if len(canonicalDigits) > Precision {
+			return Zero(), fmt.Errorf("decimal %q exceeds NUMERIC(%d,%d) precision", input, Precision, Scale)
+		}
+		// Historic input may have an arbitrarily long leading-zero prefix. Preserve
+		// its numeric value while ensuring compatibility replay never sends that
+		// prefix to big.Int conversion.
+		whole = strings.TrimLeft(whole, "0")
+		if whole == "" {
+			whole = "0"
+		}
+		unscaledDigits = whole + fraction
 	}
 	unscaled := new(big.Int)
-	if _, ok := unscaled.SetString(whole+fraction, 10); !ok {
+	if _, ok := unscaled.SetString(unscaledDigits, 10); !ok {
 		return Zero(), fmt.Errorf("invalid decimal %q", input)
 	}
 	if sign < 0 {
