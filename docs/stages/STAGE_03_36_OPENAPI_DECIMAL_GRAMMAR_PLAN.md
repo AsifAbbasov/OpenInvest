@@ -230,3 +230,22 @@ import identity, idempotency, session cleanup, account deletion/anonymization, a
 OpenAPI endpoints, frontend product behavior, global Unicode/maxLength policy, HTTP decomposition,
 dependencies, infrastructure, tax, AI, mobile, broker integrations, or any P3 finding other than
 P3-03.
+
+## 12. Review evidence publication
+
+The Internal Review Evidence was withheld from the Draft PR context until the independent blind
+external review reached its verdict, as required by the review workflow. This evidence-only section
+is published afterward and does not authorize implementation or alter the P3-03 closure rule.
+
+| Evidence | Result |
+| --- | --- |
+| Reviewed planning head | `4ca09ed30a3da7b8ae15c2400bbdac2eb4943b7c` |
+| Internal Review Agent final gate | `APPROVED` with no P0/P1/P2 |
+| Independent blind external review | `APPROVED` with no P0/P1/P2 |
+| Exact-head CI | Run `32808325379`: all 10 required jobs passed |
+| Local verification | `pnpm run verify` and `git diff --check` passed |
+| Scope confirmation | One planning dossier only; no runtime, OpenAPI, migration, configuration, or product behavior change |
+
+The follow-up commit containing this section must be reviewed by both agents as evidence-only
+governance publication. P3-03 remains OPEN until the separate implementation and closure rule in
+Section 10 are complete.
