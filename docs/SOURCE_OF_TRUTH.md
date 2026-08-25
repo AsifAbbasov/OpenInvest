@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.68 |
+| Version | 1.4.69 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -15,11 +15,11 @@
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.36 — OpenAPI Decimal Grammar implementation**
+**Last completed implementation stage: Stage 3.37 — True IANA Timezone Semantics implementation**
 **Last completed privacy planning gate: Stage 3.24 — Privacy Security Review Readiness Dossier**
-**Last completed audit-remediation planning gate: Stage 3.36 — OpenAPI Decimal Grammar planning (PR #87)**
+**Last completed audit-remediation planning gate: Stage 3.37 — True IANA Timezone Semantics planning (PR #90)**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `9c83b68e28bbb8bc971620d3e00be5e177ce0820`**
+**Current canonical implementation baseline: `develop` at `cb6d9b28cd47b1cd283b5861b916e0be627d0ac2`**
 **Current privacy-planning work item: Stage 3.25 privacy Security Review evidence-collection plan; it remains documentation-only and does not authorize privacy-lifecycle implementation**
 **Stage 3.27 remediation: CLOSED for P1-02, P1-03, and P1-04; implementation PR #55 was squash-merged into `develop` at `6e8c806de857f844954f1db513487357dfe90187` after exact-head CI #90, renewed independent `APPROVED` review on `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c`, explicit human squash-merge authorization, and closure governance through PR #58**
 **Stage 3.28 remediation: CLOSED for P1-01 and P1-05; implementation PR #59 was squash-merged into `develop` at `dc83f5f3a11da164e6809593861d96ccf47b29ca` after exact-head CI #114, renewed independent `APPROVED` review on `92edab5d3e93dafe2fcc6247644e38e878a4202f`, explicit human squash-merge authorization, and closure governance squash-merged through PR #60 at `0ddc618a3450ea81fd4befb3b10c959b3cb82a25`; Stage 3.25 and P2/P3 remain separate**
@@ -30,6 +30,7 @@
 **Stage 3.33 remediation: CLOSED for P2-10/P2-11/P2-12; implementation PR #69 was squash-merged into `develop` at `87a7c38e16062a5f3fcef3727f60c0c6741eb805` after exact-head CI #199, two independent `REQUEST CHANGES` cycles for P2-12 credential-graph escalation gaps, both remediations, final independent `APPROVED` review on `88ec8f739f7bcc96267c25f41560e1960d4d48d5`, explicit human squash-merge authorization, and closure governance squash-merged through PR #70 at `71a1faeb97d33d05f2936111b53f1285edddabe9`; exactly 2 P2 plus 10 P3 findings remained after closure**
 **Stage 3.34 remediation: P2-17 implementation is canonical through PR #80 at `c686a6721df51063ccf62a0303bb759d2215d60e` after exact-head CI #230, independent implementation `APPROVED`, and explicit human squash-merge authorization; P2-16 is mechanically enforced through public-repository `develop` protection and squash-only merge policy; Stage 3.34 remediation closure is canonical through PR #82 at `ae5a152114cc163867a363953f8a3202396b1f6c`. Stage 3.35 P3-01 runtime implementation is canonical through PR #84 at `a47df19ccc7edff73f39f4e76aec47580c168c46`; governance closure is completed through PR #85.**
 **Stage 3.36 remediation: planning is canonical through PR #87 at `251296e0831cbb0b81c7799cc82cbdf3b451ae6e`; runtime implementation is canonical through PR #88 at `ebbc1c17b905e60d9e82337fc4a1ecd6cf9bccaa`, from frozen runtime head `131f1bf963e9d232b9e23273edd54caf54c10ffb`, after exact-head CI #257 / run `32822925542` with all 10 required jobs successful; closure governance is canonical through PR #89 at `9c83b68e28bbb8bc971620d3e00be5e177ce0820`. P3-03 is CLOSED and the current original audit backlog is P0=0 / P1=0 / P2=0 / P3=8: P3-02, P3-04, P3-05, P3-06, P3-07, P3-08, P3-09, and P3-10. Stage 3.25 remains separate.**
+**Stage 3.37 remediation: planning is canonical through PR #90 at `46f74528dcc19424ad087d30d4f2f778e2079b87`; runtime implementation is canonical through PR #91 at `cb6d9b28cd47b1cd283b5861b916e0be627d0ac2`, from frozen final runtime head `1a2f89a0fa5095b3cca790521afa484bdc61e8a6`, after exact-head CI #265 / run `32869754524` with all 10 required jobs successful and fresh published-head independent `APPROVED`. P3-02 closure governance is an unmerged candidate, so the canonical original audit backlog remains P0=0 / P1=0 / P2=0 / P3=8 until that closure is independently approved, explicitly authorized for merge, and merged; after closure it becomes P3=7. P3-04 and all other remaining findings remain separate. Stage 3.25 remains separate.**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -543,3 +544,35 @@ explicit human squash-merge authorization, and was squash-merged into `develop` 
 P3-03 is canonically CLOSED. The current original audit backlog is P0=0 / P1=0 / P2=0 / P3=8:
 P3-02, P3-04, P3-05, P3-06, P3-07, P3-08, P3-09, and P3-10. Stage 3.25 privacy Security Review
 evidence planning remains separate and is not superseded.
+
+## Stage 3.37 audit remediation closure governance
+
+Stage 3.37 is the separately governed P3-02 True IANA Timezone Semantics remediation. Planning PR #90
+was squash-merged into `develop` at `46f74528dcc19424ad087d30d4f2f778e2079b87`. Runtime PR #91
+was squash-merged into `develop` at `cb6d9b28cd47b1cd283b5861b916e0be627d0ac2`; the frozen final
+runtime head was `1a2f89a0fa5095b3cca790521afa484bdc61e8a6` and exact-head GitHub Actions
+CI #265 / run `32869754524` completed successfully across all 10 required jobs.
+
+The runtime validates the exact submitted timezone identity, rejects `Local`, surrounding-whitespace
+forms, and raw ASCII `±HH:MM` / `UTC±HH:MM` before resolver admission, explicitly retains `UTC`,
+delegates other exact identifiers to `time.LoadLocation`, retains `_ "time/tzdata"` only as fallback
+availability, preserves loadable identifiers such as `Etc/GMT+4`, and persists accepted identity
+unchanged. It does not alter BusinessDate, SQL `DATE`, SystemTimestamp, financial calculations,
+migrations, historical preference rows, or any other P3 finding.
+
+The first independent pre-commit runtime review returned `REQUEST CHANGES` for a custom-`ZONEINFO`
+whitespace/raw-offset bypass; the revised candidate closed that bypass and received renewed
+`APPROVED`. The first published-head review returned `REQUEST CHANGES` only for stale lifecycle
+wording in the implementation record. The independently pre-commit-approved documentation correction
+advanced the final head to `1a2f89a0fa5095b3cca790521afa484bdc61e8a6`; CI #265 succeeded on that
+exact head and the fresh final published-head review returned `APPROVED` with no P0/P1/P2/P3 finding.
+
+The closure candidate requires a fresh independent review of the merged runtime evidence and closure
+diff, exact-head green closure CI after publication, and separate explicit human squash-merge
+authorization before the closure PR may merge.
+
+Until that closure merge occurs, P3-02 remains canonically OPEN and the original audit backlog stays
+P0=0 / P1=0 / P2=0 / P3=8. After an independently approved and explicitly authorized closure merge,
+P3-02 becomes CLOSED and the remaining backlog is P3=7: P3-04, P3-05, P3-06, P3-07, P3-08,
+P3-09, and P3-10. Stage 3.25 privacy Security Review evidence planning remains separate and is not
+superseded.

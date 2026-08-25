@@ -2,15 +2,18 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Published runtime candidate / renewed published-head review pending |
+| Status | Runtime implementation canonical through PR #91 / closure governance pending |
 | Date | 2026-08-25 |
 | Planning gate | PR #90 squash-merged at `46f74528dcc19424ad087d30d4f2f778e2079b87` |
 | Canonical runtime base | `develop` at `46f74528dcc19424ad087d30d4f2f778e2079b87` |
 | Runtime PR | PR #91 |
 | Candidate branch | `codex/stage-03-37-p3-02-timezone-runtime` |
 | Initial published runtime head | `465a7f0ddfe5a7bf892ec8a735915688cdaf59ad` |
+| Frozen final runtime head | `1a2f89a0fa5095b3cca790521afa484bdc61e8a6` |
+| Runtime merge | `cb6d9b28cd47b1cd283b5861b916e0be627d0ac2` |
+| Exact-head CI | CI #265 / run `32869754524`, 10/10 required jobs successful |
 | Finding | P3-02 |
-| Commit / push | Runtime candidate published in PR #91; runtime merge remains unauthorized |
+| Commit / push | Published through PR #91 and canonically squash-merged |
 | Runtime merge authorized here | No |
 
 ## Objective
@@ -140,8 +143,11 @@ maintenance, database migration, frontend change, provider work, or Stage 3.25 p
 
 ## Canonical status
 
-This is a published runtime candidate in PR #91. P3-02 remains OPEN. Runtime merge is not authorized
-and closure is not authorized. The current PR head requires exact-head green CI and fresh independent
-published-head review before separate explicit human Ready + squash-merge authorization may be
-requested. Canonical runtime merge and separately governed closure evidence are still required before
-P3-02 may be CLOSED.
+The Stage 3.37 runtime implementation is canonical through PR #91 at
+`cb6d9b28cd47b1cd283b5861b916e0be627d0ac2`, from frozen final runtime head
+`1a2f89a0fa5095b3cca790521afa484bdc61e8a6` after exact-head CI #265 / run `32869754524`
+and fresh published-head independent `APPROVED`.
+
+Runtime merge alone does not close the audit finding. P3-02 remains canonically **OPEN** until
+separately reviewed closure governance receives fresh independent `APPROVED`, exact-head green closure
+CI after publication, explicit human closure-merge authorization, and is merged into `develop`.
