@@ -332,7 +332,11 @@ User:
       enum: [light, dark, system]
     timezone:
       type: string
-      description: IANA timezone name.
+      description: >-
+        IANA timezone database identifier accepted by the server timezone database resolution.
+        UTC is supported. The host-local pseudo-zone Local and raw UTC-offset strings such as
+        +04:00 or UTC+04:00 are not accepted. Valid loadable identifiers such as Etc/GMT+4
+        remain accepted.
     privacyMode:
       type: boolean
       description: New MVP accounts start with Privacy Mode enabled; later user choice is preserved.
@@ -383,6 +387,11 @@ RegisterRequest:
       type: string
       minLength: 1
       maxLength: 64
+      description: >-
+        IANA timezone database identifier accepted by the server timezone database resolution.
+        UTC is supported. The host-local pseudo-zone Local and raw UTC-offset strings such as
+        +04:00 or UTC+04:00 are not accepted. Valid loadable identifiers such as Etc/GMT+4
+        remain accepted.
 
 LoginRequest:
   type: object
