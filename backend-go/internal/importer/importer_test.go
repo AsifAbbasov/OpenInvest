@@ -38,6 +38,50 @@ func TestReviewCSVClassifiesAppendableRows(t *testing.T) {
 	}
 }
 
+func TestReviewCSVAppliesStrictDecimalGrammarAfterFieldEdgeNormalization(t *testing.T) {
+	for _, amount := range []string{
+		"+1", "001.25", "1.", "1e2", "1,25", "\u0661", strings.Repeat("0", 31),
+	} {
+		t.Run(amount, func(t *testing.T) {
+			review := mustReview(t, csvHeader+
+				"DEPOSIT,,,,"+amount+",0.00000000,0.00000000,2026-06-19,,RUB,strict-"+strings.ReplaceAll(amount, ",", "x")+",invalid\n", nil)
+			if review.Rows[0].Status == ReviewStatusAppendable {
+				t.Fatalf("expected %q to be invalid after CSV normalization", amount)
+			}
+			if _, err := BuildAppendRequests(review, []Decision{{RowNumber: 2, RowHash: review.Rows[0].RowHash, Action: DecisionApprove}}); !errors.Is(err, ErrUnsafeAppend) {
+				t.Fatalf("expected %q to be unable to reach append, got %v", amount, err)
+			}
+		})
+	}
+
+	review := mustReview(t, csvHeader+
+		"DEPOSIT,,,, 1.25 , 0.00000000 , 0.00000000 ,2026-06-19,,RUB,trimmed-field,valid\n", nil)
+	if review.Rows[0].Status != ReviewStatusAppendable {
+		t.Fatalf("expected CSV field-edge whitespace to normalize before Decimal parsing, got %+v", review.Rows[0])
+	}
+}
+
+func TestReviewCSVForParserVersionReconstructsOnlySupportedHistoricalGrammar(t *testing.T) {
+	legacyPayload := csvHeader +
+		"DEPOSIT,,,,001.25,0.00000000,0.00000000,2026-06-19,,RUB,legacy-decimal,legacy\n"
+	if review, err := ReviewCSV(ReviewRequest{
+		SubjectID: "subject-1", PortfolioID: "portfolio-1", SourceKind: SourceKindUserUploadedFile,
+		Reader: strings.NewReader(legacyPayload),
+	}); err != nil || review.Rows[0].Status == ReviewStatusAppendable {
+		t.Fatalf("current parser must reject legacy Decimal spelling: review=%+v err=%v", review, err)
+	}
+	legacyReview, err := ReviewCSVForParserVersion(ReviewRequest{
+		SubjectID: "subject-1", PortfolioID: "portfolio-1", SourceKind: SourceKindUserUploadedFile,
+		Reader: strings.NewReader(legacyPayload),
+	}, previousReviewParserVersion)
+	if err != nil || legacyReview.Rows[0].Status != ReviewStatusAppendable {
+		t.Fatalf("historic parser replay must reconstruct prior semantics: review=%+v err=%v", legacyReview, err)
+	}
+	if _, err := ReviewCSVForParserVersion(ReviewRequest{SubjectID: "subject-1", PortfolioID: "portfolio-1", Reader: strings.NewReader(legacyPayload)}, 99); !errors.Is(err, ErrUnsafeAppend) {
+		t.Fatalf("unsupported parser version must fail closed, got %v", err)
+	}
+}
+
 func TestReviewCSVDetectsExactExistingDuplicate(t *testing.T) {
 	ticker := "SBER"
 	quantity := decimal.Must("2.00000000")

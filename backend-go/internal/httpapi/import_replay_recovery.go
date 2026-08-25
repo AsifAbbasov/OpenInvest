@@ -1,65 +1,86 @@
 package httpapi
 
 import (
-	"encoding/base64"
-	"encoding/json"
+	"context"
 	"strings"
 	"time"
 
 	"github.com/openinvest/openinvest/backend-go/internal/importer"
+	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
-// expiredImportReviewTokenCanRecover returns true only when the supplied token is currently expired
-// but would otherwise pass the complete existing signature, lifetime-shape, subject, portfolio,
-// source, parser-digest, row-identity, and decision verification. Untrusted token timestamps are used
-// only to choose a historical verification instant; they never bypass the normal verifier.
-func (api *API) expiredImportReviewTokenCanRecover(
-	token string,
+// recoverCompletedImportReplay reconstructs the command under the parser semantics signed into an
+// authentic token and performs only a read-only lookup. It cannot authorize a fresh append: callers
+// use its artifact only after current verification failed, and a missing artifact always falls back
+// to that failure. The supplied parser version is never accepted for a new write.
+func (api *API) recoverCompletedImportReplay(
+	ctx context.Context,
+	requestContext verticalslice.RequestContext,
 	subjectID string,
 	portfolioID string,
-	sourceKind string,
+	idempotencyKey string,
+	requestPath string,
 	sourceAccountLabel string,
 	sourceFileHash string,
-	parserReview importer.Review,
+	token string,
+	csvPayload string,
 	decisions []importer.Decision,
-) bool {
-	token = strings.TrimSpace(token)
-	if len(token) == 0 || len(token) > maxImportReviewTokenBytes {
-		return false
+) (verticalslice.CommandReplayArtifact, bool) {
+	payload, err := api.decodeImportReviewToken(token)
+	if err != nil || payload.IssuedAt <= 0 || payload.ExpiresAt <= payload.IssuedAt {
+		return verticalslice.CommandReplayArtifact{}, false
 	}
-	parts := strings.Split(token, ".")
-	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-		return false
-	}
-	body, err := base64.RawURLEncoding.DecodeString(parts[0])
-	if err != nil {
-		return false
-	}
-	var payload importReviewTokenPayload
-	if err := json.Unmarshal(body, &payload); err != nil {
-		return false
-	}
-	if payload.IssuedAt <= 0 || payload.ExpiresAt <= payload.IssuedAt {
-		return false
-	}
-	expiresAt := time.Unix(payload.ExpiresAt, 0).UTC()
-	if api.nowUTC().Before(expiresAt) {
-		return false
+	parserReview, err := importer.ReviewCSVForParserVersion(importer.ReviewRequest{
+		SubjectID:          subjectID,
+		PortfolioID:        portfolioID,
+		SourceKind:         importer.SourceKindUserUploadedFile,
+		SourceAccountLabel: sourceAccountLabel,
+		FileHash:           sourceFileHash,
+		Reader:             strings.NewReader(csvPayload),
+	}, payload.ParserVersion)
+	if err != nil || validateImportRowCount(parserReview.Summary.TotalRows) != nil {
+		return verticalslice.CommandReplayArtifact{}, false
 	}
 
-	// Verify the entire token at the instant it was issued. A copied API avoids mutating the live
-	// request clock and makes this safe for concurrent requests.
+	// Verify the complete historic proof at issuance. A copied API avoids mutating
+	// the live request clock and is safe for concurrent requests.
 	recoveryVerifier := *api
 	issuedAt := time.Unix(payload.IssuedAt, 0).UTC()
 	recoveryVerifier.now = func() time.Time { return issuedAt }
-	return recoveryVerifier.verifyImportReviewToken(
+	if err := recoveryVerifier.verifyImportReviewTokenForParserVersion(
 		token,
 		subjectID,
 		portfolioID,
-		sourceKind,
+		importer.SourceKindUserUploadedFile,
 		sourceAccountLabel,
 		sourceFileHash,
 		parserReview,
 		decisions,
-	) == nil
+		payload.ParserVersion,
+	); err != nil {
+		return verticalslice.CommandReplayArtifact{}, false
+	}
+	appendRequests, err := importer.BuildAppendRequests(parserReview, decisions)
+	if err != nil || len(appendRequests) == 0 {
+		return verticalslice.CommandReplayArtifact{}, false
+	}
+	artifact, found, err := api.service.LookupImportedTransactionsReplay(
+		ctx,
+		requestContext,
+		subjectID,
+		idempotencyKey,
+		requestPath,
+		verticalslice.AppendImportBatchRequest{
+			PortfolioID:        portfolioID,
+			Transactions:       appendRequests,
+			SourceKind:         parserReview.SourceKind,
+			SourceAccountLabel: parserReview.SourceAccountLabel,
+			SourceFileHash:     parserReview.FileHash,
+			Decisions:          stage0332ImportDecisions(decisions),
+		},
+	)
+	if err != nil || !found {
+		return verticalslice.CommandReplayArtifact{}, false
+	}
+	return artifact, true
 }

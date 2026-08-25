@@ -1634,29 +1634,36 @@ func (api *API) verifyImportReviewToken(
 	parserReview importer.Review,
 	decisions []importer.Decision,
 ) error {
-	token = strings.TrimSpace(token)
-	if len(token) == 0 || len(token) > maxImportReviewTokenBytes {
-		return fmt.Errorf("%w: reviewToken is invalid", verticalslice.ErrInvalidInput)
-	}
-	parts := strings.Split(token, ".")
-	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-		return fmt.Errorf("%w: reviewToken is invalid", verticalslice.ErrInvalidInput)
-	}
-	expectedSignature := api.signImportReviewTokenPart(parts[0])
-	if !hmac.Equal([]byte(parts[1]), []byte(expectedSignature)) {
-		return fmt.Errorf("%w: reviewToken signature is invalid", importer.ErrUnsafeAppend)
-	}
-	body, err := base64.RawURLEncoding.DecodeString(parts[0])
-	if err != nil {
-		return fmt.Errorf("%w: reviewToken payload is invalid", verticalslice.ErrInvalidInput)
-	}
-	var payload importReviewTokenPayload
-	if err := json.Unmarshal(body, &payload); err != nil {
-		return fmt.Errorf("%w: reviewToken payload is invalid", verticalslice.ErrInvalidInput)
-	}
+	return api.verifyImportReviewTokenForParserVersion(
+		token,
+		subjectID,
+		portfolioID,
+		sourceKind,
+		sourceAccountLabel,
+		sourceFileHash,
+		parserReview,
+		decisions,
+		importer.ReviewParserVersion,
+	)
+}
 
+func (api *API) verifyImportReviewTokenForParserVersion(
+	token string,
+	subjectID string,
+	portfolioID string,
+	sourceKind string,
+	sourceAccountLabel string,
+	sourceFileHash string,
+	parserReview importer.Review,
+	decisions []importer.Decision,
+	parserVersion int,
+) error {
+	payload, err := api.decodeImportReviewToken(token)
+	if err != nil {
+		return err
+	}
 	if payload.Version != importReviewTokenVersion ||
-		payload.ParserVersion != importer.ReviewParserVersion ||
+		payload.ParserVersion != parserVersion ||
 		payload.ExpiresAt-payload.IssuedAt != int64(importReviewTokenTTL/time.Second) ||
 		payload.IssuedAt <= 0 {
 		return fmt.Errorf("%w: reviewToken version or lifetime is invalid", importer.ErrUnsafeAppend)
@@ -1679,7 +1686,7 @@ func (api *API) verifyImportReviewToken(
 		return fmt.Errorf("%w: reviewToken semantic digest is invalid", importer.ErrUnsafeAppend)
 	}
 
-	parserDigest, err := importer.ReviewSemanticDigest(parserReview)
+	parserDigest, err := importer.ReviewSemanticDigestForParserVersion(parserReview, parserVersion)
 	if err != nil {
 		return err
 	}
@@ -1728,6 +1735,30 @@ func (api *API) verifyImportReviewToken(
 		}
 	}
 	return nil
+}
+
+func (api *API) decodeImportReviewToken(token string) (importReviewTokenPayload, error) {
+	token = strings.TrimSpace(token)
+	if len(token) == 0 || len(token) > maxImportReviewTokenBytes {
+		return importReviewTokenPayload{}, fmt.Errorf("%w: reviewToken is invalid", verticalslice.ErrInvalidInput)
+	}
+	parts := strings.Split(token, ".")
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return importReviewTokenPayload{}, fmt.Errorf("%w: reviewToken is invalid", verticalslice.ErrInvalidInput)
+	}
+	expectedSignature := api.signImportReviewTokenPart(parts[0])
+	if !hmac.Equal([]byte(parts[1]), []byte(expectedSignature)) {
+		return importReviewTokenPayload{}, fmt.Errorf("%w: reviewToken signature is invalid", importer.ErrUnsafeAppend)
+	}
+	body, err := base64.RawURLEncoding.DecodeString(parts[0])
+	if err != nil {
+		return importReviewTokenPayload{}, fmt.Errorf("%w: reviewToken payload is invalid", verticalslice.ErrInvalidInput)
+	}
+	var payload importReviewTokenPayload
+	if err := json.Unmarshal(body, &payload); err != nil {
+		return importReviewTokenPayload{}, fmt.Errorf("%w: reviewToken payload is invalid", verticalslice.ErrInvalidInput)
+	}
+	return payload, nil
 }
 
 func (api *API) signImportReviewTokenPart(bodyPart string) string {
