@@ -2,10 +2,12 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Runtime candidate complete / review pending |
+| Status | Runtime implementation canonical through PR #88 / closure governance pending |
 | Date | 2026-08-25 |
 | Planning gate | PR #87 squash-merged at `251296e0831cbb0b81c7799cc82cbdf3b451ae6` |
 | Finding | P3-03 |
+| Frozen runtime head | `131f1bf963e9d232b9e23273edd54caf54c10ffb` |
+| Runtime merge | `ebbc1c17b905e60d9e82337fc4a1ecd6cf9bccaa` |
 | Runtime merge authorized here | No |
 
 ## Objective
@@ -55,10 +57,10 @@ the public OpenAPI grammar, migrations, or any P3 finding other than P3-03.
 
 ## Verification
 
-- Focused Go Decimal/import/HTTP/OpenAPI tests: PASS.
-- Full `go test ./...`: PASS.
-- Full `pnpm run verify`: PASS.
-- `git diff --check`: PASS.
+The final merge-candidate head `131f1bf963e9d232b9e23273edd54caf54c10ffb` passed GitHub Actions
+CI #257 / run `32822925542` with all 10 required checks successful. The implementation also records
+focused Decimal/import/HTTP/OpenAPI PASS, full `go test ./...` PASS, full `pnpm run verify` PASS, and
+`git diff --check` PASS.
 
 ## Non-Scope
 
@@ -69,5 +71,8 @@ included.
 
 ## Canonical Status
 
-P3-03 remains **OPEN**. It closes only after a fresh independent implementation review, exact-head
-CI, explicit human merge authorization, canonical merge, and separately reviewed closure governance.
+The Stage 3.36 runtime implementation is canonical through PR #88 at
+`ebbc1c17b905e60d9e82337fc4a1ecd6cf9bccaa`. The runtime merge alone does not close the audit
+finding. P3-03 remains canonically **OPEN** until separately reviewed closure governance receives
+fresh independent `APPROVED`, exact-head green CI, explicit human closure-merge authorization, and
+is merged into `develop`.
