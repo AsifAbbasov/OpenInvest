@@ -114,7 +114,13 @@ After this plan receives the required review and approval, the implementation ma
   reconstructed after the semantic change, the implementation may introduce the smallest stable,
   completed-replay identity mechanism that is bound to the same principal, path, idempotency key,
   and original request. It must perform a read-only exact-artifact lookup and must never use an old
-  parser-version token to authorize a new append;
+  parser-version token to authorize a new append. Before that lookup can return an artifact, it must
+  preserve the existing signed review-token proof under the token's historical parser semantics:
+  HMAC/signature, token structure and version family, lifetime shape, subject/portfolio/source
+  context, source-file hash, row identities, appendable rows, submitted decisions, and semantic
+  digests must remain authentic and consistent. Only the current parser-version mismatch may be
+  handled specially for a completed immutable replay; it must not become a generic old-token replay
+  bypass;
 - `backend-go/internal/postgres` focused disposable-PostgreSQL integration tests proving canonical
   persisted Decimal text remains readable through the affected transaction and summary paths;
 - `backend-go/cmd/validate-openapi` contract-parity validation and tests, if needed to prevent future
@@ -183,14 +189,19 @@ make a migration, change snapshots, or split unrelated HTTP code.
     artifact must be rejected with zero writes and must not return the prior artifact. The
     implementation must prove this through the real replay boundary, not by accepting old tokens for
     fresh appends.
+13. A completed artifact from the prior parser version must not be returned when an otherwise exact
+    retry carries a tampered old review token. At minimum, the regression must cover a bad HMAC
+    signature, changed source context, and changed row identity or decision data. Each case must
+    return no artifact and perform zero writes, while the historical token-proof policy remains no
+    weaker than the existing completed-replay recovery path.
 
 ### Persistence and bounded admission
 
-13. A disposable-PostgreSQL integration test proves canonical stored Decimal text remains readable
+14. A disposable-PostgreSQL integration test proves canonical stored Decimal text remains readable
     through all existing summary/transaction paths.
-14. The parser rejects an oversized lexical input before big-integer conversion. The test must make
+15. The parser rejects an oversized lexical input before big-integer conversion. The test must make
     the bound observable without relying on wall-clock timing alone.
-15. No test, error, trace, or audit entry records raw rejected financial payloads beyond the existing
+16. No test, error, trace, or audit entry records raw rejected financial payloads beyond the existing
     safe error contract.
 
 ## 7. Alternatives rejected
