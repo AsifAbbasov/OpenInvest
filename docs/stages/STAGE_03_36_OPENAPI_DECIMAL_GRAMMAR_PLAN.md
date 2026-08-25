@@ -114,6 +114,10 @@ the implementation would still allocate or scan an unbounded string first. It mu
 explicit maximum input length derived from the grammar before expensive conversion. Error text remains
 an internal detail; HTTP behavior must continue to expose only the existing validation taxonomy.
 
+In this plan, "no store" means that rejected input must not reach an application/store write. It does
+not denote an HTTP `Cache-Control: no-store` response-header contract: no such contract exists in the
+current API sources, and this Decimal-only remediation neither introduces nor changes cache policy.
+
 The implementation must not loosen the schema, accept Unicode digits, use floating point, add numeric
 coercion from JSON numbers, alter Decimal arithmetic or rounding, alter PostgreSQL precision/scale,
 make a migration, change snapshots, or split unrelated HTTP code.
