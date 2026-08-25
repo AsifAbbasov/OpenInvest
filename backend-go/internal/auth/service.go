@@ -8,6 +8,7 @@ import (
 	"net/mail"
 	"strings"
 	"time"
+	_ "time/tzdata"
 	"unicode/utf8"
 
 	"github.com/google/uuid"
@@ -236,10 +237,47 @@ func validateRegistration(request RegistrationRequest) error {
 	if request.Theme != ThemeLight && request.Theme != ThemeDark && request.Theme != ThemeSystem {
 		return fmt.Errorf("%w: theme is invalid", ErrInvalidInput)
 	}
-	if strings.TrimSpace(request.Timezone) == "" || len(request.Timezone) > 64 {
-		return fmt.Errorf("%w: timezone is required", ErrInvalidInput)
+	if !validRegistrationTimezone(request.Timezone) {
+		return fmt.Errorf("%w: timezone must be a valid timezone database identifier", ErrInvalidInput)
 	}
 	return nil
+}
+
+func validRegistrationTimezone(name string) bool {
+	if invalidRegistrationTimezoneSyntax(name) {
+		return false
+	}
+	if name == "UTC" {
+		return true
+	}
+	_, err := time.LoadLocation(name)
+	return err == nil
+}
+
+func invalidRegistrationTimezoneSyntax(name string) bool {
+	if name == "" || len(name) > 64 || name == "Local" {
+		return true
+	}
+	if strings.TrimSpace(name) != name {
+		return true
+	}
+	return isRawUTCOffset(name)
+}
+
+func isRawUTCOffset(name string) bool {
+	offset := name
+	if strings.HasPrefix(offset, "UTC") {
+		offset = offset[len("UTC"):]
+	}
+	if len(offset) != 6 || (offset[0] != '+' && offset[0] != '-') || offset[3] != ':' {
+		return false
+	}
+	for _, index := range [...]int{1, 2, 4, 5} {
+		if offset[index] < '0' || offset[index] > '9' {
+			return false
+		}
+	}
+	return true
 }
 
 func validLoginPassword(password string) bool {
