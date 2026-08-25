@@ -98,7 +98,9 @@ After this plan receives the required review and approval, the implementation ma
 - `backend-go/internal/httpapi` focused tests proving invalid Decimal spellings map to the existing
   deterministic HTTP 400 validation path and do not call storage;
 - `backend-go/internal/importer` focused tests proving prohibited CSV Decimal spellings produce
-  review errors and cannot reach append;
+  review errors and cannot reach append. Because this changes normalized candidate/status semantics,
+  the implementation must bump `importer.ReviewParserVersion` and preserve the signed review-token
+  invalidation contract;
 - `backend-go/internal/postgres` focused disposable-PostgreSQL integration tests proving canonical
   persisted Decimal text remains readable through the affected transaction and summary paths;
 - `backend-go/cmd/validate-openapi` contract-parity validation and tests, if needed to prevent future
@@ -147,14 +149,18 @@ make a migration, change snapshots, or split unrelated HTTP code.
    before Decimal admission and is not treated as a raw-JSON grammar violation.
 9. Valid CSV Decimal values continue through parse, review, explicit approval, and append under the
    existing financial-identity and reconciliation rules.
+10. A token/review issued with the prior `ReviewParserVersion` cannot authorize append after the
+    semantic change and requires a fresh review. A newly issued token under the bumped version still
+    authorizes an otherwise valid review; the regression must exercise the existing signed-token
+    verification path rather than a test-only shortcut.
 
 ### Persistence and bounded admission
 
-10. A disposable-PostgreSQL integration test proves canonical stored Decimal text remains readable
+11. A disposable-PostgreSQL integration test proves canonical stored Decimal text remains readable
     through all existing summary/transaction paths.
-11. The parser rejects an oversized lexical input before big-integer conversion. The test must make
+12. The parser rejects an oversized lexical input before big-integer conversion. The test must make
     the bound observable without relying on wall-clock timing alone.
-12. No test, error, trace, or audit entry records raw rejected financial payloads beyond the existing
+13. No test, error, trace, or audit entry records raw rejected financial payloads beyond the existing
     safe error contract.
 
 ## 7. Alternatives rejected
