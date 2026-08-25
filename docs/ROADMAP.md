@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.64 |
+| Version | 1.1.65 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
 | Dependencies | Architecture Freeze v1.2 |
-| Last Review Date | 2026-08-24 |
+| Last Review Date | 2026-08-25 |
 | Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
 
 | Stage | Outcome | State |
@@ -71,30 +71,46 @@
 | 3.33 — Closure governance | Record implementation merge, CI #199, two independent `REQUEST CHANGES` cycles, final independent `APPROVED`, explicit human squash-merge authorization, and remaining 2 P2 / 10 P3 scope | Complete / merged through PR #70 at `71a1faeb97d33d05f2936111b53f1285edddabe9` |
 | 3.34 — GitHub governance and CI/security hardening planning | Plan enforced `develop` governance and the missing CI security/concurrency verification without weakening existing CI | Complete / merged through PR #71 at `b4299bcdc28202c27388642dc7b426b159bb315c` |
 | 3.34 — CI/security hardening implementation | Close P2-17 with the original six CI jobs plus Go vet, PostgreSQL-backed race tests, pinned govulncheck, dependency security scanning, and scheduled/manual verification | Implementation complete / merged through PR #80 at `c686a6721df51063ccf62a0303bb759d2215d60e` after exact-head CI #230 and independent `APPROVED` |
-| 3.34 — GitHub governance enforcement | Close P2-16 through public-repository enforced `develop` protection, all ten mandatory checks, no normal admin bypass, no force-push/deletion, linear history, conversation resolution, PR-only entry, and squash-only repository merge policy | Mechanically enforced; canonical closure pending PR #82 |
-| 3.34 — Closure governance | Canonically close P2-16/P2-17 and synchronize the remaining original audit backlog | Closure candidate / PR #82; requires exact-head green CI, fresh independent `APPROVED`, explicit human squash-merge authorization, then squash merge |
+| 3.34 — GitHub governance enforcement | Close P2-16 through public-repository enforced `develop` protection, all ten mandatory checks, no normal admin bypass, no force-push/deletion, linear history, conversation resolution, PR-only entry, and squash-only repository merge policy | Mechanically enforced / closure canonical through PR #82 |
+| 3.34 — Closure governance | Canonically close P2-16/P2-17 and synchronize the remaining original audit backlog | Complete / merged through PR #82 at `ae5a152114cc163867a363953f8a3202396b1f6c` |
+| 3.35 — Password Character Semantics planning | Define P3-01 Unicode-code-point and exact-secret password semantics without absorbing P3-04 | Complete / merged through PR #83 |
+| 3.35 — Password Character Semantics implementation | Close the P3-01 runtime gap across Go auth, transport, OpenAPI, and Web password admission | Complete / merged through PR #84 at `a47df19ccc7edff73f39f4e76aec47580c168c46` |
+| 3.35 — Closure governance | Close P3-01 and synchronize the original audit backlog to nine P3 findings | Complete / merged through PR #85 |
+| 3.36 — OpenAPI Decimal Grammar planning | Define exact contract-to-parser Decimal lexical parity and parser-version replay compatibility for P3-03 | Complete / merged through PR #87 at `251296e0831cbb0b81c7799cc82cbdf3b451ae6e` |
+| 3.36 — OpenAPI Decimal Grammar implementation | Enforce the published Decimal language, bounded admission, parser-v2 write safety, and exact authenticated completed replay | Complete / merged through PR #88 at `ebbc1c17b905e60d9e82337fc4a1ecd6cf9bccaa` |
+| 3.36 — Closure governance | Independently verify the merged runtime evidence and synchronize P3-03 canonical closure without absorbing another P3 item | Closure candidate on `docs/stage-03-36-p3-03-closure`; merge not authorized |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
 
-Stages 3.27 through 3.34 are separately authorized narrow repository-audit remediations and do not
-authorize product-scope expansion. Stage 3.25 privacy evidence planning remains separate. Stage 3.33
-closure is definitively complete through PR #70. Stage 3.34 implementation is canonical through PR #82 at
-`ae5a152114cc163867a363953f8a3202396b1f6c`. Stage 3.35 P3-01 runtime implementation is canonical
-through PR #84 at `a47df19ccc7edff73f39f4e76aec47580c168c46`. Governance closure is completed through
-PR #85.
+Stages 3.27 through 3.36 are separately authorized narrow repository-audit remediations and do not
+authorize product-scope expansion. Stage 3.25 privacy evidence planning remains separate. Stage 3.34
+closure is canonical through PR #82 at `ae5a152114cc163867a363953f8a3202396b1f6c`. Stage 3.35 P3-01
+runtime implementation is canonical through PR #84 at `a47df19ccc7edff73f39f4e76aec47580c168c46`
+and governance closure is canonical through PR #85. Stage 3.36 P3-03 planning is canonical through
+PR #87 at `251296e0831cbb0b81c7799cc82cbdf3b451ae6e`, and its runtime implementation is canonical
+through PR #88 at `ebbc1c17b905e60d9e82337fc4a1ecd6cf9bccaa`. P3-03 closure governance is the active
+candidate and is not merged or authorized by this roadmap entry.
 
-After Stage 3.35 P3-01 closure, the original 32-finding repository-audit backlog is:
+At the base of the Stage 3.36 closure candidate, the original 32-finding repository-audit backlog is:
 
 - P0: 0
 - P1: 0
 - P2: 0
 - P3: 9
 
-The remaining findings are P3-02 through P3-10. P3-09 Next.js maintenance and P3-10 Fiber
-maintenance remain separately governed and are not silently closed by previous security patches.
-No further audit-remediation implementation begins without a separately reviewed planning/remediation
-gate.
+P3-03 runtime remediation is canonical but remains in that count until the separately reviewed closure
+change is merged. Once Stage 3.36 closure governance is canonically merged, the resulting backlog is:
+
+- P0: 0
+- P1: 0
+- P2: 0
+- P3: 8
+
+The post-closure findings are P3-02, P3-04, P3-05, P3-06, P3-07, P3-08, P3-09, and P3-10. P3-09
+Next.js maintenance and P3-10 Fiber maintenance remain separately governed and are not silently closed
+by previous security patches. No further audit-remediation implementation begins without a separately
+reviewed planning/remediation gate.
 
 No AI, Tax Export, email, mobile, premium, direct broker API synchronization, credential scraping, or
 unnecessary worker implementation enters these stages without separate approval.
