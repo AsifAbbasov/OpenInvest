@@ -153,6 +153,21 @@ func TestStage0336PriorParserTokenCannotAuthorizeFreshOrTamperedReplay(t *testin
 	); found {
 		t.Fatal("prior parser token recovered an artifact for another principal")
 	}
+
+	lookupsBefore := store.lookupCalls
+	if _, found := api.recoverCompletedImportReplay(
+		context.Background(), verticalslice.RequestContext{}, devSubjectID, request.portfolioID,
+		stage336ImportKey, stage336ImportPath+"/alternate", request.sourceAccountLabel, request.fileHash,
+		request.reviewToken, request.csvPayload, request.decisions,
+	); found {
+		t.Fatal("prior parser token recovered an artifact for a different canonical path")
+	}
+	if got := store.lookupCalls - lookupsBefore; got != 1 {
+		t.Fatalf("different canonical path lookup count: got %d want 1", got)
+	}
+	if store.appendReplayCalls != 1 {
+		t.Fatalf("different canonical path executed financial append: calls=%d", store.appendReplayCalls)
+	}
 }
 
 type stage336HistoricalRequest struct {

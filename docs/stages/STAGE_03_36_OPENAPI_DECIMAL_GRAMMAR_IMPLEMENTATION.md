@@ -16,7 +16,8 @@ the public OpenAPI grammar, migrations, or any P3 finding other than P3-03.
 ## Implementation
 
 - `decimal.FromString` now admits only the complete published ASCII Decimal grammar:
-  `^-?(0|[1-9][0-9]{0,19})(\\.[0-9]{1,8})?$`.
+  `^-?(0|[1-9][0-9]{0,19})(\.[0-9]{1,8})?$`. In the double-quoted YAML source, the
+  literal decimal point is written as `\\.`; after YAML parsing, the regex token is `\.`.
 - Admission rejects an input longer than the grammar-derived 30-byte maximum before fixed-scale
   `big.Int` conversion. Existing valid values retain eight-place output and half-even arithmetic;
   `-0` still normalizes to zero.
@@ -47,8 +48,8 @@ the public OpenAPI grammar, migrations, or any P3 finding other than P3-03.
   exactly after the v2 deployment for both `001.25` and a contract-conforming Decimal, preserving
   status, body, request ID, trace ID, and zero new financial writes.
 - Recovery rejects a new key or principal, bad HMAC, changed source context, changed raw CSV payload
-  (even with a recomputed file hash), changed row identity, and changed decision without returning
-  the historic artifact or creating a new write.
+  (even with a recomputed file hash), changed row identity, changed decision, or a different
+  canonical path without returning the historic artifact or creating a new write.
 - PostgreSQL round-trip: `TestStoreVerticalSlice` passed against a fresh disposable database after
   applying migrations `000001` through `000006`, exercising transaction, summary, and list paths.
 
