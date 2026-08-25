@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.65 |
+| Version | 1.1.66 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
@@ -78,7 +78,7 @@
 | 3.35 — Closure governance | Close P3-01 and synchronize the original audit backlog to nine P3 findings | Complete / merged through PR #85 |
 | 3.36 — OpenAPI Decimal Grammar planning | Define exact contract-to-parser Decimal lexical parity and parser-version replay compatibility for P3-03 | Complete / merged through PR #87 at `251296e0831cbb0b81c7799cc82cbdf3b451ae6e` |
 | 3.36 — OpenAPI Decimal Grammar implementation | Enforce the published Decimal language, bounded admission, parser-v2 write safety, and exact authenticated completed replay | Complete / merged through PR #88 at `ebbc1c17b905e60d9e82337fc4a1ecd6cf9bccaa` |
-| 3.36 — Closure governance | Independently verify the merged runtime evidence and synchronize P3-03 canonical closure without absorbing another P3 item | Closure candidate on `docs/stage-03-36-p3-03-closure`; merge not authorized |
+| 3.36 — Closure governance | Independently verify the merged runtime evidence and synchronize P3-03 canonical closure without absorbing another P3 item | Complete / merged through PR #89 at `9c83b68e28bbb8bc971620d3e00be5e177ce0820` |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
@@ -88,29 +88,21 @@ authorize product-scope expansion. Stage 3.25 privacy evidence planning remains 
 closure is canonical through PR #82 at `ae5a152114cc163867a363953f8a3202396b1f6c`. Stage 3.35 P3-01
 runtime implementation is canonical through PR #84 at `a47df19ccc7edff73f39f4e76aec47580c168c46`
 and governance closure is canonical through PR #85. Stage 3.36 P3-03 planning is canonical through
-PR #87 at `251296e0831cbb0b81c7799cc82cbdf3b451ae6e`, and its runtime implementation is canonical
-through PR #88 at `ebbc1c17b905e60d9e82337fc4a1ecd6cf9bccaa`. P3-03 closure governance is the active
-candidate and is not merged or authorized by this roadmap entry.
+PR #87 at `251296e0831cbb0b81c7799cc82cbdf3b451ae6e`, its runtime implementation is canonical through
+PR #88 at `ebbc1c17b905e60d9e82337fc4a1ecd6cf9bccaa`, and closure governance is canonical through
+PR #89 at `9c83b68e28bbb8bc971620d3e00be5e177ce0820`. P3-03 is CLOSED.
 
-At the base of the Stage 3.36 closure candidate, the original 32-finding repository-audit backlog is:
-
-- P0: 0
-- P1: 0
-- P2: 0
-- P3: 9
-
-P3-03 runtime remediation is canonical but remains in that count until the separately reviewed closure
-change is merged. Once Stage 3.36 closure governance is canonically merged, the resulting backlog is:
+The current original 32-finding repository-audit backlog is:
 
 - P0: 0
 - P1: 0
 - P2: 0
 - P3: 8
 
-The post-closure findings are P3-02, P3-04, P3-05, P3-06, P3-07, P3-08, P3-09, and P3-10. P3-09
+The remaining findings are P3-02, P3-04, P3-05, P3-06, P3-07, P3-08, P3-09, and P3-10. P3-09
 Next.js maintenance and P3-10 Fiber maintenance remain separately governed and are not silently closed
-by previous security patches. No further audit-remediation implementation begins without a separately
-reviewed planning/remediation gate.
+by previous security patches. Stage 3.25 privacy Security Review evidence planning remains separate.
+No further audit-remediation implementation begins without a separately reviewed planning/remediation gate.
 
 No AI, Tax Export, email, mobile, premium, direct broker API synchronization, credential scraping, or
 unnecessary worker implementation enters these stages without separate approval.
