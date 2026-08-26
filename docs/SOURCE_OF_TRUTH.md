@@ -3,23 +3,23 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.70 |
+| Version | 1.4.71 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
-| Last Review Date | 2026-08-25 |
+| Last Review Date | 2026-08-26 |
 | Next Review Date | Before Stage 3.25 privacy evidence-collection plan review or the next separately reviewed audit-remediation scope |
 
 ## Architecture status
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.37 — True IANA Timezone Semantics implementation**
+**Last completed implementation stage: Stage 3.38 — Idempotency/session retention and cleanup implementation**
 **Last completed privacy planning gate: Stage 3.24 — Privacy Security Review Readiness Dossier**
-**Last completed audit-remediation planning gate: Stage 3.37 — True IANA Timezone Semantics planning (PR #90)**
+**Last completed audit-remediation planning gate: Stage 3.38 — Idempotency/session retention and cleanup planning (PR #93)**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Current canonical implementation baseline: `develop` at `305a53bb07136b274717ff48778a5e93d7b1607c`**
+**Current canonical implementation baseline: `develop` at `2df9946d77ee044a191a0422c8cccbbfe02dc7c9`**
 **Current privacy-planning work item: Stage 3.25 privacy Security Review evidence-collection plan; it remains documentation-only and does not authorize privacy-lifecycle implementation**
 **Stage 3.27 remediation: CLOSED for P1-02, P1-03, and P1-04; implementation PR #55 was squash-merged into `develop` at `6e8c806de857f844954f1db513487357dfe90187` after exact-head CI #90, renewed independent `APPROVED` review on `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c`, explicit human squash-merge authorization, and closure governance through PR #58**
 **Stage 3.28 remediation: CLOSED for P1-01 and P1-05; implementation PR #59 was squash-merged into `develop` at `dc83f5f3a11da164e6809593861d96ccf47b29ca` after exact-head CI #114, renewed independent `APPROVED` review on `92edab5d3e93dafe2fcc6247644e38e878a4202f`, explicit human squash-merge authorization, and closure governance squash-merged through PR #60 at `0ddc618a3450ea81fd4befb3b10c959b3cb82a25`; Stage 3.25 and P2/P3 remain separate**
@@ -31,7 +31,7 @@
 **Stage 3.34 remediation: P2-17 implementation is canonical through PR #80 at `c686a6721df51063ccf62a0303bb759d2215d60e` after exact-head CI #230, independent implementation `APPROVED`, and explicit human squash-merge authorization; P2-16 is mechanically enforced through public-repository `develop` protection and squash-only merge policy; Stage 3.34 remediation closure is canonical through PR #82 at `ae5a152114cc163867a363953f8a3202396b1f6c`. Stage 3.35 P3-01 runtime implementation is canonical through PR #84 at `a47df19ccc7edff73f39f4e76aec47580c168c46`; governance closure is completed through PR #85.**
 **Stage 3.36 remediation: planning is canonical through PR #87 at `251296e0831cbb0b81c7799cc82cbdf3b451ae6e`; runtime implementation is canonical through PR #88 at `ebbc1c17b905e60d9e82337fc4a1ecd6cf9bccaa`, from frozen runtime head `131f1bf963e9d232b9e23273edd54caf54c10ffb`, after exact-head CI #257 / run `32822925542` with all 10 required jobs successful; closure governance is canonical through PR #89 at `9c83b68e28bbb8bc971620d3e00be5e177ce0820`. P3-03 is CLOSED; the original audit backlog immediately after Stage 3.36 closure was P0=0 / P1=0 / P2=0 / P3=8: P3-02, P3-04, P3-05, P3-06, P3-07, P3-08, P3-09, and P3-10. Stage 3.25 remains separate.**
 **Stage 3.37 remediation: planning is canonical through PR #90 at `46f74528dcc19424ad087d30d4f2f778e2079b87`; runtime implementation is canonical through PR #91 at `cb6d9b28cd47b1cd283b5861b916e0be627d0ac2`, from frozen final runtime head `1a2f89a0fa5095b3cca790521afa484bdc61e8a6`, after exact-head CI #265 / run `32869754524` with all 10 required jobs successful and fresh published-head independent `APPROVED`; closure governance is canonical through PR #92 at `305a53bb07136b274717ff48778a5e93d7b1607c` after exact-head closure CI #266 / run `32880893193`, fresh independent closure `APPROVED`, and separate explicit human squash-merge authorization. P3-02 is CLOSED. The current original audit backlog is P0=0 / P1=0 / P2=0 / P3=7: P3-04, P3-05, P3-06, P3-07, P3-08, P3-09, and P3-10. Stage 3.25 remains separate.**
-**Stage 3.38 remediation planning candidate: P3-05 idempotency/session retention and cleanup planning is under separate review governance only. Runtime implementation is not authorized by this candidate; P3-05 remains OPEN and remains included in the current P3=7 backlog. Stage 3.25 and every other remaining P3 finding remain separate.**
+**Stage 3.38 remediation: planning is canonical through PR #93 at `a944f1e5d5ee7d84db5393e8760eda254d732edd`; runtime implementation is canonical through PR #94 at `2df9946d77ee044a191a0422c8cccbbfe02dc7c9`, from exact published head `5ea8c6f4eddd735ea834dc4a27ecb70da7f81508`, after exact-head CI #268 / run `32913862780` with all 10 required jobs successful and fresh published-head independent `APPROVED`. Runtime merge does not itself close P3-05. Stage 3.38 closure governance is an unmerged local candidate, so the canonical original audit backlog remains P0=0 / P1=0 / P2=0 / P3=7 until that closure is independently approved, published with exact-head green CI, separately authorized for squash merge, and merged. After closure the backlog becomes P3=6: P3-04, P3-06, P3-07, P3-08, P3-09, and P3-10. Stage 3.25 remains separate.**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -595,3 +595,35 @@ independent pre-commit `APPROVED`.
 Stage 3.38 planning is not canonical merely because this candidate exists. It becomes canonical only
 through its own separately reviewed, exact-head-CI-green, explicitly authorized planning PR merge.
 P3-04, P3-06, P3-07, P3-08, P3-09, P3-10, and Stage 3.25 remain separately governed.
+
+## Stage 3.38 audit remediation closure governance
+
+Stage 3.38 is the separately governed P3-05 idempotency/session retention and cleanup remediation.
+Planning PR #93 was squash-merged into `develop` at `a944f1e5d5ee7d84db5393e8760eda254d732edd`.
+Runtime PR #94 published exact head `5ea8c6f4eddd735ea834dc4a27ecb70da7f81508`, which passed GitHub Actions
+CI #268 / run `32913862780` with all 10 required jobs successful and received fresh
+independent published-head `APPROVED` with P0/P1/P2/P3 = None. The user then separately authorized
+Ready + squash merge of that exact head. PR #94 was squash-merged into `develop` at
+`2df9946d77ee044a191a0422c8cccbbfe02dc7c9`, and `develop` was read back at that exact SHA.
+
+The runtime makes command/replay authority expire at the frozen 24-hour boundary, uses fresh PostgreSQL
+wall clock after required serialization for mutation authority, permits exact-key fresh-generation
+reclamation after expiry, removes expired-session containment/revocation authority, preserves
+revoked-but-unexpired Stage 3.28 containment, and performs bounded 128-row opportunistic cleanup with
+`ORDER BY expires_at,id` and `FOR UPDATE SKIP LOCKED` inside triggering mutation transactions.
+
+The runtime review history is intentionally preserved: initial local SQLSTATE `42P08`; first v2
+`REQUEST CHANGES`; renewed-v3 `REQUEST CHANGES`; exact-v4 documentation-only `REQUEST CHANGES`;
+DOCFIX2 historical-quotation `REQUEST CHANGES`; DOCFIX3 stale-review-count `REQUEST CHANGES`; final
+DOCFIX4 pre-commit `APPROVED`; exact-head CI; and fresh published-head `APPROVED`.
+
+This closure candidate changes governance documentation only. It does not modify runtime code, SQL,
+OpenAPI, privileges, retention semantics, BusinessDate/SQL `DATE`, SystemTimestamp, Decimal or
+financial arithmetic, immutable ledger/snapshot rules, account deletion, Stage 3.25 privacy work, or
+P3-04/P3-06/P3-07/P3-08/P3-09/P3-10.
+
+Until the closure PR itself receives fresh independent closure `APPROVED`, exact-head green CI after
+publication, separate explicit human squash-merge authorization, and is merged into `develop`, P3-05
+remains canonically OPEN and the original audit backlog stays P0=0 / P1=0 / P2=0 / P3=7. After that
+closure merge, P3-05 becomes CLOSED and the remaining backlog is P3=6: P3-04, P3-06, P3-07, P3-08,
+P3-09, and P3-10.
