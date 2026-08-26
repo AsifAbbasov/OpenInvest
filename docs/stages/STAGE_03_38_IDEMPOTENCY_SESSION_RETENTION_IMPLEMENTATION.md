@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Runtime merged / PR #95 closure lifecycle-evidence remediation cycle; P3-05 remains OPEN |
+| Status | CLOSED / runtime PR #94 merged and closure PR #95 squash-merged; P3-05 CLOSED |
 | Date | 2026-08-26 |
 | Finding | P3-05 — idempotency/session cleanup |
 | Canonical runtime base | `develop` at `a944f1e5d5ee7d84db5393e8760eda254d732edd` |
@@ -10,10 +10,10 @@
 | Runtime branch | `fix/stage-03-38-p3-05-retention-runtime`; published as PR #94 |
 | Runtime commit / push | Exact published head `5ea8c6f4eddd735ea834dc4a27ecb70da7f81508` |
 | Runtime merge | PR #94 squash-merged at `2df9946d77ee044a191a0422c8cccbbfe02dc7c9` |
-| Closure PR | Draft PR #95 published at exact head `8f5d10a3e7d138b69f59531f6e8875add6c7e766`; not merged |
-| Closure exact-head CI | #270 / run `32950023896`; 10/10 required jobs successful on `8f5d10a3e7d138b69f59531f6e8875add6c7e766` |
-| Closure review history | First published-head review: `REQUEST CHANGES` for stale local/uncommitted lifecycle wording; first local remediation review: `REQUEST CHANGES` for self-invalidating ephemeral lifecycle wording; publication of any remediation head requires renewed exact-head CI and fresh published-head review before merge authorization |
-| Final finding status | OPEN; runtime merge alone will not close P3-05 |
+| Closure PR | PR #95 final published head `25eb3b9c3c153672f22a6718a7815a5d3c527f44`; squash-merged into `develop` at `c5962fa09b6d7d145dda203dbdf90069de7b1fcc` |
+| Closure exact-head CI | Final PR #95 head `25eb3b9c3c153672f22a6718a7815a5d3c527f44`: CI #271 / run `32961508562`; 10/10 required jobs successful |
+| Closure review history | Initial published head `8f5d10a3e7d138b69f59531f6e8875add6c7e766` passed CI #270 but received fresh published-head `REQUEST CHANGES`; subsequent documentation-only remediation cycles are preserved below; final published head `25eb3b9c3c153672f22a6718a7815a5d3c527f44` passed CI #271, completed the required fresh independent closure review gate, received separate explicit human squash-merge authorization, and was actually merged as `c5962fa09b6d7d145dda203dbdf90069de7b1fcc` |
+| Final finding status | CLOSED through actual Stage 3.38 closure merge PR #95 at `c5962fa09b6d7d145dda203dbdf90069de7b1fcc`; original audit backlog after closure is P3=6: P3-04, P3-06, P3-07, P3-08, P3-09, P3-10 |
 
 ## 1. Finding / symptom
 
@@ -386,8 +386,8 @@ Closure-governance evidence after runtime merge:
 
 - independently approved closure pre-commit patch SHA256: `02c1b7a6dc7d6b8fa05be1f80af67a981737a20e50943096b6aef6e24fdb655b`;
 - closure commit / first published PR head: `8f5d10a3e7d138b69f59531f6e8875add6c7e766`;
-- closure PR: Draft PR #95 against `develop`;
-- exact-head closure CI: #270 / run `32950023896`, 10/10 required jobs successful;
+- historical first published closure PR state: Draft PR #95 against `develop`;
+- historical initial exact-head closure CI: #270 / run `32950023896`, 10/10 required jobs successful;
 - first fresh published-head closure review: `REQUEST CHANGES`, P0/P1/P2 None and one P3
   governance/evidence-integrity blocker because active docs still described the already-published
   closure package as local/uncommitted and publication/CI as future;
@@ -401,21 +401,16 @@ Closure-governance evidence after runtime merge:
   `7956ac8939eb09c3a655c086997109e0f8ae51938e334a840e8d90e64ffebce1`, verification report SHA256
   `8cbd200b0822650071f0735ee0b2e57ca4e867ef2d1550db60a7f2b9a7ede96a`.
 
+- final closure remediation head: `25eb3b9c3c153672f22a6718a7815a5d3c527f44`;
+- final exact-head closure CI: #271 / run `32961508562`, 10/10 required jobs successful;
+- final fresh published-head independent closure review: `APPROVED`, P0/P1/P2/P3 = None;
+- separate explicit human Ready + squash-merge authorization was subsequently satisfied for the final closure head;
+- actual closure squash merge / canonical post-Stage-3.38 base: `c5962fa09b6d7d145dda203dbdf90069de7b1fcc`.
+
 ## 18. Final canonical status
 
-P3-05 remains **OPEN** at this runtime-merged base.
+P3-05 is **CLOSED** through the actual Stage 3.38 closure-governance squash merge.
 
-The runtime remediation is canonical in `develop`. The separately governed closure package synchronizing
-`SOURCE_OF_TRUTH.md`, `ROADMAP.md`, this implementation record, and the Stage 3.38 closure record was
-published as Draft PR #95 at `8f5d10a3e7d138b69f59531f6e8875add6c7e766` and passed exact-head closure CI #270 / run `32950023896` 10/10.
-Its first fresh published-head closure review returned `REQUEST CHANGES` for stale lifecycle-evidence
-wording, so that published head is not merge-authorized and P3-05 remains OPEN.
+Planning remains canonical through PR #93 at `a944f1e5d5ee7d84db5393e8760eda254d732edd`. Runtime implementation remains canonical through PR #94 at `2df9946d77ee044a191a0422c8cccbbfe02dc7c9`. Closure PR #95 reached final published head `25eb3b9c3c153672f22a6718a7815a5d3c527f44`, passed exact-head CI #271 / run `32961508562` 10/10, satisfied the required fresh independent closure review gate and separate explicit human squash-merge authorization, and was actually squash-merged into `develop` at `c5962fa09b6d7d145dda203dbdf90069de7b1fcc`.
 
-The documentation-only remediation must receive independent pre-commit approval, separate human
-commit/push authorization, renewed exact-head green closure CI on the new published head, fresh
-published-head closure `APPROVED`, separate explicit human Ready + squash-merge authorization, and
-actual merge into `develop` before P3-05 becomes CLOSED.
-
-Until then, the canonical original audit backlog remains P0=0 / P1=0 / P2=0 / P3=7:
-P3-04, P3-05, P3-06, P3-07, P3-08, P3-09, and P3-10. After canonical P3-05 closure, it becomes
-P0=0 / P1=0 / P2=0 / P3=6: P3-04, P3-06, P3-07, P3-08, P3-09, and P3-10.
+The canonical original audit backlog after Stage 3.38 closure is P0=0 / P1=0 / P2=0 / P3=6: P3-04, P3-06, P3-07, P3-08, P3-09, and P3-10. Historical failed-review and remediation chronology above remains preserved as evidence of the path to closure and does not override this current status. Stage 3.25 remains separate.
