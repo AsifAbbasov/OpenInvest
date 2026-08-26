@@ -346,8 +346,9 @@ active canonical write path can bypass application validation. No such bypass is
 
 ### Go service/importer
 
-1. Portfolio name: 100 ASCII accepted; 100 Cyrillic accepted; 100 supplementary-plane code points
-   accepted; 101 code points rejected for **fresh** admission.
+1. Portfolio name fresh-admission boundaries are literal and mandatory: 100 ASCII accepted / 101
+   ASCII rejected; 100 Cyrillic accepted / 101 Cyrillic rejected; 100 supplementary-plane code points
+   accepted / 101 supplementary-plane code points rejected.
 2. Fresh portfolio name raw value above 100 code points is rejected even if trimming would reduce it to
    100.
 3. Portfolio name with malformed internal UTF-8 is rejected.
@@ -364,8 +365,9 @@ active canonical write path can bypass application validation. No such bypass is
    rejected; normalized cursor/search identity remains trimmed as today.
 9. Transaction note: 500 supplementary-plane code points accepted; 501 rejected; malformed internal
    UTF-8 rejected.
-10. Import source label: 120 Cyrillic and 120 supplementary-plane code points accepted through review;
-    121 rejected for fresh admission.
+10. Import source-label fresh-admission boundaries are literal and mandatory through review: 120
+    Cyrillic accepted / 121 Cyrillic rejected; 120 supplementary-plane code points accepted / 121
+    supplementary-plane code points rejected.
 11. Source-label trimming produces the same signed/persisted identity as before; review and append with
     the same normalized label still verify.
 12. Fresh source-label variants that exceed the raw public bound are rejected before they can authorize
@@ -412,6 +414,10 @@ active canonical write path can bypass application validation. No such bypass is
 31. Existing transaction-note and source-label character constraints continue to accept multibyte values
     at their code-point boundary.
 32. No migration is added and migration validation remains green.
+33. Relevant regression gates from Stage 3.29 input/contract hardening, Stage 3.35 password-character
+    semantics, Stage 3.37 IANA-timezone semantics, and Stage 3.38 retention/expiry/reclamation remain
+    green; together with item 24, the Stage 3.32 exact-replay/import-recovery suites also remain an
+    executed mandatory gate.
 
 ## 14. Alternatives rejected
 
