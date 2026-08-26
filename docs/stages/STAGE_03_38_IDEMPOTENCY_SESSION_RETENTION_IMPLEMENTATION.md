@@ -2,14 +2,17 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Local runtime candidate v4 + DOCFIX4 review-history-count correction / renewed independent pre-commit runtime review pending |
+| Status | Runtime merged / PR #95 closure lifecycle-evidence remediation cycle; P3-05 remains OPEN |
 | Date | 2026-08-26 |
 | Finding | P3-05 — idempotency/session cleanup |
 | Canonical runtime base | `develop` at `a944f1e5d5ee7d84db5393e8760eda254d732edd` |
 | Planning gate | PR #93 squash-merged at `a944f1e5d5ee7d84db5393e8760eda254d732edd` |
-| Runtime branch | Local candidate `fix/stage-03-38-p3-05-retention-runtime`; not published by this record |
-| Runtime commit / push | Not authorized by this implementation record |
-| Runtime merge | Not authorized |
+| Runtime branch | `fix/stage-03-38-p3-05-retention-runtime`; published as PR #94 |
+| Runtime commit / push | Exact published head `5ea8c6f4eddd735ea834dc4a27ecb70da7f81508` |
+| Runtime merge | PR #94 squash-merged at `2df9946d77ee044a191a0422c8cccbbfe02dc7c9` |
+| Closure PR | Draft PR #95 published at exact head `8f5d10a3e7d138b69f59531f6e8875add6c7e766`; not merged |
+| Closure exact-head CI | #270 / run `32950023896`; 10/10 required jobs successful on `8f5d10a3e7d138b69f59531f6e8875add6c7e766` |
+| Closure review history | First published-head review: `REQUEST CHANGES` for stale local/uncommitted lifecycle wording; first local remediation review: `REQUEST CHANGES` for self-invalidating ephemeral lifecycle wording; publication of any remediation head requires renewed exact-head CI and fresh published-head review before merge authorization |
 | Final finding status | OPEN; runtime merge alone will not close P3-05 |
 
 ## 1. Finding / symptom
@@ -357,18 +360,62 @@ Planning evidence:
 - planning canonical base before PR #93: `305a53bb07136b274717ff48778a5e93d7b1607c`;
 - Stage 3.38 planning PR: #93;
 - exact planning head: `7a4ef7115b5fbab4c9017c6032112f028825c959`;
-- planning squash merge / current runtime base: `a944f1e5d5ee7d84db5393e8760eda254d732edd`.
+- planning squash merge / runtime base: `a944f1e5d5ee7d84db5393e8760eda254d732edd`.
 
 Runtime evidence:
 
-No runtime commit, PR, exact-head CI, published-head runtime review, or runtime merge is asserted by
-this pre-commit record. Those identifiers must be added only after actual GitHub events.
+- independently approved local DOCFIX4 patch SHA256:
+  `7c114a0ec845505bc9a3dabf9ee8d491243db058ab9b2394ebe3ce12dc168eb3`;
+- runtime branch: `fix/stage-03-38-p3-05-retention-runtime`;
+- exact runtime commit / published head: `5ea8c6f4eddd735ea834dc4a27ecb70da7f81508`;
+- exact published tree: `4e3083517677eb75f0f2b6822e8c59cac208b03d`;
+- runtime PR: #94;
+- exact-head GitHub Actions CI: #268 / run `32913862780`;
+- required CI result: 10/10 successful;
+- fresh published-head independent review: `APPROVED`, P0/P1/P2/P3 = None;
+- explicit human Ready + squash-merge authorization applied only to exact head `5ea8c6f4eddd735ea834dc4a27ecb70da7f81508`;
+- canonical runtime squash merge: `2df9946d77ee044a191a0422c8cccbbfe02dc7c9`;
+- canonical read-back: `develop` pointed exactly at `2df9946d77ee044a191a0422c8cccbbfe02dc7c9` after PR #94 merge.
+
+No native GitHub review object is asserted for the external independent ChatGPT reviews; the evidence
+claim is the preserved external independent verdict plus exact repository/PR/CI identifiers.
+
+The runtime merge is canonical but does not itself close P3-05.
+
+Closure-governance evidence after runtime merge:
+
+- independently approved closure pre-commit patch SHA256: `02c1b7a6dc7d6b8fa05be1f80af67a981737a20e50943096b6aef6e24fdb655b`;
+- closure commit / first published PR head: `8f5d10a3e7d138b69f59531f6e8875add6c7e766`;
+- closure PR: Draft PR #95 against `develop`;
+- exact-head closure CI: #270 / run `32950023896`, 10/10 required jobs successful;
+- first fresh published-head closure review: `REQUEST CHANGES`, P0/P1/P2 None and one P3
+  governance/evidence-integrity blocker because active docs still described the already-published
+  closure package as local/uncommitted and publication/CI as future;
+- remediation is documentation-only; any published remediation commit changes the exact closure head and
+  therefore requires renewed exact-head CI and a fresh published-head closure review before merge authorization;
+- the first local pre-commit review of that remediation returned `REQUEST CHANGES` because the candidate
+  used self-invalidating active wording (`uncommitted` / `remediation pending`) that would become stale on
+  publication. The publication-stable correction records immutable events and lifecycle rules instead.
+- failed first remediation-review artifact identity: incremental patch SHA256
+  `9cb5887a09508282244eabd0f2329fdc0befce251144d9f9aa7900737db35eff`, prospective full PR patch SHA256
+  `7956ac8939eb09c3a655c086997109e0f8ae51938e334a840e8d90e64ffebce1`, verification report SHA256
+  `8cbd200b0822650071f0735ee0b2e57ca4e867ef2d1550db60a7f2b9a7ede96a`.
 
 ## 18. Final canonical status
 
-P3-05 remains **OPEN**.
+P3-05 remains **OPEN** at this runtime-merged base.
 
-This candidate may advance only after independent pre-commit runtime `APPROVED`, separate human
-commit/push authorization, exact-head CI, fresh published-head runtime review, and separate human
-squash-merge authorization. Runtime merge still does not close P3-05; closure requires a separately
-governed closure record and backlog synchronization.
+The runtime remediation is canonical in `develop`. The separately governed closure package synchronizing
+`SOURCE_OF_TRUTH.md`, `ROADMAP.md`, this implementation record, and the Stage 3.38 closure record was
+published as Draft PR #95 at `8f5d10a3e7d138b69f59531f6e8875add6c7e766` and passed exact-head closure CI #270 / run `32950023896` 10/10.
+Its first fresh published-head closure review returned `REQUEST CHANGES` for stale lifecycle-evidence
+wording, so that published head is not merge-authorized and P3-05 remains OPEN.
+
+The documentation-only remediation must receive independent pre-commit approval, separate human
+commit/push authorization, renewed exact-head green closure CI on the new published head, fresh
+published-head closure `APPROVED`, separate explicit human Ready + squash-merge authorization, and
+actual merge into `develop` before P3-05 becomes CLOSED.
+
+Until then, the canonical original audit backlog remains P0=0 / P1=0 / P2=0 / P3=7:
+P3-04, P3-05, P3-06, P3-07, P3-08, P3-09, and P3-10. After canonical P3-05 closure, it becomes
+P0=0 / P1=0 / P2=0 / P3=6: P3-04, P3-06, P3-07, P3-08, P3-09, and P3-10.

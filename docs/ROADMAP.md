@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.68 |
+| Version | 1.1.71 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
 | Dependencies | Architecture Freeze v1.2 |
-| Last Review Date | 2026-08-25 |
+| Last Review Date | 2026-08-26 |
 | Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
 
 | Stage | Outcome | State |
@@ -82,7 +82,9 @@
 | 3.37 — True IANA Timezone Semantics planning | Define exact resolver-backed timezone admission without normalization or financial-date coupling for P3-02 | Complete / merged through PR #90 at `46f74528dcc19424ad087d30d4f2f778e2079b87` |
 | 3.37 — True IANA Timezone Semantics implementation | Enforce exact timezone admission, pre-resolver whitespace/raw-offset rejection, resolver fallback semantics, exact persistence identity, and OpenAPI parity | Complete / merged through PR #91 at `cb6d9b28cd47b1cd283b5861b916e0be627d0ac2` |
 | 3.37 — Closure governance | Independently verify the merged runtime evidence and synchronize P3-02 canonical closure without absorbing another P3 item | Complete / merged through PR #92 at `305a53bb07136b274717ff48778a5e93d7b1607c` |
-| 3.38 — Idempotency/session retention and cleanup planning | Define bounded P3-05 retention, logical-expiry, exact-key reclamation, session replay boundary, cleanup concurrency, and index/test requirements | Planning candidate only; runtime not authorized |
+| 3.38 — Idempotency/session retention and cleanup planning | Define bounded P3-05 retention, logical-expiry, exact-key reclamation, session replay boundary, cleanup concurrency, and index/test requirements | Complete / merged through PR #93 at `a944f1e5d5ee7d84db5393e8760eda254d732edd` |
+| 3.38 — Idempotency/session retention and cleanup implementation | Enforce 24-hour command/replay lifecycle, post-serialization DB-clock authority, session-expiry authority, bounded opportunistic cleanup, and retention indexes | Complete / merged through PR #94 at `2df9946d77ee044a191a0422c8cccbbfe02dc7c9` |
+| 3.38 — Closure governance | Independently verify merged runtime evidence and synchronize P3-05 canonical closure without absorbing another P3 item | PR #95 closure review/remediation cycle: first published head `8f5d10a3e7d138b69f59531f6e8875add6c7e766` passed CI #270 / run `32950023896` 10/10, then received fresh published-head `REQUEST CHANGES`; the first local remediation review also returned `REQUEST CHANGES` for self-invalidating lifecycle wording; any subsequently published remediation head requires renewed exact-head CI and fresh published-head review before merge authorization |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
@@ -106,11 +108,27 @@ The current original 32-finding repository-audit backlog is:
 - P2: 0
 - P3: 7
 
-The remaining findings are P3-04, P3-05, P3-06, P3-07, P3-08, P3-09, and P3-10. Stage 3.38 is
-a planning/review candidate for P3-05 only; it does not remove P3-05 from this count and does not
-authorize runtime implementation. P3-09 Next.js maintenance and P3-10 Fiber maintenance remain
-separately governed and are not silently closed by previous security patches. Stage 3.25 privacy
-Security Review evidence planning remains separate.
+The remaining findings at the base of this Stage 3.38 closure candidate are P3-04, P3-05, P3-06,
+P3-07, P3-08, P3-09, and P3-10. Stage 3.38 planning is canonical through PR #93 at
+`a944f1e5d5ee7d84db5393e8760eda254d732edd` and runtime implementation is canonical through PR #94 at
+`2df9946d77ee044a191a0422c8cccbbfe02dc7c9` after exact-head CI #268 / run `32913862780` and fresh published-head
+independent `APPROVED`. Runtime merge does not itself close P3-05.
+
+The Stage 3.38 closure package was then independently approved pre-commit, committed/pushed, and
+published as Draft PR #95 at exact head `8f5d10a3e7d138b69f59531f6e8875add6c7e766`. Exact-head closure
+CI #270 / run `32950023896` completed 10/10 successful. The first fresh published-head closure review
+returned `REQUEST CHANGES` for stale lifecycle wording that still described publication/CI as future.
+The first local pre-commit review of that documentation-only remediation also returned `REQUEST CHANGES`
+because active wording would have invalidated itself immediately upon commit/push. The subsequent
+publication-stable correction records lifecycle events rather than ephemeral local/pending state. Any
+published remediation head must receive renewed exact-head CI and fresh published-head closure review
+before merge authorization. P3-05 remains OPEN until actual closure merge.
+
+After an independently reviewed, exact-head-green, separately authorized Stage 3.38 closure merge,
+the original audit backlog becomes P0=0 / P1=0 / P2=0 / P3=6: P3-04, P3-06, P3-07, P3-08, P3-09,
+and P3-10. P3-09 Next.js maintenance and P3-10 Fiber maintenance remain separately governed and are
+not silently closed by Stage 3.38. Stage 3.25 privacy Security Review evidence planning remains
+separate.
 No further audit-remediation implementation begins without a separately reviewed planning/remediation gate.
 
 No AI, Tax Export, email, mobile, premium, direct broker API synchronization, credential scraping, or
