@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | PR #95 closure review/remediation cycle / merge only after renewed exact-head evidence and explicit authorization |
+| Status | CLOSED / PR #95 closure governance squash-merged into `develop`; P3-05 CLOSED |
 | Date | 2026-08-26 |
 | Finding | P3-05 — idempotency/session retention and cleanup |
 | Planning gate | PR #93 squash-merged at `a944f1e5d5ee7d84db5393e8760eda254d732edd` |
@@ -13,10 +13,11 @@
 | Exact-head runtime CI | GitHub Actions CI #268 / run `32913862780`, 10/10 required jobs successful |
 | Pre-commit approved patch SHA256 | `7c114a0ec845505bc9a3dabf9ee8d491243db058ab9b2394ebe3ce12dc168eb3` |
 | Closure pre-commit approved patch SHA256 | `02c1b7a6dc7d6b8fa05be1f80af67a981737a20e50943096b6aef6e24fdb655b` |
-| Published closure PR/head | Draft PR #95 at `8f5d10a3e7d138b69f59531f6e8875add6c7e766`; not merged |
-| Exact-head closure CI | GitHub Actions CI #270 / run `32950023896`, 10/10 required jobs successful |
-| Closure review history | First published-head review: `REQUEST CHANGES` for stale local/uncommitted lifecycle wording; first local remediation review: `REQUEST CHANGES` for self-invalidating ephemeral lifecycle wording; publication of any remediation head requires renewed exact-head CI and fresh published-head review before merge authorization |
-| Closure merge authorized here | No |
+| Published closure PR/head | PR #95 final published head `25eb3b9c3c153672f22a6718a7815a5d3c527f44`; squash-merged into `develop` at `c5962fa09b6d7d145dda203dbdf90069de7b1fcc` |
+| Exact-head closure CI | Final PR #95 head `25eb3b9c3c153672f22a6718a7815a5d3c527f44`: GitHub Actions CI #271 / run `32961508562`, 10/10 required jobs successful |
+| Closure review history | Initial published head `8f5d10a3e7d138b69f59531f6e8875add6c7e766` passed CI #270 but received fresh published-head `REQUEST CHANGES`; subsequent documentation-only remediation/review cycles are preserved below; final published head `25eb3b9c3c153672f22a6718a7815a5d3c527f44` passed CI #271, satisfied the required fresh independent closure review gate, received separate explicit human squash-merge authorization, and was actually merged as `c5962fa09b6d7d145dda203dbdf90069de7b1fcc` |
+| Closure merge authorized here | No — authorization remained a separate explicit human gate; that gate was subsequently satisfied and the actual PR #95 squash merge is recorded above |
+| Final finding status | P3-05 CLOSED through actual PR #95 squash merge `c5962fa09b6d7d145dda203dbdf90069de7b1fcc`; remaining original audit backlog P3=6: P3-04, P3-06, P3-07, P3-08, P3-09, P3-10 |
 
 ## 1. Finding / symptom
 
@@ -280,14 +281,12 @@ remain outside cleanup.
 - Fifth closure-candidate local semantic verification: FAILED before commit/push because the checker required literal `P3=7` in ROADMAP even though ROADMAP correctly used its canonical bullet form `P3: 7`. The verifier now accepts the repository's existing count notation while still requiring the exact current seven-finding set.
 - Closure pre-commit candidate patch SHA256: `02c1b7a6dc7d6b8fa05be1f80af67a981737a20e50943096b6aef6e24fdb655b`; independently `APPROVED`, P0/P1/P2/P3 = None.
 - Closure commit / first published head: `8f5d10a3e7d138b69f59531f6e8875add6c7e766` with parent `2df9946d77ee044a191a0422c8cccbbfe02dc7c9`.
-- Closure PR: #95, Draft, OPEN, not merged, base `develop`.
-- Closure exact-head CI: #270 / run `32950023896` on `8f5d10a3e7d138b69f59531f6e8875add6c7e766`; 10/10 required jobs successful.
+- Historical first published closure PR state: #95 was Draft/OPEN and not merged at first head `8f5d10a3e7d138b69f59531f6e8875add6c7e766`, base `develop`.
+- Historical initial closure exact-head CI: #270 / run `32950023896` on `8f5d10a3e7d138b69f59531f6e8875add6c7e766`; 10/10 required jobs successful.
 - First fresh closure published-head review: `REQUEST CHANGES`, P0/P1/P2 = None, one P3
   governance/evidence-integrity blocker for stale active local/uncommitted lifecycle wording.
-- Ready authorization: not granted; squash-merge authorization: not granted; closure merge: not performed.
-- This candidate is the documentation-only remediation of the first PR #95 published-head blocker. Any
-  publication of a remediation commit creates a new exact PR #95 head, and that exact head requires renewed
-  green CI plus a fresh independent published-head closure review before merge authorization.
+- Historical authorization state for the first published closure head: Ready authorization not granted; squash-merge authorization not granted; closure merge not performed at that point.
+- Historical publication rule after the first PR #95 published-head blocker: publication of any remediation commit created a new exact PR #95 head that required renewed green CI plus a fresh independent published-head closure review before merge authorization.
 - First local remediation pre-commit review: `REQUEST CHANGES`, P0/P1/P2 = None, one P3 governance/evidence-
   integrity blocker for self-invalidating active `uncommitted` / `remediation pending` wording.
 - Failed first remediation candidate identity: incremental patch SHA256
@@ -296,32 +295,23 @@ remain outside cleanup.
   `8cbd200b0822650071f0735ee0b2e57ca4e867ef2d1550db60a7f2b9a7ede96a`.
 - First publication-stable local semantic verification: FAILED before commit/push with `ERROR: publication-stable section-17 rule missing`. The rule was present but split by Markdown line wrapping; the checker incorrectly required a contiguous single-line literal. This is preserved as a verifier false negative. The corrected verifier compares normalized whitespace and still rejects the forbidden active self-invalidating phrases.
 
+- Final closure remediation head: `25eb3b9c3c153672f22a6718a7815a5d3c527f44`.
+- Final exact-head closure CI: #271 / run `32961508562`; 10/10 required jobs successful.
+- Final fresh published-head independent closure review: `APPROVED`, P0/P1/P2/P3 = None.
+- Separate explicit human Ready + squash-merge authorization: satisfied for the final closure head.
+- Actual PR #95 squash merge / canonical post-closure base: `c5962fa09b6d7d145dda203dbdf90069de7b1fcc`.
+
 ## 18. Final canonical status rule
 
-P3-05 remains **OPEN** in this unmerged closure candidate.
+P3-05 is **CLOSED**.
 
-The exact current P3=7 finding set is: P3-04, P3-05, P3-06, P3-07, P3-08, P3-09, and P3-10.
+The Stage 3.38 closure package ultimately reached final PR #95 head `25eb3b9c3c153672f22a6718a7815a5d3c527f44`, passed renewed exact-head CI #271 / run `32961508562` 10/10, satisfied the required fresh independent published-head closure review and separate explicit human Ready + squash-merge authorization, and was actually squash-merged into `develop` at `c5962fa09b6d7d145dda203dbdf90069de7b1fcc`. The authorization remained external to this document; this record reports the subsequently completed outcome rather than self-authorizing it.
 
-At the base of this closure candidate, the canonical original audit count remains:
+The canonical original audit count after closure is:
 
 - P0: 0
 - P1: 0
 - P2: 0
-- P3: 7
+- P3: 6
 
-P3-05 runtime remediation is canonical in `develop`, but this unmerged closure package does not itself
-declare the finding canonically CLOSED.
-
-The closure package already received independent pre-commit `APPROVED`, separate commit/push authorization,
-was published as Draft PR #95 at `8f5d10a3e7d138b69f59531f6e8875add6c7e766`, and that head passed exact-head closure CI #270 / run
-`32950023896` 10/10. Its first fresh published-head closure review returned `REQUEST CHANGES` for the
-published-state lifecycle wording corrected by this documentation-only remediation. Therefore the old
-published head is not merge-authorized and P3-05 remains OPEN.
-
-P3-05 becomes CLOSED only after this remediation is independently approved pre-commit, receives separate
-human commit/push authorization, is published as a new exact PR #95 head, passes renewed exact-head green
-closure CI, receives fresh independent published-head closure `APPROVED`, receives separate explicit
-human Ready + squash-merge authorization, and PR #95 is actually merged into `develop`.
-
-The resulting post-closure backlog is P0=0 / P1=0 / P2=0 / P3=6, consisting of P3-04, P3-06, P3-07,
-P3-08, P3-09, and P3-10. Stage 3.25 remains separate.
+The remaining findings are P3-04, P3-06, P3-07, P3-08, P3-09, and P3-10. Historical references above to P3-05 being OPEN, PR #95 being unmerged, CI #270, or earlier authorization states are preserved only as chronology of prior candidates/reviews and do not override this current status. Stage 3.25 remains separate.

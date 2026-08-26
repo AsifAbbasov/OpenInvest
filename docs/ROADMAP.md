@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.71 |
+| Version | 1.1.72 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
@@ -84,13 +84,13 @@
 | 3.37 — Closure governance | Independently verify the merged runtime evidence and synchronize P3-02 canonical closure without absorbing another P3 item | Complete / merged through PR #92 at `305a53bb07136b274717ff48778a5e93d7b1607c` |
 | 3.38 — Idempotency/session retention and cleanup planning | Define bounded P3-05 retention, logical-expiry, exact-key reclamation, session replay boundary, cleanup concurrency, and index/test requirements | Complete / merged through PR #93 at `a944f1e5d5ee7d84db5393e8760eda254d732edd` |
 | 3.38 — Idempotency/session retention and cleanup implementation | Enforce 24-hour command/replay lifecycle, post-serialization DB-clock authority, session-expiry authority, bounded opportunistic cleanup, and retention indexes | Complete / merged through PR #94 at `2df9946d77ee044a191a0422c8cccbbfe02dc7c9` |
-| 3.38 — Closure governance | Independently verify merged runtime evidence and synchronize P3-05 canonical closure without absorbing another P3 item | PR #95 closure review/remediation cycle: first published head `8f5d10a3e7d138b69f59531f6e8875add6c7e766` passed CI #270 / run `32950023896` 10/10, then received fresh published-head `REQUEST CHANGES`; the first local remediation review also returned `REQUEST CHANGES` for self-invalidating lifecycle wording; any subsequently published remediation head requires renewed exact-head CI and fresh published-head review before merge authorization |
+| 3.38 — Closure governance | Independently verify merged runtime evidence and synchronize P3-05 canonical closure without absorbing another P3 item | Complete / PR #95 squash-merged into `develop` at `c5962fa09b6d7d145dda203dbdf90069de7b1fcc` from final head `25eb3b9c3c153672f22a6718a7815a5d3c527f44` after exact-head CI #271 / run `32961508562`; P3-05 CLOSED |
+| 3.39 — Unicode and OpenAPI string-length semantics planning | Freeze P3-04 code-point semantics for implemented bounded human-readable strings, preserve raw-versus-trimmed admission order, and keep the import CSV 2 MiB limit byte-based | Planning/review candidate only; runtime implementation not authorized; P3-04 remains OPEN |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
 
-Stages 3.27 through 3.38 are separately authorized narrow repository-audit remediations and do not
-authorize product-scope expansion. Stage 3.25 privacy evidence planning remains separate. Stage 3.34
+Stages 3.27 through 3.39 are separately governed narrow repository-audit remediations and do not authorize product-scope expansion. Stage 3.25 privacy evidence planning remains separate. Stage 3.34
 closure is canonical through PR #82 at `ae5a152114cc163867a363953f8a3202396b1f6c`. Stage 3.35 P3-01
 runtime implementation is canonical through PR #84 at `a47df19ccc7edff73f39f4e76aec47580c168c46`
 and governance closure is canonical through PR #85. Stage 3.36 P3-03 planning is canonical through
@@ -106,29 +106,12 @@ The current original 32-finding repository-audit backlog is:
 - P0: 0
 - P1: 0
 - P2: 0
-- P3: 7
+- P3: 6
 
-The remaining findings at the base of this Stage 3.38 closure candidate are P3-04, P3-05, P3-06,
-P3-07, P3-08, P3-09, and P3-10. Stage 3.38 planning is canonical through PR #93 at
-`a944f1e5d5ee7d84db5393e8760eda254d732edd` and runtime implementation is canonical through PR #94 at
-`2df9946d77ee044a191a0422c8cccbbfe02dc7c9` after exact-head CI #268 / run `32913862780` and fresh published-head
-independent `APPROVED`. Runtime merge does not itself close P3-05.
+The remaining findings are P3-04, P3-06, P3-07, P3-08, P3-09, and P3-10.
+Stage 3.38 planning is canonical through PR #93 at `a944f1e5d5ee7d84db5393e8760eda254d732edd`, runtime implementation is canonical through PR #94 at `2df9946d77ee044a191a0422c8cccbbfe02dc7c9`, and closure governance is canonical through the actual PR #95 squash merge at `c5962fa09b6d7d145dda203dbdf90069de7b1fcc` from final head `25eb3b9c3c153672f22a6718a7815a5d3c527f44` after exact-head CI #271 / run `32961508562`. P3-05 is CLOSED.
 
-The Stage 3.38 closure package was then independently approved pre-commit, committed/pushed, and
-published as Draft PR #95 at exact head `8f5d10a3e7d138b69f59531f6e8875add6c7e766`. Exact-head closure
-CI #270 / run `32950023896` completed 10/10 successful. The first fresh published-head closure review
-returned `REQUEST CHANGES` for stale lifecycle wording that still described publication/CI as future.
-The first local pre-commit review of that documentation-only remediation also returned `REQUEST CHANGES`
-because active wording would have invalidated itself immediately upon commit/push. The subsequent
-publication-stable correction records lifecycle events rather than ephemeral local/pending state. Any
-published remediation head must receive renewed exact-head CI and fresh published-head closure review
-before merge authorization. P3-05 remains OPEN until actual closure merge.
-
-After an independently reviewed, exact-head-green, separately authorized Stage 3.38 closure merge,
-the original audit backlog becomes P0=0 / P1=0 / P2=0 / P3=6: P3-04, P3-06, P3-07, P3-08, P3-09,
-and P3-10. P3-09 Next.js maintenance and P3-10 Fiber maintenance remain separately governed and are
-not silently closed by Stage 3.38. Stage 3.25 privacy Security Review evidence planning remains
-separate.
+Stage 3.39 / P3-04 is a separately reviewed planning gate. The planning increment authorizes no runtime implementation and does not close P3-04. P3-09 Next.js maintenance and P3-10 Fiber maintenance remain separately governed. Stage 3.25 privacy Security Review evidence planning remains separate.
 No further audit-remediation implementation begins without a separately reviewed planning/remediation gate.
 
 No AI, Tax Export, email, mobile, premium, direct broker API synchronization, credential scraping, or
