@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -161,35 +162,41 @@ func (s *Store) AppendImportedTransactionsWithReplay(
 }
 
 func reserveReplayCommand(ctx context.Context, tx *sql.Tx, command verticalslice.CommandContext, method string) (replayReservation, error) {
-	commandID := uuid.NewString()
-	var existingID string
-	var existingHash string
-	var terminalStatus sql.NullString
-	var responseVersion sql.NullInt64
-	var responseStatus sql.NullInt64
-	var responseBody []byte
-	var responseRequestID sql.NullString
-	var responseTraceID sql.NullString
-	var responseHash sql.NullString
+	if err := lockReplayCommandScope(ctx, tx, command, method); err != nil {
+		return replayReservation{}, err
+	}
 
-	err := tx.QueryRowContext(ctx, `
-		INSERT INTO investment.command_deduplication
-			(id, principal_id, method, canonical_path, idempotency_key, request_hash, created_at, expires_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7::timestamptz, $7::timestamptz + interval '24 hours')
-		ON CONFLICT (principal_id, method, canonical_path, idempotency_key)
-		DO UPDATE SET idempotency_key = investment.command_deduplication.idempotency_key
-		RETURNING
-			id,
-			request_hash,
-			terminal_status,
-			response_version,
-			response_status,
-			response_body,
-			response_request_id::text,
-			response_trace_id,
-			response_hash
-	`, commandID, command.SubjectID, method, command.RequestPath, command.IdempotencyKey, command.RequestHash, command.Now).
-		Scan(
+	for {
+		var existingID string
+		var existingHash string
+		var terminalStatus sql.NullString
+		var responseVersion sql.NullInt64
+		var responseStatus sql.NullInt64
+		var responseBody []byte
+		var responseRequestID sql.NullString
+		var responseTraceID sql.NullString
+		var responseHash sql.NullString
+		var expiresAt time.Time
+
+		err := tx.QueryRowContext(ctx, `
+			SELECT
+				id,
+				request_hash,
+				terminal_status,
+				response_version,
+				response_status,
+				response_body,
+				response_request_id::text,
+				response_trace_id,
+				response_hash,
+				expires_at
+			FROM investment.command_deduplication
+			WHERE principal_id = $1
+				AND method = $2
+				AND canonical_path = $3
+				AND idempotency_key = $4
+			FOR UPDATE
+		`, command.SubjectID, method, command.RequestPath, command.IdempotencyKey).Scan(
 			&existingID,
 			&existingHash,
 			&terminalStatus,
@@ -199,48 +206,154 @@ func reserveReplayCommand(ctx context.Context, tx *sql.Tx, command verticalslice
 			&responseRequestID,
 			&responseTraceID,
 			&responseHash,
+			&expiresAt,
 		)
-	if err != nil {
-		return replayReservation{}, err
-	}
-	if existingID == commandID {
-		return replayReservation{ID: commandID}, nil
-	}
-	if existingHash != command.RequestHash {
-		return replayReservation{}, ErrIdempotencyConflict
-	}
-	if !terminalStatus.Valid {
-		return replayReservation{}, ErrIdempotencyInFlight
-	}
-	if terminalStatus.String != "success" || !responseVersion.Valid {
-		return replayReservation{}, ErrUnsupportedDuplicate
-	}
-	if responseVersion.Int64 != commandReplayVersion ||
-		!responseStatus.Valid || responseStatus.Int64 < 100 || responseStatus.Int64 > 599 ||
-		len(responseBody) == 0 || len(responseBody) > maxCommandReplayBodyBytes ||
-		!responseRequestID.Valid || strings.TrimSpace(responseRequestID.String) == "" ||
-		!responseTraceID.Valid || strings.TrimSpace(responseTraceID.String) == "" ||
-		!responseHash.Valid {
-		return replayReservation{}, fmt.Errorf("corrupt idempotency replay artifact for command %s", existingID)
-	}
-	if _, err := uuid.Parse(responseRequestID.String); err != nil {
-		return replayReservation{}, fmt.Errorf("corrupt idempotency replay request id for command %s", existingID)
-	}
-	hash := sha256.Sum256(responseBody)
-	if hex.EncodeToString(hash[:]) != responseHash.String {
-		return replayReservation{}, fmt.Errorf("corrupt idempotency replay body hash for command %s", existingID)
-	}
+		if errors.Is(err, sql.ErrNoRows) {
+			// The INSERT can still block on a mixed-version/non-cooperating writer that does not
+			// honor the Stage 3.38 advisory lock. Use a provisional non-null timestamp for the
+			// invisible in-transaction row, then anchor persisted admission time only after the
+			// potentially blocking INSERT has returned as the winner.
+			provisionalTime, clockErr := databaseWallClock(ctx, tx)
+			if clockErr != nil {
+				return replayReservation{}, clockErr
+			}
+			commandID := uuid.NewString()
+			result, insertErr := tx.ExecContext(ctx, `
+				INSERT INTO investment.command_deduplication (
+					id, principal_id, method, canonical_path, idempotency_key, request_hash,
+					created_at, expires_at
+				)
+				VALUES (
+					$1, $2, $3, $4, $5, $6,
+					$7::timestamptz,
+					$7::timestamptz + interval '24 hours'
+				)
+				ON CONFLICT (principal_id, method, canonical_path, idempotency_key) DO NOTHING
+			`, commandID, command.SubjectID, method, command.RequestPath, command.IdempotencyKey, command.RequestHash, provisionalTime)
+			if insertErr != nil {
+				return replayReservation{}, insertErr
+			}
+			rowsAffected, rowsErr := result.RowsAffected()
+			if rowsErr != nil {
+				return replayReservation{}, rowsErr
+			}
+			if rowsAffected == 1 {
+				admissionTime, admissionErr := databaseWallClock(ctx, tx)
+				if admissionErr != nil {
+					return replayReservation{}, admissionErr
+				}
+				updateResult, updateErr := tx.ExecContext(ctx, `
+					UPDATE investment.command_deduplication
+					SET
+						created_at = $2::timestamptz,
+						expires_at = $2::timestamptz + interval '24 hours'
+					WHERE id = $1
+				`, commandID, admissionTime)
+				if updateErr != nil {
+					return replayReservation{}, updateErr
+				}
+				updatedRows, updatedRowsErr := updateResult.RowsAffected()
+				if updatedRowsErr != nil {
+					return replayReservation{}, updatedRowsErr
+				}
+				if updatedRows != 1 {
+					return replayReservation{}, errors.New("fresh idempotency admission timestamp was not finalized exactly once")
+				}
+				if _, cleanupErr := cleanupExpiredReplayCommands(ctx, tx); cleanupErr != nil {
+					return replayReservation{}, cleanupErr
+				}
+				return replayReservation{ID: commandID}, nil
+			}
 
-	return replayReservation{
-		ID:        existingID,
-		Duplicate: true,
-		Artifact: verticalslice.CommandReplayArtifact{
-			StatusCode: int(responseStatus.Int64),
-			Body:       append([]byte(nil), responseBody...),
-			RequestID:  responseRequestID.String,
-			TraceID:    responseTraceID.String,
-		},
-	}, nil
+			// A mixed-version or otherwise non-cooperating writer won the unique-index race.
+			// Loop and acquire that now-visible exact row before deciding replay/conflict/expiry.
+			continue
+		}
+		if err != nil {
+			return replayReservation{}, err
+		}
+
+		decisionTime, err := databaseWallClock(ctx, tx)
+		if err != nil {
+			return replayReservation{}, err
+		}
+		if expiredAt(expiresAt, decisionTime) {
+			commandID := uuid.NewString()
+			result, updateErr := tx.ExecContext(ctx, `
+				UPDATE investment.command_deduplication
+				SET
+					id = $2,
+					request_hash = $3,
+					terminal_status = NULL,
+					response_hash = NULL,
+					response_version = NULL,
+					response_status = NULL,
+					response_body = NULL,
+					response_request_id = NULL,
+					response_trace_id = NULL,
+					created_at = $4::timestamptz,
+					expires_at = $4::timestamptz + interval '24 hours'
+				WHERE id = $1
+			`, existingID, commandID, command.RequestHash, decisionTime)
+			if updateErr != nil {
+				return replayReservation{}, updateErr
+			}
+			rowsAffected, rowsErr := result.RowsAffected()
+			if rowsErr != nil {
+				return replayReservation{}, rowsErr
+			}
+			if rowsAffected != 1 {
+				return replayReservation{}, errors.New("expired idempotency generation was not reclaimed exactly once")
+			}
+			if _, cleanupErr := cleanupExpiredReplayCommands(ctx, tx); cleanupErr != nil {
+				return replayReservation{}, cleanupErr
+			}
+			return replayReservation{ID: commandID}, nil
+		}
+
+		var reservation replayReservation
+		var reservationErr error
+		switch {
+		case existingHash != command.RequestHash:
+			reservationErr = ErrIdempotencyConflict
+		case !terminalStatus.Valid:
+			reservationErr = ErrIdempotencyInFlight
+		case terminalStatus.String != "success" || !responseVersion.Valid:
+			reservationErr = ErrUnsupportedDuplicate
+		case responseVersion.Int64 != commandReplayVersion ||
+			!responseStatus.Valid || responseStatus.Int64 < 100 || responseStatus.Int64 > 599 ||
+			len(responseBody) == 0 || len(responseBody) > maxCommandReplayBodyBytes ||
+			!responseRequestID.Valid || strings.TrimSpace(responseRequestID.String) == "" ||
+			!responseTraceID.Valid || strings.TrimSpace(responseTraceID.String) == "" ||
+			!responseHash.Valid:
+			reservationErr = fmt.Errorf("corrupt idempotency replay artifact for command %s", existingID)
+		default:
+			if _, parseErr := uuid.Parse(responseRequestID.String); parseErr != nil {
+				reservationErr = fmt.Errorf("corrupt idempotency replay request id for command %s", existingID)
+				break
+			}
+			hash := sha256.Sum256(responseBody)
+			if hex.EncodeToString(hash[:]) != responseHash.String {
+				reservationErr = fmt.Errorf("corrupt idempotency replay body hash for command %s", existingID)
+				break
+			}
+			reservation = replayReservation{
+				ID:        existingID,
+				Duplicate: true,
+				Artifact: verticalslice.CommandReplayArtifact{
+					StatusCode: int(responseStatus.Int64),
+					Body:       append([]byte(nil), responseBody...),
+					RequestID:  responseRequestID.String,
+					TraceID:    responseTraceID.String,
+				},
+			}
+		}
+
+		if _, cleanupErr := cleanupExpiredReplayCommands(ctx, tx); cleanupErr != nil {
+			return replayReservation{}, cleanupErr
+		}
+		return reservation, reservationErr
+	}
 }
 
 func completeReplayCommand(ctx context.Context, tx *sql.Tx, commandID string, artifact verticalslice.CommandReplayArtifact) error {

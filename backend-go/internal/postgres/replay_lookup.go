@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -29,6 +30,8 @@ func (s *Store) LookupReplayArtifact(
 	var responseRequestID sql.NullString
 	var responseTraceID sql.NullString
 	var responseHash sql.NullString
+	var expiresAt time.Time
+	var lookupTime time.Time
 
 	err := s.db.QueryRowContext(ctx, `
 		SELECT
@@ -39,7 +42,9 @@ func (s *Store) LookupReplayArtifact(
 			response_body,
 			response_request_id::text,
 			response_trace_id,
-			response_hash
+			response_hash,
+			expires_at,
+			clock_timestamp()
 		FROM investment.command_deduplication
 		WHERE principal_id = $1
 			AND method = $2
@@ -54,12 +59,17 @@ func (s *Store) LookupReplayArtifact(
 		&responseRequestID,
 		&responseTraceID,
 		&responseHash,
+		&expiresAt,
+		&lookupTime,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return verticalslice.CommandReplayArtifact{}, false, nil
 	}
 	if err != nil {
 		return verticalslice.CommandReplayArtifact{}, false, err
+	}
+	if expiredAt(expiresAt, lookupTime) {
+		return verticalslice.CommandReplayArtifact{}, false, nil
 	}
 	if existingHash != command.RequestHash {
 		return verticalslice.CommandReplayArtifact{}, false, ErrIdempotencyConflict
