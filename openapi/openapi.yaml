@@ -582,8 +582,10 @@ components:
       in: header
       required: true
       description: >-
-        Unique key for a financial write. Replays with the identical authenticated principal,
-        endpoint, and canonical payload return the original result; a different payload returns 409.
+        Unique key for a financial write. Exact replay/conflict semantics are guaranteed for 24 hours
+        from server command admission. Before expiry, reuse by the identical authenticated principal
+        and endpoint with the same canonical payload returns the original result; a different payload
+        returns 409. At or after expiry, the same key may be admitted as a new command.
       schema:
         type: string
         minLength: 16
