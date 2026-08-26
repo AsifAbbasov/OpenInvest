@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Runtime merged / separate closure governance pending |
+| Status | Runtime merged / PR #95 closure lifecycle-evidence remediation cycle; P3-05 remains OPEN |
 | Date | 2026-08-26 |
 | Finding | P3-05 — idempotency/session cleanup |
 | Canonical runtime base | `develop` at `a944f1e5d5ee7d84db5393e8760eda254d732edd` |
@@ -10,6 +10,9 @@
 | Runtime branch | `fix/stage-03-38-p3-05-retention-runtime`; published as PR #94 |
 | Runtime commit / push | Exact published head `5ea8c6f4eddd735ea834dc4a27ecb70da7f81508` |
 | Runtime merge | PR #94 squash-merged at `2df9946d77ee044a191a0422c8cccbbfe02dc7c9` |
+| Closure PR | Draft PR #95 published at exact head `8f5d10a3e7d138b69f59531f6e8875add6c7e766`; not merged |
+| Closure exact-head CI | #270 / run `32950023896`; 10/10 required jobs successful on `8f5d10a3e7d138b69f59531f6e8875add6c7e766` |
+| Closure review history | First published-head review: `REQUEST CHANGES` for stale local/uncommitted lifecycle wording; first local remediation review: `REQUEST CHANGES` for self-invalidating ephemeral lifecycle wording; publication of any remediation head requires renewed exact-head CI and fresh published-head review before merge authorization |
 | Final finding status | OPEN; runtime merge alone will not close P3-05 |
 
 ## 1. Finding / symptom
@@ -379,18 +382,39 @@ claim is the preserved external independent verdict plus exact repository/PR/CI 
 
 The runtime merge is canonical but does not itself close P3-05.
 
+Closure-governance evidence after runtime merge:
+
+- independently approved closure pre-commit patch SHA256: `02c1b7a6dc7d6b8fa05be1f80af67a981737a20e50943096b6aef6e24fdb655b`;
+- closure commit / first published PR head: `8f5d10a3e7d138b69f59531f6e8875add6c7e766`;
+- closure PR: Draft PR #95 against `develop`;
+- exact-head closure CI: #270 / run `32950023896`, 10/10 required jobs successful;
+- first fresh published-head closure review: `REQUEST CHANGES`, P0/P1/P2 None and one P3
+  governance/evidence-integrity blocker because active docs still described the already-published
+  closure package as local/uncommitted and publication/CI as future;
+- remediation is documentation-only; any published remediation commit changes the exact closure head and
+  therefore requires renewed exact-head CI and a fresh published-head closure review before merge authorization;
+- the first local pre-commit review of that remediation returned `REQUEST CHANGES` because the candidate
+  used self-invalidating active wording (`uncommitted` / `remediation pending`) that would become stale on
+  publication. The publication-stable correction records immutable events and lifecycle rules instead.
+- failed first remediation-review artifact identity: incremental patch SHA256
+  `9cb5887a09508282244eabd0f2329fdc0befce251144d9f9aa7900737db35eff`, prospective full PR patch SHA256
+  `7956ac8939eb09c3a655c086997109e0f8ae51938e334a840e8d90e64ffebce1`, verification report SHA256
+  `8cbd200b0822650071f0735ee0b2e57ca4e867ef2d1550db60a7f2b9a7ede96a`.
+
 ## 18. Final canonical status
 
 P3-05 remains **OPEN** at this runtime-merged base.
 
-The runtime remediation is canonical in `develop`, but closure requires a separately governed closure
-package that synchronizes `SOURCE_OF_TRUTH.md`, `ROADMAP.md`, this implementation record, and a
-Stage 3.38 closure record.
+The runtime remediation is canonical in `develop`. The separately governed closure package synchronizing
+`SOURCE_OF_TRUTH.md`, `ROADMAP.md`, this implementation record, and the Stage 3.38 closure record was
+published as Draft PR #95 at `8f5d10a3e7d138b69f59531f6e8875add6c7e766` and passed exact-head closure CI #270 / run `32950023896` 10/10.
+Its first fresh published-head closure review returned `REQUEST CHANGES` for stale lifecycle-evidence
+wording, so that published head is not merge-authorized and P3-05 remains OPEN.
 
-P3-05 becomes CLOSED only after that exact closure package receives independent pre-commit closure
-`APPROVED`, receives separate human commit/push authorization, is published through a closure PR,
-passes exact-head closure CI, receives fresh independent published-head closure `APPROVED`, receives
-separate explicit human squash-merge authorization, and is merged into `develop`.
+The documentation-only remediation must receive independent pre-commit approval, separate human
+commit/push authorization, renewed exact-head green closure CI on the new published head, fresh
+published-head closure `APPROVED`, separate explicit human Ready + squash-merge authorization, and
+actual merge into `develop` before P3-05 becomes CLOSED.
 
 Until then, the canonical original audit backlog remains P0=0 / P1=0 / P2=0 / P3=7:
 P3-04, P3-05, P3-06, P3-07, P3-08, P3-09, and P3-10. After canonical P3-05 closure, it becomes

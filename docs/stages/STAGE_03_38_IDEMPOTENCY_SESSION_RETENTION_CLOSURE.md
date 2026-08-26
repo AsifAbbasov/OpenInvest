@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Closure candidate / independent closure review pending |
+| Status | PR #95 closure review/remediation cycle / merge only after renewed exact-head evidence and explicit authorization |
 | Date | 2026-08-26 |
 | Finding | P3-05 — idempotency/session retention and cleanup |
 | Planning gate | PR #93 squash-merged at `a944f1e5d5ee7d84db5393e8760eda254d732edd` |
@@ -12,6 +12,10 @@
 | Runtime merge | `2df9946d77ee044a191a0422c8cccbbfe02dc7c9` |
 | Exact-head runtime CI | GitHub Actions CI #268 / run `32913862780`, 10/10 required jobs successful |
 | Pre-commit approved patch SHA256 | `7c114a0ec845505bc9a3dabf9ee8d491243db058ab9b2394ebe3ce12dc168eb3` |
+| Closure pre-commit approved patch SHA256 | `02c1b7a6dc7d6b8fa05be1f80af67a981737a20e50943096b6aef6e24fdb655b` |
+| Published closure PR/head | Draft PR #95 at `8f5d10a3e7d138b69f59531f6e8875add6c7e766`; not merged |
+| Exact-head closure CI | GitHub Actions CI #270 / run `32950023896`, 10/10 required jobs successful |
+| Closure review history | First published-head review: `REQUEST CHANGES` for stale local/uncommitted lifecycle wording; first local remediation review: `REQUEST CHANGES` for self-invalidating ephemeral lifecycle wording; publication of any remediation head requires renewed exact-head CI and fresh published-head review before merge authorization |
 | Closure merge authorized here | No |
 
 ## 1. Finding / symptom
@@ -183,6 +187,21 @@ After publication, the exact GitHub head `5ea8c6f4eddd735ea834dc4a27ecb70da7f815
 `APPROVED` after direct PR diff, blob identity, base/head, and CI verification. No new P0/P1/P2/P3
 blocker was found.
 
+The closure package was later published as Draft PR #95 at exact head `8f5d10a3e7d138b69f59531f6e8875add6c7e766`. Exact-head closure
+CI #270 / run `32950023896` completed 10/10 successful. The first fresh independent published-head closure
+`REQUEST CHANGES` review found one P3 governance/evidence-integrity blocker: active durable wording in
+this closure record and `SOURCE_OF_TRUTH.md` still described the closure package as local/uncommitted
+and treated publication/CI as future even though PR #95 and CI #270 already existed. No runtime,
+security, financial, database, retention-semantic, P0, P1, or P2 blocker was found. This published-state
+drift is preserved as a failed review iteration and remediated documentation-only before any new push.
+
+The first independent pre-commit review of that remediation also returned `REQUEST CHANGES`. It confirmed
+the original published-vs-local contradiction was fixed, but found a new publication-stability defect:
+active section-17/status wording said the remediation was `uncommitted` / `remediation pending`, which
+would become false immediately if the exact candidate were committed/pushed. This is P3 governance/evidence
+integrity only. The correction replaces ephemeral state assertions with immutable lifecycle events and rules
+that remain truthful before and after publication; runtime/code/config scope remains unchanged.
+
 No native GitHub review object is claimed for these external independent ChatGPT reviews.
 
 ## 14. Remediation iterations
@@ -208,6 +227,11 @@ No native GitHub review object is claimed for these external independent ChatGPT
 18. The third local closure semantic verification failed before commit/push because the checker looked for the current-backlog sequence `P3-05, P3-06, ...` anywhere in the whole ROADMAP and mistook the intentionally preserved current P3=7 backlog for a bad post-closure forecast. The document was correct: current state still includes P3-05, while only the post-closure forecast removes it. The verifier is corrected to validate current-state and forecast clauses separately.
 19. The fourth local closure semantic verification failed before commit/push because the closure record stated the current count as P3=7 but did not enumerate the exact current seven-finding set. ROADMAP and SOURCE_OF_TRUTH already preserved that set, but the closure record itself was less explicit than the verifier required. This is treated as a documentation-completeness gap rather than hidden by weakening the check: the exact current set is now stated in section 18 and the verification is rerun.
 20. The fifth local closure semantic verification failed before commit/push because the checker required the literal token `P3=7` in ROADMAP, while ROADMAP expresses the canonical count in its existing bullet form `P3: 7`. The exact current seven-finding set was already present and correct. This was a verifier false negative, not a repository-state defect. The checker is corrected to validate the count semantically (`P3=7` or `P3: 7`) and to require the exact current seven-finding set independently.
+21. The independently approved four-file closure candidate was committed/pushed as `8f5d10a3e7d138b69f59531f6e8875add6c7e766`, published as Draft PR #95 against `2df9946d77ee044a191a0422c8cccbbfe02dc7c9`, and exact-head closure CI #270 / run `32950023896` completed 10/10 successful.
+22. The first fresh published-head closure review returned `REQUEST CHANGES` with P0/P1/P2 None and one P3 governance/evidence-integrity blocker: active docs still described the closure state as local/uncommitted and publication/CI as future. The blocker is documentation-only. This remediation synchronizes all four governance surfaces to the already-published-but-unmerged PR #95 state, keeps P3-05 OPEN/P3=7, and requires renewed review before any push.
+23. The first independent pre-commit review of the published-state remediation returned `REQUEST CHANGES` with P0/P1/P2 None and one P3 governance/evidence-integrity blocker. It confirmed the prior published-vs-local contradiction was closed, but rejected self-invalidating active wording that described the remediation as `uncommitted` / `remediation pending` even though those claims would become false on publication. The exact failed candidate is preserved by incremental patch SHA256 `9cb5887a09508282244eabd0f2329fdc0befce251144d9f9aa7900737db35eff`, prospective full PR patch SHA256 `7956ac8939eb09c3a655c086997109e0f8ae51938e334a840e8d90e64ffebce1`, and verification report SHA256 `8cbd200b0822650071f0735ee0b2e57ca4e867ef2d1550db60a7f2b9a7ede96a`.
+24. The publication-stable remediation replaces ephemeral local/pending status claims with durable event/rule wording: first PR #95 head, CI #270, both `REQUEST CHANGES` events, and the invariant that any published remediation head requires renewed exact-head CI plus fresh published-head review before merge authorization. Semantic negative controls reject reintroduction of self-invalidating active wording.
+25. The first local semantic verification of the publication-stable candidate failed before commit/push with `ERROR: publication-stable section-17 rule missing`. The candidate wording was already semantically correct: normal Markdown wrapping split `Any` and `publication` across a newline, while the checker required one contiguous literal single-line substring. This was a verifier false negative, not a documentation defect. The verifier is corrected to normalize whitespace before checking the durable publication rule, while retaining the existing negative controls against genuinely self-invalidating active wording.
 
 ## 15. Residual risk / limitations
 
@@ -254,7 +278,23 @@ remain outside cleanup.
 - Third closure-candidate local semantic verification: FAILED before commit/push because the checker globally rejected the valid current-backlog `P3-05, P3-06, ...` sequence instead of scoping the check to post-closure forecast prose. The verifier was corrected to validate current and forecast states separately.
 - Fourth closure-candidate local semantic verification: FAILED before commit/push because the closure record gave the current count P3=7 without enumerating the exact current seven-finding set. Section 18 now states that set explicitly and the verification is rerun.
 - Fifth closure-candidate local semantic verification: FAILED before commit/push because the checker required literal `P3=7` in ROADMAP even though ROADMAP correctly used its canonical bullet form `P3: 7`. The verifier now accepts the repository's existing count notation while still requiring the exact current seven-finding set.
-- Closure PR/head/CI/merge: not asserted yet; this is a local uncommitted closure candidate.
+- Closure pre-commit candidate patch SHA256: `02c1b7a6dc7d6b8fa05be1f80af67a981737a20e50943096b6aef6e24fdb655b`; independently `APPROVED`, P0/P1/P2/P3 = None.
+- Closure commit / first published head: `8f5d10a3e7d138b69f59531f6e8875add6c7e766` with parent `2df9946d77ee044a191a0422c8cccbbfe02dc7c9`.
+- Closure PR: #95, Draft, OPEN, not merged, base `develop`.
+- Closure exact-head CI: #270 / run `32950023896` on `8f5d10a3e7d138b69f59531f6e8875add6c7e766`; 10/10 required jobs successful.
+- First fresh closure published-head review: `REQUEST CHANGES`, P0/P1/P2 = None, one P3
+  governance/evidence-integrity blocker for stale active local/uncommitted lifecycle wording.
+- Ready authorization: not granted; squash-merge authorization: not granted; closure merge: not performed.
+- This candidate is the documentation-only remediation of the first PR #95 published-head blocker. Any
+  publication of a remediation commit creates a new exact PR #95 head, and that exact head requires renewed
+  green CI plus a fresh independent published-head closure review before merge authorization.
+- First local remediation pre-commit review: `REQUEST CHANGES`, P0/P1/P2 = None, one P3 governance/evidence-
+  integrity blocker for self-invalidating active `uncommitted` / `remediation pending` wording.
+- Failed first remediation candidate identity: incremental patch SHA256
+  `9cb5887a09508282244eabd0f2329fdc0befce251144d9f9aa7900737db35eff`; prospective full PR patch SHA256
+  `7956ac8939eb09c3a655c086997109e0f8ae51938e334a840e8d90e64ffebce1`; verification report SHA256
+  `8cbd200b0822650071f0735ee0b2e57ca4e867ef2d1550db60a7f2b9a7ede96a`.
+- First publication-stable local semantic verification: FAILED before commit/push with `ERROR: publication-stable section-17 rule missing`. The rule was present but split by Markdown line wrapping; the checker incorrectly required a contiguous single-line literal. This is preserved as a verifier false negative. The corrected verifier compares normalized whitespace and still rejects the forbidden active self-invalidating phrases.
 
 ## 18. Final canonical status rule
 
@@ -272,11 +312,16 @@ At the base of this closure candidate, the canonical original audit count remain
 P3-05 runtime remediation is canonical in `develop`, but this unmerged closure package does not itself
 declare the finding canonically CLOSED.
 
-P3-05 becomes CLOSED only when this exact closure package receives fresh independent pre-commit
-closure `APPROVED`, receives separate human commit/push authorization, is published in a closure PR,
-passes exact-head green closure CI, receives fresh independent published-head closure `APPROVED`,
-receives separate explicit human squash-merge authorization, and the closure PR is merged into
-`develop`.
+The closure package already received independent pre-commit `APPROVED`, separate commit/push authorization,
+was published as Draft PR #95 at `8f5d10a3e7d138b69f59531f6e8875add6c7e766`, and that head passed exact-head closure CI #270 / run
+`32950023896` 10/10. Its first fresh published-head closure review returned `REQUEST CHANGES` for the
+published-state lifecycle wording corrected by this documentation-only remediation. Therefore the old
+published head is not merge-authorized and P3-05 remains OPEN.
+
+P3-05 becomes CLOSED only after this remediation is independently approved pre-commit, receives separate
+human commit/push authorization, is published as a new exact PR #95 head, passes renewed exact-head green
+closure CI, receives fresh independent published-head closure `APPROVED`, receives separate explicit
+human Ready + squash-merge authorization, and PR #95 is actually merged into `develop`.
 
 The resulting post-closure backlog is P0=0 / P1=0 / P2=0 / P3=6, consisting of P3-04, P3-06, P3-07,
 P3-08, P3-09, and P3-10. Stage 3.25 remains separate.
