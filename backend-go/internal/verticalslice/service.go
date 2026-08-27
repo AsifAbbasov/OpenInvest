@@ -40,12 +40,12 @@ func (s *Service) Ready(ctx context.Context) error {
 }
 
 func (s *Service) SearchAssets(ctx context.Context, filter AssetSearchFilter) (AssetSearchResult, error) {
+	if err := validateUnicodeCodePointMax(filter.Query, 100, "query"); err != nil {
+		return AssetSearchResult{}, err
+	}
 	filter.Query = strings.TrimSpace(filter.Query)
 	if filter.Query == "" {
 		return AssetSearchResult{}, fmt.Errorf("%w: query is required", ErrInvalidInput)
-	}
-	if utf8.RuneCountInString(filter.Query) > 100 {
-		return AssetSearchResult{}, fmt.Errorf("%w: query must be at most 100 characters", ErrInvalidInput)
 	}
 	if filter.AssetType != "" {
 		switch filter.AssetType {
@@ -100,8 +100,11 @@ func (s *Service) CreatePortfolio(ctx context.Context, requestContext RequestCon
 	if err := ValidateIdempotencyKey(idempotencyKey); err != nil {
 		return Portfolio{}, err
 	}
+	if err := validateUnicodeCodePointMax(request.Name, 100, "portfolio name"); err != nil {
+		return Portfolio{}, err
+	}
 	request.Name = strings.TrimSpace(request.Name)
-	if request.Name == "" || len(request.Name) > 100 {
+	if request.Name == "" {
 		return Portfolio{}, fmt.Errorf("%w: portfolio name must be 1..100 characters", ErrInvalidInput)
 	}
 	if request.BaseCurrency != RUB {
@@ -119,8 +122,38 @@ func (s *Service) CreatePortfolioWithReplay(ctx context.Context, requestContext 
 	if err := ValidateIdempotencyKey(idempotencyKey); err != nil {
 		return Portfolio{}, CommandReplayArtifact{}, err
 	}
-	request.Name = strings.TrimSpace(request.Name)
-	if request.Name == "" || len(request.Name) > 100 {
+
+	rawName := request.Name
+	if !utf8.ValidString(rawName) {
+		return Portfolio{}, CommandReplayArtifact{}, fmt.Errorf("%w: portfolio name must be valid UTF-8", ErrInvalidInput)
+	}
+	if utf8.RuneCountInString(rawName) > 100 {
+		legacyRequest := request
+		legacyRequest.Name = strings.TrimSpace(rawName)
+		// Pre-Stage-3.39 portfolio admission trimmed first and then enforced a 100-byte limit.
+		// Only a request that could have passed that exact historic admission rule is eligible
+		// for the read-only compatibility lookup.
+		if legacyRequest.Name != "" && len(legacyRequest.Name) <= 100 {
+			artifact, found, err := s.lookupPortfolioReplay(
+				ctx,
+				requestContext,
+				subjectID,
+				idempotencyKey,
+				requestPath,
+				legacyRequest,
+			)
+			if err != nil {
+				return Portfolio{}, CommandReplayArtifact{}, err
+			}
+			if found {
+				return Portfolio{}, artifact, nil
+			}
+		}
+		return Portfolio{}, CommandReplayArtifact{}, fmt.Errorf("%w: portfolio name must be at most 100 characters", ErrInvalidInput)
+	}
+
+	request.Name = strings.TrimSpace(rawName)
+	if request.Name == "" {
 		return Portfolio{}, CommandReplayArtifact{}, fmt.Errorf("%w: portfolio name must be 1..100 characters", ErrInvalidInput)
 	}
 	if request.BaseCurrency != RUB {
@@ -184,10 +217,10 @@ func (s *Service) ListTransactions(ctx context.Context, subjectID string, portfo
 }
 
 func (s *Service) ListImportReviewTransactions(ctx context.Context, subjectID string, portfolioID string, filter ImportReviewHistoryFilter) ([]Transaction, error) {
-	filter.SourceAccountLabel = strings.TrimSpace(filter.SourceAccountLabel)
-	if utf8.RuneCountInString(filter.SourceAccountLabel) > 120 {
-		return nil, fmt.Errorf("%w: sourceAccountLabel must be at most 120 characters", ErrInvalidInput)
+	if err := validateUnicodeCodePointMax(filter.SourceAccountLabel, 120, "sourceAccountLabel"); err != nil {
+		return nil, err
 	}
+	filter.SourceAccountLabel = strings.TrimSpace(filter.SourceAccountLabel)
 	var err error
 	filter.TradeDates, err = normalizeImportReviewDates(filter.TradeDates)
 	if err != nil {
@@ -371,8 +404,8 @@ func validateAppendImportBatch(request AppendImportBatchRequest) error {
 	if request.SourceKind != "USER_UPLOADED_FILE" {
 		return fmt.Errorf("%w: sourceKind must be USER_UPLOADED_FILE", ErrInvalidInput)
 	}
-	if len(request.SourceAccountLabel) > 120 {
-		return fmt.Errorf("%w: sourceAccountLabel must be at most 120 characters", ErrInvalidInput)
+	if err := validateUnicodeCodePointMax(request.SourceAccountLabel, 120, "sourceAccountLabel"); err != nil {
+		return err
 	}
 	sourceFileHash := strings.TrimSpace(request.SourceFileHash)
 	if sourceFileHash == "" {
@@ -463,8 +496,10 @@ func validateAppendTransaction(request AppendTransactionRequest) error {
 	if !request.Commission.Amount.FitsStorage() || !request.Tax.Amount.FitsStorage() {
 		return fmt.Errorf("%w: commission and tax must fit NUMERIC(28,8) storage precision", ErrInvalidInput)
 	}
-	if request.Note != nil && utf8.RuneCountInString(*request.Note) > 500 {
-		return fmt.Errorf("%w: note must be at most 500 characters", ErrInvalidInput)
+	if request.Note != nil {
+		if err := validateUnicodeCodePointMax(*request.Note, 500, "note"); err != nil {
+			return err
+		}
 	}
 	if strings.TrimSpace(request.TradeDate) == "" {
 		return fmt.Errorf("%w: tradeDate is required", ErrInvalidInput)
@@ -580,6 +615,16 @@ func isSHA256Hex(value string) bool {
 	}
 	decoded, err := hex.DecodeString(value)
 	return err == nil && len(decoded) == sha256.Size && value == strings.ToLower(value)
+}
+
+func validateUnicodeCodePointMax(value string, max int, field string) error {
+	if !utf8.ValidString(value) {
+		return fmt.Errorf("%w: %s must be valid UTF-8", ErrInvalidInput, field)
+	}
+	if utf8.RuneCountInString(value) > max {
+		return fmt.Errorf("%w: %s must be at most %d characters", ErrInvalidInput, field, max)
+	}
+	return nil
 }
 
 func ValidateIdempotencyKey(value string) error {

@@ -9,6 +9,7 @@ import {
   idempotencyIntentForBrowser,
   principalScopedIdempotencyScope,
 } from "@/common/api/idempotency";
+import { unicodeTextValidationError } from "@/common/presentation/unicode";
 
 type CreatePortfolioFormProps = {
   accessToken: string;
@@ -27,9 +28,23 @@ export function CreatePortfolioForm({ accessToken, principalId, onCreated }: Cre
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsSubmitting(true);
     setStatus(null);
-    const payload = { name: name.trim(), baseCurrency: "RUB" as const };
+    const normalizedName = name.trim();
+    if (normalizedName === "") {
+      setStatus("Portfolio name is required.");
+      return;
+    }
+    const nameProblem = unicodeTextValidationError(normalizedName, 100);
+    if (nameProblem === "ILL_FORMED") {
+      setStatus("Portfolio name contains invalid Unicode.");
+      return;
+    }
+    if (nameProblem === "TOO_LONG") {
+      setStatus("Portfolio name must be at most 100 Unicode code points.");
+      return;
+    }
+    setIsSubmitting(true);
+    const payload = { name: normalizedName, baseCurrency: "RUB" as const };
     const intent = JSON.stringify(payload);
     idempotencyIntentRef.current = await idempotencyIntentForBrowser(
       idempotencyIntentRef.current,
@@ -70,7 +85,7 @@ export function CreatePortfolioForm({ accessToken, principalId, onCreated }: Cre
       </div>
       <label>
         Portfolio name
-        <input value={name} maxLength={100} required onChange={(event) => setName(event.target.value)} />
+        <input value={name} required onChange={(event) => setName(event.target.value)} />
       </label>
       <button type="submit" disabled={isSubmitting}>
         {isSubmitting ? "Creating…" : "Create portfolio"}

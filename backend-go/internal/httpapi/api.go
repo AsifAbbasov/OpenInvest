@@ -17,6 +17,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
@@ -360,7 +361,14 @@ func (api *API) searchAssets(c fiber.Ctx) error {
 	if err != nil {
 		return writeMappedError(c, err)
 	}
-	query := strings.TrimSpace(c.Query("query"))
+	rawQuery := c.Query("query")
+	if !utf8.ValidString(rawQuery) {
+		return writeMappedError(c, fmt.Errorf("%w: query must be valid UTF-8", verticalslice.ErrInvalidInput))
+	}
+	if utf8.RuneCountInString(rawQuery) > 100 {
+		return writeMappedError(c, fmt.Errorf("%w: query must be at most 100 characters", verticalslice.ErrInvalidInput))
+	}
+	query := strings.TrimSpace(rawQuery)
 	filter := verticalslice.AssetSearchFilter{Query: query, AssetType: assetType, Limit: limit}
 	if err := api.applyAssetCursor(cursor, query, assetType, &filter); err != nil {
 		return writeMappedError(c, err)
@@ -1066,7 +1074,10 @@ func (request importReviewRequestDTO) validate() error {
 	if len([]byte(request.CSVPayload)) > maxHTTPImportPayloadBytes {
 		return fmt.Errorf("%w: csvPayload exceeds 2097152 bytes", verticalslice.ErrInvalidInput)
 	}
-	if len(request.SourceAccountLabel) > 120 {
+	if !utf8.ValidString(request.SourceAccountLabel) {
+		return fmt.Errorf("%w: sourceAccountLabel must be valid UTF-8", verticalslice.ErrInvalidInput)
+	}
+	if utf8.RuneCountInString(request.SourceAccountLabel) > 120 {
 		return fmt.Errorf("%w: sourceAccountLabel must be at most 120 characters", verticalslice.ErrInvalidInput)
 	}
 	return nil

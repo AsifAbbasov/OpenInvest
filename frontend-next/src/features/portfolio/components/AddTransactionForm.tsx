@@ -9,6 +9,7 @@ import {
   idempotencyIntentForBrowser,
   principalScopedIdempotencyScope,
 } from "@/common/api/idempotency";
+import { unicodeTextValidationError } from "@/common/presentation/unicode";
 
 type AddTransactionFormProps = {
   accessToken: string;
@@ -42,9 +43,19 @@ export function AddTransactionForm({ accessToken, principalId, portfolioId, onSa
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsSubmitting(true);
     setStatus(null);
-    const payload = buildPayload();
+    const normalizedNote = note.trim();
+    const noteProblem = unicodeTextValidationError(normalizedNote, 500);
+    if (noteProblem === "ILL_FORMED") {
+      setStatus("Transaction note contains invalid Unicode.");
+      return;
+    }
+    if (noteProblem === "TOO_LONG") {
+      setStatus("Transaction note must be at most 500 Unicode code points.");
+      return;
+    }
+    setIsSubmitting(true);
+    const payload = buildPayload(normalizedNote);
     const intent = JSON.stringify(payload);
     idempotencyIntentRef.current = await idempotencyIntentForBrowser(
       idempotencyIntentRef.current,
@@ -70,7 +81,7 @@ export function AddTransactionForm({ accessToken, principalId, portfolioId, onSa
     onSaved();
   }
 
-  function buildPayload(): CreateTransactionPayload {
+  function buildPayload(normalizedNote: string): CreateTransactionPayload {
     const assetTicker = isCashFlow ? null : ticker.trim().toUpperCase();
     return {
       transactionType,
@@ -82,7 +93,7 @@ export function AddTransactionForm({ accessToken, principalId, portfolioId, onSa
       tax: { amount: tax, currency: "RUB" },
       tradeDate,
       settlementDate: settlementDate.trim() === "" ? null : settlementDate,
-      note: note.trim() === "" ? null : note.trim(),
+      note: normalizedNote === "" ? null : normalizedNote,
     };
   }
 
@@ -157,7 +168,7 @@ export function AddTransactionForm({ accessToken, principalId, portfolioId, onSa
 
       <label className="span-2">
         Note
-        <textarea value={note} maxLength={500} onChange={(event) => setNote(event.target.value)} />
+        <textarea value={note} onChange={(event) => setNote(event.target.value)} />
       </label>
 
       <button type="submit" disabled={isSubmitting}>

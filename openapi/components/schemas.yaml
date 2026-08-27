@@ -452,6 +452,7 @@ Portfolio:
       type: string
       minLength: 1
       maxLength: 100
+      description: Length is measured in Unicode code points.
     baseCurrency:
       type: string
       const: RUB
@@ -473,6 +474,7 @@ CreatePortfolioRequest:
       type: string
       minLength: 1
       maxLength: 100
+      description: Length is measured in Unicode code points.
     baseCurrency:
       type: string
       const: RUB
@@ -572,6 +574,7 @@ Transaction:
     note:
       type: [string, "null"]
       maxLength: 500
+      description: Length is measured in Unicode code points.
     revision:
       type: integer
       minimum: 1
@@ -644,6 +647,7 @@ TradeTransactionRequest:
     note:
       type: [string, "null"]
       maxLength: 500
+      description: Length is measured in Unicode code points.
 
 IncomeTransactionRequest:
   type: object
@@ -678,6 +682,7 @@ IncomeTransactionRequest:
     note:
       type: [string, "null"]
       maxLength: 500
+      description: Length is measured in Unicode code points.
 
 ExpenseTransactionRequest:
   type: object
@@ -710,6 +715,7 @@ ExpenseTransactionRequest:
     note:
       type: [string, "null"]
       maxLength: 500
+      description: Length is measured in Unicode code points.
 
 CashTransactionRequest:
   type: object
@@ -741,6 +747,7 @@ CashTransactionRequest:
     note:
       type: [string, "null"]
       maxLength: 500
+      description: Length is measured in Unicode code points.
 
 CreateTransactionRequest:
   oneOf:
@@ -820,12 +827,16 @@ ImportReviewRequest:
     sourceAccountLabel:
       type: string
       maxLength: 120
-      description: User-visible brokerage account label. Stored only if later included in append audit metadata.
+      description: >-
+        User-visible brokerage account label. Length is measured in Unicode code points.
+        Stored only if later included in append audit metadata.
     csvPayload:
       type: string
       minLength: 1
-      maxLength: 2097152
-      description: Raw CSV payload supplied by the user for transient review; never persisted by the API.
+      x-openinvest-max-utf8-bytes: 2097152
+      description: >-
+        Raw CSV payload supplied by the user for transient review; never persisted by the API.
+        The runtime resource limit is 2097152 UTF-8 bytes, not a JSON Schema character limit.
 
 ImportDecisionAction:
   type: string
@@ -855,6 +866,7 @@ ImportAppendRequest:
     sourceAccountLabel:
       type: string
       maxLength: 120
+      description: Length is measured in Unicode code points.
     sourceFileHash:
       type: string
       pattern: "^[a-f0-9]{64}$"
@@ -871,8 +883,11 @@ ImportAppendRequest:
     csvPayload:
       type: string
       minLength: 1
-      maxLength: 2097152
-      description: Same CSV payload reviewed by the user. Append reruns review and rejects payloads whose hash or row hashes differ from the review response.
+      x-openinvest-max-utf8-bytes: 2097152
+      description: >-
+        Same CSV payload reviewed by the user. Append reruns review and rejects payloads whose
+        hash or row hashes differ from the review response. The runtime resource limit is
+        2097152 UTF-8 bytes, not a JSON Schema character limit.
     decisions:
       type: array
       minItems: 1
@@ -982,6 +997,7 @@ ImportReviewResult:
     sourceAccountLabel:
       type: string
       maxLength: 120
+      description: Length is measured in Unicode code points.
     sourceFileHash:
       type: string
       pattern: "^[a-f0-9]{64}$"
