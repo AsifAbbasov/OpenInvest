@@ -568,8 +568,10 @@ the two-commit history and published Internal Review evidence. The PR remains Dr
 | Blind external runtime-head review | PR #97 head `740f5c3...` | `REQUEST CHANGES`: only `EXT-PR97-P3-01`; no runtime technical blocker |
 | Docs-only v1 Internal Review | patch `3e51f254dd17cba58e5d20f50bdb7abf644466b10b75f6818afbaaf5d4163c47` | `REQUEST CHANGES`: only `INT-DOCS-P3-01` unsupported authorization assertion |
 | Docs-only v2.1 Internal Re-Review | patch `f48e6bd6cd880ecd16921698edb1b293c3c68958fb1801b8bf10da6d20656b8b` | `APPROVED`, P0/P1/P2/P3 none |
-| Evidence publication baseline | PR head `de083b11f791c26c18ef635fc91d1322c281601b` before this forensic-history candidate | CI #276 / run `33072520619`, 10/10 success |
-| Forensic follow-up publication rule | publishing this forensic-history documentation necessarily advances PR head beyond `de083b11...` | the resulting exact head must pass fresh CI and verification by both reviewers before any Ready/merge decision |
+| Evidence publication baseline | PR head `de083b11f791c26c18ef635fc91d1322c281601b` before the forensic-history candidate | CI #276 / run `33072520619`, 10/10 success |
+| Forensic v2 publication | `6d419f5931ad868b7280623ad447550b0befc6a9` | one-file docs-only commit; exact published blob `7b0448cc100c9e6421d11e46c08ba674e9a711d4`; CI #277 / run `33077556962`, 10/10 success |
+| External published-head verification | PR #97 head `6d419f5931ad868b7280623ad447550b0befc6a9` | `REQUEST CHANGES`: only `EXT-PUBLISHED-P3-01` — Section 14 still labelled already-completed pre-publication gates as currently remaining; no runtime blocker |
+| EXT-PUBLISHED-P3-01 remediation, first Internal Review | complete docs-only candidate after Section 14 publication-stability rewrite | `REQUEST CHANGES`: only `INT-DOCS-P3-02` — historical wording implied a separately evidenced authorization event that the package did not prove; no runtime blocker |
 
 # 13. Residual limitations / explicitly unaddressed behavior
 
@@ -597,23 +599,167 @@ Malformed UTF-8 handling is intentionally fail-closed at the affected Go/importe
 this Stage; the Stage does not claim that all possible transports preserve malformed byte sequences
 unchanged before those boundaries.
 
-# 14. Closure state and publication-independent remaining gates
+# 14. Closure state and publication-independent gate model
 
-The runtime implementation and the first evidence-only documentation follow-up are published. The
-pre-forensic publication baseline was PR head `de083b11f791c26c18ef635fc91d1322c281601b`, with CI #276 green
-10/10. This forensic-history content is prepared against that baseline and intentionally does not assert
-a future post-publication head SHA: publishing it necessarily creates a new PR head that must be verified.
+## 14.1 Historical sequence recorded at forensic-v2 candidate preparation
 
-However, the original audit P3-04 remains **OPEN**. Required remaining gates are:
+At the time forensic v2 was still a pre-commit candidate, the governed sequence was:
 
-1. this forensic-history candidate receives pre-commit Internal Review approval and is published under a separately authorized docs-only commit/push gate;
-2. fresh CI passes on the resulting post-forensic exact PR head;
-3. Internal reviewer verifies that resulting published head/evidence change;
-4. External reviewer independently verifies the same resulting published head/evidence change;
-5. all blocking findings, if any, are remediated and exact-head CI rerun as required;
-6. human explicitly authorizes Ready/merge;
-7. PR #97 is squash-merged into protected `develop`;
-8. closure governance records the actual merge SHA and only then marks original audit P3-04 CLOSED.
+1. receive pre-commit Internal Review approval;
+2. publish the approved forensic-history document as a docs-only commit;
+3. run fresh CI on the resulting exact PR head;
+4. have the Internal reviewer verify the resulting published evidence/documentation change;
+5. have the External reviewer independently verify that same published head;
+6. remediate any blocking finding and rerun the affected exact-head gates;
+7. obtain explicit human Ready/merge authorization;
+8. squash-merge PR #97 into protected `develop`;
+9. record the actual merge SHA and only then mark original audit P3-04 CLOSED.
+
+This list is intentionally historical. It describes the sequence as it existed at forensic-v2 candidate
+preparation and is **not** a live “remaining gates” checklist.
+
+Items 1–3 were subsequently completed: forensic v2 received fresh pre-commit Internal Re-Review
+`APPROVED`, was published as docs-only commit
+`6d419f5931ad868b7280623ad447550b0befc6a9`, and exact-head CI #277 / run `33077556962` completed
+10/10 successful jobs.
+
+## 14.2 `EXT-PUBLISHED-P3-01` — stale “remaining gates” wording on the published forensic head
+
+### Problem
+
+External published-head verification of
+`6d419f5931ad868b7280623ad447550b0befc6a9` found that this section still introduced the pre-publication
+sequence with **“Required remaining gates are”**, even though pre-commit approval, forensic publication,
+and exact-head CI had already completed.
+
+### Root cause
+
+Forensic v2 correctly removed the self-invalidating claim that `de083b11...` would remain the permanent
+current head, but the closure section still treated a candidate-preparation checklist as live mutable
+state. The SHA wording was publication-stable; the **completion-state label was not**.
+
+### Failure scenario / impact
+
+Immediately after forensic v2 publication and CI #277, the durable Stage report and the live PR body
+could disagree about which gates were actually outstanding. That recreates the same audit-truth class
+that earlier caused `EXT-PR97-P3-01`: a technically correct runtime accompanied by a factually stale
+permanent lifecycle record.
+
+The finding is documentation/governance P3 only. It does not change or invalidate runtime behavior,
+OpenAPI, replay authority, migrations, security/privacy behavior, or financial semantics.
+
+### Initial solution and why review rejected it
+
+The initial forensic solution renamed the section
+“publication-independent remaining gates” and avoided predicting a future SHA. External verification
+showed that this was insufficient because the numbered list still called already-completed steps
+“remaining”.
+
+### Revised solution
+
+The candidate-preparation sequence above is now explicitly **historical evidence**. Live mutable state is
+not encoded as a permanent “current/remaining” checklist.
+
+Instead, the durable publication-independent obligations are:
+
+- any later head-changing documentation/evidence remediation must be verified on the exact resulting
+  published head before merge consideration;
+- required CI must be green on that exact resulting head;
+- both Internal and External reviewers must verify the latest published evidence/documentation state;
+- any blocking finding must be remediated and the affected gates repeated;
+- Ready/merge requires explicit human authorization;
+- merge into `develop` remains squash-only;
+- original audit P3-04 becomes CLOSED only after the actual protected-branch merge and closure record.
+
+These are workflow invariants, not assertions that a particular step is currently incomplete. The
+document intentionally does not predict the SHA of this remediation if it is later published.
+
+### Regression / review evidence
+
+This correction itself is documentation-only and therefore must pass the normal pre-commit Internal
+Review before any commit/push request. If it is published, that publication creates a new PR head; fresh
+exact-head CI and both published-head reviewer verifications are then required again.
+
+The candidate makes no claim that those future gates have already happened.
+
+### Residual limitation
+
+The live mutable status of a Draft PR — exact current head, current CI run, or which verification is in
+progress — belongs to GitHub PR/CI evidence. This durable Stage report records historical completed facts
+and invariant closure requirements so that publication does not make its own statements false.
+
+## 14.3 `INT-DOCS-P3-02` — historical completion wording implied an unsupported authorization event
+
+### Problem
+
+The first `EXT-PUBLISHED-P3-01` remediation correctly converted the stale live-gate checklist into a
+historical sequence, but historical step 2 said the forensic-history document was published
+**“under a separately authorized docs-only commit/push gate”** and the next paragraph said items 1–3
+were subsequently completed.
+
+### Root cause
+
+The remediation mixed two different things:
+
+- an evidenced historical fact: the docs-only forensic commit exists and was published;
+- a normative governance requirement: protected publication actions require separate human authorization.
+
+The review package proved the first fact but did not itself contain direct evidence of the distinct
+authorization event. Treating completion of the publication step as proof of the authorization event
+recreated the same evidence-integrity class previously caught by `INT-DOCS-P3-01`.
+
+### Failure scenario / impact
+
+A future auditor could read the permanent Stage report and conclude that the repository evidence proved
+the distinct authorization event, when the supplied review record only proved the resulting commit and
+publication state.
+
+This is documentation/governance P3 only. It has no runtime, security, financial, replay, database,
+OpenAPI, importer, or frontend impact.
+
+### Initial solution and why review rejected it
+
+The first remediation tried to preserve the full governed sequence verbatim, including the phrase
+“separately authorized docs-only commit/push gate”, while also saying those historical steps were
+completed.
+
+Internal Review rejected that wording because occurrence of a commit does not itself prove the
+preceding separate authorization event.
+
+### Revised solution
+
+The historical sequence now records only the evidenced event:
+
+> publish the approved forensic-history document as a docs-only commit
+
+The separate human-authorization requirement remains in the publication-independent workflow
+invariants, where it belongs as a normative rule rather than as a claimed historically evidenced event.
+
+### Why this solution was chosen
+
+It is the smallest correction that keeps both kinds of truth intact:
+
+- historical evidence says what the available artifacts prove;
+- governance invariants say what the process requires.
+
+No runtime or repository-behavior claim needs to change.
+
+### Regression / review evidence
+
+This candidate must receive fresh pre-commit Internal Review before any publication request. It does not
+claim that such approval, a future commit, resulting-head CI, or post-publication verification already
+exists.
+
+### Residual limitation
+
+The durable Stage report does not attempt to serve as the sole evidence store for human authorization
+events. When such an event is not directly included in the review evidence package, the report records
+the resulting repository facts and keeps the authorization requirement as a workflow invariant.
+
+## 14.4 Closure invariant
+
+The original audit P3-04 remains **OPEN** until the actual squash merge into protected `develop` and
+closure governance record the resulting merge SHA.
 
 No Stage document, review verdict, green CI run, PR-body update, or pre-merge approval substitutes for
 the actual protected-branch merge and closure record.
