@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.72 |
+| Version | 1.1.73 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
 | Dependencies | Architecture Freeze v1.2 |
-| Last Review Date | 2026-08-26 |
+| Last Review Date | 2026-08-28 |
 | Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
 
 | Stage | Outcome | State |
@@ -85,7 +85,9 @@
 | 3.38 — Idempotency/session retention and cleanup planning | Define bounded P3-05 retention, logical-expiry, exact-key reclamation, session replay boundary, cleanup concurrency, and index/test requirements | Complete / merged through PR #93 at `a944f1e5d5ee7d84db5393e8760eda254d732edd` |
 | 3.38 — Idempotency/session retention and cleanup implementation | Enforce 24-hour command/replay lifecycle, post-serialization DB-clock authority, session-expiry authority, bounded opportunistic cleanup, and retention indexes | Complete / merged through PR #94 at `2df9946d77ee044a191a0422c8cccbbfe02dc7c9` |
 | 3.38 — Closure governance | Independently verify merged runtime evidence and synchronize P3-05 canonical closure without absorbing another P3 item | Complete / PR #95 squash-merged into `develop` at `c5962fa09b6d7d145dda203dbdf90069de7b1fcc` from final head `25eb3b9c3c153672f22a6718a7815a5d3c527f44` after exact-head CI #271 / run `32961508562`; P3-05 CLOSED |
-| 3.39 — Unicode and OpenAPI string-length semantics planning | Freeze P3-04 code-point semantics for implemented bounded human-readable strings, preserve raw-versus-trimmed admission order, and keep the import CSV 2 MiB limit byte-based | Planning/review candidate only; runtime implementation not authorized; P3-04 remains OPEN |
+| 3.39 — Unicode and OpenAPI string-length semantics planning | Freeze P3-04 code-point semantics for implemented bounded human-readable strings, preserve raw-versus-trimmed admission order, and keep the import CSV 2 MiB limit byte-based | Complete / merged through PR #96 at `32b198ee9d349f119ed374fd86d47622e27bcd73` |
+| 3.39 — Unicode and OpenAPI string-length semantics implementation | Align OpenAPI/Go/Web code-point semantics, preserve byte-resource limits, historical replay authority, malformed UTF-8 fail-closed behavior, and complete forensic review history | Complete / PR #97 squash-merged into `develop` at `abbd9f9f61574621e206f2e196b1fb8f056dc194` from final head `26f5ca18ca5772db569d22ce2eff64d5a7850b1b` after CI #279 / run `33121609429` 10/10 and final Internal + External `APPROVED` |
+| 3.39 — Closure governance | Record actual PR #97 implementation merge and synchronize canonical P3-04 lifecycle state without runtime change | Merge-activated: P3-04 remains OPEN until this closure-governance record is present on protected `develop`; once present, P3-04 is CLOSED and remaining P3 = P3-06, P3-07, P3-08, P3-09, P3-10 |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
