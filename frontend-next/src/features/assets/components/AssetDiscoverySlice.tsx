@@ -12,6 +12,7 @@ import {
   type AssetType,
   type ListData,
 } from "@/common/api/openinvest";
+import { unicodeTextValidationError } from "@/common/presentation/unicode";
 import {
   assetDetailStatusMessage,
   assetDetailFocusRestoreTarget,
@@ -85,6 +86,19 @@ export function AssetDiscoverySlice() {
       searchInputRef.current?.focus();
       setStatus("idle");
       setErrorMessage("Enter a ticker or name to search supported assets.");
+      return;
+    }
+    const queryProblem = unicodeTextValidationError(trimmedQuery, 100);
+    if (queryProblem === "ILL_FORMED") {
+      searchInputRef.current?.focus();
+      setStatus("idle");
+      setErrorMessage("Search query contains invalid Unicode.");
+      return;
+    }
+    if (queryProblem === "TOO_LONG") {
+      searchInputRef.current?.focus();
+      setStatus("idle");
+      setErrorMessage("Search query must be at most 100 Unicode code points.");
       return;
     }
 
@@ -239,7 +253,6 @@ export function AssetDiscoverySlice() {
               ref={searchInputRef}
               value={query}
               placeholder="SBER"
-              maxLength={100}
               onChange={(event) => setQuery(event.target.value)}
             />
           </label>

@@ -177,7 +177,9 @@ paths:
         - name: query
           in: query
           required: true
-          description: Ticker prefix or case-insensitive instrument name fragment.
+          description: >-
+            Ticker prefix or case-insensitive instrument name fragment. Length is measured in
+            Unicode code points on the raw submitted query before trimming.
           schema: { type: string, minLength: 1, maxLength: 100 }
           example: SBER
         - name: assetType

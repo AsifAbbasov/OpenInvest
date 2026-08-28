@@ -17,6 +17,7 @@ import {
   principalScopedIdempotencyScope,
 } from "@/common/api/idempotency";
 import { formatMoney } from "@/common/presentation/format";
+import { unicodeTextValidationError } from "@/common/presentation/unicode";
 import {
   shouldCommitImportAppend,
   shouldCommitImportReview,
@@ -124,10 +125,20 @@ export function ImportUploadReviewPanel({ accessToken, principalId, portfolioId,
     if (isAppending) {
       return;
     }
+    const normalizedSourceAccountLabel = sourceAccountLabel.trim();
+    const sourceLabelProblem = unicodeTextValidationError(normalizedSourceAccountLabel, 120);
+    if (sourceLabelProblem === "ILL_FORMED") {
+      setStatus("Source account label contains invalid Unicode.");
+      return;
+    }
+    if (sourceLabelProblem === "TOO_LONG") {
+      setStatus("Source account label must be at most 120 Unicode code points.");
+      return;
+    }
     const nextOperation = startImportReview(importOperationGuardRef.current, importScope);
     importOperationGuardRef.current = nextOperation.state;
     const payloadAtSubmit = csvPayload;
-    const sourceAccountLabelAtSubmit = sourceAccountLabel.trim() || undefined;
+    const sourceAccountLabelAtSubmit = normalizedSourceAccountLabel || undefined;
     setIsReviewing(true);
     setStatus(null);
     setAppendResult(null);
@@ -262,7 +273,6 @@ export function ImportUploadReviewPanel({ accessToken, principalId, portfolioId,
           Source account label
           <input
             value={sourceAccountLabel}
-            maxLength={120}
             onChange={(event) => {
               const nextOperation = startImportReview(importOperationGuardRef.current, importScope);
               importOperationGuardRef.current = nextOperation.state;

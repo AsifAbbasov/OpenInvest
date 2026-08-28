@@ -281,6 +281,12 @@ func reviewCSV(request ReviewRequest, parseDecimal decimalParser) (Review, error
 	if strings.TrimSpace(request.PortfolioID) == "" {
 		return Review{}, fmt.Errorf("%w: portfolioId is required", ErrInvalidImport)
 	}
+	if !utf8.ValidString(request.SourceAccountLabel) {
+		return Review{}, fmt.Errorf("%w: sourceAccountLabel must be valid UTF-8", ErrInvalidImport)
+	}
+	if utf8.RuneCountInString(request.SourceAccountLabel) > 120 {
+		return Review{}, fmt.Errorf("%w: sourceAccountLabel must be at most 120 characters", ErrInvalidImport)
+	}
 	sourceKind := strings.TrimSpace(request.SourceKind)
 	if sourceKind == "" {
 		sourceKind = SourceKindUserUploadedFile
@@ -532,6 +538,9 @@ func normalizeCandidate(columns map[string]int, record []string, parseDecimal de
 	safeBrokerOperationID := neutralizeSpreadsheetText(brokerOperationID)
 	brokerOperationKey := verticalslice.BrokerOperationKey(brokerOperationID)
 	note := neutralizeSpreadsheetText(value(record, columns, "note"))
+	if !utf8.ValidString(note) {
+		return nil, safeBrokerOperationID, brokerOperationKey, []string{"NOTE_INVALID_UTF8"}
+	}
 	if utf8.RuneCountInString(note) > 500 {
 		return nil, safeBrokerOperationID, brokerOperationKey, []string{"NOTE_TOO_LONG"}
 	}
