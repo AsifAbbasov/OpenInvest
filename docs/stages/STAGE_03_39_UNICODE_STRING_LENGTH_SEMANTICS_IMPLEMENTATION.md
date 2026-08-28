@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | DRAFT PR — runtime/evidence review history remains under governed verification; P3-04 stays OPEN until exact-head reviewer verification and merge governance complete |
+| Status | IMPLEMENTATION MERGED — PR #97 squash-merged into protected `develop` at `abbd9f9f61574621e206f2e196b1fb8f056dc194`; closure status is MERGE-ACTIVATED: P3-04 is OPEN before the approved closure record is present on protected `develop` and CLOSED once that record is present |
 | Date | 2026-08-27 |
 | Finding | Original audit P3-04 — general Unicode / OpenAPI `minLength` / `maxLength` semantics |
 | Canonical runtime base | `develop` at `32b198ee9d349f119ed374fd86d47622e27bcd73` |
@@ -14,7 +14,7 @@
 | Pre-forensic publication baseline | Draft PR #97 at `de083b11f791c26c18ef635fc91d1322c281601b`; 2 commits; 17 changed files versus base before this forensic-history candidate |
 | Baseline CI before forensic publication | CI #276 / run `33072520619` — exact baseline head `de083b11f791c26c18ef635fc91d1322c281601b`, 10/10 required jobs successful |
 | Review state at forensic-candidate preparation | Runtime Internal Review `APPROVED`; blind external runtime-head review `REQUEST CHANGES` with no runtime technical blocker; documentation remediations completed; docs v2.1 Internal Re-Review `APPROVED`; this forensic-history follow-up itself still requires pre-commit approval, publication, fresh resulting-head CI, and both-reviewer verification |
-| Finding status | OPEN — final published-head reviewer verification, human Ready/merge decision, squash merge, and closure governance remain |
+| Finding status | MERGE-ACTIVATED — OPEN before the approved closure record is present on protected `develop`; CLOSED once that record is present on protected `develop` |
 
 > **Finding-ID note.** IDs such as `STAGE-03-39-P2-01`, `STAGE-03-39-P3-02`,
 > `STAGE-03-39-P3-03`, `STAGE-03-39-P3-04`, `STAGE-03-39-P3-05`, and
@@ -758,8 +758,17 @@ the resulting repository facts and keeps the authorization requirement as a work
 
 ## 14.4 Closure invariant
 
-The original audit P3-04 remains **OPEN** until the actual squash merge into protected `develop` and
-closure governance record the resulting merge SHA.
+PR #97 was actually squash-merged into protected `develop` at
+`abbd9f9f61574621e206f2e196b1fb8f056dc194` from exact final published head
+`26f5ca18ca5772db569d22ce2eff64d5a7850b1b` after CI #279 / run `33121609429` completed
+10/10 and both final published-head reviewer roles returned `APPROVED`.
 
-No Stage document, review verdict, green CI run, PR-body update, or pre-merge approval substitutes for
-the actual protected-branch merge and closure record.
+The implementation merge satisfies the runtime merge gate but does not by itself close original audit
+P3-04. P3-04 remains **OPEN** until the separate Stage 3.39 closure-governance record and synchronized
+canonical surfaces are present on protected `develop`.
+
+Once that closure-governance record is present on protected `develop`, P3-04 is **CLOSED**. The
+merge-activated rule deliberately does not predict the future closure-PR head, CI number or merge SHA.
+
+No Stage document, review verdict, green CI run, PR-body update, or implementation merge substitutes
+for the separate closure-governance record.
