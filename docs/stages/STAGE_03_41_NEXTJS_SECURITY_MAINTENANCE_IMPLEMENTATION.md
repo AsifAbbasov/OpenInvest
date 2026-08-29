@@ -13,7 +13,7 @@
 | pnpm-lock.yaml candidate blob | `b3d656e792bdd28b16dea553b378f15f553b3074` |
 | package.json SHA256 | `d55dab239a4252e6d536923492c4645bb78c7cfcc065b3bf4546692b8aabe86c` |
 | pnpm-lock.yaml SHA256 | `0b8d8e676bc848a422c730114bd0aa48bc2bb16a154bda2a5adcff54efc0f3c5` |
-| Internal Review Evidence | WITHHELD — external published-head phase pending |
+| Internal Review Evidence | PUBLISHED — complete Internal chronology recorded below after External verdict |
 | P3-09 lifecycle | OPEN |
 
 ## 1. Problem
@@ -221,25 +221,125 @@ dossier does not claim that environment setting as verified execution evidence.
 Stage 3.40 planning completed its exact-published-head review and planning merge. That approval did not
 authorize this implementation.
 
-Internal review evidence remains intentionally withheld from the repository and Draft PR evidence
-surface until the External published-head verdict, as required by `docs/REVIEW_WORKFLOW.md` v1.3.0.
+### Internal review publication timing
 
-The complete Internal review chronology, including findings and remediations, remains preserved in the
-designated review chat and local review evidence. It will be published in the required evidence-only
-follow-up after the External verdict and then verified for exactness and absence of semantic/runtime
-drift.
+Before an External verdict existed, the current Internal verdict/findings were intentionally withheld
+from the Draft PR and repository evidence surface, as required by `docs/REVIEW_WORKFLOW.md` v1.3.0.
 
-Repository-visible Internal Review Evidence status:
-`WITHHELD — external published-head phase pending`.
+The External remediation re-review later produced an External verdict. This evidence-only follow-up
+therefore publishes the complete Internal chronology that had previously remained outside the
+repository-visible evidence surface.
 
-This withholding does not claim that Internal review history did not occur and does not erase or
-rewrite any Internal review event. It is a publication-timing control only.
+Publishing this chronology does not retroactively make it supporting evidence for the earlier External
+verdict. The External phase was required to reach its conclusion independently.
+
+### Internal review attempt 0 — insufficient review subject
+
+The first Internal review request did not provide the complete candidate files required for the
+mandatory line-by-line review.
+
+Result: `BLOCKED — insufficient evidence`.
+
+No candidate file was accepted as reviewed, no material finding was created, and reviewer mutations
+were `NONE`.
+
+The process was corrected by supplying a self-contained review package containing the complete
+three-file candidate and supporting evidence.
+
+### Internal review attempt 1 — `INT-STAGE-03-41-P3-01`
+
+The self-contained Internal review of the three-file candidate returned:
+
+- finding: `INT-STAGE-03-41-P3-01`;
+- severity: P3;
+- verdict: `REQUEST CHANGES`;
+- reviewer mutations: `NONE`;
+- new material finding: `YES`.
+
+Problem: the implementation dossier did not preserve the final Runner v3 status-71 failure accurately,
+claimed that complete execution evidence was preserved in the v3 package although the successful manual
+rerun occurred later, and included an unsupported verified-execution claim for
+`NEXT_TELEMETRY_DISABLED=1`.
+
+Root cause: the dossier had not been synchronized to the final local execution chronology and evidence
+boundaries.
+
+Project impact: governance/evidence integrity only. No runtime, dependency, application-security,
+authentication/session, financial-logic, API/database, or supply-chain defect was identified.
+
+Remediation:
+
+- explicitly record Runner v3 substantive gates as PASS followed by the final scope-accounting failure;
+- record exit status `71`;
+- record the exact cause: `git diff --name-only` omitted the untracked Stage 3.41 dossier;
+- classify the result as a tooling/evidence scope-accounting defect only;
+- record the later successful manual rerun separately from the earlier v3 evidence package;
+- remove the unsupported telemetry execution claim;
+- preserve the finding append-only.
+
+Fresh complete Internal re-review of the remediated candidate concluded:
+
+- `INT-STAGE-03-41-P3-01 = RESOLVED`;
+- P0 = 0;
+- P1 = 0;
+- P2 = 0;
+- P3 = 0;
+- reviewer mutations: `NONE`;
+- new material finding: `NO`;
+- verdict: `APPROVED`.
+
+### Internal publication-safety review — `INT-STAGE-03-41-P3-02`
+
+Before publication, the repository-visible dossier was transformed so that current Internal evidence
+would remain withheld during the External phase.
+
+The publication-safety review returned:
+
+- finding: `INT-STAGE-03-41-P3-02`;
+- severity: P3;
+- verdict: `REQUEST CHANGES`;
+- reviewer mutations: `NONE`;
+- new material finding: `YES`.
+
+Problem: the publication-safe dossier asserted that commit/push would occur under an
+`already granted conditional human authorization`, but the self-contained review package did not
+contain evidence establishing that authorization event.
+
+Root cause: the publication-safety transformation converted a neutral future governance gate into an
+unsupported factual assertion.
+
+Project impact: governance/evidence integrity only. Runtime/dependency candidate identities remained
+unchanged.
+
+Remediation: replace the unsupported factual assertion with the publication-stable neutral gate
+`explicit human commit/push authorization`.
+
+Fresh complete publication-safety re-review concluded:
+
+- `INT-STAGE-03-41-P3-02 = RESOLVED`;
+- publication withholding: `COMPLIANT`;
+- runtime candidate identity: `UNCHANGED`;
+- P0 = 0;
+- P1 = 0;
+- P2 = 0;
+- P3 = 0;
+- reviewer mutations: `NONE`;
+- new material finding: `NO`;
+- verdict: `APPROVED`.
+
+The exact runtime/dependency identities accepted by Internal review and preserved through publication
+were:
+
+- `frontend-next/package.json` Git blob
+  `d6d605620e1bff426998d8bda716b7c2eda0613d`;
+- `frontend-next/pnpm-lock.yaml` Git blob
+  `b3d656e792bdd28b16dea553b378f15f553b3074`.
 
 ### External published-head review attempt 1
 
 External review was performed independently against Draft PR #101 at exact published implementation
-head `5ea1f7f29cf0ab9225460e01076255f32e2cf4cf` after GitHub CI #289 / run `33274458971`
-completed `10/10 SUCCESS`.
+head `5ea1f7f29cf0ab9225460e01076255f32e2cf4cf` after GitHub CI #289 / run
+`33274458971` completed `10/10 SUCCESS`.
 
 Result: `REQUEST CHANGES`.
 
@@ -259,17 +359,31 @@ Project impact: governance/evidence integrity only. External review found no Nex
 dependency-resolution defect, application-security defect, authentication/session issue,
 financial-logic issue, API/database change, or unrelated supply-chain drift.
 
-Remediation: this dossier revision replaces stale active pre-commit wording with publication-current
-state, separates completed publication gates from genuinely remaining gates, and preserves P3-09 as
-OPEN. Runtime/dependency bytes are unchanged.
+Remediation: the docs-only remediation replaced stale active lifecycle wording with immutable
+publication history and publication-stable workflow requirements. Runtime/dependency bytes remained
+unchanged.
 
-Required regression evidence: required GitHub CI on the revised exact head followed by a fresh
-exact-published-head External re-review.
+### External published-head re-review — final External verdict
 
-Resolution criteria for `EXT-STAGE-03-41-P3-01`: the docs-only remediation must be published on a
-new exact head, required GitHub CI must pass on that head, and a fresh exact-published-head External
-re-review must confirm that the finding is resolved. This statement defines the required evidence;
-it does not assert whether those later events have already occurred.
+Fresh External re-review was performed against exact remediation head
+`97cd665c25d76f8efdb25462f0a12b63a996f1e5` after GitHub CI #290 / run
+`33275019210` completed `10/10 SUCCESS`.
+
+The re-review concluded:
+
+- `EXT-STAGE-03-41-P3-01 = RESOLVED`;
+- published head: `MATCHES`;
+- exact-head CI: `10/10 SUCCESS`;
+- PR metadata: `CONSISTENT`;
+- P0 = 0;
+- P1 = 0;
+- P2 = 0;
+- P3 = 0;
+- new material External finding: `NO`;
+- reviewer mutations: `NONE`;
+- verdict: `APPROVED`.
+
+The External verdict did not rely on prior Internal verdicts/findings as supporting evidence.
 
 ## 11. Residual limitations
 
@@ -285,32 +399,28 @@ it does not assert whether those later events have already occurred.
 
 P3-09 remains OPEN.
 
-Completed publication gates:
+Completed immutable publication/review history includes:
 
-1. implementation commit and push — `5ea1f7f29cf0ab9225460e01076255f32e2cf4cf`;
-2. Draft PR #101 opened against `develop`;
-3. exact-head GitHub CI #289 / run `33274458971` — `10/10 SUCCESS`;
-4. fresh External published-head review attempt 1 — `REQUEST CHANGES` with
-   `EXT-STAGE-03-41-P3-01`, documentation/governance evidence integrity only.
+1. implementation head `5ea1f7f29cf0ab9225460e01076255f32e2cf4cf`;
+2. Draft PR #101 against `develop`;
+3. CI #289 / run `33274458971` — `10/10 SUCCESS`;
+4. External attempt 1 — `REQUEST CHANGES` with `EXT-STAGE-03-41-P3-01`;
+5. docs-only remediation head `97cd665c25d76f8efdb25462f0a12b63a996f1e5`;
+6. CI #290 / run `33275019210` — `10/10 SUCCESS`;
+7. fresh External re-review — `EXT-STAGE-03-41-P3-01 = RESOLVED`, P0/P1/P2/P3 = 0,
+   reviewer mutations `NONE`, verdict `APPROVED`;
+8. this required evidence-only publication of the complete previously withheld Internal chronology.
 
-This revision is the docs-only remediation for `EXT-STAGE-03-41-P3-01`. It does not change
-`frontend-next/package.json` or `frontend-next/pnpm-lock.yaml`.
+Post-evidence-publication workflow requirements:
 
-Post-remediation progression requirements:
+1. required GitHub CI must run on the exact evidence-publication head;
+2. the same designated review chat must verify that the published Internal evidence is complete,
+   accurate, evidence-only, and introduces no runtime/dependency semantic drift;
+3. human review and explicit squash-merge authorization are required before merge;
+4. the PR must be squash-merged to protected `develop`;
+5. P3-09 can become CLOSED only through the separate closure-governance activation.
 
-1. the docs-only remediation must be published on an exact PR head;
-2. required GitHub CI must pass on that revised exact head;
-3. a fresh exact-published-head External re-review must determine whether
-   `EXT-STAGE-03-41-P3-01` is resolved;
-4. after an External `APPROVED` verdict, the withheld Internal review chronology must be published
-   in an evidence-only follow-up;
-5. that evidence-only head must receive required CI and exact verification showing no
-   runtime/dependency semantic change;
-6. squash merge still requires explicit human authorization;
-7. P3-09 can become CLOSED only through the separate closure-governance activation.
-
-These are workflow requirements, not assertions that any particular later gate is currently pending
-or incomplete. Their completion state must be established from the corresponding exact-head GitHub
-and review evidence.
+These are workflow requirements, not assertions that a particular later gate is currently incomplete.
+Completion state must be established from the corresponding exact-head GitHub and review evidence.
 
 No statement in this dossier authorizes Ready, merge, branch deletion, or protected-branch mutation.
