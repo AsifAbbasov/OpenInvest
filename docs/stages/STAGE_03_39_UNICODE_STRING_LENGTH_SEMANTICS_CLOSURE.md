@@ -558,8 +558,61 @@ on that specific property. Evidentiary non-reliance, PR/repository withholding, 
 evidence publication, CI, verification, finding remediation, and human merge authorization remain
 mandatory.
 
-**Candidate status.** `GOV-CHAT-P3-01` is fully remediated in this candidate; fresh Governance /
-Closure review is required before publication.
+**Completed prepublication review result.** The complete governance-sync candidate received fresh
+Governance / Closure re-review before publication. That review confirmed:
+
+- `GOV-SYNC-P3-01` — RESOLVED;
+- `GOV-SYNC-P3-02` — RESOLVED;
+- `INT-TRANSITION-P3-01` — RESOLVED;
+- `GOV-CHAT-P3-01` — RESOLVED;
+- P0/P1/P2/P3 = 0;
+- verdict: `APPROVED`;
+- exact approved complete patch SHA256:
+  `8fb1ca4dc6b6b360c071630104234a4bf594a5a6fcd50d1847655b72672670c7`;
+- exact proposed closure dossier blob:
+  `cdb74707d1135ddf2ae9cc9c69d844230148ac71`.
+
+That exact approved candidate was subsequently published as commit
+`e14a21e05daa4f7e6d4fdc477dff34a51b0fc51e` (`docs: synchronize one-chat Stage 3.39 governance`).
+The prepublication approval did not authorize Ready/merge and did not close P3-04.
+
+### `GOV-FINAL-P3-01` — published dossier retained stale prepublication-review wording
+
+**Problem.** Final exact-published-head Governance / Closure verification of
+`e14a21e05daa4f7e6d4fdc477dff34a51b0fc51e` found that the published dossier still said fresh
+Governance / Closure review was required **before publication**, even though that exact prepublication
+review had already completed with `APPROVED` before the commit was published.
+
+**Why it happened.** The governance-sync candidate correctly underwent the required prepublication
+review, but the permanent forensic wording retained the candidate-phase gate sentence instead of the
+resulting historical approval evidence.
+
+**Failure scenario.** If the closure record were merged unchanged, a future reader would see a
+canonical dossier that simultaneously preserves the completed prepublication approval identity and
+states that the same review still had to occur before an already-completed publication.
+
+**Impact.** Governance and forensic chronology would be internally contradictory. Runtime behavior,
+API contracts, schema/migrations, dependencies, CI workflow implementation, security/privacy runtime,
+financial semantics, Stage 3.39 Unicode behavior, closure activation semantics, and audit arithmetic
+were unaffected.
+
+**Rejected approach.** Treat the stale sentence as harmless because the live PR body and review package
+contain the correct chronology. The closure dossier itself is intended to be the durable forensic
+record, so contradictory active wording cannot be delegated to a volatile evidence surface.
+
+**Remediation.** The stale candidate-status sentence is replaced by the completed prepublication
+Governance / Closure result above, including the four resolved findings, zero-severity counts, verdict,
+exact approved patch SHA256, exact proposed dossier blob, and the fact that approval preceded
+publication of `e14a21e05daa4f7e6d4fdc477dff34a51b0fc51e`. This finding and its remediation are preserved
+as part of the permanent review history.
+
+**Review/evidence boundary.** This remediation itself remains governed by the non-recursive evidence
+rule in `docs/REVIEW_WORKFLOW.md`: a fresh prepublication Governance / Closure verdict is bound to the
+exact remediation patch/blob and may remain live review evidence rather than forcing another commit
+solely to embed its own verdict. If the candidate is published, the resulting exact head must obtain
+fresh required CI and fresh exact-published-head verification. Any new material finding must be
+remediated and preserved before merge. No future remediation commit SHA, CI run, review verdict, or
+closure squash-merge SHA is predicted here.
 
 ## 16. Evidence-only follow-up publication invariant
 
