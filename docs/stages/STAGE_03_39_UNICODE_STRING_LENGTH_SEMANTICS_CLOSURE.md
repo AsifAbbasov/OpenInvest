@@ -150,11 +150,14 @@ Those items remain separately governed.
 
 The implementation evidence is complete and merged.
 
-Under `docs/REVIEW_WORKFLOW.md`, before protected activation this closure-governance change must pass
-Internal Review, human publication authorization, Draft PR publication, exact-head CI, independent
-External Review, and human squash-merge authorization. After protected activation, this sentence is a
-stable statement of the required pre-activation path rather than a claim that those gates are still
-pending.
+Under the Principal Architect's current review-process directive and the synchronized
+`docs/REVIEW_WORKFLOW.md`, review work uses one designated review chat. Before protected activation
+this documentation-only closure must pass the Governance / Closure review phase in that chat, human
+publication authorization, Draft PR publication, exact-head CI, exact-published-head verification in
+the same review chat, and human squash-merge authorization.
+
+Historical Internal/External review events preserved elsewhere in this dossier remain valid historical
+evidence and are not retroactively reclassified.
 
 Until this closure-governance record is actually present on protected `develop`, **P3-04 remains OPEN**.
 
@@ -440,27 +443,125 @@ preceded evidence-only publication commit `1a7155eaf7c8195f11547e1e7f921dd32a896
 ### Review-evidence boundary for this remediation
 
 This dossier permanently records **material findings, their remediation, and completed review results
-that authorized already-published repository evidence**. It deliberately does not recursively embed
-the future verdict that will review this exact `EXT-FINAL-P3-01` remediation candidate, because doing
-so would require a new repository commit whose only purpose is to record the review of the preceding
-recording commit and would create unbounded self-reference.
+that authorized already-published repository evidence**. The project uses one designated review chat.
+
+For development work, `Internal` and `External` are sequential review phases in that same chat. Strict
+blind information-isolation is intentionally replaced by same-chat phase independence; the remaining
+evidentiary non-reliance, PR/repository withholding, post-External Internal-evidence
+publication/verification, CI, remediation, and human-authorization controls are defined by
+`docs/REVIEW_WORKFLOW.md`. For this post-development documentation-only closure, one Governance /
+Closure review phase is sufficient.
 
 The governed boundary is:
 
-1. this remediation candidate must receive fresh Internal Review before publication;
+1. the designated review chat reviews the complete governance/closure candidate;
 2. after publication, its exact new head must pass required CI;
 3. the live PR body must be synchronized to that actual head and CI;
-4. final Internal and External exact-head verification results for that published remediation are
-   recorded on the live PR evidence surface;
-5. any **new material finding** from those verifications must be remediated and preserved before merge;
+4. the same review chat verifies the exact published head;
+5. any **new material finding** must be remediated and preserved before merge;
 6. a no-new-finding `APPROVED` verification does not require another repository commit merely to embed
    its own verdict in the dossier;
 7. separate explicit human Ready/merge authorization is still required.
 
-This boundary preserves material forensic history without predicting a future commit SHA, CI run,
-review verdict, or final squash-merge SHA.
+This boundary preserves material forensic history without requiring separate review chats and without
+predicting a future commit SHA, CI run, review verdict, or final squash-merge SHA.
 
-## 15. Evidence-only follow-up publication invariant
+## 15. Review-process clarification and governance-sync findings
+
+On 2026-08-29 the Principal Architect clarified the project review topology:
+
+- **one designated review chat** is used for review work;
+- development-path work may have separate `Internal` and `External` review phases inside that same chat;
+- post-development documentation/evidence/governance-only closure work uses one Governance / Closure
+  review phase in that same chat;
+- no separate review chats are required;
+- for development-path work, the former strict blind information-isolation between Internal and
+  External reviewers is **deliberately replaced** by same-chat phase independence;
+- earlier Internal messages may therefore remain visible in chat history, but the External phase must
+  perform a fresh evidentiary review and may not cite/inherit/rely on the Internal verdict/findings as
+  supporting evidence;
+- development-path Internal evidence remains withheld from PR/repository publication until the
+  External verdict, then is published in an evidence-only follow-up and verified before merge;
+- CI, complete changed-file review, remediation of material findings, protected-branch restrictions,
+  and explicit human merge authorization remain mandatory.
+
+This is an explicit substantive process decision about reviewer information isolation, not a claim
+that strict blindness remains unchanged. It changes no merge authority and erases no historical
+Stage 3.39 review event already preserved in this dossier.
+
+### `GOV-SYNC-P3-01` — stale §9 dual-review requirement
+
+**Problem.** An earlier governance-sync candidate updated later sections for single-review closure but
+left §9 requiring Internal + independent External review.
+
+**Remediation.** §9 is now synchronized to the one-chat governance/closure path while preserving the
+earlier Internal/External events as historical evidence.
+
+**Result.** RESOLVED.
+
+### `GOV-SYNC-P3-02` — proposed workflow appeared to authorize its own adoption
+
+**Problem.** An earlier candidate relied on the proposed v1.3 text itself to justify a changed review
+topology before v1.3 was canonical.
+
+**Remediation.** The current transition is grounded in the explicit Principal Architect process
+directive, which narrowly clarifies review-chat topology and does not itself authorize commit, push,
+Ready, merge, protected-branch mutation, or finding suppression. The synchronized workflow still
+becomes canonical only after protected merge.
+
+**Result.** RESOLVED in this candidate.
+
+### `INT-TRANSITION-P3-01` — in-flight PR transition timing ambiguity
+
+**Problem.** An earlier workflow candidate did not state which policy governs review actions for PRs
+already open but unmerged when a new workflow version becomes effective.
+
+**Remediation.** Review actions performed after a new workflow version becomes effective use that
+effective version according to the PR's actual current scope, including already-open but unmerged PRs.
+Completed earlier review events retain their historical meaning and are not retroactively reclassified.
+
+**Result.** RESOLVED in this candidate.
+
+### `GOV-CHAT-P3-01` — one-chat rewrite weakened substantive development evidence controls
+
+**Problem.** The first one-chat candidate correctly removed the requirement for separate review chats
+but also deleted development-path anti-anchoring/non-disclosure and post-External Internal-evidence
+publication/verification controls.
+
+**Why it happened.** Chat topology and substantive evidence controls were changed in the same rewrite,
+and same-chat phase independence was treated as if it were automatically equivalent to the full
+existing evidence chain.
+
+**Failure scenario.** A future development PR could expose its Internal verdict/findings before the
+External conclusion, allow that earlier conclusion to act as supporting evidence, and merge without
+the required post-External publication and verification of Internal review evidence.
+
+**Impact.** Governance/evidence integrity only. Runtime, API, schema, migrations, dependencies,
+workflows, security/privacy runtime, financial semantics, and Stage 3.39 runtime behavior are
+unaffected.
+
+**Rejected approach.** Keep only the instruction that the External phase “reviews from scratch” while
+dropping the explicit withholding/publication/verification controls.
+
+**Remediation.** The one-chat model now preserves equivalent substantive controls for development:
+Internal evidence is withheld from the Draft PR/repository evidence surface until the External verdict;
+the same-chat External phase is a fresh published-head evidentiary review and may not cite/inherit/use
+the Internal verdict/findings as supporting evidence; after the External verdict the Builder publishes
+the required Internal evidence in an evidence-only follow-up; CI runs on that head; and the same
+designated review chat verifies the evidence publication before human merge authorization. A
+no-new-finding evidence-verification verdict does not create recursive commit churn.
+
+**Additional Principal Architect resolution.** The remaining anti-anchoring mismatch identified on
+re-review is accepted and made explicit: same-chat visibility is a deliberate replacement for strict
+blind information-isolation. The dossier and Review Workflow no longer claim substantive equivalence
+on that specific property. Evidentiary non-reliance, PR/repository withholding, post-External Internal
+evidence publication, CI, verification, finding remediation, and human merge authorization remain
+mandatory.
+
+**Candidate status.** `GOV-CHAT-P3-01` is fully remediated in this candidate; fresh Governance /
+Closure review is required before publication.
+
+## 16. Evidence-only follow-up publication invariant
 
 This evidence publication is documentation-only. It changes no Stage 3.39 runtime behavior, OpenAPI
 executable contract, schema, migration, dependency, workflow, authentication/security/privacy runtime,
@@ -468,9 +569,9 @@ replay/idempotency behavior, importer/parser behavior, financial arithmetic, or 
 
 No documentation/evidence follow-up is merge-authoritative merely because its text is committed.
 Before any human Ready/merge authorization, the current published remediation head must pass required
-CI, the live PR body must be synchronized to the actual head and CI evidence, and both Internal and
-External reviewers must verify the exact published head. Any new material blocker must be remediated
-and the affected gates repeated.
+CI, the live PR body must be synchronized to the actual head and CI evidence, and the designated
+Governance / Closure review chat must verify the exact published head. Any new material blocker must be
+remediated and the affected gates repeated.
 
 A no-new-finding final verification is intentionally retained as live PR evidence rather than forcing
 another repository commit solely to record the verdict that reviewed the previous recording commit.

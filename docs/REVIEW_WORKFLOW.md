@@ -3,17 +3,64 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-REVIEW-001 |
-| Version | 1.2.0 |
+| Version | 1.3.0 |
 | Status | Approved / Mandatory |
 | Owner | Principal Architect |
 | Supersedes | Informal review and push process |
 | Dependencies | Architecture Freeze v1.2; Document 40; Document 43 |
-| Last Review Date | 2026-06-20 |
+| Last Review Date | 2026-08-29 |
 | Next Review Date | 2026-12-19 |
 
 ## Purpose
 
 Separate implementation, automated verification, specialist review, human approval, and merge authority. No builder may approve its own architectural work, and no review bypass may write directly to protected branches.
+
+This workflow has two review paths:
+
+- **development path** — changes to runtime code, executable API contracts, database/schema/migrations,
+  dependencies, CI/workflows, security/privacy behavior, financial/mathematical semantics, or other
+  implementation-affecting artifacts;
+- **post-development governance/closure path** — documentation-only governance, evidence, or closure
+  synchronization that changes none of the development surfaces above.
+
+All model review work is conducted in **one designated review chat**. For development-path changes,
+`Internal` and `External` are two sequential review phases inside that same chat, not separate chats.
+For eligible post-development governance/closure changes, the same chat performs one Governance /
+Closure review phase, plus CI and explicit human merge authorization.
+
+### Review-chat topology and workflow transition rule
+
+The Principal Architect defines the review-channel topology: **one designated review chat** is used
+for repository review work. `Internal`, `External`, and `Governance / Closure` are review phases,
+not requirements for separate chats.
+
+For development-path review, the Principal Architect explicitly accepts one substantive replacement:
+the former **strict information-isolation / blind non-disclosure** property between Internal and
+External reviewers is replaced by **same-chat phase independence**. Earlier Internal messages may be
+visible in chat history. The External published-head phase must nevertheless perform a fresh
+evidentiary review and MUST NOT cite, inherit, or rely on the Internal verdict/findings as supporting
+evidence for its conclusion.
+
+This accepted replacement does not waive any other required control: Internal evidence remains
+withheld from the Draft PR/repository evidence surface until the External verdict; required evidence
+publication/verification, CI, finding remediation, protected-branch restrictions, and explicit human
+merge authorization remain mandatory.
+
+`docs/REVIEW_WORKFLOW.md` is governance-critical. A proposed replacement version becomes canonical
+only after it is squash-merged into protected `develop`; until then, the previous repository version
+remains the canonical text. The proposed version MUST NOT use its own content to bypass substantive
+review, CI, or human-authorization gates required for its adoption.
+
+A direct Principal Architect process directive may clarify review logistics such as chat topology
+before repository text is synchronized, because the Principal Architect owns the review process and
+final risk/merge authority. Such a directive MUST be explicit, narrow, preserved as transition
+evidence, and MUST NOT authorize commit, push, Ready, merge, protected-branch mutation, or finding
+suppression by itself.
+
+After a new workflow version becomes effective on protected `develop`, review actions performed
+thereafter use that effective version according to the PR's actual current scope, including for PRs
+that were already open but unmerged. Review events completed before adoption keep their original
+historical meaning and are not retroactively reclassified.
 
 ## Roles
 
@@ -27,17 +74,38 @@ Runs deterministic lint, formatting, unit, integration, contract, security, buil
 
 ### Internal Review Agent
 
-Performs a mandatory read-only, line-by-line review of every changed file after Builder checks and
-before commit authorization. The Internal Review Agent is independent from the active Builder turn,
-must not edit files, run auto-fixes, stage changes, create commits, or silently resolve findings.
-It produces evidence and exactly one verdict: `APPROVED`, `REQUEST CHANGES`, or
+For **development-path** changes, the designated review chat first performs an **Internal review
+phase**: mandatory read-only, line-by-line review of every changed file after Builder checks and
+before commit authorization. The reviewer is independent from the active Builder turn, must not edit
+files, run auto-fixes, stage changes, create commits, or silently resolve findings. It produces
+evidence and exactly one verdict: `APPROVED`, `REQUEST CHANGES`, or
 `BLOCKED — insufficient evidence`.
 
 ### External Review Agent — ChatGPT
 
-Reviews the Draft PR diff and evidence independently from the Builder. A review must address architecture/DDD/SOLID, API contracts, security/privacy, performance/cost, mathematical correctness when relevant, scope/YAGNI, migrations, rollback, and documentation.
+For **development-path** changes, the same designated review chat later performs an **External
+published-head review phase** after Draft PR publication and CI. This is a fresh evidentiary
+re-evaluation of the published diff/evidence and must not inherit, cite, or use the Internal-phase
+verdict/findings as supporting evidence for its conclusion, even though those earlier messages remain
+visible in the same chat. It addresses architecture/DDD/SOLID, API contracts, security/privacy,
+performance/cost, mathematical correctness when relevant, scope/YAGNI, migrations, rollback, and
+documentation.
 
-Specialist Architecture, Security, Performance, API, and Mathematical reviews may be separate reports or clearly separated sections in one review. A model's self-review is advisory; the human remains accountable.
+Specialist Architecture, Security, Performance, API, and Mathematical reviews may be separate reports
+or clearly separated sections in one review. A model's self-review is advisory; the human remains
+accountable.
+
+### Governance / Closure Review Agent
+
+For an eligible **post-development governance/closure** change, the designated review chat performs one
+independent read-only Governance / Closure review phase covering the complete changed-file set. No
+second Internal/External phase is required for that path.
+
+The governance/closure reviewer must verify full documentation/evidence consistency, exact repository
+identity where relevant, CI evidence, lifecycle/activation semantics, audit arithmetic, scope, rollback,
+and absence of development-surface changes. If the candidate touches a development surface or a
+material finding requires implementation-affecting remediation, the change returns to the development
+path and the separate Internal + External review sequence applies.
 
 ### Principal Architect / Human Reviewer
 
@@ -45,8 +113,10 @@ Owns final scope, product, architecture, risk acceptance, review verdict, and me
 
 ## Mandatory delivery sequence
 
+### Development path
+
 ```text
-Approved stage scope
+Approved development scope
   → feature branch
   → implementation and documentation
   → local quality gates
@@ -56,25 +126,62 @@ Approved stage scope
   → Builder stage report and diff summary
   → human permission to commit/push feature branch
   → push feature branch
-  → Draft PR targeting develop
+  → Draft PR targeting develop with current Internal evidence withheld from PR/repository publication
   → required GitHub CI green
-  → independent ChatGPT external review of PR diff without internal verdict disclosure
+  → External published-head review phase in the same designated review chat
+     (fresh evidentiary review; Internal verdict/findings are not supporting evidence)
   → Builder fixes and CI rerun
-  → ChatGPT approval/evidence
+  → External verdict
+  → after External verdict, Builder publishes required Internal evidence in an evidence-only follow-up
+  → required CI on the evidence-follow-up head
+  → same designated review chat verifies the evidence-only publication for exactness/no semantic drift
   → human review and approval
   → squash merge to develop
-  → nightly verification
-  → periodic architecture audit
 ```
 
-GitHub Actions cannot evaluate an unpushed branch. Therefore local gates run before Draft PR; authoritative repository CI runs after the feature branch is pushed. This is not permission to push to `develop` or `main`.
+### Post-development governance / closure path
 
-## Mandatory Internal Line-by-Line Review
+This path is allowed only when the complete change is documentation/evidence/governance-only and does
+not change any development surface defined in **Purpose**.
+
+```text
+Approved governance/closure scope
+  → documentation branch
+  → documentation/evidence candidate
+  → local deterministic checks
+  → Governance / Closure review in the designated review chat
+  → Builder resolves findings and reruns affected checks
+  → human permission to commit/push
+  → push branch
+  → Draft PR targeting develop
+  → required GitHub CI green
+  → synchronize live PR metadata/evidence to the actual published head and CI
+  → same single review chat performs exact-published-head verification
+  → Builder resolves any new material finding and repeats affected gates
+  → human review and explicit merge approval
+  → squash merge to develop
+```
+
+The same designated review chat performs both pre-publication governance/closure review and
+exact-published-head verification. A no-new-finding final `APPROVED` verdict does not require another
+repository commit
+solely to embed that verdict. Any new material finding must still be remediated and preserved before
+merge.
+
+GitHub Actions cannot evaluate an unpushed branch. Therefore local gates run before Draft PR;
+authoritative repository CI runs after the feature branch is pushed. This is not permission to push
+to `develop` or `main`.
+
+## Mandatory Internal Line-by-Line Review — development path
 
 Every changed file must be reviewed in full after the Builder finishes the scoped change and runs
 the first local quality gate. Sampling is insufficient. Generated, vendored, specification,
 documentation, configuration, example, test, and migration files are not exempt; the reviewer may
 adapt emphasis to the artifact but must account for every changed line.
+
+For an eligible post-development governance/closure change, the Governance / Closure phase in the
+designated review chat subsumes the full changed-file review. No second Internal/External phase is
+required. Sampling is still insufficient.
 
 The Internal Review Agent must check, where applicable:
 
@@ -98,33 +205,65 @@ exactly one verdict:
 - `BLOCKED — insufficient evidence` — a complete review cannot be supported by the available diff,
   files, checks, or requirements.
 
-When the verdict is not `APPROVED`, only the Builder applies fixes. The Builder reruns every
-affected check and sends the revised complete diff back to an Internal Review Agent. No human
-permission to commit/push may be requested until the current complete diff has an `APPROVED`
-internal verdict. The stage report records files reviewed, verdict, blocking findings, resolved
-findings, remaining non-blocking notes, and explicit confirmation that the reviewer made no edits.
+When a **development-path** verdict is not `APPROVED`, only the Builder applies fixes. The Builder
+reruns every affected check and sends the revised complete diff back to an Internal Review Agent. No
+human permission to commit/push may be requested until the current complete diff has an `APPROVED`
+Internal verdict.
 
-Internal review does not replace CI, independent Draft PR review, or human accountability. It is a
-pre-commit defect gate; ChatGPT Draft PR review is the independent external gate on the published
-commit and authoritative GitHub diff.
+For an eligible **post-development governance/closure** change, the same rule applies using the single
+Governance / Closure Review Agent: only the Builder fixes findings, affected checks rerun, and
+commit/push permission may be requested only after that review chat returns `APPROVED`.
+
+The review record states files reviewed, verdict, blocking findings, resolved findings, remaining
+non-blocking notes, and explicit confirmation that the reviewer made no edits.
+
+On the development path, Internal review does not replace CI, independent Draft PR External review,
+or human accountability. It is a pre-commit defect gate; External Draft PR review is the independent
+published-commit gate.
 
 ## Review levels and independence
 
 - Level A — automated build, lint, tests, coverage where applicable, OpenAPI, YAML, Markdown, and
   other deterministic checks;
-- Level B — read-only Internal Review Agent line-by-line review;
-- Level C — independent external ChatGPT review of architecture, security, privacy, DDD, API,
-  performance, cost, mathematics when relevant, and governance;
+- Level B — Internal review phase in the designated review chat for development-path changes;
+- Level C — External published-head review phase in that same chat for development-path changes;
+- Level G — one Governance / Closure review phase in the designated review chat for eligible
+  post-development documentation/evidence/governance-only changes;
 - Level D — human business/product judgment and final merge authorization.
 
-The external reviewer receives the Draft PR, changed files, diff, governing documentation, and CI
-evidence. Before the external verdict, internal findings and verdict remain in the private review
-thread or another access-controlled, out-of-band review record and are not committed into the PR.
-The Stage report retains the required `Internal Review Evidence` section but marks its fields
-`WITHHELD — blind external review pending`. After ChatGPT records its independent verdict, the
-Builder publishes the internal evidence in a follow-up documentation commit and both reviewers
-verify that evidence-only change. This prevents anchoring while preserving the permanent audit
-record; it does not hide code, requirements, tests, or repository history.
+For the **development path**, the designated review chat keeps the two phases logically and
+evidentially distinct:
+
+- the Internal phase reviews the complete pre-publication candidate;
+- before the External verdict, the current Internal verdict/findings remain **withheld from the
+  Draft PR and repository evidence surface**;
+- because one chat is used, earlier Internal messages may remain visible in chat history; this is the
+  explicitly accepted replacement for strict blind information-isolation, not a claim that blindness
+  is preserved;
+- the External phase MUST perform a fresh published-head review and MUST NOT cite, inherit, or rely on
+  the Internal verdict/findings as supporting evidence;
+- the Stage report keeps the `Internal Review Evidence` fields
+  `WITHHELD — external published-head phase pending` until the External verdict exists;
+- after the External verdict, the Builder publishes the required Internal evidence in a follow-up
+  documentation/evidence commit;
+- required CI runs on that evidence-follow-up head;
+- the same designated review chat verifies that the published Internal evidence is complete, accurate,
+  and evidence-only, with no semantic/runtime drift before human merge authorization.
+
+This preserves evidentiary non-reliance, repository/PR withholding, post-External evidence
+publication, CI, and verification while using one chat. It does **not** claim to preserve strict
+pre-verdict information-isolation; that specific control is deliberately replaced by same-chat phase
+independence under the Principal Architect decision above. Same-chat visibility is not permission to
+treat an earlier phase as proof.
+
+An evidence-publication verification that finds **no new material finding** may remain as live review
+evidence and does not require another repository commit merely to embed its own verdict. Any new
+material finding must still be remediated, permanently preserved, and the affected gates repeated.
+
+The two-phase development sequence does **not** apply to an eligible post-development
+governance/closure-only change. That path uses one Governance / Closure phase in the same designated
+review chat and must still preserve all material findings/remediations, exact published-head evidence,
+CI evidence, and human merge authority.
 
 ## Branch convention
 
@@ -206,10 +345,17 @@ Findings include severity, file/line where possible, violated principle, user/op
 
 ## Merge and push policy
 
-- Feature-branch commit/push permission may be requested only after local checks and the mandatory
-  Internal Review Agent verdict are `APPROVED`.
-- Merge requires green CI, an approved internal review, an approved independent ChatGPT Draft PR
-  review, resolved blocking findings, and explicit human approval.
+- For development-path changes, feature-branch commit/push permission may be requested only after
+  local checks and the mandatory Internal Review Agent verdict are `APPROVED`.
+- For eligible post-development governance/closure changes, commit/push permission may be requested
+  only after local deterministic checks and the single Governance / Closure Review Agent verdict are
+  `APPROVED`.
+- Development-path merge requires green CI, an approved Internal phase, an approved External
+  published-head phase in the designated review chat, publication and verification of required
+  Internal evidence after the External verdict, resolved blocking findings, and explicit human approval.
+- Eligible post-development governance/closure merge requires green CI, an `APPROVED` exact-published-
+  head Governance / Closure verdict from the designated review chat, resolved blocking findings, and
+  explicit human approval.
 - Merge method into `develop` is squash merge.
 - Direct push and force push to `develop`/`main` are forbidden.
 - No Builder self-approval.
