@@ -387,28 +387,97 @@ distinguish review target from evidence-hosting location.
 review record for Draft PR #99** and explicitly states that no GitHub-native PR review/comment artifact
 is claimed.
 
-**Result.** Provenance is narrowed to the evidence actually available. Fresh Internal re-review is
-required before this revised evidence-only candidate may be published.
+**Result.** Provenance was narrowed to the evidence actually available. The subsequent fresh
+Internal Evidence-Publication Re-Review confirmed:
 
-## 14. Evidence-only follow-up publication invariant
+- `INT-EVIDENCE-P3-01` — RESOLVED;
+- P0/P1/P2/P3 = 0;
+- verdict: `APPROVED`;
+- exact approved evidence-only patch SHA256:
+  `4cb3ad27e7709722fdd137c741b372c5dca7791fc67f21a3df77fd7aa0b88981`;
+- resulting published closure dossier blob:
+  `fd7679f926e33897a4ad5377e9b14ded99116479`.
+
+That approval occurred before publication of evidence-only commit
+`1a7155eaf7c8195f11547e1e7f921dd32a896662` (`docs: publish Stage 3.39 closure review evidence`).
+
+## 14. Final exact-head External verification remediation
+
+Final External exact-head verification was performed against Draft PR #99 at published head
+`1a7155eaf7c8195f11547e1e7f921dd32a896662` after CI #282 / run `33177434968` completed 10/10 successfully.
+
+The reviewer confirmed live PR identity, the two-commit / four-file documentation-only scope,
+protected `develop` at `abbd9f9f61574621e206f2e196b1fb8f056dc194`, current dossier blob `fd7679f926e33897a4ad5377e9b14ded99116479`, PR-body synchronization,
+closure activation semantics, backlog arithmetic, and no runtime impact.
+
+The verdict was `REQUEST CHANGES` for one documentation / forensic-completeness P3 only:
+
+### `EXT-FINAL-P3-01` — permanent dossier omitted the completed Evidence-Publication Internal Re-Review
+
+**Problem.** Section 13 recorded the `INT-EVIDENCE-P3-01` remediation but still ended with
+“Fresh Internal re-review is required...” and did not preserve the already-completed re-review that
+authorized publication of the evidence-only follow-up.
+
+**Why it happened.** The evidence-publication candidate was reviewed before commit, but the permanent
+forensic text captured the pre-review gate wording and was not updated to the resulting historical
+approval before final exact-head External verification.
+
+**Failure scenario.** If the dossier were merged unchanged, a future reader would see a canonical
+closure record that claims to preserve the full material review/remediation chain while stopping the
+evidence-publication chronology immediately before the approval that actually permitted publication.
+
+**Impact.** Forensic chronology would be incomplete and one active sentence would be stale. Runtime,
+CI identity, PR identity, closure semantics, audit arithmetic, and remaining-P3 scope were unaffected.
+
+**Rejected approach.** Leave the approval only in the live PR body and rely on that volatile surface
+while the permanent dossier claims complete material review history.
+
+**Remediation.** Section 13 now permanently records the completed Evidence-Publication Internal
+Re-Review, including `INT-EVIDENCE-P3-01 — RESOLVED`, P0/P1/P2/P3 = 0, verdict `APPROVED`, exact
+approved patch `4cb3ad27e7709722fdd137c741b372c5dca7791fc67f21a3df77fd7aa0b88981`, resulting blob `fd7679f926e33897a4ad5377e9b14ded99116479`, and the fact that the approval
+preceded evidence-only publication commit `1a7155eaf7c8195f11547e1e7f921dd32a896662`.
+
+### Review-evidence boundary for this remediation
+
+This dossier permanently records **material findings, their remediation, and completed review results
+that authorized already-published repository evidence**. It deliberately does not recursively embed
+the future verdict that will review this exact `EXT-FINAL-P3-01` remediation candidate, because doing
+so would require a new repository commit whose only purpose is to record the review of the preceding
+recording commit and would create unbounded self-reference.
+
+The governed boundary is:
+
+1. this remediation candidate must receive fresh Internal Review before publication;
+2. after publication, its exact new head must pass required CI;
+3. the live PR body must be synchronized to that actual head and CI;
+4. final Internal and External exact-head verification results for that published remediation are
+   recorded on the live PR evidence surface;
+5. any **new material finding** from those verifications must be remediated and preserved before merge;
+6. a no-new-finding `APPROVED` verification does not require another repository commit merely to embed
+   its own verdict in the dossier;
+7. separate explicit human Ready/merge authorization is still required.
+
+This boundary preserves material forensic history without predicting a future commit SHA, CI run,
+review verdict, or final squash-merge SHA.
+
+## 15. Evidence-only follow-up publication invariant
 
 This evidence publication is documentation-only. It changes no Stage 3.39 runtime behavior, OpenAPI
 executable contract, schema, migration, dependency, workflow, authentication/security/privacy runtime,
 replay/idempotency behavior, importer/parser behavior, financial arithmetic, or infrastructure.
 
-The evidence-only follow-up is not merge-authoritative merely because this text is committed. Before
-any human Ready/merge authorization:
+No documentation/evidence follow-up is merge-authoritative merely because its text is committed.
+Before any human Ready/merge authorization, the current published remediation head must pass required
+CI, the live PR body must be synchronized to the actual head and CI evidence, and both Internal and
+External reviewers must verify the exact published head. Any new material blocker must be remediated
+and the affected gates repeated.
 
-1. the evidence-only change must be published on the existing clean closure branch;
-2. the exact published follow-up head must pass required CI;
-3. the live PR body must be synchronized to the actual follow-up head and its actual CI evidence;
-4. the Internal reviewer must verify the exact published evidence-only change;
-5. the External reviewer must independently verify the exact published evidence-only change;
-6. all blocking findings, if any, must be resolved;
-7. a separate explicit human Ready/merge authorization is still required.
+A no-new-finding final verification is intentionally retained as live PR evidence rather than forcing
+another repository commit solely to record the verdict that reviewed the previous recording commit.
+This prevents recursive evidence churn while preserving every material finding and remediation.
 
-No future evidence-only commit SHA, CI run number, or final closure squash-merge SHA is predicted here.
-That keeps this permanent record publication-stable.
+No future remediation commit SHA, CI run number, review verdict, or final closure squash-merge SHA is
+predicted here. That keeps this permanent record publication-stable.
 
 Until the approved closure record is actually present on protected `develop`, **P3-04 remains OPEN**.
 Only protected closure activation changes it to CLOSED.
