@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | PRE-COMMIT PUBLICATION CANDIDATE — substantive local gates PASS; publication-safety review pending |
+| Status | PUBLISHED IMPLEMENTATION — publication history recorded; P3-09 closure not claimed |
 | Date | 2026-08-29 |
 | Original finding | P3-09 — Next.js maintenance |
 | Canonical base | `develop@559b57d0951cdc67125c2f72fc1fcfb34399e90e` |
@@ -221,18 +221,55 @@ dossier does not claim that environment setting as verified execution evidence.
 Stage 3.40 planning completed its exact-published-head review and planning merge. That approval did not
 authorize this implementation.
 
-Internal review evidence is intentionally withheld from the repository and Draft PR evidence surface
-until the External published-head verdict, as required by `docs/REVIEW_WORKFLOW.md` v1.3.0.
+Internal review evidence remains intentionally withheld from the repository and Draft PR evidence
+surface until the External published-head verdict, as required by `docs/REVIEW_WORKFLOW.md` v1.3.0.
 
-The complete Internal review chronology, including any findings and remediations, is preserved in the
-designated review chat and local review evidence. It will be published in an evidence-only follow-up
-after the External verdict and then verified for exactness and absence of semantic/runtime drift.
+The complete Internal review chronology, including findings and remediations, remains preserved in the
+designated review chat and local review evidence. It will be published in the required evidence-only
+follow-up after the External verdict and then verified for exactness and absence of semantic/runtime
+drift.
 
 Repository-visible Internal Review Evidence status:
 `WITHHELD — external published-head phase pending`.
 
-This withholding does not claim that review history did not occur and does not erase or rewrite any
-review event. It is a publication-timing control only.
+This withholding does not claim that Internal review history did not occur and does not erase or
+rewrite any Internal review event. It is a publication-timing control only.
+
+### External published-head review attempt 1
+
+External review was performed independently against Draft PR #101 at exact published implementation
+head `5ea1f7f29cf0ab9225460e01076255f32e2cf4cf` after GitHub CI #289 / run `33274458971`
+completed `10/10 SUCCESS`.
+
+Result: `REQUEST CHANGES`.
+
+Finding: `EXT-STAGE-03-41-P3-01` — P3, documentation/governance evidence integrity only.
+
+Problem: the published dossier still carried pre-commit lifecycle wording after the implementation
+commit, Draft PR publication, and exact-head CI had already occurred.
+
+Root cause: the approved pre-publication dossier bytes were committed unchanged, so temporary
+pre-commit status text became stale on the published head.
+
+Failure scenario: a later reviewer could reconstruct the repository as already committed with a Draft
+PR and successful CI while the canonical dossier simultaneously described those completed gates as
+future work.
+
+Project impact: governance/evidence integrity only. External review found no Next.js runtime defect,
+dependency-resolution defect, application-security defect, authentication/session issue,
+financial-logic issue, API/database change, or unrelated supply-chain drift.
+
+Remediation: this dossier revision replaces stale active pre-commit wording with publication-current
+state, separates completed publication gates from genuinely remaining gates, and preserves P3-09 as
+OPEN. Runtime/dependency bytes are unchanged.
+
+Required regression evidence: required GitHub CI on the revised exact head followed by a fresh
+exact-published-head External re-review.
+
+Resolution criteria for `EXT-STAGE-03-41-P3-01`: the docs-only remediation must be published on a
+new exact head, required GitHub CI must pass on that head, and a fresh exact-published-head External
+re-review must confirm that the finding is resolved. This statement defines the required evidence;
+it does not assert whether those later events have already occurred.
 
 ## 11. Residual limitations
 
@@ -248,18 +285,32 @@ review event. It is a publication-timing control only.
 
 P3-09 remains OPEN.
 
-Next sequence:
+Completed publication gates:
 
-1. publication-safety review of the exact three-file pre-commit candidate;
-2. Builder remediation of any material finding and rerun of affected checks;
-3. exact stage report / diff;
-4. explicit human commit/push authorization;
-5. Draft PR to `develop` only under the next applicable human authorization;
-6. exact-head CI;
-7. fresh External published-head review;
-8. post-External Internal-evidence publication + CI;
-9. exact evidence-publication verification;
-10. explicit human squash-merge authorization;
-11. separate closure-governance activation.
+1. implementation commit and push — `5ea1f7f29cf0ab9225460e01076255f32e2cf4cf`;
+2. Draft PR #101 opened against `develop`;
+3. exact-head GitHub CI #289 / run `33274458971` — `10/10 SUCCESS`;
+4. fresh External published-head review attempt 1 — `REQUEST CHANGES` with
+   `EXT-STAGE-03-41-P3-01`, documentation/governance evidence integrity only.
 
-No statement in this dossier authorizes PR creation, Ready, merge, branch deletion, or any protected-branch mutation.
+This revision is the docs-only remediation for `EXT-STAGE-03-41-P3-01`. It does not change
+`frontend-next/package.json` or `frontend-next/pnpm-lock.yaml`.
+
+Post-remediation progression requirements:
+
+1. the docs-only remediation must be published on an exact PR head;
+2. required GitHub CI must pass on that revised exact head;
+3. a fresh exact-published-head External re-review must determine whether
+   `EXT-STAGE-03-41-P3-01` is resolved;
+4. after an External `APPROVED` verdict, the withheld Internal review chronology must be published
+   in an evidence-only follow-up;
+5. that evidence-only head must receive required CI and exact verification showing no
+   runtime/dependency semantic change;
+6. squash merge still requires explicit human authorization;
+7. P3-09 can become CLOSED only through the separate closure-governance activation.
+
+These are workflow requirements, not assertions that any particular later gate is currently pending
+or incomplete. Their completion state must be established from the corresponding exact-head GitHub
+and review evidence.
+
+No statement in this dossier authorizes Ready, merge, branch deletion, or protected-branch mutation.
