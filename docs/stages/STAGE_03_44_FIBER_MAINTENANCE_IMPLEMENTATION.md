@@ -6,8 +6,8 @@
 | Exact implementation base | `develop@eaac5a5deb64196b263464e0d85e622065520b0e` |
 | Finding | Original audit `P3-10 — Fiber maintenance` |
 | Planning authority | Merged Stage 3.43 plan blob `37a32856692ac58f408f2dd50335bb65019d9983` |
-| Runtime closure state | P3-10 remains OPEN |
-| Current audit state | 28 / 32 = 87.5%; remaining P3-06, P3-07, P3-08, P3-10 |
+| Closure state at implementation publication | P3-10 OPEN |
+| Audit state at implementation publication | 28 / 32 = 87.5%; remaining P3-06, P3-07, P3-08, P3-10 |
 | Internal Review Evidence | WITHHELD — external published-head phase pending |
 
 ## 1. Problem and root cause
@@ -168,8 +168,8 @@ schema change is included.
 `PLAN-STAGE-03-43-P3-01` remains append-only history and its required shared-direct dependency/
 Argon2 compatibility controls are satisfied by this candidate evidence.
 
-This candidate requires complete Internal line-by-line READ-ONLY review before any commit/push
-authorization.
+The complete Internal line-by-line READ-ONLY review occurred before human commit/push authorization
+and Draft PR publication.
 
 Internal evidence remains withheld from the Draft PR/repository evidence surface until the External
 verdict, per canonical `REVIEW_WORKFLOW.md` v1.3.0.
@@ -177,15 +177,30 @@ verdict, per canonical `REVIEW_WORKFLOW.md` v1.3.0.
 No review verdict by itself authorizes commit, push, remote branch publication, PR mutation, Ready,
 merge, or closure.
 
+### External published-head review history
+
+On initial published head `bd538bdc96b2e714acd518bf24bfdd405e44322b`, after exact-head CI #295 /
+run `33310886210` completed 10 / 10 required jobs successfully, External review returned
+`REQUEST CHANGES` with one P3 documentation/governance finding:
+
+- `EXT-STAGE-03-44-P3-01` — the dossier described the already-completed Internal review and
+  commit/push authorization as future requirements.
+
+The remediation is documentation-only: the completed pre-publication gate is recorded above as a
+historical fact. `backend-go/go.mod`, `backend-go/go.sum`,
+`backend-go/internal/auth/password_dependency_compat_test.go`, production runtime source, dependency
+selections, and audit scope are unchanged by this remediation.
+
+Internal evidence remains withheld from the Draft PR/repository evidence surface until the External
+verdict, as required by the canonical workflow.
+
 ## 10. Closure semantics
 
-P3-10 remains OPEN after this implementation candidate and would remain OPEN even after a future
-implementation merge.
+Implementation merge does not itself activate P3-10 closure. Under the canonical workflow, P3-10
+closes only when a separate reviewed docs-only closure-governance activation is placed on protected
+`develop`.
 
-Only a separate reviewed docs-only closure-governance activation on protected `develop` may close
-P3-10.
-
-If no other finding changes concurrently, eventual closure would produce 29 / 32 = 90.625%, leaving
-exactly P3-06, P3-07 and P3-08.
+Given the 28 / 32 audit baseline recorded by this implementation stage, a closure activation with no
+concurrent finding changes corresponds to 29 / 32 = 90.625%, leaving exactly P3-06, P3-07 and P3-08.
 
 No future PR number, CI run, published head or merge SHA is predicted here.
