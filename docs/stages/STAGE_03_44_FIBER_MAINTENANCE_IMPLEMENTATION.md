@@ -2,10 +2,15 @@
 
 | Field | Value |
 | --- | --- |
+| Status | IMPLEMENTATION MERGED — PR #104 squash-merged into protected `develop` at `c980a21f16b30449ec7fb7b07decc386d77bc27d`; P3-10 closure is merge-activated under Stage 3.45 |
 | Date | 2026-08-30 |
 | Exact implementation base | `develop@eaac5a5deb64196b263464e0d85e622065520b0e` |
 | Finding | Original audit `P3-10 — Fiber maintenance` |
 | Planning authority | Merged Stage 3.43 plan blob `37a32856692ac58f408f2dd50335bb65019d9983` |
+| Final evidence-publication head | `749446930a730c3f7c5b3402618577953d53d3f4` |
+| Implementation squash merge | `c980a21f16b30449ec7fb7b07decc386d77bc27d` |
+| Final exact-head CI | CI #297 / run `33312723075`, 10/10 required jobs successful |
+| P3-10 lifecycle | Before the approved Stage 3.45 closure record and synchronized canonical surfaces are present on protected `develop`, P3-10 is OPEN; once they are present, P3-10 is CLOSED |
 | Closure state at implementation publication | P3-10 OPEN |
 | Audit state at implementation publication | 28 / 32 = 87.5%; remaining P3-06, P3-07, P3-08, P3-10 |
 | Internal Review Evidence | PUBLISHED — complete Internal review chronology recorded below after the External verdict |
@@ -295,3 +300,59 @@ Given the 28 / 32 audit baseline recorded by this implementation stage, a closur
 concurrent finding changes corresponds to 29 / 32 = 90.625%, leaving exactly P3-06, P3-07 and P3-08.
 
 No future PR number, CI run, published head or merge SHA is predicted here.
+
+## 11. Governance / closure activation
+
+Stage 3.44 development-path work is complete and merged.
+
+Immutable post-evidence history:
+
+1. final evidence-publication head
+   `749446930a730c3f7c5b3402618577953d53d3f4`;
+2. final implementation dossier blob before squash merge
+   `04ffc9c059871147a15d3eb6627f05268c686ed2`;
+3. CI #297 / run `33312723075` — `10/10 SUCCESS`;
+4. same-chat exact evidence-publication verification:
+   - evidence publication `COMPLETE AND ACCURATE`;
+   - evidence-only scope `CONFIRMED`;
+   - runtime/dependency semantic drift `NONE`;
+   - exact protected base `MATCHES`;
+   - exact evidence-publication head `MATCHES`;
+   - published dossier blob `MATCHES`;
+   - frozen runtime/dependency/test blobs `MATCH`;
+   - Internal evidence chronology `CORRECT`;
+   - External history `CORRECT`;
+   - PR metadata `CONSISTENT`;
+   - exact-head CI #297 `10/10 SUCCESS`;
+   - publication stability `PASS`;
+   - audit lifecycle/arithmetic `PASS`;
+   - P0/P1/P2/P3 = 0;
+   - new material finding `NO`;
+   - reviewer mutations `NONE`;
+   - verdict `APPROVED`;
+5. explicit human authorization for the Ready transition and squash merge of exact head
+   `749446930a730c3f7c5b3402618577953d53d3f4`;
+6. PR #104 was in Ready state before merge;
+7. actual PR #104 squash merge
+   `c980a21f16b30449ec7fb7b07decc386d77bc27d`;
+8. protected `develop` was read back at that exact implementation merge SHA.
+
+The implementation merge is an immutable repository fact. The moving protected `develop` HEAD is not
+represented as permanently equal to that implementation SHA.
+
+Original audit P3-10 closure is intentionally separate from the implementation merge. Stage 3.45 is
+documentation/governance-only closure activation:
+
+1. before the approved Stage 3.45 closure record and synchronized canonical surfaces are present on
+   protected `develop`, P3-10 remains OPEN;
+2. once they are present on protected `develop`, P3-10 is CLOSED;
+3. Stage 3.45 must not change the accepted runtime/dependency/test identities;
+4. no future Stage 3.45 PR number, published head, CI run, or squash-merge SHA is predicted here.
+
+All earlier Runner/Builder/Internal/External failure and remediation history above remains authoritative
+and append-only. In particular, the Runner v1-v4 failures, v5 evidence defects corrected by Builder
+preflight, `EXT-STAGE-03-44-P3-01`, and the separately reviewed Builder publication tooling incident
+classified `NO MATERIAL PROJECT FINDING` are not erased or softened.
+
+No statement in this dossier authorizes Stage 3.45 commit, push, Draft PR creation, Ready, merge,
+branch deletion, or protected-branch mutation.
