@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | PUBLISHED IMPLEMENTATION — publication history recorded; P3-09 closure not claimed |
+| Status | IMPLEMENTATION MERGED — PR #101 squash-merged into protected `develop` at `a2cfeaa5ca68fdd951e2a99f69c96aec362fc416`; closure status is MERGE-ACTIVATED: P3-09 is OPEN before the approved Stage 3.42 closure record is present on protected `develop` and CLOSED once that record is present |
 | Date | 2026-08-29 |
 | Original finding | P3-09 — Next.js maintenance |
 | Canonical base | `develop@559b57d0951cdc67125c2f72fc1fcfb34399e90e` |
@@ -14,7 +14,7 @@
 | package.json SHA256 | `d55dab239a4252e6d536923492c4645bb78c7cfcc065b3bf4546692b8aabe86c` |
 | pnpm-lock.yaml SHA256 | `0b8d8e676bc848a422c730114bd0aa48bc2bb16a154bda2a5adcff54efc0f3c5` |
 | Internal Review Evidence | PUBLISHED — complete Internal chronology recorded below after External verdict |
-| P3-09 lifecycle | OPEN |
+| P3-09 lifecycle | MERGE-ACTIVATED — OPEN before the approved Stage 3.42 closure record is present on protected `develop`; CLOSED once that record is present |
 
 ## 1. Problem
 
@@ -395,32 +395,49 @@ The External verdict did not rely on prior Internal verdicts/findings as support
 - If the auxiliary runner is reused, its changed-file accounting must include untracked files; this is a tooling limitation, not an OpenInvest runtime defect.
 - P3-06, P3-07, P3-08 and P3-10 remain out of scope.
 
-## 12. Governance / next gates
+## 12. Governance / closure activation
 
-P3-09 remains OPEN.
+Stage 3.41 development-path work is complete and merged.
 
-Completed immutable publication/review history includes:
+Immutable post-evidence history:
 
-1. implementation head `5ea1f7f29cf0ab9225460e01076255f32e2cf4cf`;
-2. Draft PR #101 against `develop`;
-3. CI #289 / run `33274458971` — `10/10 SUCCESS`;
-4. External attempt 1 — `REQUEST CHANGES` with `EXT-STAGE-03-41-P3-01`;
-5. docs-only remediation head `97cd665c25d76f8efdb25462f0a12b63a996f1e5`;
-6. CI #290 / run `33275019210` — `10/10 SUCCESS`;
-7. fresh External re-review — `EXT-STAGE-03-41-P3-01 = RESOLVED`, P0/P1/P2/P3 = 0,
-   reviewer mutations `NONE`, verdict `APPROVED`;
-8. this required evidence-only publication of the complete previously withheld Internal chronology.
+1. final evidence-publication head
+   `d88be3c90231f374d7e6b7d94f4cd89e6788f700`;
+2. final implementation dossier blob
+   `c8f9410dc1b718caf597509b9ef56ce4289f4712`;
+3. CI #291 / run `33277717164` — `10/10 SUCCESS`;
+4. same-chat exact evidence-publication verification:
+   - evidence publication `COMPLETE AND ACCURATE`;
+   - evidence-only scope `CONFIRMED`;
+   - runtime/dependency semantic drift `NONE`;
+   - published head `MATCHES`;
+   - exact-head CI `10/10 SUCCESS`;
+   - PR metadata `CONSISTENT`;
+   - P0/P1/P2/P3 = 0;
+   - new material finding `NO`;
+   - reviewer mutations `NONE`;
+   - verdict `APPROVED`;
+5. explicit human authorization for Ready and squash merge of PR #101;
+6. GitHub-recorded Ready-for-review transition;
+7. actual PR #101 squash merge
+   `a2cfeaa5ca68fdd951e2a99f69c96aec362fc416`.
 
-Post-evidence-publication workflow requirements:
+The implementation merge is an immutable repository fact. The moving protected `develop` HEAD is not
+represented as permanently equal to that implementation SHA.
 
-1. required GitHub CI must run on the exact evidence-publication head;
-2. the same designated review chat must verify that the published Internal evidence is complete,
-   accurate, evidence-only, and introduces no runtime/dependency semantic drift;
-3. human review and explicit squash-merge authorization are required before merge;
-4. the PR must be squash-merged to protected `develop`;
-5. P3-09 can become CLOSED only through the separate closure-governance activation.
+Original audit P3-09 closure is intentionally separate from the implementation merge. Stage 3.42 is
+documentation/governance-only closure activation:
 
-These are workflow requirements, not assertions that a particular later gate is currently incomplete.
-Completion state must be established from the corresponding exact-head GitHub and review evidence.
+1. before the approved Stage 3.42 closure record and synchronized canonical surfaces are present on
+   protected `develop`, P3-09 remains OPEN;
+2. once they are present on protected `develop`, P3-09 is CLOSED;
+3. Stage 3.42 must not change the accepted runtime/dependency identities;
+4. no future Stage 3.42 PR number, head, CI run, or squash-merge SHA is predicted by this dossier.
 
-No statement in this dossier authorizes Ready, merge, branch deletion, or protected-branch mutation.
+All earlier Runner/Internal/External failure and remediation history above remains authoritative and
+append-only. In particular, Runner v3's substantive gates PASS followed by process exit `71`, the
+separate later manual rerun, `INT-STAGE-03-41-P3-01`, `INT-STAGE-03-41-P3-02`, and
+`EXT-STAGE-03-41-P3-01` are not erased or softened.
+
+No statement in this dossier authorizes Stage 3.42 commit, push, Draft PR creation, Ready, merge,
+branch deletion, or protected-branch mutation.

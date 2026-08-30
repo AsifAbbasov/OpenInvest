@@ -3,23 +3,24 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.75 |
+| Version | 1.4.76 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
-| Last Review Date | 2026-08-28 |
+| Last Review Date | 2026-08-30 |
 | Next Review Date | Before Stage 3.25 privacy evidence-collection plan review or the next separately reviewed audit-remediation scope |
 
 ## Architecture status
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.39 — Unicode and OpenAPI string-length semantics implementation**
+**Last completed implementation stage: Stage 3.41 — P3-09 Next.js security maintenance implementation**
 **Last completed privacy planning gate: Stage 3.24 — Privacy Security Review Readiness Dossier**
-**Last completed audit-remediation planning gate: Stage 3.39 — P3-04 Unicode and OpenAPI string-length semantics planning**
+**Last completed audit-remediation planning gate: Stage 3.40 — P3-09 Next.js security maintenance planning**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
 **Stage 3.39 implementation merge baseline: PR #97 squash merge `abbd9f9f61574621e206f2e196b1fb8f056dc194`; the moving protected `develop` HEAD is intentionally not hard-coded by this merge-activated closure record**
+**Stage 3.41 implementation merge baseline: PR #101 squash merge `a2cfeaa5ca68fdd951e2a99f69c96aec362fc416`; the moving protected `develop` HEAD is intentionally not hard-coded by the Stage 3.42 merge-activated closure record**
 **Current privacy-planning work item: Stage 3.25 privacy Security Review evidence-collection plan; it remains documentation-only and does not authorize privacy-lifecycle implementation**
 **Stage 3.27 remediation: CLOSED for P1-02, P1-03, and P1-04; implementation PR #55 was squash-merged into `develop` at `6e8c806de857f844954f1db513487357dfe90187` after exact-head CI #90, renewed independent `APPROVED` review on `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c`, explicit human squash-merge authorization, and closure governance through PR #58**
 **Stage 3.28 remediation: CLOSED for P1-01 and P1-05; implementation PR #59 was squash-merged into `develop` at `dc83f5f3a11da164e6809593861d96ccf47b29ca` after exact-head CI #114, renewed independent `APPROVED` review on `92edab5d3e93dafe2fcc6247644e38e878a4202f`, explicit human squash-merge authorization, and closure governance squash-merged through PR #60 at `0ddc618a3450ea81fd4befb3b10c959b3cb82a25`; Stage 3.25 and P2/P3 remain separate**
@@ -32,7 +33,9 @@
 **Stage 3.36 remediation: planning is canonical through PR #87 at `251296e0831cbb0b81c7799cc82cbdf3b451ae6e`; runtime implementation is canonical through PR #88 at `ebbc1c17b905e60d9e82337fc4a1ecd6cf9bccaa`, from frozen runtime head `131f1bf963e9d232b9e23273edd54caf54c10ffb`, after exact-head CI #257 / run `32822925542` with all 10 required jobs successful; closure governance is canonical through PR #89 at `9c83b68e28bbb8bc971620d3e00be5e177ce0820`. P3-03 is CLOSED; the original audit backlog immediately after Stage 3.36 closure was P0=0 / P1=0 / P2=0 / P3=8: P3-02, P3-04, P3-05, P3-06, P3-07, P3-08, P3-09, and P3-10. Stage 3.25 remains separate.**
 **Stage 3.37 remediation: planning is canonical through PR #90 at `46f74528dcc19424ad087d30d4f2f778e2079b87`; runtime implementation is canonical through PR #91 at `cb6d9b28cd47b1cd283b5861b916e0be627d0ac2`, from frozen final runtime head `1a2f89a0fa5095b3cca790521afa484bdc61e8a6`, after exact-head CI #265 / run `32869754524` with all 10 required jobs successful and fresh published-head independent `APPROVED`; closure governance is canonical through PR #92 at `305a53bb07136b274717ff48778a5e93d7b1607c` after exact-head closure CI #266 / run `32880893193`, fresh independent closure `APPROVED`, and separate explicit human squash-merge authorization. P3-02 is CLOSED. The current original audit backlog is P0=0 / P1=0 / P2=0 / P3=7: P3-04, P3-05, P3-06, P3-07, P3-08, P3-09, and P3-10. Stage 3.25 remains separate.**
 **Stage 3.38 remediation: planning is canonical through PR #93 at `a944f1e5d5ee7d84db5393e8760eda254d732edd`; runtime implementation is canonical through PR #94 at `2df9946d77ee044a191a0422c8cccbbfe02dc7c9`, from exact published runtime head `5ea8c6f4eddd735ea834dc4a27ecb70da7f81508`, after exact-head CI #268 / run `32913862780` with all 10 required jobs successful and fresh published-head independent `APPROVED`. Closure PR #95 was ultimately published at final head `25eb3b9c3c153672f22a6718a7815a5d3c527f44`, passed exact-head CI #271 / run `32961508562`, and was actually squash-merged into `develop` at `c5962fa09b6d7d145dda203dbdf90069de7b1fcc`. P3-05 is CLOSED. The current original audit backlog is P0=0 / P1=0 / P2=0 / P3=6: P3-04, P3-06, P3-07, P3-08, P3-09, and P3-10. Historical Stage 3.38 failed review/remediation evidence remains preserved in its stage documents, while their active top-level current-state metadata is synchronized by the companion Stage 3.38 proposed patches. Stage 3.25 remains separate.**
-**Stage 3.39 remediation: planning is canonical through PR #96 at `32b198ee9d349f119ed374fd86d47622e27bcd73`; implementation plus governed forensic/evidence history is canonical through PR #97 squash-merged into protected `develop` at `abbd9f9f61574621e206f2e196b1fb8f056dc194` from final published head `26f5ca18ca5772db569d22ce2eff64d5a7850b1b`, after exact-head CI #279 / run `33121609429` with all 10 required jobs successful and separate final Internal + External published-head `APPROVED` verdicts. Closure activation is merge-based: while the Stage 3.39 closure-governance record is not present on protected `develop`, P3-04 remains OPEN and the original audit backlog remains P3=6: P3-04, P3-06, P3-07, P3-08, P3-09, P3-10. Once that closure record and synchronized canonical surfaces are present on protected `develop`, P3-04 is CLOSED and the remaining original audit backlog is P0=0 / P1=0 / P2=0 / P3=5: P3-06, P3-07, P3-08, P3-09, P3-10. Stage 3.25 remains separate.**
+**Stage 3.39 remediation: planning is canonical through PR #96 at `32b198ee9d349f119ed374fd86d47622e27bcd73`; implementation plus governed forensic/evidence history is canonical through PR #97 squash-merged into protected `develop` at `abbd9f9f61574621e206f2e196b1fb8f056dc194` from final published head `26f5ca18ca5772db569d22ce2eff64d5a7850b1b`, after exact-head CI #279 / run `33121609429` with all 10 required jobs successful and separate final Internal + External published-head `APPROVED` verdicts. Closure PR #99 reached final head `4c2439f3fdc213fd38d2669233d993cc3dac043b` and was actually squash-merged into protected `develop` at `41e35b672d166cf74c3f0c3ee248330193ae51c1`. P3-04 is CLOSED. The current pre-Stage-3.42 original audit backlog is P0=0 / P1=0 / P2=0 / P3=5: P3-06, P3-07, P3-08, P3-09, P3-10. Stage 3.25 remains separate.**
+**Stage 3.40/3.41 P3-09 remediation: planning is canonical through PR #100 squash-merged at `559b57d0951cdc67125c2f72fc1fcfb34399e90e` with approved plan blob `33cb076fa529d3efcdfbea9a95d111aec30ccbad`. Implementation PR #101 reached final evidence head `d88be3c90231f374d7e6b7d94f4cd89e6788f700`, passed CI #291 / run `33277717164` with all 10 required jobs successful, preserved package blob `d6d605620e1bff426998d8bda716b7c2eda0613d` and lockfile blob `b3d656e792bdd28b16dea553b378f15f553b3074`, resolved `EXT-STAGE-03-41-P3-01`, received final External `APPROVED` and final evidence-publication verification `APPROVED`, and was actually squash-merged into protected `develop` at `a2cfeaa5ca68fdd951e2a99f69c96aec362fc416`. This SHA is the immutable Stage 3.41 implementation merge baseline; the moving protected `develop` HEAD is intentionally not hard-coded as permanently equal to it.**
+**Stage 3.42 P3-09 closure activation: before the approved Stage 3.42 closure record and synchronized canonical surfaces are present on protected `develop`, P3-09 remains OPEN and the original audit backlog remains P3=5: P3-06, P3-07, P3-08, P3-09, P3-10. Once those surfaces are present on protected `develop`, P3-09 is CLOSED and the original audit becomes 28/32 closed (87.5%), with P0=0 / P1=0 / P2=0 / P3=4: P3-06, P3-07, P3-08, P3-10.**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -69,19 +72,25 @@ optimized for casual brokerage-app users who only need a simple green/red return
 - Boundary: Browser/Next.js → OpenAPI-defined Go API → PostgreSQL/Redis/future Python workers;
   Next.js never replaces the Go business API or accesses data stores directly
 - Delivery: no automatic commit or push without user review and approval
-- Review: mandatory feature branch → local checks → read-only Internal Review Agent line-by-line
-  approval → human commit/push permission → Draft PR → green CI → independent ChatGPT external
-  approval → human approval → squash merge; see `REVIEW_WORKFLOW.md`.
+- Review: mandatory feature branch → local checks → read-only Internal Review phase in one designated
+  review chat → human commit/push permission → Draft PR → exact-head green CI → fresh External phase
+  in the same designated chat without using the Internal verdict/findings as supporting evidence →
+  evidence-only publication of the previously withheld current Internal chronology after the External
+  verdict → CI and same-chat exact verification → explicit human merge authorization → squash merge;
+  see `REVIEW_WORKFLOW.md`.
 
 ## Mandatory quality gates
 
 - Builder Agent cannot approve its own work.
 - Every changed line is reviewed internally before commit permission is requested.
 - Internal Review Agent produces findings only and cannot edit, stage, commit, or push.
-- Draft PR cannot merge without green CI, approved internal review evidence, approved independent
-  ChatGPT Draft PR review, and explicit human approval.
-- External ChatGPT receives the Draft PR diff without prior internal verdict disclosure and reaches
-  an independent conclusion before review evidence is compared.
+- Draft PR cannot merge without exact-head green CI, completed designated-chat review phases,
+  publication and verification of required Internal evidence, and explicit human approval.
+- Development-path External review is a fresh sequential phase in the same designated review chat.
+  It must not use the current Internal verdict/findings as supporting evidence.
+- Current Internal review evidence is withheld from repository/PR evidence until the External verdict;
+  after that verdict it is published in an evidence-only follow-up, followed by required CI and
+  same-chat exact verification before human merge authorization.
 - Every fifth completed stage requires a full repository line-by-line audit before proceeding.
 - A review gate may add evidence and reject scope; it cannot silently change frozen architecture.
 
@@ -153,7 +162,7 @@ signed access tokens. Stage 3.11 closure governance is merged into `develop` at
 and merged into `develop` at `25be13ce84844562e0381b79f4b81cbfed7eb44d`. Stage 3.12 Web
 authentication UI implementation is closed and merged into `develop` at
 `b4840b60346109e3cd54a07d9e1e131fc0cfad23`. Stage 3.12 closure governance is merged into
-`develop` at `321eaf4f75df83d85fd356a8d6a454e49bbc4db4`. Stage 3.13 instrument catalog planning is
+`321eaf4f75df83d85fd356a8d6a454e49bbc4db4`. Stage 3.13 instrument catalog planning is
 merged into `develop` at `ca16af9adba249fc8c32c9b246b5f92f7e290b92`. Stage 3.13 instrument
 catalog implementation is closed and merged into `develop` at
 `b9c05fb14d0ee03e6de4dfc04ff67c16da33040b`; it is limited to backend-owned approved
@@ -628,3 +637,24 @@ publication, separate explicit human squash-merge authorization, and is merged i
 remains canonically OPEN and the original audit backlog stays P0=0 / P1=0 / P2=0 / P3=7. After that
 closure merge, P3-05 becomes CLOSED and the remaining backlog is P3=6: P3-04, P3-06, P3-07, P3-08,
 P3-09, and P3-10.
+
+## Stage 3.42 P3-09 closure governance
+
+Stage 3.40 planning is canonical through PR #100 at
+`559b57d0951cdc67125c2f72fc1fcfb34399e90e`. Stage 3.41 implementation is canonical through
+PR #101 final evidence head `d88be3c90231f374d7e6b7d94f4cd89e6788f700`, CI #291 / run
+`33277717164` with all 10 required jobs successful, and actual squash merge
+`a2cfeaa5ca68fdd951e2a99f69c96aec362fc416`.
+
+Stage 3.42 is documentation/governance-only closure activation and changes no runtime/dependency,
+OpenAPI, database, migration, security/session, financial, privacy, or architecture behavior.
+
+Before the approved Stage 3.42 closure record and synchronized canonical surfaces are present on
+protected `develop`, P3-09 remains OPEN. The original audit state is 27/32 closed (84.375%) with
+exactly five remaining findings: P3-06, P3-07, P3-08, P3-09, P3-10.
+
+Once the approved Stage 3.42 closure record and synchronized canonical surfaces are present on
+protected `develop`, P3-09 is CLOSED. The original audit state becomes 28/32 closed (87.5%) with
+exactly four remaining findings: P3-06, P3-07, P3-08, P3-10.
+
+No future Stage 3.42 PR number, published head, CI run, or squash-merge SHA is predicted here.
