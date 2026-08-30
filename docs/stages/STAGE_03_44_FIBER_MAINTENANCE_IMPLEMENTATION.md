@@ -8,7 +8,7 @@
 | Planning authority | Merged Stage 3.43 plan blob `37a32856692ac58f408f2dd50335bb65019d9983` |
 | Closure state at implementation publication | P3-10 OPEN |
 | Audit state at implementation publication | 28 / 32 = 87.5%; remaining P3-06, P3-07, P3-08, P3-10 |
-| Internal Review Evidence | WITHHELD — external published-head phase pending |
+| Internal Review Evidence | PUBLISHED — complete Internal review chronology recorded below after the External verdict |
 
 ## 1. Problem and root cause
 
@@ -171,11 +171,73 @@ Argon2 compatibility controls are satisfied by this candidate evidence.
 The complete Internal line-by-line READ-ONLY review occurred before human commit/push authorization
 and Draft PR publication.
 
-Internal evidence remains withheld from the Draft PR/repository evidence surface until the External
-verdict, per canonical `REVIEW_WORKFLOW.md` v1.3.0.
-
 No review verdict by itself authorizes commit, push, remote branch publication, PR mutation, Ready,
 merge, or closure.
+
+### Internal review publication timing
+
+Before the External verdict existed, the Internal verdict was intentionally withheld from the Draft
+PR and repository evidence surface, as required by canonical `REVIEW_WORKFLOW.md` v1.3.0.
+
+Fresh External published-head re-review later produced an `APPROVED` verdict on exact remediation
+head `d11c12fd4ce89fa4c744181fcf14a80a5fb1fe78` after CI #296 / run `33311921165`
+completed 10 / 10 required jobs successfully.
+
+This evidence-only follow-up therefore publishes the complete Internal review record that had
+previously remained outside the repository-visible evidence surface. Publishing it does not
+retroactively make the Internal verdict supporting evidence for the earlier External conclusion.
+
+### Internal line-by-line review — final verdict
+
+The designated review chat performed a complete read-only review of the Stage 3.44 pre-publication
+candidate.
+
+Reviewed candidate identity at the Internal phase:
+
+- `backend-go/go.mod` blob
+  `a6be6f2266a428b52206ee3890c7d5b199dab97b`;
+- `backend-go/go.sum` blob
+  `bdd8e6edfd45a2725fb1f8dc0831d45ae9f39cd0`;
+- `backend-go/internal/auth/password_dependency_compat_test.go` blob
+  `ef1452d56fa8666ce3a260d4ba0b2bdc29236856`;
+- Stage 3.44 dossier blob at that phase
+  `475133892755d564be2b792520eaf8bbc289c10e`.
+
+The Internal report concluded:
+
+- line-by-line coverage: `COMPLETE`;
+- exact protected base: `MATCHES`;
+- candidate subject: `COMPLETE`;
+- Fiber target: `VERIFIED`;
+- x/crypto shared-direct movement: `VERIFIED`;
+- resolved module graph: `PASS`;
+- unversioned root-module handling: `PASS`;
+- historical Argon2 compatibility: `PASS`;
+- Argon2 parameters/format: `UNCHANGED`;
+- unrelated direct dependency drift: `NONE`;
+- runtime-source change: `NONE`;
+- local gates: `PASS`;
+- scope accounting: `PASS`;
+- Runner v1 chronology: `CORRECT`;
+- Runner v2 chronology: `CORRECT`;
+- Runner v3 chronology: `CORRECT`;
+- Runner v4 chronology: `CORRECT`;
+- Builder preflight findings: `RESOLVED`;
+- `PLAN-STAGE-03-43-P3-01`: `SATISFIED`;
+- workflow/governance: `PASS`;
+- publication stability: `PASS`;
+- audit lifecycle/arithmetic: `PASS`;
+- P0 = 0;
+- P1 = 0;
+- P2 = 0;
+- P3 = 0;
+- new material finding: `NO`;
+- reviewer mutations: `NONE`;
+- verdict: `APPROVED`.
+
+The later External remediation changed only the Stage 3.44 dossier. The three non-dossier
+implementation blobs above remained byte-identical and were re-verified on the final External
+remediation head.
 
 ### External published-head review history
 
@@ -186,13 +248,42 @@ run `33310886210` completed 10 / 10 required jobs successfully, External review 
 - `EXT-STAGE-03-44-P3-01` — the dossier described the already-completed Internal review and
   commit/push authorization as future requirements.
 
-The remediation is documentation-only: the completed pre-publication gate is recorded above as a
-historical fact. `backend-go/go.mod`, `backend-go/go.sum`,
+The remediation was documentation-only. `backend-go/go.mod`, `backend-go/go.sum`,
 `backend-go/internal/auth/password_dependency_compat_test.go`, production runtime source, dependency
-selections, and audit scope are unchanged by this remediation.
+selections, and audit scope remained unchanged.
 
-Internal evidence remains withheld from the Draft PR/repository evidence surface until the External
-verdict, as required by the canonical workflow.
+Fresh External re-review on exact remediation head
+`d11c12fd4ce89fa4c744181fcf14a80a5fb1fe78`, after CI #296 / run `33311921165`
+completed 10 / 10 required jobs successfully, concluded:
+
+- `EXT-STAGE-03-44-P3-01 = RESOLVED`;
+- line-by-line coverage: `COMPLETE`;
+- exact protected base: `MATCHES`;
+- exact remediation head: `MATCHES`;
+- PR state: `OPEN-DRAFT`;
+- complete candidate: `PASS`;
+- docs-only remediation isolation: `PASS`;
+- frozen non-dossier blobs: `MATCH`;
+- publication stability: `PASS`;
+- Fiber target: `VERIFIED`;
+- x/crypto movement: `VERIFIED`;
+- resolved module graph: `PASS`;
+- historical Argon2 compatibility: `PASS`;
+- runtime-source change: `NONE`;
+- exact-head CI #296: `10/10 SUCCESS`;
+- tooling chronology: `CORRECT`;
+- Builder publication tooling incident: `NO MATERIAL PROJECT FINDING`;
+- workflow/governance: `PASS`;
+- audit lifecycle/arithmetic: `PASS`;
+- P0 = 0;
+- P1 = 0;
+- P2 = 0;
+- P3 = 0;
+- new material finding: `NO`;
+- reviewer mutations: `NONE`;
+- verdict: `APPROVED`.
+
+The External verdict did not use the prior Internal verdict as supporting evidence.
 
 ## 10. Closure semantics
 
