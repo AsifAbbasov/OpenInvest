@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.75 |
+| Version | 1.1.76 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
@@ -94,11 +94,14 @@
 | 3.43 — Fiber maintenance planning | Freeze the narrow P3-10 Fiber 3.3.0 → 3.5.0 maintenance scope, including known shared-direct x/crypto movement and Argon2 compatibility proof | Complete / PR #103 squash-merged into `develop` at `eaac5a5deb64196b263464e0d85e622065520b0e`; approved plan blob `37a32856692ac58f408f2dd50335bb65019d9983` |
 | 3.44 — Fiber maintenance implementation | Update Fiber to exact 3.5.0, preserve the governed dependency boundary, prove historical Argon2 compatibility, and publish complete review evidence | Complete / PR #104 squash-merged into protected `develop` at `c980a21f16b30449ec7fb7b07decc386d77bc27d` from final evidence head `749446930a730c3f7c5b3402618577953d53d3f4` after CI #297 / run `33312723075` 10/10, final External `APPROVED`, and final evidence-publication verification `APPROVED` |
 | 3.45 — P3-10 closure governance | Synchronize canonical audit state after the already-merged Stage 3.44 implementation without runtime change | Merge-activated: P3-10 remains OPEN while the Stage 3.45 closure record and synchronized canonical surfaces are absent from protected `develop`; once present, P3-10 is CLOSED and remaining P3 = P3-06, P3-07, P3-08 |
+| 3.46 — HTTP API decomposition planning | Freeze behavior-preserving same-package decomposition of `httpapi/api.go` for P3-06 without absorbing P3-07/P3-08 | Complete / PR #106 squash-merged into `develop` at `546f0406d1353c13673be4ab97c4a527a9b58116`; approved plan blob `9e028f817220973458b28a2393ee61bdd2eb83a0` |
+| 3.47 — HTTP API decomposition implementation | Decompose the HTTP transport surface while preserving exact routes, security, replay/import and API behavior | Complete / PR #107 squash-merged into protected `develop` at `332f7cd2ec40caf0760b97b806f637e4c89dbb96` from final evidence head `657afbde74b79db6966333e27d52f0320660d6b3` after CI #301 / run `33343890109` 10/10, final External `APPROVED`, and final evidence-publication verification `APPROVED` |
+| 3.48 — P3-06 closure governance | Synchronize canonical audit state after the already-merged Stage 3.47 implementation without runtime change | Merge-activated: P3-06 remains OPEN while the Stage 3.48 closure record and synchronized canonical surfaces are absent from protected `develop`; once present, P3-06 is CLOSED and remaining P3 = P3-07, P3-08 |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
 
-Stages 3.27 through 3.45 are separately governed narrow repository-audit remediations and do not authorize product-scope expansion. Stage 3.25 privacy evidence planning remains separate. Stage 3.34
+Stages 3.27 through 3.48 are separately governed narrow repository-audit remediations and do not authorize product-scope expansion. Stage 3.25 privacy evidence planning remains separate. Stage 3.34
 closure is canonical through PR #82 at `ae5a152114cc163867a363953f8a3202396b1f6c`. Stage 3.35 P3-01
 runtime implementation is canonical through PR #84 at `a47df19ccc7edff73f39f4e76aec47580c168c46`
 and governance closure is canonical through PR #85. Stage 3.36 P3-03 planning is canonical through
@@ -132,22 +135,32 @@ Stage 3.43 P3-10 planning is canonical through PR #103 squash merge
 `37a32856692ac58f408f2dd50335bb65019d9983`. Stage 3.44 implementation is canonical through
 PR #104 squash merge `c980a21f16b30449ec7fb7b07decc386d77bc27d` from final evidence head
 `749446930a730c3f7c5b3402618577953d53d3f4` after CI #297 / run `33312723075` 10/10,
+final External `APPROVED`, and final evidence-publication verification `APPROVED`. Stage 3.45 closure
+is canonical through PR #105 final head `e91faace81b76b14a51de4dea3a4c18d697998af`, CI #298 / run
+`33315057112` 10/10, final exact-published-head closure `APPROVED`, and squash merge
+`c029cd62715b15614e82972309bdc53669ec02ee`. P3-10 is CLOSED.
+
+Stage 3.46 P3-06 planning is canonical through PR #106 squash merge
+`546f0406d1353c13673be4ab97c4a527a9b58116`, with approved plan blob
+`9e028f817220973458b28a2393ee61bdd2eb83a0`. Stage 3.47 implementation is canonical through
+PR #107 squash merge `332f7cd2ec40caf0760b97b806f637e4c89dbb96` from final evidence head
+`657afbde74b79db6966333e27d52f0320660d6b3` after CI #301 / run `33343890109` 10/10,
 final External `APPROVED`, and final evidence-publication verification `APPROVED`.
 
-Before Stage 3.45 protected activation, the original 32-finding repository-audit backlog is:
+Before Stage 3.48 protected activation, the original 32-finding repository-audit backlog is:
 
 - P0: 0
 - P1: 0
 - P2: 0
-- P3: 4
+- P3: 3
 
-The remaining findings are P3-06, P3-07, P3-08, and P3-10.
-That state is 28/32 closed (87.5%).
+The remaining findings are P3-06, P3-07, and P3-08.
+That state is 29/32 closed (90.625%).
 
-Stage 3.45 is documentation/governance-only closure activation. While the approved Stage 3.45 closure
-record and synchronized canonical surfaces are absent from protected `develop`, P3-10 remains OPEN.
-Once they are present on protected `develop`, P3-10 is CLOSED and the original audit becomes 29/32
-closed (90.625%), with exactly three remaining findings: P3-06, P3-07, and P3-08.
+Stage 3.48 is documentation/governance-only closure activation. While the approved Stage 3.48 closure
+record and synchronized canonical surfaces are absent from protected `develop`, P3-06 remains OPEN.
+Once present, P3-06 is CLOSED and the original audit becomes 30/32 closed (93.75%), with exactly two
+remaining findings: P3-07 and P3-08.
 
 No further audit-remediation implementation begins without a separately reviewed planning/remediation gate.
 
