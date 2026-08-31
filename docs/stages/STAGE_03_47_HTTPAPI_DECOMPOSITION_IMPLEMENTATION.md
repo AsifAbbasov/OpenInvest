@@ -3,13 +3,17 @@
 | Field | Value |
 | --- | --- |
 | Stage | 3.47 |
+| Status | IMPLEMENTATION MERGED — PR #107 squash-merged into protected `develop` at `332f7cd2ec40caf0760b97b806f637e4c89dbb96`; P3-06 closure is merge-activated under Stage 3.48 |
 | Finding | Original audit `P3-06 — httpapi/api.go decomposition` |
 | Development path | Yes — runtime-source structural refactor |
 | Canonical implementation base | `develop@546f0406d1353c13673be4ab97c4a527a9b58116` |
 | Base tree | `ec46d70104e9091ebd94084920b8523de5f762c5` |
 | Approved planning artifact | `docs/stages/STAGE_03_46_HTTPAPI_DECOMPOSITION_PLAN.md` blob `9e028f817220973458b28a2393ee61bdd2eb83a0` |
 | Planning-base audit state | 29 / 32 closed = 90.625%; remaining P3-06, P3-07, P3-08 |
-| P3-06 lifecycle | OPEN through implementation; only a later separately reviewed docs-only closure activation may close it |
+| Final evidence-publication head | `657afbde74b79db6966333e27d52f0320660d6b3` |
+| Implementation squash merge | `332f7cd2ec40caf0760b97b806f637e4c89dbb96` |
+| Final exact-head CI | CI #301 / run `33343890109`, 10/10 required jobs successful |
+| P3-06 lifecycle | Before the approved Stage 3.48 closure record and synchronized canonical surfaces are present on protected `develop`, P3-06 is OPEN; once present, P3-06 is CLOSED |
 | Internal Review Evidence | PUBLISHED — complete Internal review chronology recorded below after the External verdict |
 
 ## 1. Problem
@@ -448,13 +452,15 @@ followed by exact-head CI and same-chat verification of that evidence publicatio
 
 ## 17. Closure activation
 
-Stage 3.47 implementation does not close P3-06. Even after an eventual protected implementation merge,
-P3-06 remains OPEN until a separate docs-only closure record and synchronized canonical audit surfaces
-are independently reviewed, published, verified and squash-merged to protected `develop`.
+Stage 3.47 implementation is now squash-merged through PR #107 into protected `develop` at
+`332f7cd2ec40caf0760b97b806f637e4c89dbb96`.
 
-If no other original audit finding changes concurrently, that later closure activation would move the
-original audit from the Stage 3.47 planning-base state 29/32 = 90.625% to 30/32 = 93.75%, leaving
-P3-07 and P3-08.
+That implementation merge does not itself close P3-06. P3-06 remains OPEN until the separate Stage 3.48
+docs-only closure record and synchronized canonical audit surfaces are independently reviewed, published,
+verified and squash-merged to protected `develop`.
+
+If no other original audit finding changes concurrently, Stage 3.48 protected activation moves the
+original audit from 29/32 = 90.625% to 30/32 = 93.75%, leaving P3-07 and P3-08.
 
 ## 18. Residual limitations
 
@@ -514,3 +520,35 @@ creation and is not rewritten as success.
 - External P0/P1/P2/P3: `0 / 0 / 0 / 0`;
 - External reviewer mutations: `NONE`;
 - P3-06 lifecycle after External approval: `OPEN`.
+
+## 20. Governance / closure activation
+
+Stage 3.47 development-path work is complete and merged.
+
+Immutable post-evidence history:
+
+1. final evidence-publication head `657afbde74b79db6966333e27d52f0320660d6b3`;
+2. final Stage 3.47 dossier blob `df81494d72490ea03a8c3ab71645649a9645b6d3`;
+3. evidence-head CI #301 / run `33343890109` — 10/10 SUCCESS;
+4. same-chat evidence-publication verification returned `APPROVED`, confirmed `1 DOC ONLY`,
+   runtime freeze `15/15 MATCH`, complete Internal chronology, accurate External verdict,
+   External independence, publication stability and zero findings;
+5. explicit human Ready authorization;
+6. connected Ready mutation failed before state change due a GraphQL schema error;
+7. authoritative read-back confirmed PR #107 remained Draft at the same reviewed head;
+8. the already-authorized CLI fallback transitioned PR #107 to Ready;
+9. post-Ready read-back confirmed same head, mergeability and CI #301 still 10/10;
+10. separate explicit human squash-merge authorization;
+11. actual squash merge `332f7cd2ec40caf0760b97b806f637e4c89dbb96`;
+12. protected `develop` read-back at that exact SHA and tree `6d073ad2530b2f6c9f59c973fbbe5ee284b16692`.
+
+The implementation merge is immutable; moving `develop` is not hard-coded as permanently equal to it.
+
+P3-06 closure remains separate. Stage 3.48 is docs/governance-only merge-activated closure:
+before its approved surfaces reach protected `develop`, P3-06 remains OPEN; once present, P3-06 is CLOSED.
+
+Tooling anti-regression controls are preserved:
+- machine-verified exact local bytes outrank manual connector reconstruction for an approved candidate;
+- a failed connector mutation requires live read-back before any already-authorized fallback.
+
+No statement here authorizes Stage 3.48 commit, push, Draft PR, Ready, merge or protected mutation.
