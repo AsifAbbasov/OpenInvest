@@ -10,6 +10,7 @@
 | Approved planning artifact | `docs/stages/STAGE_03_46_HTTPAPI_DECOMPOSITION_PLAN.md` blob `9e028f817220973458b28a2393ee61bdd2eb83a0` |
 | Planning-base audit state | 29 / 32 closed = 90.625%; remaining P3-06, P3-07, P3-08 |
 | P3-06 lifecycle | OPEN through implementation; only a later separately reviewed docs-only closure activation may close it |
+| Internal Review Evidence | PUBLISHED — complete Internal review chronology recorded below after the External verdict |
 
 ## 1. Problem
 
@@ -118,10 +119,11 @@ deletions are still reported separately and are not hidden from review.
 ## 10. Review and Builder preparation history
 
 Stage 3.46 planning review history is preserved in the canonical planning artifact. The Builder does
-not issue an Internal reviewer verdict. The permanent Stage 3.47 dossier preserves Builder preparation
-history but does not publish the current designated Internal verdict or finding details before the
-External published-head verdict, because canonical workflow keeps that review evidence withheld from
-the Draft PR/repository evidence surface until then.
+not issue an Internal reviewer verdict. Before the External published-head verdict existed, the complete
+designated Internal verdict/findings were intentionally withheld from the Draft PR and repository
+evidence surface. The External verdict now exists on the exact published implementation head, so this
+evidence-only follow-up publishes the completed Internal record in Section 14 without changing runtime
+source or using the Internal verdict as support for the already-completed External conclusion.
 
 The following Stage 3.47 Builder preparation/tooling chronology is append-only because each event
 materially explains why later evidence-generation controls exist. These are Builder/tooling or evidence
@@ -203,10 +205,31 @@ failures unless an event is explicitly identified as a project/runtime defect:
     candidate full-suite confirmations matching that stable profile, symmetric pinned
     `go test -json -race -count=3 ./internal/httpapi` characterization, and zero data-race warnings. A later clean
     first pair cannot bypass that sequence.
+16. Publication preflight v11 proved that the Internal-approved candidate still existed only in the
+    isolated review artifact and had not yet been promoted into the user's primary local working tree.
+    The preflight stopped before mutation. This was a Builder workflow/promotion gap, not a runtime defect.
+17. Promotion v12 then stopped fail-closed because the primary local repository was still on the older
+    Stage 3.41 feature commit `5ea1f7f29cf0ab9225460e01076255f32e2cf4cf`. No reset or overwrite was
+    performed. The older branch was preserved unchanged.
+18. Promotion v13 safely created `refactor/stage-03-47-p3-06-httpapi-decomposition` from the exact
+    protected implementation base and copied the Internal-approved 16-file candidate byte-for-byte.
+    Its final verifier nevertheless reported `APPROVED_BLOB_IDENTITIES_CHECKED=0` because it interpreted
+    the approved blob manifest columns in the wrong order and did not fail closed on zero effective checks.
+19. Verification v14 corrected the manifest schema to `<git-blob-sha><TAB><path>`, made zero effective
+    verification fail closed, and verified all 16 approved Git blob identities exactly before publication.
+20. After explicit human authorization for `commit + push + Draft PR`, publication v15 staged exactly the
+    approved 16-file set, created commit `edfa751ea7daef8ecb44defcb8eb84f04156e2d3`, pushed
+    `refactor/stage-03-47-p3-06-httpapi-decomposition`, and created Draft PR #107. Ready, merge and
+    closure remained unperformed.
+21. Exact-head GitHub CI run `33341679669` / run number `300` completed successfully on
+    `edfa751ea7daef8ecb44defcb8eb84f04156e2d3` with all 10 protected required jobs green, including
+    PostgreSQL migration validation and Go race tests. The fresh External published-head review then
+    returned `APPROVED` with P0/P1/P2/P3 all zero and reviewer mutations `NONE`.
 
 No tooling/evidence failure above is reclassified as a project/runtime defect, and no project/runtime
-defect may be silently reclassified as tooling. Current designated Internal findings and verdicts stay
-in review-package evidence until the workflow permits their publication.
+defect may be silently reclassified as tooling. Internal review evidence remained withheld until the
+External verdict existed; Section 14 now publishes that completed record as required by the canonical
+workflow.
 
 ## 11. Rejected approaches
 
@@ -239,27 +262,189 @@ bound to exact Git identities or generated inventory artifacts.
 
 No unsupported connector/tooling mechanics are elevated into canonical repository facts.
 
-## 14. Internal Review Evidence publication rule
+## 14. Internal Review Evidence — published after External verdict
 
-The Builder does not issue an Internal verdict. For the initial Draft PR publication state, canonical
-workflow requires the stage-report value `WITHHELD — external published-head phase pending` and keeps
-the actual Internal verdict/findings out of the repository/PR evidence surface until the External
-published-head verdict. This paragraph states that workflow rule rather than claiming a future verdict.
+Canonical workflow required the complete Internal review evidence to remain outside the Draft PR and
+repository evidence surface until the External published-head verdict existed. That withholding was
+observed for the initial publication. The fresh External review has now completed independently, so
+this evidence-only follow-up publishes the Internal record. Publication here does not retroactively
+make Internal evidence supporting evidence for the earlier External conclusion.
 
-After an actual External verdict, the required evidence-only follow-up may append the completed
-Internal history and must receive exact-head CI plus same-chat no-semantic-drift verification.
+### 14.1 Final Internal-approved candidate identity
 
-## 15. Published exact-head identity
+- final Internal review package:
+  `OpenInvest_Stage_03_47_P3_06_HTTPAPI_Decomposition_Internal_Review_Package_v10_20260831-015121.zip`;
+- package SHA256:
+  `d4efaf92c68c35f2743b5f1406a45b55b4621503e28ec235b4179434f4a8e1d8`;
+- exact protected base:
+  `546f0406d1353c13673be4ab97c4a527a9b58116`;
+- base tree:
+  `ec46d70104e9091ebd94084920b8523de5f762c5`;
+- prepublication Stage 3.47 dossier blob:
+  `bd4253bd415813b397c7d049ceb229cda17d1813`.
 
-No implementation PR number, publication commit, CI run, External verdict or merge identifier is
-asserted by this prepublication implementation record. If publication is later separately authorized,
-only observed identifiers may be recorded.
+The Internal-approved runtime blobs that were later published in implementation commit
+`edfa751ea7daef8ecb44defcb8eb84f04156e2d3` are:
 
-## 16. External Review Evidence
+| Path | Git blob |
+| --- | --- |
+| `backend-go/internal/httpapi/api.go` | `f4b7c259885bd22178fd0f660a760d4fce539b43` |
+| `backend-go/internal/httpapi/assets.go` | `29c08cbc67e45a04fb01eceecfa4375d28226ddf` |
+| `backend-go/internal/httpapi/auth_handlers.go` | `9328d6a55abc4ac67e59a3bbdfab3cd04d836f10` |
+| `backend-go/internal/httpapi/auth_rate_limit.go` | `829b1c81b44a9f0f9f4f14cfe0ed44a1ec43ed77` |
+| `backend-go/internal/httpapi/cors.go` | `77843501189a61f963a8f4d1fe9d8ed943c1379c` |
+| `backend-go/internal/httpapi/health.go` | `cf3e498194a538b69196bd5359169585b7b01906` |
+| `backend-go/internal/httpapi/import_security.go` | `0b028936c6b876ef94590e4e20d30a1e78304324` |
+| `backend-go/internal/httpapi/imports.go` | `24699b35b634c19100afff0877dce858ee99d8c1` |
+| `backend-go/internal/httpapi/money_transport.go` | `7baee3669c77d6cc1b00343b10991129854e43ef` |
+| `backend-go/internal/httpapi/pagination.go` | `319f379aeb7833be6bd65217b82ebdf8f8453a35` |
+| `backend-go/internal/httpapi/portfolios.go` | `3628e78128423cbd44056832eb09027b61e6ee14` |
+| `backend-go/internal/httpapi/routes.go` | `69f36ba16ec7f5ddd25144f6db99244588606e5a` |
+| `backend-go/internal/httpapi/transactions.go` | `ec44c519a1f9a4c210bba50f0cc0f76022dd9657` |
+| `backend-go/internal/httpapi/transport_constants.go` | `02d299bb34b3ff27a82d20e17694e7f711f8f1d3` |
+| `backend-go/internal/httpapi/transport_helpers.go` | `d80381e474b9734b7488b5edc7215f4b96ce1b99` |
 
-No External verdict is asserted in the prepublication candidate. The External phase, if reached after
-separate publication authorization and green exact-head CI, is a fresh designated-review phase and may
-not use the Internal verdict/findings as supporting evidence.
+### 14.2 Internal review finding chronology
+
+The designated review chat performed complete read-only Internal review. The material finding history is
+append-only:
+
+1. The initial complete Internal review returned `REQUEST CHANGES` with two P3 evidence/governance
+   findings, `INT-STAGE-03-47-P3-01` and `INT-STAGE-03-47-P3-02`. The substantive runtime decomposition
+   itself passed the review's route, behavior, declaration, security, API and isolation checks.
+2. The v7 complete re-review found `INT-STAGE-03-47-P3-02 = RESOLVED`, but
+   `INT-STAGE-03-47-P3-01 = NOT RESOLVED`: physical source coverage was complete while the lifecycle
+   matrix still mechanically repeated PASS instead of evaluating truth by T0-T15 phase. The same review
+   opened `INT-STAGE-03-47-P3-03` because the then-current race comparator could discard candidate-only
+   failure detail behind shared failed-test/package identities.
+3. The v9 complete re-review found `INT-STAGE-03-47-P3-01 = RESOLVED` and
+   `INT-STAGE-03-47-P3-02 = RESOLVED`, while `INT-STAGE-03-47-P3-03` remained open. It demonstrated two
+   remaining evidence-control defects: arbitrary output text could normalize semantic duration-like
+   values into equality, and a later matching baseline/candidate pair could bypass the mandatory
+   recurrence characterization created by the preserved v8 anomaly.
+4. The v10 complete re-review verified both remediations. Semantic assertion atomicity and phase-sensitive
+   lifecycle proof remained valid, arbitrary semantic payload was no longer normalized as timing metadata,
+   and the historical v8 anomaly mechanically forced recurrence characterization before any race-control
+   success path.
+
+Final Internal status:
+
+- `INT-STAGE-03-47-P3-01 = RESOLVED`;
+- `INT-STAGE-03-47-P3-02 = RESOLVED`;
+- `INT-STAGE-03-47-P3-03 = RESOLVED`.
+
+### 14.3 Final Internal verdict
+
+The final complete Internal review concluded:
+
+- line-by-line coverage: `COMPLETE`;
+- exact protected base: `MATCHES`;
+- candidate subject: `COMPLETE`;
+- same-package decomposition: `PASS`;
+- `api.go` bootstrap/state concentration: `PASS`;
+- exact 16 routes: `PASS`;
+- CORS-before-routes: `PASS`;
+- behavior-preservation contract: `PASS`;
+- auth/security invariants: `PRESERVED`;
+- cursor/token/import invariants: `PRESERVED`;
+- idempotency/replay isolation: `PASS`;
+- symmetric declaration inventory: `PASS`;
+- `api.go` relocation map: `COMPLETE`;
+- pre-existing companion isolation: `PASS`;
+- exported package surface: `UNCHANGED`;
+- review-size budget: `PASS`;
+- P3-07/P3-08 isolation: `PASS`;
+- semantic assertion atomicity: `PASS`;
+- phase-sensitive T0-T15 lifecycle proof: `PASS`;
+- structured race comparator exhaustiveness: `PASS`;
+- race evidence: `BASELINE PARITY LIMITATION VERIFIED`;
+- cross-class anti-regression preflight: `COMPLETE`;
+- publication stability: `PASS`;
+- workflow/governance: `PASS`;
+- P0 = 0;
+- P1 = 0;
+- P2 = 0;
+- P3 = 0;
+- new material finding: `NO`;
+- reviewer mutations: `NONE`;
+- verdict: `APPROVED`.
+
+The Internal verdict authorized no commit, push, PR mutation, Ready, merge or closure by itself.
+
+## 15. Published implementation identity and exact-head CI
+
+After separate explicit human authorization, the Internal-approved candidate was published as:
+
+- Draft PR: `#107`;
+- feature branch: `refactor/stage-03-47-p3-06-httpapi-decomposition`;
+- implementation commit: `edfa751ea7daef8ecb44defcb8eb84f04156e2d3`;
+- implementation tree: `02e113e8ef00ea8c3e6867af7cbc31771ecbfd4b`;
+- commit parent/base: `546f0406d1353c13673be4ab97c4a527a9b58116`;
+- changed files: `16`;
+- published diff: `2369 additions`, `1921 deletions`.
+
+At the External review event, PR #107 was `OPEN-DRAFT` and contained one implementation commit.
+
+GitHub Actions CI run `33341679669` / run number `300`, triggered by the pull request for exact head
+`edfa751ea7daef8ecb44defcb8eb84f04156e2d3`, completed with overall conclusion `success`.
+All 10 protected required jobs succeeded:
+
+1. Go tests;
+2. Python tests;
+3. Frontend build and typecheck;
+4. OpenAPI contract;
+5. Docker Compose config;
+6. PostgreSQL migration validation;
+7. Go vet;
+8. Go race tests;
+9. Go vulnerability scan;
+10. Dependency security scan.
+
+The successful exact-head Go race and PostgreSQL-backed jobs are authoritative for that published
+implementation head. The earlier local race baseline limitation and local Docker skip remain historical
+prepublication evidence and are not rewritten as successful local executions.
+
+This evidence-only follow-up intentionally changes only this dossier. Its own publication commit/head
+and CI identity are not predicted here; they must be recorded only after they actually exist.
+
+## 16. External published-head review evidence
+
+The designated review chat then performed a fresh External published-head review of PR #107 after the
+exact-head CI above was green. The External phase did not use the prior Internal verdict/findings as
+supporting evidence.
+
+The External report concluded:
+
+- External review phase: `COMPLETE`;
+- exact PR: `#107`;
+- exact base: `546f0406d1353c13673be4ab97c4a527a9b58116`;
+- exact head: `edfa751ea7daef8ecb44defcb8eb84f04156e2d3`;
+- exact head tree: `02e113e8ef00ea8c3e6867af7cbc31771ecbfd4b`;
+- changed-file set: `COMPLETE`;
+- line-by-line coverage: `COMPLETE`;
+- exact-head CI: `10/10 GREEN`;
+- same-package decomposition: `PASS`;
+- exact 16 routes: `PASS`;
+- CORS-before-routes: `PASS`;
+- behavior preservation: `PASS`;
+- auth/security invariants: `PRESERVED`;
+- cursor/token/import invariants: `PRESERVED`;
+- idempotency/replay isolation: `PASS`;
+- exported package surface: `UNCHANGED`;
+- P3-07/P3-08 isolation: `PASS`;
+- publication stability: `PASS`;
+- P3-06 remains OPEN: `YES`;
+- P0 = 0;
+- P1 = 0;
+- P2 = 0;
+- P3 = 0;
+- new material finding: `NO`;
+- reviewer mutations: `NONE`;
+- verdict: `APPROVED`.
+
+External `APPROVED` did not authorize Ready, merge, or P3-06 closure. It activated only the canonical
+next step: publication of the previously withheld Internal evidence in an evidence-only follow-up,
+followed by exact-head CI and same-chat verification of that evidence publication.
 
 ## 17. Closure activation
 
@@ -317,3 +502,15 @@ creation and is not rewritten as success.
 - changed hand-written business-logic lines: `0 / 800`
 - raw textual Go relocation diff for transparency: `2050 additions`, `1921 deletions`
 - moved declaration bodies are separately proven intact by structural identity and are not hidden from line-by-line review
+
+### 19.5 Published implementation-head verification
+
+- Draft PR: `#107`;
+- implementation head: `edfa751ea7daef8ecb44defcb8eb84f04156e2d3`;
+- implementation tree: `02e113e8ef00ea8c3e6867af7cbc31771ecbfd4b`;
+- GitHub CI run: `33341679669` / run number `300`;
+- exact-head required CI: `10 / 10 SUCCESS`;
+- fresh External published-head review: `APPROVED`;
+- External P0/P1/P2/P3: `0 / 0 / 0 / 0`;
+- External reviewer mutations: `NONE`;
+- P3-06 lifecycle after External approval: `OPEN`.
