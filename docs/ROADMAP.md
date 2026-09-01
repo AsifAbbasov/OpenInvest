@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.76 |
+| Version | 1.1.77 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
 | Dependencies | Architecture Freeze v1.2 |
-| Last Review Date | 2026-08-30 |
+| Last Review Date | 2026-09-01 |
 | Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
 
 | Stage | Outcome | State |
@@ -97,6 +97,8 @@
 | 3.46 — HTTP API decomposition planning | Freeze behavior-preserving same-package decomposition of `httpapi/api.go` for P3-06 without absorbing P3-07/P3-08 | Complete / PR #106 squash-merged into `develop` at `546f0406d1353c13673be4ab97c4a527a9b58116`; approved plan blob `9e028f817220973458b28a2393ee61bdd2eb83a0` |
 | 3.47 — HTTP API decomposition implementation | Decompose the HTTP transport surface while preserving exact routes, security, replay/import and API behavior | Complete / PR #107 squash-merged into protected `develop` at `332f7cd2ec40caf0760b97b806f637e4c89dbb96` from final evidence head `657afbde74b79db6966333e27d52f0320660d6b3` after CI #301 / run `33343890109` 10/10, final External `APPROVED`, and final evidence-publication verification `APPROVED` |
 | 3.48 — P3-06 closure governance | Synchronize canonical audit state after the already-merged Stage 3.47 implementation without runtime change | Merge-activated: P3-06 remains OPEN while the Stage 3.48 closure record and synchronized canonical surfaces are absent from protected `develop`; once present, P3-06 is CLOSED and remaining P3 = P3-07, P3-08 |
+| 3.52 — Governance deviation disposition workflow amendment | Add a narrow non-retroactive disposition mechanism for irreversible historical governance deviations without using the proposed rule to self-bootstrap | Proposal / canonical workflow remains v1.3.0 until protected merge; P2-GOV-01 unresolved; P3-07 OPEN; Stage 3.51 BLOCKED |
+| 3.53 — P2-GOV-01 historical governance deviation disposition | After v1.4.0 is canonical, separately disposition P2-GOV-01 while preserving historical noncompliance and explicit residual-risk acceptance | BLOCKED until Stage 3.52 amendment is squash-merged into protected `develop` |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
@@ -162,7 +164,29 @@ record and synchronized canonical surfaces are absent from protected `develop`, 
 Once present, P3-06 is CLOSED and the original audit becomes 30/32 closed (93.75%), with exactly two
 remaining findings: P3-07 and P3-08.
 
+Stage 3.51 P3-07 closure is currently fail-closed by historical governance deviation `P2-GOV-01`. Canonical REVIEW_WORKFLOW v1.3.0 contains no retrospective disposition mechanism. Stage 3.52 proposes v1.4.0 under the existing v1.3.0 governance path; even after Stage 3.52 protected activation, P2-GOV-01 remains unresolved until separate Stage 3.53 disposition activation. P3-07 remains OPEN and the original audit remains 30/32 closed (93.75%) until a later eligible Stage 3.51 closure merge. P3-08 remains unaffected.
+
 No further audit-remediation implementation begins without a separately reviewed planning/remediation gate.
 
 No AI, Tax Export, email, mobile, premium, direct broker API synchronization, credential scraping, or
 unnecessary worker implementation enters these stages without separate approval.
+
+<!-- OPENINVEST_STAGE_03_52_WORKFLOW_AMENDMENT_STATE_V1_BEGIN -->
+SCHEMA=OPENINVEST_STAGE_03_52_WORKFLOW_AMENDMENT_STATE_V1
+CANONICAL_WORKFLOW_BEFORE_ACTIVATION=1.3.0
+PROPOSED_WORKFLOW=1.4.0
+AMENDMENT_STATUS=PROPOSAL_NOT_CANONICAL
+ADOPTION_PATH=V1_3_POST_DEVELOPMENT_GOVERNANCE
+SELF_BOOTSTRAP_NEW_RULES=FORBIDDEN
+P2_GOV_01=UNRESOLVED_BLOCKER
+P2_GOV_02_TO_05=REMEDIATED_IN_STAGE_03_51_V6_REVIEW
+P3_07_STATE=OPEN
+STAGE_03_51_PUBLICATION_ELIGIBILITY=BLOCKED
+P3_08_STATE=OPEN_UNAFFECTED
+CURRENT_AUDIT_CLOSED=30/32
+CURRENT_AUDIT_PERCENT=93.75%
+NEW_MECHANISM_AVAILABLE_AFTER=PROTECTED_DEVELOP_SQUASH_MERGE
+NEXT_AFTER_AMENDMENT=SEPARATE_P2_GOV_01_DISPOSITION
+DISPOSITION_STAGE=3.53
+THEN=REVISE_AND_REREVIEW_STAGE_03_51
+<!-- OPENINVEST_STAGE_03_52_WORKFLOW_AMENDMENT_STATE_V1_END -->
