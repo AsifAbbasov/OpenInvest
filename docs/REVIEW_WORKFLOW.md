@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-REVIEW-001 |
-| Version | 1.3.0 |
+| Version | 1.4.0 |
 | Status | Approved / Mandatory |
 | Owner | Principal Architect |
 | Supersedes | Informal review and push process |
 | Dependencies | Architecture Freeze v1.2; Document 40; Document 43 |
-| Last Review Date | 2026-08-29 |
+| Last Review Date | 2026-09-01 |
 | Next Review Date | 2026-12-19 |
 
 ## Purpose
@@ -265,6 +265,106 @@ governance/closure-only change. That path uses one Governance / Closure phase in
 review chat and must still preserve all material findings/remediations, exact published-head evidence,
 CI evidence, and human merge authority.
 
+
+## Irreversible historical governance deviation disposition
+
+This section applies only to a mandatory **governance/process** control that was historically missed
+and whose original temporal evidence property cannot be recreated because the governed action is
+already immutable/merged or otherwise temporally irreversible.
+
+It does not permit retroactive compliance.
+
+### Eligibility
+
+Disposition is allowed only when all conditions below are independently verified:
+
+1. the missed item is a governance/process control, not a runtime, product, security, privacy,
+   financial, mathematical, data-integrity, contract or migration defect;
+2. the governed action is already immutable/merged or otherwise temporally irreversible;
+3. replaying the control now cannot recreate the evidentiary property it was required to establish at
+   the original time;
+4. all available original evidence and failed chronology are preserved append-only;
+5. the subject's current technical state has sufficient independent evidence to bound residual risk;
+6. the control is not still performable on an open/unmerged subject;
+7. no narrower canonical remediation exists.
+
+If any condition is false or uncertain, disposition is forbidden.
+
+### Mandatory semantics
+
+A disposition MUST preserve the historical deviation as noncompliant.
+
+The only effective status is:
+
+`DISPOSITIONED — HISTORICAL NONCOMPLIANCE PRESERVED / RESIDUAL GOVERNANCE RISK ACCEPTED`
+
+A disposition MUST NOT state or imply that:
+
+- the missed control was performed;
+- the historical event became compliant;
+- the finding never existed;
+- technical correctness substitutes for the missed governance evidence;
+- the disposition closes unrelated findings.
+
+### Required evidence
+
+The disposition record MUST identify:
+
+- stable deviation ID;
+- affected stage, PR, exact published head(s), merge SHA and protected-base identity;
+- canonical workflow version and exact missed mandatory control(s);
+- immutable chronology;
+- why original temporal compliance cannot be recreated;
+- exact technical evidence that remains valid and its limits;
+- residual governance risk;
+- affected/unaffected audit and product scope;
+- compensating and recurrence-prevention controls;
+- dependent blockers and activation rule.
+
+### Required disposition sequence
+
+A disposition is a separate post-development governance action and uses the effective workflow version
+already present on protected `develop`.
+
+```text
+separate disposition branch/record
+  → local deterministic checks
+  → Governance / Closure review
+  → findings remediated and checks rerun
+  → APPROVED prepublication review
+  → separate human commit/push permission
+  → Draft PR
+  → required exact-head CI green
+  → same designated review chat exact-published-head verification
+  → explicit Principal Architect residual-governance-risk acceptance
+     bound to the deviation ID and exact published disposition head
+  → separate explicit squash-merge authorization
+  → squash merge to protected develop
+  → disposition becomes effective
+```
+
+Risk acceptance and merge authorization are distinct explicit human acts.
+
+### Activation
+
+Before the disposition record is squash-merged into protected `develop`, the deviation remains an
+unresolved blocker.
+
+Protected merge activates only the disposition of the exact named deviation. Historical noncompliance
+remains preserved permanently.
+
+### Prohibitions
+
+This mechanism MUST NOT be used:
+
+- prospectively to skip a control;
+- to bypass a control that can still be performed;
+- to self-bootstrap an amendment before the amendment is canonical;
+- to waive red CI, unresolved runtime/security/privacy/data-integrity defects or protected-branch rules;
+- by Builder self-approval;
+- as implicit authorization for commit, push, Ready, merge, branch deletion or another finding.
+
+
 ## Branch convention
 
 Branches describe intent, not author:
@@ -394,3 +494,23 @@ GitHub can enforce only identities/checks it recognizes. Until a Review Agent su
 ## Scope rule
 
 Every PR must answer: **Does this increase first-release user value or directly reduce a material correctness, security, privacy, or delivery risk?** If not, move it to `BACKLOG_V2.md`.
+
+<!-- OPENINVEST_STAGE_03_52_WORKFLOW_AMENDMENT_STATE_V1_BEGIN -->
+SCHEMA=OPENINVEST_STAGE_03_52_WORKFLOW_AMENDMENT_STATE_V1
+CANONICAL_WORKFLOW_BEFORE_ACTIVATION=1.3.0
+PROPOSED_WORKFLOW=1.4.0
+AMENDMENT_STATUS=PROPOSAL_NOT_CANONICAL
+ADOPTION_PATH=V1_3_POST_DEVELOPMENT_GOVERNANCE
+SELF_BOOTSTRAP_NEW_RULES=FORBIDDEN
+P2_GOV_01=UNRESOLVED_BLOCKER
+P2_GOV_02_TO_05=REMEDIATED_IN_STAGE_03_51_V6_REVIEW
+P3_07_STATE=OPEN
+STAGE_03_51_PUBLICATION_ELIGIBILITY=BLOCKED
+P3_08_STATE=OPEN_UNAFFECTED
+CURRENT_AUDIT_CLOSED=30/32
+CURRENT_AUDIT_PERCENT=93.75%
+NEW_MECHANISM_AVAILABLE_AFTER=PROTECTED_DEVELOP_SQUASH_MERGE
+NEXT_AFTER_AMENDMENT=SEPARATE_P2_GOV_01_DISPOSITION
+DISPOSITION_STAGE=3.53
+THEN=REVISE_AND_REREVIEW_STAGE_03_51
+<!-- OPENINVEST_STAGE_03_52_WORKFLOW_AMENDMENT_STATE_V1_END -->

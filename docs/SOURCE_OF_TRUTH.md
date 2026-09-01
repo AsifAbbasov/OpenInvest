@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.78 |
+| Version | 1.4.79 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
-| Last Review Date | 2026-08-30 |
+| Last Review Date | 2026-09-01 |
 | Next Review Date | Before Stage 3.25 privacy evidence-collection plan review or the next separately reviewed audit-remediation scope |
 
 ## Architecture status
@@ -41,6 +41,7 @@
 **Stage 3.43/3.44/3.45 P3-10 remediation and closure: planning is canonical through PR #103 squash merge `eaac5a5deb64196b263464e0d85e622065520b0e`, with approved plan blob `37a32856692ac58f408f2dd50335bb65019d9983`. Implementation PR #104 reached final evidence head `749446930a730c3f7c5b3402618577953d53d3f4`, passed CI #297 / run `33312723075` 10/10, received final External and evidence-publication verification `APPROVED`, and was squash-merged at `c980a21f16b30449ec7fb7b07decc386d77bc27d`. Closure PR #105 reached exact head `e91faace81b76b14a51de4dea3a4c18d697998af`, passed CI #298 / run `33315057112` 10/10, received exact-published-head closure `APPROVED`, and was squash-merged at `c029cd62715b15614e82972309bdc53669ec02ee`. P3-10 is CLOSED; the audit is 29/32 closed (90.625%), with P3-06, P3-07, P3-08 remaining.**
 **Stage 3.46/3.47 P3-06 remediation: planning is canonical through PR #106 squash merge `546f0406d1353c13673be4ab97c4a527a9b58116`, approved plan blob `9e028f817220973458b28a2393ee61bdd2eb83a0`. Implementation PR #107 reached final evidence head `657afbde74b79db6966333e27d52f0320660d6b3`, passed CI #301 / run `33343890109` 10/10, received final External and evidence-publication verification `APPROVED`, and was squash-merged at `332f7cd2ec40caf0760b97b806f637e4c89dbb96`. P3-06 remains OPEN pending Stage 3.48 closure activation.**
 **Stage 3.48 P3-06 closure activation: while the approved Stage 3.48 closure record and synchronized canonical surfaces are absent from protected `develop`, P3-06 remains OPEN and the original audit remains 29/32 closed (90.625%), with P3-06, P3-07, P3-08 remaining. Once present, P3-06 is CLOSED and the audit becomes 30/32 closed (93.75%), with P0=0 / P1=0 / P2=0 / P3=2: P3-07, P3-08.**
+**Stage 3.52 governance workflow amendment proposal: canonical REVIEW_WORKFLOW remains v1.3.0 until the proposed v1.4.0 amendment is squash-merged into protected `develop`. The proposal creates a narrow irreversible-historical-governance-deviation disposition mechanism but cannot self-bootstrap or disposition `P2-GOV-01` before activation. Current audit remains 30/32 closed (93.75%); P3-07 and P3-08 remain OPEN; Stage 3.51 remains BLOCKED. After amendment activation, next action is separate Stage 3.53 P2-GOV-01 disposition, not Stage 3.51 publication.**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -663,3 +664,23 @@ protected `develop`, P3-09 is CLOSED. The original audit state becomes 28/32 clo
 exactly four remaining findings: P3-06, P3-07, P3-08, P3-10.
 
 No future Stage 3.42 PR number, published head, CI run, or squash-merge SHA is predicted here.
+
+<!-- OPENINVEST_STAGE_03_52_WORKFLOW_AMENDMENT_STATE_V1_BEGIN -->
+SCHEMA=OPENINVEST_STAGE_03_52_WORKFLOW_AMENDMENT_STATE_V1
+CANONICAL_WORKFLOW_BEFORE_ACTIVATION=1.3.0
+PROPOSED_WORKFLOW=1.4.0
+AMENDMENT_STATUS=PROPOSAL_NOT_CANONICAL
+ADOPTION_PATH=V1_3_POST_DEVELOPMENT_GOVERNANCE
+SELF_BOOTSTRAP_NEW_RULES=FORBIDDEN
+P2_GOV_01=UNRESOLVED_BLOCKER
+P2_GOV_02_TO_05=REMEDIATED_IN_STAGE_03_51_V6_REVIEW
+P3_07_STATE=OPEN
+STAGE_03_51_PUBLICATION_ELIGIBILITY=BLOCKED
+P3_08_STATE=OPEN_UNAFFECTED
+CURRENT_AUDIT_CLOSED=30/32
+CURRENT_AUDIT_PERCENT=93.75%
+NEW_MECHANISM_AVAILABLE_AFTER=PROTECTED_DEVELOP_SQUASH_MERGE
+NEXT_AFTER_AMENDMENT=SEPARATE_P2_GOV_01_DISPOSITION
+DISPOSITION_STAGE=3.53
+THEN=REVISE_AND_REREVIEW_STAGE_03_51
+<!-- OPENINVEST_STAGE_03_52_WORKFLOW_AMENDMENT_STATE_V1_END -->
