@@ -24,15 +24,15 @@ const idempotencyConflictMessage = "Idempotency-Key is already bound to another 
 export function AddTransactionForm({ accessToken, principalId, portfolioId, onSaved }: AddTransactionFormProps) {
   const idempotencyIntentRef = useRef(emptyIdempotencyIntent);
   const [transactionType, setTransactionType] = useState<TransactionType>("BUY");
-  const [ticker, setTicker] = useState("SBER");
-  const [quantity, setQuantity] = useState("10.00000000");
-  const [unitPrice, setUnitPrice] = useState("280.00000000");
-  const [grossAmount, setGrossAmount] = useState("2800.00000000");
-  const [commission, setCommission] = useState("2.80000000");
-  const [tax, setTax] = useState("0.00000000");
-  const [tradeDate, setTradeDate] = useState("2026-01-10");
-  const [settlementDate, setSettlementDate] = useState("2026-01-13");
-  const [note, setNote] = useState("Stage 3.3 Web presentation slice");
+  const [ticker, setTicker] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [unitPrice, setUnitPrice] = useState("");
+  const [grossAmount, setGrossAmount] = useState("");
+  const [commission, setCommission] = useState("");
+  const [tax, setTax] = useState("");
+  const [tradeDate, setTradeDate] = useState("");
+  const [settlementDate, setSettlementDate] = useState("");
+  const [note, setNote] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
