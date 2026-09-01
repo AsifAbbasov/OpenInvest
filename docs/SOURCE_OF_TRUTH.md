@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.81 |
+| Version | 1.4.82 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -18,6 +18,7 @@
 **Last completed implementation stage: Stage 3.50 — P3-07 transaction form fixture/default semantics implementation**
 **Last completed privacy planning gate: Stage 3.24 — Privacy Security Review Readiness Dossier**
 **Last completed audit-remediation planning gate: Stage 3.49 — P3-07 transaction form fixture/default semantics planning**
+**Last completed audit-remediation closure gate: Stage 3.51 — P3-07 closure governance / PR #113 squash merge `072350205b2746bdcd83f20718eb59efcd0478ef`**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
 **Stage 3.39 implementation merge baseline: PR #97 squash merge `abbd9f9f61574621e206f2e196b1fb8f056dc194`; the moving protected `develop` HEAD is intentionally not hard-coded by this merge-activated closure record**
 **Stage 3.41 implementation merge baseline: PR #101 squash merge `a2cfeaa5ca68fdd951e2a99f69c96aec362fc416`; the moving protected `develop` HEAD is intentionally not hard-coded by the Stage 3.42 merge-activated closure record**
@@ -42,7 +43,8 @@
 **Stage 3.46/3.47 P3-06 remediation: planning is canonical through PR #106 squash merge `546f0406d1353c13673be4ab97c4a527a9b58116`, approved plan blob `9e028f817220973458b28a2393ee61bdd2eb83a0`. Implementation PR #107 reached final evidence head `657afbde74b79db6966333e27d52f0320660d6b3`, passed CI #301 / run `33343890109` 10/10, received final External and evidence-publication verification `APPROVED`, and was squash-merged at `332f7cd2ec40caf0760b97b806f637e4c89dbb96`. P3-06 remains OPEN pending Stage 3.48 closure activation.**
 **Stage 3.48 P3-06 closure activation: while the approved Stage 3.48 closure record and synchronized canonical surfaces are absent from protected `develop`, P3-06 remains OPEN and the original audit remains 29/32 closed (90.625%), with P3-06, P3-07, P3-08 remaining. Once present, P3-06 is CLOSED and the audit becomes 30/32 closed (93.75%), with P0=0 / P1=0 / P2=0 / P3=2: P3-07, P3-08.**
 **Stage 3.52 governance workflow amendment: ACTIVATED through PR #111 squash merge `93e59cbf4821fc51aba5bdb9815b52a73fbc67a0` / tree `3686ff3606d7c5f4fe97060abc12dffd0ccd3477`; `REVIEW_WORKFLOW.md` v1.4.0 is canonical. The historical v1.3.0 adoption path and self-bootstrap prohibition remain preserved.**
-**Stage 3.53 P2-GOV-01 disposition: EFFECTIVE through PR #112 squash merge `ea1f204eab47bf16566096722d6390557b8141af`. P2-GOV-01 is `DISPOSITIONED — HISTORICAL NONCOMPLIANCE PRESERVED / RESIDUAL GOVERNANCE RISK ACCEPTED`; the historical Stage 3.50 noncompliance remains permanently preserved and is not retroactively compliant. Stage 3.51 is eligible for revision/re-review. P3-07 remains OPEN until its own Stage 3.51 protected closure merge, the original audit remains 30/32 = 93.75% until that merge, and P3-08 remains OPEN/unaffected.**
+**Stage 3.53 P2-GOV-01 disposition: EFFECTIVE through PR #112 squash merge `ea1f204eab47bf16566096722d6390557b8141af`. P2-GOV-01 is `DISPOSITIONED — HISTORICAL NONCOMPLIANCE PRESERVED / RESIDUAL GOVERNANCE RISK ACCEPTED`; historical Stage 3.50 noncompliance remains permanently preserved and is not retroactively compliant.**
+**Stage 3.51 P3-07 closure: COMPLETE through PR #113 exact published head `1868749965fa1c113875592668afaa8f1f1ca35e`, CI #309 / run `33540615693` 10/10, exact-published-head `APPROVED`, and squash merge `072350205b2746bdcd83f20718eb59efcd0478ef` / tree `c83120dcfdf1cab281fea10818860827eb699b64`. P3-07 is CLOSED; the original audit is 31/32 = 96.875%; only P3-08 remains OPEN.**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -666,6 +668,7 @@ exactly four remaining findings: P3-06, P3-07, P3-08, P3-10.
 
 No future Stage 3.42 PR number, published head, CI run, or squash-merge SHA is predicted here.
 
+<!-- OPENINVEST_HISTORICAL_ACTIVATION_TIME_SNAPSHOT_STAGE_03_52_BEGIN CURRENT_AUTHORITY=NO -->
 <!-- OPENINVEST_STAGE_03_52_WORKFLOW_AMENDMENT_STATE_V1_BEGIN -->
 SCHEMA=OPENINVEST_STAGE_03_52_WORKFLOW_AMENDMENT_STATE_V1
 CANONICAL_WORKFLOW_BEFORE_ACTIVATION=1.3.0
@@ -688,7 +691,9 @@ NEXT_AFTER_AMENDMENT=SEPARATE_P2_GOV_01_DISPOSITION
 DISPOSITION_STAGE=3.53
 THEN=REVISE_AND_REREVIEW_STAGE_03_51
 <!-- OPENINVEST_STAGE_03_52_WORKFLOW_AMENDMENT_STATE_V1_END -->
+<!-- OPENINVEST_HISTORICAL_ACTIVATION_TIME_SNAPSHOT_STAGE_03_52_END -->
 
+<!-- OPENINVEST_HISTORICAL_ACTIVATION_TIME_SNAPSHOT_STAGE_03_53_BEGIN CURRENT_AUTHORITY=NO -->
 <!-- OPENINVEST_STAGE_03_53_P2_GOV_01_DISPOSITION_STATE_V1_BEGIN -->
 SCHEMA=OPENINVEST_STAGE_03_53_P2_GOV_01_DISPOSITION_STATE_V1
 CANONICAL_WORKFLOW=1.4.0
@@ -717,8 +722,9 @@ CURRENT_AUDIT_PERCENT=93.75%
 DISPOSITION_CHANGES_ORIGINAL_AUDIT_ARITHMETIC=NO
 P3_08_STATE=OPEN_UNAFFECTED
 <!-- OPENINVEST_STAGE_03_53_P2_GOV_01_DISPOSITION_STATE_V1_END -->
+<!-- OPENINVEST_HISTORICAL_ACTIVATION_TIME_SNAPSHOT_STAGE_03_53_END -->
 
-## Stage 3.51 P3-07 closure candidate after Stage 3.53 disposition
+## Stage 3.51 P3-07 post-merge closure / forensic record
 
 Stage 3.49 planning is canonical through PR #109 squash merge `cfcc384a97327cc8b74aa05567b9629abf40a5fb`. Stage 3.50
 implementation is canonical through PR #110 squash merge `915d42f614121959fface9846a07cc1b412febe2` from exact published head
@@ -729,15 +735,10 @@ The Stage 3.50 evidence lifecycle remains historically noncompliant. P2-GOV-01 i
 not erased or rewritten, through Stage 3.53 / PR #112 protected squash merge `ea1f204eab47bf16566096722d6390557b8141af` under
 canonical REVIEW_WORKFLOW v1.4.0.
 
-Therefore Stage 3.51 is eligible for revision and re-review. P3-07 remains OPEN until the exact
-Stage 3.51 closure candidate is protected-merged after its own required gates. Before that merge the
-original audit remains 30/32 = 93.75%. After that merge, and only then, P3-07 becomes CLOSED and the
-audit becomes 31/32 = 96.875%, leaving only P3-08 OPEN.
+Stage 3.51 closure is canonical through PR #113 squash merge `072350205b2746bdcd83f20718eb59efcd0478ef`. The exact published head `1868749965fa1c113875592668afaa8f1f1ca35e` passed CI #309 / run `33540615693` 10/10 and exact-published-head reviewer verification returned `APPROVED`. P3-07 is CLOSED, the original audit is 31/32 = 96.875%, and P3-08 is the only remaining original finding. Historical Stage 3.50 noncompliance remains preserved through the effective Stage 3.53 disposition. This post-merge synchronization changes documentation/governance only and does not alter runtime behavior.
 
-This closure candidate changes documentation/governance only and does not alter runtime behavior.
-
-<!-- OPENINVEST_STAGE_03_51_P3_07_CLOSURE_STATE_V2_BEGIN -->
-SCHEMA=OPENINVEST_STAGE_03_51_P3_07_CLOSURE_STATE_V2
+<!-- OPENINVEST_STAGE_03_51_P3_07_POST_MERGE_STATE_V1_BEGIN -->
+SCHEMA=OPENINVEST_STAGE_03_51_P3_07_POST_MERGE_STATE_V1
 CANONICAL_WORKFLOW=1.4.0
 CLOSURE_BASE=ea1f204eab47bf16566096722d6390557b8141af
 CLOSURE_BASE_TREE=488cce09e87d42b3e5e03441336197bd10228c51
@@ -751,17 +752,23 @@ P2_GOV_01_DISPOSITION_PR=112
 P2_GOV_01_DISPOSITION_MERGE_SHA=ea1f204eab47bf16566096722d6390557b8141af
 HISTORICAL_COMPLIANCE=NONCOMPLIANT_PRESERVED
 DISPOSITION_DOES_NOT_RETROACTIVELY_COMPLY=TRUE
-P2_GOV_02_TO_05=REMEDIATED_IN_STAGE_03_51_V6_REVIEW_AND_RETAINED
-P3_07_PRE_MERGE=OPEN
-P3_07_POST_MERGE=CLOSED
-CLOSURE_ACTIVATION=THIS_EXACT_STAGE_03_51_RECORD_ON_PROTECTED_DEVELOP_AFTER_REQUIRED_GATES
-PRE_MERGE_AUDIT_CLOSED=30/32
-PRE_MERGE_AUDIT_PERCENT=93.75%
-POST_MERGE_AUDIT_CLOSED=31/32
-POST_MERGE_AUDIT_PERCENT=96.875%
-POST_MERGE_REMAINING_ORIGINAL_FINDING=P3-08
+P2_GOV_02_TO_05=REMEDIATED_AND_RETAINED
+P2_GOV_06=REMEDIATED_AND_VERIFIED
+CLOSURE_PR=113
+CLOSURE_PUBLISHED_HEAD=1868749965fa1c113875592668afaa8f1f1ca35e
+CLOSURE_PUBLISHED_TREE=c83120dcfdf1cab281fea10818860827eb699b64
+CLOSURE_CI_RUN_NUMBER=309
+CLOSURE_CI_RUN_ID=33540615693
+CLOSURE_CI=10/10_SUCCESS
+EXACT_PUBLISHED_HEAD_REVIEW=APPROVED
+CLOSURE_MERGE_SHA=072350205b2746bdcd83f20718eb59efcd0478ef
+CLOSURE_MERGE_TREE=c83120dcfdf1cab281fea10818860827eb699b64
+P3_07_STATE=CLOSED
+AUDIT_CLOSED=31/32
+AUDIT_PERCENT=96.875%
+REMAINING_ORIGINAL_FINDING=P3-08
 P3_08_STATE=OPEN_UNAFFECTED
 RUNTIME_CHANGE=NONE
-REMOTE_MUTATION_AUTHORIZED_BY_RECORD=NO
+FORENSIC_NARRATIVE=STAGE_03_51_DOCUMENT
 BRANCH_DELETION_AUTHORIZED=NO
-<!-- OPENINVEST_STAGE_03_51_P3_07_CLOSURE_STATE_V2_END -->
+<!-- OPENINVEST_STAGE_03_51_P3_07_POST_MERGE_STATE_V1_END -->

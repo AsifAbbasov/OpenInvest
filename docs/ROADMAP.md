@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.79 |
+| Version | 1.1.80 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
@@ -97,11 +97,11 @@
 | 3.46 — HTTP API decomposition planning | Freeze behavior-preserving same-package decomposition of `httpapi/api.go` for P3-06 without absorbing P3-07/P3-08 | Complete / PR #106 squash-merged into `develop` at `546f0406d1353c13673be4ab97c4a527a9b58116`; approved plan blob `9e028f817220973458b28a2393ee61bdd2eb83a0` |
 | 3.47 — HTTP API decomposition implementation | Decompose the HTTP transport surface while preserving exact routes, security, replay/import and API behavior | Complete / PR #107 squash-merged into protected `develop` at `332f7cd2ec40caf0760b97b806f637e4c89dbb96` from final evidence head `657afbde74b79db6966333e27d52f0320660d6b3` after CI #301 / run `33343890109` 10/10, final External `APPROVED`, and final evidence-publication verification `APPROVED` |
 | 3.48 — P3-06 closure governance | Synchronize canonical audit state after the already-merged Stage 3.47 implementation without runtime change | Merge-activated: P3-06 remains OPEN while the Stage 3.48 closure record and synchronized canonical surfaces are absent from protected `develop`; once present, P3-06 is CLOSED and remaining P3 = P3-07, P3-08 |
-| 3.52 — Governance deviation disposition workflow amendment | Add a narrow non-retroactive disposition mechanism for irreversible historical governance deviations without self-bootstrap | Complete / PR #111 squash-merged into protected `develop` at `93e59cbf4821fc51aba5bdb9815b52a73fbc67a0`; REVIEW_WORKFLOW v1.4.0 is canonical; P2-GOV-01 remains unresolved |
+| 3.52 — Governance deviation disposition workflow amendment | Add a narrow non-retroactive disposition mechanism for irreversible historical governance deviations without self-bootstrap | Complete / PR #111 squash-merged at `93e59cbf4821fc51aba5bdb9815b52a73fbc67a0`; REVIEW_WORKFLOW v1.4.0 canonical; its later use by Stage 3.53 is complete |
 | 3.49 — Transaction form fixture/default semantics planning | Freeze the narrow P3-07 removal of fixture/business defaults while preserving BUY, RUB, null/applicability, idempotency, Unicode and payload semantics | Complete / PR #109 squash-merged into protected `develop` at `cfcc384a97327cc8b74aa05567b9629abf40a5fb`; approved plan blob `20921a00c6669fb0c39523e783c7015a7d016f80` |
-| 3.50 — Transaction form fixture/default semantics implementation | Empty the nine fixture/business initial values without changing backend/database/OpenAPI semantics | Complete / PR #110 squash-merged at `915d42f614121959fface9846a07cc1b412febe2` from exact head `be774b3a8423ffba98633b257983856b2c990b95` after CI #306 10/10; historical P2-GOV-01 later dispositioned by Stage 3.53; P3-07 remains OPEN pending Stage 3.51 closure |
-| 3.51 — P3-07 closure governance | Bind the already-merged Stage 3.50 implementation to the effective Stage 3.53 disposition and synchronize final P3-07 audit closure without runtime change | Candidate / P3-07 remains OPEN until this exact closure record is protected-merged after all required closure gates; after merge P3-07 CLOSED and audit 31/32 = 96.875% |
-| 3.53 — P2-GOV-01 historical governance deviation disposition | Preserve Stage 3.50 historical noncompliance while resolving only its blocking effect after exact-head review, explicit residual-risk acceptance and protected activation | Complete / PR #112 squash-merged into protected `develop` at `ea1f204eab47bf16566096722d6390557b8141af`; P2-GOV-01 is dispositioned, historical noncompliance remains preserved, and Stage 3.51 is eligible for revision/re-review |
+| 3.50 — Transaction form fixture/default semantics implementation | Empty the nine fixture/business initial values without changing backend/database/OpenAPI semantics | Complete / PR #110 squash-merged at `915d42f614121959fface9846a07cc1b412febe2` from exact head `be774b3a8423ffba98633b257983856b2c990b95` after CI #306 10/10; technical implementation accepted; P3-07 later closed by Stage 3.51 / PR #113 |
+| 3.51 — P3-07 closure governance | Bind the merged Stage 3.50 implementation, preserved governance history and exact final closure evidence into one canonical forensic/closure record | Complete / PR #113 squash-merged into protected `develop` at `072350205b2746bdcd83f20718eb59efcd0478ef` from exact head `1868749965fa1c113875592668afaa8f1f1ca35e` after CI #309 / run `33540615693` 10/10 and exact-published-head `APPROVED`; P3-07 CLOSED; audit 31/32 = 96.875%; P3-08 only remaining |
+| 3.53 — P2-GOV-01 historical governance deviation disposition | Preserve Stage 3.50 historical noncompliance while resolving only its blocking effect | Complete / PR #112 squash-merged at `ea1f204eab47bf16566096722d6390557b8141af`; P2-GOV-01 disposition effective, historical noncompliance preserved, residual governance risk accepted; Stage 3.51 subsequently completed |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
@@ -167,13 +167,14 @@ record and synchronized canonical surfaces are absent from protected `develop`, 
 Once present, P3-06 is CLOSED and the original audit becomes 30/32 closed (93.75%), with exactly two
 remaining findings: P3-07 and P3-08.
 
-Stage 3.52 is canonical through PR #111 at `93e59cbf4821fc51aba5bdb9815b52a73fbc67a0`, and REVIEW_WORKFLOW v1.4.0 is canonical. Stage 3.53 disposition is now effective through PR #112 squash merge `ea1f204eab47bf16566096722d6390557b8141af`. P2-GOV-01 is dispositioned with historical noncompliance preserved; this resolves only its blocking effect. Stage 3.51 is therefore eligible for revision/re-review. P3-07 remains OPEN until Stage 3.51 protected closure activation, and P3-08 remains unaffected.
+Stage 3.52 is canonical through PR #111 at `93e59cbf4821fc51aba5bdb9815b52a73fbc67a0`, and REVIEW_WORKFLOW v1.4.0 is canonical. Stage 3.53 disposition is effective through PR #112 squash merge `ea1f204eab47bf16566096722d6390557b8141af`; P2-GOV-01 remains historically noncompliant but its blocking effect is dispositioned. Stage 3.51 is canonical through PR #113 squash merge `072350205b2746bdcd83f20718eb59efcd0478ef` from exact head `1868749965fa1c113875592668afaa8f1f1ca35e` after CI #309 / run `33540615693` 10/10 and exact-published-head `APPROVED`. P3-07 is CLOSED, the original audit is 31/32 = 96.875%, and P3-08 is the only remaining original audit finding.
 
 No further audit-remediation implementation begins without a separately reviewed planning/remediation gate.
 
 No AI, Tax Export, email, mobile, premium, direct broker API synchronization, credential scraping, or
 unnecessary worker implementation enters these stages without separate approval.
 
+<!-- OPENINVEST_HISTORICAL_ACTIVATION_TIME_SNAPSHOT_STAGE_03_52_BEGIN CURRENT_AUTHORITY=NO -->
 <!-- OPENINVEST_STAGE_03_52_WORKFLOW_AMENDMENT_STATE_V1_BEGIN -->
 SCHEMA=OPENINVEST_STAGE_03_52_WORKFLOW_AMENDMENT_STATE_V1
 CANONICAL_WORKFLOW_BEFORE_ACTIVATION=1.3.0
@@ -196,7 +197,9 @@ NEXT_AFTER_AMENDMENT=SEPARATE_P2_GOV_01_DISPOSITION
 DISPOSITION_STAGE=3.53
 THEN=REVISE_AND_REREVIEW_STAGE_03_51
 <!-- OPENINVEST_STAGE_03_52_WORKFLOW_AMENDMENT_STATE_V1_END -->
+<!-- OPENINVEST_HISTORICAL_ACTIVATION_TIME_SNAPSHOT_STAGE_03_52_END -->
 
+<!-- OPENINVEST_HISTORICAL_ACTIVATION_TIME_SNAPSHOT_STAGE_03_53_BEGIN CURRENT_AUTHORITY=NO -->
 <!-- OPENINVEST_STAGE_03_53_P2_GOV_01_DISPOSITION_STATE_V1_BEGIN -->
 SCHEMA=OPENINVEST_STAGE_03_53_P2_GOV_01_DISPOSITION_STATE_V1
 CANONICAL_WORKFLOW=1.4.0
@@ -225,9 +228,10 @@ CURRENT_AUDIT_PERCENT=93.75%
 DISPOSITION_CHANGES_ORIGINAL_AUDIT_ARITHMETIC=NO
 P3_08_STATE=OPEN_UNAFFECTED
 <!-- OPENINVEST_STAGE_03_53_P2_GOV_01_DISPOSITION_STATE_V1_END -->
+<!-- OPENINVEST_HISTORICAL_ACTIVATION_TIME_SNAPSHOT_STAGE_03_53_END -->
 
-<!-- OPENINVEST_STAGE_03_51_P3_07_CLOSURE_STATE_V2_BEGIN -->
-SCHEMA=OPENINVEST_STAGE_03_51_P3_07_CLOSURE_STATE_V2
+<!-- OPENINVEST_STAGE_03_51_P3_07_POST_MERGE_STATE_V1_BEGIN -->
+SCHEMA=OPENINVEST_STAGE_03_51_P3_07_POST_MERGE_STATE_V1
 CANONICAL_WORKFLOW=1.4.0
 CLOSURE_BASE=ea1f204eab47bf16566096722d6390557b8141af
 CLOSURE_BASE_TREE=488cce09e87d42b3e5e03441336197bd10228c51
@@ -241,17 +245,23 @@ P2_GOV_01_DISPOSITION_PR=112
 P2_GOV_01_DISPOSITION_MERGE_SHA=ea1f204eab47bf16566096722d6390557b8141af
 HISTORICAL_COMPLIANCE=NONCOMPLIANT_PRESERVED
 DISPOSITION_DOES_NOT_RETROACTIVELY_COMPLY=TRUE
-P2_GOV_02_TO_05=REMEDIATED_IN_STAGE_03_51_V6_REVIEW_AND_RETAINED
-P3_07_PRE_MERGE=OPEN
-P3_07_POST_MERGE=CLOSED
-CLOSURE_ACTIVATION=THIS_EXACT_STAGE_03_51_RECORD_ON_PROTECTED_DEVELOP_AFTER_REQUIRED_GATES
-PRE_MERGE_AUDIT_CLOSED=30/32
-PRE_MERGE_AUDIT_PERCENT=93.75%
-POST_MERGE_AUDIT_CLOSED=31/32
-POST_MERGE_AUDIT_PERCENT=96.875%
-POST_MERGE_REMAINING_ORIGINAL_FINDING=P3-08
+P2_GOV_02_TO_05=REMEDIATED_AND_RETAINED
+P2_GOV_06=REMEDIATED_AND_VERIFIED
+CLOSURE_PR=113
+CLOSURE_PUBLISHED_HEAD=1868749965fa1c113875592668afaa8f1f1ca35e
+CLOSURE_PUBLISHED_TREE=c83120dcfdf1cab281fea10818860827eb699b64
+CLOSURE_CI_RUN_NUMBER=309
+CLOSURE_CI_RUN_ID=33540615693
+CLOSURE_CI=10/10_SUCCESS
+EXACT_PUBLISHED_HEAD_REVIEW=APPROVED
+CLOSURE_MERGE_SHA=072350205b2746bdcd83f20718eb59efcd0478ef
+CLOSURE_MERGE_TREE=c83120dcfdf1cab281fea10818860827eb699b64
+P3_07_STATE=CLOSED
+AUDIT_CLOSED=31/32
+AUDIT_PERCENT=96.875%
+REMAINING_ORIGINAL_FINDING=P3-08
 P3_08_STATE=OPEN_UNAFFECTED
 RUNTIME_CHANGE=NONE
-REMOTE_MUTATION_AUTHORIZED_BY_RECORD=NO
+FORENSIC_NARRATIVE=STAGE_03_51_DOCUMENT
 BRANCH_DELETION_AUTHORIZED=NO
-<!-- OPENINVEST_STAGE_03_51_P3_07_CLOSURE_STATE_V2_END -->
+<!-- OPENINVEST_STAGE_03_51_P3_07_POST_MERGE_STATE_V1_END -->
