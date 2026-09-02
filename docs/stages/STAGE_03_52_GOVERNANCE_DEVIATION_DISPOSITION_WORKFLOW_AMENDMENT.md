@@ -14,11 +14,12 @@
 | Proposed workflow | v1.4.0 |
 | Trigger | Stage 3.51 Governance / Closure review established that v1.3.0 has no retrospective disposition/acceptance mechanism for irreversible historical governance deviation `P2-GOV-01` |
 | Development surface | None — documentation/governance only |
-| Current original audit | 30/32 closed = 93.75%; P3-07 and P3-08 remain OPEN |
-| Stage 3.51 status | BLOCKED / not publication-eligible while `P2-GOV-01` is unresolved |
+| Original audit at Stage 3.52 activation | 30/32 closed = 93.75%; P3-07 and P3-08 were OPEN |
+| Stage 3.51 state at Stage 3.52 activation | BLOCKED / not publication-eligible while `P2-GOV-01` was unresolved |
 | Self-bootstrap | Forbidden — this proposal cannot use its own v1.4.0 mechanism to disposition `P2-GOV-01` |
 | Next after protected amendment activation | Separate Stage 3.53 `P2-GOV-01` disposition under effective v1.4.0 |
 | P3-08 | Unaffected |
+| Current follow-up | Stage 3.53 disposition became effective through PR #112; Stage 3.51 later closed P3-07 through PR #113 / `072350205b2746bdcd83f20718eb59efcd0478ef`; current audit 31/32 = 96.875%, P3-08 only |
 
 ## 0. Protected activation record
 
@@ -185,7 +186,7 @@ Its proposed v1.4.0 disposition rules:
 
 ## 10. Stage 3.51 / P3-07 relationship
 
-Current state remains:
+State at Stage 3.52 activation remained:
 
 - original audit: 30/32 = 93.75%;
 - P3-07: OPEN;

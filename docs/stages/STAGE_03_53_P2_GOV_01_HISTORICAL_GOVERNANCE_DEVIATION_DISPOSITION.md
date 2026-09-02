@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | CANDIDATE ONLY — P2-GOV-01 remains `UNRESOLVED_BLOCKER` until this exact disposition record is protected-merged after every v1.4.0 gate |
+| Status | CANONICAL / EFFECTIVE — P2-GOV-01 disposition activated through PR #112 squash merge `ea1f204eab47bf16566096722d6390557b8141af`; historical noncompliance permanently preserved |
 | Date | 2026-09-01 |
 | Canonical base | protected `develop@93e59cbf4821fc51aba5bdb9815b52a73fbc67a0` |
 | Base tree | `3686ff3606d7c5f4fe97060abc12dffd0ccd3477` |
@@ -14,24 +14,37 @@
 | Historical merge | `915d42f614121959fface9846a07cc1b412febe2` |
 | Violated workflow | v1.3.0 |
 | Historical compliance | NONCOMPLIANT — permanently preserved |
-| Current original audit | 30/32 closed = 93.75% |
-| P3-07 | OPEN |
-| Stage 3.51 | BLOCKED until effective disposition |
+| Original audit at Stage 3.53 activation | 30/32 closed = 93.75% |
+| P3-07 at Stage 3.53 activation | OPEN |
+| Post-disposition Stage 3.51 eligibility | ELIGIBLE FOR REVISION / RE-REVIEW; not closed by disposition itself |
 | P3-08 | OPEN / unaffected |
-| Risk acceptance | Required later, after exact-published-head verification, bound to the exact Stage 3.53 published head |
-| Merge authorization | Separate explicit human act after risk acceptance |
-| Effective disposition | Only after protected squash merge of the exact reviewed disposition record |
+| Current follow-up | Stage 3.51 later closed P3-07 through PR #113 / `072350205b2746bdcd83f20718eb59efcd0478ef`; current audit 31/32 = 96.875%, P3-08 only |
+| Risk acceptance | COMPLETED — explicit Principal Architect residual-governance-risk acceptance bound to exact published head `76b6962374bd09a8241713f9a87e7e1834a823b4` |
+| Merge authorization | COMPLETED — separate explicit human squash-merge authorization |
+| Effective disposition | ACTIVE through PR #112 squash merge `ea1f204eab47bf16566096722d6390557b8141af` |
+
+## 0. Protected activation record
+
+Stage 3.53 was published at exact head `76b6962374bd09a8241713f9a87e7e1834a823b4` / tree
+`488cce09e87d42b3e5e03441336197bd10228c51`, passed CI #308 / run `33532539296` with all 10
+required jobs successful, received same-designated-reviewer exact-published-head APPROVED, explicit
+residual-governance-risk acceptance, separate Ready authorization and separate squash-merge
+authorization, and was squash-merged into protected `develop` at
+`ea1f204eab47bf16566096722d6390557b8141af`.
+
+The disposition is therefore effective. It resolves only the historical deviation's blocking effect.
+It never makes Stage 3.50 historically compliant.
 
 ## 1. Purpose
 
-This record proposes a narrow v1.4.0 disposition of `P2-GOV-01`.
+This record is the canonical v1.4.0 disposition of `P2-GOV-01`.
 
 The historical noncompliance remains noncompliant permanently. This record never states or implies
 that the Stage 3.50 lifecycle was compliant.
 
-The sole proposed effect, after every required gate and protected activation, is to resolve the
-**blocking effect** of `P2-GOV-01` so Stage 3.51 may be revised and re-reviewed. P3-07 itself remains
-OPEN until a later eligible Stage 3.51 protected closure merge.
+The effective disposition resolves only the **blocking effect** of `P2-GOV-01`, which made Stage 3.51
+eligible for revision and re-review. It did not itself close P3-07. P3-07 was later closed by the
+separately governed Stage 3.51 / PR #113 protected squash merge.
 
 ## 2. Prerequisite workflow activation
 
@@ -221,15 +234,24 @@ That status resolves only its blocking effect. It does **not**:
 - change original-audit arithmetic;
 - close or modify P3-08.
 
-After effective disposition, Stage 3.51 becomes eligible for revision and re-review. Only a later
-eligible Stage 3.51 protected merge may close P3-07 and move the original audit to 31/32 = 96.875%.
+After effective disposition, Stage 3.51 became eligible for revision and re-review. The later eligible
+Stage 3.51 / PR #113 protected squash merge closed P3-07 and moved the original audit to
+31/32 = 96.875%, leaving only P3-08 OPEN.
 
 ## 13. Current decision
 
-This is a disposition candidate, not an effective disposition.
+The Stage 3.53 disposition is **effective** through PR #112 squash merge
+`ea1f204eab47bf16566096722d6390557b8141af`.
 
-No remote mutation, risk acceptance, Ready, merge, Stage 3.51 publication, P3-07 closure, P3-08 work
-or branch deletion is authorized by this record.
+Historical Stage 3.50 noncompliance remains permanently preserved. The disposition resolved only the
+blocking effect of `P2-GOV-01`; it did not retroactively make Stage 3.50 compliant and did not itself
+close P3-07.
+
+P3-07 was later closed by the separately governed Stage 3.51 / PR #113 protected squash merge
+`072350205b2746bdcd83f20718eb59efcd0478ef`. The current original audit is therefore
+31/32 = 96.875%, with P3-08 as the sole remaining original finding.
+
+This historical disposition record grants no authority for P3-08 work or branch deletion.
 
 <!-- OPENINVEST_STAGE_03_53_P2_GOV_01_DISPOSITION_STATE_V1_BEGIN -->
 SCHEMA=OPENINVEST_STAGE_03_53_P2_GOV_01_DISPOSITION_STATE_V1
