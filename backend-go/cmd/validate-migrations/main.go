@@ -1,185 +1,45 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
-	"slices"
-	"strings"
 )
 
-var requiredUpFragments = []string{
-	"CREATE SCHEMA IF NOT EXISTS identity",
-	"CREATE SCHEMA IF NOT EXISTS investment",
-	"CREATE SCHEMA IF NOT EXISTS analytics",
-	"CREATE SCHEMA IF NOT EXISTS audit",
-	"CREATE TABLE identity.users",
-	"CREATE TABLE identity.user_investment_links",
-	"CREATE TABLE investment.subjects",
-	"CREATE TABLE investment.assets",
-	"CREATE TABLE investment.portfolios",
-	"CREATE TABLE investment.transaction_entries",
-	"CREATE TABLE investment.command_deduplication",
-	"CREATE TABLE investment.outbox_events",
-	"CREATE TABLE analytics.portfolio_snapshots",
-	"CREATE TABLE analytics.snapshot_positions",
-	"CREATE TABLE analytics.calculation_runs",
-	"CREATE TABLE analytics.inbox_messages",
-	"CREATE TABLE audit.actors",
-	"CREATE TABLE audit.events",
-}
-
-var requiredAuthPrivacyFragments = []string{
-	"CREATE TABLE identity.credentials",
-	"CREATE TABLE identity.privacy_settings",
-	"CREATE TABLE identity.sessions",
-	"CREATE UNIQUE INDEX sessions_refresh_token_hash_uidx",
-	"CREATE INDEX sessions_user_state_expires_idx",
-	"credentials_argon2id_hash",
-	"analytics_mode TEXT NOT NULL DEFAULT 'anonymous'",
-}
-
-type forbiddenPattern struct {
-	pattern *regexp.Regexp
-	message string
-}
-
-var forbiddenUpPatterns = []forbiddenPattern{
-	{regexp.MustCompile(`(?i)\bDROP\b`), "DROP is forbidden in up migrations"},
-	{regexp.MustCompile(`(?i)\bTRUNCATE\b`), "TRUNCATE is forbidden in up migrations"},
-	{regexp.MustCompile(`(?i)\bDELETE\s+FROM\b`), "DELETE FROM is forbidden in up migrations"},
-	{regexp.MustCompile(`(?i)\bUPDATE\s+[a-zA-Z0-9_."]+\s+SET`), "UPDATE is forbidden in up migrations"},
-	{regexp.MustCompile(`(?is)\bALTER\s+TABLE\b.*\bDROP\b`), "ALTER TABLE ... DROP is forbidden in up migrations"},
-}
-
 func main() {
-	root := filepath.Clean(filepath.Join(".."))
-	migrationsDir := filepath.Join(root, "infrastructure", "postgres", "migrations")
-	entries, err := os.ReadDir(migrationsDir)
+	mode := flag.String("mode", "local", "local|repository|pr")
+	base := flag.String("base-sha", "", "PR base commit SHA")
+	flag.Parse()
+	root, err := repoRoot()
 	if err != nil {
-		fail("Missing migrations directory: %s", migrationsDir)
+		fatal(err)
 	}
-
-	var upFiles []string
-	var downFiles []string
-	for _, entry := range entries {
-		name := entry.Name()
-		switch {
-		case strings.HasSuffix(name, ".up.sql"):
-			upFiles = append(upFiles, filepath.Join(migrationsDir, name))
-		case strings.HasSuffix(name, ".down.sql"):
-			downFiles = append(downFiles, filepath.Join(migrationsDir, name))
-		}
+	v := &Validator{Root: root, Mode: *mode, BaseSHA: *base}
+	if err := v.Validate(); err != nil {
+		fatal(err)
 	}
-	slices.Sort(upFiles)
-	slices.Sort(downFiles)
-
-	if len(upFiles) == 0 {
-		fail("No up migrations found")
+	fmt.Printf("Validated %d migration pair(s)\n", len(v.pairs))
+	if *mode == "pr" {
+		fmt.Printf("BASE_IMMUTABILITY=PROVEN base=%s\n", *base)
+	} else {
+		fmt.Println("BASE_IMMUTABILITY=NOT_APPLICABLE")
 	}
-
-	upPrefixes := prefixes(upFiles, ".up.sql")
-	downPrefixes := prefixes(downFiles, ".down.sql")
-	missingDown := difference(upPrefixes, downPrefixes)
-	missingUp := difference(downPrefixes, upPrefixes)
-	if len(missingDown) > 0 || len(missingUp) > 0 {
-		fmt.Fprintln(os.Stderr, "Migration up/down mismatch")
-		if len(missingDown) > 0 {
-			fmt.Fprintf(os.Stderr, "Missing down migrations for: %s\n", strings.Join(missingDown, ", "))
-		}
-		if len(missingUp) > 0 {
-			fmt.Fprintf(os.Stderr, "Missing up migrations for: %s\n", strings.Join(missingUp, ", "))
-		}
-		os.Exit(1)
-	}
-	if !slices.IsSorted(upPrefixes) {
-		fail("Migration files must be lexicographically ordered")
-	}
-
-	for _, path := range upFiles {
-		content, err := os.ReadFile(path)
-		if err != nil {
-			fail("cannot read %s: %v", path, err)
-		}
-		sql := string(content)
-		for _, forbidden := range forbiddenUpPatterns {
-			if forbidden.pattern.MatchString(sql) {
-				fail("%s: %s", relative(root, path), forbidden.message)
-			}
-		}
-		if strings.HasPrefix(filepath.Base(path), "000001_stage_03_01_vertical_slice") {
-			for _, fragment := range requiredUpFragments {
-				if !strings.Contains(sql, fragment) {
-					fail("%s: missing required fragment: %s", relative(root, path), fragment)
-				}
-			}
-			if regexp.MustCompile(`(?i)\bFLOAT\b|\bDOUBLE\b|\bREAL\b`).MatchString(sql) {
-				fail("%s: binary floating-point types are forbidden for financial schema", relative(root, path))
-			}
-			if !strings.Contains(sql, "NUMERIC(28, 8)") {
-				fail("%s: expected NUMERIC(28, 8) decimal financial columns", relative(root, path))
-			}
-		}
-		if strings.HasPrefix(filepath.Base(path), "000002_stage_03_11_auth_privacy") {
-			for _, fragment := range requiredAuthPrivacyFragments {
-				if !strings.Contains(sql, fragment) {
-					fail("%s: missing required fragment: %s", relative(root, path), fragment)
-				}
-			}
-			if regexp.MustCompile(`(?i)\bFLOAT\b|\bDOUBLE\b|\bREAL\b`).MatchString(sql) {
-				fail("%s: binary floating-point types are forbidden", relative(root, path))
-			}
-		}
-	}
-	for _, path := range downFiles {
-		content, err := os.ReadFile(path)
-		if err != nil {
-			fail("cannot read %s: %v", path, err)
-		}
-		sql := strings.TrimSpace(string(content))
-		if sql == "" {
-			fail("%s: down migration must not be empty", relative(root, path))
-		}
-		if !regexp.MustCompile(`(?i)\bBEGIN\s*;`).MatchString(sql) || !regexp.MustCompile(`(?i)\bCOMMIT\s*;`).MatchString(sql) {
-			fail("%s: down migration must be transactional", relative(root, path))
-		}
-	}
-
-	fmt.Printf("Validated %d migration pair(s)\n", len(upFiles))
 }
-
-func prefixes(paths []string, suffix string) []string {
-	result := make([]string, 0, len(paths))
-	for _, path := range paths {
-		result = append(result, strings.TrimSuffix(filepath.Base(path), suffix))
-	}
-	return result
-}
-
-func difference(left []string, right []string) []string {
-	seen := map[string]bool{}
-	for _, item := range right {
-		seen[item] = true
-	}
-	var result []string
-	for _, item := range left {
-		if !seen[item] {
-			result = append(result, item)
-		}
-	}
-	return result
-}
-
-func relative(root string, path string) string {
-	value, err := filepath.Rel(root, path)
+func repoRoot() (string, error) {
+	cwd, err := os.Getwd()
 	if err != nil {
-		return path
+		return "", err
 	}
-	return value
+	for d := cwd; ; d = filepath.Dir(d) {
+		if _, err := os.Stat(filepath.Join(d, "infrastructure", "postgres", "migrations")); err == nil {
+			return d, nil
+		}
+		p := filepath.Dir(d)
+		if p == d {
+			break
+		}
+	}
+	return "", fmt.Errorf("repository root not found")
 }
-
-func fail(format string, args ...any) {
-	fmt.Fprintf(os.Stderr, format+"\n", args...)
-	os.Exit(1)
-}
+func fatal(err error) { fmt.Fprintln(os.Stderr, err); os.Exit(1) }

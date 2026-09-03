@@ -19,6 +19,7 @@ concurrency:
 jobs:
   go:
     name: Go tests
+    needs: migrations
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -45,6 +46,11 @@ jobs:
         with:
           go-version-file: backend-go/go.mod
           cache-dependency-path: backend-go/go.sum
+      - name: Assert exact migration validation SHA
+        working-directory: .
+        env:
+          VALIDATED_SHA: ${{ needs.migrations.outputs.validated_sha }}
+        run: test "$VALIDATED_SHA" = "$GITHUB_SHA"
       - name: Apply PostgreSQL migrations
         working-directory: .
         run: |
@@ -150,6 +156,8 @@ jobs:
   migrations:
     name: PostgreSQL migration validation
     runs-on: ubuntu-latest
+    outputs:
+      validated_sha: ${{ steps.validate_migrations.outputs.validated_sha }}
     services:
       postgres:
         image: postgres:18
@@ -167,30 +175,82 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
       - name: Set up Go
         uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
         with:
-          go-version: "1.25"
+          go-version-file: backend-go/go.mod
           cache-dependency-path: backend-go/go.sum
       - name: Validate migration files
+        id: validate_migrations
         working-directory: backend-go
-        run: go run ./cmd/validate-migrations
+        run: |
+          set -euo pipefail
+          go test -v ./cmd/validate-migrations
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            go run ./cmd/validate-migrations --mode=pr --base-sha="${{ github.event.pull_request.base.sha }}"
+          else
+            go run ./cmd/validate-migrations --mode=repository
+          fi
+          echo "validated_sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
       - name: Apply migrations to PostgreSQL
         run: |
           set -euo pipefail
           while IFS= read -r -d '' migration; do
             docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -v ON_ERROR_STOP=1 < "$migration"
           done < <(find infrastructure/postgres/migrations -maxdepth 1 -type f -name '*.up.sql' -print0 | LC_ALL=C sort -z)
-      - name: Rehearse every migration rollback and full reapply
+          cat > "$RUNNER_TEMP/openinvest-catalog-fingerprint.sql" <<'SQL'
+          SELECT 'schema|' || nspname
+          FROM pg_namespace
+          WHERE nspname IN ('identity','investment','analytics','audit')
+          UNION ALL
+          SELECT 'relation|' || n.nspname || '|' || c.relname || '|' || c.relkind::text
+          FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+          WHERE n.nspname IN ('identity','investment','analytics','audit') AND c.relkind IN ('r','p','v','m','S','f')
+          UNION ALL
+          SELECT 'column|' || n.nspname || '|' || c.relname || '|' || a.attnum || '|' || a.attname || '|' || format_type(a.atttypid,a.atttypmod) || '|' || a.attnotnull || '|' || COALESCE(pg_get_expr(d.adbin,d.adrelid),'')
+          FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace LEFT JOIN pg_attrdef d ON d.adrelid=a.attrelid AND d.adnum=a.attnum
+          WHERE n.nspname IN ('identity','investment','analytics','audit') AND a.attnum>0 AND NOT a.attisdropped
+          UNION ALL
+          SELECT 'constraint|' || n.nspname || '|' || c.relname || '|' || con.conname || '|' || con.contype::text || '|' || pg_get_constraintdef(con.oid,true)
+          FROM pg_constraint con JOIN pg_class c ON c.oid=con.conrelid JOIN pg_namespace n ON n.oid=c.relnamespace
+          WHERE n.nspname IN ('identity','investment','analytics','audit')
+          UNION ALL
+          SELECT 'index|' || schemaname || '|' || tablename || '|' || indexname || '|' || indexdef
+          FROM pg_indexes WHERE schemaname IN ('identity','investment','analytics','audit')
+          UNION ALL
+          SELECT 'function|' || n.nspname || '|' || p.proname || '|' || pg_get_function_identity_arguments(p.oid) || '|' || replace(pg_get_functiondef(p.oid), E'\n', ' ')
+          FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+          WHERE n.nspname IN ('identity','investment','analytics','audit')
+          UNION ALL
+          SELECT 'trigger|' || n.nspname || '|' || c.relname || '|' || t.tgname || '|' || pg_get_triggerdef(t.oid,true)
+          FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid JOIN pg_namespace n ON n.oid=c.relnamespace
+          WHERE n.nspname IN ('identity','investment','analytics','audit') AND NOT t.tgisinternal;
+          SQL
+          catalog_fingerprint() {
+            docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -At -v ON_ERROR_STOP=1 < "$RUNNER_TEMP/openinvest-catalog-fingerprint.sql" | LC_ALL=C sort | sha256sum | awk '{print $1}'
+          }
+          catalog_fingerprint > "$RUNNER_TEMP/openinvest-first-catalog.sha256"
+          test -s "$RUNNER_TEMP/openinvest-first-catalog.sha256"
+      - name: Rehearse disposable DOWN inverses and full reapply
         run: |
           set -euo pipefail
           while IFS= read -r -d '' migration; do
             rollback="${migration%.up.sql}.down.sql"
             docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -v ON_ERROR_STOP=1 < "$rollback"
           done < <(find infrastructure/postgres/migrations -maxdepth 1 -type f -name '*.up.sql' -print0 | LC_ALL=C sort -z -r)
+          managed_schema_count="$(docker exec "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -At -v ON_ERROR_STOP=1 -c "SELECT count(*) FROM pg_namespace WHERE nspname IN ('identity','investment','analytics','audit');")"
+          test "$managed_schema_count" -eq 0
+          managed_relation_count="$(docker exec "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -At -v ON_ERROR_STOP=1 -c "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN ('identity','investment','analytics','audit');")"
+          test "$managed_relation_count" -eq 0
           while IFS= read -r -d '' migration; do
             docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -v ON_ERROR_STOP=1 < "$migration"
           done < <(find infrastructure/postgres/migrations -maxdepth 1 -type f -name '*.up.sql' -print0 | LC_ALL=C sort -z)
+          catalog_fingerprint() {
+            docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -At -v ON_ERROR_STOP=1 < "$RUNNER_TEMP/openinvest-catalog-fingerprint.sql" | LC_ALL=C sort | sha256sum | awk '{print $1}'
+          }
+          test "$(catalog_fingerprint)" = "$(cat "$RUNNER_TEMP/openinvest-first-catalog.sha256")"
           required_tables="$(docker exec "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -At -c "SELECT count(*) FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND (table_schema, table_name) IN (('identity', 'users'), ('identity', 'sessions'), ('investment', 'portfolios'), ('investment', 'transaction_entries'), ('audit', 'events')); ")"
           test "$required_tables" -eq 5
           source_kind_column="$(docker exec "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_migrations -At -c "SELECT count(*) FROM information_schema.columns WHERE table_schema = 'investment' AND table_name = 'transaction_entries' AND column_name = 'source_kind' AND is_nullable = 'NO' AND column_default IS NOT NULL;")"
@@ -288,6 +348,7 @@ jobs:
 
   go-race:
     name: Go race tests
+    needs: migrations
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -314,6 +375,11 @@ jobs:
         with:
           go-version-file: backend-go/go.mod
           cache-dependency-path: backend-go/go.sum
+      - name: Assert exact migration validation SHA
+        working-directory: .
+        env:
+          VALIDATED_SHA: ${{ needs.migrations.outputs.validated_sha }}
+        run: test "$VALIDATED_SHA" = "$GITHUB_SHA"
       - name: Apply PostgreSQL migrations
         working-directory: .
         run: |
