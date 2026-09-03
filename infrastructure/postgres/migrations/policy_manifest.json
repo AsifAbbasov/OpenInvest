@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "legacy_baseline": {
+    "max_id": "000007",
+    "policy_metadata_status": "not_retroactively_asserted",
+    "entries": [
+      {
+        "id": "000001",
+        "name": "stage_03_01_vertical_slice",
+        "up_sha256": "5ad39fb45af4f50f6707de0ba8b59d470cf7e4869fea8e7e63273710c8ed1741",
+        "down_sha256": "b136333141e173ea4743e6f66bf512ffa165615e90988a8ab2b5a9a989dbaa9e"
+      },
+      {
+        "id": "000002",
+        "name": "stage_03_11_auth_privacy",
+        "up_sha256": "ee6aa96a65c88883197770d1d82f75da8a78dc356c7bb5ce2763354ac7513b6b",
+        "down_sha256": "da068b69ece81e704415b07a99a26597c4c2567767d1cfdceb37180ae7aa39e8"
+      },
+      {
+        "id": "000003",
+        "name": "stage_03_16_transaction_source_provenance",
+        "up_sha256": "805b352eb29832de7cd2af8596d91a6fcc3a19455cda8af98564bd2c955a8aae",
+        "down_sha256": "cf04624f8c7071e95325b7c4ace6e2f8e0f6e733c4d1e3991047907084d4bced"
+      },
+      {
+        "id": "000004",
+        "name": "stage_03_27_import_financial_identity",
+        "up_sha256": "bf78ef0c6fd4c9c04a3f30b6ee3b65b6c099093d106d639b0e2d48ca98887cb2",
+        "down_sha256": "1866ad553c04e418344ceca8110593089356460bdb81f5f8ba7a457679328c5a"
+      },
+      {
+        "id": "000005",
+        "name": "stage_03_28_auth_security",
+        "up_sha256": "7615b12d8cffc2803fde393b8b77fd911bb0d751cc42f237590ffb9b7500b1e5",
+        "down_sha256": "f9d3a744a998af8ebd60359b0c895e8c1dab5bae07428df80aa4bc5763083533"
+      },
+      {
+        "id": "000006",
+        "name": "stage_03_32_idempotency_replay",
+        "up_sha256": "ad4e01abd25c65b1bd4b9d0a39ad2720102ffc6452d63e996729ba73967b80c6",
+        "down_sha256": "a85619479ff26d451bc222043da9994a329ce8bcbb64cb35fe9e72b797ffea15"
+      },
+      {
+        "id": "000007",
+        "name": "stage_03_38_operational_retention",
+        "up_sha256": "d145e2f10657d3b499200aa55c960dc6986ac14fe1f101c2538cc9e1d880f83f",
+        "down_sha256": "51e9994af57c6fc9db7a1c23f241a9f7e49de9c0ea106d943f1ef953844ddb6b"
+      }
+    ]
+  },
+  "enforced_migrations": []
+}
