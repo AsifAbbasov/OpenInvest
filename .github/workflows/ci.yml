@@ -205,7 +205,7 @@ jobs:
           FROM pg_namespace
           WHERE nspname IN ('identity','investment','analytics','audit')
           UNION ALL
-          SELECT 'relation|' || n.nspname || '|' || c.relname || '|' || c.relkind
+          SELECT 'relation|' || n.nspname || '|' || c.relname || '|' || c.relkind::text
           FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
           WHERE n.nspname IN ('identity','investment','analytics','audit') AND c.relkind IN ('r','p','v','m','S','f')
           UNION ALL
@@ -213,7 +213,7 @@ jobs:
           FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace LEFT JOIN pg_attrdef d ON d.adrelid=a.attrelid AND d.adnum=a.attnum
           WHERE n.nspname IN ('identity','investment','analytics','audit') AND a.attnum>0 AND NOT a.attisdropped
           UNION ALL
-          SELECT 'constraint|' || n.nspname || '|' || c.relname || '|' || con.conname || '|' || con.contype || '|' || pg_get_constraintdef(con.oid,true)
+          SELECT 'constraint|' || n.nspname || '|' || c.relname || '|' || con.conname || '|' || con.contype::text || '|' || pg_get_constraintdef(con.oid,true)
           FROM pg_constraint con JOIN pg_class c ON c.oid=con.conrelid JOIN pg_namespace n ON n.oid=c.relnamespace
           WHERE n.nspname IN ('identity','investment','analytics','audit')
           UNION ALL
