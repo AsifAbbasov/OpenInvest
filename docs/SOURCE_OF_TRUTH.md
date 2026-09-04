@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.83 |
+| Version | 1.4.84 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
 | Last Review Date | 2026-09-04 |
-| Next Review Date | Before Stage 3.25 privacy evidence-collection plan review or the next separately reviewed audit-remediation scope |
+| Next Review Date | Before approval of a Stage 4 implementation scope or Stage 3.25 privacy evidence-collection plan review |
 
 ## Architecture status
 
@@ -18,8 +18,9 @@
 **Last completed implementation stage: Stage 3.55 — P3-08 migration validator implementation / PR #116 squash merge `6a443969aef944bde0946d36c79f67ddb87c28fe`**
 **Last completed privacy planning gate: Stage 3.24 — Privacy Security Review Readiness Dossier**
 **Last completed audit-remediation planning gate: Stage 3.54 — P3-08 migration validator planning / PR #115 squash merge `b79a9d3c43621e56e598901bdf472771e8b68ef8`**
-**Last completed audit-remediation closure gate: Stage 3.51 — P3-07 closure governance / PR #113 squash merge `072350205b2746bdcd83f20718eb59efcd0478ef`**
-**Current audit-remediation closure work item: Stage 3.56 — P3-08 migration validator closure; P3-08 remains OPEN / audit 31/32 until this exact synchronized closure state is protected-merged after required gates, then P3-08 is CLOSED / audit 32/32**
+**Last completed audit-remediation closure gate: Stage 3.56 - P3-08 migration validator closure / PR #117 squash merge `983104267221706c3c2ebd8d9be358e3921334b5`**
+**Original repository audit: CLOSED - Stage 3.56 closure record is protected-merged at `983104267221706c3c2ebd8d9be358e3921334b5`; 32/32 (100%) closed with P0=0 / P1=0 / P2=0 / P3=0**
+**Current post-audit planning item: Stage 4 - Commercial readiness assurance planning; documentation-only candidate that authorizes no implementation or production-readiness claim**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
 **Stage 3.39 implementation merge baseline: PR #97 squash merge `abbd9f9f61574621e206f2e196b1fb8f056dc194`; the moving protected `develop` HEAD is intentionally not hard-coded by this merge-activated closure record**
 **Stage 3.41 implementation merge baseline: PR #101 squash merge `a2cfeaa5ca68fdd951e2a99f69c96aec362fc416`; the moving protected `develop` HEAD is intentionally not hard-coded by the Stage 3.42 merge-activated closure record**
@@ -46,6 +47,7 @@
 **Stage 3.52 governance workflow amendment: ACTIVATED through PR #111 squash merge `93e59cbf4821fc51aba5bdb9815b52a73fbc67a0` / tree `3686ff3606d7c5f4fe97060abc12dffd0ccd3477`; `REVIEW_WORKFLOW.md` v1.4.0 is canonical. The historical v1.3.0 adoption path and self-bootstrap prohibition remain preserved.**
 **Stage 3.53 P2-GOV-01 disposition: EFFECTIVE through PR #112 squash merge `ea1f204eab47bf16566096722d6390557b8141af`. P2-GOV-01 is `DISPOSITIONED — HISTORICAL NONCOMPLIANCE PRESERVED / RESIDUAL GOVERNANCE RISK ACCEPTED`; historical Stage 3.50 noncompliance remains permanently preserved and is not retroactively compliant.**
 **Stage 3.51 P3-07 closure: COMPLETE through PR #113 exact published head `1868749965fa1c113875592668afaa8f1f1ca35e`, CI #309 / run `33540615693` 10/10, exact-published-head `APPROVED`, and squash merge `072350205b2746bdcd83f20718eb59efcd0478ef` / tree `c83120dcfdf1cab281fea10818860827eb699b64`. P3-07 is CLOSED; the original audit is 31/32 = 96.875%; only P3-08 remains OPEN.**
+**Stage 3.56 P3-08 closure: COMPLETE through PR #117 squash merge `983104267221706c3c2ebd8d9be358e3921334b5`. Its merge-activated structured state is current authority: P3-08 is CLOSED and the original audit is 32/32 (100%) with P0=0 / P1=0 / P2=0 / P3=0. Historical point-in-time entries above remain retained as historical evidence.**
 **Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
 **Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
 
@@ -785,6 +787,14 @@ Stage 3.55 implementation is canonical through PR #116 published head `9df58319b
 Stage 3.56 independently replays the canonical §30 closure evidence: PLAN 18/18, H 269/269, SA 82/82 exact, S2 168/168, P3D 27/27, FD 19/19, R 75/75, TC execution ledger 631/631 with no missing/duplicate IDs, MPROP 631 exact TC bijection, 1895/1895 property mutations killed, 31/31 extra red-team killed, one taxonomy authority, observer closure 89+79=168, historical SQL 14/14 byte-identical, and PostgreSQL apply→DOWN→baseline→reapply plus all ten required CI checks green.
 
 Stage 3.56 changes governance documentation only. Before its exact closure record and synchronized state are protected-merged after required gates, P3-08 remains OPEN and the original audit remains 31/32 = 96.875%. After activation, P3-08 is CLOSED, P0/P1/P2/P3 are all zero, no original audit finding remains, and the original audit is 32/32 = 100%.
+
+## Stage 4 commercial readiness assurance planning
+
+Stage 4 is a forward-looking, documentation-only planning candidate after the original repository audit closure. It is not an original audit finding, a commercial-readiness certification, or authorization to change runtime behavior.
+
+The candidate sequences separately reviewed implementation scopes for: narrowly selected property-based tests of financial and replay invariants; native fuzz targets for untrusted parser boundaries; reproducible load/benchmark work with declared workloads and thresholds; observability and backup/restore readiness; and, only when an authorized environment and budget exist, independent penetration testing and security assessment. Production chaos experiments and operational evidence are explicitly post-production activities. Formal methods remain a future, targeted option for concurrency-sensitive invariants rather than a whole-repository requirement.
+
+Stage 4 does not change code, OpenAPI, database schema, migrations, CI, dependencies, infrastructure, credentials, providers, production data, or the Stage 3.25 privacy Security Review evidence-collection plan. Any implementation is a new scope and must satisfy the then-effective review and delivery workflow.
 
 <!-- OPENINVEST_STAGE_03_56_P3_08_CLOSURE_STATE_V1_BEGIN -->
 SCHEMA=OPENINVEST_STAGE_03_56_P3_08_CLOSURE_STATE_V1
