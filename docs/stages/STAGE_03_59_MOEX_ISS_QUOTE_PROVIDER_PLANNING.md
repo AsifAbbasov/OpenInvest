@@ -124,8 +124,9 @@ with query parameters equivalent to:
 
 ```text
 iss.meta=off
-iss.only=marketdata
-marketdata.columns=SECID,BOARDID,LAST,TRADEDATE,TIME
+iss.only=marketdata,dataversion
+marketdata.columns=SECID,BOARDID,LAST,TIME
+dataversion.columns=trade_date
 ```
 
 The implementation must construct the URL structurally; it must not string-concatenate untrusted arbitrary
@@ -172,18 +173,18 @@ marketdata into a positional struct that assumes a fixed column order.
 
 The adapter must:
 
-1. parse the `marketdata` block;
-2. build a name → index map from `columns`;
-3. require every canonical input column by exact name;
-4. reject duplicate required column names;
-5. accept reordered columns;
+1. parse the `marketdata` and `dataversion` blocks independently;
+2. build a name → index map from each block's `columns`;
+3. require `SECID`, `BOARDID`, `LAST`, and `TIME` from `marketdata`, plus `trade_date` from `dataversion`;
+4. reject duplicate required column names in either block;
+5. accept reordered columns in either block;
 6. ignore additional unrelated columns;
 7. validate row length before indexing;
 8. reject malformed table shape;
-9. reject more than one marketdata row for this board/security-specific endpoint;
-10. never expose the provider table/column representation above the adapter package.
+9. require exactly one marketdata row for a successful quote and exactly one usable dataversion row for its trade-date evidence;
+10. never expose either provider table/column representation above the adapter package.
 
-A changed column order must remain a successful quote when all required names are present.
+A changed column order must remain a successful quote when all required names are present. Empty `marketdata.data` still represents quote absence; missing, empty, multiple, or malformed `dataversion` trade-date evidence is provider-data failure rather than quote-not-found.
 
 ## 8. Exact decimal/money contract
 
@@ -243,10 +244,10 @@ OpenInvest performed the request.
 Feature 2 uses:
 
 ```text
-TRADEDATE + TIME
+dataversion.trade_date + marketdata.TIME
 ```
 
-where `TIME` is the MOEX last-trade time and `TRADEDATE` is the trade date.
+where `marketdata.TIME` is the MOEX last-trade time and `dataversion.trade_date` is the trade date supplied by the same endpoint in the separate `dataversion` block.
 
 Provider local time is interpreted in the IANA zone:
 
@@ -326,7 +327,8 @@ row shape mismatch
 multiple rows
 mismatched SECID/BOARDID
 invalid/non-decimal/negative LAST
-invalid TRADEDATE/TIME
+missing/malformed/ambiguous `dataversion` trade-date evidence
+invalid `dataversion.trade_date` or `marketdata.TIME`
 oversized response
 unexpected non-429 4xx unless later official evidence proves not-found semantics
 → ErrMarketQuoteProviderData
@@ -453,7 +455,7 @@ Success contract:
 - exact canonical ticker preserved;
 - `LAST` exact decimal preservation including more than two decimal places;
 - RUB Money;
-- `TRADEDATE + TIME` parsed as Europe/Moscow and converted to UTC;
+- `dataversion.trade_date + marketdata.TIME` parsed as Europe/Moscow and converted to UTC;
 - `RetrievedAt` comes exactly from injected fixed Clock;
 - provider identity exactly `MOEX_ISS`;
 - reordered columns succeed;
@@ -489,8 +491,12 @@ Malformed provider data:
 - invalid JSON numeric LAST;
 - negative LAST;
 - decimal outside canonical storage;
-- invalid/missing TRADEDATE;
-- invalid/missing TIME;
+- missing `dataversion`;
+- missing/duplicate `dataversion.trade_date` column;
+- empty/multiple `dataversion` rows;
+- invalid/missing `dataversion.trade_date`;
+- invalid/missing `marketdata.TIME`;
+- reordered `dataversion` columns with unrelated extras still succeed;
 - oversized response >64 KiB.
 
 Safety/regression:
