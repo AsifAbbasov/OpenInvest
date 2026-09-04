@@ -59,6 +59,9 @@ func newQuoteProvider(client *http.Client, clock verticalslice.Clock, baseURL st
 	clientCopy := *client
 	clientCopy.Timeout = requestTimeout
 	clientCopy.Jar = nil
+	clientCopy.CheckRedirect = func(*http.Request, []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
 
 	return &Provider{
 		client:  &clientCopy,
