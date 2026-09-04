@@ -96,7 +96,7 @@ CorporateActions(ctx context.Context, query CorporateActionQuery) ([]CorporateAc
 `FetchCorporateActions` owns application-side boundary enforcement:
 
 1. validate query before provider invocation;
-2. reject nil and typed-nil providers as `ErrCorporateActionsUnavailable`;
+2. reject nil and typed-nil providers as `ErrCorporateActionsProviderUnavailable`;
 3. copy the instrument slice before handing the query to a provider so a provider cannot mutate caller-owned query storage;
 4. preserve caller context cancellation/deadline and provider-neutral `ProviderUnavailable` / `ProviderData` errors;
 5. normalize any unclassified provider-specific error to `ErrCorporateActionsProviderUnavailable` without leaking provider details;

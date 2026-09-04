@@ -100,6 +100,7 @@ func TestValidateCorporateActionEventRejectsInvalidFields(t *testing.T) {
 		{"source event empty", func(e *CorporateActionEvent) { e.Provenance.SourceEventID = "" }},
 		{"source event padded", func(e *CorporateActionEvent) { e.Provenance.SourceEventID = " source-1 " }},
 		{"source event control", func(e *CorporateActionEvent) { e.Provenance.SourceEventID = "source\n1" }},
+		{"source event c1 control", func(e *CorporateActionEvent) { e.Provenance.SourceEventID = "source\u00851" }},
 		{"self supersedes", func(e *CorporateActionEvent) { value := e.EventID; e.SupersedesEventID = &value }},
 		{"bad supersedes", func(e *CorporateActionEvent) { value := "bad id"; e.SupersedesEventID = &value }},
 	}

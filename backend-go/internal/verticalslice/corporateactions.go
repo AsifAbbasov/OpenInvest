@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode"
 )
 
 var (
@@ -233,7 +234,7 @@ func validateOpaqueCorporateActionID(value string, maxBytes int, field string) e
 		return fmt.Errorf("%s is invalid", field)
 	}
 	for _, r := range value {
-		if r < 0x20 || r == 0x7f {
+		if unicode.IsControl(r) {
 			return fmt.Errorf("%s is invalid", field)
 		}
 	}
