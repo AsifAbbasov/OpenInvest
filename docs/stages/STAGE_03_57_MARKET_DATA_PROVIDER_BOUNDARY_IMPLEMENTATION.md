@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Development-path implementation candidate; no commit/push/PR/Ready/merge authorization implied |
+| Status | RUNTIME MERGED / FEATURE 1 TECHNICALLY COMPLETE — PR #120 squash-merged into protected `develop` at `cd97f3217811bb123ad96d92b7d8a4be0e03c8bb`, tree `0510971289c204e9b5226359f2efdd1941542309`; canonical lifecycle-document closure is handled separately by Stage 3.58 |
 | Date | 2026-09-04 |
 | Canonical implementation base | `develop@8316d404d057f0a895713bd1d496a342409903c4` |
 | Protected-base tree | `1c596fbb9c26016bdc5c6036f09d6e081bdbcf7f` |
@@ -194,3 +194,34 @@ They are not referenced by publication tree `3bc132a41c58b9b66ae506a904c7562e89a
 ### Remaining gate
 
 This evidence publication changes documentation only and must itself pass required exact-head CI. The same designated review chat must then verify the publication as complete, accurate, evidence-only, and free of semantic/runtime drift. Only after that verification may the human Principal Architect authorize Ready and squash merge. Feature 2 remains out of scope.
+
+## 11. Protected merge and Stage 3.58 closure handoff
+
+The `Remaining gate` subsection in section 10 is preserved as the historical state at the
+evidence-publication head. That gate was subsequently satisfied.
+
+PR #120 was separately authorized for Ready and squash merge at exact final evidence head
+`35db51707fce970e67bf9d5a9485f79619ec366d`, tree
+`0510971289c204e9b5226359f2efdd1941542309`.
+
+GitHub recorded the protected squash merge:
+
+- merge commit `cd97f3217811bb123ad96d92b7d8a4be0e03c8bb`;
+- protected merge tree `0510971289c204e9b5226359f2efdd1941542309`;
+- parent `8316d404d057f0a895713bd1d496a342409903c4`;
+- PR #120 state `merged=true`.
+
+The protected merge tree is identical to the exact authorized PR tree, so no tree drift occurred.
+
+Feature 1 runtime is therefore complete. It establishes the internal provider-neutral quote boundary,
+canonical quote/provenance model, deterministic freshness semantics, fail-closed validation, and
+test-only fake provider proof described above.
+
+The merge does not add or authorize real MOEX ISS HTTP/parsing, production provider wiring, Data
+Source Registry activation, OpenAPI/DB/frontend changes, caching/workers, production asset-search
+enrichment, or Feature 2.
+
+Stage 3.58 is a separate documentation/governance-only lifecycle closure. Once its approved closure
+record and synchronized canonical surfaces are present on protected `develop`, Stage 3.57 Feature 1
+is canonically CLOSED. Feature 2 remains subject to a separate governed stage and explicit human
+authorization.

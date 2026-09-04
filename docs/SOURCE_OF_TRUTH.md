@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.84 |
+| Version | 1.4.85 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -15,7 +15,8 @@
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.55 — P3-08 migration validator implementation / PR #116 squash merge `6a443969aef944bde0946d36c79f67ddb87c28fe`**
+**Last completed implementation stage: Stage 3.57 — Market Data Provider Boundary Feature 1 / PR #120 squash merge `cd97f3217811bb123ad96d92b7d8a4be0e03c8bb` / protected tree `0510971289c204e9b5226359f2efdd1941542309`**
+**Current market-data lifecycle: Stage 3.57 planning is canonical through PR #119; Feature 1 runtime is protected-merged through PR #120 after final CI #321 / run `33861987999` 10/10 and approved review/evidence gates; Stage 3.58 is documentation-only lifecycle closure and becomes canonical only when its synchronized closure record is present on protected `develop`; Feature 2 is not authorized by Stage 3.58**
 **Last completed privacy planning gate: Stage 3.24 — Privacy Security Review Readiness Dossier**
 **Last completed audit-remediation planning gate: Stage 3.54 — P3-08 migration validator planning / PR #115 squash merge `b79a9d3c43621e56e598901bdf472771e8b68ef8`**
 **Last completed audit-remediation closure gate: Stage 3.56 — P3-08 migration validator closure / PR #117 squash merge `983104267221706c3c2ebd8d9be358e3921334b5` from exact head `02e9ef82ed087a892928dc643adccbdfa1ed9600` after CI #316 / run `33816103670` 10/10 and `PUBLISHED_EXACT_HEAD_CLOSURE=APPROVED`**
@@ -838,3 +839,33 @@ SCHEMA_DATA_SQL_OPENAPI_FRONTEND_DEPENDENCY_CHANGE=NONE
 REMOTE_MUTATION_AUTHORIZED_BY_RECORD=NO
 BRANCH_DELETION_AUTHORIZED=NO
 <!-- OPENINVEST_STAGE_03_56_P3_08_CLOSURE_STATE_V1_END -->
+
+## Stage 3.57 / 3.58 market-data provider-boundary Feature 1 closure
+
+Stage 3.57 planning is canonical through PR #119 squash merge
+`8316d404d057f0a895713bd1d496a342409903c4`, with planning blob
+`6ddd4682b49a6a259c64474d9adf8882279eca5d` and approved SHA-256
+`e85fc028550663b51daafdea14deddc18f79ae1a3c917e3f5a8c414d5f5ce8ed`.
+
+Stage 3.57 Feature 1 implementation is canonical through PR #120 squash merge
+`cd97f3217811bb123ad96d92b7d8a4be0e03c8bb`. The final authorized PR tree is
+`0510971289c204e9b5226359f2efdd1941542309`, identical to the protected merge tree.
+Final evidence head `35db51707fce970e67bf9d5a9485f79619ec366d` passed CI #321 / run
+`33861987999` with all ten required jobs successful after a same-head retry of an external
+npm-registry timeout. Internal review, fresh External published-head review, and evidence-publication
+verification were `APPROVED` with no blocking finding and no semantic/runtime drift.
+
+The implementation establishes the provider-neutral `QuoteProvider` → canonical `MarketQuote` →
+application-service boundary, decimal RUB money preservation, distinct UTC `AsOf` / `RetrievedAt`,
+minimal provider provenance, deterministic derived `FRESH` / `STALE` / `UNKNOWN` freshness, and
+fail-closed canonical validation. It does not connect MOEX ISS, parse provider wire schema, enable a
+production provider, change OpenAPI/SQL/frontend, persist quotes, add cache/workers, or enrich
+production asset search; `lastPrice: null` therefore remains honest current production behavior.
+
+Stage 3.58 is the documentation/governance-only lifecycle closure for that already-merged runtime.
+It changes no development surface. Its closure becomes canonical only when the approved Stage 3.58
+record and synchronized `SOURCE_OF_TRUTH.md`, `ROADMAP.md`, and Stage 3.57 implementation record are
+present on protected `develop` after the mandatory governance/closure path.
+
+Feature 2 — a real MOEX ISS provider adapter and any production wiring/source activation — remains a
+separate governed stage and is not authorized by Stage 3.58.

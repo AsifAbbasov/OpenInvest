@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.82 |
+| Version | 1.1.83 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
@@ -105,6 +105,9 @@
 | 3.54 — P3-08 migration validator planning | Freeze the exact machine-enforceable Stage 2 migration-policy contract before implementation | Complete / PR #115 squash-merged into protected `develop` at `b79a9d3c43621e56e598901bdf472771e8b68ef8`; approved plan blob `90fa563b9256b19055e2c14e52909596b392f221`, SHA-256 `c266d5b7c867d2e6847bbe169b0a890a997a81f886f1876117117e52c85aecba` |
 | 3.55 — P3-08 migration validator implementation | Implement the approved strict manifest, migration grammar, base-relative immutability, exact inverse/effect and CI-dominance contract | Complete / PR #116 squash-merged into protected `develop` at `6a443969aef944bde0946d36c79f67ddb87c28fe` from published head `9df58319b59a1bd3ab9817d07d59c3b3c36a1b1a` after exact-head CI #315 / run `33799997370` 10/10 and `PUBLISHED_EXACT_HEAD=APPROVED` |
 | 3.56 — P3-08 closure governance | Independently revalidate the protected Stage 3.55 implementation and synchronize final original-audit closure without runtime change | Complete / PR #117 squash-merged into protected `develop` at `983104267221706c3c2ebd8d9be358e3921334b5` from exact head `02e9ef82ed087a892928dc643adccbdfa1ed9600`, tree `2840e55f7a62e2f64a148947fe7e22236228a9d5`, after CI #316 / run `33816103670` 10/10 and `PUBLISHED_EXACT_HEAD_CLOSURE=APPROVED`; P3-08 CLOSED; original audit 32/32 = 100%; remaining original findings NONE |
+| 3.57 — Market Data Provider Boundary planning | Freeze the smallest provider-neutral canonical quote, provenance/freshness, time, failure, API/DB and test boundary before any real MOEX provider I/O | Complete / PR #119 squash-merged into `develop` at `8316d404d057f0a895713bd1d496a342409903c4` |
+| 3.57 — Market Data Provider Boundary Feature 1 implementation | Implement `QuoteProvider`, canonical `MarketQuote`, fail-closed invariants, deterministic freshness and a narrow internal service seam without production provider wiring | Complete / PR #120 squash-merged into `develop` at `cd97f3217811bb123ad96d92b7d8a4be0e03c8bb`; protected tree `0510971289c204e9b5226359f2efdd1941542309`; final CI #321 / run `33861987999` 10/10; review/evidence gates APPROVED |
+| 3.58 — Market Data Provider Boundary Feature 1 closure governance | Synchronize canonical lifecycle documentation for the already-merged Feature 1 and preserve the separate Feature 2 gate without runtime change | Merge-activated documentation-only closure; complete only when the approved Stage 3.58 closure record and synchronized canonical surfaces are present on protected `develop` |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
@@ -175,6 +178,22 @@ Stage 3.52 is canonical through PR #111 at `93e59cbf4821fc51aba5bdb9815b52a73fbc
 Stage 3.54 P3-08 planning is canonical through PR #115 squash merge `b79a9d3c43621e56e598901bdf472771e8b68ef8` with approved plan blob `90fa563b9256b19055e2c14e52909596b392f221`. Stage 3.55 implementation is canonical through PR #116 squash merge `6a443969aef944bde0946d36c79f67ddb87c28fe`, preserving approved published tree `6d894f710329332f2f64b7d280a9b27a94be86d9` after exact-head CI #315 / run `33799997370` 10/10 and published-head `APPROVED`.
 
 Stage 3.56 closure is canonical through PR #117 exact head `02e9ef82ed087a892928dc643adccbdfa1ed9600`, tree `2840e55f7a62e2f64a148947fe7e22236228a9d5`, exact-head CI #316 / run `33816103670` 10/10, published-head closure review `APPROVED`, and protected squash merge `983104267221706c3c2ebd8d9be358e3921334b5`. P3-08 is CLOSED, no original audit finding remains, and the original audit is 32/32 = 100%.
+
+Stage 3.57 market-data provider-boundary planning is canonical through PR #119 squash merge
+`8316d404d057f0a895713bd1d496a342409903c4`. Feature 1 runtime implementation is canonical through
+PR #120 squash merge `cd97f3217811bb123ad96d92b7d8a4be0e03c8bb`, preserving final authorized tree
+`0510971289c204e9b5226359f2efdd1941542309` after CI #321 / run `33861987999` 10/10 and approved
+Internal, External, and evidence-publication verification gates.
+
+Feature 1 establishes only the provider-neutral `QuoteProvider` / canonical `MarketQuote` boundary,
+minimal provenance, deterministic freshness, canonical validation, and internal service seam. Real
+MOEX ISS HTTP/parsing, production provider wiring, source activation, OpenAPI/DB/frontend changes,
+cache/workers, and production asset-search enrichment remain outside Feature 1.
+
+Stage 3.58 is documentation/governance-only closure synchronization. It becomes complete only when the
+approved closure record and synchronized canonical surfaces are present on protected `develop`. It
+does not authorize Feature 2. A real MOEX provider adapter requires a separate reviewed scope and
+explicit human authorization.
 
 No further audit-remediation implementation begins without a separately reviewed planning/remediation gate.
 
