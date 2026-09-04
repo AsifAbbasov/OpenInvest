@@ -2,7 +2,11 @@
 
 | Field | Value |
 | --- | --- |
-| Status | CLOSURE CANDIDATE — P3-08 remains OPEN until this exact record and synchronized canonical state are protected-merged after required gates |
+| Status | CLOSED / ACTIVATED — P3-08 closed by protected Stage 3.56 squash merge `983104267221706c3c2ebd8d9be358e3921334b5`; original audit 32/32 = 100% |
+| Stage 3.56 publication | PR #117 / exact head `02e9ef82ed087a892928dc643adccbdfa1ed9600` / tree `2840e55f7a62e2f64a148947fe7e22236228a9d5` |
+| Stage 3.56 exact CI | #316 / run `33816103670` — 10/10 SUCCESS |
+| Stage 3.56 published exact-head closure review | APPROVED |
+| Stage 3.56 protected activation | squash merge `983104267221706c3c2ebd8d9be358e3921334b5` / tree `2840e55f7a62e2f64a148947fe7e22236228a9d5` |
 | Date | 2026-09-04 |
 | Canonical workflow | `docs/REVIEW_WORKFLOW.md` v1.4.0 |
 | Closure base | protected `develop@6a443969aef944bde0946d36c79f67ddb87c28fe` / tree `6d894f710329332f2f64b7d280a9b27a94be86d9` |
@@ -172,6 +176,8 @@ Before activation:
 - P3-08 = OPEN.
 
 Activation requires this exact Stage 3.56 closure record and byte-identical structured state on all synchronized canonical surfaces to be published through the governed PR path, pass exact-head required CI, receive fresh read-only published-head review, receive separate explicit human Ready/squash-merge authorization, and be present on protected `develop`.
+
+Those gates were satisfied by PR #117: exact published head `02e9ef82ed087a892928dc643adccbdfa1ed9600`, tree `2840e55f7a62e2f64a148947fe7e22236228a9d5`, CI #316 / run `33816103670` 10/10 SUCCESS, fresh published-head closure review `APPROVED`, separate explicit human Ready + squash-merge authorization, and protected squash merge `983104267221706c3c2ebd8d9be358e3921334b5`. The Stage 3.56 closure state is therefore active on protected `develop`.
 
 After activation:
 
