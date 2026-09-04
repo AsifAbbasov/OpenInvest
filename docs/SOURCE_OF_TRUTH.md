@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.83 |
+| Version | 1.4.84 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -18,8 +18,8 @@
 **Last completed implementation stage: Stage 3.55 — P3-08 migration validator implementation / PR #116 squash merge `6a443969aef944bde0946d36c79f67ddb87c28fe`**
 **Last completed privacy planning gate: Stage 3.24 — Privacy Security Review Readiness Dossier**
 **Last completed audit-remediation planning gate: Stage 3.54 — P3-08 migration validator planning / PR #115 squash merge `b79a9d3c43621e56e598901bdf472771e8b68ef8`**
-**Last completed audit-remediation closure gate: Stage 3.51 — P3-07 closure governance / PR #113 squash merge `072350205b2746bdcd83f20718eb59efcd0478ef`**
-**Current audit-remediation closure work item: Stage 3.56 — P3-08 migration validator closure; P3-08 remains OPEN / audit 31/32 until this exact synchronized closure state is protected-merged after required gates, then P3-08 is CLOSED / audit 32/32**
+**Last completed audit-remediation closure gate: Stage 3.56 — P3-08 migration validator closure / PR #117 squash merge `983104267221706c3c2ebd8d9be358e3921334b5` from exact head `02e9ef82ed087a892928dc643adccbdfa1ed9600` after CI #316 / run `33816103670` 10/10 and `PUBLISHED_EXACT_HEAD_CLOSURE=APPROVED`**
+**Original repository audit: COMPLETE — P3-08 CLOSED; P0/P1/P2/P3 = 0/0/0/0; 32/32 = 100%; remaining original findings: NONE**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
 **Stage 3.39 implementation merge baseline: PR #97 squash merge `abbd9f9f61574621e206f2e196b1fb8f056dc194`; the moving protected `develop` HEAD is intentionally not hard-coded by this merge-activated closure record**
 **Stage 3.41 implementation merge baseline: PR #101 squash merge `a2cfeaa5ca68fdd951e2a99f69c96aec362fc416`; the moving protected `develop` HEAD is intentionally not hard-coded by the Stage 3.42 merge-activated closure record**
@@ -784,7 +784,7 @@ Stage 3.55 implementation is canonical through PR #116 published head `9df58319b
 
 Stage 3.56 independently replays the canonical §30 closure evidence: PLAN 18/18, H 269/269, SA 82/82 exact, S2 168/168, P3D 27/27, FD 19/19, R 75/75, TC execution ledger 631/631 with no missing/duplicate IDs, MPROP 631 exact TC bijection, 1895/1895 property mutations killed, 31/31 extra red-team killed, one taxonomy authority, observer closure 89+79=168, historical SQL 14/14 byte-identical, and PostgreSQL apply→DOWN→baseline→reapply plus all ten required CI checks green.
 
-Stage 3.56 changes governance documentation only. Before its exact closure record and synchronized state are protected-merged after required gates, P3-08 remains OPEN and the original audit remains 31/32 = 96.875%. After activation, P3-08 is CLOSED, P0/P1/P2/P3 are all zero, no original audit finding remains, and the original audit is 32/32 = 100%.
+Stage 3.56 closure is canonical through PR #117 exact head `02e9ef82ed087a892928dc643adccbdfa1ed9600`, published tree `2840e55f7a62e2f64a148947fe7e22236228a9d5`, exact-head CI #316 / run `33816103670` 10/10 SUCCESS, fresh published-head closure review `APPROVED`, separate explicit human Ready + squash-merge authorization, and protected squash merge `983104267221706c3c2ebd8d9be358e3921334b5`. Stage 3.56 changed governance documentation only. P3-08 is CLOSED, P0/P1/P2/P3 are all zero, no original audit finding remains, and the original audit is 32/32 = 100%.
 
 <!-- OPENINVEST_STAGE_03_56_P3_08_CLOSURE_STATE_V1_BEGIN -->
 SCHEMA=OPENINVEST_STAGE_03_56_P3_08_CLOSURE_STATE_V1
