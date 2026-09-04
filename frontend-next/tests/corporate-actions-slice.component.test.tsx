@@ -9,6 +9,7 @@ import { JSDOM } from "jsdom";
 // Install one stable JSDOM environment first so controlled input events behave consistently.
 const dom = new JSDOM("<!doctype html><html><body></body></html>", { url: "http://localhost" });
 for (const [name, value] of Object.entries({
+  self: dom.window,
   window: dom.window,
   document: dom.window.document,
   navigator: dom.window.navigator,
