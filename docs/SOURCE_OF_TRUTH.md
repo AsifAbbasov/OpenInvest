@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.84 |
+| Version | 1.4.85 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
 | Last Review Date | 2026-09-04 |
-| Next Review Date | Before approval of a Stage 4 implementation scope or Stage 3.25 privacy evidence-collection plan review |
+| Next Review Date | Before approval of Stage 4.1 implementation or Stage 3.25 privacy evidence-collection plan review |
 
 ## Architecture status
 
@@ -20,7 +20,7 @@
 **Last completed audit-remediation planning gate: Stage 3.54 — P3-08 migration validator planning / PR #115 squash merge `b79a9d3c43621e56e598901bdf472771e8b68ef8`**
 **Last completed audit-remediation closure gate: Stage 3.56 - P3-08 migration validator closure / PR #117 squash merge `983104267221706c3c2ebd8d9be358e3921334b5`**
 **Original repository audit: CLOSED - Stage 3.56 closure record is protected-merged at `983104267221706c3c2ebd8d9be358e3921334b5`; 32/32 (100%) closed with P0=0 / P1=0 / P2=0 / P3=0**
-**Current post-audit planning item: Stage 4 - Commercial readiness assurance planning; documentation-only candidate that authorizes no implementation or production-readiness claim**
+**Current post-audit planning item: Stage 4.1 - Decimal property-testing pilot planning; documentation-only candidate that authorizes no implementation or production-readiness claim**
 **Last completed architecture amendment: Next.js Web Presentation Amendment**
 **Stage 3.39 implementation merge baseline: PR #97 squash merge `abbd9f9f61574621e206f2e196b1fb8f056dc194`; the moving protected `develop` HEAD is intentionally not hard-coded by this merge-activated closure record**
 **Stage 3.41 implementation merge baseline: PR #101 squash merge `a2cfeaa5ca68fdd951e2a99f69c96aec362fc416`; the moving protected `develop` HEAD is intentionally not hard-coded by the Stage 3.42 merge-activated closure record**
@@ -795,6 +795,10 @@ Stage 4 is a forward-looking, documentation-only planning candidate after the or
 The candidate sequences separately reviewed implementation scopes for: narrowly selected property-based tests of financial and replay invariants; native fuzz targets for untrusted parser boundaries; reproducible load/benchmark work with declared workloads and thresholds; observability and backup/restore readiness; and, only when an authorized environment and budget exist, independent penetration testing and security assessment. Production chaos experiments and operational evidence are explicitly post-production activities. Formal methods remain a future, targeted option for concurrency-sensitive invariants rather than a whole-repository requirement.
 
 Stage 4 does not change code, OpenAPI, database schema, migrations, CI, dependencies, infrastructure, credentials, providers, production data, or the Stage 3.25 privacy Security Review evidence-collection plan. Any implementation is a new scope and must satisfy the then-effective review and delivery workflow.
+
+### Stage 4.1 Decimal property-testing pilot planning
+
+Stage 4.1 is the first bounded candidate implementation scope under Stage 4. It proposes deterministic native Go generative tests for current Decimal ingress grammar, canonical string representation, and JSON-string transport only. It does not authorize a decimal arithmetic oracle, import/replay/database/idempotency/snapshot property test, Go module dependency, fuzz corpus, performance/load assertion, or production claim. The published Stage 4 plan is its parent candidate and must be merged or the later implementation branch must be explicitly rebased before implementation evidence is treated as current authority.
 
 <!-- OPENINVEST_STAGE_03_56_P3_08_CLOSURE_STATE_V1_BEGIN -->
 SCHEMA=OPENINVEST_STAGE_03_56_P3_08_CLOSURE_STATE_V1

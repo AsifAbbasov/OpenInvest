@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.82 |
+| Version | 1.1.83 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
 | Dependencies | Architecture Freeze v1.2 |
 | Last Review Date | 2026-09-04 |
-| Next Review Date | Before approval of a Stage 4 implementation scope, Stage 3.25 evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
+| Next Review Date | Before approval of Stage 4.1 implementation, Stage 3.25 evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
 
 | Stage | Outcome | State |
 | --- | --- | --- |
@@ -106,6 +106,7 @@
 | 3.55 — P3-08 migration validator implementation | Implement the approved strict manifest, migration grammar, base-relative immutability, exact inverse/effect and CI-dominance contract | Complete / PR #116 squash-merged into protected `develop` at `6a443969aef944bde0946d36c79f67ddb87c28fe` from published head `9df58319b59a1bd3ab9817d07d59c3b3c36a1b1a` after exact-head CI #315 / run `33799997370` 10/10 and `PUBLISHED_EXACT_HEAD=APPROVED` |
 | 3.56 — P3-08 closure governance | Independently revalidate the protected Stage 3.55 implementation and synchronize final original-audit closure without runtime change | Merge-activated: P3-08 remains OPEN and audit remains 31/32 = 96.875% while this exact closure record and synchronized canonical state are absent from protected `develop`; once present after required gates, P3-08 is CLOSED and original audit is 32/32 = 100% |
 | 4 — Commercial readiness assurance planning | Define a bounded, evidence-honest progression for property-based testing, fuzzing, load/benchmark work, observability and recovery readiness, and later independent security assessment | Planning-only candidate; no runtime, schema, API, dependency, infrastructure, production-data, or external-service change is authorized |
+| 4.1 — Decimal property-testing pilot planning | Freeze a deterministic, bounded native Go property-testing contract for Decimal grammar, canonical representation, and JSON transport | Planning-only candidate; no production code, API, schema, dependency, fuzz corpus, load claim, or financial-semantic change is authorized |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
@@ -178,6 +179,8 @@ Stage 3.54 P3-08 planning is canonical through PR #115 squash merge `b79a9d3c436
 Stage 3.56 is documentation/governance-only closure activation. Until this exact closure record and synchronized canonical state are protected-merged after required gates, P3-08 remains OPEN and the original audit remains 31/32 = 96.875%. Once activated, P3-08 is CLOSED, no original audit finding remains, and the original audit becomes 32/32 = 100%.
 
 Stage 3.56 is present on protected `develop` at `983104267221706c3c2ebd8d9be358e3921334b5`; its activation condition is therefore satisfied. The original repository audit is CLOSED at 32/32 (100%) with P0=0, P1=0, P2=0, and P3=0. Stage 4 is a separate forward-looking assurance plan, not a reopened audit-remediation finding or a declaration of commercial or production readiness.
+
+Stage 4.1 is the first proposed separately reviewed implementation scope: a native Go Decimal property-testing pilot. It is intentionally limited to ingress grammar, canonical string representation, and JSON-string transport; arithmetic, imports, idempotency, storage, snapshots, fuzzing, load testing, and production operations remain separate future scopes.
 
 No Stage 4 implementation begins without a separately reviewed and approved implementation scope.
 
