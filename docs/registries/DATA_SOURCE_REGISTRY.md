@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DATA-001 |
-| Version | 1.0.2 |
+| Version | 1.0.3 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | Ad hoc external-source selection |
@@ -17,14 +17,43 @@ restrictions.
 
 | Source | Owner | License/terms | Rate limits | Caching | Redistribution | Freshness | Fallback | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `MOEX_ISS_DELAYED_TQBR` | Principal Architect / Market Data | Public delayed ISS access is documented by MOEX; real-time requires subscription. Free access does not establish OpenInvest redistribution/non-display rights. Attribution/display obligations for any future public surface are NOT ESTABLISHED and must be re-reviewed. | MOEX public hard quota: UNKNOWN in reviewed docs. OpenInvest Feature 2 adapter policy: one request per `Quote` call, no automatic retry, no batch/fan-out/poll loop, 5s client timeout; re-review before any runtime activation. | None in Feature 2 | FORBIDDEN in Feature 2; no public API/UI display or onward redistribution | Guest ISS market data is approximately 15-minute delayed; `AsOf` is provider trade time; `RetrievedAt` is OpenInvest clock time; required data-quality expectations are exact SECID/BOARDID, reorder-safe required columns, exact decimal LAST, valid trade timestamp, and fail-closed malformed-data handling | None; fail closed | `APPROVED — adapter implementation/test scope only; shipped runtime/public activation forbidden` |
+| `MOEX_ISS_DELAYED_TQBR` | Principal Architect / Market Data | Official MOEX ISS materials permit delayed unauthenticated technical access, but state that information obtained from ISS without an agreement is for familiarisation only and any other use requires an agreement with PJSC Moscow Exchange. MOEX public web/app placement requires an information agreement; reviewed public tariff lists 15-minute delayed public data at 25,500 RUB/month for non-issuers. Market Data Policy separately governs distribution, Non-display, and Derived Data use. | MOEX public hard request quota remains UNKNOWN in reviewed material. Existing adapter policy remains one request per `Quote`, no automatic retry/fan-out/poll loop, 5s client timeout. No shipped traffic is authorized while this row is NO-GO. | FORBIDDEN for shipped/product use under current decision. Existing deterministic test fixtures only; no product cache/persistence. | FORBIDDEN. No public API/UI display, onward distribution, redistribution, or derived-product distribution. | Guest ISS market data is approximately 15-minute delayed; Stage 3.59 adapter time/provenance validation remains technical implementation evidence only and does not authorize product use. | None; fail closed and keep provider unconfigured in shipped composition. | `NO-GO — adapter/test code may remain, but shipped runtime/public/non-display/derived use is forbidden until exact MOEX contractual rights, cost acceptance, fresh registry approval, and separately reviewed runtime wiring exist` |
 
-The `MOEX_ISS_DELAYED_TQBR` approval is intentionally narrow. It authorizes only the Stage 3.59-planned real
-quote adapter implementation, deterministic local tests, and optional human-run manual smoke evidence. It does not authorize shipped runtime activation, public display,
-redistribution, production activation, automated polling, caching, persistence, historical ingestion,
-derived-data distribution, or real-time subscription.
+## MOEX_ISS_DELAYED_TQBR activation decision
 
-Any broader use requires a new legal/terms and technical review plus a separately approved registry update.
+Stage 3.60 records a fail-closed **NO-GO FOR SHIPPED RUNTIME** under the current OpenInvest zero-budget constraint.
+
+The existing Stage 3.59 adapter may remain in the repository and may continue to be compiled, unit-tested,
+security-scanned, and reviewed. Optional human-run technical smoke evidence may be used only to validate adapter
+compatibility; it does not authorize product collection, persistence, automated polling, display, redistribution,
+non-display processing, derived analytics, or third-party services.
+
+Shipped application composition must remain provider-free. In particular, Stage 3.60 does not authorize wiring
+`moexiss.NewQuoteProvider` into `backend-go/cmd/api`, populating user-visible asset prices, or using MOEX data for
+portfolio valuation, alerts, insights, history, or other product calculations.
+
+A future production-use proposal requires a new review that defines the exact MOEX use category and supplies:
+
+- contractual/usage rights for that exact mode;
+- required attribution/display/audit obligations;
+- explicit Principal Architect acceptance of monetary cost;
+- rate-limit/traffic evidence;
+- cache/retention/persistence rights if applicable;
+- a fresh registry status change to an exact approved production mode;
+- separately reviewed runtime composition/public-contract changes.
+
+Technical availability, delayed access, or the existence of a merged adapter must never be treated as production
+source approval.
+
+Official evidence reviewed for this decision:
+
+- `https://www.moex.com/a2193`
+- `https://www.moex.com/a8531`
+- `https://www.moex.com/ru/products/publicdata`
+- `https://www.moex.com/s1147`
+- `https://www.moex.com/en/datapolicy/`
+- `https://www.moex.com/ru/datapolicy/`
+- `https://www.moex.com/s3503`
 
 ## Reserved non-production example identifiers
 
