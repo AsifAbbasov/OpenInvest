@@ -206,3 +206,52 @@ contract → implementation → failure cases → tests → CI expectations → 
 Only demonstrated defects receive P0/P1/P2/P3 findings. UNKNOWN remains UNKNOWN.
 
 If Internal review approves the frozen candidate, commit/push/Draft PR still require separate explicit human authorization. Publication then requires exact-head CI, fresh External review, remediation if needed, evidence publication/verification, and a separate human Ready/squash-merge gate under `docs/REVIEW_WORKFLOW.md` v1.4.0.
+
+## 14. Published review and evidence chronology
+
+This section is evidence-only and records the development-path publication history after the fresh External published-head phase. Sections 1–13 remain the historical prepublication implementation record.
+
+### 14.1 Frozen prepublication subject
+
+- canonical base: `develop@0e449b4d729e4388081be4990c034c67c5e5019a`;
+- base tree: `f7c5daaffc0a37350e8ac7e21cd83dd30b3c8f0a`;
+- frozen three-file manifest SHA-256: `d5885cb9ea3878b3936d6a5c0bd3457bfaebe2fc1587037dbadcd038de4e75fe`;
+- Internal review SHA-256: `5d4e398214bc2bcb181c710cc1a1460987dda994bad0d4eda818c0a992016b60`;
+- Internal verdict: `APPROVED`, blocking findings none.
+
+### 14.2 Initial published subject and External findings
+
+Initial Draft PR #126 subject:
+
+- head `28aa90a85ac5363405dc38c8ebf77c894c1d42ea`;
+- tree `3d5cb9b990a543e0de16c9531be65c0e094aeb9f`;
+- exactly three changed files;
+- frozen Git blobs matched local `git hash-object` identities.
+
+Fresh External review COMMENT `5116906103` returned `REQUEST CHANGES` with two demonstrated P3 findings and no P0/P1/P2 findings:
+
+1. opaque `SourceEventID` validation rejected C0/DEL controls but did not reject Unicode C1 controls despite the documented no-control-character contract;
+2. Section 7 named `ErrCorporateActionsUnavailable` instead of the actual `ErrCorporateActionsProviderUnavailable` sentinel.
+
+### 14.3 Remediation and corrected semantic head
+
+Remediation remained within the same three-file feature scope:
+
+- `validateOpaqueCorporateActionID` now uses `unicode.IsControl`;
+- a regression test rejects a C1 control code point;
+- Section 7 uses the exact canonical sentinel name.
+
+Corrected semantic publication:
+
+- head `97089869e8f3c5ccaf14a9aecd4927d8e2c2eb85`;
+- tree `67c566b5c902ff33c0285a0cc73ac618fe6fd1ff`;
+- CI #337 / run `33909927892`: all ten required jobs `SUCCESS`;
+- fresh External re-review COMMENT `5116978636`: `APPROVED`, P0=0, P1=0, P2=0, P3 blocking=0.
+
+No HTTP/source activation, persistence, migration, OpenAPI/API, frontend/mobile, Calendar/Heatmap projection, worker/cache, or Feature 3B/3C/3D surface was added by remediation.
+
+### 14.4 Evidence-publication rule
+
+This section changes documentation/evidence only. It does not authorize source activation, external ingestion, persistence, API/UI, Calendar/Heatmap projection, or later Feature 3 stages.
+
+The evidence-publication head itself must pass all ten required CI jobs. Exact evidence verification must confirm that the transition from corrected semantic head changes only this implementation record and introduces no runtime/test semantic drift. Ready/squash merge remains a separate human authorization gate.
