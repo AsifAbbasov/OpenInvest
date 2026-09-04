@@ -641,3 +641,94 @@ Stage 3.59 planning is ready for publication only if review confirms:
 - implementation adds no shipped runtime MOEX activation path;
 - legal/redistribution uncertainty is preserved rather than silently treated as permission;
 - Feature 3 remains unauthorized.
+
+
+## 25. Published review evidence
+
+This section is an evidence-only follow-up added after the fresh External published-head verdict. Sections
+1–24 remain the reviewed planning contract; this section does not alter implementation scope or semantics.
+
+### Prepublication Internal Planning Review
+
+Frozen Internal Planning Review SHA-256:
+
+```text
+488f37d2b35ffbf262e1a7b79d5d63add3a903813779a778d4245ebe22f3d923
+```
+
+The complete prepublication review record was:
+
+```text
+Stage 3.59 Internal Planning Review
+base=2e8d67f980aba5a2d7c4a33d5721ff6a7ad4951a
+tree=a73aa0c7c24ee9bdd172a7ffcf95ab07bd533b65
+bundle_sha256=c568753f739b6c0f66a4a6514b8ca120006cacb5a3ae3bdb9a53486169ed967e
+
+Files reviewed in full:
+1. docs/registries/DATA_SOURCE_REGISTRY.md
+2. docs/stages/STAGE_03_59_MOEX_ISS_QUOTE_PROVIDER_PLANNING.md
+
+Review order:
+contract -> implementation consequences -> failure cases -> tests -> CI expectations -> architectural consequences
+
+Resolved findings before final verdict:
+- P2 RESOLVED: SYSTIME was unnecessarily required/requested despite AsOf being TRADEDATE+TIME. Removed from exact endpoint columns to reduce provider fragility/YAGNI.
+- P2 RESOLVED: initial registry/planning wording allowed local/runtime activation despite unresolved MOEX redistribution/non-display terms. Narrowed approval to adapter implementation/test + optional human manual smoke; shipped cmd/api activation forbidden.
+- P2 RESOLVED: limited source row did not explicitly preserve attribution/display uncertainty and data-quality expectations required by registry approval. Added NOT ESTABLISHED attribution/display status and exact fail-closed data-quality expectations.
+- P3 RESOLVED: provider constructor dependency assumptions were implicit. Planning now requires non-nil HTTP client and Clock and deterministic constructor failure.
+
+Final review:
+Architecture / DIP / package direction: PASS
+Money / exact decimal semantics: PASS
+Time / AsOf / RetrievedAt semantics: PASS
+HTTP safety / bounded body / timeout / cancellation: PASS
+Provider error normalization: PASS
+ISS column-reorder robustness: PASS
+Data Source Registry / source-use scope: PASS
+Legal/terms uncertainty preservation: PASS
+API-first / OpenAPI non-change: PASS
+DB/schema/frontend non-change: PASS
+Test determinism / no live CI dependency: PASS
+Scope / KISS / YAGNI: PASS
+Governance / Feature 3 non-authorization: PASS
+
+P0=0
+P1=0
+P2 blocking=0
+P3 blocking=0
+Reviewer mutations during final read-only phase=NONE
+VERDICT=APPROVED
+```
+
+The record above is preserved historically and is not retroactively edited. In particular, its first resolved
+P2 assumed `TRADEDATE + TIME` could be sourced from the planned `marketdata` response. The later fresh
+External review of published head `6b114478461667cd5e59492d16caa2e9212470bc` found that current TQBR
+`marketdata` exposes `TIME` but not `TRADEDATE`; the endpoint exposes `trade_date` in the separate
+`dataversion` block. That External finding demonstrates a gap missed by the Internal review; the historical
+Internal `APPROVED` verdict is evidence of the prepublication review outcome, not proof that the original
+published plan was defect-free.
+
+### External published-head chronology
+
+Initial published head `6b114478461667cd5e59492d16caa2e9212470bc`, tree
+`cc78d056cbe80eb0a0e72d7b912e90174c772e89`, passed CI #324 / run `33877065341` 10/10. Fresh External
+published-head review then recorded one P2 and `VERDICT = REQUEST CHANGES` in PR review `5113428783`.
+
+The evidence-backed remediation changed only this planning document:
+
+- corrected head `5d2d56182972148ece9a0728093410ae9e8da8e4`;
+- corrected tree `831bada8f553d2c826a8c804163b24ca7d63d906`;
+- corrected planning SHA-256 `4abd91c1ccf1f6f3b3d47e56fe91f81669f9df6ac87f81a5716a29860108f9d3`;
+- unchanged registry SHA-256 `1eb4e31dd8e75c6ceb3dcb4bee8daa66de8812299d2edc48d9cae50aa766d134`;
+- corrected two-file manifest SHA-256 `eb303b34980e7080332f9169aec9a7ff18c8735cb6bfeee1679e99fe972caa45`.
+
+Corrected exact-head CI #325 / run `33877740481` passed all ten required jobs. Fresh External re-review on
+corrected head `5d2d56182972148ece9a0728093410ae9e8da8e4` recorded `VERDICT = APPROVED`, blocking findings none,
+in PR review `5113482198`.
+
+### Evidence-publication rule
+
+This section publishes review evidence only. It introduces no new provider behavior, endpoint, field,
+error classification, source permission, runtime activation, API/DB/frontend surface, dependency, cache,
+worker, or Feature 3 authorization. The exact evidence-publication head must pass required CI and receive a
+final exact-head evidence-only verification before human Ready/squash-merge authorization.
