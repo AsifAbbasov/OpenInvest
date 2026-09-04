@@ -27,8 +27,9 @@ var tickerPattern = regexp.MustCompile(`^[A-Z0-9]{1,32}$`)
 var idempotencyKeyPattern = regexp.MustCompile(`^[A-Za-z0-9._:-]{16,128}$`)
 
 type Service struct {
-	store Store
-	clock Clock
+	store         Store
+	clock         Clock
+	quoteProvider QuoteProvider
 }
 
 func NewService(store Store, clock Clock) *Service {
