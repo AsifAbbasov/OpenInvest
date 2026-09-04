@@ -10,6 +10,7 @@ import (
 type API struct {
 	service                 *verticalslice.Service
 	auth                    *auth.Service
+	corporateActionProvider verticalslice.CorporateActionProvider
 	allowDevelopmentSubject bool
 	authLimiter             *authRateLimiter
 	importReviewSecret      []byte

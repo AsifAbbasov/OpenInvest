@@ -27,6 +27,8 @@ tags:
     description: MVP web registration and rotating session contract.
   - name: Assets
     description: Public MOEX stock and bond discovery through the OpenInvest backend.
+  - name: Corporate Actions
+    description: Provider-neutral dividend/coupon calendar and event-density heatmap projection.
   - name: Portfolios
     description: Authenticated portfolio metadata and server-calculated summaries.
   - name: Transactions
@@ -207,6 +209,136 @@ paths:
         "200": { $ref: "./components/responses.yaml#/responses/Asset" }
         "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
         "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
+
+  /api/v1/corporate-actions/projection:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+    get:
+      operationId: getCorporateActionProjection
+      summary: Project corporate actions into a dated calendar and event-density heatmap
+      description: >-
+        Returns only validated canonical provider evidence. The endpoint never fabricates events and never treats an
+        unavailable production source as an empty calendar. Until an exact corporate-actions source/use mode is
+        approved and separately wired, shipped composition returns CORPORATE_ACTIONS_SOURCE_UNAVAILABLE. The heatmap
+        is event-density only; no monetary aggregation, yield, FX, tax, or portfolio-income forecast is performed.
+      tags: [Corporate Actions]
+      security: []
+      parameters:
+        - name: instrumentId
+          in: query
+          required: true
+          description: >-
+            Comma-separated canonical instrument set. The server accepts at most 50 unique instruments and
+            canonicalizes order before provider invocation.
+          schema:
+            type: array
+            minItems: 1
+            maxItems: 50
+            uniqueItems: true
+            items:
+              type: string
+              pattern: "^[A-Z0-9]{1,32}$"
+          style: form
+          explode: false
+          example: [SBER, GAZP]
+        - name: from
+          in: query
+          required: true
+          schema: { $ref: "./components/schemas.yaml#/BusinessDate" }
+        - name: to
+          in: query
+          required: true
+          schema: { $ref: "./components/schemas.yaml#/BusinessDate" }
+      responses:
+        "200":
+          description: Validated current corporate-action projection for the requested instrument/date scope.
+          headers:
+            X-Request-ID: { $ref: "./components/responses.yaml#/headers/RequestId" }
+            X-Trace-ID: { $ref: "./components/responses.yaml#/headers/TraceId" }
+            Cache-Control:
+              description: Corporate-action responses are not cacheable until separately approved source rights allow it.
+              schema: { type: string, const: no-store }
+          content:
+            application/json:
+              schema: { $ref: "./components/corporate-actions.yaml#/CorporateActionProjectionResponse" }
+              examples:
+                validatedProviderProjection:
+                  value:
+                    data:
+                      calendar:
+                        - effectiveDate: "2026-10-10"
+                          event:
+                            eventId: example-dividend-1
+                            instrumentId: SBER
+                            kind: DIVIDEND
+                            status: CONFIRMED
+                            recordDate: "2026-10-10"
+                            paymentDate: "2026-10-20"
+                            amountPerUnit: { amount: "12.34000000", currency: RUB }
+                            supersedesEventId: null
+                            asOf: "2026-09-05T00:00:00Z"
+                            retrievedAt: "2026-09-05T00:01:00Z"
+                            provenance: { provider: EXAMPLE_CORPORATE_ACTIONS }
+                      heatmap:
+                        - date: "2026-10-10"
+                          totalCount: 1
+                          dividendCount: 1
+                          couponCount: 0
+                          announcedCount: 0
+                          confirmedCount: 1
+                          paidCount: 0
+                          cancelledCount: 0
+                      coverage:
+                        inputMode: PROVIDER
+                        instrumentIds: [SBER]
+                        from: "2026-01-01"
+                        to: "2026-12-31"
+                    meta:
+                      requestId: "10000000-0000-4000-8000-000000000001"
+                      traceId: "10000000000000000000000000000001"
+                      generatedAt: "2026-09-05T00:02:00Z"
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "502":
+          description: Provider evidence failed canonical or supersession integrity validation.
+          headers:
+            X-Request-ID: { $ref: "./components/responses.yaml#/headers/RequestId" }
+            X-Trace-ID: { $ref: "./components/responses.yaml#/headers/TraceId" }
+            Cache-Control:
+              description: Corporate-action responses are not cacheable until separately approved source rights allow it.
+              schema: { type: string, const: no-store }
+          content:
+            application/json:
+              schema: { $ref: "./components/schemas.yaml#/ErrorResponse" }
+              example:
+                error:
+                  code: CORPORATE_ACTIONS_SOURCE_INVALID
+                  message: Corporate actions source returned unverifiable data
+                  details: []
+                meta:
+                  requestId: "10000000-0000-4000-8000-000000000002"
+                  traceId: "10000000000000000000000000000002"
+                  generatedAt: "2026-09-05T00:02:00Z"
+        "503":
+          description: No approved and configured production corporate-actions source is available.
+          headers:
+            X-Request-ID: { $ref: "./components/responses.yaml#/headers/RequestId" }
+            X-Trace-ID: { $ref: "./components/responses.yaml#/headers/TraceId" }
+            Cache-Control:
+              description: Corporate-action responses are not cacheable until separately approved source rights allow it.
+              schema: { type: string, const: no-store }
+          content:
+            application/json:
+              schema: { $ref: "./components/schemas.yaml#/ErrorResponse" }
+              example:
+                error:
+                  code: CORPORATE_ACTIONS_SOURCE_UNAVAILABLE
+                  message: Corporate actions source is unavailable
+                  details: []
+                meta:
+                  requestId: "10000000-0000-4000-8000-000000000003"
+                  traceId: "10000000000000000000000000000003"
+                  generatedAt: "2026-09-05T00:02:00Z"
 
   /api/v1/portfolios:
     parameters:
