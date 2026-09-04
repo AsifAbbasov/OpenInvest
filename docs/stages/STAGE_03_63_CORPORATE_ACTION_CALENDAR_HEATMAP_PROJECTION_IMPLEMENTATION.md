@@ -171,3 +171,45 @@ contract → implementation → failure cases → tests → CI expectations → 
 Only demonstrated defects receive severity. UNKNOWN remains UNKNOWN.
 
 Commit/push/Draft PR require separate explicit human authorization. After publication: exact-head CI → fresh External review → remediation if demonstrated → evidence publication/verification → separate Ready/squash-merge authorization.
+
+## 13. Published review and evidence chronology
+
+This section is evidence-only and records the development-path publication history after the fresh External published-head phase. Sections 1–12 remain the historical prepublication implementation record.
+
+### 13.1 Frozen prepublication subject
+
+- canonical base: `develop@fbbca6aeee7c12300a37eb5748628275aac427e4`;
+- base tree: `ff311bd8f03524f83724af024afb038c4a5a246c`;
+- frozen manifest SHA-256: `b2e11c2f0e9570052572cb07055ee60cf77816f6a9d0d8f2bfebfa2b4492d80a`;
+- Internal review SHA-256: `0464ee03b1745a220798fcbec9a410aa85399a283df43a0889c9e3cd2a969f20`;
+- Internal verdict: `APPROVED`, blocking findings none.
+
+### 13.2 Published semantic subject
+
+Draft PR #127 semantic subject:
+
+- head `2f7ec99e0dd70586a20a237f4abd58e7db8b17b7`;
+- tree `9f612110f2ffcb6d77eec4dab2c75e8e581e09c9`;
+- exactly three changed files;
+- production blob `2d45a583e35fe521b4404dac668f83c38a90bb98`;
+- test blob `5e4f62434ef865fd053180e0007f8653f0cdf4f2`;
+- implementation-record blob `4ec02d7b02d54947b9e58a583467dac134c09727`;
+- all published Git blobs matched frozen local `git hash-object` identities.
+
+Exact-head CI #339 / run `33914229650`: all ten required jobs `SUCCESS`.
+
+Fresh External published-head review COMMENT `5117337573`:
+
+- `VERDICT = APPROVED`;
+- P0=0;
+- P1=0;
+- P2 blocking=0;
+- P3 blocking=0.
+
+GitHub rejected a formal self-`APPROVE` review because the connected account is the PR author; the External verdict is therefore recorded as a review COMMENT. This is a GitHub identity constraint, not a project finding and does not replace the separate human Ready/squash-merge authorization gate.
+
+### 13.3 Evidence-publication rule
+
+This section changes documentation/evidence only. It does not change Calendar/Heatmap runtime semantics and does not authorize external sources, HTTP/scraping, persistence, API/UI, Feature 3C, or Feature 3D.
+
+The evidence-publication head itself must pass all ten required CI jobs. Exact evidence verification must confirm that the transition from semantic head changes only this implementation record and introduces no runtime/test semantic drift. Ready/squash merge remains a separate human authorization gate.
