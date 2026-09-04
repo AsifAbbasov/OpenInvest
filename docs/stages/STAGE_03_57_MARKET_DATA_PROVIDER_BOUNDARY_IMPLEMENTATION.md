@@ -1,46 +1,50 @@
-# Stage 3.58 — Market Data Provider Boundary Feature 1 Closure
+# Stage 3.57 — Market Data Provider Boundary + Provenance/Freshness Implementation
 
 | Field | Value |
 | --- | --- |
-| Status | MERGE-ACTIVATED CLOSURE RECORD — before protected activation Stage 3.57 Feature 1 runtime is already merged but lifecycle documentation synchronization remains pending; once this record and the synchronized canonical surfaces are present on protected `develop`, Feature 1 is canonically CLOSED |
+| Status | RUNTIME MERGED / FEATURE 1 TECHNICALLY COMPLETE — PR #120 squash-merged into protected `develop` at `cd97f3217811bb123ad96d92b7d8a4be0e03c8bb`, tree `0510971289c204e9b5226359f2efdd1941542309`; canonical lifecycle-document closure is handled separately by Stage 3.58 |
 | Date | 2026-09-04 |
-| Canonical workflow | `docs/REVIEW_WORKFLOW.md` v1.4.0 |
-| Closure base | protected `develop@cd97f3217811bb123ad96d92b7d8a4be0e03c8bb` / tree `0510971289c204e9b5226359f2efdd1941542309` |
-| Stage 3.57 planning | PR #119 / squash merge `8316d404d057f0a895713bd1d496a342409903c4` / plan blob `6ddd4682b49a6a259c64474d9adf8882279eca5d` / SHA-256 `e85fc028550663b51daafdea14deddc18f79ae1a3c917e3f5a8c414d5f5ce8ed` |
-| Stage 3.57 implementation | PR #120 / initial implementation head `95ec859481d08e1f53e090834a6bb39f0a845dfa` / final evidence head `35db51707fce970e67bf9d5a9485f79619ec366d` / approved tree `0510971289c204e9b5226359f2efdd1941542309` / squash merge `cd97f3217811bb123ad96d92b7d8a4be0e03c8bb` |
-| Stage 3.57 final CI | CI #321 / run `33861987999` — 10/10 SUCCESS on final evidence head; same-head dependency-security retry followed an external npm-registry timeout and changed no project bytes |
-| Stage 3.57 review | Internal `APPROVED`; fresh External published-head `APPROVED`; evidence-publication verification `APPROVED`; blocking findings none |
-| Runtime/schema/data/SQL/OpenAPI/frontend/dependency change | None — Stage 3.58 is documentation/governance synchronization only |
-| Feature 2 authorization | None — this closure does not authorize real MOEX ISS HTTP, provider parsing, source activation, production provider wiring, API enrichment, persistence, cache, worker, or frontend work |
+| Canonical implementation base | `develop@8316d404d057f0a895713bd1d496a342409903c4` |
+| Protected-base tree | `1c596fbb9c26016bdc5c6036f09d6e081bdbcf7f` |
+| Approved planning authority | `docs/stages/STAGE_03_57_MARKET_DATA_PROVIDER_BOUNDARY_PLANNING.md` / Git blob `6ddd4682b49a6a259c64474d9adf8882279eca5d` / SHA-256 `e85fc028550663b51daafdea14deddc18f79ae1a3c917e3f5a8c414d5f5ce8ed` |
+| Internal Review Evidence | Published after fresh External published-head verdict; frozen review SHA-256 `074939a01db87293b4b9d3d7d1f600945e5f71998057bcadbe6995d8275e7d36` / verdict `APPROVED` / blocking findings none |
+| OpenAPI / SQL / DB migration / frontend / CI dependency change | None |
+| Real provider network I/O | None |
 
-## 1. Purpose and closure boundary
+## 1. Scope
 
-Stage 3.57 Feature 1 created the smallest provider-neutral market-data seam required before OpenInvest can safely integrate a real market source. The runtime implementation is already canonical on protected `develop` through PR #120.
+This candidate implements only Feature 1 from the protected Stage 3.57 planning authority: an internal provider-neutral quote boundary, canonical market quote/provenance model, deterministic freshness classification, and a narrow application-service read seam.
 
-Stage 3.58 does not add market-data behavior. It closes the documentation lifecycle debt left after the implementation merge by synchronizing current repository authority around four questions:
+It does not connect MOEX ISS, parse provider JSON, register a production data source, enrich asset-search responses, add a public market-data DTO, persist quotes/provenance/freshness, introduce cache/workers, or begin Feature 2.
 
-1. what Feature 1 implemented;
-2. why the boundary exists;
-3. what evidence proves the implementation;
-4. what remains explicitly outside Feature 1 and requires a separate next stage.
-
-Before this exact Stage 3.58 closure record and the synchronized canonical surfaces are present on protected `develop`, Feature 1 runtime is technically merged but its lifecycle documentation remains incompletely synchronized. Once they are present after the governed closure path, Stage 3.57 Feature 1 is canonically CLOSED.
-
-## 2. What Feature 1 implemented
-
-The protected implementation establishes this dependency direction:
+The intended dependency direction remains:
 
 ```text
-future provider-specific adapter
+future provider adapter
         ↓
-application-owned QuoteProvider
+QuoteProvider
         ↓
-canonical MarketQuote
+MarketQuote
         ↓
 verticalslice.Service.MarketQuote
 ```
 
-The application-owned quote port is intentionally minimal:
+Provider-specific transport/schema types do not appear in the candidate.
+
+## 2. Candidate changed files
+
+The complete intended repository diff is limited to:
+
+- `backend-go/internal/verticalslice/service.go` — add one unexported optional `quoteProvider QuoteProvider` dependency field; existing `NewService(store, clock)` remains unchanged and therefore production construction still has no quote provider;
+- `backend-go/internal/verticalslice/marketdata.go` — canonical quote/provenance types, minimal provider port/errors, quote validation, deterministic freshness policy/classifier, and the internal `Service.MarketQuote` application seam;
+- `backend-go/internal/verticalslice/marketdata_test.go` — deterministic test-only fake provider and focused quote/provider/freshness tests;
+- this implementation record.
+
+No `cmd/api`, `openapi/`, `internal/httpapi`, PostgreSQL, migrations, dependency/lockfile, frontend, workflow, ledger, or snapshot-engine file is changed.
+
+## 3. Canonical market-data boundary
+
+The implementation introduces only the currently required port:
 
 ```go
 type QuoteProvider interface {
@@ -48,182 +52,176 @@ type QuoteProvider interface {
 }
 ```
 
-The canonical quote carries only the application facts currently required:
+It deliberately does not add `InstrumentProvider`, `PriceHistoryProvider`, a generic provider framework, cache abstraction, or production adapter.
 
-- canonical OpenInvest ticker;
-- existing decimal/RUB `Money`;
-- provider/market observation timestamp `AsOf`;
-- OpenInvest retrieval timestamp `RetrievedAt`;
-- minimal provenance provider identity.
+`MarketQuote` carries:
 
-Feature 1 also defines deterministic derived freshness through `FreshnessPolicy` and the states `FRESH`, `STALE`, and `UNKNOWN`.
+- canonical ticker;
+- existing decimal `Money` price;
+- provider/market observation time `AsOf`;
+- OpenInvest retrieval evidence `RetrievedAt`;
+- minimal `MarketDataProvenance{Provider}`.
 
-No MOEX ISS wire-schema object, HTTP response object, raw provider JSON, retry state, or provider-specific column-array representation is allowed to cross into the canonical application model.
+`AsOf` and `RetrievedAt` remain distinct. The validator intentionally does not require `AsOf <= RetrievedAt`.
 
-## 3. Why this boundary exists
+## 4. Fail-closed quote invariants and errors
 
-The boundary prevents OpenInvest business/application code from depending directly on provider-specific transport and schema details such as MOEX ISS column arrays, endpoint response sections, HTTP status handling, and parsing mechanics.
+A successful application quote must preserve the exact requested canonical ticker, non-negative RUB decimal money, non-zero UTC `AsOf`, non-zero UTC `RetrievedAt`, and a non-empty canonical provider identifier.
 
-This preserves:
+Malformed provider output returns `ErrInvalidMarketQuote`; it is never converted to zero price, current time, fabricated provenance, or a successful null-price result. An unconfigured service returns `ErrMarketQuoteProviderUnavailable`. The deterministic test fake uses `ErrMarketQuoteNotFound` for an unknown ticker. Other provider failures propagate as errors without provider-specific transport objects entering the canonical model.
 
-- dependency inversion: provider adapters depend on the application-owned port, not vice versa;
-- deterministic money semantics: prices remain canonical decimal `Money`, never `float64`;
-- explicit time semantics: `AsOf` and `RetrievedAt` remain distinct;
-- fail-closed financial behavior: malformed provider output cannot become fabricated zero/current/unknown market data;
-- testability: freshness and quote validation remain deterministic and independent from wall-clock/network behavior;
-- YAGNI: no generic provider framework, cache, registry/factory/plugin system, persistence, or public market-data DTO was added before a real source requires it.
+Ticker input is validated without trimming, uppercasing, alias rewriting, or any other silent normalization.
 
-## 4. Protected implementation identity
+## 5. Freshness semantics
 
-Protected `develop` after PR #120 is:
+Freshness remains derived and is not persisted. `ClassifyFreshness` is a pure deterministic function using explicit `now` and `FreshnessPolicy` values. It returns only `FRESH`, `STALE`, or `UNKNOWN` with the exact inclusive threshold semantics frozen by the Stage 3.57 plan.
 
-- commit `cd97f3217811bb123ad96d92b7d8a4be0e03c8bb`;
-- tree `0510971289c204e9b5226359f2efdd1941542309`;
-- parent `8316d404d057f0a895713bd1d496a342409903c4`.
+The implementation creates no second clock abstraction and contains no direct `time.Now()` call. Controlled tests obtain `now` through a type implementing the existing `verticalslice.Clock` interface.
 
-The protected tree is byte-identical to the final authorized PR #120 tree. The squash merge therefore introduced no tree drift.
+No universal production freshness threshold is introduced.
 
-The Stage 3.57 runtime surfaces are exactly:
+## 6. API and production behavior
 
-- `backend-go/internal/verticalslice/marketdata.go`;
-- `backend-go/internal/verticalslice/marketdata_test.go`;
-- the minimal `quoteProvider QuoteProvider` field change in `backend-go/internal/verticalslice/service.go`.
+Variant A remains unchanged:
 
-The implementation record is:
+- `AssetSummary.LastPrice *Money` is untouched;
+- no public `marketData` object is added;
+- OpenAPI is unchanged;
+- `SearchAssets` is not enriched through the quote provider;
+- `cmd/api` construction is unchanged;
+- production asset search therefore continues to return `lastPrice: null` until a separately approved runtime source/integration stage exists.
 
-- `docs/stages/STAGE_03_57_MARKET_DATA_PROVIDER_BOUNDARY_IMPLEMENTATION.md`.
+The existing API regression test `TestAssetSearchReturnsCatalogSummariesWithoutPriceOrSource` remains authoritative and is expected to run unchanged in repository CI.
 
-## 5. Canonical behavioral contract closed by Feature 1
+## 7. Local pre-Internal-review evidence
 
-A successful application quote must preserve:
+Focused sandbox gates on the frozen candidate:
 
-- exact requested canonical ticker identity;
-- RUB currency;
-- canonical decimal storage representation;
-- non-negative price;
-- non-zero UTC `AsOf`;
-- non-zero UTC `RetrievedAt`;
-- non-empty provider provenance.
+- `gofmt` for `marketdata.go` and `marketdata_test.go`: PASS;
+- focused `go test -count=1 ./internal/verticalslice`: PASS in the isolated candidate harness;
+- focused `go test -race -count=1 ./internal/verticalslice`: PASS in the isolated candidate harness;
+- focused `go vet ./internal/verticalslice`: PASS in the isolated candidate harness;
+- direct `time.Now()` scan across the new market-data production/test files: PASS (none present);
+- fake provider is defined only in `_test.go`: PASS;
+- candidate scope contains no OpenAPI, SQL, DB, frontend, CI, dependency, `cmd/api`, ledger, or snapshot change: PASS.
 
-Malformed provider output fails closed as `ErrInvalidMarketQuote`.
+The focused tests cover exact decimal amount/currency preservation, distinct timestamps, `AsOf > RetrievedAt` acceptance, UTC canonical timestamps, known/unknown provider behavior, provider error propagation, no-provider fail-closed behavior, malformed output rejection, zero-value decimal rejection, and deterministic freshness including fresh/stale/unknown, non-positive policy, exact-threshold, future-timestamp, and non-UTC-current-time cases.
 
-An unconfigured service fails closed as `ErrMarketQuoteProviderUnavailable`.
+## 8. Environment limitations
 
-Unknown ticker semantics use the canonical `ErrMarketQuoteNotFound` sentinel.
+The execution sandbox cannot directly clone the GitHub repository and has Go `1.23.2`, while canonical `backend-go/go.mod` requires Go `1.25.14`. The focused harness therefore compiles the new candidate against the current decimal implementation and a narrow type seam matching the protected `Service`/`Clock`/`Money`/ticker contract; it is not presented as repository-wide or canonical-toolchain evidence.
 
-Other provider/application errors remain errors; Feature 1 intentionally does not freeze a premature HTTP/provider transport taxonomy.
+Repository-wide `go test ./...`, race/vet coverage required by CI, existing HTTP asset regression tests, OpenAPI validation, security checks, and the remaining protected-branch checks remain mandatory on the exact published head after the separately authorized Draft PR publication. This limitation is not converted into a false PASS claim.
 
-Ticker input is validated without silent trim, case conversion, alias rewriting, or other normalization.
+## 9. Governance state
 
-`AsOf <= RetrievedAt` is deliberately not a canonical invariant because source clock skew and observation semantics are provider-specific.
+This candidate is on the mandatory development path. Before any commit/push, the complete changed-file set must receive read-only Internal line-by-line review and an `APPROVED` verdict. Internal review evidence remains withheld from the Draft PR/repository evidence surface until the later External published-head verdict, as required by `docs/REVIEW_WORKFLOW.md` v1.4.0.
 
-## 6. Freshness contract closed by Feature 1
+After Internal approval, a separate human commit/push authorization is still required. Draft PR publication, exact-head GitHub CI, fresh External published-head review, later evidence-only publication/verification, and separate human Ready/squash-merge authorization remain mandatory.
 
-Freshness remains derived, not persisted.
+Feature 2 is not authorized by this implementation record and must not begin automatically.
 
-The deterministic classifier uses explicit `now`, `MarketQuote`, and `FreshnessPolicy` values.
+## 10. Published review and exact-head evidence
 
-Frozen semantics are:
+This section is an evidence-only follow-up added after the fresh External published-head verdict. Sections 1–9 remain the historical prepublication implementation record and are not retroactively rewritten.
 
-```text
-zero now                                              → UNKNOWN
-non-positive MaxRetrievedAge or MaxMarketAge         → UNKNOWN
-zero AsOf or RetrievedAt                              → UNKNOWN
-future AsOf or RetrievedAt                            → UNKNOWN
-retrieval age > MaxRetrievedAge                      → STALE
-market age > MaxMarketAge                            → STALE
-otherwise                                             → FRESH
-```
+### Published implementation milestone
 
-Exact-threshold values remain `FRESH`; only strictly older values are `STALE`.
-
-No universal production freshness threshold is selected by Feature 1.
-
-## 7. Verification and review evidence
-
-The final evidence head `35db51707fce970e67bf9d5a9485f79619ec366d` completed CI #321 / run `33861987999` with all ten required checks successful:
-
-1. Go tests;
-2. Python tests;
-3. Frontend build and typecheck;
-4. OpenAPI contract;
-5. Docker Compose config;
-6. PostgreSQL migration validation;
-7. Go vet;
-8. Go race tests;
-9. Go vulnerability scan;
-10. Dependency security scan.
-
-The first dependency-security attempt encountered an external timeout while `pnpm audit` contacted `registry.npmjs.org`. The job was rerun on the same exact head without any project-byte change and succeeded. This is preserved as infrastructure chronology, not reclassified as an application defect.
-
-Review evidence:
-
-- frozen Internal review: `APPROVED`, blocking findings none;
+- Draft PR: `#120`;
+- initial implementation head: `95ec859481d08e1f53e090834a6bb39f0a845dfa`;
+- initial implementation tree: `3bc132a41c58b9b66ae506a904c7562e89a9c506`;
+- initial implementation scope: exactly four files listed in section 2;
+- CI: `#320` / run `33861442441` / all ten required jobs `SUCCESS`;
 - fresh External published-head review: `APPROVED`, blocking findings none;
-- evidence-only follow-up changed only the Stage 3.57 implementation document;
-- final evidence-publication verification: `APPROVED`, semantic/runtime drift `NONE`.
+- GitHub formal self-approval was unavailable because the connected account owns the PR, so the External verdict is preserved as a review COMMENT rather than a GitHub `APPROVE` state. This platform restriction does not replace human merge authorization.
 
-## 8. Explicit non-scope preserved
+The External phase reviewed the published diff and exact-head CI independently and did not use the earlier Internal verdict/findings as supporting evidence.
 
-Feature 1 and this closure do not include or authorize:
+### Previously withheld Internal Review Evidence
 
-- real MOEX ISS HTTP requests;
-- MOEX JSON/column-array parsing;
-- Data Source Registry production-source activation;
-- production `QuoteProvider` constructor/composition-root wiring;
-- public market-data OpenAPI changes;
-- `SearchAssets` quote enrichment;
-- DB/SQL migration or quote persistence;
-- Redis or another cache;
-- workers, schedulers, Kafka, microservices, or background ingestion;
-- frontend changes;
-- historical prices/candles/order book;
-- dividend/coupon provider integration;
-- multi-currency market prices;
-- Feature 2 implementation.
+Frozen Internal review subject:
 
-Production asset search therefore continues to preserve the existing honest `lastPrice: null` behavior until a separately approved source/integration stage changes that contract.
+- base commit: `8316d404d057f0a895713bd1d496a342409903c4`;
+- base tree: `1c596fbb9c26016bdc5c6036f09d6e081bdbcf7f`;
+- candidate manifest SHA-256: `b9719cd973b443dc4c531ee9d661ce8e29eec9f799fd594168546bb5354999f1`;
+- `service.go` patch SHA-256: `a18ec63be6aff91bd6300f8eb28fdf92084d8d2a71aafd9de1abafc353ce8f95`;
+- `marketdata.go` SHA-256: `d52bc8542170112d8561a2fb6b55d0a1d9dd335bb42fa30f7a093ea32d4d8575`;
+- `marketdata_test.go` SHA-256: `05607f0d10128b5f1f212b848a622dbed98e8a4faf8828cb8f1f8c646b90d85d`;
+- prepublication implementation-record SHA-256: `55d76c747fd1b7345217af6bc2dde04c91359ad0de2b5771b08d8e2984df0a81`;
+- frozen Internal review record SHA-256: `074939a01db87293b4b9d3d7d1f600945e5f71998057bcadbe6995d8275e7d36`.
 
-## 9. Feature 2 handoff
+Files reviewed in full:
 
-The next market-data work is not implicitly activated by Stage 3.58.
+1. `backend-go/internal/verticalslice/service.go` — protected base blob `94a1b2039bd08ae0e0171cc170953445283379a4`; proposed semantic change exactly one optional unexported `quoteProvider QuoteProvider` field; existing `NewService` signature and production behavior unchanged.
+2. `backend-go/internal/verticalslice/marketdata.go` — full 106 lines.
+3. `backend-go/internal/verticalslice/marketdata_test.go` — full 273 lines.
+4. `docs/stages/STAGE_03_57_MARKET_DATA_PROVIDER_BOUNDARY_IMPLEMENTATION.md` — full prepublication 122 lines.
 
-A separately reviewed Feature 2 stage must decide the concrete real-provider integration scope before implementation. At minimum it must address, where applicable:
+Internal review results:
 
-- exact MOEX ISS endpoint(s) and response contract;
-- adapter-owned wire-schema parsing and column mapping;
-- canonical ticker/provider-symbol mapping without changing OpenInvest ticker identity;
-- existing `Clock` use for `RetrievedAt`;
-- timeout and bounded HTTP client behavior;
-- provider error normalization so `net/http`, status codes, and MOEX parsing types do not leak into application/domain code;
-- provider identity and source governance;
-- safe production dependency injection/composition-root wiring;
-- whether any user-visible API enrichment is needed.
+- Architecture / DDD / SOLID: `PASS`;
+- API-first / contract: `PASS`;
+- money / time / freshness correctness: `PASS`;
+- error / failure semantics: `PASS`;
+- security / privacy: `PASS`;
+- performance / cost: `PASS`;
+- testability / evidence: `PASS WITH DOCUMENTED ENVIRONMENT LIMITATION`;
+- scope / YAGNI: `PASS`;
+- documentation / governance: `PASS`;
+- P0: none;
+- P1: none;
+- P2: none;
+- P3/blocking: none;
+- reviewer mutation during the Internal phase: `NONE`;
+- Internal verdict: `APPROVED`.
 
-If Feature 2 requires OpenAPI changes, persistence/migrations, caching, workers, Data Source Registry activation, or asset-search fan-out semantics, those surfaces require explicit scope and review rather than being smuggled through this closure.
+Non-blocking Internal notes preserved:
 
-## 10. Documentation synchronization scope
+- production quote-provider constructor/wiring remains intentionally absent and belongs only to a later approved runtime-provider stage;
+- no universal freshness threshold is selected; that remains a later source/integration policy decision.
 
-Stage 3.58 synchronizes only the current canonical closure surfaces used by the recent post-development closure pattern:
+### Publication tooling incident preserved
 
-- `docs/SOURCE_OF_TRUTH.md`;
-- `docs/ROADMAP.md`;
-- `docs/stages/STAGE_03_57_MARKET_DATA_PROVIDER_BOUNDARY_IMPLEMENTATION.md`;
-- this closure record.
+During Git-object assembly, four unreferenced blob objects were inadvertently created by connector calls:
 
-Older broad registry files that already lag multiple later stages are not silently rewritten as part of this narrow Feature 1 closure. Any repository-wide registry modernization is separate documentation debt and must not be conflated with Stage 3.57 runtime correctness or Feature 2 authorization.
+- `30d74d258442c7c65512eafab474568dd706c430`;
+- `a8b6c9477b693176aa811d7fc0fd5374d44e3557`;
+- `c1b0730e0133447badcfd47fd144e254807b06e1`;
+- `8485e986e458a566e6f6160f71d704edc10c57fc`.
 
-## 11. Activation rule
+They are not referenced by publication tree `3bc132a41c58b9b66ae506a904c7562e89a9c506`, implementation commit `95ec859481d08e1f53e090834a6bb39f0a845dfa`, the implementation branch, or the PR diff. The fresh External re-check classified this as `NO MATERIAL PROJECT FINDING`; runtime/document semantics are unchanged. The incident is preserved here for forensic completeness rather than omitted.
 
-This record deliberately does not predict its own future PR number, published head, CI run, or squash-merge SHA.
+### Remaining gate
 
-Activation is structural:
+This evidence publication changes documentation only and must itself pass required exact-head CI. The same designated review chat must then verify the publication as complete, accurate, evidence-only, and free of semantic/runtime drift. Only after that verification may the human Principal Architect authorize Ready and squash merge. Feature 2 remains out of scope.
 
-1. Stage 3.57 runtime remains canonical on protected `develop` at merge `cd97f3217811bb123ad96d92b7d8a4be0e03c8bb`;
-2. before this exact closure record and synchronized canonical surfaces are present on protected `develop`, lifecycle documentation synchronization remains pending;
-3. the complete Stage 3.58 change must remain documentation/governance-only;
-4. it must pass the mandatory post-development governance/closure path under `docs/REVIEW_WORKFLOW.md` v1.4.0;
-5. once the approved closure record and synchronized surfaces are squash-merged into protected `develop`, Stage 3.57 Feature 1 is canonically CLOSED;
-6. Feature 2 remains NOT AUTHORIZED until a separate explicit governed stage and human authorization.
+## 11. Protected merge and Stage 3.58 closure handoff
 
-No branch deletion is authorized by this record.
+The `Remaining gate` subsection in section 10 is preserved as the historical state at the
+evidence-publication head. That gate was subsequently satisfied.
+
+PR #120 was separately authorized for Ready and squash merge at exact final evidence head
+`35db51707fce970e67bf9d5a9485f79619ec366d`, tree
+`0510971289c204e9b5226359f2efdd1941542309`.
+
+GitHub recorded the protected squash merge:
+
+- merge commit `cd97f3217811bb123ad96d92b7d8a4be0e03c8bb`;
+- protected merge tree `0510971289c204e9b5226359f2efdd1941542309`;
+- parent `8316d404d057f0a895713bd1d496a342409903c4`;
+- PR #120 state `merged=true`.
+
+The protected merge tree is identical to the exact authorized PR tree, so no tree drift occurred.
+
+Feature 1 runtime is therefore complete. It establishes the internal provider-neutral quote boundary,
+canonical quote/provenance model, deterministic freshness semantics, fail-closed validation, and
+test-only fake provider proof described above.
+
+The merge does not add or authorize real MOEX ISS HTTP/parsing, production provider wiring, Data
+Source Registry activation, OpenAPI/DB/frontend changes, caching/workers, production asset-search
+enrichment, or Feature 2.
+
+Stage 3.58 is a separate documentation/governance-only lifecycle closure. Once its approved closure
+record and synchronized canonical surfaces are present on protected `develop`, Stage 3.57 Feature 1
+is canonically CLOSED. Feature 2 remains subject to a separate governed stage and explicit human
+authorization.
