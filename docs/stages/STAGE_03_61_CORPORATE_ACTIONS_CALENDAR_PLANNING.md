@@ -4,7 +4,7 @@
 | --- | --- |
 | Document ID | STAGE-03-61-CORPORATE-ACTIONS-CALENDAR-PLAN |
 | Version | 0.1.0-candidate |
-| Status | Planning/source-governance only; no runtime ingestion, API, DB, frontend, commit/push, PR, Ready, merge, or implementation authorization |
+| Status | Published Draft planning/source-governance candidate; no runtime ingestion, API, DB, frontend, Ready, merge, or implementation authorization |
 | Owner | Principal Architect / Corporate Actions |
 | Canonical planning base | `develop@7c022e6de1ab0a86ebf96ede48fafabc15b9f71c` |
 | Protected-base tree | `13ffddcb1557953f49df0b8b0bd69e71dc5adb58` |
@@ -219,8 +219,10 @@ Stage 3.61 planning is acceptable only if:
 - no runtime/OpenAPI/DB/frontend/dependency/worker change is included;
 - Feature 3A remains small, source-neutral and testable.
 
-## 16. Next governed action
+## 16. Current governed state and next action
 
-Run read-only planning/governance review of this plan plus synchronized Data Source Registry candidate.
+This planning bundle is published in Draft PR #125. Publication itself does not authorize Feature 3A implementation, Ready, or merge.
 
-Only after APPROVED and separate human commit/push authorization may the planning bundle be published as Draft PR. Feature 3A implementation then requires a separate explicit human authorization after protected merge.
+The exact current published head must pass all required GitHub CI checks and the same designated review chat must perform exact-published-head Governance / Closure verification under `docs/REVIEW_WORKFLOW.md` v1.4.0.
+
+Only after those gates pass and the Principal Architect gives separate explicit Ready/squash-merge authorization may Stage 3.61 planning become canonical on protected `develop`. Feature 3A implementation then requires a separate explicit human authorization from that merged canonical base.
