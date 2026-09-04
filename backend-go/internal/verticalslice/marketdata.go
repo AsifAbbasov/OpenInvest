@@ -11,6 +11,7 @@ import (
 var (
 	ErrMarketQuoteNotFound            = errors.New("market quote not found")
 	ErrMarketQuoteProviderUnavailable = errors.New("market quote provider unavailable")
+	ErrMarketQuoteProviderData        = errors.New("market quote provider data invalid")
 	ErrInvalidMarketQuote             = errors.New("invalid market quote")
 )
 
