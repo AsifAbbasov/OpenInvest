@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | MERGE-ACTIVATED CLOSURE RECORD — candidate until this record and synchronized canonical surfaces are present on protected `develop`; after protected activation Stage 3.68 lifecycle/documentation closure is complete |
+| Status | CANONICAL / PROTECTED-ACTIVATED — Stage 3.68 lifecycle/documentation closure COMPLETE |
 | Date | 2026-09-05 |
 | Closed implementation stage | Stage 3.68 — Dividend Calculator Implementation |
 | Detailed implementation/evidence record | `docs/stages/STAGE_03_68_DIVIDEND_CALCULATOR_IMPLEMENTATION.md` |
@@ -26,8 +26,15 @@
 | Exact evidence verification | APPROVED; runtime/product/API/database/math/security/dependency semantic drift NONE |
 | Closure base | protected `develop@6fb395ffcef12840133dac27294f653276adcdf6` |
 | Closure base tree | `be09503ceaafb8781cc82829f98e37cda5c6be6b` |
+| Closure PR | PR #134 — `docs: close Stage 3.68 Dividend Calculator lifecycle` |
+| Closure published head | `e98bad4b2431eb7f45a5bfff17c3601c49554b45` |
+| Closure CI | CI #354 / run `33983374426` — 10/10 required jobs SUCCESS |
+| Exact published-head closure verification | APPROVED; changed scope exactly three documentation files; runtime/product/API/database/math/security/dependency drift NONE |
+| Closure squash merge | `fee7de358f0919802e16a398b19c8947bc852645` |
+| Closure protected tree | `e7c9ddb96a5bf7add5204ccdf54aa20c190a0014` |
+| Closure parent | `6fb395ffcef12840133dac27294f653276adcdf6` |
 | Closure runtime scope | None — documentation/governance synchronization only |
-| Synchronized canonical surfaces | this record; `docs/ROADMAP.md`; `docs/SOURCE_OF_TRUTH.md` |
+| Canonical closure surfaces | this record; `docs/ROADMAP.md`; `docs/SOURCE_OF_TRUTH.md`; Stage 3.68 implementation record now carries an explicit historical/current-status boundary |
 | Feature 3D | NOT STARTED by this closure; separate source/use planning gate required |
 | External source activation | None |
 
@@ -49,9 +56,11 @@ be09503ceaafb8781cc82829f98e37cda5c6be6b
 That protected tree exactly equals the final evidence tree. The squash merge therefore introduced no content drift
 beyond the exact evidence-approved PR tree.
 
-Stage 3.69 creates no second implementation event. It exists only to synchronize current lifecycle documentation after
-the already-completed Stage 3.68 merge. The Stage 3.68 implementation record remains an immutable historical
-pre-merge/evidence narrative; its historical pre-merge status and next-gate wording are intentionally not rewritten.
+Stage 3.69 created no second implementation event. It synchronized lifecycle documentation after the already-completed
+Stage 3.68 merge and was itself protected-activated through PR #134 at
+`fee7de358f0919802e16a398b19c8947bc852645`, tree `e7c9ddb96a5bf7add5204ccdf54aa20c190a0014`.
+The Stage 3.68 implementation record preserves its original pre-merge evidence chronology, while its active top-level
+status now explicitly points to this canonical closure so historical wording cannot be mistaken for current state.
 
 ## 2. Why Stage 3.68 was implemented
 
@@ -276,7 +285,7 @@ GitHub created the verified protected merge commit:
 Post-merge verification confirmed:
 
 - PR #133 is closed and `merged=true`;
-- protected `develop` points to `6fb395ffcef12840133dac27294f653276adcdf6`;
+- protected `develop` points to `6fb395ffcef12840133dac27294f653276adcdf6` at the implementation activation point;
 - its parent is `393f782b72347f9e98026940ce31b11c7cfbfcc6`;
 - its tree is exactly `be09503ceaafb8781cc82829f98e37cda5c6be6b`;
 - the merge commit is GitHub-verified;
@@ -297,17 +306,21 @@ Neither note reopens Stage 3.68.
 
 ## 11. Canonical documentation synchronization
 
-Stage 3.69 synchronizes exactly three documentation surfaces:
+The protected Stage 3.69 activation through PR #134 synchronized the canonical closure state in:
 
 1. `docs/stages/STAGE_03_69_DIVIDEND_CALCULATOR_CLOSURE.md`;
 2. `docs/ROADMAP.md`;
 3. `docs/SOURCE_OF_TRUTH.md`.
 
-The synchronization also corrects the already-activated Stage 3.67 lifecycle wording: Stage 3.67 is canonical through
-PR #131 / protected squash merge `c885f6e57ea08e4583103fe2f22f142bf13a8560`, tree
-`53f823e92b02721211e1d89f8af6374fffc252ae`, not a future merge-activated candidate.
+A final documentation-only textual synchronization additionally marks the Stage 3.68 implementation record as an
+explicit historical/evidence record with a current Stage 3.69 closure pointer. This does not create Stage 3.70 and does
+not reopen the implementation or closure lifecycle.
 
-No runtime/test/OpenAPI/dependency/CI/database/provider/source bytes change.
+The Stage 3.69 synchronization also corrected the already-activated Stage 3.67 lifecycle wording: Stage 3.67 is
+canonical through PR #131 / protected squash merge `c885f6e57ea08e4583103fe2f22f142bf13a8560`, tree
+`53f823e92b02721211e1d89f8af6374fffc252ae`.
+
+No runtime/test/OpenAPI/dependency/CI/database/provider/source behavior changes.
 
 ## 12. Feature 3D boundary after closure
 
@@ -330,34 +343,39 @@ The user-supplied Dividend Calculator is complete independently of that unresolv
 
 ## 13. Governance path
 
-Stage 3.69 is eligible for the `docs/REVIEW_WORKFLOW.md` v1.4.0 post-development governance/closure path because the
-complete candidate is documentation/governance-only.
+Stage 3.69 followed the `docs/REVIEW_WORKFLOW.md` v1.4.0 post-development governance/closure path as a
+documentation/governance-only closure.
 
-Required activation sequence:
+Completed activation sequence:
 
 ```text
 documentation candidate
 → deterministic documentation checks
-→ Governance / Closure review
+→ Governance / Closure review APPROVED
 → explicit human commit/push authorization
-→ Draft PR targeting develop
-→ required GitHub CI
-→ exact-published-head Governance / Closure verification
+→ Draft PR #134 targeting develop
+→ exact-head CI #354 / run 33983374426 — 10/10 SUCCESS
+→ exact-published-head Governance / Closure verification APPROVED
 → explicit human Ready/squash-merge authorization
-→ protected develop activation
+→ protected develop activation at fee7de358f0919802e16a398b19c8947bc852645
 ```
 
-Protected `develop` is the activation boundary. This record itself authorizes no commit, push, Ready, merge, Feature 3D
-implementation, external HTTP, or source activation.
+Protected `develop` was the activation boundary. Activation of Stage 3.69 authorizes no Feature 3D implementation,
+external HTTP/provider use, source activation, tax, portfolio mutation, or unrelated product work.
 
 ## 14. Closure decision
 
-Once this exact closure record and its synchronized `ROADMAP.md` / `SOURCE_OF_TRUTH.md` state are squash-merged into
-protected `develop`:
+Protected activation occurred through PR #134, exact published head
+`e98bad4b2431eb7f45a5bfff17c3601c49554b45`, CI #354 / run `33983374426` 10/10 SUCCESS, and squash merge
+`fee7de358f0919802e16a398b19c8947bc852645` with protected tree
+`e7c9ddb96a5bf7add5204ccdf54aa20c190a0014`.
+
+Therefore the canonical state is:
 
 ```text
 Stage 3.68 implementation = COMPLETE / MERGED
 Stage 3.68 lifecycle/documentation closure = COMPLETE
+Stage 3.69 closure governance = COMPLETE / PROTECTED-ACTIVATED
 Dividend Calculator = canonical MVP functionality on develop
 Provider-derived live dividend data = NOT AUTHORIZED by this closure
 Feature 3D = separate source/use planning gate
