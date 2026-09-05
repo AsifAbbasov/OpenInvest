@@ -2,9 +2,10 @@ package verticalslice
 
 import "context"
 
-// ReplayLookupStore exposes a read-only exact replay lookup used when a completed command must be
-// replayed before time-sensitive request proofs (for example an import review token) are rechecked.
-// The lookup never reserves a key and never creates a business effect.
+// ReplayLookupStore exposes a read-only exact replay lookup used when an existing command state must
+// be resolved before a later gate is allowed to run. Examples include rechecking a time-sensitive
+// import proof and deciding whether a public request is genuinely fresh before write admission.
+// The lookup never reserves a key, mutates replay state, or creates a business effect.
 type ReplayLookupStore interface {
 	LookupReplayArtifact(ctx context.Context, command CommandContext, method string) (CommandReplayArtifact, bool, error)
 }
