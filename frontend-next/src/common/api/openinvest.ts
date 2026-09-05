@@ -315,6 +315,29 @@ export type CorporateActionProjectionParams = {
   signal?: AbortSignal;
 };
 
+export type DividendCalculationPayload = {
+  ticker: string;
+  quantity: string;
+  dividendPerUnit: Money;
+  positionCost?: Money | null;
+};
+
+export type DividendCalculation = {
+  ticker: string;
+  quantity: string;
+  dividendPerUnit: Money;
+  grossDividend: Money;
+  positionCost: Money | null;
+  grossYield: string | null;
+  taxIncluded: false;
+  methodologyVersion: string;
+};
+
+export type DividendCalculationRequestOptions = {
+  idempotencyKey: string;
+  signal?: AbortSignal;
+};
+
 export type AssetSearchParams = {
   query: string;
   assetType?: AssetType;
@@ -529,6 +552,19 @@ export async function getCorporateActionProjection(
   });
 }
 
+export async function calculateDividend(
+  payload: DividendCalculationPayload,
+  options: DividendCalculationRequestOptions,
+): Promise<ApiResult<DividendCalculation>> {
+  return request<DividendCalculation>("/api/v1/dividends/calculate", {
+    method: "POST",
+    headers: idempotentHeaders(options.idempotencyKey),
+    body: JSON.stringify(payload),
+    credentials: "omit",
+    signal: options.signal,
+  });
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<ApiResult<T>> {
   try {
     const response = await fetch(`${openInvestApiBaseUrl()}${path}`, {
@@ -561,7 +597,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<ApiResu
   }
 }
 
-function idempotentHeaders(idempotencyKey = crypto.randomUUID()) {
+function idempotentHeaders(idempotencyKey: string = crypto.randomUUID()) {
   return {
     "Idempotency-Key": idempotencyKey,
   };

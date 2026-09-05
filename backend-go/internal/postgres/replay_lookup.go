@@ -15,8 +15,9 @@ import (
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
-// LookupReplayArtifact is intentionally read-only. It is used only to recover an exact completed
-// response before re-evaluating time-sensitive proofs that were required for the original write.
+// LookupReplayArtifact is intentionally read-only. It resolves current replay state before a caller
+// evaluates a later gate that must not override exact replay/conflict/in-flight semantics, such as a
+// time-sensitive proof recheck or fresh-command admission.
 func (s *Store) LookupReplayArtifact(
 	ctx context.Context,
 	command verticalslice.CommandContext,

@@ -56,6 +56,9 @@ export function DashboardSlice() {
           Stage 3.3 renders the first Web presentation slice. Next.js does not calculate portfolio
           values and does not access databases or external providers.
         </p>
+        <Link href="/dividends/calculator" className="secondary-button">
+          Dividend calculator
+        </Link>
       </section>
 
       {result === null ? <section className="panel skeleton">Loading portfolios from Go API…</section> : null}
