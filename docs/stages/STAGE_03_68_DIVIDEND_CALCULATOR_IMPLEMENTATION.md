@@ -2,7 +2,7 @@
 
 ## Status
 
-Implementation candidate. Publication, commit, push, Draft Pull Request creation, external review, and merge remain separately authorized governance steps.
+Development implementation is published in Draft PR #133. Exact-head CI #352 and the fresh External published-head review are complete and approved on pre-evidence head `c4a87bf8cf4eeefc3dbf3e130e1a9e21b623952c`. This Stage is not merged or accepted for merge yet; the mandatory evidence-only follow-up, evidence-head CI/verification, and separate human Ready/squash-merge authorization remain outstanding governance gates.
 
 Canonical base:
 
@@ -112,6 +112,124 @@ The local execution environment available during candidate preparation does not 
 
 ## Internal Review Evidence
 
-`WITHHELD — external published-head phase pending`
+The mandatory prepublication Internal review evidence was withheld from the Draft PR/repository until the fresh External published-head verdict, as required by `docs/REVIEW_WORKFLOW.md` v1.4.0.
 
-Per `docs/REVIEW_WORKFLOW.md` v1.4.0, current pre-publication Internal findings/verdict are not published into the repository-visible Stage report before the External published-head verdict. They remain review-channel evidence only until the required post-External evidence-only publication step.
+Internal review report SHA-256:
+
+```text
+d35491b34e6948b42d89761193061fd6bc686cc4817d78a25be5f9d6d37ba347
+```
+
+Final Internal verdict before publication authorization:
+
+```text
+P0 = 0
+P1 = 0
+P2 blocking = 0
+P3 blocking = 0
+VERDICT = APPROVED
+```
+
+The Internal reviewer performed complete read-only review of all 21 changed files and made no repository edits. Builder remediation was applied before final freeze. Resolved prepublication findings/hardening included:
+
+- removing the separate feature-specific frontend HTTP client in favor of canonical `openinvest.ts`;
+- replacing the original anonymous replay subject design with deterministic domain-separated technical replay scope;
+- strengthening PostgreSQL replay integration evidence and cleanup behavior;
+- removing trim-first backend ticker acceptance so the OpenAPI ticker grammar fails closed;
+- retaining browser retry identity across failed unchanged-payload attempts and releasing it on success/input change;
+- moving exact replay ahead of fresh-command rate limiting;
+- moving fresh-command admission ahead of writable replay reservation by reusing the canonical read-only replay lookup;
+- correcting privacy/retention documentation to disclose the existing 24-hour technical replay persistence boundary;
+- synchronizing generic replay-lookup comments with the legitimate fresh-admission use;
+- changing money UI presentation from scale-8 trim-only display to exact two-decimal half-even display;
+- correcting hash-to-UUID documentation from absolute uniqueness language to cryptographic collision-resistance language.
+
+Frozen prepublication evidence identity:
+
+```text
+Candidate identity SHA-256:
+06619d5ce086812868cd5f2469d8c735d22dc1236a4e6e0a7a6844a3ab898a84
+
+Complete candidate patch SHA-256:
+a796960cf124293f0f77acabb26e02d12ae2bbc8ba65b34536319c8b7f2d5f1e
+
+Frozen manifest SHA-256:
+98bd9844ee3f3c135e167928225aaa88d756ac4ee9d760735974fd8b701cd0db
+```
+
+## Published-head verification chronology
+
+The exact 21-file candidate was published as one implementation commit:
+
+```text
+c4a87bf8cf4eeefc3dbf3e130e1a9e21b623952c
+
+tree:
+4eaf6be3616dae1bec593127b0115e1d6e7f39f3
+```
+
+Draft PR #133 targets the unchanged canonical base `develop@393f782b72347f9e98026940ce31b11c7cfbfcc6`. Before the Draft PR was created, the published commit was independently reconciled against the frozen manifest: all 21/21 changed paths and 21/21 Git blob identities matched, with exactly 7 modified and 14 added files and no extras.
+
+GitHub Actions run `33972964583` / CI #352 completed successfully on exact pre-evidence head `c4a87bf8cf4eeefc3dbf3e130e1a9e21b623952c`. All ten required jobs passed:
+
+```text
+Go tests                         PASS
+Go race tests                    PASS
+Go vet                           PASS
+Go vulnerability scan           PASS
+Python tests                     PASS
+Frontend build and typecheck     PASS
+OpenAPI contract                 PASS
+Docker Compose config            PASS
+PostgreSQL migration validation  PASS
+Dependency security scan         PASS
+```
+
+The frontend job specifically passed Typecheck, Test, and Build. The Go test and race jobs ran against migrated PostgreSQL with the configured least-privilege runtime role.
+
+## External published-head review
+
+After CI #352 was green, the designated review chat performed a fresh External review of the complete published PR #133 diff/evidence on pre-evidence head `c4a87bf8cf4eeefc3dbf3e130e1a9e21b623952c`. The External phase did not use the earlier Internal verdict/findings as supporting evidence.
+
+Review coverage included:
+
+- architecture, DDD/SOLID/KISS/YAGNI boundaries and reuse of the canonical shared frontend client;
+- API/OpenAPI parity, public idempotency semantics, replay/conflict/in-flight ordering and failure behavior;
+- exact Decimal financial arithmetic, overflow handling, nullable yield, gross-only/tax semantics, and two-decimal UI money presentation;
+- PostgreSQL replay reservation ordering, fresh-command admission, race recheck and no-write behavior on denied fresh commands;
+- security/privacy, anonymous technical replay scope, 24-hour replay retention disclosure and public cost/amplification controls;
+- frontend abort/generation correctness, retry-key lifecycle, stale completion suppression and unmount cancellation;
+- scope/YAGNI, absence of Feature 3D/provider/schema/OpenAPI/dependency drift, and exact 21-file PR scope;
+- exact-head CI #352 and absence of unresolved PR comments/review threads at verdict time.
+
+Final External verdict on pre-evidence head `c4a87bf8cf4eeefc3dbf3e130e1a9e21b623952c`:
+
+```text
+P0 = 0
+P1 = 0
+P2 blocking = 0
+P3 blocking = 0
+VERDICT = APPROVED
+```
+
+Remaining non-blocking notes:
+
+- the pre-existing generic replay error helper can emit `503 SERVICE_NOT_READY`, while the frozen calculator operation explicitly lists `200/400/409/429`; current production composition provides the required replay capabilities, so this is recorded as repo-wide contract debt rather than a new normal Stage 3.68 runtime path;
+- deriving the calculator's anonymous technical replay principal from the validated `Idempotency-Key` is acceptable for this public calculator surface, but it must not be treated as precedent for a future sensitive anonymous response surface without a separately reviewed client-scope boundary.
+
+## Governance state and next gate
+
+Development implementation, exact publication, exact-head CI #352, and the fresh External published-head review are complete.
+
+This documentation change is the mandatory evidence-only follow-up required by `docs/REVIEW_WORKFLOW.md` v1.4.0. It publishes the previously withheld Internal evidence only after the External verdict and records the exact published-head CI/External-review evidence. It changes no runtime, product, API, database, mathematical, security/privacy behavior, dependency, or Feature 3D activation state. It does not authorize Ready, merge, branch deletion, or any protected-branch mutation.
+
+After this evidence-only commit is published, the remaining sequence is:
+
+```text
+required GitHub CI on evidence-only head
+→ same designated review chat exact evidence-publication verification
+→ explicit Principal Architect Ready + squash-merge authorization
+→ squash merge to protected develop
+```
+
+A no-new-finding exact evidence verification may remain as live review evidence and does not require another repository commit solely to embed its own verdict.
