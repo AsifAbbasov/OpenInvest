@@ -2,7 +2,13 @@
 
 ## Status
 
-Development implementation is published in Draft PR #133. Exact-head CI #352 and the fresh External published-head review are complete and approved on pre-evidence head `c4a87bf8cf4eeefc3dbf3e130e1a9e21b623952c`. This Stage is not merged or accepted for merge yet; the mandatory evidence-only follow-up, evidence-head CI/verification, and separate human Ready/squash-merge authorization remain outstanding governance gates.
+**HISTORICAL IMPLEMENTATION / EVIDENCE RECORD — current lifecycle status is governed by Stage 3.69 closure.**
+
+Stage 3.68 is **COMPLETE / MERGED**. PR #133 was squash-merged into protected `develop` at `6fb395ffcef12840133dac27294f653276adcdf6` with protected tree `be09503ceaafb8781cc82829f98e37cda5c6be6b`. The implementation passed CI #352 / run `33972964583` 10/10, fresh External published-head review `APPROVED`, evidence-head CI #353 / run `33974141987` 10/10, exact evidence-publication verification `APPROVED`, and explicit human Ready/squash-merge authorization. Stage 3.68 lifecycle/documentation closure is canonical through Stage 3.69 / PR #134, squash-merged into protected `develop` at `fee7de358f0919802e16a398b19c8947bc852645`, tree `e7c9ddb96a5bf7add5204ccdf54aa20c190a0014`, after exact-head closure CI #354 / run `33983374426` 10/10 and exact published-head closure verification `APPROVED`.
+
+Historical pre-merge status snapshot preserved for chronology:
+
+> Development implementation is published in Draft PR #133. Exact-head CI #352 and the fresh External published-head review are complete and approved on pre-evidence head `c4a87bf8cf4eeefc3dbf3e130e1a9e21b623952c`. This Stage is not merged or accepted for merge yet; the mandatory evidence-only follow-up, evidence-head CI/verification, and separate human Ready/squash-merge authorization remain outstanding governance gates.
 
 Canonical base:
 
@@ -217,13 +223,13 @@ Remaining non-blocking notes:
 - the pre-existing generic replay error helper can emit `503 SERVICE_NOT_READY`, while the frozen calculator operation explicitly lists `200/400/409/429`; current production composition provides the required replay capabilities, so this is recorded as repo-wide contract debt rather than a new normal Stage 3.68 runtime path;
 - deriving the calculator's anonymous technical replay principal from the validated `Idempotency-Key` is acceptable for this public calculator surface, but it must not be treated as precedent for a future sensitive anonymous response surface without a separately reviewed client-scope boundary.
 
-## Governance state and next gate
+## Historical governance state and next gate (pre-merge snapshot)
 
 Development implementation, exact publication, exact-head CI #352, and the fresh External published-head review are complete.
 
 This documentation change is the mandatory evidence-only follow-up required by `docs/REVIEW_WORKFLOW.md` v1.4.0. It publishes the previously withheld Internal evidence only after the External verdict and records the exact published-head CI/External-review evidence. It changes no runtime, product, API, database, mathematical, security/privacy behavior, dependency, or Feature 3D activation state. It does not authorize Ready, merge, branch deletion, or any protected-branch mutation.
 
-After this evidence-only commit is published, the remaining sequence is:
+Historical remaining sequence at that evidence-publication point:
 
 ```text
 required GitHub CI on evidence-only head
@@ -233,3 +239,11 @@ required GitHub CI on evidence-only head
 ```
 
 A no-new-finding exact evidence verification may remain as live review evidence and does not require another repository commit solely to embed its own verdict.
+
+## Current lifecycle status
+
+Those historical gates were subsequently completed. Final evidence head `014a594695b94b9af424b06a3e38590fbb5281ff` passed CI #353 / run `33974141987` 10/10, exact evidence-publication verification returned `APPROVED`, the Principal Architect explicitly authorized Ready + squash merge, and PR #133 was squash-merged into protected `develop` at `6fb395ffcef12840133dac27294f653276adcdf6` with tree `be09503ceaafb8781cc82829f98e37cda5c6be6b`.
+
+The documentation/governance lifecycle was then closed through Stage 3.69 / PR #134. Exact closure head `e98bad4b2431eb7f45a5bfff17c3601c49554b45` passed CI #354 / run `33983374426` 10/10 and exact published-head closure verification `APPROVED`; PR #134 was explicitly authorized and squash-merged into protected `develop` at `fee7de358f0919802e16a398b19c8947bc852645`, tree `e7c9ddb96a5bf7add5204ccdf54aa20c190a0014`.
+
+Therefore Stage 3.68 implementation and lifecycle/documentation closure are **COMPLETE**. Feature 3D remains a separate source/use planning gate and was not activated by Stage 3.68 or Stage 3.69.
