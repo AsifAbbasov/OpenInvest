@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.86 |
+| Version | 1.4.87 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -15,9 +15,9 @@
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.64 — Corporate Actions API/UI Feature 3C / PR #128 squash merge `c204ee9eee320e6171b55983cfde5cf74a2008df` / protected tree `33dd90d3928286c7d2628dd56e7d9f55eece08b5`**
+**Last completed implementation stage: Stage 3.66 — Corporate Actions In-Flight Request Cancellation / PR #130 squash merge `7564dbbda9133f0b8965f9e7d0a0c0b81b82e992` / protected tree `b525f0960cb2613f62eaa9583d6394759a1cdd3b`**
 **Current market-data lifecycle: Stage 3.59 delayed MOEX ISS TQBR adapter is implemented through PR #123, but Stage 3.60 / PR #124 records shipped runtime/public use as NO-GO under the current reviewed source-rights and zero-budget constraints; the adapter remains dormant**
-**Current Corporate Actions lifecycle: Stage 3.61 planning and Stages 3.62/3.63/3.64 Features 3A/3B/3C are protected-merged through PRs #125/#126/#127/#128; provider-neutral boundary, Calendar/Heatmap projection and API/UI are implemented; Stage 3.65 is documentation-only closure synchronization and becomes canonical only when its approved closure record and synchronized canonical surfaces are present on protected `develop`; Feature 3D real source adapter/runtime activation is not authorized**
+**Current Corporate Actions lifecycle: Stage 3.61 planning and Stages 3.62/3.63/3.64 Features 3A/3B/3C are protected-merged through PRs #125/#126/#127/#128; Stage 3.65 documentation closure is canonical through PR #129 / merge `1c30a4bf637c933e7c210cff6e26fabd91d8bab1`; Stage 3.66 request-cancellation hardening is protected-merged through PR #130 / merge `7564dbbda9133f0b8965f9e7d0a0c0b81b82e992`, tree `b525f0960cb2613f62eaa9583d6394759a1cdd3b`; provider-neutral boundary, Calendar/Heatmap projection, API/UI, stale-result protection and component-unmount/replacement cancellation are implemented; Stage 3.67 is documentation-only closure synchronization for Stage 3.66 and becomes canonical only after protected activation; Feature 3D remains a separate source/use planning gate and no real corporate-actions source/runtime activation is authorized**
 **Last completed privacy planning gate: Stage 3.24 — Privacy Security Review Readiness Dossier**
 **Last completed audit-remediation planning gate: Stage 3.54 — P3-08 migration validator planning / PR #115 squash merge `b79a9d3c43621e56e598901bdf472771e8b68ef8`**
 **Last completed audit-remediation closure gate: Stage 3.56 — P3-08 migration validator closure / PR #117 squash merge `983104267221706c3c2ebd8d9be358e3921334b5` from exact head `02e9ef82ed087a892928dc643adccbdfa1ed9600` after CI #316 / run `33816103670` 10/10 and `PUBLISHED_EXACT_HEAD_CLOSURE=APPROVED`**

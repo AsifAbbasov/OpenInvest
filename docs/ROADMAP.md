@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.84 |
+| Version | 1.1.85 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
@@ -115,7 +115,9 @@
 | 3.62 — Corporate Action Boundary / Feature 3A | Implement canonical CorporateActionEvent, provider port, validation, provenance and correction/cancellation linkage | Complete / PR #126 squash-merged into `develop` at `fbbca6aeee7c12300a37eb5748628275aac427e4` |
 | 3.63 — Calendar + Heatmap Projection / Feature 3B | Implement deterministic current dated Calendar and count/density Heatmap projections with fail-closed supersession integrity | Complete / PR #127 squash-merged into `develop` at `a8f9e95c065ee708885461166e1e992d1f4aae22` |
 | 3.64 — Corporate Actions API/UI / Feature 3C | Expose the canonical provider-neutral projection through Go HTTP, OpenAPI, typed Next.js client, Calendar/Heatmap UI and honest source-unavailable semantics | Complete / PR #128 squash-merged into `develop` at `c204ee9eee320e6171b55983cfde5cf74a2008df`; protected tree `33dd90d3928286c7d2628dd56e7d9f55eece08b5`; CI #344 and #345 10/10 |
-| 3.65 — Corporate Actions API/UI closure governance | Synchronize current lifecycle documentation for the already-merged 3A→3C chain without runtime change; preserve separate Feature 3D source gate | Merge-activated documentation-only closure; complete only when the approved Stage 3.65 record and synchronized canonical surfaces are present on protected `develop` |
+| 3.65 — Corporate Actions API/UI closure governance | Synchronize current lifecycle documentation for the already-merged 3A→3C chain without runtime change; preserve separate Feature 3D source gate | Complete / PR #129 squash-merged into protected develop at `1c30a4bf637c933e7c210cff6e26fabd91d8bab1`; protected tree `4ba610c1d20c95f10a5a16a6a0ece6caceb3236e`; Corporate Actions architecture/API/UI debt CLOSED |
+| 3.66 — Corporate Actions in-flight request cancellation | Close the carried frontend lifecycle P3 by aborting active Corporate Actions requests on unmount/replacement while preserving generation-based stale-result and existing error semantics | Complete / PR #130 squash-merged into protected develop at `7564dbbda9133f0b8965f9e7d0a0c0b81b82e992`; protected tree `b525f0960cb2613f62eaa9583d6394759a1cdd3b`; semantic CI #347 and evidence CI #348 both 10/10 SUCCESS |
+| 3.67 — Corporate Actions request-cancellation closure governance | Synchronize canonical lifecycle documentation for the already-merged Stage 3.66 without runtime change and preserve Feature 3D as a separate source/use planning gate | Merge-activated documentation-only closure; complete only when the approved Stage 3.67 record and synchronized canonical surfaces are present on protected develop |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
@@ -219,10 +221,15 @@ PR #128 squash merge `c204ee9eee320e6171b55983cfde5cf74a2008df`, whose protected
 Corporate Actions now has the provider-neutral event boundary, deterministic Calendar/Heatmap projection,
 Go HTTP/OpenAPI surface, typed Next.js client, and UI. No real corporate-actions source is activated.
 
-Stage 3.65 is documentation/governance-only closure synchronization for that already-merged 3A→3C chain. Once the
-approved Stage 3.65 closure record and synchronized canonical surfaces are present on protected `develop`, Corporate
-Actions architecture/API/UI implementation debt is documentation-closed. Feature 3D remains a separate source,
-licensing/public-display, rate/cost, caching/retention and runtime-composition gate and is not authorized by Stage 3.65.
+Stage 3.65 documentation/governance closure is canonical through PR #129 squash merge
+`1c30a4bf637c933e7c210cff6e26fabd91d8bab1`, protected tree
+`4ba610c1d20c95f10a5a16a6a0ece6caceb3236e`; Corporate Actions architecture/API/UI implementation debt is CLOSED.
+Stage 3.66 request-cancellation hardening is canonical through PR #130 squash merge
+`7564dbbda9133f0b8965f9e7d0a0c0b81b82e992`, protected tree
+`b525f0960cb2613f62eaa9583d6394759a1cdd3b`, after semantic CI #347 and evidence CI #348 both 10/10 SUCCESS.
+Stage 3.67 is documentation/governance-only lifecycle synchronization for the already-merged Stage 3.66.
+Feature 3D remains a separate source/use-rights, licensing/public-display, rate/cost, caching/retention and
+runtime-composition planning gate; no real corporate-actions source is activated by Stages 3.65–3.67.
 
 No further audit-remediation implementation begins without a separately reviewed planning/remediation gate.
 
