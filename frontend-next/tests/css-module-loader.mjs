@@ -1,0 +1,17 @@
+export async function resolve(specifier, context, nextResolve) {
+  if (specifier.endsWith(".css")) {
+    return { url: new URL(specifier, context.parentURL).href, shortCircuit: true };
+  }
+  return nextResolve(specifier, context);
+}
+
+export async function load(url, context, nextLoad) {
+  if (url.endsWith(".css")) {
+    return {
+      format: "module",
+      source: 'export default new Proxy({}, { get: (_target, property) => String(property) });',
+      shortCircuit: true,
+    };
+  }
+  return nextLoad(url, context);
+}

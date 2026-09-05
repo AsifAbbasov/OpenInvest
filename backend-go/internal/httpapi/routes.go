@@ -13,6 +13,7 @@ func registerRoutes(app *fiber.App, api *API) {
 	app.Post("/api/v1/auth/logout", api.logout)
 	app.Get("/api/v1/assets/search", api.searchAssets)
 	app.Get("/api/v1/assets/:ticker", api.getAsset)
+	app.Get("/api/v1/corporate-actions/projection", api.getCorporateActionProjection)
 	app.Get("/api/v1/portfolios", api.listPortfolios)
 	app.Post("/api/v1/portfolios", api.createPortfolio)
 	app.Get("/api/v1/portfolios/:portfolioId", api.getPortfolio)

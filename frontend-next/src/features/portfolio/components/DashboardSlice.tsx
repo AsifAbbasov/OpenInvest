@@ -83,6 +83,9 @@ export function DashboardSlice() {
               <Link href="/assets" className="secondary-button">
                 Discover assets
               </Link>
+              <Link href="/corporate-actions" className="secondary-button">
+                Corporate actions
+              </Link>
               <button type="button" className="secondary-button" onClick={() => void load()}>
                 Reload
               </button>
@@ -116,9 +119,14 @@ export function DashboardSlice() {
               <p className="eyebrow">Supported instruments</p>
               <h2>Asset discovery</h2>
             </div>
-            <Link href="/assets" className="secondary-button">
-              Discover assets
-            </Link>
+            <div className="button-row">
+              <Link href="/assets" className="secondary-button">
+                Discover assets
+              </Link>
+              <Link href="/corporate-actions" className="secondary-button">
+                Corporate actions
+              </Link>
+            </div>
           </div>
           <p className="muted">
             Search supported MVP assets through the public Go API before adding transactions.

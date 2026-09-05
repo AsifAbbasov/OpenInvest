@@ -27,6 +27,7 @@ var requiredOperations = map[string]string{
 	"POST /api/v1/auth/logout":                                             "logout",
 	"GET /api/v1/assets/search":                                            "searchAssets",
 	"GET /api/v1/assets/{ticker}":                                          "getAsset",
+	"GET /api/v1/corporate-actions/projection":                              "getCorporateActionProjection",
 	"GET /api/v1/portfolios":                                               "listPortfolios",
 	"POST /api/v1/portfolios":                                              "createPortfolio",
 	"GET /api/v1/portfolios/{portfolioId}":                                 "getPortfolio",
@@ -45,7 +46,7 @@ var requiredOperations = map[string]string{
 	"GET /api/v1/dashboard":                                                "getDashboard",
 }
 
-var publicOperations = stringSet("getHealth", "getReadiness", "register", "login", "searchAssets", "getAsset", "calculateDividend")
+var publicOperations = stringSet("getHealth", "getReadiness", "register", "login", "searchAssets", "getAsset", "getCorporateActionProjection", "calculateDividend")
 var refreshOperations = stringSet("refreshSession", "logout")
 var idempotentOperations = stringSet("createPortfolio", "deletePortfolio", "createTransaction", "correctTransaction", "reverseTransaction", "appendReviewedPortfolioImport", "calculateDividend")
 

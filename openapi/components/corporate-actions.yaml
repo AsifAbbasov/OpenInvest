@@ -1,0 +1,163 @@
+CorporateActionKind:
+  type: string
+  enum: [DIVIDEND, COUPON]
+
+CorporateActionStatus:
+  type: string
+  enum: [ANNOUNCED, CONFIRMED, PAID, CANCELLED]
+  description: >-
+    Lifecycle state from canonical evidence. ANNOUNCED is not guaranteed income and must remain
+    distinguishable from CONFIRMED and PAID in every client presentation.
+
+CorporateActionMoney:
+  type: object
+  additionalProperties: false
+  required: [amount, currency]
+  properties:
+    amount:
+      $ref: "./schemas.yaml#/NonNegativeDecimal"
+    currency:
+      type: string
+      pattern: "^[A-Z]{3}$"
+      description: Canonical three-letter currency code from source evidence. No FX conversion is performed.
+
+CorporateActionProvenance:
+  type: object
+  additionalProperties: false
+  required: [provider]
+  properties:
+    provider:
+      type: string
+      pattern: "^[A-Z0-9_]{1,64}$"
+      description: >-
+        Canonical provider identifier. Runtime use requires an approved Data Source Registry entry for the exact
+        public-display mode. Provider-owned opaque source identities remain internal evidence and are not exposed.
+
+CorporateActionEvent:
+  type: object
+  additionalProperties: false
+  required:
+    - eventId
+    - instrumentId
+    - kind
+    - status
+    - recordDate
+    - paymentDate
+    - amountPerUnit
+    - supersedesEventId
+    - asOf
+    - retrievedAt
+    - provenance
+  properties:
+    eventId:
+      type: string
+      pattern: "^[A-Za-z0-9._:-]{1,128}$"
+    instrumentId:
+      type: string
+      pattern: "^[A-Z0-9]{1,32}$"
+    kind:
+      $ref: "#/CorporateActionKind"
+    status:
+      $ref: "#/CorporateActionStatus"
+    recordDate:
+      oneOf:
+        - $ref: "./schemas.yaml#/BusinessDate"
+        - type: "null"
+    paymentDate:
+      oneOf:
+        - $ref: "./schemas.yaml#/BusinessDate"
+        - type: "null"
+    amountPerUnit:
+      oneOf:
+        - $ref: "#/CorporateActionMoney"
+        - type: "null"
+    supersedesEventId:
+      type: [string, "null"]
+      pattern: "^[A-Za-z0-9._:-]{1,128}$"
+    asOf:
+      $ref: "./schemas.yaml#/SystemTimestamp"
+    retrievedAt:
+      $ref: "./schemas.yaml#/SystemTimestamp"
+    provenance:
+      $ref: "#/CorporateActionProvenance"
+
+CorporateActionCalendarEntry:
+  type: object
+  additionalProperties: false
+  required: [effectiveDate, event]
+  properties:
+    effectiveDate:
+      $ref: "./schemas.yaml#/BusinessDate"
+    event:
+      $ref: "#/CorporateActionEvent"
+
+CorporateActionHeatmapBucket:
+  type: object
+  additionalProperties: false
+  required:
+    - date
+    - totalCount
+    - dividendCount
+    - couponCount
+    - announcedCount
+    - confirmedCount
+    - paidCount
+    - cancelledCount
+  properties:
+    date:
+      $ref: "./schemas.yaml#/BusinessDate"
+    totalCount: { type: integer, minimum: 0 }
+    dividendCount: { type: integer, minimum: 0 }
+    couponCount: { type: integer, minimum: 0 }
+    announcedCount: { type: integer, minimum: 0 }
+    confirmedCount: { type: integer, minimum: 0 }
+    paidCount: { type: integer, minimum: 0 }
+    cancelledCount: { type: integer, minimum: 0 }
+  description: >-
+    Event-density bucket only. No amount, portfolio-income, yield, FX, or tax aggregation is implied.
+
+CorporateActionCoverage:
+  type: object
+  additionalProperties: false
+  required: [inputMode, instrumentIds, from, to]
+  properties:
+    inputMode:
+      type: string
+      const: PROVIDER
+      description: A 200 response exists only when a CorporateActionProvider supplied validated canonical evidence.
+    instrumentIds:
+      type: array
+      minItems: 1
+      uniqueItems: true
+      items:
+        type: string
+        pattern: "^[A-Z0-9]{1,32}$"
+      description: Canonically sorted instrument set used for the provider query.
+    from:
+      $ref: "./schemas.yaml#/BusinessDate"
+    to:
+      $ref: "./schemas.yaml#/BusinessDate"
+
+CorporateActionProjection:
+  type: object
+  additionalProperties: false
+  required: [calendar, heatmap, coverage]
+  properties:
+    calendar:
+      type: array
+      items:
+        $ref: "#/CorporateActionCalendarEntry"
+    heatmap:
+      type: array
+      items:
+        $ref: "#/CorporateActionHeatmapBucket"
+    coverage:
+      $ref: "#/CorporateActionCoverage"
+
+CorporateActionProjectionResponse:
+  allOf:
+    - $ref: "./schemas.yaml#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/CorporateActionProjection"

@@ -11,7 +11,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --experimental-strip-types --test tests/*.test.mjs && ./node_modules/.bin/tsx --test tests/*.component.test.tsx",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs && node --experimental-loader ./tests/css-module-loader.mjs --import tsx --test tests/*.component.test.tsx",
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {

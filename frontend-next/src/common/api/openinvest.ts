@@ -256,6 +256,65 @@ export type BondAsset = AssetBase & {
 
 export type Asset = StockAsset | BondAsset;
 
+export type CorporateActionKind = "DIVIDEND" | "COUPON";
+
+export type CorporateActionStatus = "ANNOUNCED" | "CONFIRMED" | "PAID" | "CANCELLED";
+
+export type CorporateActionMoney = {
+  amount: string;
+  currency: string;
+};
+
+export type CorporateActionEvent = {
+  eventId: string;
+  instrumentId: string;
+  kind: CorporateActionKind;
+  status: CorporateActionStatus;
+  recordDate: string | null;
+  paymentDate: string | null;
+  amountPerUnit: CorporateActionMoney | null;
+  supersedesEventId: string | null;
+  asOf: string;
+  retrievedAt: string;
+  provenance: {
+    provider: string;
+  };
+};
+
+export type CorporateActionCalendarEntry = {
+  effectiveDate: string;
+  event: CorporateActionEvent;
+};
+
+export type CorporateActionHeatmapBucket = {
+  date: string;
+  totalCount: number;
+  dividendCount: number;
+  couponCount: number;
+  announcedCount: number;
+  confirmedCount: number;
+  paidCount: number;
+  cancelledCount: number;
+};
+
+export type CorporateActionProjection = {
+  calendar: CorporateActionCalendarEntry[];
+  heatmap: CorporateActionHeatmapBucket[];
+  coverage: {
+    inputMode: "PROVIDER";
+    instrumentIds: string[];
+    from: string;
+    to: string;
+  };
+};
+
+export type CorporateActionProjectionParams = {
+  instrumentIds: string[];
+  from: string;
+  to: string;
+  signal?: AbortSignal;
+};
+
 export type AssetSearchParams = {
   query: string;
   assetType?: AssetType;
@@ -454,6 +513,19 @@ export async function getAsset(ticker: string, signal?: AbortSignal): Promise<Ap
   return request<Asset>(`/api/v1/assets/${encodeURIComponent(ticker)}`, {
     credentials: "omit",
     signal,
+  });
+}
+
+export async function getCorporateActionProjection(
+  params: CorporateActionProjectionParams,
+): Promise<ApiResult<CorporateActionProjection>> {
+  const searchParams = new URLSearchParams();
+  searchParams.set("instrumentId", params.instrumentIds.join(","));
+  searchParams.set("from", params.from);
+  searchParams.set("to", params.to);
+  return request<CorporateActionProjection>(`/api/v1/corporate-actions/projection?${searchParams.toString()}`, {
+    credentials: "omit",
+    signal: params.signal,
   });
 }
 
