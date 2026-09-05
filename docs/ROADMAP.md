@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.85 |
+| Version | 1.1.86 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
@@ -117,7 +117,9 @@
 | 3.64 — Corporate Actions API/UI / Feature 3C | Expose the canonical provider-neutral projection through Go HTTP, OpenAPI, typed Next.js client, Calendar/Heatmap UI and honest source-unavailable semantics | Complete / PR #128 squash-merged into `develop` at `c204ee9eee320e6171b55983cfde5cf74a2008df`; protected tree `33dd90d3928286c7d2628dd56e7d9f55eece08b5`; CI #344 and #345 10/10 |
 | 3.65 — Corporate Actions API/UI closure governance | Synchronize current lifecycle documentation for the already-merged 3A→3C chain without runtime change; preserve separate Feature 3D source gate | Complete / PR #129 squash-merged into protected develop at `1c30a4bf637c933e7c210cff6e26fabd91d8bab1`; protected tree `4ba610c1d20c95f10a5a16a6a0ece6caceb3236e`; Corporate Actions architecture/API/UI debt CLOSED |
 | 3.66 — Corporate Actions in-flight request cancellation | Close the carried frontend lifecycle P3 by aborting active Corporate Actions requests on unmount/replacement while preserving generation-based stale-result and existing error semantics | Complete / PR #130 squash-merged into protected develop at `7564dbbda9133f0b8965f9e7d0a0c0b81b82e992`; protected tree `b525f0960cb2613f62eaa9583d6394759a1cdd3b`; semantic CI #347 and evidence CI #348 both 10/10 SUCCESS |
-| 3.67 — Corporate Actions request-cancellation closure governance | Synchronize canonical lifecycle documentation for the already-merged Stage 3.66 without runtime change and preserve Feature 3D as a separate source/use planning gate | Merge-activated documentation-only closure; complete only when the approved Stage 3.67 record and synchronized canonical surfaces are present on protected develop |
+| 3.67 — Corporate Actions request-cancellation closure governance | Synchronize canonical lifecycle documentation for the already-merged Stage 3.66 without runtime change and preserve Feature 3D as a separate source/use planning gate | Complete / PR #131 squash-merged into protected `develop` at `c885f6e57ea08e4583103fe2f22f142bf13a8560`; protected tree `53f823e92b02721211e1d89f8af6374fffc252ae`; Stage 3.66 lifecycle/documentation closure COMPLETE |
+| 3.68 — Dividend Calculator implementation | Implement the frozen public user-supplied dividend calculator with exact Go Decimal arithmetic, durable idempotency/replay, bounded fresh-command admission, Next.js UI, exact presentation, tests and review evidence | Complete / PR #133 squash-merged into protected `develop` at `6fb395ffcef12840133dac27294f653276adcdf6`; protected tree `be09503ceaafb8781cc82829f98e37cda5c6be6b`; semantic CI #352 and evidence CI #353 both 10/10 SUCCESS; review/evidence gates APPROVED |
+| 3.69 — Dividend Calculator closure governance | Synchronize canonical lifecycle documentation for the already-merged Stage 3.68 without runtime change; record final purpose, expected behavior, evidence, merge state, residual non-blocking debt and preserved Feature 3D boundary | Merge-activated documentation-only closure; complete only when the approved Stage 3.69 record and synchronized canonical surfaces are present on protected `develop` |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
@@ -227,9 +229,17 @@ Stage 3.65 documentation/governance closure is canonical through PR #129 squash 
 Stage 3.66 request-cancellation hardening is canonical through PR #130 squash merge
 `7564dbbda9133f0b8965f9e7d0a0c0b81b82e992`, protected tree
 `b525f0960cb2613f62eaa9583d6394759a1cdd3b`, after semantic CI #347 and evidence CI #348 both 10/10 SUCCESS.
-Stage 3.67 is documentation/governance-only lifecycle synchronization for the already-merged Stage 3.66.
+Stage 3.67 documentation/governance closure is canonical through PR #131 squash merge
+`c885f6e57ea08e4583103fe2f22f142bf13a8560`, protected tree
+`53f823e92b02721211e1d89f8af6374fffc252ae`; the Stage 3.66 request-cancellation lifecycle/documentation debt is CLOSED.
+Stage 3.68 Dividend Calculator implementation is canonical through PR #133 squash merge
+`6fb395ffcef12840133dac27294f653276adcdf6`, protected tree
+`be09503ceaafb8781cc82829f98e37cda5c6be6b`, after semantic CI #352 and evidence CI #353 both 10/10 SUCCESS and
+approved Internal, External and exact evidence-publication verification gates.
+Stage 3.69 is documentation/governance-only lifecycle synchronization for that already-merged Stage 3.68. It changes
+no calculator/runtime/API/database/math/security/dependency behavior.
 Feature 3D remains a separate source/use-rights, licensing/public-display, rate/cost, caching/retention and
-runtime-composition planning gate; no real corporate-actions source is activated by Stages 3.65–3.67.
+runtime-composition planning gate; no real corporate-actions source is activated by Stages 3.65–3.69.
 
 No further audit-remediation implementation begins without a separately reviewed planning/remediation gate.
 
