@@ -69,6 +69,20 @@ function deferred<T>() {
   return { promise, resolve: resolve! };
 }
 
+function abortError() {
+  return new dom.window.DOMException("The operation was aborted.", "AbortError");
+}
+
+function waitForAbort(signal: AbortSignal) {
+  return new Promise<Response>((_resolve, reject) => {
+    if (signal.aborted) {
+      reject(abortError());
+      return;
+    }
+    signal.addEventListener("abort", () => reject(abortError()), { once: true });
+  });
+}
+
 function projectionResponse(calendar = [], heatmap = []) {
   return new Response(JSON.stringify({
     data: {
@@ -210,6 +224,153 @@ test("populated projection preserves lifecycle status and count-only heatmap", {
   assert.match(container.textContent ?? "", /Source: FIXTURE/);
   assert.match(container.textContent ?? "", /Retrieved: 2026-09-05T00:01:00Z/);
   assert.equal(container.querySelector('[data-density-level="4"]')?.textContent, "1");
+});
+
+test("in-flight request is aborted when the Corporate Actions component unmounts", { concurrency: false }, async (t) => {
+  const originalFetch = globalThis.fetch;
+  let observedSignal: AbortSignal | null = null;
+  globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+    observedSignal = init?.signal as AbortSignal;
+    assert.ok(observedSignal);
+    return waitForAbort(observedSignal);
+  };
+  const { container, root } = mountSlice();
+  let didUnmount = false;
+  t.after(async () => {
+    if (!didUnmount) {
+      await act(async () => root.unmount());
+    }
+    dom.window.document.body.innerHTML = "";
+    globalThis.fetch = originalFetch;
+  });
+
+  await act(async () => root.render(<CorporateActionsSlice />));
+  await prepareForm(container);
+  await submit(container);
+
+  assert.ok(observedSignal);
+  assert.equal(observedSignal.aborted, false);
+
+  await act(async () => {
+    root.unmount();
+    didUnmount = true;
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+
+  assert.equal(observedSignal.aborted, true);
+});
+
+test("aborted request does not update state or surface a false application error", { concurrency: false }, async (t) => {
+  const originalFetch = globalThis.fetch;
+  let observedSignal: AbortSignal | null = null;
+  globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+    observedSignal = init?.signal as AbortSignal;
+    assert.ok(observedSignal);
+    return waitForAbort(observedSignal);
+  };
+  const { container, root } = mountSlice();
+  t.after(async () => {
+    await act(async () => root.unmount());
+    dom.window.document.body.innerHTML = "";
+    globalThis.fetch = originalFetch;
+  });
+
+  await act(async () => root.render(<CorporateActionsSlice />));
+  await prepareForm(container);
+  await submit(container);
+
+  await act(async () => {
+    setInput(container, 'input[placeholder="SBER, GAZP"]', "GAZP");
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+
+  assert.ok(observedSignal);
+  assert.equal(observedSignal.aborted, true);
+  assert.match(container.textContent ?? "", /Choose an instrument set and date window/);
+  assert.doesNotMatch(container.textContent ?? "", /Go API is unavailable/);
+  assert.doesNotMatch(container.textContent ?? "", /Corporate actions source unavailable/);
+  assert.equal(container.querySelector('[role="alert"]'), null);
+});
+
+test("replacement request aborts the older request and the newer result wins", { concurrency: false }, async (t) => {
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  let firstSignal: AbortSignal | null = null;
+  globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+    calls += 1;
+    if (calls === 1) {
+      firstSignal = init?.signal as AbortSignal;
+      assert.ok(firstSignal);
+      return waitForAbort(firstSignal);
+    }
+    return projectionResponse([], []);
+  };
+  const { container, root } = mountSlice();
+  t.after(async () => {
+    await act(async () => root.unmount());
+    dom.window.document.body.innerHTML = "";
+    globalThis.fetch = originalFetch;
+  });
+
+  await act(async () => root.render(<CorporateActionsSlice />));
+  await prepareForm(container);
+  await submit(container);
+
+  await act(async () => {
+    setInput(container, 'input[placeholder="SBER, GAZP"]', "GAZP");
+    await Promise.resolve();
+  });
+  await submit(container);
+
+  assert.ok(firstSignal);
+  assert.equal(firstSignal.aborted, true);
+  assert.equal(calls, 2);
+  assert.match(container.textContent ?? "", /legitimate empty projection/);
+  assert.doesNotMatch(container.textContent ?? "", /Go API is unavailable/);
+});
+
+test("genuine Corporate Actions HTTP/API error still surfaces normally", { concurrency: false }, async (t) => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => errorResponse(
+    502,
+    "CORPORATE_ACTIONS_SOURCE_INVALID",
+    "Corporate actions source returned unverifiable data",
+  );
+  const { container, root } = mountSlice();
+  t.after(async () => {
+    await act(async () => root.unmount());
+    dom.window.document.body.innerHTML = "";
+    globalThis.fetch = originalFetch;
+  });
+
+  await act(async () => root.render(<CorporateActionsSlice />));
+  await prepareForm(container);
+  await submit(container);
+
+  assert.match(container.textContent ?? "", /Corporate actions source returned unverifiable data/);
+  assert.ok(container.querySelector('[role="alert"]'));
+});
+
+test("genuine network failure still surfaces the existing Go API unavailable error", { concurrency: false }, async (t) => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => {
+    throw new TypeError("network failed");
+  };
+  const { container, root } = mountSlice();
+  t.after(async () => {
+    await act(async () => root.unmount());
+    dom.window.document.body.innerHTML = "";
+    globalThis.fetch = originalFetch;
+  });
+
+  await act(async () => root.render(<CorporateActionsSlice />));
+  await prepareForm(container);
+  await submit(container);
+
+  assert.match(container.textContent ?? "", /Go API is unavailable/);
+  assert.ok(container.querySelector('[role="alert"]'));
 });
 
 test("stale request completion cannot overwrite a newer corporate-action query", { concurrency: false }, async (t) => {

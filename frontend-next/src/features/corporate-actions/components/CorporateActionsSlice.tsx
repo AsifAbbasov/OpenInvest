@@ -41,6 +41,14 @@ export function CorporateActionsSlice() {
     setState({ status: "idle" });
   }, [instrumentInput, from, to]);
 
+  useEffect(() => {
+    return () => {
+      requestGenerationRef.current += 1;
+      abortRef.current?.abort();
+      abortRef.current = null;
+    };
+  }, []);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const instrumentIds = parseCorporateActionInstrumentInput(instrumentInput);
@@ -61,7 +69,7 @@ export function CorporateActionsSlice() {
     setState({ status: "loading" });
 
     const result = await getCorporateActionProjection({ instrumentIds, from, to, signal: controller.signal });
-    if (requestGenerationRef.current !== requestGeneration) {
+    if (controller.signal.aborted || requestGenerationRef.current !== requestGeneration) {
       return;
     }
     if (!result.ok) {
