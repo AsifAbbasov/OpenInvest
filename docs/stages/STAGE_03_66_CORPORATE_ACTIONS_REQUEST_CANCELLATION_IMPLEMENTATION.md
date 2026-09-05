@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Local development-path candidate; not committed/pushed; no Draft PR/Ready/merge/Feature 3D/source activation authorization implied |
+| Status | Draft PR #130 published; fresh External review APPROVED; this evidence-only follow-up publishes withheld Internal evidence; final evidence-head CI/verification and separate Ready/merge authorization remain pending |
 | Date | 2026-09-05 |
 | Canonical implementation base | `develop@1c30a4bf637c933e7c210cff6e26fabd91d8bab1` |
 | Protected-base tree | `4ba610c1d20c95f10a5a16a6a0ece6caceb3236e` |
@@ -235,3 +235,110 @@ The Internal reviewer must classify only demonstrated findings as P0/P1/P2/P3 an
 If Internal review is `APPROVED`, human permission is still required before commit/push/Draft PR. Publication then
 requires exact-head GitHub CI, fresh External review, any demonstrated remediation, evidence-only publication and
 verification, and a separate human Ready/squash-merge gate under `docs/REVIEW_WORKFLOW.md` v1.4.0.
+
+
+## 13. Published review and evidence chronology
+
+This section is evidence-only and is published only after the fresh External published-head verdict, as required by
+`docs/REVIEW_WORKFLOW.md` v1.4.0. Sections 1–12 preserve the Stage 3.66 implementation contract and prepublication
+reasoning. This follow-up changes no runtime, tests, typed client, dependency, OpenAPI, backend, source or Feature 3D
+surface.
+
+### 13.1 Frozen prepublication subject
+
+- canonical base: `develop@1c30a4bf637c933e7c210cff6e26fabd91d8bab1`;
+- base tree: `4ba610c1d20c95f10a5a16a6a0ece6caceb3236e`;
+- frozen three-file manifest SHA-256: `f6097cc169e046e598135877eafbab23a11cb2035fbd06972f293541048f1bbe`;
+- production blob: `c4e36a8cef8965fea21223a9b455820a734221b5`;
+- component-test blob: `b9f9d2eb40dc1c9f09b8ab4dd3cf15755a1e35f1`;
+- initial implementation-record blob: `08f325c49b74b0b0a75737f15245718ec5349686`.
+
+The exact semantic publication was one commit ahead / zero behind its authorized base and changed exactly the three
+files named in Section 7.
+
+### 13.2 Internal review evidence — published after External verdict
+
+The mandatory prepublication Internal review was read-only and made no repository edits. Its evidence was withheld
+from the Draft PR/repository until the fresh External published-head verdict.
+
+Internal review SHA-256:
+
+```text
+70e1b8fb0f40941137d5350831aa1bdb0c35db135ba57610ac5e8bbade5c426c
+```
+
+Final prepublication Internal verdict:
+
+```text
+P0 = 0
+P1 = 0
+P2 blocking = 0
+P3 blocking = 0
+VERDICT = APPROVED
+```
+
+One non-runtime P3 test-quality finding was resolved before freeze: the initial unmount test did not guarantee React
+root cleanup after an early assertion failure. Builder remediation added fail-safe teardown, reran the affected local
+preflight, and retained sequential test isolation. A separate genuine network-failure regression was also added so
+abort suppression cannot accidentally hide normal transport failures. No runtime finding remained.
+
+### 13.3 Published semantic head and authoritative CI
+
+Draft PR #130 initially published exact semantic head:
+
+```text
+97694ddfe49a1587aa4e86a6c0258a57fd95a708
+
+tree:
+067cdb5a69d9aa9e4d18ec76a372d836d1b3c13c
+```
+
+CI #347 / run `33952598235` completed on that exact head with all ten required jobs `SUCCESS`:
+
+```text
+Go tests                         PASS
+Go race tests                    PASS
+Go vet                           PASS
+Go vulnerability scan           PASS
+Python tests                     PASS
+Frontend build and typecheck     PASS
+OpenAPI contract                 PASS
+Docker Compose config            PASS
+PostgreSQL migration validation  PASS
+Dependency security scan         PASS
+```
+
+The frontend job specifically passed all three relevant steps: `Typecheck`, complete `Test`, and production `Build`.
+This is the authoritative execution evidence for the real React/JSDOM cancellation tests that were unavailable in the
+prepublication sandbox.
+
+### 13.4 Fresh External published-head review
+
+Fresh External review COMMENT `5550298926` reviewed the exact semantic head and did not use the earlier Internal
+verdict/findings as supporting evidence. It re-evaluated the contract, implementation, failure/race semantics, tests,
+CI and architectural consequences.
+
+External verdict:
+
+```text
+P0 = 0
+P1 = 0
+P2 blocking = 0
+P3 blocking = 0
+VERDICT = APPROVED
+```
+
+The External review confirmed that unmount/replacement cancellation is confined to the Corporate Actions frontend
+ownership boundary, the existing generation guard is preserved, normal API/network errors keep their prior semantics,
+and Feature 3D/source activation remains outside the PR.
+
+### 13.5 Evidence-only publication rule
+
+This follow-up publishes only the previously withheld Internal evidence and the already-observed published-head
+CI/External chronology in this implementation record. The semantic runtime/test blobs from Section 13.1 remain
+unchanged.
+
+The evidence head must pass the same required GitHub CI. The designated review chat must then verify that the
+semantic-head → evidence-head transition changes only this documentation record and introduces no runtime/test
+semantic drift. Ready/squash merge remains a separate explicit human authorization gate. Feature 3D remains not
+authorized.
