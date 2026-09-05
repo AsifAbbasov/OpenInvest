@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.86 |
+| Version | 1.1.87 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
@@ -119,7 +119,7 @@
 | 3.66 — Corporate Actions in-flight request cancellation | Close the carried frontend lifecycle P3 by aborting active Corporate Actions requests on unmount/replacement while preserving generation-based stale-result and existing error semantics | Complete / PR #130 squash-merged into protected develop at `7564dbbda9133f0b8965f9e7d0a0c0b81b82e992`; protected tree `b525f0960cb2613f62eaa9583d6394759a1cdd3b`; semantic CI #347 and evidence CI #348 both 10/10 SUCCESS |
 | 3.67 — Corporate Actions request-cancellation closure governance | Synchronize canonical lifecycle documentation for the already-merged Stage 3.66 without runtime change and preserve Feature 3D as a separate source/use planning gate | Complete / PR #131 squash-merged into protected `develop` at `c885f6e57ea08e4583103fe2f22f142bf13a8560`; protected tree `53f823e92b02721211e1d89f8af6374fffc252ae`; Stage 3.66 lifecycle/documentation closure COMPLETE |
 | 3.68 — Dividend Calculator implementation | Implement the frozen public user-supplied dividend calculator with exact Go Decimal arithmetic, durable idempotency/replay, bounded fresh-command admission, Next.js UI, exact presentation, tests and review evidence | Complete / PR #133 squash-merged into protected `develop` at `6fb395ffcef12840133dac27294f653276adcdf6`; protected tree `be09503ceaafb8781cc82829f98e37cda5c6be6b`; semantic CI #352 and evidence CI #353 both 10/10 SUCCESS; review/evidence gates APPROVED |
-| 3.69 — Dividend Calculator closure governance | Synchronize canonical lifecycle documentation for the already-merged Stage 3.68 without runtime change; record final purpose, expected behavior, evidence, merge state, residual non-blocking debt and preserved Feature 3D boundary | Merge-activated documentation-only closure; complete only when the approved Stage 3.69 record and synchronized canonical surfaces are present on protected `develop` |
+| 3.69 — Dividend Calculator closure governance | Synchronize canonical lifecycle documentation for the already-merged Stage 3.68 without runtime change; record final purpose, expected behavior, evidence, merge state, residual non-blocking debt and preserved Feature 3D boundary | Complete / PR #134 squash-merged into protected `develop` at `fee7de358f0919802e16a398b19c8947bc852645`; protected tree `e7c9ddb96a5bf7add5204ccdf54aa20c190a0014`; exact published head `e98bad4b2431eb7f45a5bfff17c3601c49554b45`; CI #354 / run `33983374426` 10/10 SUCCESS; exact closure verification APPROVED; Stage 3.68 lifecycle/documentation closure COMPLETE |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
@@ -236,8 +236,12 @@ Stage 3.68 Dividend Calculator implementation is canonical through PR #133 squas
 `6fb395ffcef12840133dac27294f653276adcdf6`, protected tree
 `be09503ceaafb8781cc82829f98e37cda5c6be6b`, after semantic CI #352 and evidence CI #353 both 10/10 SUCCESS and
 approved Internal, External and exact evidence-publication verification gates.
-Stage 3.69 is documentation/governance-only lifecycle synchronization for that already-merged Stage 3.68. It changes
-no calculator/runtime/API/database/math/security/dependency behavior.
+Stage 3.69 Dividend Calculator closure governance is canonical through PR #134 squash merge
+`fee7de358f0919802e16a398b19c8947bc852645`, protected tree
+`e7c9ddb96a5bf7add5204ccdf54aa20c190a0014`, from exact published head
+`e98bad4b2431eb7f45a5bfff17c3601c49554b45` after CI #354 / run `33983374426` 10/10 SUCCESS and exact
+published-head closure verification `APPROVED`. Stage 3.68 lifecycle/documentation closure is COMPLETE. This closure
+changes no calculator/runtime/API/database/math/security/dependency behavior.
 Feature 3D remains a separate source/use-rights, licensing/public-display, rate/cost, caching/retention and
 runtime-composition planning gate; no real corporate-actions source is activated by Stages 3.65–3.69.
 
