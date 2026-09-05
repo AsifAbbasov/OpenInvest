@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.83 |
+| Version | 1.1.84 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
 | Dependencies | Architecture Freeze v1.2 |
-| Last Review Date | 2026-09-04 |
-| Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
+| Last Review Date | 2026-09-05 |
+| Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
 
 | Stage | Outcome | State |
 | --- | --- | --- |
@@ -108,6 +108,14 @@
 | 3.57 — Market Data Provider Boundary planning | Freeze the smallest provider-neutral canonical quote, provenance/freshness, time, failure, API/DB and test boundary before any real MOEX provider I/O | Complete / PR #119 squash-merged into `develop` at `8316d404d057f0a895713bd1d496a342409903c4` |
 | 3.57 — Market Data Provider Boundary Feature 1 implementation | Implement `QuoteProvider`, canonical `MarketQuote`, fail-closed invariants, deterministic freshness and a narrow internal service seam without production provider wiring | Complete / PR #120 squash-merged into `develop` at `cd97f3217811bb123ad96d92b7d8a4be0e03c8bb`; protected tree `0510971289c204e9b5226359f2efdd1941542309`; final CI #321 / run `33861987999` 10/10; review/evidence gates APPROVED |
 | 3.58 — Market Data Provider Boundary Feature 1 closure governance | Synchronize canonical lifecycle documentation for the already-merged Feature 1 and preserve the separate Feature 2 gate without runtime change | Merge-activated documentation-only closure; complete only when the approved Stage 3.58 closure record and synchronized canonical surfaces are present on protected `develop` |
+| 3.59 — Real MOEX ISS Quote Provider Adapter planning | Freeze the first real delayed TQBR provider-specific adapter behind the canonical QuoteProvider boundary without runtime activation | Complete / PR #122 squash-merged into `develop` at `edf3ffc24c3813f884fd3a4f8a7e9630cb9b8322` |
+| 3.59 — Real MOEX ISS Quote Provider Adapter implementation | Implement the delayed TQBR adapter with exact decimals, deterministic provider time/provenance, bounded HTTP and fail-closed validation | Complete / PR #123 squash-merged into `develop` at `f55ad38c1f5ea52ba4502904fefa51c164c45006`; final evidence head `8d3c23cdb257ea2134d9f0ebc7b11fa264144611`; CI #332 10/10 |
+| 3.60 — MOEX ISS runtime/source activation decision | Decide whether the already-built MOEX ISS adapter may be wired into shipped runtime under current rights/cost constraints | Complete / PR #124 squash-merged into `develop` at `7c022e6de1ab0a86ebf96ede48fafabc15b9f71c`; shipped activation remains NO-GO |
+| 3.61 — Corporate Actions Calendar + Heatmap planning | Freeze source decision, provider-neutral event boundary, lifecycle, projection rules, and 3A→3D sequence | Complete / PR #125 squash-merged into `develop` at `0e449b4d729e4388081be4990c034c67c5e5019a` |
+| 3.62 — Corporate Action Boundary / Feature 3A | Implement canonical CorporateActionEvent, provider port, validation, provenance and correction/cancellation linkage | Complete / PR #126 squash-merged into `develop` at `fbbca6aeee7c12300a37eb5748628275aac427e4` |
+| 3.63 — Calendar + Heatmap Projection / Feature 3B | Implement deterministic current dated Calendar and count/density Heatmap projections with fail-closed supersession integrity | Complete / PR #127 squash-merged into `develop` at `a8f9e95c065ee708885461166e1e992d1f4aae22` |
+| 3.64 — Corporate Actions API/UI / Feature 3C | Expose the canonical provider-neutral projection through Go HTTP, OpenAPI, typed Next.js client, Calendar/Heatmap UI and honest source-unavailable semantics | Complete / PR #128 squash-merged into `develop` at `c204ee9eee320e6171b55983cfde5cf74a2008df`; protected tree `33dd90d3928286c7d2628dd56e7d9f55eece08b5`; CI #344 and #345 10/10 |
+| 3.65 — Corporate Actions API/UI closure governance | Synchronize current lifecycle documentation for the already-merged 3A→3C chain without runtime change; preserve separate Feature 3D source gate | Merge-activated documentation-only closure; complete only when the approved Stage 3.65 record and synchronized canonical surfaces are present on protected `develop` |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
@@ -194,6 +202,27 @@ Stage 3.58 is documentation/governance-only closure synchronization. It becomes 
 approved closure record and synchronized canonical surfaces are present on protected `develop`. It
 does not authorize Feature 2. A real MOEX provider adapter requires a separate reviewed scope and
 explicit human authorization.
+
+Stage 3.59 provider-adapter planning is canonical through PR #122 squash merge
+`edf3ffc24c3813f884fd3a4f8a7e9630cb9b8322`; its implementation is canonical through PR #123
+squash merge `f55ad38c1f5ea52ba4502904fefa51c164c45006`. Stage 3.60 source-activation governance is
+canonical through PR #124 squash merge `7c022e6de1ab0a86ebf96ede48fafabc15b9f71c`: the delayed
+MOEX ISS adapter remains technically implemented but dormant because shipped/public runtime use is still NO-GO under
+the reviewed source-rights and zero-budget constraints.
+
+Stage 3.61 Corporate Actions planning is canonical through PR #125 squash merge
+`0e449b4d729e4388081be4990c034c67c5e5019a`. Feature 3A is canonical through Stage 3.62 / PR #126
+squash merge `fbbca6aeee7c12300a37eb5748628275aac427e4`; Feature 3B is canonical through Stage 3.63 /
+PR #127 squash merge `a8f9e95c065ee708885461166e1e992d1f4aae22`; Feature 3C is canonical through Stage 3.64 /
+PR #128 squash merge `c204ee9eee320e6171b55983cfde5cf74a2008df`, whose protected merge tree
+`33dd90d3928286c7d2628dd56e7d9f55eece08b5` exactly matches the approved final evidence tree.
+Corporate Actions now has the provider-neutral event boundary, deterministic Calendar/Heatmap projection,
+Go HTTP/OpenAPI surface, typed Next.js client, and UI. No real corporate-actions source is activated.
+
+Stage 3.65 is documentation/governance-only closure synchronization for that already-merged 3A→3C chain. Once the
+approved Stage 3.65 closure record and synchronized canonical surfaces are present on protected `develop`, Corporate
+Actions architecture/API/UI implementation debt is documentation-closed. Feature 3D remains a separate source,
+licensing/public-display, rate/cost, caching/retention and runtime-composition gate and is not authorized by Stage 3.65.
 
 No further audit-remediation implementation begins without a separately reviewed planning/remediation gate.
 
