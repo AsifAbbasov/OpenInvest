@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.87 |
+| Version | 1.4.88 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -15,9 +15,10 @@
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.66 — Corporate Actions In-Flight Request Cancellation / PR #130 squash merge `7564dbbda9133f0b8965f9e7d0a0c0b81b82e992` / protected tree `b525f0960cb2613f62eaa9583d6394759a1cdd3b`**
+**Last completed implementation stage: Stage 3.68 — Dividend Calculator / PR #133 squash merge `6fb395ffcef12840133dac27294f653276adcdf6` / protected tree `be09503ceaafb8781cc82829f98e37cda5c6be6b`**
 **Current market-data lifecycle: Stage 3.59 delayed MOEX ISS TQBR adapter is implemented through PR #123, but Stage 3.60 / PR #124 records shipped runtime/public use as NO-GO under the current reviewed source-rights and zero-budget constraints; the adapter remains dormant**
-**Current Corporate Actions lifecycle: Stage 3.61 planning and Stages 3.62/3.63/3.64 Features 3A/3B/3C are protected-merged through PRs #125/#126/#127/#128; Stage 3.65 documentation closure is canonical through PR #129 / merge `1c30a4bf637c933e7c210cff6e26fabd91d8bab1`; Stage 3.66 request-cancellation hardening is protected-merged through PR #130 / merge `7564dbbda9133f0b8965f9e7d0a0c0b81b82e992`, tree `b525f0960cb2613f62eaa9583d6394759a1cdd3b`; provider-neutral boundary, Calendar/Heatmap projection, API/UI, stale-result protection and component-unmount/replacement cancellation are implemented; Stage 3.67 is documentation-only closure synchronization for Stage 3.66 and becomes canonical only after protected activation; Feature 3D remains a separate source/use planning gate and no real corporate-actions source/runtime activation is authorized**
+**Current Corporate Actions lifecycle: Stage 3.61 planning and Stages 3.62/3.63/3.64 Features 3A/3B/3C are protected-merged through PRs #125/#126/#127/#128; Stage 3.65 documentation closure is canonical through PR #129 / merge `1c30a4bf637c933e7c210cff6e26fabd91d8bab1`; Stage 3.66 request-cancellation hardening is protected-merged through PR #130 / merge `7564dbbda9133f0b8965f9e7d0a0c0b81b82e992`, tree `b525f0960cb2613f62eaa9583d6394759a1cdd3b`; Stage 3.67 closure is canonical through PR #131 / merge `c885f6e57ea08e4583103fe2f22f142bf13a8560`, tree `53f823e92b02721211e1d89f8af6374fffc252ae`; provider-neutral boundary, Calendar/Heatmap projection, API/UI, stale-result protection and component-unmount/replacement cancellation are implemented and documentation-closed; Feature 3D remains a separate source/use planning gate and no real corporate-actions source/runtime activation is authorized**
+**Current Dividend Calculator lifecycle: Stage 3.68 is canonical through PR #133 / squash merge `6fb395ffcef12840133dac27294f653276adcdf6`, protected tree `be09503ceaafb8781cc82829f98e37cda5c6be6b`; the public user-supplied calculator uses backend-owned exact Decimal arithmetic and durable idempotency/replay without external provider data, tax logic, portfolio mutation, schema/OpenAPI change or new dependency; Stage 3.69 is documentation-only closure synchronization and becomes canonical only after protected activation**
 **Last completed privacy planning gate: Stage 3.24 — Privacy Security Review Readiness Dossier**
 **Last completed audit-remediation planning gate: Stage 3.54 — P3-08 migration validator planning / PR #115 squash merge `b79a9d3c43621e56e598901bdf472771e8b68ef8`**
 **Last completed audit-remediation closure gate: Stage 3.56 — P3-08 migration validator closure / PR #117 squash merge `983104267221706c3c2ebd8d9be358e3921334b5` from exact head `02e9ef82ed087a892928dc643adccbdfa1ed9600` after CI #316 / run `33816103670` 10/10 and `PUBLISHED_EXACT_HEAD_CLOSURE=APPROVED`**
@@ -323,7 +324,7 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 | MOEX shares and bonds | Yes | Stage 3.15 Web asset discovery UI slice closed over the Stage 3.14 asset API boundary |
 | Dashboard and snapshots | Yes | Stage 3.4 verification closed |
 | WAC, XIRR, real/inflation returns | Yes | Planned |
-| Dividend calculator/calendar | Yes | Calendar/Heatmap provider-neutral API/UI closed through Stage 3.64; monetary dividend calculator remains separately planned; live corporate-actions source remains gated by Feature 3D source approval |
+| Dividend calculator/calendar | Yes | User-supplied monetary Dividend Calculator is canonical through Stage 3.68 / PR #133; Calendar/Heatmap provider-neutral API/UI is canonical through Stage 3.64 and request-cancellation lifecycle is closed through Stage 3.67; live provider-derived Corporate Actions remain gated by Feature 3D source approval |
 | Broker file import and reconciliation | Public-MVP readiness candidate | Stage 3.10 upload/review UI slice closed; no import-session persistence |
 | Purchasing power | Yes | Planned as secondary insight |
 | Tax export | No | Experimental; feature flag off |
@@ -871,7 +872,7 @@ present on protected `develop` after the mandatory governance/closure path.
 Feature 2 — a real MOEX ISS provider adapter and any production wiring/source activation — remains a
 separate governed stage and is not authorized by Stage 3.58.
 
-## Stage 3.59–3.65 market-data and Corporate Actions lifecycle
+## Stage 3.59–3.69 market-data, Corporate Actions, and Dividend Calculator lifecycle
 
 Stage 3.59 real MOEX ISS quote-provider planning is canonical through PR #122 squash merge
 `edf3ffc24c3813f884fd3a4f8a7e9630cb9b8322`. The delayed TQBR adapter implementation is canonical through
@@ -913,10 +914,34 @@ canonical event boundary → Calendar/Heatmap projection → Go HTTP/OpenAPI →
 event-density only; provider-owned `SourceEventID` is not public; responses use `Cache-Control: no-store` while source
 rights remain unapproved; no real corporate-actions provider is activated.
 
-Stage 3.65 is documentation/governance-only closure synchronization. It changes no runtime, OpenAPI, SQL/database,
-frontend runtime, dependency, CI/workflow or source decision. Once its approved closure record plus synchronized
-`ROADMAP.md` and `SOURCE_OF_TRUTH.md` are present on protected `develop`, Corporate Actions architecture/API/UI
-implementation debt is documentation-closed. Feature 3D remains separately gated by exact source/use rights,
-licensing/cost acceptance, public-display rights, caching/retention rights, rate/traffic/failure policy, Data Source
-Registry approval and separately reviewed runtime composition. The carried-forward non-blocking P3 requires explicit
-component-unmount request cancellation before activating a real rate/cost-limited Corporate Actions provider.
+Stage 3.65 documentation/governance closure is canonical through PR #129 squash merge
+`1c30a4bf637c933e7c210cff6e26fabd91d8bab1`, protected tree
+`4ba610c1d20c95f10a5a16a6a0ece6caceb3236e`; Corporate Actions architecture/API/UI implementation debt is
+documentation-closed.
+
+Stage 3.66 request-cancellation hardening is canonical through PR #130 squash merge
+`7564dbbda9133f0b8965f9e7d0a0c0b81b82e992`, protected tree
+`b525f0960cb2613f62eaa9583d6394759a1cdd3b`, after semantic CI #347 and evidence CI #348 both 10/10 SUCCESS.
+Stage 3.67 documentation/governance closure is canonical through PR #131 squash merge
+`c885f6e57ea08e4583103fe2f22f142bf13a8560`, protected tree
+`53f823e92b02721211e1d89f8af6374fffc252ae`. The previously carried component-unmount cancellation P3 and the
+Stage 3.66 lifecycle/documentation debt are CLOSED.
+
+Stage 3.68 Dividend Calculator is canonical through PR #133 squash merge
+`6fb395ffcef12840133dac27294f653276adcdf6`, protected tree
+`be09503ceaafb8781cc82829f98e37cda5c6be6b`. Semantic head
+`c4a87bf8cf4eeefc3dbf3e130e1a9e21b623952c` passed CI #352 / run `33972964583` 10/10 and fresh External
+published-head review APPROVED. Final evidence head `014a594695b94b9af424b06a3e38590fbb5281ff` passed CI #353 / run
+`33974141987` 10/10 and exact evidence-publication verification APPROVED with no runtime/product/API/database/math/
+security/dependency semantic drift. The calculator is public and provider-independent: users supply ticker, quantity,
+dividend per unit and optional position cost; Go owns exact Decimal gross-dividend/gross-yield calculation; the Web
+frontend only submits exact strings and presents backend results. No provider, tax logic, portfolio mutation, OpenAPI
+change, schema/migration or new dependency was introduced.
+
+Stage 3.69 is documentation/governance-only closure synchronization for the already-merged Stage 3.68. It preserves the
+Stage 3.68 implementation record as historical pre-merge evidence and makes the final lifecycle state explicit through
+the Stage 3.69 closure record, `ROADMAP.md`, and this Source of Truth.
+
+Feature 3D remains separately gated by exact source/use rights, licensing/cost acceptance, public-display rights,
+caching/retention rights, rate/traffic/failure policy, Data Source Registry approval and separately reviewed runtime
+composition. Stage 3.68/3.69 does not authorize provider-derived live dividend data or a real Corporate Actions source.
