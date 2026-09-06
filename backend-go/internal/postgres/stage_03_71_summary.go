@@ -10,9 +10,6 @@ import (
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
-const stage371SnapshotMethodology = "stage-03-71-position-cost-snapshot-v1"
-const stage302SnapshotMethodology = "stage-03-02-local-cost-snapshot-v1"
-
 func (s *Store) GetPortfolioSummaryStage371(
 	ctx context.Context,
 	subjectID string,
