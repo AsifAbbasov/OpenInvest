@@ -143,6 +143,10 @@ test("initial production form has no fixture-derived business values", { concurr
   await renderForm(root);
 
   assert.equal((controlFor(container, "Transaction type") as HTMLSelectElement).value, "BUY");
+  const transactionOptions = [...(controlFor(container, "Transaction type") as HTMLSelectElement).options].map(
+    (option) => option.value,
+  );
+  assert.deepEqual(transactionOptions, ["BUY", "SELL", "DEPOSIT", "WITHDRAWAL"]);
   for (const label of ["Ticker", "Quantity", "Unit price", "Commission", "Tax", "Trade date", "Settlement date", "Note"]) {
     assert.equal(controlFor(container, label).value, "", `${label} must start empty`);
   }
@@ -213,6 +217,47 @@ test("BUY submission uses only user-entered values and preserves null semantics"
     note: "user supplied note",
   });
   assert.match(idempotencyKey(requests[0].init) ?? "", /^[A-Za-z0-9._:-]{16,128}$/);
+});
+
+test("SELL is exposed for manual entry and preserves trade payload semantics", { concurrency: false }, async (t) => {
+  const originalFetch = globalThis.fetch;
+  const requests: Array<{ input: RequestInfo | URL; init?: RequestInit }> = [];
+  globalThis.fetch = async (input, init) => {
+    requests.push({ input, init });
+    return apiResponse({ id: "10000000-0000-4000-8000-000000000014" }, 201);
+  };
+  const { container, root } = mountForm();
+  t.after(async () => {
+    await act(async () => root.unmount());
+    dom.window.document.body.innerHTML = "";
+    globalThis.fetch = originalFetch;
+  });
+
+  await renderForm(root);
+  await setControl(container, "Transaction type", "SELL");
+  await setControl(container, "Ticker", "sber");
+  await setControl(container, "Quantity", "1.25000000");
+  await setControl(container, "Unit price", "325.50000000");
+  await setControl(container, "Commission", "1.00000000");
+  await setControl(container, "Tax", "0.50000000");
+  await setControl(container, "Trade date", "2026-09-02");
+  await setControl(container, "Settlement date", "2026-09-04");
+  await setControl(container, "Note", "manual sell");
+  await submit(container);
+
+  assert.equal(requests.length, 1);
+  assert.deepEqual(requestBody(requests[0].init), {
+    transactionType: "SELL",
+    ticker: "SBER",
+    quantity: "1.25000000",
+    unitPrice: { amount: "325.50000000", currency: "RUB" },
+    grossAmount: null,
+    commission: { amount: "1.00000000", currency: "RUB" },
+    tax: { amount: "0.50000000", currency: "RUB" },
+    tradeDate: "2026-09-02",
+    settlementDate: "2026-09-04",
+    note: "manual sell",
+  });
 });
 
 test("type switch prevents stale trade values from leaking into cash-flow payload", { concurrency: false }, async (t) => {
@@ -289,6 +334,37 @@ test("same failed intent reuses the same Idempotency-Key on retry", { concurrenc
   const secondKey = idempotencyKey(requests[1].init);
   assert.match(firstKey ?? "", /^[A-Za-z0-9._:-]{16,128}$/);
   assert.equal(secondKey, firstKey);
+});
+
+test("oversell 409 preserves the same Idempotency-Key for exact retry", { concurrency: false }, async (t) => {
+  const originalFetch = globalThis.fetch;
+  const requests: Array<{ input: RequestInfo | URL; init?: RequestInit }> = [];
+  globalThis.fetch = async (input, init) => {
+    requests.push({ input, init });
+    return apiError("Transaction would make the position quantity negative", 409);
+  };
+  const { container, root } = mountForm();
+  t.after(async () => {
+    await act(async () => root.unmount());
+    dom.window.document.body.innerHTML = "";
+    globalThis.fetch = originalFetch;
+  });
+
+  await renderForm(root);
+  await setControl(container, "Transaction type", "SELL");
+  await setControl(container, "Ticker", "SBER");
+  await setControl(container, "Quantity", "999.00000000");
+  await setControl(container, "Unit price", "300.00000000");
+  await setControl(container, "Commission", "0.00000000");
+  await setControl(container, "Tax", "0.00000000");
+  await setControl(container, "Trade date", "2026-09-03");
+
+  await submit(container);
+  await submit(container);
+
+  assert.equal(requests.length, 2);
+  assert.equal(idempotencyKey(requests[1].init), idempotencyKey(requests[0].init));
+  assert.match(container.textContent ?? "", /Transaction would make the position quantity negative/);
 });
 
 test("ill-formed Unicode note is rejected before any request", { concurrency: false }, async (t) => {

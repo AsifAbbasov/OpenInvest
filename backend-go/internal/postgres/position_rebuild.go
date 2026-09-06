@@ -23,12 +23,12 @@ type acquisitionValueTotals struct {
 }
 
 type positionLedgerRow struct {
-	AssetID        string
-	AssetType      string
+	AssetID         string
+	AssetType       string
 	TransactionType string
-	Quantity       decimal.Decimal
-	UnitPrice      decimal.Decimal
-	LedgerSequence int64
+	Quantity        decimal.Decimal
+	UnitPrice       decimal.Decimal
+	LedgerSequence  int64
 }
 
 func ensureStage371Ready(ctx context.Context, db *sql.DB) error {
@@ -37,7 +37,29 @@ func ensureStage371Ready(ctx context.Context, db *sql.DB) error {
 	var duplicateGroups int64
 	err := db.QueryRowContext(ctx, `
 		SELECT
-			to_regclass('investment.transaction_entries_portfolio_ledger_sequence_uidx') IS NOT NULL,
+			EXISTS (
+				SELECT 1
+				FROM pg_class index_class
+				JOIN pg_namespace index_namespace ON index_namespace.oid = index_class.relnamespace
+				JOIN pg_index index_meta ON index_meta.indexrelid = index_class.oid
+				WHERE index_namespace.nspname = 'investment'
+					AND index_class.relname = 'transaction_entries_portfolio_ledger_sequence_uidx'
+					AND index_meta.indrelid = 'investment.transaction_entries'::regclass
+					AND index_meta.indisunique
+					AND index_meta.indisvalid
+					AND index_meta.indisready
+					AND index_meta.indpred IS NULL
+					AND index_meta.indexprs IS NULL
+					AND index_meta.indnkeyatts = 2
+					AND index_meta.indnatts = 2
+					AND (
+						SELECT array_agg(attribute.attname ORDER BY key.ordinality)
+						FROM unnest(index_meta.indkey) WITH ORDINALITY AS key(attnum, ordinality)
+						JOIN pg_attribute attribute
+							ON attribute.attrelid = index_meta.indrelid
+							AND attribute.attnum = key.attnum
+					) = ARRAY['portfolio_id', 'ledger_sequence']::text[]
+			),
 			(SELECT COUNT(*) FROM investment.transaction_entries WHERE ledger_sequence IS NULL OR ledger_sequence <= 0),
 			(
 				SELECT COUNT(*)
