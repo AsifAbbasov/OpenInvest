@@ -138,11 +138,6 @@
           "kind": "staged_rollout",
           "path": "docs/stages/STAGE_03_71_PORTFOLIO_POSITION_COST_BASIS_IMPLEMENTATION.md",
           "content_sha256": "3a32bcd287211338348900458dfb5787acdeb777858acc8da1032a36a3124758"
-        },
-        {
-          "kind": "staged_rollout",
-          "path": "docs/stages/STAGE_03_71_PORTFOLIO_POSITION_COST_BASIS_ROLLOUT_AMENDMENT.md",
-          "content_sha256": "881124d27880efd94faca88491e4ced14c2dcc74f7941ab5617b0ce3cf3c7d22"
         }
       ],
       "dependencies": [
@@ -280,11 +275,6 @@
           "kind": "staged_rollout",
           "path": "docs/stages/STAGE_03_71_PORTFOLIO_POSITION_COST_BASIS_IMPLEMENTATION.md",
           "content_sha256": "3a32bcd287211338348900458dfb5787acdeb777858acc8da1032a36a3124758"
-        },
-        {
-          "kind": "staged_rollout",
-          "path": "docs/stages/STAGE_03_71_PORTFOLIO_POSITION_COST_BASIS_ROLLOUT_AMENDMENT.md",
-          "content_sha256": "881124d27880efd94faca88491e4ced14c2dcc74f7941ab5617b0ce3cf3c7d22"
         }
       ],
       "dependencies": [
