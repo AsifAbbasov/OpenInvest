@@ -9,20 +9,19 @@ Stage 3 currently has closed slices for the local database foundation, portfolio
 vertical slice, Next.js presentation shell, end-to-end verification, CSV import/reconciliation,
 authentication/privacy boundaries, Web authentication UI, backend-owned instrument catalog, the Go
 API asset search/detail boundary over the approved local catalog, and the reviewed Web asset
-discovery UI. Asset search returns
-backend-owned catalog summaries with `lastPrice: null`; asset-card detail remains intentionally
-deferred until mandatory source provenance and required detail fields can be populated without
-fabricated data. Stage 3.16 repository audit planning and its audit-fix closure are closed; the
-fixes were squash-merged into `develop` through PR #44 at
+discovery UI. Asset search returns backend-owned catalog summaries with `lastPrice: null`; asset-card
+detail remains intentionally deferred until mandatory source provenance and required detail fields can
+be populated without fabricated data. Stage 3.16 repository audit planning and its audit-fix closure
+are closed; the fixes were squash-merged into `develop` through PR #44 at
 `9e6b8a753bf73ef020ce40461df25a5878344d92`. Stage 3.17 privacy-lifecycle planning and the
 Stage 3.18 contract/security proposal are closed through PRs #46 and #47. Stage 3.19 privacy
-security/ADR proposal is closed through PR #48, and Stage 3.20 privacy threat model is closed through
-PR #49, Stage 3.21 privacy data inventory is closed through PR #50, and Stage 3.22 key custody is
-closed through PR #51, and Stage 3.23 deletion-marker control-plane planning is closed through PR
-#52, and Stage 3.24 Security Review readiness planning is closed through PR #53. Stage 3.25 is the
-active documentation-only evidence-collection plan; it does not collect evidence, perform Security
-Review, accept ADR-008, or authorize an implementation stage, provider, schema, or operational change.
-Product-risk refinement is closed and remains part of the MVP governance baseline.
+security/ADR proposal is closed through PR #48, Stage 3.20 privacy threat model through PR #49,
+Stage 3.21 privacy data inventory through PR #50, Stage 3.22 key custody through PR #51, Stage 3.23
+deletion-marker control-plane planning through PR #52, and Stage 3.24 Security Review readiness
+planning through PR #53. Stage 3.25 is the active documentation-only evidence-collection plan; it does
+not collect evidence, perform Security Review, accept ADR-008, or authorize an implementation stage,
+provider, schema, or operational change. Product-risk refinement is closed and remains part of the
+MVP governance baseline.
 
 ## Completed audit remediation
 
@@ -43,7 +42,11 @@ Stage 3.30 remediates repository-audit P2-02, P2-03, and P2-04 across import rev
 
 Stage 3.31 remediates repository-audit P2-01 and P2-14 across logout admission and bounded authentication limiter lifecycle. Implementation PR #65 was squash-merged into `develop` at `9bf4d1d31597918eacf0c3358bf6caa2aa9db897` after exact-head CI #133, independent final `APPROVED` review on `82557c55c0772a66707088b858ec9eafc2073119`, and explicit human merge authorization. The implementation places logout behind auth admission before rejected-auth persistence, bounds per-key attempts, total downstream auth attempts per window, and active key-bucket cardinality, and reclaims expired buckets without introducing Redis or distributed limiter scope. Detailed engineering rationale and regression evidence are recorded in [`docs/stages/STAGE_03_31_AUTH_OPERATIONAL_HARDENING.md`](docs/stages/STAGE_03_31_AUTH_OPERATIONAL_HARDENING.md). Closure governance was squash-merged through PR #66 at `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746`; P2-01/P2-14 are closed.
 
-Stage 3.32 remediates repository-audit P2-09 and P2-13 across exact original-response idempotent replay and browser retry continuity/isolation. Implementation PR #67 was squash-merged into `develop` at `0623d5ef326cd783b7dc0417dbcb02f18c506171` after exact-head CI #181, a first independent `REQUEST CHANGES` that kept P2-13 open for cross-principal retry-slot collision, remediation with stable-principal-scoped browser retry storage, repeat independent `APPROVED` review on `02aa2417a3caca79e2afc4e7b598b92055de96b7`, and explicit human squash-merge authorization. P2-09 persists and replays the exact original response artifact atomically with the financial mutation; P2-13 preserves unresolved retry identity across reload/remount while isolating authenticated principals without persisting raw financial payloads or authentication tokens. Detailed evidence is recorded in [`docs/stages/STAGE_03_32_IDEMPOTENCY_REPLAY_BROWSER_RECOVERY.md`](docs/stages/STAGE_03_32_IDEMPOTENCY_REPLAY_BROWSER_RECOVERY.md). When Stage 3.32 closure governance is canonical on `develop`, P2-09/P2-13 are closed and the remaining original audit debt is 5 P2 and 10 P3 findings. Stage 3.25 privacy evidence planning remains separate.
+Stage 3.32 remediates repository-audit P2-09 and P2-13 across exact original-response idempotent replay and browser retry continuity/isolation. Implementation PR #67 was squash-merged into `develop` at `0623d5ef326cd783b7dc0417dbcb02f18c506171` after exact-head CI #181, a first independent `REQUEST CHANGES` that kept P2-13 open for cross-principal retry-slot collision, remediation with stable-principal-scoped browser retry storage, repeat independent `APPROVED` review on `02aa2417a3caca79e2afc4e7b598b92055de96b7`, and explicit human squash-merge authorization. P2-09 persists and replays the exact original response artifact atomically with the financial mutation; P2-13 preserves unresolved retry identity across reload/remount while isolating authenticated principals without persisting raw financial payloads or authentication tokens. Detailed evidence is recorded in [`docs/stages/STAGE_03_32_IDEMPOTENCY_REPLAY_BROWSER_RECOVERY.md`](docs/stages/STAGE_03_32_IDEMPOTENCY_REPLAY_BROWSER_RECOVERY.md). Stage 3.32 closure governance was squash-merged through PR #68 at `a73b7f8c008d2f903e22e9b8a85b7c6248d6d3be`; P2-09/P2-13 are canonically closed.
+
+Stage 3.33 remediated repository-audit P2-10, P2-11, and P2-12 across exact snapshot rebuild reporting, one-pass affected-date rebuild planning, and PostgreSQL runtime append-only enforcement. The implementation moved affected snapshot-date ownership into PostgreSQL, rebuilt each planned date once, and introduced a least-privilege runtime credential boundary with startup validation of authenticated/effective identities, SET-reachable roles, schema/table mutation capability, ownership paths, and ADMIN OPTION role-administration escalation. Two independent `REQUEST CHANGES` cycles exposed masked `session_user/current_user` and latent `ADMIN TRUE / INHERIT FALSE / SET FALSE` escalation paths; both were preserved in the dossier and closed with adversarial PostgreSQL regressions. Final implementation head `88ec8f739f7bcc96267c25f41560e1960d4d48d5` passed CI #199 and received independent `APPROVED` with P2-10/P2-11/P2-12 CLOSED. Implementation PR #69 was squash-merged at `87a7c38e16062a5f3fcef3727f60c0c6741eb805`; closure governance PR #70 was squash-merged at `71a1faeb97d33d05f2936111b53f1285edddabe9`. Detailed root cause, failure scenarios, security/financial impact, remediation iterations, decision rationale, attack regressions, residual risk, deployment boundary, and review evidence are recorded in [`docs/stages/STAGE_03_33_SNAPSHOT_REBUILD_POSTGRES_IMMUTABILITY.md`](docs/stages/STAGE_03_33_SNAPSHOT_REBUILD_POSTGRES_IMMUTABILITY.md) and [`docs/stages/STAGE_03_33_CLOSURE.md`](docs/stages/STAGE_03_33_CLOSURE.md).
+
+The original 32-finding repository audit is indexed in [`docs/audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md`](docs/audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md). All remaining remediation work must follow the mandatory 18-part finding record in [`docs/audit/AUDIT_FINDING_DOCUMENTATION_STANDARD.md`](docs/audit/AUDIT_FINDING_DOCUMENTATION_STANDARD.md). After canonical Stage 3.33 closure, the remaining audit backlog is P0=0, P1=0, P2=2, P3=10: P2-16/P2-17 plus P3-01 through P3-10. This audit backlog is separate from Stage 3.25 privacy Security Review evidence work.
 
 ## Components
 
@@ -51,7 +54,7 @@ Stage 3.32 remediates repository-audit P2-09 and P2-13 across exact original-res
 - `frontend-next/` — Next.js App Router, TypeScript, and pnpm Web presentation layer.
 - `microservice-python/` — FastAPI analytics worker skeleton.
 - `infrastructure/` — local infrastructure configuration.
-- `docs/` — frozen architecture and architecture decision records.
+- `docs/` — frozen architecture, audit-remediation evidence, and architecture decision records.
 
 ## Root commands
 
@@ -107,4 +110,6 @@ docker compose up -d
 Architecture changes require an ADR and Source of Truth update. Start with `docs/SOURCE_OF_TRUTH.md` and `docs/ARCHITECTURE_FREEZE_v1.2.md`.
 
 Implementation progress and completed-stage reports are recorded in `docs/IMPLEMENTATION_LOG.md`.
+Repository-audit remediation status is indexed in `docs/audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md`.
+The mandatory finding-dossier standard is `docs/audit/AUDIT_FINDING_DOCUMENTATION_STANDARD.md`.
 Product risk decisions are recorded in `docs/product/MVP_PRODUCT_RISK_REFINEMENT.md`.

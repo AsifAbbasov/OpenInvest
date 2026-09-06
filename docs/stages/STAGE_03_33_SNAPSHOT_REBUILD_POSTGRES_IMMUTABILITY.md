@@ -2,11 +2,17 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementation candidate; repeat independent review and human merge authorization pending |
+| Status | Complete / canonically closed |
 | Owner | Principal Architect |
 | Baseline | `develop` at `a73b7f8c008d2f903e22e9b8a85b7c6248d6d3be` |
 | Branch | `fix/stage-03-33-snapshot-immutability` |
 | Implementation PR | #69 |
+| Implementation merge | `87a7c38e16062a5f3fcef3727f60c0c6741eb805` |
+| Closure PR | #70 |
+| Canonical closure | `71a1faeb97d33d05f2936111b53f1285edddabe9` |
+| Final reviewed implementation head | `88ec8f739f7bcc96267c25f41560e1960d4d48d5` |
+| Final exact-head CI | #199 — SUCCESS, all six jobs |
+| Final implementation review | APPROVED — P2-10/P2-11/P2-12 CLOSED, no new blocking regressions |
 | Trigger | Repository-audit P2-10, P2-11, and P2-12 |
 | Scope | Exact import snapshot rebuild reporting, one-pass affected-snapshot rebuild planning, authenticated PostgreSQL runtime append-only privilege enforcement, startup credential-graph validation, regression/CI evidence |
 | Out of scope | P2-16/P2-17, all P3 findings, Stage 3.25 privacy Security Review evidence work, provider credential provisioning, product-scope expansion, snapshot methodology redesign |
@@ -29,7 +35,7 @@ The PostgreSQL mutation returns `ImportAppendOutcome` containing inserted transa
 
 On the replay-aware production path, the exact HTTP artifact is built from this outcome before the same PostgreSQL transaction commits. Stage 3.32 exact replay ordering is preserved: reservation, portfolio lock, ledger mutation, exact snapshot plan/rebuild, response-artifact construction, command completion, commit. A completed duplicate still resolves the persisted artifact before mutable portfolio state.
 
-Both independent Stage 3.33 reviews to date marked P2-10 CLOSED.
+Final independent Stage 3.33 review marked P2-10 CLOSED.
 
 ## P2-11 — one rebuild per affected date
 
@@ -45,7 +51,7 @@ The PostgreSQL regression creates baseline snapshots on 10, 20, and 30 June, the
 - 25 June is version 1;
 - 30 June advances to version 2.
 
-Both independent Stage 3.33 reviews to date marked P2-11 CLOSED. The first review noted the old direct non-replay PostgreSQL compatibility method still contains the historical cascading implementation, but confirmed that method is not the canonical production HTTP/importflow path. Removal/deprecation remains a non-blocking maintainability cleanup.
+Final independent Stage 3.33 review marked P2-11 CLOSED. The first review noted the old direct non-replay PostgreSQL compatibility method still contains the historical cascading implementation, but confirmed that method is not the canonical production HTTP/importflow path. Removal/deprecation remains a non-blocking maintainability cleanup.
 
 ## P2-12 — PostgreSQL runtime append-only boundary
 
@@ -158,13 +164,24 @@ A provider setup that cannot establish these grants has not satisfied P2-12. Pro
 - CI #190 and evidence-head CI #191 passed all six jobs.
 - Second independent review: P2-10 CLOSED, P2-11 CLOSED, P2-12 NOT CLOSED; REQUEST CHANGES because a role membership with ADMIN TRUE / INHERIT FALSE / SET FALSE could manufacture its own later escalation path.
 - Second post-review remediation rejects all ADMIN OPTION memberships held by the authenticated principal or any SET-reachable role and adds a PostgreSQL ADMIN-option attack regression.
-- Exact head `477e346e7569ab1281534655cf4bb0f8fa73024e` passed CI #194 with all six jobs successful.
-- Repeat independent review on that exact immutable head remains required before merge.
+- ADMIN remediation head `477e346e7569ab1281534655cf4bb0f8fa73024e` passed CI #194 with all six jobs successful.
+- Final exact implementation head `88ec8f739f7bcc96267c25f41560e1960d4d48d5` passed CI #199 with all six jobs successful.
+- Final independent implementation review: P2-10 CLOSED, P2-11 CLOSED, P2-12 CLOSED; no new blocking regressions; verdict APPROVED.
+- Explicit human squash-merge authorization was received before implementation PR #69 merged.
+- PR #69 was squash-merged as `87a7c38e16062a5f3fcef3727f60c0c6741eb805`.
+- Separate closure-governance PR #70 synchronized `SOURCE_OF_TRUTH.md`, `ROADMAP.md`, and `STAGE_03_33_CLOSURE.md`.
+- Closure PR #70 exact head `79d68dfde879010e404aa4b72a75bc00549439be` passed CI #201 with all six jobs successful, received independent governance-only APPROVED review and explicit human squash-merge authorization, and was squash-merged as `71a1faeb97d33d05f2936111b53f1285edddabe9`.
 
-## Scope boundary and next gate
+## Residual risk and deferred cleanup
 
-Stage 3.33 does not close P2-16 or P2-17. The CI changes here are only the evidence required for this PostgreSQL boundary. General branch protection, race/vet/vulnerability/dependency-review hardening remain separate work.
+Stage 3.33 closes the audited production-path defects P2-10, P2-11, and P2-12. It intentionally does not remove the older lower-level non-replay compatibility method that still contains the historical cascading rebuild implementation because independent review confirmed it is not the canonical production HTTP/importflow path. Removal/deprecation remains a non-blocking maintainability cleanup and must not be confused with reopening P2-11.
+
+The runtime privilege boundary also depends on staging/production using the dedicated validated runtime LOGIN. Provider/account provisioning that cannot satisfy the documented least-privilege grants remains an operational deployment blocker rather than a reason to fall back to owner credentials.
+
+## Scope boundary and canonical closure
+
+Stage 3.33 does not close P2-16 or P2-17. General branch protection, race/vet/vulnerability/dependency-review hardening remain Stage 3.34 work.
 
 Stage 3.25 privacy Security Review evidence planning also remains separate.
 
-P2-10, P2-11, and P2-12 are not canonically closed until the final immutable PR head passes exact-head CI, repeat independent review returns APPROVED with all three findings closed and no blocking regression, explicit human squash-merge authorization is received, PR #69 is squash-merged into `develop`, and separate closure governance becomes canonical.
+P2-10, P2-11, and P2-12 are canonically CLOSED through implementation PR #69 and closure PR #70. The canonical closure commit is `71a1faeb97d33d05f2936111b53f1285edddabe9`. The detailed closure record is `docs/stages/STAGE_03_33_CLOSURE.md`.
