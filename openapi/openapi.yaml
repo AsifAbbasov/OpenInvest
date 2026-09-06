@@ -502,7 +502,7 @@ paths:
         "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
         "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
         "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
-        "409": { $ref: "./components/responses.yaml#/responses/IdempotencyConflict" }
+        "409": { $ref: "./components/responses.yaml#/responses/TransactionConflict" }
 
   /api/v1/portfolios/{portfolioId}/transactions/{transactionId}:
     parameters:
