@@ -120,3 +120,28 @@ func (adapter *stage371StoreAdapter) AppendImportedTransactionsWithOutcomeReplay
 	}
 	return replayStore.AppendImportedTransactionsWithOutcomeReplay(ctx, command, request, build)
 }
+
+func (adapter *stage371StoreAdapter) LookupReplayArtifact(
+	ctx context.Context,
+	command CommandContext,
+	method string,
+) (CommandReplayArtifact, bool, error) {
+	lookupStore, ok := adapter.Store.(ReplayLookupStore)
+	if !ok {
+		return CommandReplayArtifact{}, false, ErrReplayUnavailable
+	}
+	return lookupStore.LookupReplayArtifact(ctx, command, method)
+}
+
+func (adapter *stage371StoreAdapter) CalculateDividendWithReplay(
+	ctx context.Context,
+	command CommandContext,
+	calculation DividendCalculation,
+	build DividendReplayBuilder,
+) (DividendCalculation, CommandReplayArtifact, error) {
+	replayStore, ok := adapter.Store.(DividendReplayStore)
+	if !ok {
+		return DividendCalculation{}, CommandReplayArtifact{}, ErrReplayUnavailable
+	}
+	return replayStore.CalculateDividendWithReplay(ctx, command, calculation, build)
+}
