@@ -6,6 +6,15 @@ type Stage371ReadyStore interface {
 	Stage371Ready(ctx context.Context) error
 }
 
+type Stage371SummaryStore interface {
+	GetPortfolioSummaryStage371(
+		ctx context.Context,
+		subjectID string,
+		portfolioID string,
+		asOfDate string,
+	) (PortfolioSummary, error)
+}
+
 type Stage371TransactionStore interface {
 	AppendTransactionStage371(
 		ctx context.Context,
