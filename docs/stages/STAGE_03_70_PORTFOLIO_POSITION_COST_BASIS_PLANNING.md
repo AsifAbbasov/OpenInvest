@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-70-PORTFOLIO-POSITION-COST-BASIS-PLAN |
-| Version | 0.1.0-candidate |
+| Version | 0.1.1-candidate |
 | Status | Merge-activated planning decision — candidate/non-normative before required review/CI/evidence gates; COMPLETE/CANONICAL only after explicit Principal Architect acceptance and squash merge of this exact decision to protected `develop`; no Stage 3.71 runtime/Ready/merge authorization by this document |
 | Owner | Principal Architect / Portfolio & Analytics |
 | Canonical planning base | `develop@d2258134433fe214695db43db7de3b6bf003e9cf` |
@@ -99,32 +99,38 @@ Every persistence-bound derived value must pass `FitsStorage()` after arithmetic
 
 ## 5. BUY methodology
 
-For existing state:
+Canonical open-position state is:
 
 ```text
-oldQty
-oldBasis
+quantity
+weightedAverageCost
 ```
 
-and BUY:
+Remaining acquisition basis is derived, not independently carried:
 
 ```text
-buyQty > 0
-buyPrice > 0 RUB
+acquisitionBasis = Round8HalfEven(quantity × weightedAverageCost)
 ```
 
-calculate:
+For a new/reopened position:
 
 ```text
+newQty   = buyQty
+newWAC   = Round8HalfEven(buyPrice)
+newBasis = Round8HalfEven(newQty × newWAC)
+```
+
+For an existing position:
+
+```text
+oldBasis = Round8HalfEven(oldQty × oldWAC)
 buyBasis = Round8HalfEven(buyQty × buyPrice)
 newQty   = oldQty + buyQty
-newBasis = oldBasis + buyBasis
-newWAC   = Round8HalfEven(newBasis / newQty)
+newWAC   = Round8HalfEven((oldBasis + buyBasis) / newQty)
+newBasis = Round8HalfEven(newQty × newWAC)
 ```
 
-For a new/reopened position, `oldQty = 0` and `oldBasis = 0`.
-
-The engine carries quantity + acquisition basis and derives WAC. It does not repeatedly reconstruct prior basis from an already-rounded WAC on every BUY.
+`weightedAverageCost` is authoritative at scale 8. After a partial SELL, the engine MUST NOT re-derive WAC by dividing rounded basis by fractional quantity. Consequently the accounting replay order is part of the deterministic contract; Stage 3.70 does not claim commutativity for arbitrary rounded BUY permutations.
 
 ## 6. SELL methodology
 
@@ -226,7 +232,7 @@ Before implementation publication, migration tests must prove:
 1. pre-Stage-3.71 manual SELL is rejected;
 2. imported SELL remains blocked as future-review;
 3. no accepted historical SELL order exists to reinterpret;
-4. BUY-only basis accumulation is order-independent under the basis-first rule;
+4. the frozen backfill establishes the first canonical WAC replay order for historical BUY-only rows;
 5. backfill follows the frozen tuple exactly and repeated clean migration produces the same sequence assignment;
 6. existing supported imported rows are preserved;
 7. after backfill, runtime calculations use persisted sequence only.
@@ -259,12 +265,14 @@ reserve/enter DB transaction
 
 Any failure rolls the whole transaction back.
 
-For insufficient owned quantity, use the already-frozen Conflict surface:
+For insufficient owned quantity, use the Stage 3.70 frozen business conflict semantics:
 
 ```text
 HTTP 409
 INSUFFICIENT_POSITION_QUANTITY
 ```
+
+The current POST transaction OpenAPI binds 409 specifically to `IdempotencyConflict`, so this error is **not** already representable by the frozen endpoint contract. Stage 3.71 is authorized to make one narrow OpenAPI change for POST transaction conflicts: preserve `IDEMPOTENCY_CONFLICT` and add `INSUFFICIENT_POSITION_QUANTITY` under a transaction-specific `TransactionConflict` 409 response while preserving the existing `ErrorResponse` envelope.
 
 No committed transaction, corrupted snapshot or successful replay artifact may remain after rejection.
 
@@ -316,8 +324,11 @@ The frozen transaction OpenAPI already contains SELL, so Stage 3.71 may:
 
 - remove the Stage 3.02 runtime SELL rejection;
 - return the existing canonical transaction DTO;
-- use existing 400/409/429 surfaces;
+- preserve existing 201/400/401/404 semantics;
+- make the one explicitly planned OpenAPI change to POST transaction 409 so it can represent both idempotency conflict and insufficient-position business conflict;
 - expose SELL in the current Web Add Transaction form only after backend correctness is proven.
+
+The current POST transaction contract does not list 429. Stage 3.70 does not authorize silently adding a 429 response as part of this feature; any such contract parity work requires separate evidence/scope justification.
 
 Stage 3.71 must not:
 
@@ -358,6 +369,22 @@ basis    = 6200.00000000 RUB
 WAC      = 310.00000000 RUB
 ```
 
+Mandatory fractional-quantity regression vector proving SELL preserves authoritative WAC without inverse-rounding it from basis:
+
+```text
+BUY 0.30000000 @ 275.12345678
+WAC   = 275.12345678
+basis = 82.53703703 RUB
+
+SELL 0.10000000
+quantity = 0.20000000
+WAC      = 275.12345678
+basis    = 55.02469136 RUB
+
+Round8(55.02469136 / 0.20000000) = 275.12345680, but canonical WAC remains 275.12345678.
+Do not calculate WAC as Round8(basis / quantity) after this SELL.
+```
+
 Minimum Stage 3.71 matrix:
 
 ```text
@@ -373,6 +400,7 @@ zero quantity / zero price rejection
 max Decimal
 buy-basis overflow
 WAC Half Even tie
+fractional SELL preserves authoritative WAC without inverse repricing
 remaining-basis overflow
 same BusinessDate ordering
 backdated BUY
@@ -417,7 +445,7 @@ One implementation responsibility:
 
 > Deterministically rebuild quantity, WAC and remaining trade-price acquisition basis from an immutable ordered portfolio ledger; reject oversell atomically; make existing local-cost snapshots SELL-safe.
 
-Expected surfaces: pure Go engine/tests, financial vectors, additive sequence migration, transaction/import append integration, snapshot methodology update, 409 error mapping, focused Web SELL option, integration/concurrency evidence and Stage 3.71 implementation record.
+Expected surfaces: pure Go engine/tests, financial vectors, additive sequence migration, transaction/import append integration, snapshot methodology update, the narrow POST transaction 409 contract/mapping change frozen here, focused Web SELL option, integration/concurrency evidence and Stage 3.71 implementation record.
 
 No review-size exception is pre-authorized.
 
@@ -431,6 +459,6 @@ STOP before Stage 3.71 if:
 - implementation needs fabricated market values or public-position contract drift;
 - scope expands into reversal/correction, imported SELL, XIRR, tax, market data or bond NKD.
 
-GitHub Issue #136 now carries the admitted architecture question, owner, due date, affected decisions and proposed ADR-009. The Issue does not authorize implementation or repository publication by itself.
+GitHub Issue #136 carries the admitted architecture question, owner, due date, affected decisions and proposed ADR-009. The Issue does not authorize implementation or repository publication by itself.
 
 After Stage 3.70/ADR-009 is accepted and squash-merged to protected `develop`, the next action is a separate explicit human authorization for Stage 3.71 runtime implementation. No additional multi-stage planning programme is required unless review finds a new blocking architecture question.

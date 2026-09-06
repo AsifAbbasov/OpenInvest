@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ADR-009 |
-| Version | 0.1.0-candidate |
+| Version | 0.1.1-candidate |
 | Status | Merge-activated decision — PROPOSED/non-normative before required gates; ACCEPTED only after explicit Principal Architect acceptance and squash merge of this exact decision to protected `develop` |
 | Owner | Principal Architect |
 | Supersedes | Implicit same-BusinessDate ordering and incomplete Stage 3.02 local-cost position semantics |
@@ -58,27 +58,51 @@ Canonical open-position state is:
 
 ```text
 quantity
-acquisitionBasis
+weightedAverageCost
 ```
 
-with:
+For any open position, remaining acquisition basis is a deterministic derived amount:
 
 ```text
-WAC = Round8HalfEven(acquisitionBasis / quantity)
+acquisitionBasis = Round8HalfEven(quantity × weightedAverageCost)
 ```
+
+`weightedAverageCost` is the authoritative per-unit WAC at scale 8. `acquisitionBasis` is not an independent state variable and MUST NOT be used to re-derive or silently reprice WAC after a SELL. Because both values are scale-8 representations, `Round8HalfEven(acquisitionBasis / quantity)` is not required to reproduce WAC for every fractional quantity after a partial SELL.
+
+Canonical fractional example:
+
+```text
+quantity = 0.20000000
+WAC      = 275.12345678
+basis    = Round8(0.20000000 × 275.12345678) = 55.02469136
+Round8(55.02469136 / 0.20000000) = 275.12345680  # NOT a WAC repricing rule
+```
+
+The authoritative WAC remains `275.12345678`. This explicit non-invertibility is the intended scale-8 representation rule, not financial drift.
 
 `acquisitionBasis` means remaining RUB trade-price basis only. It is not tax basis and excludes commission, recorded tax, FX, inflation and bond accrued coupon/NKD.
 
 ### 4. BUY
 
+For a new position:
+
 ```text
-buyBasis = Round8HalfEven(buyQty × buyPrice)
-newQty   = oldQty + buyQty
-newBasis = oldBasis + buyBasis
-newWAC   = Round8HalfEven(newBasis / newQty)
+newQty   = buyQty
+newWAC   = Round8HalfEven(buyPrice)
+newBasis = Round8HalfEven(newQty × newWAC)
 ```
 
-Basis-first accumulation avoids unnecessary cumulative rounding and makes BUY-only accumulation commutative.
+For an existing position:
+
+```text
+oldBasis = Round8HalfEven(oldQty × oldWAC)
+buyBasis = Round8HalfEven(buyQty × buyPrice)
+newQty   = oldQty + buyQty
+newWAC   = Round8HalfEven((oldBasis + buyBasis) / newQty)
+newBasis = Round8HalfEven(newQty × newWAC)
+```
+
+The replay order is therefore part of the deterministic financial contract. Stage 3.70 does not claim that rounded intermediate WAC accumulation is commutative across arbitrary same-BusinessDate BUY permutations.
 
 ### 5. SELL
 
@@ -103,12 +127,14 @@ SELL price, commission and recorded tax do not change remaining WAC.
 
 A candidate trade is valid only if ordered replay of the affected asset history including that candidate never produces quantity below zero. This includes later entries when the candidate is backdated.
 
-Insufficient quantity uses the existing Conflict surface:
+Insufficient quantity is a business conflict and uses:
 
 ```text
 HTTP 409
 INSUFFICIENT_POSITION_QUANTITY
 ```
+
+The current frozen POST transaction contract maps 409 only to `IdempotencyConflict`; therefore Stage 3.71 is explicitly authorized to make one narrow OpenAPI contract change: replace/extend that POST-transaction 409 response with a transaction-specific `TransactionConflict` response that keeps the existing `ErrorResponse` envelope, preserves `IDEMPOTENCY_CONFLICT`, and also permits `INSUFFICIENT_POSITION_QUANTITY`. The POST endpoint keeps HTTP 409; no new status code or public error-envelope shape is implied.
 
 Ledger append, affected snapshot rebuild and successful replay artifact remain one atomic transaction. Oversell rolls all of them back.
 
@@ -128,7 +154,7 @@ ORDER BY trade_date ASC,
 → ledgerSequence = ROW_NUMBER() starting at 1
 ```
 
-The timestamp/identity/UUID fields are one-time migration tie-breakers only; they do not become ongoing financial ordering semantics. Publication tests must prove that pre-Stage-3.71 supported runtime/import paths contain no accepted SELL history whose former order would be reinterpreted, BUY-only basis accumulation is order-independent, repeated clean migration yields the same assignment, existing supported import rows are preserved, and all later calculations use persisted sequence only. If any premise is false, implementation stops for redesign.
+The timestamp/identity/UUID fields are one-time migration tie-breakers only; they do not become ongoing financial ordering semantics. Publication tests must prove that pre-Stage-3.71 supported runtime/import paths contain no accepted SELL history whose former order would be reinterpreted, the frozen backfill establishes the first canonical WAC replay order for historical BUY-only rows, repeated clean migration yields the same assignment, existing supported import rows are preserved, and all later calculations use persisted sequence only. If any premise is false, implementation stops for redesign.
 
 Future manual writes receive the next positive portfolio-local sequence under the existing lock. One accepted import batch receives a consecutive range preserving exact `request.Transactions` append-plan order. Sequence exhaustion fails closed without wrap. Imported SELL remains blocked.
 
@@ -170,7 +196,7 @@ Future correction/reversal must feed an effective append-only ledger projection 
 - **Portfolio-local sequence** is the smallest auditable order because writes are already serialized per portfolio.
 - **System time** is rejected as financial order because it is technical metadata.
 - **UUID order** is rejected because identity is not business sequence.
-- **Basis-first BUY accumulation** gives explicit Decimal round points and avoids avoidable rounding drift.
+- **Authoritative scale-8 WAC** preserves the legacy rule that SELL does not change Average Cost; remaining basis is a deterministic derived amount and is never used to inverse-reprice WAC after SELL.
 - **SELL preserves WAC** because sale proceeds do not reprice remaining acquired units under WAC.
 - **Commission/tax stay separate** because current documented WAC is price-based and those values belong to separate performance/tax semantics.
 - **No public positions yet** because the frozen DTO requires market-derived fields that cannot be fabricated.
