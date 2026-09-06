@@ -3,23 +3,23 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.90 |
+| Version | 1.4.91 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
 | Last Review Date | 2026-09-06 |
-| Next Review Date | Before Stage 3.70 / ADR-009 acceptance, Stage 3.25 privacy evidence-collection plan review, Feature 3D corporate-actions source/use planning, or the next separately reviewed audit-remediation scope |
+| Next Review Date | Before Stage 3.72 or any later Portfolio Position / Cost Basis scope, Stage 3.25 privacy evidence-collection plan review, Feature 3D corporate-actions source/use planning, or the next separately reviewed audit-remediation scope |
 
 ## Architecture status
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
-**Last completed implementation stage: Stage 3.68 — Dividend Calculator / PR #133 squash merge `6fb395ffcef12840133dac27294f653276adcdf6` / protected tree `be09503ceaafb8781cc82829f98e37cda5c6be6b`**
+**Last completed implementation stage: Stage 3.71 — Portfolio Position & Cost Basis Engine / PR #138 squash merge `827f49f909ace5a3f7bcb2a3f51ce7c638c458ad` / protected tree `7c772c5fbaac63ea9fb28ca6f4088f6d2e981ab6`**
 **Current market-data lifecycle: Stage 3.59 delayed MOEX ISS TQBR adapter is implemented through PR #123, but Stage 3.60 / PR #124 records shipped runtime/public use as NO-GO under the current reviewed source-rights and zero-budget constraints; the adapter remains dormant**
 **Current Corporate Actions lifecycle: Stage 3.61 planning and Stages 3.62/3.63/3.64 Features 3A/3B/3C are protected-merged through PRs #125/#126/#127/#128; Stage 3.65 documentation closure is canonical through PR #129 / merge `1c30a4bf637c933e7c210cff6e26fabd91d8bab1`; Stage 3.66 request-cancellation hardening is protected-merged through PR #130 / merge `7564dbbda9133f0b8965f9e7d0a0c0b81b82e992`, tree `b525f0960cb2613f62eaa9583d6394759a1cdd3b`; Stage 3.67 closure is canonical through PR #131 / merge `c885f6e57ea08e4583103fe2f22f142bf13a8560`, tree `53f823e92b02721211e1d89f8af6374fffc252ae`; provider-neutral boundary, Calendar/Heatmap projection, API/UI, stale-result protection and component-unmount/replacement cancellation are implemented and documentation-closed; Feature 3D remains a separate source/use planning gate and no real corporate-actions source/runtime activation is authorized**
 **Current Dividend Calculator lifecycle: Stage 3.68 is canonical through PR #133 / squash merge `6fb395ffcef12840133dac27294f653276adcdf6`, protected tree `be09503ceaafb8781cc82829f98e37cda5c6be6b`; Stage 3.69 closure governance is canonical through PR #134 from exact published head `e98bad4b2431eb7f45a5bfff17c3601c49554b45`, CI #354 / run `33983374426` 10/10 SUCCESS, exact published-head closure verification `APPROVED`, and squash merge `fee7de358f0919802e16a398b19c8947bc852645`, protected tree `e7c9ddb96a5bf7add5204ccdf54aa20c190a0014`; Stage 3.68 lifecycle/documentation closure is COMPLETE; the public user-supplied calculator uses backend-owned exact Decimal arithmetic and durable idempotency/replay without external provider data, tax logic, portfolio mutation, schema/OpenAPI change or new dependency**
-**Current Portfolio Position / Cost Basis lifecycle: Stage 3.70 is a merge-activated development-path planning decision for deterministic immutable-ledger position rebuild, price-based Weighted Average Cost, remaining trade-price acquisition basis, portfolio-local same-BusinessDate ordering, atomic oversell rejection and SELL-safe local-cost snapshot methodology; under GitHub Issue #136, ADR-009 is PROPOSED/non-normative before the required review/CI/evidence gates and becomes ACCEPTED/CANONICAL only after explicit Principal Architect acceptance and protected squash merge of the exact decision; Stage 3.71 runtime implementation remains unauthorized until that activation and separate explicit implementation approval; no market-price provider, public PortfolioPosition activation, XIRR, correction/reversal runtime, imported SELL, tax basis, bond NKD, notifications or AI are authorized by Stage 3.70.**
+**Current Portfolio Position / Cost Basis lifecycle: Stage 3.70 / ADR-009 is accepted and canonical through PR #137 squash merge `b772e52221fbb694b3116bd1b579db99d4e56302`; Stage 3.71 runtime is canonical through PR #138 squash merge `827f49f909ace5a3f7bcb2a3f51ce7c638c458ad`, final evidence head `6f66f7f3da982b2f83637452bfd1f556b92b3956`, CI #382 / run `34028563925` 10/10 SUCCESS. Manual SELL, deterministic portfolio-local ledger sequence/replay, authoritative WAC/acquisition-basis snapshots and atomic oversell rollback are active Stage 3.71 semantics. Historical governance deviation `STAGE-03-71-GOV-01` is dispositioned through PR #139 squash merge `1da2d3b3b33a9424b06f2f157b2997f20e335954`; historical noncompliance remains permanently preserved and residual governance risk was explicitly accepted. This five-file synchronization is the final merge-activated Stage 3.71 lifecycle/documentation closure; once protected-merged, closure is COMPLETE. No Stage 3.72/later scope, production rollout, imported SELL, public positions/market-price fields, XIRR/returns, correction/reversal, tax basis, bond NKD, provider activation, notifications or AI are authorized.**
 **Last completed privacy planning gate: Stage 3.24 — Privacy Security Review Readiness Dossier**
 **Last completed audit-remediation planning gate: Stage 3.54 — P3-08 migration validator planning / PR #115 squash merge `b79a9d3c43621e56e598901bdf472771e8b68ef8`**
 **Last completed audit-remediation closure gate: Stage 3.56 — P3-08 migration validator closure / PR #117 squash merge `983104267221706c3c2ebd8d9be358e3921334b5` from exact head `02e9ef82ed087a892928dc643adccbdfa1ed9600` after CI #316 / run `33816103670` 10/10 and `PUBLISHED_EXACT_HEAD_CLOSURE=APPROVED`**
@@ -324,7 +324,7 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 | Portfolio and transactions | Yes | Stage 3.4 verification closed |
 | MOEX shares and bonds | Yes | Stage 3.15 Web asset discovery UI slice closed over the Stage 3.14 asset API boundary |
 | Dashboard and snapshots | Yes | Stage 3.4 verification closed |
-| WAC, XIRR, real/inflation returns | Yes | WAC / position cost-basis semantics are under Stage 3.70 planning through Issue #136 / proposed ADR-009; Stage 3.71 runtime remains blocked until that planning becomes canonical and is separately authorized; XIRR and real/inflation returns remain later stages |
+| WAC, XIRR, real/inflation returns | Yes | WAC / position cost-basis runtime is canonical through Stage 3.71 / PR #138 with deterministic ledger replay, manual SELL and acquisition-basis snapshots; XIRR and real/inflation returns remain later stages and are not authorized by Stage 3.71 |
 | Dividend calculator/calendar | Yes | User-supplied monetary Dividend Calculator is canonical through Stage 3.68 / PR #133; Calendar/Heatmap provider-neutral API/UI is canonical through Stage 3.64 and request-cancellation lifecycle is closed through Stage 3.67; live provider-derived Corporate Actions remain gated by Feature 3D source approval |
 | Broker file import and reconciliation | Public-MVP readiness candidate | Stage 3.10 upload/review UI slice closed; no import-session persistence |
 | Purchasing power | Yes | Planned as secondary insight |
@@ -344,7 +344,7 @@ Deleting a user removes identity data and irreversibly destroys its link to the 
 | ADR-006 | Stage 2 MVP contract and canonical model freeze | Accepted |
 | ADR-007 | Next.js App Router for Web presentation only | Accepted |
 | ADR-008 | Privacy-lifecycle erasure and restore controls | Proposed / non-normative pending formal Security Review and explicit Principal Architect acceptance |
-| ADR-009 | Deterministic portfolio ledger ordering and Weighted-Average-Cost position semantics | Merge-activated under Issue #136: PROPOSED/non-normative before required development-path gates; ACCEPTED only after explicit Principal Architect acceptance and protected squash merge of the exact decision |
+| ADR-009 | Deterministic portfolio ledger ordering and Weighted-Average-Cost position semantics | Accepted / canonical through Issue #136 and PR #137 squash merge `b772e52221fbb694b3116bd1b579db99d4e56302` |
 
 ## Version matrix
 
@@ -354,7 +354,7 @@ The complete version and legacy-document matrix is maintained in `VERSION_MATRIX
 
 No unresolved architecture questions exist at Freeze v1.2 activation. See `OPEN_QUESTIONS.md` for the controlled process.
 
-Stage 3.70 later admitted GitHub Issue #136 for deterministic same-BusinessDate portfolio-ledger ordering. Proposed ADR-009 is non-normative before the required development-path gates and explicit Principal Architect acceptance; the question is resolved only by protected activation of that exact accepted decision. Stage 3.71 remains unauthorized until then and requires separate explicit implementation authorization.
+Stage 3.70 GitHub Issue #136 is RESOLVED / CLOSED COMPLETED. ADR-009 became accepted/canonical through protected PR #137 squash merge `b772e52221fbb694b3116bd1b579db99d4e56302`. Stage 3.71 was separately authorized and later completed through PR #138; Issue #136 did not itself authorize runtime implementation.
 
 
 ## Stage 3.29 audit remediation closure governance

@@ -3,19 +3,19 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.66 |
+| Version | 1.1.67 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-09-06 |
-| Next Review Date | Before Stage 3.70 / ADR-009 acceptance, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
+| Next Review Date | Before Stage 3.72 or any later Portfolio Position / Cost Basis scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
 
 ## Canonical control documents
 
 | ID | Title | Version | Status | Location |
 | --- | --- | --- | --- | --- |
-| SOT-001 | Source of Truth | 1.4.90 | Approved | `SOURCE_OF_TRUTH.md` |
+| SOT-001 | Source of Truth | 1.4.91 | Approved | `SOURCE_OF_TRUTH.md` |
 | 42 | Architecture Amendments | 1.1.0 | Approved | `specifications/current/DOCUMENT_42_ARCHITECTURE_AMENDMENTS_v1.1.md` |
 | 43 | Architecture Decision Closure | 1.2.0 | Final | `specifications/current/DOCUMENT_43_ARCHITECTURE_CLOSURE_v1.2.md` |
 
@@ -74,7 +74,12 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Document | Status | Location |
 | --- | --- | --- |
 | ADR-008 privacy-lifecycle erasure and restore controls | Proposed / non-normative pending Security Review and human acceptance | `ADR/ADR-008-privacy-lifecycle-erasure-and-restore.md` |
-| ADR-009 deterministic portfolio ledger ordering and WAC position semantics | Merge-activated under Issue #136: Proposed/non-normative before required development-path gates; Accepted only after explicit Principal Architect acceptance and protected squash merge of the exact decision | `ADR/ADR-009-deterministic-portfolio-ledger-ordering-and-wac.md` |
+
+## Accepted architecture decisions
+
+| Document | Status | Location |
+| --- | --- | --- |
+| ADR-009 deterministic portfolio ledger ordering and WAC position semantics | Accepted/canonical through Issue #136 and PR #137 squash merge `b772e52221fbb694b3116bd1b579db99d4e56302`; runtime scope remained separately gated and was later implemented by Stage 3.71 | `ADR/ADR-009-deterministic-portfolio-ledger-ordering-and-wac.md` |
 
 ## Stage 3 planning documents
 
@@ -124,7 +129,13 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Stage 3.30 import review integrity | Complete / closed for P2-02/P2-03/P2-04; implementation merged through PR #63 at `8f68dd18800918e6a9882e995e13dba2723dc929`; closure governance merged through PR #64 at `ae6497050692798795efb85678af64db97cc5f53` | `stages/STAGE_03_30_IMPORT_REVIEW_INTEGRITY.md` |
 | Stage 3.31 authentication operational hardening | Complete / closed for P2-01/P2-14; implementation merged through PR #65 at `9bf4d1d31597918eacf0c3358bf6caa2aa9db897`; closure governance merged through PR #66 at `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746` | `stages/STAGE_03_31_AUTH_OPERATIONAL_HARDENING.md` |
 | Stage 3.32 exact idempotency replay and browser retry recovery | Implementation merged through PR #67 at `0623d5ef326cd783b7dc0417dbcb02f18c506171` after exact-head CI #181, repeat independent `APPROVED`, and explicit human squash-merge authorization; when closure governance is canonical, P2-09/P2-13 are closed and 5 P2 plus 10 P3 remain | `stages/STAGE_03_32_IDEMPOTENCY_REPLAY_BROWSER_RECOVERY.md` |
-| Stage 3.70 Portfolio Position & Cost Basis Engine planning | Merge-activated development-path planning under Issue #136 / ADR-009; Complete/canonical only after required gates, explicit Principal Architect acceptance and protected squash merge; Stage 3.71 still requires separate explicit runtime authorization | `stages/STAGE_03_70_PORTFOLIO_POSITION_COST_BASIS_PLANNING.md` |
+| Stage 3.70 Portfolio Position & Cost Basis Engine planning | Complete/canonical through PR #137 squash merge `b772e52221fbb694b3116bd1b579db99d4e56302`; ADR-009 accepted; Stage 3.70 itself granted no runtime authorization | `stages/STAGE_03_70_PORTFOLIO_POSITION_COST_BASIS_PLANNING.md` |
+| Stage 3.71 Portfolio Position & Cost Basis Engine implementation | Canonical through PR #138 squash merge `827f49f909ace5a3f7bcb2a3f51ce7c638c458ad`; final evidence head `6f66f7f3da982b2f83637452bfd1f556b92b3956`; CI #382 / run `34028563925` 10/10 SUCCESS | `stages/STAGE_03_71_PORTFOLIO_POSITION_COST_BASIS_IMPLEMENTATION.md` |
+| Stage 3.71 rollout amendment | Required activation amendment preserving continuous portfolio-write quiescence through Stage 3.71 readiness; no change to ADR-009 WAC math or ledger ordering | `stages/STAGE_03_71_PORTFOLIO_POSITION_COST_BASIS_ROLLOUT_AMENDMENT.md` |
+| Stage 3.71 review evidence | Historical implementation/review/evidence chronology, including permanently preserved pre-External evidence-withholding deviation | `stages/STAGE_03_71_PORTFOLIO_POSITION_COST_BASIS_REVIEW_EVIDENCE.md` |
+| STAGE-03-71-GOV-01 historical governance deviation disposition | Effective through PR #139 squash merge `1da2d3b3b33a9424b06f2f157b2997f20e335954`; historical noncompliance preserved; residual governance risk accepted | `stages/STAGE_03_71_GOV_01_HISTORICAL_GOVERNANCE_DEVIATION_DISPOSITION.md` |
+
+This five-file documentation synchronization is merge-activated final Stage 3.71 lifecycle/documentation closure. It authorizes no Stage 3.72 or later scope, production rollout, imported SELL, public market-valued positions, XIRR/returns, correction/reversal, tax basis, bond NKD, provider activation, notifications, or AI.
 
 ## Product refinement documents
 
