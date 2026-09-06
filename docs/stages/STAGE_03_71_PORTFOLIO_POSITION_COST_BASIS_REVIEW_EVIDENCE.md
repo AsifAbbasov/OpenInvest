@@ -6,7 +6,9 @@ Canonical base: protected `develop@b772e52221fbb694b3116bd1b579db99d4e56302`.
 
 Frozen implementation authority: `docs/stages/STAGE_03_71_PORTFOLIO_POSITION_COST_BASIS_IMPLEMENTATION.md`, content SHA-256 `3a32bcd287211338348900458dfb5787acdeb777858acc8da1032a36a3124758`. That hash-bound authority document remains unchanged so migration policy references do not become a moving target.
 
-Reviewed implementation/code head before this governance-only evidence commit: `6a1668fa9ecf6833f2d25fbdbe6b8bd9f5092e64`.
+Required rollout amendment: `docs/stages/STAGE_03_71_PORTFOLIO_POSITION_COST_BASIS_ROLLOUT_AMENDMENT.md`.
+
+Reviewed implementation/code head before governance-only evidence commits: `6a1668fa9ecf6833f2d25fbdbe6b8bd9f5092e64`.
 
 Pull request: `#138` — `feat: implement Stage 3.71 portfolio position and cost basis runtime`.
 
@@ -23,9 +25,10 @@ The review covered the complete Stage 3.71 diff against the canonical base, with
 - snapshot rebuilding and summary read selection;
 - OpenAPI/HTTP/Web 409 behavior;
 - import SELL exclusion;
-- compatibility impact on prior Stage 3.x tests and contracts.
+- compatibility impact on prior Stage 3.x tests and contracts;
+- deployment/cutover behavior while a pre-Stage-3.71 runtime may still be writable.
 
-The final candidate diff at reviewed code head contained 32 files and remained limited to Stage 3.71 runtime, migrations, tests, OpenAPI/Web exposure, and its implementation documentation. No public position DTO, market-price provider, unrealized P/L, XIRR, FIFO/tax lots, correction/reversal runtime, imported SELL, notifications, AI, Redis/workers, or Feature3D was activated.
+The reviewed code diff remained limited to Stage 3.71 runtime, migrations, tests, OpenAPI/Web exposure, and implementation documentation. No public position DTO, market-price provider, unrealized P/L, XIRR, FIFO/tax lots, correction/reversal runtime, imported SELL, notifications, AI, Redis/workers, or Feature3D was activated.
 
 ## 2. Substantive defects found and remediated
 
@@ -77,6 +80,33 @@ Financial/business selection therefore uses date, methodology, and serialized `s
 
 The regression fixture intentionally gives Stage 3.71 version 1 a newer `calculated_at` than version 2 and also stores a Stage 3.02 version 99 with an even newer timestamp. The required result remains Stage 3.71 version 2 with the expected acquisition-basis values.
 
+### 2.3 Populate-to-runtime legacy-write cutover race
+
+The schema intentionally keeps `ledger_sequence` nullable during Expand so applying `000008` does not itself break the legacy runtime. The backfill atomically populates all existing rows and intentionally refuses a partially populated state.
+
+A final rollout review exposed this sequence:
+
+```text
+backfill succeeds
+-> table lock is released
+-> legacy runtime accepts one more transaction with ledger_sequence = NULL
+-> Stage 3.71 readiness fails closed
+-> second backfill refuses partial population
+```
+
+This does not silently corrupt financial state; both readiness and backfill fail closed. However, the original rollout wording did not close the operational gap between Populate completion and new-runtime readiness.
+
+Remediation is a required rollout amendment:
+
+- enter portfolio-write quiescence before backfill;
+- keep legacy portfolio writes stopped/blocked throughout Populate and deployment;
+- deploy the reviewed Stage 3.71 runtime while quiescence remains active;
+- require Stage 3.71 readiness success;
+- reopen portfolio writes only after readiness succeeds;
+- abort cutover rather than attempting ad hoc partial sequence repair if a legacy write is detected.
+
+The full contract is recorded in `STAGE_03_71_PORTFOLIO_POSITION_COST_BASIS_ROLLOUT_AMENDMENT.md`.
+
 ## 3. Backfill and rollout evidence
 
 The owner-only backfill now has direct PostgreSQL tests rather than `[no test files]` coverage. Evidence includes:
@@ -91,14 +121,16 @@ The owner-only backfill now has direct PostgreSQL tests rather than `[no test fi
 - completed-population rerun as verify-only;
 - structural verification of positive, non-null, unique portfolio-local sequence values.
 
-The activation order remains:
+The activation order is now interpreted together with the rollout amendment:
 
-1. `000008` nullable `ledger_sequence BIGINT` Expand migration;
-2. `000009` concurrent unique index;
-3. owner-only deterministic population;
-4. structural verification;
-5. Stage 3.71 runtime deployment;
-6. runtime readiness independently repeats exact-index and sequence-completeness checks.
+1. apply `000008` nullable `ledger_sequence BIGINT` Expand migration;
+2. apply `000009` concurrent unique index;
+3. enter and prove portfolio-write quiescence;
+4. run owner-only deterministic population;
+5. verify exact index and complete positive sequence state;
+6. deploy Stage 3.71 while writes remain quiesced;
+7. require runtime readiness success;
+8. only then reopen portfolio writes.
 
 The runtime role remains read/append-only on the immutable ledger and does not receive UPDATE/DELETE/TRUNCATE authority.
 
@@ -154,13 +186,15 @@ Passing gates:
 - Python tests;
 - Docker Compose validation.
 
-This evidence document is a governance-only change after that code head. The new PR head must receive a fresh complete green CI run before Ready or merge decisions; CI #375 must not be misrepresented as validation of bytes created after it.
+Governance-only evidence/amendment commits were created after that code head. The current PR head must receive a fresh complete green CI run before Ready or merge decisions; CI #375 must not be misrepresented as validation of later bytes.
 
 ## 7. Review disposition
 
-No unresolved inline review threads or submitted external pull-request reviews existed at the time of this evidence record.
+No unresolved inline review threads or submitted external pull-request reviews existed when this evidence was recorded.
 
-No known Stage 3.71 product-code blocker remained after the two substantive remediations above and the green CI run on the reviewed implementation head.
+No known Stage 3.71 product-code blocker remained after the code remediations and green CI on the reviewed implementation head.
+
+The cutover race is an activation/governance blocker unless the rollout amendment is followed; it does not require changing the reviewed financial runtime implementation.
 
 One architectural compatibility constraint remains explicit: the production API uses `*postgres.Store`, which implements Stage 3.71 capabilities. Legacy/test Store implementations may use compatibility fallback and must not be treated as authorization for a future non-Stage-3.71-capable production persistence backend.
 
