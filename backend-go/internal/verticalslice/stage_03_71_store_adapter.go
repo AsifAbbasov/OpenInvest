@@ -23,6 +23,18 @@ func (adapter *stage371StoreAdapter) Ping(ctx context.Context) error {
 	return nil
 }
 
+func (adapter *stage371StoreAdapter) GetPortfolioSummary(
+	ctx context.Context,
+	subjectID string,
+	portfolioID string,
+	asOfDate string,
+) (PortfolioSummary, error) {
+	if stageStore, ok := adapter.Store.(Stage371SummaryStore); ok {
+		return stageStore.GetPortfolioSummaryStage371(ctx, subjectID, portfolioID, asOfDate)
+	}
+	return adapter.Store.GetPortfolioSummary(ctx, subjectID, portfolioID, asOfDate)
+}
+
 func (adapter *stage371StoreAdapter) AppendTransaction(
 	ctx context.Context,
 	command CommandContext,
