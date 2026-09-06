@@ -3,21 +3,22 @@
 | Field | Value |
 | --- | --- |
 | Document type | Post-development governance / historical deviation disposition |
-| Status | PUBLISHED DRAFT — NOT EFFECTIVE / UNRESOLVED BLOCKER |
+| Status | EFFECTIVE — HISTORICAL NONCOMPLIANCE PRESERVED / RESIDUAL GOVERNANCE RISK ACCEPTED |
 | Date | 2026-09-06 |
 | Canonical workflow | `docs/REVIEW_WORKFLOW.md` v1.4.0 |
 | Disposition ID | `STAGE-03-71-GOV-01` |
 | Affected stage | Stage 3.71 — Portfolio Position & Cost Basis Engine |
 | Affected PR | `#138` |
 | Historical compliance | `NONCOMPLIANT — PRE-EXTERNAL EVIDENCE WITHHOLDING CONTROL MISSED` |
-| Target disposition status after protected activation | `DISPOSITIONED — HISTORICAL NONCOMPLIANCE PRESERVED / RESIDUAL GOVERNANCE RISK ACCEPTED` |
-| Residual-governance-risk acceptance | `PENDING — explicit Principal Architect acceptance required on exact published disposition head` |
-| Squash-merge authorization | `NOT GRANTED` |
+| Effective disposition status | `DISPOSITIONED — HISTORICAL NONCOMPLIANCE PRESERVED / RESIDUAL GOVERNANCE RISK ACCEPTED` |
+| Residual-governance-risk acceptance | `ACCEPTED — Principal Architect review 5125384185 on exact published head f061b15749ea840a8323e79245d721af5bb26a19` |
+| Squash-merge authorization | `GRANTED AND CONSUMED — separate Principal Architect authorization review 5125390878; PR #139 squash-merged at 1da2d3b3b33a9424b06f2f157b2997f20e335954` |
+| Protected activation | `PR #139 / merge 1da2d3b3b33a9424b06f2f157b2997f20e335954 / tree 3acacc96ef96699fec4ea870597c40a370e7bff4 / post-merge verification PASS` |
 | Production/runtime authorization | `NONE — this record is governance-only` |
 
 ## 1. Purpose and non-retroactivity
 
-This record proposes the narrow disposition of one irreversible Stage 3.71 governance/process deviation:
+This record canonically dispositions one irreversible Stage 3.71 governance/process deviation:
 required Internal/adversarial review evidence was published on the Draft PR/repository evidence surface
 before the formal External published-head verdict.
 
@@ -25,7 +26,7 @@ This record does **not** make that historical event compliant. It does not state
 control was performed, that the deviation never existed, or that technical correctness substitutes for
 the missing temporal evidence property.
 
-The only allowed effective outcome, and only after every activation gate in Section 11 completes, is:
+The effective outcome below follows completion of every activation gate in Section 11:
 
 ```text
 DISPOSITIONED — HISTORICAL NONCOMPLIANCE PRESERVED / RESIDUAL GOVERNANCE RISK ACCEPTED
@@ -202,9 +203,10 @@ Therefore residual risk remains non-zero:
   review window;
 - the exact temporal control cannot be replayed on the already-merged subject.
 
-The Principal Architect must explicitly accept this residual governance risk on the exact published
-disposition head after CI and exact-published-head Governance / Closure verification. That acceptance
-must not be inferred from permission to prepare, publish, mark Ready, or merge another artifact.
+The Principal Architect explicitly accepted this residual governance risk in review `5125384185` on exact
+published disposition head `f061b15749ea840a8323e79245d721af5bb26a19` after CI and exact-published-head
+Governance / Closure verification. `HISTORICAL_COMPLIANCE=NONCOMPLIANT` remains permanently preserved.
+That acceptance did not retroactively satisfy the missed withholding control.
 
 ## 8. Disposition eligibility
 
@@ -253,11 +255,11 @@ Unaffected:
 - external provider/source policy;
 - the original 32-finding repository audit, already separately closed 32/32.
 
-Current canonical `ROADMAP.md`, `SOURCE_OF_TRUTH.md`, and `DOCUMENT_INDEX.md` still contain
-pre-activation Stage 3.70/3.71 wording. That is separate current-state documentation debt. This
-disposition does not silently treat those files as synchronized and does not expand its own scope to a
-Stage 3.71 closure rewrite. A separately reviewed documentation/closure synchronization remains
-required before Stage 3.71 may be called fully lifecycle/documentation-closed.
+At disposition activation, `ROADMAP.md`, `SOURCE_OF_TRUTH.md`, `DOCUMENT_INDEX.md`, and
+`OPEN_QUESTIONS.md` still contained pre-activation Stage 3.70/3.71 current-state wording. This separately
+reviewed five-file documentation synchronization corrects those active surfaces, including this
+disposition's own post-activation metadata. Stage 3.71 lifecycle/documentation closure is COMPLETE only
+after this exact synchronization is protected-merged.
 
 ## 10. Compensating and recurrence-prevention controls
 
@@ -324,6 +326,19 @@ Only after step 10 may the deviation state become:
 STAGE_03_71_GOV_01=DISPOSITIONED — HISTORICAL NONCOMPLIANCE PRESERVED / RESIDUAL GOVERNANCE RISK ACCEPTED
 HISTORICAL_COMPLIANCE=NONCOMPLIANT
 DISPOSITION_EFFECTIVE=YES
+```
+
+Protected activation completed with CI #384 / run `34030642053` on exact disposition head
+`f061b15749ea840a8323e79245d721af5bb26a19`, residual-risk acceptance review `5125384185`, separate
+merge-authorization review `5125390878`, PR #139 squash merge
+`1da2d3b3b33a9424b06f2f157b2997f20e335954`, protected tree
+`3acacc96ef96699fec4ea870597c40a370e7bff4`, and post-merge verification PASS. Current state is:
+
+```text
+STAGE_03_71_GOV_01=DISPOSITIONED — HISTORICAL NONCOMPLIANCE PRESERVED / RESIDUAL GOVERNANCE RISK ACCEPTED
+HISTORICAL_COMPLIANCE=NONCOMPLIANT
+DISPOSITION_EFFECTIVE=YES
+RESIDUAL_GOVERNANCE_RISK_ACCEPTANCE=ACCEPTED
 ```
 
 Disposition activation resolves this specific historical governance blocker only. It does not itself:
