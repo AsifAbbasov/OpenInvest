@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document type | Post-development governance / historical deviation disposition |
-| Status | PREPUBLICATION CANDIDATE — NOT EFFECTIVE / UNRESOLVED BLOCKER |
+| Status | PUBLISHED DRAFT — NOT EFFECTIVE / UNRESOLVED BLOCKER |
 | Date | 2026-09-06 |
 | Canonical workflow | `docs/REVIEW_WORKFLOW.md` v1.4.0 |
 | Disposition ID | `STAGE-03-71-GOV-01` |
