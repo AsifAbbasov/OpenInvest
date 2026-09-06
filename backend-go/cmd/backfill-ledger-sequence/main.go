@@ -178,7 +178,7 @@ func verifyStage371UniqueIndex(ctx context.Context, tx *sql.Tx) error {
 				AND index_meta.indnkeyatts = 2
 				AND index_meta.indnatts = 2
 				AND (
-					SELECT array_agg(attribute.attname ORDER BY key.ordinality)
+					SELECT array_agg(attribute.attname::text ORDER BY key.ordinality)
 					FROM unnest(index_meta.indkey) WITH ORDINALITY AS key(attnum, ordinality)
 					JOIN pg_attribute attribute
 						ON attribute.attrelid = index_meta.indrelid
