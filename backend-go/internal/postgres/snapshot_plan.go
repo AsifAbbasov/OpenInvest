@@ -14,7 +14,8 @@ import (
 // planAffectedSnapshotDates returns the exact deterministic union of snapshot dates affected by
 // one financial command. Every transaction trade date is rebuilt even when no snapshot existed yet,
 // and every existing snapshot on or after the earliest affected trade date is rebuilt because its
-// ledger prefix changed. The returned dates are unique and ascending.
+// ledger prefix changed. Existing dates are methodology-agnostic so Stage 3.71 does not lose dates
+// that were previously materialized only by the historical Stage 3.02 methodology.
 func planAffectedSnapshotDates(
 	ctx context.Context,
 	tx *sql.Tx,
@@ -41,12 +42,11 @@ func planAffectedSnapshotDates(
 	earliestDate := inputDates[0]
 
 	rows, err := tx.QueryContext(ctx, `
-		SELECT snapshot_date::text
+		SELECT DISTINCT snapshot_date::text
 		FROM analytics.portfolio_snapshots
 		WHERE portfolio_id = $1
 			AND snapshot_date >= $2::date
-			AND methodology_version = 'stage-03-02-local-cost-snapshot-v1'
-		ORDER BY snapshot_date ASC
+		ORDER BY snapshot_date::text ASC
 	`, portfolioID, earliestDate)
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func rebuildSnapshotPlan(
 	now time.Time,
 ) error {
 	for _, snapshotDate := range affectedDates {
-		if err := rebuildSnapshot(ctx, tx, portfolioID, snapshotDate, now); err != nil {
+		if err := rebuildSnapshotStage371(ctx, tx, portfolioID, snapshotDate, now); err != nil {
 			return err
 		}
 	}

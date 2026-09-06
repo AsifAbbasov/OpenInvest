@@ -156,15 +156,14 @@ func TestStage0333ImportRebuildsExactAffectedSnapshotDatesOnce(t *testing.T) {
 	}
 
 	rows, err := db.QueryContext(ctx, `
-		SELECT snapshot_date::text, MAX(snapshot_version)
+		SELECT snapshot_date::text, COUNT(*)
 		FROM analytics.portfolio_snapshots
 		WHERE portfolio_id = $1
-			AND methodology_version = 'stage-03-02-local-cost-snapshot-v1'
 		GROUP BY snapshot_date
 		ORDER BY snapshot_date
 	`, portfolio.ID)
 	if err != nil {
-		t.Fatalf("query snapshot versions: %v", err)
+		t.Fatalf("query snapshot version counts: %v", err)
 	}
 	defer rows.Close()
 
@@ -173,12 +172,12 @@ func TestStage0333ImportRebuildsExactAffectedSnapshotDatesOnce(t *testing.T) {
 		var date string
 		var version int
 		if err := rows.Scan(&date, &version); err != nil {
-			t.Fatalf("scan snapshot version: %v", err)
+			t.Fatalf("scan snapshot version count: %v", err)
 		}
 		versions[date] = version
 	}
 	if err := rows.Err(); err != nil {
-		t.Fatalf("read snapshot versions: %v", err)
+		t.Fatalf("read snapshot version counts: %v", err)
 	}
 
 	wantVersions := map[string]int{
@@ -189,6 +188,6 @@ func TestStage0333ImportRebuildsExactAffectedSnapshotDatesOnce(t *testing.T) {
 		"2026-06-30": 2,
 	}
 	if !reflect.DeepEqual(versions, wantVersions) {
-		t.Fatalf("snapshot rebuild version counts prove duplicate work: got %v want %v", versions, wantVersions)
+		t.Fatalf("snapshot rebuild counts prove duplicate work: got %v want %v", versions, wantVersions)
 	}
 }

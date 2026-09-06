@@ -17,10 +17,11 @@ import (
 )
 
 var (
-	ErrInvalidInput       = errors.New("invalid input")
-	ErrMissingIdempotency = errors.New("missing idempotency key")
-	ErrNotFound           = errors.New("not found")
-	ErrReplayUnavailable  = errors.New("idempotency replay persistence unavailable")
+	ErrInvalidInput                 = errors.New("invalid input")
+	ErrMissingIdempotency           = errors.New("missing idempotency key")
+	ErrNotFound                     = errors.New("not found")
+	ErrReplayUnavailable            = errors.New("idempotency replay persistence unavailable")
+	ErrInsufficientPositionQuantity = errors.New("insufficient position quantity")
 )
 
 var tickerPattern = regexp.MustCompile(`^[A-Z0-9]{1,32}$`)
@@ -33,7 +34,7 @@ type Service struct {
 }
 
 func NewService(store Store, clock Clock) *Service {
-	return &Service{store: store, clock: clock}
+	return &Service{store: adaptStage371Store(store), clock: clock}
 }
 
 func (s *Service) Ready(ctx context.Context) error {
@@ -430,6 +431,9 @@ func validateAppendImportBatch(request AppendImportBatchRequest) error {
 		if transaction.PortfolioID != request.PortfolioID {
 			return fmt.Errorf("%w: imported transaction %d portfolioId does not match batch portfolioId", ErrInvalidInput, index+1)
 		}
+		if transaction.TransactionType == "SELL" {
+			return fmt.Errorf("%w: imported transaction %d SELL remains outside Stage 3.71 import scope", ErrInvalidInput, index+1)
+		}
 		if err := validateAppendTransaction(transaction); err != nil {
 			return fmt.Errorf("%w: imported transaction %d is invalid", err, index+1)
 		}
@@ -459,7 +463,7 @@ func validateAppendImportBatch(request AppendImportBatchRequest) error {
 
 func validateAppendTransaction(request AppendTransactionRequest) error {
 	switch request.TransactionType {
-	case "BUY":
+	case "BUY", "SELL":
 		if request.Ticker == nil || !tickerPattern.MatchString(*request.Ticker) {
 			return fmt.Errorf("%w: ticker is required for trades", ErrInvalidInput)
 		}
@@ -475,8 +479,6 @@ func validateAppendTransaction(request AppendTransactionRequest) error {
 		if !request.UnitPrice.Amount.FitsStorage() {
 			return fmt.Errorf("%w: unitPrice exceeds NUMERIC(28,8) storage precision", ErrInvalidInput)
 		}
-	case "SELL":
-		return fmt.Errorf("%w: SELL is outside Stage 3.2 scope until cost-basis position rebuild is implemented", ErrInvalidInput)
 	case "DEPOSIT", "WITHDRAWAL":
 		if request.Ticker != nil || request.Quantity != nil || request.UnitPrice != nil {
 			return fmt.Errorf("%w: cash flows must not include ticker, quantity, or unitPrice", ErrInvalidInput)

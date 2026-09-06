@@ -347,6 +347,18 @@ responses:
         examples:
           default: { $ref: "../examples/errors.json#/idempotencyConflict" }
 
+  TransactionConflict:
+    description: Transaction append was rejected because of idempotency state or insufficient position quantity.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/ErrorResponse" }
+        examples:
+          idempotencyConflict: { $ref: "../examples/errors.json#/idempotencyConflict" }
+          insufficientPositionQuantity: { $ref: "../examples/errors.json#/insufficientPositionQuantity" }
+
   RateLimited:
     description: Rate limit exceeded.
     headers:

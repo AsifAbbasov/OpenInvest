@@ -1,0 +1,56 @@
+{
+  "methodology": "position-wac-v1",
+  "scale": 8,
+  "precision": 28,
+  "rounding": "HALF_EVEN",
+  "vectors": [
+    {
+      "name": "canonical lifecycle",
+      "trades": [
+        { "type": "BUY", "quantity": "100.00000000", "unitPrice": "250.00000000" },
+        { "type": "BUY", "quantity": "100.00000000", "unitPrice": "300.00000000" },
+        { "type": "SELL", "quantity": "50.00000000", "unitPrice": "350.00000000" }
+      ],
+      "expected": {
+        "quantity": "150.00000000",
+        "weightedAverageCost": "275.00000000",
+        "acquisitionBasis": "41250.00000000"
+      }
+    },
+    {
+      "name": "fractional partial sell preserves authoritative WAC",
+      "initial": {
+        "quantity": "0.40000000",
+        "weightedAverageCost": "275.12345678"
+      },
+      "trade": { "type": "SELL", "quantity": "0.20000000", "unitPrice": "999.00000000" },
+      "expected": {
+        "quantity": "0.20000000",
+        "weightedAverageCost": "275.12345678",
+        "acquisitionBasis": "55.02469136",
+        "basisDivQuantityWitnessNotWAC": "275.12345680"
+      }
+    },
+    {
+      "name": "full close then reopen",
+      "trades": [
+        { "type": "BUY", "quantity": "10.00000000", "unitPrice": "100.00000000" },
+        { "type": "SELL", "quantity": "10.00000000", "unitPrice": "120.00000000" },
+        { "type": "BUY", "quantity": "2.00000000", "unitPrice": "130.00000000" }
+      ],
+      "expected": {
+        "quantity": "2.00000000",
+        "weightedAverageCost": "130.00000000",
+        "acquisitionBasis": "260.00000000"
+      }
+    },
+    {
+      "name": "oversell rejected",
+      "trades": [
+        { "type": "BUY", "quantity": "1.00000000", "unitPrice": "100.00000000" },
+        { "type": "SELL", "quantity": "1.00000001", "unitPrice": "90.00000000" }
+      ],
+      "expectedError": "INSUFFICIENT_POSITION_QUANTITY"
+    }
+  ]
+}

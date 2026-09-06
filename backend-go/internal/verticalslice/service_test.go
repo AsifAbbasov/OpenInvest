@@ -306,8 +306,9 @@ func TestGrossForRejectsTradeGrossMismatch(t *testing.T) {
 	}
 }
 
-func TestAppendTransactionRejectsSellUntilCostBasisExists(t *testing.T) {
-	service := NewService(&recordingStore{}, fixedClock{})
+func TestAppendTransactionAllowsSellAtServiceBoundary(t *testing.T) {
+	store := &recordingStore{}
+	service := NewService(store, fixedClock{})
 	ticker := "SBER"
 	quantity := decimal.Must("1.00000000")
 	unitPrice := Money{Amount: decimal.Must("110.00000000"), Currency: RUB}
@@ -323,8 +324,11 @@ func TestAppendTransactionRejectsSellUntilCostBasisExists(t *testing.T) {
 		TradeDate:       "2026-06-26",
 	})
 
-	if !errors.Is(err, ErrInvalidInput) {
-		t.Fatalf("expected invalid input, got %v", err)
+	if err != nil {
+		t.Fatalf("expected manual SELL to pass the service boundary, got %v", err)
+	}
+	if store.requestHash == "" {
+		t.Fatal("expected accepted manual SELL to reach persistence command construction")
 	}
 }
 

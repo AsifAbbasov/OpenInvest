@@ -280,8 +280,8 @@ func TestStoreVerticalSlice(t *testing.T) {
 	if err != nil {
 		t.Fatalf("get portfolio summary after backdated transaction: %v", err)
 	}
-	if got := summary.StockValue.Amount.String(); got != "57000.00000000" {
-		t.Fatalf("expected stock value 57000.00000000 after backdated rebuild, got %s", got)
+	if got := summary.StockValue.Amount.String(); got != "57000.00000030" {
+		t.Fatalf("expected authoritative WAC stock value 57000.00000030 after backdated rebuild, got %s", got)
 	}
 
 	filtered, err := service.ListTransactions(ctx, subjectID, portfolio.ID, verticalslice.TransactionFilter{

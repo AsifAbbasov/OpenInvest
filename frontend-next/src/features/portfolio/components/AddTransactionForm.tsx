@@ -18,7 +18,7 @@ type AddTransactionFormProps = {
   onSaved: () => void;
 };
 
-const transactionTypes: TransactionType[] = ["BUY", "DEPOSIT", "WITHDRAWAL"];
+const transactionTypes: TransactionType[] = ["BUY", "SELL", "DEPOSIT", "WITHDRAWAL"];
 const idempotencyConflictMessage = "Idempotency-Key is already bound to another request";
 
 export function AddTransactionForm({ accessToken, principalId, portfolioId, onSaved }: AddTransactionFormProps) {
@@ -104,8 +104,8 @@ export function AddTransactionForm({ accessToken, principalId, portfolioId, onSa
         <h2>Add transaction</h2>
         <p className="muted">
           This form only builds the OpenAPI request. The Go API validates and stores immutable
-          transactions, recalculates snapshots, and returns canonical results.
-          Stage 3.3 exposes only the transaction types currently accepted by the Go vertical slice.
+          transactions, recalculates snapshots, and returns canonical results. Stage 3.71 exposes
+          manual BUY and SELL while broker-import SELL remains intentionally unavailable.
         </p>
       </div>
 

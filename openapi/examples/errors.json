@@ -60,6 +60,17 @@
       }
     }
   },
+  "insufficientPositionQuantity": {
+    "summary": "Transaction would oversell the position",
+    "value": {
+      "error": { "code": "INSUFFICIENT_POSITION_QUANTITY", "message": "Transaction would make the position quantity negative", "details": [] },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5608",
+        "traceId": "6e4a3d2c1b0e4987a6f5e4d3c2b1a119",
+        "generatedAt": "2026-06-20T15:07:00Z"
+      }
+    }
+  },
   "rateLimitError": {
     "summary": "Rate limit exceeded",
     "value": {
