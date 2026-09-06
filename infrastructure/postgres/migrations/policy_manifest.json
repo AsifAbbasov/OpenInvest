@@ -48,5 +48,280 @@
       }
     ]
   },
-  "enforced_migrations": []
+  "enforced_migrations": [
+    {
+      "id": "000008",
+      "name": "stage_03_71_ledger_sequence",
+      "up_sha256": "20617660e7ed0fde6dcbdc897821ad8664bfc5ffad67fa395a8f1b6c98406340",
+      "down_sha256": "1a38297e7970cb2167acac2d36325500ad16326b4bc8fb4ce39aebfcb31c09d8",
+      "owners": [
+        "investment"
+      ],
+      "phase": "expand",
+      "risk": "medium",
+      "data_classification": "financial",
+      "reversibility": "disposable_down_exact_inverse",
+      "observability": {
+        "rows_or_batches": {
+          "mode": "not_applicable",
+          "reason": "paired-SQL DDL effect; row/batch processing is outside the migration file"
+        },
+        "lock_wait": {
+          "mode": "measured",
+          "signal_or_method": "PostgreSQL lock wait duration for the migration statement"
+        },
+        "statement_duration": {
+          "mode": "measured",
+          "signal_or_method": "migration statement elapsed duration"
+        },
+        "replication_lag": {
+          "mode": "measured",
+          "signal_or_method": "replication lag before, during, and after the migration"
+        },
+        "wal_growth": {
+          "mode": "measured",
+          "signal_or_method": "WAL growth during the migration window"
+        },
+        "disk_growth": {
+          "mode": "measured",
+          "signal_or_method": "relation and index disk growth during the migration window"
+        },
+        "validation_mismatches": {
+          "mode": "not_applicable",
+          "reason": "schema Expand step; Stage 3.71 owner population command performs ledger validation"
+        },
+        "retry_pause_abort_reason": {
+          "mode": "measured",
+          "signal_or_method": "deployment log records retry, pause, or abort reason"
+        },
+        "change_deployment_correlation": {
+          "mode": "measured",
+          "signal_or_method": "deployment record correlates migration id, application revision, and rollout window"
+        }
+      },
+      "monitoring": {
+        "signals": [
+          "lock_wait",
+          "statement_duration",
+          "replication_lag",
+          "wal_growth",
+          "disk_growth",
+          "retry_pause_abort_reason",
+          "change_deployment_correlation"
+        ],
+        "success_condition": "DDL completes within declared timeout with no sustained lock wait, replication lag, or unexpected disk/WAL growth.",
+        "abort_condition": "Abort on timeout, sustained lock wait, replication lag growth, unexpected disk/WAL growth, or any deployment correlation mismatch."
+      },
+      "rollout": {
+        "mode": "staged",
+        "metrics": [
+          "lock_wait",
+          "statement_duration",
+          "replication_lag",
+          "wal_growth",
+          "disk_growth",
+          "retry_pause_abort_reason",
+          "change_deployment_correlation"
+        ]
+      },
+      "production_rollback": {
+        "strategy": "leave_additive_structure_unused",
+        "procedure": "Stop Stage 3.71 activation and leave the additive structure unused; use paired DOWN only before accepted Stage 3.71 financial writes exist.",
+        "verification": "Stage 3.71 runtime remains disabled and pre-existing transaction semantics remain unchanged."
+      },
+      "roll_forward": {
+        "procedure": "Complete Expand migrations, deterministic owner-only ledger sequence population, structural verification, then activate the Stage 3.71 runtime.",
+        "verification": "Runtime readiness reports the unique index present and zero NULL/non-positive/duplicate portfolio-local ledger sequences."
+      },
+      "authority_refs": [
+        {
+          "kind": "staged_rollout",
+          "path": "docs/stages/STAGE_03_71_PORTFOLIO_POSITION_COST_BASIS_IMPLEMENTATION.md",
+          "content_sha256": "3a32bcd287211338348900458dfb5787acdeb777858acc8da1032a36a3124758"
+        }
+      ],
+      "dependencies": [
+        "000007"
+      ],
+      "up_transaction_mode": "transactional",
+      "down_transaction_mode": "transactional",
+      "up_execution": {
+        "expected_duration_seconds": 30,
+        "lock_risk": "medium",
+        "lock_timeout_ms": 5000,
+        "statement_timeout_ms": 30000
+      },
+      "down_execution": {
+        "expected_duration_seconds": 30,
+        "lock_risk": "medium",
+        "lock_timeout_ms": 5000,
+        "statement_timeout_ms": 30000
+      },
+      "up_ddl_impact": [
+        {
+          "statement_sha256": "3b06501c9701aefe3e4c8b04854535636f01333803786603153948b70338ab3a",
+          "statement_class": "add_column",
+          "estimated_lock_mode": "access_exclusive",
+          "affected_rows_estimate": 0,
+          "disk_impact_bytes_estimate": 0,
+          "wal_impact_bytes_estimate": 0,
+          "replication_impact": "low",
+          "online_strategy": "not_applicable",
+          "abort_condition": "Abort if lock acquisition exceeds 5000ms or statement duration exceeds 30000ms.",
+          "estimate_basis": "Nullable BIGINT column without DEFAULT is a catalog/tuple-descriptor Expand step and is not expected to rewrite existing heap rows."
+        }
+      ],
+      "down_ddl_impact": [
+        {
+          "statement_sha256": "874b0c0a9fa2c6db61d684fed97077e568a67c555f5f547124774e44e2f25a3f",
+          "statement_class": "drop_column",
+          "estimated_lock_mode": "access_exclusive",
+          "affected_rows_estimate": 0,
+          "disk_impact_bytes_estimate": 0,
+          "wal_impact_bytes_estimate": 0,
+          "replication_impact": "low",
+          "online_strategy": "not_applicable",
+          "abort_condition": "Abort if lock acquisition exceeds 5000ms or statement duration exceeds 30000ms.",
+          "estimate_basis": "DOWN removes only the additive ledger_sequence column before runtime activation; no financial fact column is touched."
+        }
+      ]
+    },
+    {
+      "id": "000009",
+      "name": "stage_03_71_ledger_sequence_unique",
+      "up_sha256": "c89a38f7c2fb04312eeb3fd6a6f42c28ec0cd0d68fefec6cd076fdcea0cd0230",
+      "down_sha256": "e419b8c117ccc29201015e8499ff9ec91ad72cd08a4480112fdc72e537f73d54",
+      "owners": [
+        "investment"
+      ],
+      "phase": "expand",
+      "risk": "medium",
+      "data_classification": "financial",
+      "reversibility": "disposable_down_exact_inverse",
+      "observability": {
+        "rows_or_batches": {
+          "mode": "not_applicable",
+          "reason": "paired-SQL DDL effect; row/batch processing is outside the migration file"
+        },
+        "lock_wait": {
+          "mode": "measured",
+          "signal_or_method": "PostgreSQL lock wait duration for the migration statement"
+        },
+        "statement_duration": {
+          "mode": "measured",
+          "signal_or_method": "migration statement elapsed duration"
+        },
+        "replication_lag": {
+          "mode": "measured",
+          "signal_or_method": "replication lag before, during, and after the migration"
+        },
+        "wal_growth": {
+          "mode": "measured",
+          "signal_or_method": "WAL growth during the migration window"
+        },
+        "disk_growth": {
+          "mode": "measured",
+          "signal_or_method": "relation and index disk growth during the migration window"
+        },
+        "validation_mismatches": {
+          "mode": "not_applicable",
+          "reason": "schema Expand step; Stage 3.71 owner population command performs ledger validation"
+        },
+        "retry_pause_abort_reason": {
+          "mode": "measured",
+          "signal_or_method": "deployment log records retry, pause, or abort reason"
+        },
+        "change_deployment_correlation": {
+          "mode": "measured",
+          "signal_or_method": "deployment record correlates migration id, application revision, and rollout window"
+        }
+      },
+      "monitoring": {
+        "signals": [
+          "lock_wait",
+          "statement_duration",
+          "replication_lag",
+          "wal_growth",
+          "disk_growth",
+          "retry_pause_abort_reason",
+          "change_deployment_correlation"
+        ],
+        "success_condition": "DDL completes within declared timeout with no sustained lock wait, replication lag, or unexpected disk/WAL growth.",
+        "abort_condition": "Abort on timeout, sustained lock wait, replication lag growth, unexpected disk/WAL growth, or any deployment correlation mismatch."
+      },
+      "rollout": {
+        "mode": "staged",
+        "metrics": [
+          "lock_wait",
+          "statement_duration",
+          "replication_lag",
+          "wal_growth",
+          "disk_growth",
+          "retry_pause_abort_reason",
+          "change_deployment_correlation"
+        ]
+      },
+      "production_rollback": {
+        "strategy": "leave_additive_structure_unused",
+        "procedure": "Stop Stage 3.71 activation and leave the additive structure unused; use paired DOWN only before accepted Stage 3.71 financial writes exist.",
+        "verification": "Stage 3.71 runtime remains disabled and pre-existing transaction semantics remain unchanged."
+      },
+      "roll_forward": {
+        "procedure": "Complete Expand migrations, deterministic owner-only ledger sequence population, structural verification, then activate the Stage 3.71 runtime.",
+        "verification": "Runtime readiness reports the unique index present and zero NULL/non-positive/duplicate portfolio-local ledger sequences."
+      },
+      "authority_refs": [
+        {
+          "kind": "staged_rollout",
+          "path": "docs/stages/STAGE_03_71_PORTFOLIO_POSITION_COST_BASIS_IMPLEMENTATION.md",
+          "content_sha256": "3a32bcd287211338348900458dfb5787acdeb777858acc8da1032a36a3124758"
+        }
+      ],
+      "dependencies": [
+        "000008"
+      ],
+      "up_transaction_mode": "non_transactional",
+      "down_transaction_mode": "non_transactional",
+      "up_execution": {
+        "expected_duration_seconds": 120,
+        "lock_risk": "medium",
+        "lock_timeout_ms": 5000,
+        "statement_timeout_ms": 30000
+      },
+      "down_execution": {
+        "expected_duration_seconds": 120,
+        "lock_risk": "medium",
+        "lock_timeout_ms": 5000,
+        "statement_timeout_ms": 30000
+      },
+      "up_ddl_impact": [
+        {
+          "statement_sha256": "4d511d6b99c45d0d2f0864db5fda1a30bbaa5495668f15c157b8d0db8e2957e9",
+          "statement_class": "create_unique_index_concurrently",
+          "estimated_lock_mode": "share_update_exclusive",
+          "affected_rows_estimate": 10000,
+          "disk_impact_bytes_estimate": 16777216,
+          "wal_impact_bytes_estimate": 16777216,
+          "replication_impact": "medium",
+          "online_strategy": "concurrent",
+          "abort_condition": "Abort on timeout, sustained replication lag, or index build failure; do not activate Stage 3.71 runtime.",
+          "estimate_basis": "Conservative zero-budget MVP deployment envelope for pre-activation ledger rows; actual relation size is checked during rollout."
+        }
+      ],
+      "down_ddl_impact": [
+        {
+          "statement_sha256": "09b0def224bb6ab44a6a2a8c2cf13a0c64ba846529fd403f475f6ed8d7173b5e",
+          "statement_class": "drop_index_concurrently",
+          "estimated_lock_mode": "share_update_exclusive",
+          "affected_rows_estimate": 10000,
+          "disk_impact_bytes_estimate": 16777216,
+          "wal_impact_bytes_estimate": 16777216,
+          "replication_impact": "low",
+          "online_strategy": "concurrent",
+          "abort_condition": "Abort on timeout or concurrent drop failure; keep Stage 3.71 runtime disabled.",
+          "estimate_basis": "Inverse of the Stage 3.71 portfolio-local ledger sequence unique index build."
+        }
+      ]
+    }
+  ]
 }
