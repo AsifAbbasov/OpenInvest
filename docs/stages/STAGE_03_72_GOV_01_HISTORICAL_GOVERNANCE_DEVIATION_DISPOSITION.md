@@ -3,18 +3,18 @@
 | Field | Value |
 | --- | --- |
 | Document type | Post-development governance / historical deviation disposition |
-| Status | PUBLISHED DRAFT — NOT EFFECTIVE / UNRESOLVED BLOCKER |
+| Status | DISPOSITIONED — HISTORICAL NONCOMPLIANCE PRESERVED / RESIDUAL GOVERNANCE RISK ACCEPTED |
 | Date | 2026-09-06 |
 | Canonical workflow | `docs/REVIEW_WORKFLOW.md` v1.4.0 |
 | Disposition ID | `STAGE-03-72-GOV-01` |
 | Affected stage | Stage 3.72 — Portfolio Position Projection / Honest Market-Unavailable Semantics planning |
 | Affected PR | `#142` |
 | Historical compliance | `NONCOMPLIANT — PRE-EXTERNAL INTERNAL-VERDICT WITHHOLDING CONTROL MISSED` |
-| Effective disposition status | `PENDING — requires protected disposition merge after all mandatory gates` |
-| Residual-governance-risk acceptance | `PENDING` |
-| Squash-merge authorization | `NOT GRANTED` |
-| Protected activation | `NONE — disposition is not effective before protected merge` |
-| Stage 3.72 planning PR merge | `BLOCKED while STAGE-03-72-GOV-01 is unresolved` |
+| Effective disposition status | `DISPOSITIONED — HISTORICAL NONCOMPLIANCE PRESERVED / RESIDUAL GOVERNANCE RISK ACCEPTED` |
+| Residual-governance-risk acceptance | `ACCEPTED — Principal Architect review 5126035577 on exact published head 29be318f4e6ffdd79a9d3f68d5c1c10ac0858f36` |
+| Squash-merge authorization | `GRANTED AND CONSUMED — explicit Principal Architect authorization preserved by PR #143 comment 5560966901; PR #143 squash-merged at be654b938484d4ef4e4796b247bb04bf7efd2049` |
+| Protected activation | `PR #143 / merge be654b938484d4ef4e4796b247bb04bf7efd2049 / tree d90ad717da04c7a28f538a4a0fea2781409dd44e / post-merge verification PASS comment 5560958299` |
+| Stage 3.72 planning PR merge | `PR #142 remains DRAFT / UNMERGED — disposition blocker resolved; current-base refresh/reverification plus separate planning acceptance, Ready and squash-merge authorization remain required` |
 | Stage 3.72 runtime authorization | `NONE` |
 | Production/provider authorization | `NONE` |
 
@@ -39,18 +39,13 @@ This record does **not** make the historical event compliant. It does not state 
 - Stage 3.72 planning is accepted for merge;
 - Stage 3.72 runtime implementation is authorized.
 
-Only after every disposition activation gate succeeds may the exact named deviation receive the workflow-defined effective status:
+Every disposition activation gate has now succeeded through PR #143 squash merge `be654b938484d4ef4e4796b247bb04bf7efd2049` and post-merge verification. The exact named deviation therefore has the workflow-defined effective status:
 
 ```text
 DISPOSITIONED — HISTORICAL NONCOMPLIANCE PRESERVED / RESIDUAL GOVERNANCE RISK ACCEPTED
 ```
 
-Until then:
-
-```text
-STAGE-03-72-GOV-01 = UNRESOLVED_BLOCKER
-DISPOSITION_EFFECTIVE = NO
-```
+This post-activation status does not make the historical event compliant, recreate the missed temporal withholding property, or authorize Stage 3.72 planning merge/runtime implementation. Historical pre-activation states remain preserved in their explicitly identified snapshots and chronology.
 
 ## 2. Exact repository, protected-base, and subject identity
 
@@ -571,3 +566,45 @@ LATER_STAGE_AUTHORIZATION=NONE
 ```
 
 This candidate is not effective and is not self-approving.
+
+## 16. Protected activation and current state
+
+The disposition lifecycle completed through protected squash merge of PR #143.
+
+```text
+DISPOSITION_ID=STAGE-03-72-GOV-01
+FINAL_DISPOSITION_HEAD=29be318f4e6ffdd79a9d3f68d5c1c10ac0858f36
+FINAL_DISPOSITION_TREE=d90ad717da04c7a28f538a4a0fea2781409dd44e
+FINAL_DISPOSITION_CI=#401 / 34047566741 / PASS_ALL_10_REQUIRED_CONTEXTS
+EXACT_PUBLISHED_HEAD_VERIFICATION=5126029859 / APPROVED
+RESIDUAL_GOVERNANCE_RISK_ACCEPTANCE=5126035577 / ACCEPTED
+MERGE_AUTHORIZATION_EVIDENCE=5560966901
+PROTECTED_SQUASH_MERGE=be654b938484d4ef4e4796b247bb04bf7efd2049
+MERGE_PARENT=db589eb074468f352e61b82bbad8f33307b3fc89
+MERGED_TREE=d90ad717da04c7a28f538a4a0fea2781409dd44e
+POST_MERGE_VERIFICATION=PASS / 5560958299
+```
+
+The merged tree is identical to the exact CI-green disposition head tree. The historical withholding failure remains permanently noncompliant; protected activation does not recreate the missed temporal property.
+
+Current effective state:
+
+```text
+STAGE-03-72-GOV-01=DISPOSITIONED
+HISTORICAL_COMPLIANCE=NONCOMPLIANT_PRESERVED
+RESIDUAL_GOVERNANCE_RISK=ACCEPTED
+DISPOSITION_EFFECTIVE=YES
+RETROACTIVE_COMPLIANCE_CLAIM=NONE
+
+PR_142_STATE=DRAFT_OPEN_UNMERGED
+PR_142_DISPOSITION_BLOCKER=RESOLVED
+PR_142_CURRENT_BASE_REFRESH_REVERIFICATION=REQUIRED
+PR_142_PLANNING_ACCEPTANCE=NOT_GRANTED
+PR_142_READY_AUTHORIZATION=NOT_GRANTED
+PR_142_MERGE_AUTHORIZATION=NOT_GRANTED
+STAGE_03_72_IMPLEMENTATION_AUTHORIZATION=NOT_GRANTED
+PRODUCTION_PROVIDER_AUTHORIZATION=NONE
+LATER_STAGE_AUTHORIZATION=NONE
+```
+
+Sections 8, 13 and 15 contain explicitly historical/pre-activation snapshots. Their pre-merge values remain preserved for chronology and are not current authority. This Section 16 and the active top table are the current-state authority for the disposition lifecycle.
