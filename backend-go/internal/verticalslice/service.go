@@ -34,7 +34,7 @@ type Service struct {
 }
 
 func NewService(store Store, clock Clock) *Service {
-	return &Service{store: store, clock: clock}
+	return &Service{store: adaptStage371Store(store), clock: clock}
 }
 
 func (s *Service) Ready(ctx context.Context) error {
