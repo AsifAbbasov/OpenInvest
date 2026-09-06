@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.87 |
+| Version | 1.1.88 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
 | Dependencies | Architecture Freeze v1.2 |
-| Last Review Date | 2026-09-05 |
-| Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
+| Last Review Date | 2026-09-06 |
+| Next Review Date | Before Stage 3.70 / ADR-009 acceptance, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
 
 | Stage | Outcome | State |
 | --- | --- | --- |
@@ -120,6 +120,8 @@
 | 3.67 — Corporate Actions request-cancellation closure governance | Synchronize canonical lifecycle documentation for the already-merged Stage 3.66 without runtime change and preserve Feature 3D as a separate source/use planning gate | Complete / PR #131 squash-merged into protected `develop` at `c885f6e57ea08e4583103fe2f22f142bf13a8560`; protected tree `53f823e92b02721211e1d89f8af6374fffc252ae`; Stage 3.66 lifecycle/documentation closure COMPLETE |
 | 3.68 — Dividend Calculator implementation | Implement the frozen public user-supplied dividend calculator with exact Go Decimal arithmetic, durable idempotency/replay, bounded fresh-command admission, Next.js UI, exact presentation, tests and review evidence | Complete / PR #133 squash-merged into protected `develop` at `6fb395ffcef12840133dac27294f653276adcdf6`; protected tree `be09503ceaafb8781cc82829f98e37cda5c6be6b`; semantic CI #352 and evidence CI #353 both 10/10 SUCCESS; review/evidence gates APPROVED |
 | 3.69 — Dividend Calculator closure governance | Synchronize canonical lifecycle documentation for the already-merged Stage 3.68 without runtime change; record final purpose, expected behavior, evidence, merge state, residual non-blocking debt and preserved Feature 3D boundary | Complete / PR #134 squash-merged into protected `develop` at `fee7de358f0919802e16a398b19c8947bc852645`; protected tree `e7c9ddb96a5bf7add5204ccdf54aa20c190a0014`; exact published head `e98bad4b2431eb7f45a5bfff17c3601c49554b45`; CI #354 / run `33983374426` 10/10 SUCCESS; exact closure verification APPROVED; Stage 3.68 lifecycle/documentation closure COMPLETE |
+| 3.70 — Portfolio Position & Cost Basis Engine planning | Freeze exact Decimal WAC/acquisition-basis semantics, portfolio-local deterministic same-BusinessDate ledger ordering, oversell/backdated/concurrency invariants, SELL-safe snapshot methodology boundary, and explicit exclusions before runtime implementation | Merge-activated under Issue #136 / ADR-009: candidate/non-normative before required development-path review/CI/evidence and explicit Principal Architect acceptance; COMPLETE/CANONICAL only when this exact accepted planning decision is squash-merged to protected `develop`; no runtime authorization by Stage 3.70 itself |
+| 3.71 — Portfolio Position & Cost Basis Engine | Implement deterministic position rebuild, WAC/acquisition basis, correct manual SELL, oversell rollback, portfolio-local ledger sequence, SELL-safe local-cost snapshots, financial vectors, integration/concurrency tests, and focused Web SELL activation | BLOCKED until canonical Stage 3.70 / accepted ADR-009 plus separate explicit implementation authorization |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.

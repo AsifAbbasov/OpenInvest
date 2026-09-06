@@ -7,6 +7,9 @@ ADRs are immutable after acceptance. If a decision changes, create a new ADR tha
 - ADR-001 through ADR-007 are accepted subject to Documents 42-43.
 - [ADR-008](ADR-008-privacy-lifecycle-erasure-and-restore.md) is proposed and non-normative until
   Security Review and explicit Principal Architect acceptance.
+- [ADR-009](ADR-009-deterministic-portfolio-ledger-ordering-and-wac.md) is merge-activated under GitHub Issue #136:
+  Proposed/non-normative before the required development-path gates; Accepted only after explicit
+  Principal Architect acceptance and squash merge of the exact decision to protected `develop`.
 
 ## Template
 
