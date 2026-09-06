@@ -24,17 +24,30 @@ func baselineRepo(t *testing.T) string {
 	if err != nil {
 		t.Fatal(err)
 	}
+	legacyMax := legacyExpected[len(legacyExpected)-1].ID
 	for _, e := range ents {
-		if strings.HasSuffix(e.Name(), ".sql") || e.Name() == "policy_manifest.json" {
-			b, err := os.ReadFile(filepath.Join(src, migrationsRel, e.Name()))
-			if err != nil {
-				t.Fatal(err)
-			}
-			if err := os.WriteFile(filepath.Join(mdir, e.Name()), b, 0o644); err != nil {
-				t.Fatal(err)
-			}
+		name := e.Name()
+		if !strings.HasSuffix(name, ".sql") || len(name) < 6 || name[:6] > legacyMax {
+			continue
+		}
+		b, err := os.ReadFile(filepath.Join(src, migrationsRel, name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(mdir, name), b, 0o644); err != nil {
+			t.Fatal(err)
 		}
 	}
+	manifestBytes, err := os.ReadFile(filepath.Join(src, manifestRel))
+	if err != nil {
+		t.Fatal(err)
+	}
+	manifest, err := decodeManifest(manifestBytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+	manifest.Enforced = []EnforcedMigration{}
+	saveManifestT(t, dst, manifest)
 	plan, err := os.ReadFile(filepath.Join(src, canonicalPlanRel))
 	if err != nil {
 		t.Fatal(err)
