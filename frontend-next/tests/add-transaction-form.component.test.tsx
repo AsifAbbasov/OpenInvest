@@ -124,6 +124,25 @@ async function submit(container: HTMLElement) {
   assert.fail("form submit did not settle with a new status");
 }
 
+async function submitUntilRequestCount(container: HTMLElement, requests: unknown[], expectedCount: number) {
+  await act(async () => {
+    container.querySelector("form")!.dispatchEvent(
+      new dom.window.Event("submit", { bubbles: true, cancelable: true }),
+    );
+  });
+
+  for (let attempt = 0; attempt < 200; attempt += 1) {
+    if (requests.length >= expectedCount) {
+      return;
+    }
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    });
+  }
+
+  assert.fail(`form submit did not issue request ${expectedCount}`);
+}
+
 function requestBody(init?: RequestInit) {
   assert.equal(typeof init?.body, "string");
   return JSON.parse(init!.body as string);
@@ -360,7 +379,7 @@ test("oversell 409 preserves the same Idempotency-Key for exact retry", { concur
   await setControl(container, "Trade date", "2026-09-03");
 
   await submit(container);
-  await submit(container);
+  await submitUntilRequestCount(container, requests, 2);
 
   assert.equal(requests.length, 2);
   assert.equal(idempotencyKey(requests[1].init), idempotencyKey(requests[0].init));
