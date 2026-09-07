@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.1.57 |
+| Version | 1.2.0 |
 | Status | Current |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
 | Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md` |
-| Last Review Date | 2026-08-23 |
-| Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
+| Last Review Date | 2026-09-07 |
+| Next Review Date | Before any Stage 3.73+ runtime scope, provider/public activation, privacy-lifecycle implementation, tax-basis expansion, imported SELL expansion, or other architecture-changing work |
 
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
 
@@ -19,7 +19,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 1 — Documentation Consolidation | Establish the repository-owned Source of Truth and freeze v1.2 | Complete; awaiting review | [Stage 1 report](stages/STAGE_01_DOCUMENTATION_CONSOLIDATION.md) |
 | 2 — Contract and Canonical Model Freeze | Freeze the MVP API, canonical DTOs, logical ER model, and migration strategy | Complete / closed; merged into `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | [Stage 2 report](stages/STAGE_02_CONTRACT_AND_CANONICAL_MODEL.md) |
 | Web architecture amendment | Replace the Web skeleton with presentation-only Next.js under ADR-007 | Complete / closed; merged into `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | [Amendment report](stages/WEB_FRONTEND_ARCHITECTURE_AMENDMENT.md) |
-| 3 — First Vertical Slice | Implement the first thin MVP path after contract and Web baseline approval | Implementation closed through Stage 3.16 audit-fix closure; Stage 3.17-3.24 proposals are merged; Stage 3.25 privacy evidence planning remains separate; Stages 3.27-3.31 audit remediation are closed; Stage 3.32 P2-09/P2-13 implementation is merged and closure governance is tracked on the current docs branch | [Stage 3 plan](stages/STAGE_03_FIRST_VERTICAL_SLICE.md) |
+| 3 — First Vertical Slice | Deliver the staged MVP vertical slice and harden it through audit remediation and product feature increments | Current baseline complete through Stage 3.72; original repository audit 32/32 CLOSED; Stage 3.25 privacy evidence collection remains separate | [Roadmap](ROADMAP.md) |
 | 3.1 — Local Database Foundation | Add minimal PostgreSQL structures and migration validation for the first vertical slice | Complete / closed; merged into `develop` at `b1a3f23` | [Stage 3.1 report](stages/STAGE_03_01_DATABASE_FOUNDATION.md) |
 | 3.2 — Go API Vertical-Slice Backend | Implement portfolio create, transaction append, snapshot rebuild, and summary read in Go | Complete / closed; merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | [Stage 3.2 report](stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md) |
 | Product risk refinement | Convert hard PRD criticism into controlled MVP risk decisions | Complete / closed; merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | [MVP product risk refinement](product/MVP_PRODUCT_RISK_REFINEMENT.md) |
@@ -62,7 +62,14 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.29 — Input and Contract Hardening | Remediate audit P2-05/P2-06/P2-07/P2-08/P2-15 across client validation, exact-decimal/storage bounds, strict JSON commands, note length, CSV schema ambiguity, and snapshot aggregate arithmetic | Complete / closed; implementation merged through PR #61 at `7331d3f34783baec3997497d1a79b78eaa558bd4`; closure governance merged through PR #62 at `0bfb3ea9f8e4cc7337a92caef5c7a73f9a8921bc` | [Stage 3.29 report](stages/STAGE_03_29_INPUT_CONTRACT_HARDENING.md) |
 | 3.30 — Import Review Integrity | Remediate audit P2-02/P2-03/P2-04 across review-token semantics, parser-owned row bounds, and full-history targeted reconciliation | Complete / closed; implementation merged through PR #63 at `8f68dd18800918e6a9882e995e13dba2723dc929`; closure governance merged through PR #64 at `ae6497050692798795efb85678af64db97cc5f53` | [Stage 3.30 report](stages/STAGE_03_30_IMPORT_REVIEW_INTEGRITY.md) |
 | 3.31 — Authentication Operational Hardening | Remediate audit P2-01/P2-14 across logout admission and bounded auth-limiter lifecycle | Complete / closed; implementation merged through PR #65 at `9bf4d1d31597918eacf0c3358bf6caa2aa9db897`; closure governance merged through PR #66 at `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746` | [Stage 3.31 report](stages/STAGE_03_31_AUTH_OPERATIONAL_HARDENING.md) |
-| 3.32 — Exact Idempotency Replay and Browser Retry Recovery | Remediate audit P2-09/P2-13 across exact original-response replay and browser retry continuity/isolation | Implementation merged through PR #67 at `0623d5ef326cd783b7dc0417dbcb02f18c506171` after CI #181 and repeat independent `APPROVED`; closure governance closes the findings when canonical and leaves 5 P2 plus 10 P3 | [Stage 3.32 report](stages/STAGE_03_32_IDEMPOTENCY_REPLAY_BROWSER_RECOVERY.md) |
+| 3.32 — Exact Idempotency Replay and Browser Retry Recovery | Remediate audit P2-09/P2-13 across exact original-response replay and browser retry continuity/isolation | Complete / closure canonical through PR #68 at `a73b7f8c008d2f903e22e9b8a85b7c6248d6d3be`; P2-09/P2-13 CLOSED; later Stages 3.33–3.56 closed the remaining original audit backlog | [Stage 3.32 report](stages/STAGE_03_32_IDEMPOTENCY_REPLAY_BROWSER_RECOVERY.md) |
+| 3.33–3.34 — Final P2 audit remediation / governance & CI hardening | Close snapshot/runtime immutability, GitHub governance and CI/security gaps | Complete; P2 backlog closed | [Roadmap](ROADMAP.md) |
+| 3.35–3.56 — P3 remediation and original-audit closure | Close password, Decimal grammar, timezone, retention, Unicode, dependency maintenance, HTTP decomposition, transaction defaults and migration-validator findings | Complete; Stage 3.56 closes original audit 32/32, remaining findings NONE | [Roadmap](ROADMAP.md) |
+| 3.57–3.60 — Market Data Provider Boundary / MOEX adapter lifecycle | Implement provider-neutral quote boundary and delayed MOEX ISS adapter, then record source-rights/public-use decision | Boundary and adapter implemented; production/public activation NO-GO, adapter dormant | [Roadmap](ROADMAP.md) |
+| 3.61–3.67 — Corporate Actions 3A/3B/3C | Implement provider-neutral Corporate Actions domain/projection, Calendar/Heatmap API/UI and request-cancellation hardening | Complete / documentation-closed; real-source Feature 3D remains separate | [Roadmap](ROADMAP.md) |
+| 3.68–3.69 — Dividend Calculator | Implement backend-owned exact Decimal user-supplied dividend calculator with idempotency/replay and Web UI | Complete / lifecycle closed | [Roadmap](ROADMAP.md) |
+| 3.70–3.71 — Portfolio Position & Cost Basis Engine | Accept ADR-009 and implement deterministic portfolio-local ledger ordering, manual SELL, WAC and remaining acquisition basis | Complete / lifecycle closed | [Stage 3.71 report](stages/STAGE_03_71_PORTFOLIO_POSITION_COST_BASIS_IMPLEMENTATION.md) |
+| 3.72 — Portfolio Position Projection / Cost Basis View | Expose canonical open STOCK/BOND positions, acquisition-basis allocation and explicit market-unavailable semantics through API/UI | Complete / runtime and lifecycle canonical through PRs #145/#146 | [Stage 3.72 closure](stages/STAGE_03_72_PORTFOLIO_POSITION_PROJECTION_IMPLEMENTATION_CLOSURE.md) |
 
 ## Stage completion protocol
 

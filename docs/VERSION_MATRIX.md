@@ -3,19 +3,20 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.1.68 |
+| Version | 1.2.0 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | Documents 42–43 |
-| Last Review Date | 2026-08-23 |
-| Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
+| Last Review Date | 2026-09-07 |
+| Next Review Date | Before any Stage 3.73+ runtime scope or architecture-changing provider/public activation, privacy, valuation, tax-basis, import, or infrastructure decision |
 
 | Range | Version | Status under Freeze v1.2 | Priority | Owner | Review |
 | --- | --- | --- | --- | --- | --- |
 | Document 43 | 1.2.0 | Final / current | 1 | Principal Architect | 2026-12-19 |
 | Document 42 | 1.1.0 | Approved / current | 2 | Principal Architect | 2026-12-19 |
 | ADR-001–007 | 1.0.0 | Accepted, subject to 42–43 | 3 | Principal Architect | 2026-12-25 |
+| ADR-009 deterministic portfolio ledger ordering and WAC | 1.0.0 | Accepted / canonical through PR #137; runtime semantics implemented by Stage 3.71 | 3 | Principal Architect | Before any change to ledger ordering, WAC or acquisition-basis semantics |
 | ADR-008 privacy-lifecycle erasure and restore controls | 0.1.0 | Proposed / non-normative pending Security Review and human acceptance | N/A | Principal Architect | Before any privacy-lifecycle implementation proposal |
 | Stage 2 contract artifacts | 1.0.x | Closed / canonical baseline on `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | 3 | Principal Architect | 2026-12-25 |
 | Web presentation amendment | 1.0.x | Closed / canonical Web baseline on `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | 3 | Principal Architect | 2026-12-26 |
@@ -34,7 +35,14 @@
 | Stage 3.29 input and contract hardening | 0.1.0 | Complete / closed for P2-05/P2-06/P2-07/P2-08/P2-15; implementation merged through PR #61 at `7331d3f34783baec3997497d1a79b78eaa558bd4` after exact-head CI #124, first independent `REQUEST CHANGES`, remediation on `f9e70e70956c76edbc2ab02c52d45124b2dea525`, renewed independent `APPROVED`, explicit human approval, and closure governance merged through PR #62 at `0bfb3ea9f8e4cc7337a92caef5c7a73f9a8921bc` | 3 | Principal Architect | Stage 3.25 and remaining P2/P3 stay separate |
 | Stage 3.30 import review integrity | 0.1.0 | Complete / closed for P2-02/P2-03/P2-04; implementation merged through PR #63 at `8f68dd18800918e6a9882e995e13dba2723dc929`; closure governance merged through PR #64 at `ae6497050692798795efb85678af64db97cc5f53` | 3 | Principal Architect | Stage 3.25 and remaining P2/P3 stay separate |
 | Stage 3.31 authentication operational hardening | 0.1.0 | Complete / closed for P2-01/P2-14; implementation merged through PR #65 at `9bf4d1d31597918eacf0c3358bf6caa2aa9db897` after exact-head CI #133 and independent final `APPROVED`; closure governance merged through PR #66 at `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746` | 3 | Principal Architect | 7 P2 and 10 P3 remained after Stage 3.31 closure; Stage 3.25 separate |
-| Stage 3.32 exact idempotency replay and browser retry recovery | 0.1.0 | Implementation merged through PR #67 at `0623d5ef326cd783b7dc0417dbcb02f18c506171` after exact-head CI #181; first independent `REQUEST CHANGES` for P2-13 principal isolation; remediation and repeat independent `APPROVED` on `02aa2417a3caca79e2afc4e7b598b92055de96b7`; explicit human squash-merge authorization; complete when closure record is canonical on `develop` | 3 | Principal Architect | When canonical, P2-09/P2-13 close; 5 P2 and 10 P3 remain; Stage 3.25 separate |
+| Stage 3.32 exact idempotency replay and browser retry recovery | 0.1.0 | Complete / closure canonical through PR #68 at `a73b7f8c008d2f903e22e9b8a85b7c6248d6d3be`; P2-09/P2-13 CLOSED | 3 | Principal Architect | Historical closed stage |
+| Stage 3.33–3.34 final P2 remediation | governed stage dossiers | Complete; P2-10/P2-11/P2-12/P2-16/P2-17 CLOSED | 3 | Principal Architect | Historical closed range |
+| Stage 3.35–3.56 P3 remediation / original-audit closure | governed stage dossiers | Complete; original repository audit 32/32 CLOSED, no original findings remain | 3 | Principal Architect | Historical closed range |
+| Stage 3.57–3.60 market-data boundary / delayed MOEX adapter | governed stage dossiers | Provider-neutral boundary and adapter implemented; production/public activation NO-GO, adapter dormant | 3 | Principal Architect | Before any provider/public activation |
+| Stage 3.61–3.67 Corporate Actions | governed stage dossiers | Features 3A/3B/3C and request-cancellation lifecycle complete; Feature 3D real source remains separate | 3 | Principal Architect | Before Feature 3D source/use activation |
+| Stage 3.68–3.69 Dividend Calculator | governed stage dossiers | Complete / canonical; user-supplied exact Decimal calculator, no external provider dependency | 3 | Principal Architect | Before calculator scope or tax coupling changes |
+| Stage 3.70–3.71 Portfolio Position & Cost Basis Engine | governed stage dossiers / ADR-009 | Complete / canonical; deterministic ledger ordering, manual SELL, WAC and acquisition basis | 3 | Principal Architect | Before position-accounting semantic changes |
+| Stage 3.72 Portfolio Position Projection / Cost Basis View | 1.0.0 closure | Complete / runtime PR #145 and documentation PR #146 canonical; market valuation explicitly unavailable | 3 | Principal Architect | Before any market valuation/provider or broader position scope |
 | Stage 3.1 database foundation | 0.1.x | Closed / merged into `develop` at `b1a3f23` | 3 | Principal Architect | 2026-12-27 |
 | Stage 3.2 Go API vertical slice | 0.1.x | Closed / merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | 3 | Principal Architect | 2026-12-27 |
 | Product risk refinement | 1.0.x | Approved / merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | 3 | Principal Architect | Before public MVP |

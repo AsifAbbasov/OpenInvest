@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.70 |
+| Version | 1.1.71 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
@@ -55,6 +55,8 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | `BACKLOG_V2.md` | Ideas excluded from MVP |
 | `ROADMAP.md` | Ordered implementation stages |
 | `IMPLEMENTATION_LOG.md` | Completed-stage index and completion protocol |
+| `audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md` | Canonical cross-finding status for all 32 original Stage 3.16 audit findings |
+| `governance/REPOSITORY_DOCUMENTATION_RECONCILIATION.md` | Current-state map reconciling README, registries, stage dossiers and lifecycle evidence through Stage 3.72 |
 | `REVIEW_WORKFLOW.md` | Mandatory branch, PR, CI, specialist review, approval, and merge process |
 | `product/MVP_PRODUCT_RISK_REFINEMENT.md` | Proposed product-risk response, ICP sharpening, import/tax/purchasing-power guardrails |
 
@@ -128,7 +130,11 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Stage 3.29 input and contract hardening | Complete / closed for P2-05/P2-06/P2-07/P2-08/P2-15; implementation merged through PR #61 at `7331d3f34783baec3997497d1a79b78eaa558bd4` after CI #124 and renewed independent `APPROVED`; closure governance merged through PR #62 at `0bfb3ea9f8e4cc7337a92caef5c7a73f9a8921bc` | `stages/STAGE_03_29_INPUT_CONTRACT_HARDENING.md` |
 | Stage 3.30 import review integrity | Complete / closed for P2-02/P2-03/P2-04; implementation merged through PR #63 at `8f68dd18800918e6a9882e995e13dba2723dc929`; closure governance merged through PR #64 at `ae6497050692798795efb85678af64db97cc5f53` | `stages/STAGE_03_30_IMPORT_REVIEW_INTEGRITY.md` |
 | Stage 3.31 authentication operational hardening | Complete / closed for P2-01/P2-14; implementation merged through PR #65 at `9bf4d1d31597918eacf0c3358bf6caa2aa9db897`; closure governance merged through PR #66 at `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746` | `stages/STAGE_03_31_AUTH_OPERATIONAL_HARDENING.md` |
-| Stage 3.32 exact idempotency replay and browser retry recovery | Implementation merged through PR #67 at `0623d5ef326cd783b7dc0417dbcb02f18c506171` after exact-head CI #181, repeat independent `APPROVED`, and explicit human squash-merge authorization; when closure governance is canonical, P2-09/P2-13 are closed and 5 P2 plus 10 P3 remain | `stages/STAGE_03_32_IDEMPOTENCY_REPLAY_BROWSER_RECOVERY.md` |
+| Stage 3.32 exact idempotency replay and browser retry recovery | Complete / closure canonical through PR #68 at `a73b7f8c008d2f903e22e9b8a85b7c6248d6d3be`; P2-09/P2-13 CLOSED | `stages/STAGE_03_32_IDEMPOTENCY_REPLAY_BROWSER_RECOVERY.md` |
+| Stage 3.33–3.56 repository-audit remediation continuation | Complete; all remaining P2/P3 findings closed and original audit 32/32 = 100% | `audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md` |
+| Stage 3.57–3.60 market-data lifecycle | Provider-neutral boundary and delayed MOEX ISS adapter implemented; production/public activation NO-GO | `governance/REPOSITORY_DOCUMENTATION_RECONCILIATION.md` |
+| Stage 3.61–3.67 Corporate Actions lifecycle | Features 3A/3B/3C and request-cancellation closure complete; Feature 3D real-source gate remains separate | `governance/REPOSITORY_DOCUMENTATION_RECONCILIATION.md` |
+| Stage 3.68–3.69 Dividend Calculator lifecycle | Complete / canonical | `governance/REPOSITORY_DOCUMENTATION_RECONCILIATION.md` |
 | Stage 3.70 Portfolio Position & Cost Basis Engine planning | Complete/canonical through PR #137 squash merge `b772e52221fbb694b3116bd1b579db99d4e56302`; ADR-009 accepted; Stage 3.70 itself granted no runtime authorization | `stages/STAGE_03_70_PORTFOLIO_POSITION_COST_BASIS_PLANNING.md` |
 | Stage 3.71 Portfolio Position & Cost Basis Engine implementation | Canonical through PR #138 squash merge `827f49f909ace5a3f7bcb2a3f51ce7c638c458ad`; final evidence head `6f66f7f3da982b2f83637452bfd1f556b92b3956`; CI #382 / run `34028563925` 10/10 SUCCESS | `stages/STAGE_03_71_PORTFOLIO_POSITION_COST_BASIS_IMPLEMENTATION.md` |
 | Stage 3.71 rollout amendment | Required activation amendment preserving continuous portfolio-write quiescence through Stage 3.71 readiness; no change to ADR-009 WAC math or ledger ordering | `stages/STAGE_03_71_PORTFOLIO_POSITION_COST_BASIS_ROLLOUT_AMENDMENT.md` |
