@@ -1,22 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import {
   correctTransaction,
   reverseTransaction,
+  type CorrectTransactionPayload,
   type CreateTransactionPayload,
+  type ReverseTransactionPayload,
   type Transaction,
 } from "@/common/api/openinvest";
+import {
+  clearBrowserIdempotencyIntent,
+  emptyIdempotencyIntent,
+  idempotencyIntentForBrowser,
+  principalScopedIdempotencyScope,
+} from "@/common/api/idempotency";
 
 type Props = {
   accessToken: string;
+  principalId: string;
   portfolioId: string;
   transaction: Transaction;
   onMutated: () => Promise<void>;
 };
 
-export function TransactionRepairControls({ accessToken, portfolioId, transaction, onMutated }: Props) {
+export function TransactionRepairControls({ accessToken, principalId, portfolioId, transaction, onMutated }: Props) {
+  const correctionIntentRef = useRef(emptyIdempotencyIntent);
+  const reversalIntentRef = useRef(emptyIdempotencyIntent);
   const [mode, setMode] = useState<"edit" | "reverse" | null>(null);
   const [quantity, setQuantity] = useState(transaction.quantity ?? "");
   const [unitPrice, setUnitPrice] = useState(transaction.unitPrice?.amount ?? "");
@@ -26,6 +37,15 @@ export function TransactionRepairControls({ accessToken, portfolioId, transactio
   const [effectiveDate, setEffectiveDate] = useState(transaction.tradeDate);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  const correctionRetryScope = principalScopedIdempotencyScope(
+    principalId,
+    `transaction-correct:${portfolioId}:${transaction.id}`,
+  );
+  const reversalRetryScope = principalScopedIdempotencyScope(
+    principalId,
+    `transaction-reverse:${portfolioId}:${transaction.id}`,
+  );
 
   if (transaction.status === "REVERSED") {
     return <span className="muted">Reversed</span>;
@@ -39,17 +59,31 @@ export function TransactionRepairControls({ accessToken, portfolioId, transactio
     setBusy(true);
     setMessage(null);
     const corrected = correctedPayload(transaction, quantity, unitPrice, grossAmount, tradeDate);
-    const result = await correctTransaction(
-      portfolioId,
-      transaction.id,
-      { expectedRevision: transaction.revision, reason: reason.trim(), corrected },
-      { accessToken, idempotencyKey: crypto.randomUUID() },
+    const payload: CorrectTransactionPayload = {
+      expectedRevision: transaction.revision,
+      reason: reason.trim(),
+      corrected,
+    };
+    correctionIntentRef.current = await idempotencyIntentForBrowser(
+      correctionIntentRef.current,
+      JSON.stringify(payload),
+      correctionRetryScope,
     );
+    const result = await correctTransaction(portfolioId, transaction.id, payload, {
+      accessToken,
+      idempotencyKey: correctionIntentRef.current.key ?? undefined,
+    });
     setBusy(false);
     if (!result.ok) {
+      if (result.status !== undefined && result.status < 500) {
+        await clearBrowserIdempotencyIntent(correctionRetryScope);
+        correctionIntentRef.current = emptyIdempotencyIntent;
+      }
       setMessage(result.message);
       return;
     }
+    await clearBrowserIdempotencyIntent(correctionRetryScope);
+    correctionIntentRef.current = emptyIdempotencyIntent;
     setMode(null);
     setReason("");
     setMessage(`Saved revision ${result.data.revision}.`);
@@ -63,17 +97,31 @@ export function TransactionRepairControls({ accessToken, portfolioId, transactio
     }
     setBusy(true);
     setMessage(null);
-    const result = await reverseTransaction(
-      portfolioId,
-      transaction.id,
-      { expectedRevision: transaction.revision, reason: reason.trim(), effectiveDate },
-      { accessToken, idempotencyKey: crypto.randomUUID() },
+    const payload: ReverseTransactionPayload = {
+      expectedRevision: transaction.revision,
+      reason: reason.trim(),
+      effectiveDate,
+    };
+    reversalIntentRef.current = await idempotencyIntentForBrowser(
+      reversalIntentRef.current,
+      JSON.stringify(payload),
+      reversalRetryScope,
     );
+    const result = await reverseTransaction(portfolioId, transaction.id, payload, {
+      accessToken,
+      idempotencyKey: reversalIntentRef.current.key ?? undefined,
+    });
     setBusy(false);
     if (!result.ok) {
+      if (result.status !== undefined && result.status < 500) {
+        await clearBrowserIdempotencyIntent(reversalRetryScope);
+        reversalIntentRef.current = emptyIdempotencyIntent;
+      }
       setMessage(result.message);
       return;
     }
+    await clearBrowserIdempotencyIntent(reversalRetryScope);
+    reversalIntentRef.current = emptyIdempotencyIntent;
     setMode(null);
     setReason("");
     setMessage(`Reversed effective ${result.data.effectiveDate}.`);
