@@ -9,7 +9,16 @@
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-09-07 |
-| Next Review Date | Before any Stage 3.73+ runtime scope or architecture-changing provider, privacy, valuation, tax-basis, import, or infrastructure decision |
+| Next Review Date | Before any Stage 3.74+ runtime scope or architecture-changing provider, privacy, valuation, tax-basis, import, or infrastructure decision |
+
+## 2026-09-07 — Stage 3.73 Portfolio Time Machine lifecycle closure
+
+- Stage 3.73 runtime/product implementation is COMPLETE / CANONICAL through PR #148 squash merge `683f9c4647f888bb3dbdfb9dd365b84b95137b46` from exact final head `a74fd85a46843ccdfe8192f2ac8687169a5a2ac7`.
+- CI #424 / run `34109389368` completed all 10 required jobs successfully before protected merge.
+- The Time Machine reuses the Stage 3.72 endpoint-local `asOfDate` projection and canonical Stage 3.71 ledger/WAC engine; no second financial engine, new API endpoint, database table, provider, cache or paid service was added.
+- Historical mode exposes exact BusinessDate holdings, WAC, acquisition basis and acquisition-basis weights while keeping market-derived valuation unavailable and hiding current-only summary metrics.
+- Post-merge documentation synchronization updates README, Source of Truth, Roadmap, Document Index, Implementation Log, Changelog, Version Matrix, Open Questions, the governance reconciliation history and the Stage 3.73 implementation dossier.
+- Next product/runtime work begins at a separately reviewed Stage 3.74+ gate.
 
 ## 2026-09-07 — Repository documentation reconciliation through Stage 3.72
 
