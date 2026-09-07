@@ -62,6 +62,8 @@ The same cash-flow arithmetic now drives snapshot cash value. Stage 3.71 investe
 
 The existing Web form now exposes the already-frozen `DIVIDEND`, `COUPON`, `FEE`, and `TAX` types. No second form or new transaction type was created. Income follows the frozen ticker / optional quantity / gross amount contract. Pure standalone FEE/TAX UI writes their gross amount with null ticker/quantity/unitPrice and zero nested commission/tax; nested commission/tax remain available on trade/income rows.
 
+The component contract explicitly distinguishes canonical zero from fixture-derived business values: `0.00000000` is permitted only where the request contract requires zero nested commission/tax for standalone expense or pure cash-flow rows. This keeps the no-fixture guard intact without treating a required financial zero as fake data.
+
 ## UI boundary
 
 The portfolio page renders backend totals and monthly buckets only. Legacy nominal-return/XIRR/real-gain/purchasing-power cards are not presented as investment performance in this stage because approved market valuation and return methodology remain unavailable.
