@@ -10,106 +10,21 @@ permissions:
 
 jobs:
   apply:
-    if: github.event.head_commit.message == 'chore: run Stage 3.72 documentation closure'
+    if: github.event.head_commit.message == 'chore: execute Stage 3.72 documentation closure'
     runs-on: ubuntu-latest
     steps:
       - name: Check out closure branch
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
-      - name: Synchronize canonical Stage 3.72 lifecycle docs
-        shell: bash
+      - name: Apply documentation synchronization
+        run: python3 .stage372_docs_apply.py
+      - name: Remove temporary applicator files
+        run: rm -f .stage372_docs_apply.py .github/workflows/stage372-doc-closure.yml
+      - name: Verify diff hygiene
+        run: git diff --check
+      - name: Commit and push documentation closure
         run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-
-          planning_merge = "2144c52f4dc5ba9e917947d396ced1f3c572fe51"
-          runtime_head = "b6cd7766a6a584440dfdd7d00c35c34c8553a9ff"
-          runtime_merge = "e935f19b68624f0b8be6ca293ead8f4395cf555e"
-          runtime_tree = "3775b533867c2fb6de473da84a105cf3367cf848"
-          ci_run = "34091588982"
-
-          def require_replace(text, old, new, label):
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f"{label}: expected one anchor, found {count}")
-              return text.replace(old, new, 1)
-
-          roadmap_path = Path("docs/ROADMAP.md")
-          roadmap = roadmap_path.read_text()
-          roadmap = require_replace(roadmap, "| Version | 1.1.91 |", "| Version | 1.1.92 |", "ROADMAP version")
-          roadmap = require_replace(roadmap, "| Last Review Date | 2026-09-06 |", "| Last Review Date | 2026-09-07 |", "ROADMAP date")
-          roadmap = require_replace(
-              roadmap,
-              "| Next Review Date | Before Stage 3.72 implementation or any later Portfolio Position / Cost Basis scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |",
-              "| Next Review Date | Before any later Portfolio Position / Cost Basis scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |",
-              "ROADMAP next-review",
-          )
-          roadmap_lines = roadmap.splitlines()
-          row_index = next((i for i, line in enumerate(roadmap_lines) if line.startswith("| 3.72 — Portfolio Position Projection / Honest Market-Unavailable Semantics planning |")), None)
-          if row_index is None:
-              raise SystemExit("ROADMAP Stage 3.72 row missing")
-          roadmap_lines[row_index:row_index + 1] = [
-              f"| 3.72 — Portfolio Position Projection / Honest Market-Unavailable Semantics planning | Freeze the additive public positions read-model/API/UI contract over canonical Stage 3.71 quantity/WAC/acquisition basis, deterministic BusinessDate/as-of behavior, acquisition-basis allocation, and explicit non-fabricated market-unavailable semantics without changing ADR-009 or activating a provider | Complete / canonical through PR #142 squash merge `{planning_merge}`; planning authority activated without itself authorizing runtime implementation |",
-              f"| 3.72 — Portfolio Position Projection / Cost Basis View runtime | Expose deterministic open STOCK/BOND positions from the canonical Stage 3.71 ledger/WAC engine through a dedicated API and Web projection, including acquisition-basis allocation and explicit unavailable market valuation | Complete / PR #145 squash-merged into protected `develop` at `{runtime_merge}` from exact runtime head `{runtime_head}`; CI #413 / run `{ci_run}` 10/10 SUCCESS; runtime review complete |",
-              "| 3.72 — Portfolio Position Projection lifecycle/documentation closure | Synchronize active canonical documentation with the already-merged Stage 3.72 runtime; record purpose, implementation, expected behavior, verification, preserved boundaries and residual scope without runtime change | Merge-activated closure record; canonical only after protected merge of this documentation synchronization |",
-          ]
-          roadmap_path.write_text("\n".join(roadmap_lines) + "\n")
-
-          sot_path = Path("docs/SOURCE_OF_TRUTH.md")
-          sot = sot_path.read_text()
-          sot = require_replace(sot, "| Version | 1.4.93 |", "| Version | 1.4.94 |", "SOT version")
-          sot = require_replace(sot, "| Last Review Date | 2026-09-06 |", "| Last Review Date | 2026-09-07 |", "SOT date")
-          sot = require_replace(
-              sot,
-              "| Next Review Date | Before Stage 3.72 implementation or any later Portfolio Position / Cost Basis scope, Stage 3.25 privacy evidence-collection plan review, Feature 3D corporate-actions source/use planning, or the next separately reviewed audit-remediation scope |",
-              "| Next Review Date | Before any later Portfolio Position / Cost Basis scope, Stage 3.25 privacy evidence-collection plan review, Feature 3D corporate-actions source/use planning, or the next separately reviewed audit-remediation scope |",
-              "SOT next-review",
-          )
-          sot_lines = sot.splitlines()
-          found_last = False
-          found_lifecycle = False
-          for i, line in enumerate(sot_lines):
-              if line.startswith("**Last completed implementation stage:"):
-                  sot_lines[i] = f"**Last completed implementation stage: Stage 3.72 — Portfolio Position Projection / Cost Basis View / PR #145 squash merge `{runtime_merge}` / protected tree `{runtime_tree}` / CI #413 run `{ci_run}` 10/10 SUCCESS**"
-                  found_last = True
-              elif line.startswith("**Current Portfolio Position / Cost Basis lifecycle:"):
-                  sot_lines[i] = (
-                      f"**Current Portfolio Position / Cost Basis lifecycle: Stage 3.70 / ADR-009 is accepted and canonical through PR #137 squash merge `b772e52221fbb694b3116bd1b579db99d4e56302`; Stage 3.71 runtime is canonical through PR #138 squash merge `827f49f909ace5a3f7bcb2a3f51ce7c638c458ad` and lifecycle/documentation closure through PR #140 squash merge `97c35a7b0fe7e2cd487c63d03b8ba79f80dcfc7b`. Stage 3.72 planning is canonical through PR #142 squash merge `{planning_merge}`. Stage 3.72 runtime is canonical through PR #145 squash merge `{runtime_merge}` from exact head `{runtime_head}` after CI #413 / run `{ci_run}` 10/10 SUCCESS. The shipped Stage 3.72 projection exposes only open STOCK/BOND positions derived from the canonical Stage 3.71 ledger/WAC engine: quantity, authoritative weighted-average cost, remaining acquisition basis, total acquisition basis, and independent Half-Even acquisition-basis weights. The dedicated positions endpoint uses deterministic ticker ordering, optional endpoint-local BusinessDate cutoff semantics, ownership isolation, repeatable-read replay and fail-closed unsupported correction/reversal handling. Market valuation is intentionally explicit as `UNAVAILABLE / NO_APPROVED_MARKET_PRICE_SOURCE`; market price, market value, unrealized gain/loss, market weight, provider and market as-of remain null and are not inferred. Closed positions are omitted; an inactive catalog lifecycle does not hide an owned open position; existing `PortfolioSummary.positions` behavior and `analytics.snapshot_positions` remain unchanged. No market provider activation, production rollout, XIRR/returns, imported SELL expansion, correction/reversal runtime, tax basis, bond NKD, notifications, AI, Redis/workers or later-stage scope is authorized by Stage 3.72.**"
-                  found_lifecycle = True
-          if not found_last or not found_lifecycle:
-              raise SystemExit("SOT lifecycle anchors missing")
-          sot_path.write_text("\n".join(sot_lines) + "\n")
-
-          index_path = Path("docs/DOCUMENT_INDEX.md")
-          index = index_path.read_text()
-          index = require_replace(index, "| Version | 1.1.69 |", "| Version | 1.1.70 |", "INDEX version")
-          index = require_replace(index, "| Last Review Date | 2026-09-06 |", "| Last Review Date | 2026-09-07 |", "INDEX date")
-          index = require_replace(
-              index,
-              "| Next Review Date | Before Stage 3.72 implementation or any later Portfolio Position / Cost Basis scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |",
-              "| Next Review Date | Before any later Portfolio Position / Cost Basis scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |",
-              "INDEX next-review",
-          )
-          index = require_replace(index, "| SOT-001 | Source of Truth | 1.4.93 | Approved |", "| SOT-001 | Source of Truth | 1.4.94 | Approved |", "INDEX SOT version")
-          index_lines = index.splitlines()
-          row_index = next((i for i, line in enumerate(index_lines) if "STAGE_03_72_PORTFOLIO_POSITION_PROJECTION_PLANNING.md" in line), None)
-          if row_index is None:
-              raise SystemExit("DOCUMENT_INDEX Stage 3.72 planning row missing")
-          index_lines[row_index] = f"| Stage 3.72 Portfolio Position Projection / Honest Market-Unavailable Semantics planning | Complete/canonical through PR #142 squash merge `{planning_merge}`; planning authority activated without provider/runtime activation by the planning merge itself | `stages/STAGE_03_72_PORTFOLIO_POSITION_PROJECTION_PLANNING.md` |"
-          index_lines[row_index + 1:row_index + 1] = [
-              f"| Stage 3.72 Portfolio Position Projection / Cost Basis View runtime | Complete/canonical through PR #145 squash merge `{runtime_merge}` from exact runtime head `{runtime_head}` after CI #413 / run `{ci_run}` 10/10 SUCCESS | `stages/STAGE_03_72_PORTFOLIO_POSITION_PROJECTION_IMPLEMENTATION_CLOSURE.md` |",
-              "| Stage 3.72 lifecycle/documentation closure | Records purpose, implemented behavior, expected user-visible outcome, verification, preserved architecture boundaries and residual non-Stage-3.72 scope; merge-activated and canonical only after protected merge of this documentation synchronization | `stages/STAGE_03_72_PORTFOLIO_POSITION_PROJECTION_IMPLEMENTATION_CLOSURE.md` |",
-          ]
-          index_path.write_text("\n".join(index_lines) + "\n")
-          PY
-          rm -f .github/workflows/stage372-doc-closure.yml
-          git diff --check
-      - name: Commit and push canonical documentation synchronization
-        shell: bash
-        run: |
-          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
