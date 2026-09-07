@@ -103,6 +103,13 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
     }
   }, [accessToken, historicalDate, positionViewMode, principalId, portfolioId]);
 
+  function invalidateHistoricalLoad() {
+    historicalLoadGuard.current = {
+      ...historicalLoadGuard.current,
+      generation: historicalLoadGuard.current.generation + 1,
+    };
+  }
+
   useEffect(() => {
     void load();
   }, [load]);
@@ -112,6 +119,7 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
   }, [loadHistoricalPositions]);
 
   useEffect(() => {
+    invalidateHistoricalLoad();
     setPositionViewMode("current");
     setHistoricalDate("");
     setHistoricalPositions(null);
@@ -122,15 +130,18 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
   }, [load, loadHistoricalPositions]);
 
   function showCurrentPositions() {
+    invalidateHistoricalLoad();
     setPositionViewMode("current");
   }
 
   function showHistoricalPositions() {
+    invalidateHistoricalLoad();
     setHistoricalPositions(null);
     setPositionViewMode("historical");
   }
 
   function changeHistoricalDate(value: string) {
+    invalidateHistoricalLoad();
     setHistoricalPositions(null);
     setHistoricalDate(value);
   }
