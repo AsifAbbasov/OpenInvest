@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.2.0 |
+| Version | 1.2.1 |
 | Status | Current |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
 | Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md` |
 | Last Review Date | 2026-09-07 |
-| Next Review Date | Before any Stage 3.73+ runtime scope, provider/public activation, privacy-lifecycle implementation, tax-basis expansion, imported SELL expansion, or other architecture-changing work |
+| Next Review Date | Before any Stage 3.74+ runtime scope, provider/public activation, privacy-lifecycle implementation, tax-basis expansion, imported SELL expansion, or other architecture-changing work |
 
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
 
@@ -19,7 +19,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 1 — Documentation Consolidation | Establish the repository-owned Source of Truth and freeze v1.2 | Complete; awaiting review | [Stage 1 report](stages/STAGE_01_DOCUMENTATION_CONSOLIDATION.md) |
 | 2 — Contract and Canonical Model Freeze | Freeze the MVP API, canonical DTOs, logical ER model, and migration strategy | Complete / closed; merged into `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | [Stage 2 report](stages/STAGE_02_CONTRACT_AND_CANONICAL_MODEL.md) |
 | Web architecture amendment | Replace the Web skeleton with presentation-only Next.js under ADR-007 | Complete / closed; merged into `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | [Amendment report](stages/WEB_FRONTEND_ARCHITECTURE_AMENDMENT.md) |
-| 3 — First Vertical Slice | Deliver the staged MVP vertical slice and harden it through audit remediation and product feature increments | Current baseline complete through Stage 3.72; original repository audit 32/32 CLOSED; Stage 3.25 privacy evidence collection remains separate | [Roadmap](ROADMAP.md) |
+| 3 — First Vertical Slice | Deliver the staged MVP vertical slice and harden it through audit remediation and product feature increments | Stage 3.72 is the protected baseline before the Stage 3.73 candidate; once Stage 3.73 is present on protected `develop`, current baseline is complete through Stage 3.73; original repository audit 32/32 CLOSED; Stage 3.25 privacy evidence collection remains separate | [Roadmap](ROADMAP.md) |
 | 3.1 — Local Database Foundation | Add minimal PostgreSQL structures and migration validation for the first vertical slice | Complete / closed; merged into `develop` at `b1a3f23` | [Stage 3.1 report](stages/STAGE_03_01_DATABASE_FOUNDATION.md) |
 | 3.2 — Go API Vertical-Slice Backend | Implement portfolio create, transaction append, snapshot rebuild, and summary read in Go | Complete / closed; merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | [Stage 3.2 report](stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md) |
 | Product risk refinement | Convert hard PRD criticism into controlled MVP risk decisions | Complete / closed; merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | [MVP product risk refinement](product/MVP_PRODUCT_RISK_REFINEMENT.md) |
@@ -70,6 +70,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.68–3.69 — Dividend Calculator | Implement backend-owned exact Decimal user-supplied dividend calculator with idempotency/replay and Web UI | Complete / lifecycle closed | [Roadmap](ROADMAP.md) |
 | 3.70–3.71 — Portfolio Position & Cost Basis Engine | Accept ADR-009 and implement deterministic portfolio-local ledger ordering, manual SELL, WAC and remaining acquisition basis | Complete / lifecycle closed | [Stage 3.71 report](stages/STAGE_03_71_PORTFOLIO_POSITION_COST_BASIS_IMPLEMENTATION.md) |
 | 3.72 — Portfolio Position Projection / Cost Basis View | Expose canonical open STOCK/BOND positions, acquisition-basis allocation and explicit market-unavailable semantics through API/UI | Complete / runtime and lifecycle canonical through PRs #145/#146 | [Stage 3.72 closure](stages/STAGE_03_72_PORTFOLIO_POSITION_PROJECTION_IMPLEMENTATION_CLOSURE.md) |
+| 3.73 — Portfolio Time Machine / Historical Position View | Expose exact historical holdings by BusinessDate using the existing Stage 3.72 `asOfDate` projection and canonical Stage 3.71 position engine | Merge-activated implementation; no new API, schema, provider or financial algorithm | [Stage 3.73 report](stages/STAGE_03_73_PORTFOLIO_TIME_MACHINE_IMPLEMENTATION.md) |
 
 ## Stage completion protocol
 

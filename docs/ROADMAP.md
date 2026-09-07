@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.92 |
+| Version | 1.1.93 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
 | Dependencies | Architecture Freeze v1.2 |
 | Last Review Date | 2026-09-07 |
-| Next Review Date | Before any later Portfolio Position / Cost Basis scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
+| Next Review Date | Before any Stage 3.74+ Portfolio Position / Cost Basis scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
 
 | Stage | Outcome | State |
 | --- | --- | --- |
@@ -125,7 +125,8 @@
 | STAGE-03-72-GOV-01 — Historical governance deviation disposition | Preserve and disposition the irreversible pre-External Internal-verdict withholding failure on Stage 3.72 planning PR #142 without retroactive compliance or product/runtime scope | Complete / effective through PR #143 squash merge `be654b938484d4ef4e4796b247bb04bf7efd2049`; protected tree `d90ad717da04c7a28f538a4a0fea2781409dd44e`; historical noncompliance preserved; residual governance risk accepted; the disposition itself grants no Stage 3.72 planning acceptance/Ready/merge or runtime implementation authorization |
 | 3.72 — Portfolio Position Projection / Honest Market-Unavailable Semantics planning | Freeze the additive public positions read-model/API/UI contract over canonical Stage 3.71 quantity/WAC/acquisition basis, deterministic BusinessDate/as-of behavior, acquisition-basis allocation, and explicit non-fabricated market-unavailable semantics without changing ADR-009 or activating a provider | Complete / canonical through PR #142 squash merge `2144c52f4dc5ba9e917947d396ced1f3c572fe51`; planning authority activated without itself authorizing runtime implementation |
 | 3.72 — Portfolio Position Projection / Cost Basis View runtime | Expose deterministic open STOCK/BOND positions from the canonical Stage 3.71 ledger/WAC engine through a dedicated API and Web projection, including acquisition-basis allocation and explicit unavailable market valuation | Complete / PR #145 squash-merged into protected `develop` at `e935f19b68624f0b8be6ca293ead8f4395cf555e` from exact runtime head `b6cd7766a6a584440dfdd7d00c35c34c8553a9ff`; CI #413 / run `34091588982` 10/10 SUCCESS; runtime review complete |
-| 3.72 — Portfolio Position Projection lifecycle/documentation closure | Synchronize active canonical documentation with the already-merged Stage 3.72 runtime; record purpose, implementation, expected behavior, verification, preserved boundaries and residual scope without runtime change | Merge-activated closure record; canonical only after protected merge of this documentation synchronization |
+| 3.72 — Portfolio Position Projection lifecycle/documentation closure | Synchronize active canonical documentation with the already-merged Stage 3.72 runtime; record purpose, implementation, expected behavior, verification, preserved boundaries and residual scope without runtime change | Complete / PR #146 squash-merged into protected `develop` at `ac0396eff47ce5cd862f41a5ec8ab2803de7fa58`; Stage 3.72 lifecycle/documentation closure COMPLETE |
+| 3.73 — Portfolio Time Machine / Historical Position View | Turn the existing Stage 3.72 endpoint-local `asOfDate` semantics into user-visible Current ↔ Historical position navigation without a second financial engine, new endpoint, table, cache or provider | Merge-activated implementation; canonical only when `STAGE_03_73_PORTFOLIO_TIME_MACHINE_IMPLEMENTATION.md` and its runtime/test changes are present on protected `develop` |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
