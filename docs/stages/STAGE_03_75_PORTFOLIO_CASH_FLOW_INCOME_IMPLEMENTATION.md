@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | IMPLEMENTATION CANDIDATE — canonical only after reviewed protected merge |
+| Status | IMPLEMENTATION CANDIDATE / DRAFT PR #152 — review remediation complete; canonical only after final exact-head green CI, required review/governance gates, explicit human authorization and protected merge |
 | Canonical base | `develop@7043871e44eeb25e516a40b059f89d3cb25e03c1` |
 | Budget | `0 RUB` |
 | Runtime providers | none |
@@ -69,10 +69,23 @@ The component contract explicitly distinguishes canonical zero from fixture-deri
 
 The portfolio page renders backend totals and monthly buckets only. BUY outflows and SELL inflows are displayed alongside deposits, withdrawals, income, fees and taxes so the user can reconcile backend `netCashFlow` without hidden frontend arithmetic. Gross dividend/coupon wording is explicit, and the current no-date-filter view states that accepted future-dated ledger rows are included. Legacy nominal-return/XIRR/real-gain/purchasing-power cards are not presented as investment performance in this stage because approved market valuation and return methodology remain unavailable.
 
+## Review remediation and candidate evidence
+
+Fresh engineering review of Draft PR #152 identified and closed material methodology/presentation defects before readiness:
+
+1. `netInvestmentIncome` previously subtracted unrelated BUY/SELL commissions and standalone FEE/TAX rows; it is now limited to deductions recorded on the same DIVIDEND/COUPON rows while all expenses continue to affect `fees`, `taxes`, and `netCashFlow`.
+2. The Web projection previously exposed net cash without BUY outflows and SELL inflows; both cash legs are now visible in totals and monthly periods so server-produced net cash is reconcilable without frontend arithmetic.
+3. The OpenAPI example previously published aggregate totals spanning January–March while `periods` contained only January; the example now contains all three reconciling monthly periods.
+4. Portfolio summary labels now explicitly say `Gross dividends recorded` and `Gross coupons recorded` so gross ledger truth is not presented as net receipts.
+
+The reviewed runtime head immediately before this documentation-only synchronization was `83833ce0c791992e7f64d736dbf04e53c1de0298`. CI #454 / run `34143875428` completed 10/10 SUCCESS on that exact head, including Go tests/race tests/vet, PostgreSQL migration validation, OpenAPI validation, frontend typecheck/tests/build, dependency and vulnerability scans, Python tests and Docker Compose validation.
+
+This documentation synchronization intentionally advances the Draft PR head. Therefore `83833ce0...` is preserved as pre-documentation-sync runtime evidence, not asserted as the final merge candidate. The authoritative merge candidate must pass the required checks on the exact post-synchronization PR head before any Ready or merge decision. This record grants no Ready, merge, branch-deletion or Stage 3.76+ authorization.
+
 ## Non-scope
 
 No market prices/value, unrealized P/L, XIRR/return methodology, inflation, provider activation, broker sync, tax advice/declaration, bond YTM/duration/NKD, notification, AI, Redis, Kafka, worker, paid service, new transaction table, aggregate cache table, or production rollout is authorized.
 
 ## Verification
 
-The implementation includes backend integration vectors for mixed ledgers, standalone and nested fees/taxes, income-only net-investment-income attribution, monthly/range aggregation, summary cash/dividend/coupon truth, correction, reversal effective dates, backdated income, empty periods and subject isolation; HTTP contract witnesses; frontend manual-type and backend-owned-math contract tests; and the repository's full protected CI matrix.
+The implementation includes backend integration vectors for mixed ledgers, standalone and nested fees/taxes, income-only net-investment-income attribution, monthly/range aggregation, summary cash/dividend/coupon truth, correction, reversal effective dates, backdated income, empty periods and subject isolation; HTTP contract witnesses; frontend manual-type and backend-owned-math contract tests; and the repository's full protected CI matrix. Final lifecycle evidence remains exact-head dependent and is not complete until the documentation-synchronized PR head is green and the required human governance gates are satisfied.

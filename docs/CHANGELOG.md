@@ -3,14 +3,21 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.2.0 |
+| Version | 1.2.1 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-09-07 |
-| Next Review Date | Before any Stage 3.75+ runtime scope or architecture-changing provider, privacy, valuation, tax-basis, import, or infrastructure decision |
+| Next Review Date | Before any Stage 3.76+ runtime scope or architecture-changing provider, privacy, valuation, tax-basis, import, or infrastructure decision |
 
+## 2026-09-07 — Stage 3.75 candidate review remediation and documentation synchronization
+
+- Draft PR #152 implements the Stage 3.75 backend-owned effective-ledger cash-flow/income projection, additive API, manual DIVIDEND/COUPON/FEE/TAX entry and truthful summary/UI projection without a provider, migration or aggregate cache table.
+- Fresh engineering review identified and remediated material methodology/presentation defects: unrelated BUY/SELL and standalone expenses are no longer attributed to `netInvestmentIncome`; BUY outflows and SELL inflows are visible for net-cash reconciliation; the OpenAPI monthly example now reconciles January–March to aggregate totals; summary dividend/coupon labels explicitly state gross recorded amounts.
+- The reviewed runtime head immediately before this documentation-only synchronization was `83833ce0c791992e7f64d736dbf04e53c1de0298`; CI #454 / run `34143875428` completed 10/10 SUCCESS on that exact head.
+- This documentation synchronization updates README, Source of Truth, Roadmap, Implementation Log, Document Index, Version Matrix, Changelog, Open Questions and the Stage 3.75 dossier, and advances future product/runtime gating to Stage 3.76+.
+- Stage 3.75 remains Draft/non-canonical: because documentation synchronization advances the PR head, green required CI and the normal review/human authorization gates are still required on the exact post-sync head before Ready or protected squash merge. This documentation synchronization adds no runtime behavior and grants no Stage 3.76+ authorization.
 
 ## 2026-09-07 — Stage 3.74 transaction correction/reversal canonical and documentation synchronized
 
@@ -435,7 +442,7 @@
 ## 2026-07-13 — Stage 3.14 asset search/card API boundary planning started
 
 - Squash-merged Stage 3.13 closure governance into `develop` at
-  `45a298e3ba36dbe711fa27b8d044d80a77cfd74a`.
+  `45a298e3ba36bde711fa27b8d044d80a77cfd74a`.
 - Started documentation-only planning for a future Go API asset search/detail boundary over the
   Stage 3.13 backend-owned catalog.
 - Kept implementation, frontend stock/bond cards, OpenAPI changes, SQL migrations, external
