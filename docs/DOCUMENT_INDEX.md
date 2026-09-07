@@ -3,19 +3,19 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.69 |
+| Version | 1.1.70 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-09-06 |
-| Next Review Date | Before Stage 3.72 implementation or any later Portfolio Position / Cost Basis scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
+| Last Review Date | 2026-09-07 |
+| Next Review Date | Before any later Portfolio Position / Cost Basis scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
 
 ## Canonical control documents
 
 | ID | Title | Version | Status | Location |
 | --- | --- | --- | --- | --- |
-| SOT-001 | Source of Truth | 1.4.93 | Approved | `SOURCE_OF_TRUTH.md` |
+| SOT-001 | Source of Truth | 1.4.94 | Approved | `SOURCE_OF_TRUTH.md` |
 | 42 | Architecture Amendments | 1.1.0 | Approved | `specifications/current/DOCUMENT_42_ARCHITECTURE_AMENDMENTS_v1.1.md` |
 | 43 | Architecture Decision Closure | 1.2.0 | Final | `specifications/current/DOCUMENT_43_ARCHITECTURE_CLOSURE_v1.2.md` |
 
@@ -135,7 +135,9 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Stage 3.71 review evidence | Historical implementation/review/evidence chronology, including permanently preserved pre-External evidence-withholding deviation | `stages/STAGE_03_71_PORTFOLIO_POSITION_COST_BASIS_REVIEW_EVIDENCE.md` |
 | STAGE-03-71-GOV-01 historical governance deviation disposition | Effective through PR #139 squash merge `1da2d3b3b33a9424b06f2f157b2997f20e335954`; historical noncompliance preserved; residual governance risk accepted | `stages/STAGE_03_71_GOV_01_HISTORICAL_GOVERNANCE_DEVIATION_DISPOSITION.md` |
 | STAGE-03-72-GOV-01 historical governance deviation disposition | Effective through PR #143 squash merge `be654b938484d4ef4e4796b247bb04bf7efd2049`; protected tree `d90ad717da04c7a28f538a4a0fea2781409dd44e`; historical noncompliance preserved; residual governance risk accepted; the disposition itself grants no Stage 3.72 planning acceptance/Ready/merge or runtime authorization | `stages/STAGE_03_72_GOV_01_HISTORICAL_GOVERNANCE_DEVIATION_DISPOSITION.md` |
-| Stage 3.72 Portfolio Position Projection / Honest Market-Unavailable Semantics planning | Merge-activated planning authority over canonical Stage 3.71 quantity/WAC/acquisition basis; additive positions endpoint/read model, acquisition-basis allocation, deterministic as-of semantics and explicit unavailable market valuation only; no runtime implementation/provider activation before separate authorization | `stages/STAGE_03_72_PORTFOLIO_POSITION_PROJECTION_PLANNING.md` |
+| Stage 3.72 Portfolio Position Projection / Honest Market-Unavailable Semantics planning | Complete/canonical through PR #142 squash merge `2144c52f4dc5ba9e917947d396ced1f3c572fe51`; planning authority activated without provider/runtime activation by the planning merge itself | `stages/STAGE_03_72_PORTFOLIO_POSITION_PROJECTION_PLANNING.md` |
+| Stage 3.72 Portfolio Position Projection / Cost Basis View runtime | Complete/canonical through PR #145 squash merge `e935f19b68624f0b8be6ca293ead8f4395cf555e` from exact runtime head `b6cd7766a6a584440dfdd7d00c35c34c8553a9ff` after CI #413 / run `34091588982` 10/10 SUCCESS | `stages/STAGE_03_72_PORTFOLIO_POSITION_PROJECTION_IMPLEMENTATION_CLOSURE.md` |
+| Stage 3.72 lifecycle/documentation closure | Records purpose, implemented behavior, expected user-visible outcome, verification, preserved architecture boundaries and residual non-Stage-3.72 scope; merge-activated and canonical only after protected merge of this documentation synchronization | `stages/STAGE_03_72_PORTFOLIO_POSITION_PROJECTION_IMPLEMENTATION_CLOSURE.md` |
 
 Stage 3.71 lifecycle/documentation closure is canonical through PR #140 squash merge `97c35a7b0fe7e2cd487c63d03b8ba79f80dcfc7b`. STAGE-03-72-GOV-01 disposition is effective through PR #143 squash merge `be654b938484d4ef4e4796b247bb04bf7efd2049` and post-merge documentation closure PR #144 squash merge `69be7fe12f53d016019c8a29297d7c656830670d`. Stage 3.72 planning is separately governed by `stages/STAGE_03_72_PORTFOLIO_POSITION_PROJECTION_PLANNING.md` and becomes canonical only after its exact accepted planning tree is squash-merged to protected `develop`; planning activation authorizes no Stage 3.72 runtime implementation, production rollout, imported SELL, market provider/market-valued positions, XIRR/returns, correction/reversal, tax basis, bond NKD, provider activation, notifications or AI.
 
