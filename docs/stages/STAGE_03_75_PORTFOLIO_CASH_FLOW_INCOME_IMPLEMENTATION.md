@@ -96,4 +96,63 @@ No market prices/value, unrealized P/L, XIRR/return methodology, inflation, prov
 
 The implementation includes backend integration vectors for mixed ledgers, standalone and nested fees/taxes, income-only net-investment-income attribution, monthly/range aggregation, summary cash/dividend/coupon truth, correction, reversal effective dates, backdated income, empty periods and subject isolation; HTTP contract witnesses; frontend manual-type and backend-owned-math contract tests; OpenAPI financial guard vectors; and the repository's full required CI matrix after publication.
 
+## Internal Review evidence — published after External verdict
+
+This section publishes the genuine replacement-candidate Internal Review record only after the fresh External published-head review of PR #153 returned `APPROVED` in PR conversation comment `5574951592`. It is not a reconstruction of the missing historical PR #152 review.
+
+### Reviewed candidate identity
+
+- review phase: `Internal Review Agent`
+- canonical base: `7043871e44eeb25e516a40b059f89d3cb25e03c1`
+- frozen unpublished candidate tree: `a25d940d729e95072c1bdbc0179aca5c24b85bad`
+- candidate manifest SHA-256: `e2f4e31d67347a4f78f74a9bd78bb71009eec76c7c2bba8d4675b7225fd1aea8`
+- candidate state during review: no branch ref, commit, or PR published for this replacement candidate
+- changed-file count reviewed: `24 / 24`
+- sampling: `NO`
+
+### Files reviewed
+
+1. `backend-go/cmd/validate-openapi/main.go`
+2. `backend-go/internal/httpapi/cash_flow.go`
+3. `backend-go/internal/httpapi/replay_app.go`
+4. `backend-go/internal/httpapi/routes.go`
+5. `backend-go/internal/httpapi/stage_03_75_cash_flow_test.go`
+6. `backend-go/internal/postgres/effective_ledger.go`
+7. `backend-go/internal/postgres/stage_03_71_summary.go`
+8. `backend-go/internal/postgres/stage_03_75_cash_flow.go`
+9. `backend-go/internal/postgres/stage_03_75_cash_flow_integration_test.go`
+10. `backend-go/internal/verticalslice/service.go`
+11. `backend-go/internal/verticalslice/stage_03_71_store_adapter.go`
+12. `backend-go/internal/verticalslice/stage_03_75_cash_flow.go`
+13. `docs/stages/STAGE_03_75_PORTFOLIO_CASH_FLOW_INCOME_IMPLEMENTATION.md`
+14. `frontend-next/src/common/api/openinvest.ts`
+15. `frontend-next/src/features/portfolio/components/AddTransactionForm.tsx`
+16. `frontend-next/src/features/portfolio/components/CashFlowIncomeBlock.tsx`
+17. `frontend-next/src/features/portfolio/components/PortfolioDetailSlice.tsx`
+18. `frontend-next/tests/add-transaction-form.component.test.tsx`
+19. `frontend-next/tests/stage-03-72-positions-component-contract.test.mjs`
+20. `frontend-next/tests/stage-03-75-cash-flow-income.test.mjs`
+21. `openapi/components/responses.yaml`
+22. `openapi/components/schemas.yaml`
+23. `openapi/examples/cash-flow.json`
+24. `openapi/openapi.yaml`
+
+### Internal review result
+
+- financial formulas / Decimal ownership: `PASS`
+- OpenAPI/runtime consistency: `PASS`
+- security / portfolio ownership boundary: `PASS`
+- Stage 3.74 effective-ledger reuse and date semantics: `PASS`
+- frontend financial-calculation boundary: `PASS — backend-owned`
+- DDD / SOLID / DRY / KISS / YAGNI / scope: `PASS`
+- file budget: `PASS — 24 <= 25`
+- blocking findings: `0`
+- resolved findings in this final frozen candidate: `none outstanding`
+- remaining non-blocking notes requiring remediation: `0`
+- reviewer made edits: `NO`
+
+Shell-based full-project local execution was unavailable in the connector-only review environment, and no `pnpm verify` or equivalent local result was claimed. The candidate was frozen and reviewed by exact tree/file identity; authoritative full-project verification was explicitly deferred to the exact published replacement head. That published head `f97f44016d22e783980c47bbde4799a3124623f4` subsequently passed CI #459 / run `34155729975` 10/10 before the External verdict. Historical PR #152 review verdicts are not used as approval of this replacement candidate.
+
+**Internal VERDICT: APPROVED**
+
 This dossier grants no Ready, merge, branch-deletion, or Stage 3.76+ authorization.
