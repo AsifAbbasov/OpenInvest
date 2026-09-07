@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/openinvest/openinvest/backend-go/internal/decimal"
+	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
 type effectiveLedgerRow struct {
@@ -228,7 +229,7 @@ func effectiveSnapshotCashTx(ctx context.Context, tx *sql.Tx, portfolioID string
 			cash = cash.Add(inflow)
 		}
 		if !cash.FitsStorage() || !invested.FitsStorage() {
-			return decimal.Zero(), decimal.Zero(), "", fmt.Errorf("snapshot financial values exceed NUMERIC(28,8)")
+			return decimal.Zero(), decimal.Zero(), "", fmt.Errorf("%w: snapshot financial values exceed NUMERIC(28,8)", verticalslice.ErrInvalidInput)
 		}
 	}
 	var watermark string
