@@ -231,8 +231,8 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
           <Metric label="Cash" value={formatMoney(summary.cashValue)} />
           <Metric label="Stocks" value={formatMoney(summary.stockValue)} />
           <Metric label="Invested capital" value={formatMoney(summary.investedCapital)} />
-          <Metric label="Dividends received" value={formatMoney(summary.dividendsReceived)} />
-          <Metric label="Coupons received" value={formatMoney(summary.couponsReceived)} />
+          <Metric label="Gross dividends recorded" value={formatMoney(summary.dividendsReceived)} />
+          <Metric label="Gross coupons recorded" value={formatMoney(summary.couponsReceived)} />
         </section>
       ) : null}
 
