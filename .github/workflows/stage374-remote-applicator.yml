@@ -1,0 +1,43 @@
+name: Stage 3.74 remote applicator
+on:
+  push:
+    branches:
+      - feat/stage-03-74-transaction-correction-reversal
+permissions:
+  contents: write
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: feat/stage-03-74-transaction-correction-reversal
+          fetch-depth: 0
+      - name: Apply Stage 3.74 implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 .stage374/apply.py
+          gofmt -w \
+            backend-go/internal/verticalslice/stage_03_74_transactions.go \
+            backend-go/internal/verticalslice/stage_03_74_store_adapter.go \
+            backend-go/internal/postgres/stage_03_74_transactions.go \
+            backend-go/internal/postgres/effective_ledger.go \
+            backend-go/internal/postgres/current_transaction_projection.go \
+            backend-go/internal/postgres/position_rebuild.go \
+            backend-go/internal/postgres/position_projection_rebuild.go \
+            backend-go/internal/postgres/stage_03_71_snapshot.go \
+            backend-go/internal/httpapi/stage_03_74_transactions.go \
+            backend-go/internal/httpapi/routes.go \
+            backend-go/internal/httpapi/replay_app.go \
+            backend-go/internal/httpapi/transport_helpers.go \
+            backend-go/internal/postgres/stage_03_74_transactions_integration_test.go
+          (cd backend-go && go test ./internal/verticalslice ./internal/httpapi ./internal/postgres)
+          rm -rf .stage374 .github/workflows/stage374-remote-applicator.yml
+          git add -A
+          git diff --cached --check
+          git config user.name "asifabbasov"
+          git config user.email "aassifabbasov@gmail.com"
+          git commit -m "feat: implement Stage 3.74 transaction repair"
+          git push origin HEAD:feat/stage-03-74-transaction-correction-reversal
