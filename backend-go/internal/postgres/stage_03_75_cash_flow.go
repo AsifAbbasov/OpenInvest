@@ -11,26 +11,28 @@ import (
 )
 
 type cashFlowAmounts struct {
-	Deposits       decimal.Decimal
-	Withdrawals    decimal.Decimal
-	BuyOutflows    decimal.Decimal
-	SellInflows    decimal.Decimal
-	DividendsGross decimal.Decimal
-	CouponsGross   decimal.Decimal
-	Fees           decimal.Decimal
-	Taxes          decimal.Decimal
+	Deposits            decimal.Decimal
+	Withdrawals         decimal.Decimal
+	BuyOutflows         decimal.Decimal
+	SellInflows         decimal.Decimal
+	DividendsGross      decimal.Decimal
+	CouponsGross        decimal.Decimal
+	Fees                decimal.Decimal
+	Taxes               decimal.Decimal
+	NetInvestmentIncome decimal.Decimal
 }
 
 func zeroCashFlowAmounts() cashFlowAmounts {
 	return cashFlowAmounts{
-		Deposits:       decimal.Zero(),
-		Withdrawals:    decimal.Zero(),
-		BuyOutflows:    decimal.Zero(),
-		SellInflows:    decimal.Zero(),
-		DividendsGross: decimal.Zero(),
-		CouponsGross:   decimal.Zero(),
-		Fees:           decimal.Zero(),
-		Taxes:          decimal.Zero(),
+		Deposits:            decimal.Zero(),
+		Withdrawals:         decimal.Zero(),
+		BuyOutflows:         decimal.Zero(),
+		SellInflows:         decimal.Zero(),
+		DividendsGross:      decimal.Zero(),
+		CouponsGross:        decimal.Zero(),
+		Fees:                decimal.Zero(),
+		Taxes:               decimal.Zero(),
+		NetInvestmentIncome: decimal.Zero(),
 	}
 }
 
@@ -49,8 +51,10 @@ func (amounts *cashFlowAmounts) apply(row effectiveLedgerRow) error {
 		amounts.SellInflows = amounts.SellInflows.Add(row.GrossAmount)
 	case "DIVIDEND":
 		amounts.DividendsGross = amounts.DividendsGross.Add(row.GrossAmount)
+		amounts.NetInvestmentIncome = amounts.NetInvestmentIncome.Add(row.GrossAmount.Sub(row.Commission).Sub(row.Tax))
 	case "COUPON":
 		amounts.CouponsGross = amounts.CouponsGross.Add(row.GrossAmount)
+		amounts.NetInvestmentIncome = amounts.NetInvestmentIncome.Add(row.GrossAmount.Sub(row.Commission).Sub(row.Tax))
 	case "FEE":
 		amounts.Fees = amounts.Fees.Add(row.GrossAmount)
 	case "TAX":
@@ -88,7 +92,7 @@ func (amounts cashFlowAmounts) netExternalFlow() decimal.Decimal {
 }
 
 func (amounts cashFlowAmounts) netInvestmentIncome() decimal.Decimal {
-	return amounts.DividendsGross.Add(amounts.CouponsGross).Sub(amounts.Fees).Sub(amounts.Taxes)
+	return amounts.NetInvestmentIncome
 }
 
 func (amounts cashFlowAmounts) netCashFlow() decimal.Decimal {
