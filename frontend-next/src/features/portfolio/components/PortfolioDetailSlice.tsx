@@ -33,15 +33,25 @@ type PortfolioDetailState = {
   transactions: ApiResult<ListData<Transaction>>;
 };
 
+type PositionViewMode = "current" | "historical";
+
 export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps) {
   const { accessToken, principalId } = useAuth();
   const [state, setState] = useState<PortfolioDetailState | null>(null);
+  const [positionViewMode, setPositionViewMode] = useState<PositionViewMode>("current");
+  const [historicalDate, setHistoricalDate] = useState("");
+  const [historicalPositions, setHistoricalPositions] = useState<ApiResult<PortfolioPositionsProjection> | null>(null);
   const [isLoadingMoreTransactions, setIsLoadingMoreTransactions] = useState(false);
   const [moreTransactionsError, setMoreTransactionsError] = useState<string | null>(null);
   const loadGuard = useRef<PortfolioLoadGuardState>({ generation: 0, accessToken });
   const loadIdentity = useRef({ principalId, portfolioId });
+  const historicalLoadGuard = useRef<PortfolioLoadGuardState>({ generation: 0, accessToken });
+  const historicalViewKey = positionViewMode === "historical" ? `AS_OF:${historicalDate}` : "CURRENT";
+  const historicalLoadIdentity = useRef({ principalId, portfolioId, viewKey: historicalViewKey });
   loadGuard.current.accessToken = accessToken;
   loadIdentity.current = { principalId, portfolioId };
+  historicalLoadGuard.current.accessToken = accessToken;
+  historicalLoadIdentity.current = { principalId, portfolioId, viewKey: historicalViewKey };
 
   const load = useCallback(async () => {
     const principalAtLoad = principalId;
@@ -64,9 +74,66 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
     }
   }, [accessToken, principalId, portfolioId]);
 
+  const loadHistoricalPositions = useCallback(async () => {
+    const principalAtLoad = principalId;
+    const portfolioAtLoad = portfolioId;
+    const viewKeyAtLoad = positionViewMode === "historical" ? `AS_OF:${historicalDate}` : "CURRENT";
+    const { state: nextGuard, attempt } = startPortfolioLoad(
+      historicalLoadGuard.current,
+      historicalLoadGuard.current.accessToken,
+    );
+    historicalLoadGuard.current = nextGuard;
+    setHistoricalPositions(null);
+
+    if (positionViewMode !== "historical" || historicalDate === "") {
+      return;
+    }
+
+    const positions = await getPortfolioPositions(
+      portfolioId,
+      { accessToken: attempt.accessToken },
+      { asOfDate: historicalDate },
+    );
+    const identityIsCurrent =
+      historicalLoadIdentity.current.principalId === principalAtLoad &&
+      historicalLoadIdentity.current.portfolioId === portfolioAtLoad &&
+      historicalLoadIdentity.current.viewKey === viewKeyAtLoad;
+    if (shouldCommitPortfolioLoad(historicalLoadGuard.current, attempt) && identityIsCurrent) {
+      setHistoricalPositions(positions);
+    }
+  }, [historicalDate, positionViewMode, principalId, portfolioId]);
+
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    void loadHistoricalPositions();
+  }, [loadHistoricalPositions]);
+
+  useEffect(() => {
+    setPositionViewMode("current");
+    setHistoricalDate("");
+    setHistoricalPositions(null);
+  }, [principalId, portfolioId]);
+
+  const refreshAfterLedgerMutation = useCallback(async () => {
+    await Promise.all([load(), loadHistoricalPositions()]);
+  }, [load, loadHistoricalPositions]);
+
+  function showCurrentPositions() {
+    setPositionViewMode("current");
+  }
+
+  function showHistoricalPositions() {
+    setHistoricalPositions(null);
+    setPositionViewMode("historical");
+  }
+
+  function changeHistoricalDate(value: string) {
+    setHistoricalPositions(null);
+    setHistoricalDate(value);
+  }
 
   async function loadMoreTransactions() {
     const currentTransactions = state?.transactions;
@@ -113,6 +180,7 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
   const portfolio = state?.portfolio.ok ? state.portfolio.data : null;
   const summary = state?.summary.ok ? state.summary.data : null;
   const transactions = state?.transactions.ok ? state.transactions.data.items : [];
+  const visiblePositions = positionViewMode === "historical" ? historicalPositions : state?.positions ?? null;
 
   return (
     <main className="page-shell">
@@ -160,11 +228,28 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
         </section>
       ) : null}
 
-      <PositionsBlock result={state?.positions ?? null} />
+      <PositionsBlock
+        result={visiblePositions}
+        viewMode={positionViewMode}
+        historicalDate={historicalDate}
+        onShowCurrent={showCurrentPositions}
+        onShowHistorical={showHistoricalPositions}
+        onHistoricalDateChange={changeHistoricalDate}
+      />
 
-      <AddTransactionForm accessToken={accessToken} principalId={principalId} portfolioId={portfolioId} onSaved={load} />
+      <AddTransactionForm
+        accessToken={accessToken}
+        principalId={principalId}
+        portfolioId={portfolioId}
+        onSaved={refreshAfterLedgerMutation}
+      />
 
-      <ImportUploadReviewPanel accessToken={accessToken} principalId={principalId} portfolioId={portfolioId} onImported={load} />
+      <ImportUploadReviewPanel
+        accessToken={accessToken}
+        principalId={principalId}
+        portfolioId={portfolioId}
+        onImported={refreshAfterLedgerMutation}
+      />
 
       <section className="panel">
         <div className="section-heading">
