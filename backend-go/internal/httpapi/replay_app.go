@@ -58,6 +58,7 @@ func newReplayApp(api *API) *fiber.App {
 	app.Post("/api/v1/portfolios", api.createPortfolioReplay)
 	app.Get("/api/v1/portfolios/:portfolioId", api.getPortfolio)
 	app.Get("/api/v1/portfolios/:portfolioId/summary", api.getPortfolioSummary)
+	app.Get("/api/v1/portfolios/:portfolioId/positions", api.getPortfolioPositions)
 	app.Get("/api/v1/portfolios/:portfolioId/transactions", api.listTransactions)
 	app.Post("/api/v1/portfolios/:portfolioId/transactions", api.appendTransactionReplay)
 	app.Post("/api/v1/portfolios/:portfolioId/imports/review", api.reviewImport)

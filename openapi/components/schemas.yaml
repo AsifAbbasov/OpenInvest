@@ -1185,6 +1185,107 @@ PortfolioPosition:
     weight:
       $ref: "#/NonNegativeDecimal"
 
+MarketValuationUnavailable:
+  type: object
+  additionalProperties: false
+  required: [status, reason, marketPrice, marketValue, unrealizedGain, marketWeight, provider, asOf]
+  properties:
+    status:
+      type: string
+      const: UNAVAILABLE
+    reason:
+      type: string
+      const: NO_APPROVED_MARKET_PRICE_SOURCE
+    marketPrice:
+      type: "null"
+    marketValue:
+      type: "null"
+    unrealizedGain:
+      type: "null"
+    marketWeight:
+      type: "null"
+    provider:
+      type: "null"
+    asOf:
+      type: "null"
+
+PortfolioPositionProjection:
+  type: object
+  additionalProperties: false
+  required:
+    - ticker
+    - assetType
+    - quantity
+    - weightedAverageCost
+    - acquisitionBasis
+    - acquisitionBasisWeight
+    - marketValuation
+  properties:
+    ticker:
+      type: string
+      pattern: "^[A-Z0-9]{1,32}$"
+    assetType:
+      $ref: "#/AssetType"
+    quantity:
+      $ref: "#/PositiveDecimal"
+    weightedAverageCost:
+      $ref: "#/PositiveMoney"
+      description: Authoritative Stage 3.71 weighted-average acquisition price; never re-derived from acquisitionBasis.
+    acquisitionBasis:
+      $ref: "#/NonNegativeMoney"
+      description: Remaining RUB trade-price acquisition basis only; not market value or tax basis.
+    acquisitionBasisWeight:
+      oneOf:
+        - allOf:
+            - $ref: "#/NonNegativeDecimal"
+            - pattern: "^(0(\\.[0-9]{1,8})?|1(\\.0{1,8})?)$"
+        - type: "null"
+      description: >-
+        Backend-calculated acquisition-basis allocation in the inclusive range 0..1. Null only
+        when open positions exist but their aggregate scale-8 acquisition basis is 0.00000000,
+        making 0/0 allocation undefined. This is not market portfolio weight.
+    marketValuation:
+      $ref: "#/MarketValuationUnavailable"
+
+PortfolioPositionsCalculation:
+  type: object
+  additionalProperties: false
+  required: [methodologyVersion, inputsAsOf]
+  properties:
+    methodologyVersion:
+      type: string
+      const: portfolio-position-projection-v1
+    inputsAsOf:
+      oneOf:
+        - $ref: "#/BusinessDate"
+        - type: "null"
+      description: >-
+        Requested asOfDate when supplied; otherwise the maximum included position-affecting
+        ledger tradeDate, or null when no position-affecting ledger row exists.
+
+PortfolioPositionsProjection:
+  type: object
+  additionalProperties: false
+  required: [items, totalAcquisitionBasis, calculation]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/PortfolioPositionProjection"
+      description: Open positions only, ordered by ticker ASC.
+    totalAcquisitionBasis:
+      $ref: "#/NonNegativeMoney"
+    calculation:
+      $ref: "#/PortfolioPositionsCalculation"
+
+PortfolioPositionsResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/PortfolioPositionsProjection"
+
 PortfolioSummary:
   type: object
   additionalProperties: false

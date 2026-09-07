@@ -15,6 +15,37 @@ export function formatDecimalForDisplay(value: string) {
   return `${groupedInteger}.${visibleFraction}`;
 }
 
+export function formatQuantityForDisplay(value: string) {
+  const sign = value.startsWith("-") ? "-" : "";
+  const unsigned = sign ? value.slice(1) : value;
+  const [integerPart = "0", fractionalPart = ""] = unsigned.split(".");
+  const groupedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  const significantFraction = fractionalPart.replace(/0+$/, "");
+  return significantFraction === "" ? `${sign}${groupedInteger}` : `${sign}${groupedInteger}.${significantFraction}`;
+}
+
+// acquisitionBasisWeight is already calculated by the Go backend. This only changes
+// the representation from a canonical ratio string (0.34210000) to a UI percent (34.2%).
+export function formatRatioAsPercent(value: string | null) {
+  if (value === null) {
+    return "Undefined";
+  }
+  return `${roundHalfEven(shiftDecimalRight(value, 2), 1)}%`;
+}
+
+function shiftDecimalRight(value: string, places: number) {
+  const sign = value.startsWith("-") ? "-" : "";
+  const unsigned = sign ? value.slice(1) : value;
+  const [integerPart = "0", fractionalPart = ""] = unsigned.split(".");
+  const digits = `${integerPart}${fractionalPart}`;
+  const pointIndex = integerPart.length + places;
+  const padded = pointIndex >= digits.length ? digits.padEnd(pointIndex + 1, "0") : digits;
+  const shiftedIntegerRaw = padded.slice(0, pointIndex) || "0";
+  const shiftedInteger = shiftedIntegerRaw.replace(/^0+(?=\d)/, "") || "0";
+  const shiftedFraction = padded.slice(pointIndex) || "0";
+  return `${sign}${shiftedInteger}.${shiftedFraction}`;
+}
+
 function roundHalfEven(value: string, scale: number) {
   const sign = value.startsWith("-") ? "-" : "";
   const unsigned = sign ? value.slice(1) : value;

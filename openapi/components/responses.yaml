@@ -182,6 +182,17 @@ responses:
         examples:
           default: { $ref: "../examples/portfolios.json#/summaryResponse" }
 
+  PortfolioPositions:
+    description: Deterministic open-position acquisition-basis projection with explicit unavailable market valuation.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/PortfolioPositionsResponse" }
+        examples:
+          default: { $ref: "../examples/positions.json#/positionsResponse" }
+
   SnapshotList:
     description: Cursor-paginated versioned portfolio snapshots.
     headers:

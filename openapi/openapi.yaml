@@ -441,6 +441,38 @@ paths:
         "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
         "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
 
+  /api/v1/portfolios/{portfolioId}/positions:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+      - $ref: "#/components/parameters/PortfolioId"
+    get:
+      operationId: getPortfolioPositions
+      summary: Get deterministic open-position acquisition-basis projection
+      description: >-
+        Replays the authenticated portfolio's accepted BUY/SELL ledger through the canonical
+        position engine. When asOfDate is supplied, only position-affecting rows with
+        tradeDate <= asOfDate are included. When asOfDate is omitted, all accepted
+        position-affecting ledger rows are replayed, including accepted future-dated rows;
+        unsupported correction/reversal state fails closed;
+        calculation.inputsAsOf is then the maximum included tradeDate or null for an empty ledger.
+        Market-derived valuation remains explicitly unavailable in Stage 3.72.
+      tags: [Portfolios]
+      parameters:
+        - name: asOfDate
+          in: query
+          required: false
+          description: >-
+            Optional BusinessDate cutoff for ledger replay. Omission means replay all accepted
+            position-affecting ledger rows; unsupported ledger state fails closed. It does not mean
+            the latest completed MOEX business date and does not use the wall clock as a hidden financial input.
+          schema: { $ref: "./components/schemas.yaml#/BusinessDate" }
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/PortfolioPositions" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
+
   /api/v1/portfolios/{portfolioId}/snapshots:
     parameters:
       - $ref: "#/components/parameters/RequestId"
@@ -781,6 +813,11 @@ components:
     Transaction: { $ref: "./components/schemas.yaml#/Transaction" }
     TransactionType: { $ref: "./components/schemas.yaml#/TransactionType" }
     PortfolioSummary: { $ref: "./components/schemas.yaml#/PortfolioSummary" }
+    MarketValuationUnavailable: { $ref: "./components/schemas.yaml#/MarketValuationUnavailable" }
+    PortfolioPositionProjection: { $ref: "./components/schemas.yaml#/PortfolioPositionProjection" }
+    PortfolioPositionsCalculation: { $ref: "./components/schemas.yaml#/PortfolioPositionsCalculation" }
+    PortfolioPositionsProjection: { $ref: "./components/schemas.yaml#/PortfolioPositionsProjection" }
+    PortfolioPositionsResponse: { $ref: "./components/schemas.yaml#/PortfolioPositionsResponse" }
     PortfolioSnapshot: { $ref: "./components/schemas.yaml#/PortfolioSnapshot" }
     ImportReviewResult: { $ref: "./components/schemas.yaml#/ImportReviewResult" }
     ImportAppendResult: { $ref: "./components/schemas.yaml#/ImportAppendResult" }

@@ -35,6 +35,19 @@ func (adapter *stage371StoreAdapter) GetPortfolioSummary(
 	return adapter.Store.GetPortfolioSummary(ctx, subjectID, portfolioID, asOfDate)
 }
 
+func (adapter *stage371StoreAdapter) GetPortfolioPositions(
+	ctx context.Context,
+	subjectID string,
+	portfolioID string,
+	asOfDate string,
+) (PortfolioPositionsProjection, error) {
+	positionsStore, ok := adapter.Store.(PortfolioPositionsStore)
+	if !ok {
+		return PortfolioPositionsProjection{}, ErrPositionProjectionUnavailable
+	}
+	return positionsStore.GetPortfolioPositions(ctx, subjectID, portfolioID, asOfDate)
+}
+
 func (adapter *stage371StoreAdapter) AppendTransaction(
 	ctx context.Context,
 	command CommandContext,

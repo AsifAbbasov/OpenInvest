@@ -179,111 +179,29 @@ func validatePositionHistoryTx(ctx context.Context, tx *sql.Tx, portfolioID stri
 }
 
 func portfolioAcquisitionValuesTx(ctx context.Context, tx *sql.Tx, portfolioID string, snapshotDate string) (acquisitionValueTotals, error) {
-	if err := assertPortfolioLedgerSequenceCompleteTx(ctx, tx, portfolioID); err != nil {
-		return acquisitionValueTotals{}, err
-	}
-
-	rows, err := tx.QueryContext(ctx, `
-		SELECT
-			te.asset_id::text,
-			a.asset_type,
-			te.transaction_type,
-			te.quantity::text,
-			te.unit_price_amount::text,
-			te.ledger_sequence,
-			te.revision,
-			te.prior_entry_id IS NOT NULL,
-			te.reverses_transaction_id IS NOT NULL
-		FROM investment.transaction_entries te
-		JOIN investment.assets a ON a.id = te.asset_id
-		WHERE te.portfolio_id = $1
-			AND te.trade_date <= $2::date
-			AND te.transaction_type IN ('BUY', 'SELL')
-		ORDER BY te.asset_id ASC, te.trade_date ASC, te.ledger_sequence ASC
-	`, portfolioID, snapshotDate)
+	rebuilt, _, err := rebuildPortfolioPositionsTx(ctx, tx, portfolioID, snapshotDate)
 	if err != nil {
-		return acquisitionValueTotals{}, err
-	}
-	defer rows.Close()
-
-	states := map[string]position.State{}
-	assetTypes := map[string]string{}
-	for rows.Next() {
-		var assetID string
-		var assetType string
-		var transactionType string
-		var quantityText string
-		var unitPriceText string
-		var ledgerSequence int64
-		var revision int
-		var corrected bool
-		var reversal bool
-		if err := rows.Scan(
-			&assetID,
-			&assetType,
-			&transactionType,
-			&quantityText,
-			&unitPriceText,
-			&ledgerSequence,
-			&revision,
-			&corrected,
-			&reversal,
-		); err != nil {
-			return acquisitionValueTotals{}, err
-		}
-		if ledgerSequence <= 0 {
-			return acquisitionValueTotals{}, ErrLedgerSequenceUnavailable
-		}
-		if revision != 1 || corrected || reversal {
-			return acquisitionValueTotals{}, ErrUnsupportedPositionLedger
-		}
-		quantity, err := decimal.FromString(quantityText)
-		if err != nil {
-			return acquisitionValueTotals{}, err
-		}
-		unitPrice, err := decimal.FromString(unitPriceText)
-		if err != nil {
-			return acquisitionValueTotals{}, err
-		}
-		next, err := position.Apply(states[assetID], position.Trade{
-			Type:      transactionType,
-			Quantity:  quantity,
-			UnitPrice: unitPrice,
-		})
-		if errors.Is(err, position.ErrInsufficientQuantity) {
-			return acquisitionValueTotals{}, verticalslice.ErrInsufficientPositionQuantity
-		}
-		if errors.Is(err, position.ErrDerivedOverflow) || errors.Is(err, position.ErrInvalidTrade) {
-			return acquisitionValueTotals{}, fmt.Errorf("%w: position rebuild exceeds canonical Decimal constraints", verticalslice.ErrInvalidInput)
-		}
-		if err != nil {
-			return acquisitionValueTotals{}, err
-		}
-		states[assetID] = next
-		assetTypes[assetID] = assetType
-	}
-	if err := rows.Err(); err != nil {
 		return acquisitionValueTotals{}, err
 	}
 
 	totals := acquisitionValueTotals{Stock: decimal.Zero(), Bond: decimal.Zero()}
-	for assetID, state := range states {
-		if !state.Open {
+	for _, rebuiltPosition := range rebuilt {
+		if !rebuiltPosition.State.Open {
 			continue
 		}
-		switch assetTypes[assetID] {
+		switch rebuiltPosition.AssetType {
 		case "stock":
-			totals.Stock = totals.Stock.Add(state.AcquisitionBasis)
+			totals.Stock = totals.Stock.Add(rebuiltPosition.State.AcquisitionBasis)
 			if !totals.Stock.FitsStorage() {
 				return acquisitionValueTotals{}, fmt.Errorf("%w: stock acquisition basis exceeds NUMERIC(28,8)", verticalslice.ErrInvalidInput)
 			}
 		case "bond":
-			totals.Bond = totals.Bond.Add(state.AcquisitionBasis)
+			totals.Bond = totals.Bond.Add(rebuiltPosition.State.AcquisitionBasis)
 			if !totals.Bond.FitsStorage() {
 				return acquisitionValueTotals{}, fmt.Errorf("%w: bond acquisition basis exceeds NUMERIC(28,8)", verticalslice.ErrInvalidInput)
 			}
 		default:
-			return acquisitionValueTotals{}, fmt.Errorf("unsupported asset type %q in position rebuild", assetTypes[assetID])
+			return acquisitionValueTotals{}, fmt.Errorf("unsupported asset type %q in position rebuild", rebuiltPosition.AssetType)
 		}
 	}
 	return totals, nil
