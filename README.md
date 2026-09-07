@@ -5,26 +5,15 @@ OpenInvest is an independent, privacy-first investment analytics platform. It is
 This repository contains the closed Stage 2 contract/canonical-model baseline, the accepted Next.js
 Web presentation-layer baseline, and the staged Stage 3 MVP vertical-slice implementation.
 
-Stage 3 currently has closed slices for the local database foundation, portfolio/transaction
-vertical slice, Next.js presentation shell, end-to-end verification, CSV import/reconciliation,
-authentication/privacy boundaries, Web authentication UI, backend-owned instrument catalog, the Go
-API asset search/detail boundary over the approved local catalog, and the reviewed Web asset
-discovery UI. Asset search returns
-backend-owned catalog summaries with `lastPrice: null`; asset-card detail remains intentionally
-deferred until mandatory source provenance and required detail fields can be populated without
-fabricated data. Stage 3.16 repository audit planning and its audit-fix closure are closed; the
-fixes were squash-merged into `develop` through PR #44 at
-`9e6b8a753bf73ef020ce40461df25a5878344d92`. Stage 3.17 privacy-lifecycle planning and the
-Stage 3.18 contract/security proposal are closed through PRs #46 and #47. Stage 3.19 privacy
-security/ADR proposal is closed through PR #48, and Stage 3.20 privacy threat model is closed through
-PR #49, Stage 3.21 privacy data inventory is closed through PR #50, and Stage 3.22 key custody is
-closed through PR #51, and Stage 3.23 deletion-marker control-plane planning is closed through PR
-#52, and Stage 3.24 Security Review readiness planning is closed through PR #53. Stage 3.25 is the
-active documentation-only evidence-collection plan; it does not collect evidence, perform Security
-Review, accept ADR-008, or authorize an implementation stage, provider, schema, or operational change.
-Product-risk refinement is closed and remains part of the MVP governance baseline.
+Stage 3 is now implemented through **Stage 3.72 — Portfolio Position Projection / Cost Basis View**. The current product baseline includes the PostgreSQL/Go/Next.js vertical slice, authenticated portfolio and transaction flows, CSV import/reconciliation, backend-owned instrument catalog and asset discovery, hardened idempotency/security boundaries, provider-neutral market-data architecture, Corporate Actions Calendar/Heatmap API and UI, the user-supplied Dividend Calculator, deterministic manual SELL/WAC/acquisition-basis accounting, and the dedicated portfolio positions API/UI.
 
-## Completed audit remediation
+The original Stage 3.16 repository audit is **fully remediated: 32/32 findings CLOSED (P0/P1/P2/P3 = 0/0/0/0)** through Stage 3.56. Stage 3.59 contains a delayed MOEX ISS TQBR adapter, but Stage 3.60 records production/public activation as **NO-GO** under the reviewed source-rights and zero-budget constraints, so the adapter remains dormant. Market valuation therefore remains intentionally unavailable rather than fabricated. Corporate Actions Features 3A/3B/3C are implemented provider-neutrally, while Feature 3D real-source activation remains a separate gate. Stage 3.68 Dividend Calculator and Stages 3.71–3.72 portfolio position/cost-basis views are canonical. Stage 3.25 privacy evidence collection remains documentation-only and does not authorize privacy-lifecycle implementation.
+
+Product-risk refinement remains part of the MVP governance baseline. For canonical lifecycle status start with `docs/SOURCE_OF_TRUTH.md`, `docs/ROADMAP.md`, `docs/IMPLEMENTATION_LOG.md`, and `docs/governance/REPOSITORY_DOCUMENTATION_RECONCILIATION.md`.
+
+## Historical audit remediation chronology (Stages 3.27–3.32)
+
+> This section preserves the early remediation chronology. It is not the current audit status. Subsequent Stages 3.33–3.56 closed every remaining original finding; the canonical original-audit state is 32/32 CLOSED.
 
 Stage 3.27 is an audit-remediation slice for import financial identity and cash-flow semantics. The
 repository audit identified three P1 defects: broker-operation identity was not persisted through the
@@ -43,7 +32,7 @@ Stage 3.30 remediates repository-audit P2-02, P2-03, and P2-04 across import rev
 
 Stage 3.31 remediates repository-audit P2-01 and P2-14 across logout admission and bounded authentication limiter lifecycle. Implementation PR #65 was squash-merged into `develop` at `9bf4d1d31597918eacf0c3358bf6caa2aa9db897` after exact-head CI #133, independent final `APPROVED` review on `82557c55c0772a66707088b858ec9eafc2073119`, and explicit human merge authorization. The implementation places logout behind auth admission before rejected-auth persistence, bounds per-key attempts, total downstream auth attempts per window, and active key-bucket cardinality, and reclaims expired buckets without introducing Redis or distributed limiter scope. Detailed engineering rationale and regression evidence are recorded in [`docs/stages/STAGE_03_31_AUTH_OPERATIONAL_HARDENING.md`](docs/stages/STAGE_03_31_AUTH_OPERATIONAL_HARDENING.md). Closure governance was squash-merged through PR #66 at `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746`; P2-01/P2-14 are closed.
 
-Stage 3.32 remediates repository-audit P2-09 and P2-13 across exact original-response idempotent replay and browser retry continuity/isolation. Implementation PR #67 was squash-merged into `develop` at `0623d5ef326cd783b7dc0417dbcb02f18c506171` after exact-head CI #181, a first independent `REQUEST CHANGES` that kept P2-13 open for cross-principal retry-slot collision, remediation with stable-principal-scoped browser retry storage, repeat independent `APPROVED` review on `02aa2417a3caca79e2afc4e7b598b92055de96b7`, and explicit human squash-merge authorization. P2-09 persists and replays the exact original response artifact atomically with the financial mutation; P2-13 preserves unresolved retry identity across reload/remount while isolating authenticated principals without persisting raw financial payloads or authentication tokens. Detailed evidence is recorded in [`docs/stages/STAGE_03_32_IDEMPOTENCY_REPLAY_BROWSER_RECOVERY.md`](docs/stages/STAGE_03_32_IDEMPOTENCY_REPLAY_BROWSER_RECOVERY.md). When Stage 3.32 closure governance is canonical on `develop`, P2-09/P2-13 are closed and the remaining original audit debt is 5 P2 and 10 P3 findings. Stage 3.25 privacy evidence planning remains separate.
+Stage 3.32 remediates repository-audit P2-09 and P2-13 across exact original-response idempotent replay and browser retry continuity/isolation. Implementation PR #67 was squash-merged into `develop` at `0623d5ef326cd783b7dc0417dbcb02f18c506171` after exact-head CI #181, a first independent `REQUEST CHANGES` that kept P2-13 open for cross-principal retry-slot collision, remediation with stable-principal-scoped browser retry storage, repeat independent `APPROVED` review on `02aa2417a3caca79e2afc4e7b598b92055de96b7`, and explicit human squash-merge authorization. P2-09 persists and replays the exact original response artifact atomically with the financial mutation; P2-13 preserves unresolved retry identity across reload/remount while isolating authenticated principals without persisting raw financial payloads or authentication tokens. Detailed evidence is recorded in [`docs/stages/STAGE_03_32_IDEMPOTENCY_REPLAY_BROWSER_RECOVERY.md`](docs/stages/STAGE_03_32_IDEMPOTENCY_REPLAY_BROWSER_RECOVERY.md). Stage 3.32 closure is canonical through PR #68 at `a73b7f8c008d2f903e22e9b8a85b7c6248d6d3be`; later Stages 3.33–3.56 closed every remaining original audit finding. The original repository audit is now 32/32 CLOSED. Stage 3.25 privacy evidence planning remains separate.
 
 ## Components
 

@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.4.94 |
+| Version | 1.4.95 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
@@ -15,6 +15,7 @@
 
 **Architecture Freeze v1.2: ACTIVE**
 **Documentation Freeze: ACTIVE**
+**Documentation registry baseline: synchronized through Stage 3.72; README, Implementation Log, Changelog, Version Matrix, Open Questions, Document Index and the repository-audit register describe the same canonical product/audit state on protected `develop`.**
 **Last completed implementation stage: Stage 3.72 — Portfolio Position Projection / Cost Basis View / PR #145 squash merge `e935f19b68624f0b8be6ca293ead8f4395cf555e` / protected tree `3775b533867c2fb6de473da84a105cf3367cf848` / CI #413 run `34091588982` 10/10 SUCCESS**
 **Current market-data lifecycle: Stage 3.59 delayed MOEX ISS TQBR adapter is implemented through PR #123, but Stage 3.60 / PR #124 records shipped runtime/public use as NO-GO under the current reviewed source-rights and zero-budget constraints; the adapter remains dormant**
 **Current Corporate Actions lifecycle: Stage 3.61 planning and Stages 3.62/3.63/3.64 Features 3A/3B/3C are protected-merged through PRs #125/#126/#127/#128; Stage 3.65 documentation closure is canonical through PR #129 / merge `1c30a4bf637c933e7c210cff6e26fabd91d8bab1`; Stage 3.66 request-cancellation hardening is protected-merged through PR #130 / merge `7564dbbda9133f0b8965f9e7d0a0c0b81b82e992`, tree `b525f0960cb2613f62eaa9583d6394759a1cdd3b`; Stage 3.67 closure is canonical through PR #131 / merge `c885f6e57ea08e4583103fe2f22f142bf13a8560`, tree `53f823e92b02721211e1d89f8af6374fffc252ae`; provider-neutral boundary, Calendar/Heatmap projection, API/UI, stale-result protection and component-unmount/replacement cancellation are implemented and documentation-closed; Feature 3D remains a separate source/use planning gate and no real corporate-actions source/runtime activation is authorized**

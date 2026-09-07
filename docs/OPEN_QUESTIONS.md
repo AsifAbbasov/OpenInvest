@@ -3,17 +3,17 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-OQ-001 |
-| Version | 1.0.2 |
+| Version | 1.0.3 |
 | Status | Active / no current questions |
 | Owner | Principal Architect |
 | Supersedes | Informal TODOs for architecture decisions |
 | Dependencies | Document 43 |
-| Last Review Date | 2026-09-06 |
-| Next Review Date | Before Stage 3.72 or any later Portfolio Position / Cost Basis architecture decision, or 2026-12-19, whichever comes first |
+| Last Review Date | 2026-09-07 |
+| Next Review Date | Before any new architecture decision affecting provider/public activation, market valuation, privacy lifecycle, tax basis, imported SELL semantics, or Stage 3.73+ scope, or 2026-12-19, whichever comes first |
 
 ## Current questions
 
-None.
+None. Stage 3.72 is implemented and documentation-closed; it does not leave an unresolved architecture question. Any future market provider/valuation, broader cost-basis/tax-lot semantics, imported SELL expansion or privacy-lifecycle implementation must enter this register if it changes frozen architecture.
 
 ## Resolved architecture questions
 

@@ -3,13 +3,24 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.1.60 |
+| Version | 1.2.0 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-08-23 |
-| Next Review Date | Before Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
+| Last Review Date | 2026-09-07 |
+| Next Review Date | Before any Stage 3.73+ runtime scope or architecture-changing provider, privacy, valuation, tax-basis, import, or infrastructure decision |
+
+## 2026-09-07 — Repository documentation reconciliation through Stage 3.72
+
+- Synchronized README, Implementation Log, Version Matrix, Open Questions and Document Index with the canonical Stage 3.72 runtime/documentation baseline.
+- Recorded the original Stage 3.16 repository audit as fully remediated: 32/32 findings CLOSED, P0/P1/P2/P3 = 0/0/0/0, through Stage 3.56.
+- Registered the Stage 3.57–3.60 market-data lifecycle: provider-neutral boundary and delayed MOEX ISS adapter implemented, production/public activation NO-GO, adapter dormant.
+- Registered Corporate Actions Stages 3.61–3.67, including Calendar/Heatmap API/UI and request cancellation; real-source Feature 3D remains separately gated.
+- Registered the Stage 3.68/3.69 Dividend Calculator lifecycle.
+- Registered ADR-009 and Stages 3.70–3.72: deterministic manual SELL/WAC/acquisition-basis accounting and the dedicated portfolio positions API/UI with explicit market valuation unavailable semantics.
+- Added a canonical cross-finding audit register and a repository-documentation reconciliation record.
+- No Go, SQL/migrations, OpenAPI runtime contract, frontend runtime behavior, dependencies, provider configuration or production deployment changed.
 
 ## 2026-06-19 — Architecture Freeze v1.2
 
