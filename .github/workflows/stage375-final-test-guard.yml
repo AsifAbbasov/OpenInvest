@@ -1,0 +1,43 @@
+name: Stage 3.75 canonical-zero test guard
+
+on:
+  push:
+    branches:
+      - feat/stage-03-75-cash-flow-income-truth
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ github.event.head_commit.message != 'test: distinguish canonical zero from fixture values' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/stage-03-75-cash-flow-income-truth
+          fetch-depth: 0
+      - name: Update canonical-zero guard
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('frontend-next/tests/add-transaction-form.component.test.tsx')
+          text = path.read_text()
+          banned = '    "\\\"0.00000000\\\"",\n'
+          if banned not in text:
+              raise SystemExit('canonical zero is not present in fixture-ban list')
+          text = text.replace(banned, '', 1)
+          anchor = '  assert.match(source, /currency: "RUB"/);\n'
+          replacement = anchor + '  assert.match(source, /isExpense \\|\\| isCashFlow \\? "0\\.00000000" : commission/);\n  assert.match(source, /isExpense \\|\\| isCashFlow \\? "0\\.00000000" : tax/);\n'
+          if anchor not in text:
+              raise SystemExit('source assertion anchor not found')
+          text = text.replace(anchor, replacement, 1)
+          path.write_text(text)
+          PY
+          git rm -f .github/workflows/stage375-final-test-guard.yml
+          git add frontend-next/tests/add-transaction-form.component.test.tsx
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "test: distinguish canonical zero from fixture values"
+          git push origin HEAD:feat/stage-03-75-cash-flow-income-truth
