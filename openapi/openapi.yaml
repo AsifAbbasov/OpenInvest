@@ -473,6 +473,29 @@ paths:
         "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
         "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
 
+  /api/v1/portfolios/{portfolioId}/cash-flow:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+      - $ref: "#/components/parameters/PortfolioId"
+    get:
+      operationId: getPortfolioCashFlow
+      summary: Get deterministic effective-ledger cash-flow and income projection
+      description: >-
+        Aggregates the authenticated portfolio's Stage 3.74 effective ledger by canonical tradeDate.
+        Fees include standalone FEE gross amounts plus recorded transaction commission fields; taxes
+        include standalone TAX gross amounts plus recorded transaction tax fields. The response is
+        recorded cash-flow truth only and is not market performance, investment return, or tax advice.
+      tags: [Portfolios]
+      parameters:
+        - $ref: "#/components/parameters/FromDate"
+        - $ref: "#/components/parameters/ToDate"
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/PortfolioCashFlow" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
+
   /api/v1/portfolios/{portfolioId}/snapshots:
     parameters:
       - $ref: "#/components/parameters/RequestId"
@@ -818,6 +841,11 @@ components:
     PortfolioPositionsCalculation: { $ref: "./components/schemas.yaml#/PortfolioPositionsCalculation" }
     PortfolioPositionsProjection: { $ref: "./components/schemas.yaml#/PortfolioPositionsProjection" }
     PortfolioPositionsResponse: { $ref: "./components/schemas.yaml#/PortfolioPositionsResponse" }
+    PortfolioCashFlowTotals: { $ref: "./components/schemas.yaml#/PortfolioCashFlowTotals" }
+    PortfolioCashFlowPeriod: { $ref: "./components/schemas.yaml#/PortfolioCashFlowPeriod" }
+    PortfolioCashFlowCalculation: { $ref: "./components/schemas.yaml#/PortfolioCashFlowCalculation" }
+    PortfolioCashFlowProjection: { $ref: "./components/schemas.yaml#/PortfolioCashFlowProjection" }
+    PortfolioCashFlowResponse: { $ref: "./components/schemas.yaml#/PortfolioCashFlowResponse" }
     PortfolioSnapshot: { $ref: "./components/schemas.yaml#/PortfolioSnapshot" }
     ImportReviewResult: { $ref: "./components/schemas.yaml#/ImportReviewResult" }
     ImportAppendResult: { $ref: "./components/schemas.yaml#/ImportAppendResult" }

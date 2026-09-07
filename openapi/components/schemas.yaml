@@ -1323,8 +1323,18 @@ PortfolioSummary:
       $ref: "#/NonNegativeMoney"
     dividendsReceived:
       $ref: "#/NonNegativeMoney"
+      description: >-
+        Gross recorded dividend amount derived from the canonical effective ledger under the summary
+        cutoff/as-of boundary. Associated commission and tax deductions are not subtracted from this field;
+        they are represented separately according to the financial methodology. This is not a net cash
+        receipt and not an investment-return or performance metric.
     couponsReceived:
       $ref: "#/NonNegativeMoney"
+      description: >-
+        Gross recorded coupon amount derived from the canonical effective ledger under the summary
+        cutoff/as-of boundary. Associated commission and tax deductions are not subtracted from this field;
+        they are represented separately according to the financial methodology. This is not a net cash
+        receipt and not an investment-return or performance metric.
     nominalReturnRate:
       oneOf:
         - $ref: "#/Decimal"
@@ -1348,6 +1358,87 @@ PortfolioSummary:
         $ref: "#/PortfolioPosition"
     calculation:
       $ref: "#/CalculationMeta"
+
+
+PortfolioCashFlowTotals:
+  type: object
+  additionalProperties: false
+  required:
+    [deposits, withdrawals, buyOutflows, sellInflows, dividendsGross, couponsGross, fees, taxes, netExternalFlow, netInvestmentIncome, netCashFlow]
+  properties:
+    deposits: { $ref: "#/NonNegativeMoney" }
+    withdrawals: { $ref: "#/NonNegativeMoney" }
+    buyOutflows: { $ref: "#/NonNegativeMoney" }
+    sellInflows: { $ref: "#/NonNegativeMoney" }
+    dividendsGross: { $ref: "#/NonNegativeMoney" }
+    couponsGross: { $ref: "#/NonNegativeMoney" }
+    fees: { $ref: "#/NonNegativeMoney" }
+    taxes: { $ref: "#/NonNegativeMoney" }
+    netExternalFlow: { $ref: "#/Money" }
+    netInvestmentIncome: { $ref: "#/Money" }
+    netCashFlow: { $ref: "#/Money" }
+
+PortfolioCashFlowPeriod:
+  type: object
+  additionalProperties: false
+  required: [month, totals]
+  properties:
+    month:
+      type: string
+      pattern: "^[0-9]{4}-(0[1-9]|1[0-2])$"
+    totals: { $ref: "#/PortfolioCashFlowTotals" }
+
+PortfolioCashFlowCalculation:
+  type: object
+  additionalProperties: false
+  required: [methodologyVersion, inputsAsOf]
+  properties:
+    methodologyVersion:
+      type: string
+      const: portfolio-cash-flow-income-v1
+    inputsAsOf:
+      oneOf:
+        - $ref: "#/BusinessDate"
+        - type: "null"
+      description: >-
+        With an explicit toDate, the requested cutoff. With omitted toDate, the maximum included
+        effective-ledger tradeDate, or null when no row is included. Omission preserves current
+        Stage 3.74 effective-ledger semantics, including accepted future-dated rows, and does not
+        apply a wall-clock cutoff.
+
+PortfolioCashFlowProjection:
+  type: object
+  additionalProperties: false
+  required: [portfolioId, fromDate, toDate, totals, periods, calculation]
+  properties:
+    portfolioId:
+      type: string
+      format: uuid
+    fromDate:
+      oneOf:
+        - $ref: "#/BusinessDate"
+        - type: "null"
+    toDate:
+      oneOf:
+        - $ref: "#/BusinessDate"
+        - type: "null"
+      description: >-
+        Optional BusinessDate cutoff. When omitted, current Stage 3.74 effective-ledger semantics
+        are preserved, including accepted future-dated rows; no wall-clock cutoff is implied.
+    totals: { $ref: "#/PortfolioCashFlowTotals" }
+    periods:
+      type: array
+      items: { $ref: "#/PortfolioCashFlowPeriod" }
+    calculation: { $ref: "#/PortfolioCashFlowCalculation" }
+
+PortfolioCashFlowResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      required: [data]
+      properties:
+        data: { $ref: "#/PortfolioCashFlowProjection" }
+
 
 PortfolioSnapshot:
   type: object

@@ -18,7 +18,7 @@ type AddTransactionFormProps = {
   onSaved: () => void;
 };
 
-const transactionTypes: TransactionType[] = ["BUY", "SELL", "DEPOSIT", "WITHDRAWAL"];
+const transactionTypes: TransactionType[] = ["BUY", "SELL", "DIVIDEND", "COUPON", "FEE", "TAX", "DEPOSIT", "WITHDRAWAL"];
 const idempotencyConflictMessage = "Idempotency-Key is already bound to another request";
 
 export function AddTransactionForm({ accessToken, principalId, portfolioId, onSaved }: AddTransactionFormProps) {
@@ -38,6 +38,7 @@ export function AddTransactionForm({ accessToken, principalId, portfolioId, onSa
 
   const isTrade = transactionType === "BUY" || transactionType === "SELL";
   const isAssetIncome = transactionType === "DIVIDEND" || transactionType === "COUPON";
+  const isExpense = transactionType === "FEE" || transactionType === "TAX";
   const isCashFlow = transactionType === "DEPOSIT" || transactionType === "WITHDRAWAL";
   const retryScope = principalScopedIdempotencyScope(principalId, `transaction-append:${portfolioId}`);
 
@@ -82,15 +83,15 @@ export function AddTransactionForm({ accessToken, principalId, portfolioId, onSa
   }
 
   function buildPayload(normalizedNote: string): CreateTransactionPayload {
-    const assetTicker = isCashFlow ? null : ticker.trim().toUpperCase();
+    const assetTicker = isTrade || isAssetIncome ? ticker.trim().toUpperCase() : null;
     return {
       transactionType,
       ticker: assetTicker,
-      quantity: isTrade || isAssetIncome ? quantity : null,
+      quantity: isTrade ? quantity : isAssetIncome && quantity.trim() !== "" ? quantity : null,
       unitPrice: isTrade ? { amount: unitPrice, currency: "RUB" } : null,
       grossAmount: isTrade ? null : { amount: grossAmount, currency: "RUB" },
-      commission: { amount: commission, currency: "RUB" },
-      tax: { amount: tax, currency: "RUB" },
+      commission: { amount: isExpense || isCashFlow ? "0.00000000" : commission, currency: "RUB" },
+      tax: { amount: isExpense || isCashFlow ? "0.00000000" : tax, currency: "RUB" },
       tradeDate,
       settlementDate: settlementDate.trim() === "" ? null : settlementDate,
       note: normalizedNote === "" ? null : normalizedNote,
@@ -104,8 +105,8 @@ export function AddTransactionForm({ accessToken, principalId, portfolioId, onSa
         <h2>Add transaction</h2>
         <p className="muted">
           This form only builds the OpenAPI request. The Go API validates and stores immutable
-          transactions, recalculates snapshots, and returns canonical results. Stage 3.71 exposes
-          manual BUY and SELL while broker-import SELL remains intentionally unavailable.
+          transactions, recalculates snapshots, and returns canonical results. Stage 3.75 exposes
+          manual trades, income, expenses, deposits and withdrawals while broker-import SELL remains intentionally unavailable.
         </p>
       </div>
 
@@ -120,7 +121,7 @@ export function AddTransactionForm({ accessToken, principalId, portfolioId, onSa
         </select>
       </label>
 
-      {!isCashFlow ? (
+      {isTrade || isAssetIncome ? (
         <label>
           Ticker
           <input value={ticker} required pattern="[A-Za-z0-9]{1,32}" onChange={(event) => setTicker(event.target.value)} />
@@ -130,7 +131,7 @@ export function AddTransactionForm({ accessToken, principalId, portfolioId, onSa
       {isTrade || isAssetIncome ? (
         <label>
           Quantity
-          <input value={quantity} required inputMode="decimal" onChange={(event) => setQuantity(event.target.value)} />
+          <input value={quantity} required={isTrade} inputMode="decimal" onChange={(event) => setQuantity(event.target.value)} />
         </label>
       ) : null}
 
@@ -146,15 +147,19 @@ export function AddTransactionForm({ accessToken, principalId, portfolioId, onSa
         </label>
       )}
 
-      <label>
-        Commission
-        <input value={commission} required inputMode="decimal" onChange={(event) => setCommission(event.target.value)} />
-      </label>
+      {!isExpense && !isCashFlow ? (
+        <>
+          <label>
+            Commission
+            <input value={commission} required inputMode="decimal" onChange={(event) => setCommission(event.target.value)} />
+          </label>
 
-      <label>
-        Tax
-        <input value={tax} required inputMode="decimal" onChange={(event) => setTax(event.target.value)} />
-      </label>
+          <label>
+            Tax
+            <input value={tax} required inputMode="decimal" onChange={(event) => setTax(event.target.value)} />
+          </label>
+        </>
+      ) : null}
 
       <label>
         Trade date

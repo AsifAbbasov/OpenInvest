@@ -1,0 +1,83 @@
+{
+  "cashFlowResponse": {
+    "value": {
+      "data": {
+        "portfolioId": "00000000-0000-4000-8000-000000000002",
+        "fromDate": "2026-01-01",
+        "toDate": "2026-03-31",
+        "totals": {
+          "deposits": { "amount": "100000.00000000", "currency": "RUB" },
+          "withdrawals": { "amount": "5000.00000000", "currency": "RUB" },
+          "buyOutflows": { "amount": "80000.00000000", "currency": "RUB" },
+          "sellInflows": { "amount": "9000.00000000", "currency": "RUB" },
+          "dividendsGross": { "amount": "3000.00000000", "currency": "RUB" },
+          "couponsGross": { "amount": "1200.00000000", "currency": "RUB" },
+          "fees": { "amount": "230.00000000", "currency": "RUB" },
+          "taxes": { "amount": "596.00000000", "currency": "RUB" },
+          "netExternalFlow": { "amount": "95000.00000000", "currency": "RUB" },
+          "netInvestmentIncome": { "amount": "3644.00000000", "currency": "RUB" },
+          "netCashFlow": { "amount": "27374.00000000", "currency": "RUB" }
+        },
+        "periods": [
+          {
+            "month": "2026-01",
+            "totals": {
+              "deposits": { "amount": "100000.00000000", "currency": "RUB" },
+              "withdrawals": { "amount": "0.00000000", "currency": "RUB" },
+              "buyOutflows": { "amount": "80000.00000000", "currency": "RUB" },
+              "sellInflows": { "amount": "0.00000000", "currency": "RUB" },
+              "dividendsGross": { "amount": "0.00000000", "currency": "RUB" },
+              "couponsGross": { "amount": "0.00000000", "currency": "RUB" },
+              "fees": { "amount": "100.00000000", "currency": "RUB" },
+              "taxes": { "amount": "0.00000000", "currency": "RUB" },
+              "netExternalFlow": { "amount": "100000.00000000", "currency": "RUB" },
+              "netInvestmentIncome": { "amount": "0.00000000", "currency": "RUB" },
+              "netCashFlow": { "amount": "19900.00000000", "currency": "RUB" }
+            }
+          },
+          {
+            "month": "2026-02",
+            "totals": {
+              "deposits": { "amount": "0.00000000", "currency": "RUB" },
+              "withdrawals": { "amount": "0.00000000", "currency": "RUB" },
+              "buyOutflows": { "amount": "0.00000000", "currency": "RUB" },
+              "sellInflows": { "amount": "0.00000000", "currency": "RUB" },
+              "dividendsGross": { "amount": "3000.00000000", "currency": "RUB" },
+              "couponsGross": { "amount": "1200.00000000", "currency": "RUB" },
+              "fees": { "amount": "10.00000000", "currency": "RUB" },
+              "taxes": { "amount": "546.00000000", "currency": "RUB" },
+              "netExternalFlow": { "amount": "0.00000000", "currency": "RUB" },
+              "netInvestmentIncome": { "amount": "3644.00000000", "currency": "RUB" },
+              "netCashFlow": { "amount": "3644.00000000", "currency": "RUB" }
+            }
+          },
+          {
+            "month": "2026-03",
+            "totals": {
+              "deposits": { "amount": "0.00000000", "currency": "RUB" },
+              "withdrawals": { "amount": "5000.00000000", "currency": "RUB" },
+              "buyOutflows": { "amount": "0.00000000", "currency": "RUB" },
+              "sellInflows": { "amount": "9000.00000000", "currency": "RUB" },
+              "dividendsGross": { "amount": "0.00000000", "currency": "RUB" },
+              "couponsGross": { "amount": "0.00000000", "currency": "RUB" },
+              "fees": { "amount": "120.00000000", "currency": "RUB" },
+              "taxes": { "amount": "50.00000000", "currency": "RUB" },
+              "netExternalFlow": { "amount": "-5000.00000000", "currency": "RUB" },
+              "netInvestmentIncome": { "amount": "0.00000000", "currency": "RUB" },
+              "netCashFlow": { "amount": "3830.00000000", "currency": "RUB" }
+            }
+          }
+        ],
+        "calculation": {
+          "methodologyVersion": "portfolio-cash-flow-income-v1",
+          "inputsAsOf": "2026-03-31"
+        }
+      },
+      "meta": {
+        "requestId": "10000000-0000-4000-8000-000000000001",
+        "traceId": "10000000000000000000000000000001",
+        "generatedAt": "2026-09-07T00:00:00Z"
+      }
+    }
+  }
+}
