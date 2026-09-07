@@ -19,6 +19,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 .stage374/apply.py
+          sed -i '/backend-go\/internal\/position/d' backend-go/internal/postgres/position_rebuild.go
           gofmt -w \
             backend-go/internal/verticalslice/stage_03_74_transactions.go \
             backend-go/internal/verticalslice/stage_03_74_store_adapter.go \
