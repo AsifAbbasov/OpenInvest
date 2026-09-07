@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.2.2 |
+| Version | 1.2.1 |
 | Status | Current |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
 | Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md` |
 | Last Review Date | 2026-09-07 |
-| Next Review Date | Before any Stage 3.76+ runtime scope, provider/public activation, privacy-lifecycle implementation, tax-basis expansion, imported SELL expansion, or other architecture-changing work |
+| Next Review Date | Before any Stage 3.75+ runtime scope, provider/public activation, privacy-lifecycle implementation, tax-basis expansion, imported SELL expansion, or other architecture-changing work |
 
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
 
@@ -72,7 +72,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.72 — Portfolio Position Projection / Cost Basis View | Expose canonical open STOCK/BOND positions, acquisition-basis allocation and explicit market-unavailable semantics through API/UI | Complete / runtime and lifecycle canonical through PRs #145/#146 | [Stage 3.72 closure](stages/STAGE_03_72_PORTFOLIO_POSITION_PROJECTION_IMPLEMENTATION_CLOSURE.md) |
 | 3.73 — Portfolio Time Machine / Historical Position View | Expose exact historical holdings by BusinessDate using the existing Stage 3.72 `asOfDate` projection and canonical Stage 3.71 position engine | Complete / canonical through PR #148 squash merge `683f9c4647f888bb3dbdfb9dd365b84b95137b46` from exact final head `a74fd85a46843ccdfe8192f2ac8687169a5a2ac7` after CI #424 / run `34109389368` 10/10 SUCCESS; no new API, schema, provider or financial algorithm | [Stage 3.73 report](stages/STAGE_03_73_PORTFOLIO_TIME_MACHINE_IMPLEMENTATION.md) |
 | 3.74 — Transaction Correction & Reversal / Ledger Repair UX | Implement immutable correction/reversal commands, effective-ledger truth, historical oversell rejection, exact replay and user-visible Edit/Reverse controls | Complete / canonical through PR #150 squash merge `0580bf7e98c532202f84bbf9ceacd97aedbe4140` from exact final head `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02` after CI #435 / run `34117662576` 10/10 SUCCESS; lifecycle/documentation synchronized post-merge | [Stage 3.74 report](stages/STAGE_03_74_TRANSACTION_CORRECTION_REVERSAL_IMPLEMENTATION.md) |
-| 3.75 — Portfolio Cash Flow & Income Truth | Add effective-ledger cash/income projection, additive API, manual DIVIDEND/COUPON/FEE/TAX entry, reconcilable net cash and explicit gross dividend/coupon summary truth | Draft PR #152 implementation candidate; engineering review remediation complete; pre-documentation-sync reviewed runtime head `83833ce0c791992e7f64d736dbf04e53c1de0298` passed CI #454 / run `34143875428` 10/10 SUCCESS; exact post-sync head must be green and pass required review/human gates before protected merge/canonical status | [Stage 3.75 report](stages/STAGE_03_75_PORTFOLIO_CASH_FLOW_INCOME_IMPLEMENTATION.md) |
+| 3.75 — Portfolio Cash Flow & Income Truth | Add effective-ledger cash/income projection, additive API, manual DIVIDEND/COUPON/FEE/TAX entry and truthful cash/dividend/coupon summary | Implementation candidate; protected merge required for canonical status | [Stage 3.75 report](stages/STAGE_03_75_PORTFOLIO_CASH_FLOW_INCOME_IMPLEMENTATION.md) |
 
 ## Stage completion protocol
 
@@ -131,7 +131,7 @@ This log is the index of implementation stages. Every stage must document its pu
 
 - Started the internal implementation slice for parse/review/approve/append orchestration.
 - Added no public import API, OpenAPI changes, upload UI, SQL import-session table, raw file
-  persistence, worker, provider integration, tax logic, mobile, AI, or Stage 3.9 work out of scope.
+  persistence, worker, provider integration, tax logic, mobile, or AI scope.
 - Required live PostgreSQL verification for full parse/review/approve/append behavior and stale
   duplicate rollback.
 
@@ -141,16 +141,15 @@ This log is the index of implementation stages. Every stage must document its pu
 - Added internal import review → append orchestration with bounded in-memory payload handling,
   explicit approved decisions, Stage 3.7 atomic append invocation, and non-sensitive result
   metadata.
-- Resolved independent review privacy finding that initially exposed full review rows through the append
+- Resolved independent review finding that initially exposed full review rows through the append
   result.
 - Kept public import endpoints, OpenAPI changes, upload UI, SQL import-session persistence, raw file
-  persistence, workers, provider integrations, tax, mobile, AI, and Stage 3.9 implementation out of
-  scope.
+  persistence, workers, provider integrations, tax, mobile, AI, and Stage 3.9 work out of scope.
 
 ## 2026-07-08 — Stage 3.9 import API boundary planning started
 
-- Started the documentation-only planning scope for a future public Go API boundary for user-supplied
-  broker-file import.
+- Started the documentation-only Stage 3.9 planning scope for a future public Go API boundary for
+  user-supplied broker-file import.
 - Kept OpenAPI changes, Go handlers, frontend upload UI, SQL import-session persistence, raw file
   persistence, workers, provider integrations, tax logic, mobile, AI, and implementation out of
   scope.
@@ -164,7 +163,7 @@ This log is the index of implementation stages. Every stage must document its pu
 - Chose a stateless review/append boundary for this slice: no review IDs, no import-session table,
   no raw CSV persistence, and append reruns review before invoking the atomic store boundary.
 - Kept frontend upload UI, SQL import-session persistence, workers, broker/provider integrations,
-  tax, mobile, AI, and Stage 3.10 implementation out of scope.
+  tax, mobile, AI, and Stage 3.10 work out of scope.
 
 ## 2026-07-08 — Stage 3.9 import API boundary slice closed
 
@@ -182,7 +181,7 @@ This log is the index of implementation stages. Every stage must document its pu
 
 - Squash-merged Stage 3.9 closure governance into `develop` at
   `682ffd856395a6e3e988817551a512898fda2d38`.
-- Started documentation-only planning for a future Web import upload/review UI.
+- Started the documentation-only Stage 3.10 planning scope for a future Web import upload/review UI.
 - Kept Next.js implementation, OpenAPI changes, Go handlers, SQL migrations, import-session
   persistence, business logic, provider integrations, workers, tax, mobile, and AI out of scope.
 
@@ -314,8 +313,9 @@ This log is the index of implementation stages. Every stage must document its pu
 
 - Squash-merged Stage 3.13 closure governance into `develop` at
   `45a298e3ba36dbe711fa27b8d044d80a77cfd74a`.
-- Started documentation-only planning for a future Go API asset search/detail boundary over the
-  Stage 3.13 backend-owned catalog.
+- Started documentation-only planning for a future Go API implementation of the frozen
+  `GET /api/v1/assets/search` and `GET /api/v1/assets/{ticker}` contract over the Stage 3.13
+  backend-owned catalog.
 - Kept implementation, frontend stock/bond cards, OpenAPI changes, SQL migrations, provider
   integrations, workers, market-data ingestion, financial calculations, tax, mobile, and AI out of
   scope.
@@ -359,6 +359,68 @@ This log is the index of implementation stages. Every stage must document its pu
   tax, mobile, and AI out of scope.
 
 ## 2026-07-26 — Stage 3.15 planning review findings fixed
+
+- Addressed strict separate-window review findings for underspecified cursor/stale-response
+  behavior, missing public-endpoint credential minimization, and incomplete accessibility criteria.
+- Added planning requirements for query/type cursor reset, accepted cursor-chain appends,
+  stale-response guards, public asset API calls with `credentials: "omit"`, keyboard/focus behavior,
+  focus destination/restoration, and asynchronous live-region/error announcements.
+
+## 2026-07-26 — Stage 3.15 Web asset discovery UI slice started
+
+- Squash-merged Stage 3.15 planning PR #40 into `develop` at
+  `dfeab109b2825fe0e0317e87a7abf2e706a29ea6` after green CI and strict separate-window review
+  approval.
+- Started the Next.js presentation-only implementation slice on
+  `feature/stage-03-15-asset-discovery-ui`.
+- Scoped implementation to typed public asset API calls, UI state, stale-response/pagination guards,
+  unavailable price rendering, deferred detail handling, routing, accessibility behavior, tests, and
+  documentation.
+- Kept OpenAPI changes, SQL migrations, Go handlers, Route Handlers, Server Actions, direct
+  datastore access, provider/market-data integrations, workers, financial calculations, tax, mobile,
+  and AI out of scope.
+
+## 2026-07-26 — Stage 3.15 implementation review findings fixed
+
+- Addressed strict separate-window review findings for stale detail-response resurrection, missing
+  focus transfer during detail loading, incomplete live-region behavior, weak component wiring
+  coverage, incorrect successful detail typing, and incomplete verification evidence.
+- Added detail-generation invalidation on search reset and detail close, loading-state focus entry,
+  separate search/detail polite announcements, assertive error-only alerts, frozen `Asset` detail
+  typing, and source-level component wiring checks.
+- Addressed follow-up strict review findings by aligning `Asset` detail types with the frozen
+  `SourceReference`, `AssetStatus`, and optional bond coupon-rate schema, making successful detail
+  heading copy distinct from deferred detail, and preventing async detail outcomes from stealing
+  focus after the initial detail entry.
+- Tightened the detail focus helper so retrying the same ticker re-enters the loading detail region
+  while same-ticker async outcomes still avoid stealing focus.
+
+## 2026-07-27 — Stage 3.15 Web asset discovery UI slice closed
+
+- Squash-merged PR #41 into `develop` at `22bede651a646d0e8b06568bda457d0626891e63`.
+- Closed the reviewed Next.js presentation-only asset discovery boundary after strict
+  separate-window review approval and green CI.
+- Added `/assets` discovery UI, typed public asset API calls, stale search/detail guards, honest
+  unavailable-price and deferred-detail rendering, keyboard/focus/live-region behavior, and focused
+  frontend tests.
+- Updated the umbrella Stage 3 plan and Stage 3.15 planning report so no current governance
+  document still points to Stage 3.15 implementation approval after closure.
+- Kept OpenAPI changes, SQL migrations, Go handlers, Route Handlers, Server Actions, direct
+  datastore access, provider/market-data integrations, workers, financial calculations, tax, mobile,
+  and AI out of scope.
+
+## 2026-07-27 — Stage 3.16 repository audit planning started
+
+- Squash-merged Stage 3.15 closure governance PR #42 into `develop` at
+  `9eec98c36d7aeffb21dc2d7e7e0eb1681106901d`.
+- Started documentation-only planning for the mandatory full repository audit before the next
+  implementation stage.
+- Scoped the planned audit to architecture, DDD, API, security, privacy, performance, dependencies,
+  tests, documentation, cost, and ADR consistency.
+- Kept implementation work, financial algorithms, OpenAPI changes, SQL migrations, dependency
+  changes, market data, providers, workers, tax, mobile, and AI out of scope.
+
+## 2026-07-27 — Stage 3.16 planning review findings fixed
 
 - Addressed strict separate-window review findings by making the planned audit target reproducible:
   after the planning PR merge, the audit stage must record the full post-planning `develop` SHA.
@@ -482,13 +544,13 @@ This log is the index of implementation stages. Every stage must document its pu
 - Published the previously withheld internal-review evidence after the dedicated blind external task
   independently reviewed Draft PR #50 and returned `APPROVED`.
 - Recorded both `APPROVED` verdicts as governance evidence only; ADR-008, Security Review, runtime,
-  contract, schema, provider, backup, operations, and implementation scope remain unchanged.
+  OpenAPI, PostgreSQL schema, providers, backup operations, and implementation remain unchanged.
 
 ## 2026-08-18 — Stage 3.22 privacy key-custody and destruction-proof proposal started
 
 - Recorded Stage 3.21 as squash-merged through PR #50 at
-  `207325e0497cc2608b99366f7f840472d270b6ed`.
-- Added a documentation-only evidence proposal: provider-neutral key-custody roles,
+  `207325e0497cc2608b99366f7f840472d270b6ed` after internal and blind external `APPROVED` verdicts.
+- Added the next documentation-only evidence proposal: provider-neutral key-custody roles,
   per-subject erasure-material lifecycle, integrity-verifiable non-identifying destruction proof,
   provider evaluation, restore gate, and required adversarial evidence.
 - No provider, Security Review, ADR-008 acceptance, implementation, API, schema, migration,
@@ -528,6 +590,7 @@ This log is the index of implementation stages. Every stage must document its pu
   OpenAPI, PostgreSQL schema, migrations, credentials, backup operations, and implementation out of
   scope.
 
+
 ## 2026-08-22 — Stage 3.27 closure governance
 
 - PR #55 passed exact-head CI #90 on `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c`.
@@ -552,6 +615,7 @@ This log is the index of implementation stages. Every stage must document its pu
   canonical on `develop`.
 - Stage 3.25 privacy evidence planning and the P2/P3 audit backlog remain separate.
 
+
 ## 2026-08-23 — Stage 3.29 input and contract hardening implementation merged
 
 - Squash-merged implementation PR #61 into `develop` at `7331d3f34783baec3997497d1a79b78eaa558bd4`.
@@ -565,6 +629,7 @@ This log is the index of implementation stages. Every stage must document its pu
   and review history in `STAGE_03_29_INPUT_CONTRACT_HARDENING.md`.
 - Closure governance is tracked through PR #62; when canonical, the remaining original audit backlog
   is 12 P2 and 10 P3 findings. Stage 3.25 privacy evidence planning remains separate.
+
 
 ## 2026-08-23 — Stage 3.30 import review integrity implementation merged
 
@@ -583,6 +648,7 @@ This log is the index of implementation stages. Every stage must document its pu
   `unavailableStore` was extended fail-closed for the new history-read interface.
 - Closure governance is tracked through PR #64. When canonical, the remaining original audit backlog
   is 9 P2 and 10 P3 findings. Stage 3.25 privacy evidence planning remains separate.
+
 
 ## 2026-08-23 — Stage 3.31 authentication operational hardening implementation merged
 
