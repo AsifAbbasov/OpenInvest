@@ -13,6 +13,8 @@
 
 This document closes cross-registry documentation drift that accumulated while runtime and stage dossiers continued to advance. It does not replace the detailed stage dossiers. It makes the repository entrypoints and governance registries agree on what has actually been implemented, what is deliberately dormant/unavailable, and what remains separately gated.
 
+This record remains non-canonical while it exists only on the reconciliation branch; its synchronized status becomes canonical only when this exact documentation-only change set is squash-merged into protected `develop`.
+
 ## Canonical product and engineering state
 
 - Stage 3 runtime is complete through **Stage 3.72 — Portfolio Position Projection / Cost Basis View**.
