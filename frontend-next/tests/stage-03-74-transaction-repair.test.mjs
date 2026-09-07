@@ -24,3 +24,12 @@ test("Stage 3.74 exposes explicit Edit and Reverse UX without delete-permanently
   assert.match(controls, /Reason for reversal/);
   assert.match(controls, /aria-live="polite"/);
 });
+
+test("Stage 3.74 preserves browser retry identity for ambiguous repair requests", () => {
+  assert.match(controls, /idempotencyIntentForBrowser/);
+  assert.match(controls, /principalScopedIdempotencyScope/);
+  assert.match(controls, /transaction-correct:/);
+  assert.match(controls, /transaction-reverse:/);
+  assert.match(controls, /clearBrowserIdempotencyIntent/);
+  assert.doesNotMatch(controls, /idempotencyKey:\s*crypto\.randomUUID\(\)/);
+});
