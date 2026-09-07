@@ -479,6 +479,23 @@ func validateAppendTransaction(request AppendTransactionRequest) error {
 		if !request.UnitPrice.Amount.FitsStorage() {
 			return fmt.Errorf("%w: unitPrice exceeds NUMERIC(28,8) storage precision", ErrInvalidInput)
 		}
+	case "DIVIDEND", "COUPON":
+		if request.Ticker == nil || !tickerPattern.MatchString(*request.Ticker) {
+			return fmt.Errorf("%w: ticker is required for income transactions", ErrInvalidInput)
+		}
+		if request.UnitPrice != nil {
+			return fmt.Errorf("%w: income transactions must not include unitPrice", ErrInvalidInput)
+		}
+		if request.Quantity != nil && (!request.Quantity.IsPositive() || !request.Quantity.FitsStorage()) {
+			return fmt.Errorf("%w: income quantity must be positive and storage-safe when supplied", ErrInvalidInput)
+		}
+	case "FEE", "TAX":
+		if request.Quantity != nil || request.UnitPrice != nil {
+			return fmt.Errorf("%w: expense transactions must not include quantity or unitPrice", ErrInvalidInput)
+		}
+		if request.Ticker != nil && !tickerPattern.MatchString(*request.Ticker) {
+			return fmt.Errorf("%w: expense ticker is invalid", ErrInvalidInput)
+		}
 	case "DEPOSIT", "WITHDRAWAL":
 		if request.Ticker != nil || request.Quantity != nil || request.UnitPrice != nil {
 			return fmt.Errorf("%w: cash flows must not include ticker, quantity, or unitPrice", ErrInvalidInput)
@@ -487,7 +504,7 @@ func validateAppendTransaction(request AppendTransactionRequest) error {
 			return fmt.Errorf("%w: cash flow commission and tax are unsupported and must be zero", ErrInvalidInput)
 		}
 	default:
-		return fmt.Errorf("%w: transactionType is outside Stage 3.2 scope", ErrInvalidInput)
+		return fmt.Errorf("%w: transactionType is invalid", ErrInvalidInput)
 	}
 
 	if request.Commission.Currency != RUB || request.Tax.Currency != RUB {

@@ -16,15 +16,33 @@ func (s *Store) GetPortfolioSummaryStage371(
 	portfolioID string,
 	asOfDate string,
 ) (verticalslice.PortfolioSummary, error) {
-	if _, err := s.GetPortfolio(ctx, subjectID, portfolioID); err != nil {
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true})
+	if err != nil {
 		return verticalslice.PortfolioSummary{}, err
 	}
-	return getPortfolioSummaryStage371(ctx, s.db, portfolioID, asOfDate)
+	defer rollback(tx)
+	if _, err := getPortfolioTx(ctx, tx, subjectID, portfolioID); err != nil {
+		return verticalslice.PortfolioSummary{}, err
+	}
+	summary, err := getPortfolioSummaryStage371(ctx, tx, portfolioID, asOfDate)
+	if err != nil {
+		return verticalslice.PortfolioSummary{}, err
+	}
+	cashFlow, err := portfolioCashFlowProjectionTx(ctx, tx, portfolioID, "", summary.AsOfDate)
+	if err != nil {
+		return verticalslice.PortfolioSummary{}, err
+	}
+	summary.DividendsReceived = cashFlow.Totals.DividendsGross
+	summary.CouponsReceived = cashFlow.Totals.CouponsGross
+	if err := tx.Commit(); err != nil {
+		return verticalslice.PortfolioSummary{}, err
+	}
+	return summary, nil
 }
 
 func getPortfolioSummaryStage371(
 	ctx context.Context,
-	db *sql.DB,
+	db queryer,
 	portfolioID string,
 	asOfDate string,
 ) (verticalslice.PortfolioSummary, error) {

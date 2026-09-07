@@ -48,6 +48,20 @@ func (adapter *stage371StoreAdapter) GetPortfolioPositions(
 	return positionsStore.GetPortfolioPositions(ctx, subjectID, portfolioID, asOfDate)
 }
 
+func (adapter *stage371StoreAdapter) GetPortfolioCashFlow(
+	ctx context.Context,
+	subjectID string,
+	portfolioID string,
+	fromDate string,
+	toDate string,
+) (PortfolioCashFlowProjection, error) {
+	cashFlowStore, ok := adapter.Store.(PortfolioCashFlowStore)
+	if !ok {
+		return PortfolioCashFlowProjection{}, ErrCashFlowProjectionUnavailable
+	}
+	return cashFlowStore.GetPortfolioCashFlow(ctx, subjectID, portfolioID, fromDate, toDate)
+}
+
 func (adapter *stage371StoreAdapter) AppendTransaction(
 	ctx context.Context,
 	command CommandContext,

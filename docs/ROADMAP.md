@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.93 |
+| Version | 1.1.94 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
 | Dependencies | Architecture Freeze v1.2 |
 | Last Review Date | 2026-09-07 |
-| Next Review Date | Before any Stage 3.75+ Portfolio Position / Cost Basis scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
+| Next Review Date | Before any Stage 3.76+ product/runtime or architecture-changing scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
 
 | Stage | Outcome | State |
 | --- | --- | --- |
@@ -128,6 +128,7 @@
 | 3.72 — Portfolio Position Projection lifecycle/documentation closure | Synchronize active canonical documentation with the already-merged Stage 3.72 runtime; record purpose, implementation, expected behavior, verification, preserved boundaries and residual scope without runtime change | Complete / PR #146 squash-merged into protected `develop` at `ac0396eff47ce5cd862f41a5ec8ab2803de7fa58`; Stage 3.72 lifecycle/documentation closure COMPLETE |
 | 3.73 — Portfolio Time Machine / Historical Position View | Turn the existing Stage 3.72 endpoint-local `asOfDate` semantics into user-visible Current ↔ Historical position navigation without a second financial engine, new endpoint, table, cache or provider | Complete / canonical through PR #148 squash merge `683f9c4647f888bb3dbdfb9dd365b84b95137b46` from exact final head `a74fd85a46843ccdfe8192f2ac8687169a5a2ac7` after CI #424 / run `34109389368` 10/10 SUCCESS; Stage 3.73 lifecycle/documentation closed by the protected merge and this post-merge registry synchronization |
 | 3.74 — Transaction Correction & Reversal / Ledger Repair UX | Wire the frozen correction/reversal commands, preserve append-only auditability, materialize deterministic effective ledger truth, reject historical oversell and expose Edit/Reverse UX | Complete / canonical through PR #150 squash merge `0580bf7e98c532202f84bbf9ceacd97aedbe4140` from exact final head `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02` after CI #435 / run `34117662576` 10/10 SUCCESS; no new migration, market provider or paid infrastructure; post-merge lifecycle/documentation synchronized |
+| 3.75 — Portfolio Cash Flow & Income Truth | Reuse Stage 3.74 effective ledger for backend-owned cash/income totals, monthly aggregation, manual income/expense entry and truthful summary cash/income | Draft PR #152 implementation candidate; fresh engineering review remediation complete; pre-documentation-sync reviewed runtime head `83833ce0c791992e7f64d736dbf04e53c1de0298` passed CI #454 / run `34143875428` 10/10 SUCCESS; canonical only after this documentation synchronization reaches a green exact PR head, required review/governance gates, explicit human authorization and protected squash merge; zero-budget, no provider/migration/cache-table; no Stage 3.76+ scope authorized |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.

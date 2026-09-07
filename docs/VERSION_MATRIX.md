@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.2.1 |
+| Version | 1.2.2 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | Documents 42–43 |
 | Last Review Date | 2026-09-07 |
-| Next Review Date | Before any Stage 3.75+ runtime scope or architecture-changing provider/public activation, privacy, valuation, tax-basis, import, or infrastructure decision |
+| Next Review Date | Before any Stage 3.76+ runtime scope or architecture-changing provider/public activation, privacy, valuation, tax-basis, import, or infrastructure decision |
 
 | Range | Version | Status under Freeze v1.2 | Priority | Owner | Review |
 | --- | --- | --- | --- | --- | --- |
@@ -17,7 +17,9 @@
 | Document 42 | 1.1.0 | Approved / current | 2 | Principal Architect | 2026-12-19 |
 | ADR-001–007 | 1.0.0 | Accepted, subject to 42–43 | 3 | Principal Architect | 2026-12-25 |
 | ADR-009 deterministic portfolio ledger ordering and WAC | 1.0.0 | Accepted / canonical through PR #137; runtime semantics implemented by Stage 3.71 | 3 | Principal Architect | Before any change to ledger ordering, WAC or acquisition-basis semantics |
-| Stage 3.73 Portfolio Time Machine / Historical Position View | 1.0.0 | Complete / canonical through PR #148 squash merge `683f9c4647f888bb3dbdfb9dd365b84b95137b46` from exact final head `a74fd85a46843ccdfe8192f2ac8687169a5a2ac7` after CI #424 / run `34109389368` 10/10 SUCCESS; reuses Stage 3.72 `asOfDate`; no new engine/API/schema/provider | 3 | Principal Architect | Before any Stage 3.75+ position-history, valuation, provider, tax-basis or accounting-semantics expansion |
+| Stage 3.73 Portfolio Time Machine / Historical Position View | 1.0.0 | Complete / canonical through PR #148 squash merge `683f9c4647f888bb3dbdfb9dd365b84b95137b46` from exact final head `a74fd85a46843ccdfe8192f2ac8687169a5a2ac7` after CI #424 / run `34109389368` 10/10 SUCCESS; reuses Stage 3.72 `asOfDate`; no new engine/API/schema/provider | 3 | Principal Architect | Before any Stage 3.76+ position-history, valuation, provider, tax-basis or accounting-semantics expansion |
+| Stage 3.74 Transaction Correction & Reversal / Ledger Repair UX | 1.0.0 | Complete / canonical through PR #150 squash merge `0580bf7e98c532202f84bbf9ceacd97aedbe4140` from exact final head `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02` after CI #435 / run `34117662576` 10/10 SUCCESS | 3 | Principal Architect | Before changes to correction/reversal or effective-ledger semantics |
+| Stage 3.75 Portfolio Cash Flow & Income Truth | 1.0.0 candidate | Draft PR #152 implementation candidate; engineering review remediation complete; pre-documentation-sync reviewed runtime head `83833ce0c791992e7f64d736dbf04e53c1de0298` passed CI #454 / run `34143875428` 10/10 SUCCESS; remains non-canonical until the exact post-sync PR head is green, required review/governance gates are satisfied, explicit human authorization is given, and protected squash merge completes | 3 | Principal Architect | Before Stage 3.76+ cash-flow, income-attribution, accounting or valuation expansion |
 | ADR-008 privacy-lifecycle erasure and restore controls | 0.1.0 | Proposed / non-normative pending Security Review and human acceptance | N/A | Principal Architect | Before any privacy-lifecycle implementation proposal |
 | Stage 2 contract artifacts | 1.0.x | Closed / canonical baseline on `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | 3 | Principal Architect | 2026-12-25 |
 | Web presentation amendment | 1.0.x | Closed / canonical Web baseline on `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | 3 | Principal Architect | 2026-12-26 |
@@ -83,8 +85,9 @@
 
 `Legacy normative` means applicable only when not superseded or contradicted by a higher-priority source.
 
-Stage 3.74 current implementation authority
+Stage 3.74 canonical authority and Stage 3.75 candidate authority
 
 | Scope | Authority | Evidence |
 | --- | --- | --- |
 | Stage 3.74 Transaction Correction & Reversal / Ledger Repair UX | COMPLETE / CANONICAL | PR #150; final head `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02`; CI #435 / run `34117662576` 10/10 SUCCESS; protected squash merge `0580bf7e98c532202f84bbf9ceacd97aedbe4140` |
+| Stage 3.75 Portfolio Cash Flow & Income Truth | DRAFT IMPLEMENTATION CANDIDATE / NON-CANONICAL | PR #152 Draft; engineering review remediation complete; reviewed runtime head before documentation synchronization `83833ce0c791992e7f64d736dbf04e53c1de0298`; CI #454 / run `34143875428` 10/10 SUCCESS; final exact-head CI/review/human authorization/protected merge still required |
