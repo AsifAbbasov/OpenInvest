@@ -1,0 +1,106 @@
+{
+  "upsertRequest": {
+    "value": {
+      "marketPrice": { "amount": "318.50000000", "currency": "RUB" },
+      "asOfDate": "2026-09-08"
+    }
+  },
+  "upsertResponse": {
+    "value": {
+      "data": {
+        "items": [
+          {
+            "ticker": "SBER",
+            "assetType": "STOCK",
+            "quantity": "150.00000000",
+            "weightedAverageCost": { "amount": "275.00000000", "currency": "RUB" },
+            "acquisitionBasis": { "amount": "41250.00000000", "currency": "RUB" },
+            "acquisitionBasisWeight": "1.00000000",
+            "marketValuation": {
+              "status": "AVAILABLE",
+              "reason": null,
+              "source": "USER_SUPPLIED",
+              "marketPrice": { "amount": "318.50000000", "currency": "RUB" },
+              "marketValue": { "amount": "47775.00000000", "currency": "RUB" },
+              "unrealizedGain": { "amount": "6525.00000000", "currency": "RUB" },
+              "unrealizedReturn": "0.15818182",
+              "marketWeight": "1.00000000",
+              "provider": null,
+              "asOf": "2026-09-08"
+            }
+          }
+        ],
+        "totalAcquisitionBasis": { "amount": "41250.00000000", "currency": "RUB" },
+        "valuationSummary": {
+          "status": "COMPLETE",
+          "valuedPositions": 1,
+          "totalOpenPositions": 1,
+          "valuedPositionsMarketValue": { "amount": "47775.00000000", "currency": "RUB" },
+          "valuedPositionsAcquisitionBasis": { "amount": "41250.00000000", "currency": "RUB" },
+          "totalAcquisitionBasis": { "amount": "41250.00000000", "currency": "RUB" },
+          "unrealizedGain": { "amount": "6525.00000000", "currency": "RUB" },
+          "cashValue": { "amount": "82000.00000000", "currency": "RUB" },
+          "currentPortfolioValue": { "amount": "129775.00000000", "currency": "RUB" }
+        },
+        "calculation": {
+          "methodologyVersion": "portfolio-position-projection-v2-manual-valuation",
+          "inputsAsOf": "2026-09-01"
+        }
+      },
+      "meta": {
+        "requestId": "10000000-0000-4000-8000-000000000376",
+        "traceId": "10000000000000000000000000000376",
+        "generatedAt": "2026-09-08T00:00:00Z"
+      }
+    }
+  },
+  "clearResponse": {
+    "value": {
+      "data": {
+        "items": [
+          {
+            "ticker": "SBER",
+            "assetType": "STOCK",
+            "quantity": "150.00000000",
+            "weightedAverageCost": { "amount": "275.00000000", "currency": "RUB" },
+            "acquisitionBasis": { "amount": "41250.00000000", "currency": "RUB" },
+            "acquisitionBasisWeight": "1.00000000",
+            "marketValuation": {
+              "status": "UNAVAILABLE",
+              "reason": "NO_APPROVED_MARKET_PRICE_SOURCE",
+              "source": null,
+              "marketPrice": null,
+              "marketValue": null,
+              "unrealizedGain": null,
+              "unrealizedReturn": null,
+              "marketWeight": null,
+              "provider": null,
+              "asOf": null
+            }
+          }
+        ],
+        "totalAcquisitionBasis": { "amount": "41250.00000000", "currency": "RUB" },
+        "valuationSummary": {
+          "status": "PARTIAL",
+          "valuedPositions": 0,
+          "totalOpenPositions": 1,
+          "valuedPositionsMarketValue": { "amount": "0.00000000", "currency": "RUB" },
+          "valuedPositionsAcquisitionBasis": { "amount": "0.00000000", "currency": "RUB" },
+          "totalAcquisitionBasis": { "amount": "41250.00000000", "currency": "RUB" },
+          "unrealizedGain": { "amount": "0.00000000", "currency": "RUB" },
+          "cashValue": { "amount": "82000.00000000", "currency": "RUB" },
+          "currentPortfolioValue": null
+        },
+        "calculation": {
+          "methodologyVersion": "portfolio-position-projection-v2-manual-valuation",
+          "inputsAsOf": "2026-09-01"
+        }
+      },
+      "meta": {
+        "requestId": "10000000-0000-4000-8000-000000000377",
+        "traceId": "10000000000000000000000000000377",
+        "generatedAt": "2026-09-08T00:00:01Z"
+      }
+    }
+  }
+}

@@ -448,15 +448,18 @@ paths:
       - $ref: "#/components/parameters/PortfolioId"
     get:
       operationId: getPortfolioPositions
-      summary: Get deterministic open-position acquisition-basis projection
+      summary: Get deterministic open-position acquisition-basis and manual-valuation projection
       description: >-
         Replays the authenticated portfolio's accepted BUY/SELL ledger through the canonical
         position engine. When asOfDate is supplied, only position-affecting rows with
         tradeDate <= asOfDate are included. When asOfDate is omitted, all accepted
         position-affecting ledger rows are replayed, including accepted future-dated rows;
-        unsupported correction/reversal state fails closed;
-        calculation.inputsAsOf is then the maximum included tradeDate or null for an empty ledger.
-        Market-derived valuation remains explicitly unavailable in Stage 3.72.
+        unsupported correction/reversal state fails closed; calculation.inputsAsOf is then
+        the maximum included tradeDate or null for an empty ledger. Stage 3.76 may enrich an
+        open position only with USER_SUPPLIED manual valuation input. Current projection requires
+        a matching position lifecycle generation. Historical projection additionally requires the
+        stored manual valuation BusinessDate to exactly equal the requested asOfDate; there is no
+        carry-back, carry-forward, interpolation, or hidden wall-clock market-price substitution.
       tags: [Portfolios]
       parameters:
         - name: asOfDate
@@ -468,8 +471,72 @@ paths:
             the latest completed MOEX business date and does not use the wall clock as a hidden financial input.
           schema: { $ref: "./components/schemas.yaml#/BusinessDate" }
       responses:
-        "200": { $ref: "./components/responses.yaml#/responses/PortfolioPositions" }
+        "200":
+          description: Open positions with acquisition basis and honest manual-valuation coverage.
+          headers:
+            X-Request-ID: { $ref: "./components/responses.yaml#/headers/RequestId" }
+            X-Trace-ID: { $ref: "./components/responses.yaml#/headers/TraceId" }
+          content:
+            application/json:
+              schema: { $ref: "./components/stage_03_76.yaml#/PortfolioPositionsResponse" }
+              examples:
+                default: { $ref: "./examples/positions.json#/positionsResponse" }
         "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
+
+  /api/v1/portfolios/{portfolioId}/valuations/{ticker}:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+      - $ref: "#/components/parameters/PortfolioId"
+      - $ref: "#/components/parameters/Ticker"
+    put:
+      operationId: upsertManualValuation
+      summary: Set or replace the manual RUB valuation for an open portfolio position
+      description: >-
+        Persists current-state USER_SUPPLIED valuation input for the owned open position.
+        The input is never represented as an official, live, broker, MOEX, or provider quote.
+      tags: [Portfolios]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "./components/stage_03_76.yaml#/ManualValuationRequest" }
+            examples:
+              default: { $ref: "./examples/manual-valuations.json#/upsertRequest" }
+      responses:
+        "200":
+          description: Manual valuation persisted and the backend-derived current position projection returned.
+          headers:
+            X-Request-ID: { $ref: "./components/responses.yaml#/headers/RequestId" }
+            X-Trace-ID: { $ref: "./components/responses.yaml#/headers/TraceId" }
+          content:
+            application/json:
+              schema: { $ref: "./components/stage_03_76.yaml#/PortfolioPositionsResponse" }
+              examples:
+                default: { $ref: "./examples/manual-valuations.json#/upsertResponse" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
+    delete:
+      operationId: clearManualValuation
+      summary: Clear the current manual valuation for a portfolio ticker
+      description: >-
+        Idempotently removes the owned portfolio's current-state manual valuation for this ticker.
+        Repeating the request is safe and stale valuation state may be cleared after a full position close.
+      tags: [Portfolios]
+      responses:
+        "200":
+          description: Manual valuation cleared or already absent; current position projection returned.
+          headers:
+            X-Request-ID: { $ref: "./components/responses.yaml#/headers/RequestId" }
+            X-Trace-ID: { $ref: "./components/responses.yaml#/headers/TraceId" }
+          content:
+            application/json:
+              schema: { $ref: "./components/stage_03_76.yaml#/PortfolioPositionsResponse" }
+              examples:
+                default: { $ref: "./examples/manual-valuations.json#/clearResponse" }
         "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
         "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
 
@@ -836,11 +903,15 @@ components:
     Transaction: { $ref: "./components/schemas.yaml#/Transaction" }
     TransactionType: { $ref: "./components/schemas.yaml#/TransactionType" }
     PortfolioSummary: { $ref: "./components/schemas.yaml#/PortfolioSummary" }
-    MarketValuationUnavailable: { $ref: "./components/schemas.yaml#/MarketValuationUnavailable" }
-    PortfolioPositionProjection: { $ref: "./components/schemas.yaml#/PortfolioPositionProjection" }
-    PortfolioPositionsCalculation: { $ref: "./components/schemas.yaml#/PortfolioPositionsCalculation" }
-    PortfolioPositionsProjection: { $ref: "./components/schemas.yaml#/PortfolioPositionsProjection" }
-    PortfolioPositionsResponse: { $ref: "./components/schemas.yaml#/PortfolioPositionsResponse" }
+    ManualValuationRequest: { $ref: "./components/stage_03_76.yaml#/ManualValuationRequest" }
+    MarketValuationUnavailable: { $ref: "./components/stage_03_76.yaml#/MarketValuationUnavailable" }
+    MarketValuationAvailable: { $ref: "./components/stage_03_76.yaml#/MarketValuationAvailable" }
+    MarketValuation: { $ref: "./components/stage_03_76.yaml#/MarketValuation" }
+    PortfolioPositionProjection: { $ref: "./components/stage_03_76.yaml#/PortfolioPositionProjection" }
+    PortfolioValuationSummary: { $ref: "./components/stage_03_76.yaml#/PortfolioValuationSummary" }
+    PortfolioPositionsCalculation: { $ref: "./components/stage_03_76.yaml#/PortfolioPositionsCalculation" }
+    PortfolioPositionsProjection: { $ref: "./components/stage_03_76.yaml#/PortfolioPositionsProjection" }
+    PortfolioPositionsResponse: { $ref: "./components/stage_03_76.yaml#/PortfolioPositionsResponse" }
     PortfolioCashFlowTotals: { $ref: "./components/schemas.yaml#/PortfolioCashFlowTotals" }
     PortfolioCashFlowPeriod: { $ref: "./components/schemas.yaml#/PortfolioCashFlowPeriod" }
     PortfolioCashFlowCalculation: { $ref: "./components/schemas.yaml#/PortfolioCashFlowCalculation" }

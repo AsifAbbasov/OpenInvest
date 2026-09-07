@@ -1,22 +1,29 @@
 import type { ApiResult, PortfolioPositionsProjection } from "@/common/api/openinvest";
 import { formatMoney, formatQuantityForDisplay, formatRatioAsPercent } from "@/common/presentation/format";
+import { ManualValuationCell } from "@/features/portfolio/components/ManualValuationCell";
 
 type PositionsBlockProps = {
   result: ApiResult<PortfolioPositionsProjection> | null;
   viewMode: "current" | "historical";
   historicalDate: string;
+  accessToken: string | null;
+  portfolioId: string;
   onShowCurrent: () => void;
   onShowHistorical: () => void;
   onHistoricalDateChange: (value: string) => void;
+  onValuationChanged: () => Promise<void>;
 };
 
 export function PositionsBlock({
   result,
   viewMode,
   historicalDate,
+  accessToken,
+  portfolioId,
   onShowCurrent,
   onShowHistorical,
   onHistoricalDateChange,
+  onValuationChanged,
 }: PositionsBlockProps) {
   const historicalSelectionPending = viewMode === "historical" && historicalDate === "";
   const heading = viewMode === "historical" && historicalDate !== "" ? `Portfolio on ${historicalDate}` : "Positions";
@@ -25,7 +32,7 @@ export function PositionsBlock({
     <section className="panel" aria-label="Portfolio positions">
       <div className="section-heading positions-heading">
         <div>
-          <p className="eyebrow">{viewMode === "historical" ? "Portfolio time machine" : "Cost basis view"}</p>
+          <p className="eyebrow">{viewMode === "historical" ? "Portfolio time machine" : "Cost basis and manual valuation"}</p>
           <h2>{heading}</h2>
         </div>
         {result?.ok ? (
@@ -60,11 +67,26 @@ export function PositionsBlock({
 
       <p id="portfolio-time-machine-status" className="muted">
         {viewMode === "current"
-          ? "Viewing the latest accepted ledger projection. Current is not a wall-clock market valuation."
+          ? "Viewing the latest accepted ledger projection. Current is not a wall-clock market valuation. Manual prices are explicit user-supplied valuation inputs, not live quotes."
           : historicalDate === ""
             ? "Choose a historical BusinessDate to reconstruct positions from the immutable ledger."
-            : `Viewing portfolio as of ${historicalDate}.`}
+            : `Viewing portfolio as of ${historicalDate}. Manual valuation is shown only for an exact matching price date and position lifecycle.`}
       </p>
+
+      {result?.ok && viewMode === "current" ? (
+        <div className="panel" aria-label="Manual valuation coverage">
+          <p className="eyebrow">Manual valuation coverage</p>
+          <strong>
+            {result.data.valuationSummary.valuedPositions} / {result.data.valuationSummary.totalOpenPositions} positions valued · {result.data.valuationSummary.status}
+          </strong>
+          <p>Cash: {formatMoney(result.data.valuationSummary.cashValue)}</p>
+          <p>
+            Current portfolio value: {result.data.valuationSummary.currentPortfolioValue
+              ? formatMoney(result.data.valuationSummary.currentPortfolioValue)
+              : "Unavailable until every open position has a manual valuation"}
+          </p>
+        </div>
+      ) : null}
 
       {result === null && !historicalSelectionPending ? (
         <p className="muted">
@@ -116,7 +138,17 @@ export function PositionsBlock({
                     <td>{formatMoney(item.acquisitionBasis)}</td>
                     <td>{formatRatioAsPercent(item.acquisitionBasisWeight)}</td>
                     <td>
-                      <span className="market-unavailable">Market valuation unavailable</span>
+                      {viewMode === "historical" && item.marketValuation.status === "UNAVAILABLE" ? (
+                        <span className="market-unavailable">Market valuation unavailable</span>
+                      ) : (
+                        <ManualValuationCell
+                          accessToken={accessToken}
+                          portfolioId={portfolioId}
+                          item={item}
+                          viewMode={viewMode}
+                          onChanged={onValuationChanged}
+                        />
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -135,7 +167,17 @@ export function PositionsBlock({
                 <PositionCardRow label="Average acquisition price" value={formatMoney(item.weightedAverageCost)} />
                 <PositionCardRow label="Acquisition basis" value={formatMoney(item.acquisitionBasis)} />
                 <PositionCardRow label="Acquisition-basis weight" value={formatRatioAsPercent(item.acquisitionBasisWeight)} />
-                <span className="market-unavailable">Market valuation unavailable</span>
+                {viewMode === "historical" && item.marketValuation.status === "UNAVAILABLE" ? (
+                  <span className="market-unavailable">Market valuation unavailable</span>
+                ) : (
+                  <ManualValuationCell
+                    accessToken={accessToken}
+                    portfolioId={portfolioId}
+                    item={item}
+                    viewMode={viewMode}
+                    onChanged={onValuationChanged}
+                  />
+                )}
               </article>
             ))}
           </div>

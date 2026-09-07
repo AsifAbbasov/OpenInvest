@@ -1,0 +1,201 @@
+ManualValuationRequest:
+  type: object
+  additionalProperties: false
+  required: [marketPrice, asOfDate]
+  properties:
+    marketPrice:
+      $ref: "./schemas.yaml#/PositiveMoney"
+      description: User-supplied RUB price. This is not an official, live, broker, or provider quote.
+    asOfDate:
+      $ref: "./schemas.yaml#/BusinessDate"
+      description: Explicit BusinessDate supplied by the user for this manual price.
+
+MarketValuationUnavailable:
+  type: object
+  additionalProperties: false
+  required:
+    [status, reason, source, marketPrice, marketValue, unrealizedGain, unrealizedReturn, marketWeight, provider, asOf]
+  properties:
+    status:
+      type: string
+      const: UNAVAILABLE
+    reason:
+      type: string
+      const: NO_APPROVED_MARKET_PRICE_SOURCE
+    source:
+      type: "null"
+    marketPrice:
+      type: "null"
+    marketValue:
+      type: "null"
+    unrealizedGain:
+      type: "null"
+    unrealizedReturn:
+      type: "null"
+    marketWeight:
+      type: "null"
+    provider:
+      type: "null"
+    asOf:
+      type: "null"
+
+MarketValuationAvailable:
+  type: object
+  additionalProperties: false
+  required:
+    [status, reason, source, marketPrice, marketValue, unrealizedGain, unrealizedReturn, marketWeight, provider, asOf]
+  properties:
+    status:
+      type: string
+      const: AVAILABLE
+    reason:
+      type: "null"
+    source:
+      type: string
+      const: USER_SUPPLIED
+    marketPrice:
+      $ref: "./schemas.yaml#/PositiveMoney"
+    marketValue:
+      $ref: "./schemas.yaml#/NonNegativeMoney"
+    unrealizedGain:
+      $ref: "./schemas.yaml#/Money"
+    unrealizedReturn:
+      oneOf:
+        - $ref: "./schemas.yaml#/Decimal"
+        - type: "null"
+      description: Backend-calculated unrealized gain divided by acquisition basis; null only when the basis is zero.
+    marketWeight:
+      oneOf:
+        - allOf:
+            - $ref: "./schemas.yaml#/NonNegativeDecimal"
+            - pattern: "^(0(\\.[0-9]{1,8})?|1(\\.0{1,8})?)$"
+        - type: "null"
+      description: Backend-calculated allocation among valued positions; null when aggregate valued market value is zero.
+    provider:
+      type: "null"
+      description: Manual valuation is not attributed to an external market-data provider.
+    asOf:
+      $ref: "./schemas.yaml#/BusinessDate"
+
+MarketValuation:
+  oneOf:
+    - $ref: "#/MarketValuationUnavailable"
+    - $ref: "#/MarketValuationAvailable"
+
+PortfolioPositionProjection:
+  type: object
+  additionalProperties: false
+  required:
+    - ticker
+    - assetType
+    - quantity
+    - weightedAverageCost
+    - acquisitionBasis
+    - acquisitionBasisWeight
+    - marketValuation
+  properties:
+    ticker:
+      type: string
+      pattern: "^[A-Z0-9]{1,32}$"
+    assetType:
+      $ref: "./schemas.yaml#/AssetType"
+    quantity:
+      $ref: "./schemas.yaml#/PositiveDecimal"
+    weightedAverageCost:
+      $ref: "./schemas.yaml#/PositiveMoney"
+      description: Authoritative Stage 3.71 weighted-average acquisition price; never re-derived from acquisitionBasis.
+    acquisitionBasis:
+      $ref: "./schemas.yaml#/NonNegativeMoney"
+      description: Remaining RUB trade-price acquisition basis only; not market value or tax basis.
+    acquisitionBasisWeight:
+      oneOf:
+        - allOf:
+            - $ref: "./schemas.yaml#/NonNegativeDecimal"
+            - pattern: "^(0(\\.[0-9]{1,8})?|1(\\.0{1,8})?)$"
+        - type: "null"
+      description: Backend-calculated acquisition-basis allocation in the inclusive range 0..1; not market allocation.
+    marketValuation:
+      $ref: "#/MarketValuation"
+
+PortfolioValuationSummary:
+  type: object
+  additionalProperties: false
+  required:
+    - status
+    - valuedPositions
+    - totalOpenPositions
+    - valuedPositionsMarketValue
+    - valuedPositionsAcquisitionBasis
+    - totalAcquisitionBasis
+    - unrealizedGain
+    - cashValue
+    - currentPortfolioValue
+  properties:
+    status:
+      type: string
+      enum: [PARTIAL, COMPLETE]
+    valuedPositions:
+      type: integer
+      minimum: 0
+    totalOpenPositions:
+      type: integer
+      minimum: 0
+    valuedPositionsMarketValue:
+      $ref: "./schemas.yaml#/NonNegativeMoney"
+      description: Sum of backend-derived market values for positions with eligible manual valuations only.
+    valuedPositionsAcquisitionBasis:
+      $ref: "./schemas.yaml#/NonNegativeMoney"
+    totalAcquisitionBasis:
+      $ref: "./schemas.yaml#/NonNegativeMoney"
+    unrealizedGain:
+      $ref: "./schemas.yaml#/Money"
+      description: Aggregate unrealized gain/loss over valued positions only.
+    cashValue:
+      $ref: "./schemas.yaml#/Money"
+      description: Canonical effective-ledger cash under the same position cutoff semantics.
+    currentPortfolioValue:
+      oneOf:
+        - $ref: "./schemas.yaml#/Money"
+        - type: "null"
+      description: Cash plus valued-position market value only when every open position is valued; otherwise null.
+
+PortfolioPositionsCalculation:
+  type: object
+  additionalProperties: false
+  required: [methodologyVersion, inputsAsOf]
+  properties:
+    methodologyVersion:
+      type: string
+      const: portfolio-position-projection-v2-manual-valuation
+    inputsAsOf:
+      oneOf:
+        - $ref: "./schemas.yaml#/BusinessDate"
+        - type: "null"
+      description: >-
+        Requested asOfDate when supplied; otherwise the maximum included position-affecting
+        ledger tradeDate, or null when no position-affecting ledger row exists.
+
+PortfolioPositionsProjection:
+  type: object
+  additionalProperties: false
+  required: [items, totalAcquisitionBasis, valuationSummary, calculation]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: "#/PortfolioPositionProjection"
+      description: Open positions only, ordered by ticker ASC.
+    totalAcquisitionBasis:
+      $ref: "./schemas.yaml#/NonNegativeMoney"
+    valuationSummary:
+      $ref: "#/PortfolioValuationSummary"
+    calculation:
+      $ref: "#/PortfolioPositionsCalculation"
+
+PortfolioPositionsResponse:
+  allOf:
+    - $ref: "./schemas.yaml#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/PortfolioPositionsProjection"

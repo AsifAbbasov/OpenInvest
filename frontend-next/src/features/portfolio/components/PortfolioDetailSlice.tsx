@@ -257,9 +257,12 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
         result={visiblePositions}
         viewMode={positionViewMode}
         historicalDate={historicalDate}
+        accessToken={accessToken}
+        portfolioId={portfolioId}
         onShowCurrent={showCurrentPositions}
         onShowHistorical={showHistoricalPositions}
         onHistoricalDateChange={changeHistoricalDate}
+        onValuationChanged={refreshAfterLedgerMutation}
       />
 
       {positionViewMode === "current" ? <CashFlowIncomeBlock result={state?.cashFlow ?? null} /> : null}
