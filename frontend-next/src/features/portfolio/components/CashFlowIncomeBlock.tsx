@@ -39,15 +39,23 @@ export function CashFlowIncomeBlock({ result }: CashFlowIncomeBlockProps) {
         <span className="muted">{projection.calculation.methodologyVersion}</span>
       </div>
       <p className="muted">
-        Recorded RUB cash movements from the immutable effective ledger. These figures are not portfolio performance,
-        market return, or tax advice.
+        Recorded RUB cash movements from the immutable effective ledger. Gross dividends/coupons are shown before
+        deductions recorded on those income rows. Net investment income uses only DIVIDEND/COUPON gross amounts and
+        their own recorded commission/tax; unrelated trade or standalone expenses affect net cash instead. These figures
+        are not portfolio performance, market return, or tax advice.
+      </p>
+      <p className="muted">
+        With no date filter, the canonical current projection includes all accepted effective-ledger rows, including
+        accepted future-dated rows.
       </p>
 
       <div className="metric-grid">
         <CashMetric label="Deposits" value={formatMoney(totals.deposits)} />
         <CashMetric label="Withdrawals" value={formatMoney(totals.withdrawals)} />
-        <CashMetric label="Dividends" value={formatMoney(totals.dividendsGross)} />
-        <CashMetric label="Coupons" value={formatMoney(totals.couponsGross)} />
+        <CashMetric label="BUY outflows" value={formatMoney(totals.buyOutflows)} />
+        <CashMetric label="SELL inflows" value={formatMoney(totals.sellInflows)} />
+        <CashMetric label="Gross dividends" value={formatMoney(totals.dividendsGross)} />
+        <CashMetric label="Gross coupons" value={formatMoney(totals.couponsGross)} />
         <CashMetric label="Fees" value={formatMoney(totals.fees)} />
         <CashMetric label="Taxes" value={formatMoney(totals.taxes)} />
         <CashMetric label="Net external flow" value={formatMoney(totals.netExternalFlow)} />
@@ -65,8 +73,10 @@ export function CashFlowIncomeBlock({ result }: CashFlowIncomeBlockProps) {
                 <th>Month</th>
                 <th>Deposits</th>
                 <th>Withdrawals</th>
-                <th>Dividends</th>
-                <th>Coupons</th>
+                <th>BUY outflows</th>
+                <th>SELL inflows</th>
+                <th>Gross dividends</th>
+                <th>Gross coupons</th>
                 <th>Fees</th>
                 <th>Taxes</th>
                 <th>Net cash</th>
@@ -78,6 +88,8 @@ export function CashFlowIncomeBlock({ result }: CashFlowIncomeBlockProps) {
                   <td>{period.month}</td>
                   <td>{formatMoney(period.totals.deposits)}</td>
                   <td>{formatMoney(period.totals.withdrawals)}</td>
+                  <td>{formatMoney(period.totals.buyOutflows)}</td>
+                  <td>{formatMoney(period.totals.sellInflows)}</td>
                   <td>{formatMoney(period.totals.dividendsGross)}</td>
                   <td>{formatMoney(period.totals.couponsGross)}</td>
                   <td>{formatMoney(period.totals.fees)}</td>
