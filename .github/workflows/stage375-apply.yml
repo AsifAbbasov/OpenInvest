@@ -22,7 +22,7 @@ jobs:
           python3 scripts/stage375_apply.py
       - name: Remove one-shot applicator and commit product diff
         run: |
-          git rm .github/workflows/stage375-apply.yml scripts/stage375_apply.py scripts/stage375_repair_applicator.py
+          git rm -f .github/workflows/stage375-apply.yml scripts/stage375_apply.py scripts/stage375_repair_applicator.py
           git add README.md docs openapi backend-go frontend-next
           git diff --cached --check
           git config user.name "github-actions[bot]"
