@@ -378,6 +378,11 @@ func (v *validator) validateFinancialGuardVectors() {
 	v.rejectVector("PortfolioPositionProjection.acquisitionBasisWeight above one", "1.00000001", positionProjection["acquisitionBasisWeight"], schemasPath)
 	v.rejectNegativeFields("DividendEvent", schemas["DividendEvent"], []string{"amountPerUnit"}, negativeMoney, schemasPath)
 	v.rejectNegativeFields("PortfolioSummary", schemas["PortfolioSummary"], []string{"stockValue", "bondValue", "investedCapital", "dividendsReceived", "couponsReceived"}, negativeMoney, schemasPath)
+	cashFlowTotals := asMap(asMap(schemas["PortfolioCashFlowTotals"])["properties"])
+	v.rejectNegativeFields("PortfolioCashFlowTotals", schemas["PortfolioCashFlowTotals"], []string{"deposits", "withdrawals", "buyOutflows", "sellInflows", "dividendsGross", "couponsGross", "fees", "taxes"}, negativeMoney, schemasPath)
+	for _, field := range []string{"netExternalFlow", "netInvestmentIncome", "netCashFlow"} {
+		v.acceptVector("PortfolioCashFlowTotals."+field+" negative", negativeMoney, cashFlowTotals[field], schemasPath)
+	}
 	v.rejectNegativeFields("PortfolioSnapshot", schemas["PortfolioSnapshot"], []string{"stockValue", "bondValue", "investedCapital"}, negativeMoney, schemasPath)
 	v.rejectNegativeFields("Dashboard", schemas["Dashboard"], []string{"dividendsReceived", "expectedDividends"}, negativeMoney, schemasPath)
 
@@ -408,6 +413,12 @@ func (v *validator) rejectNegativeFields(schemaName string, schema any, fields [
 func (v *validator) rejectVector(name string, value any, schema any, schemaPath string) {
 	if v.schemaMatches(value, schema, schemaPath) {
 		v.errors = append(v.errors, "invalid financial vector accepted: "+name)
+	}
+}
+
+func (v *validator) acceptVector(name string, value any, schema any, schemaPath string) {
+	if !v.schemaMatches(value, schema, schemaPath) {
+		v.errors = append(v.errors, "valid financial vector rejected: "+name)
 	}
 }
 
