@@ -153,4 +153,33 @@ Active lifecycle registries remain unchanged until Stage 3.76 is protected-merge
 
 The build environment could not clone GitHub because DNS resolution for `github.com` failed. No claim of local `pnpm verify`, Go tests, frontend build, or PostgreSQL integration execution is made. Deterministic candidate identity plus static/manual checks are used before publication; the full repository gates must run in GitHub CI on the exact published head.
 
-Internal review evidence is intentionally withheld from this dossier until after fresh External published-head review, per `docs/REVIEW_WORKFLOW.md`.
+## Review evidence
+
+Internal review evidence was withheld from the Draft PR until after the fresh External published-head review, as required by `docs/REVIEW_WORKFLOW.md`.
+
+### Corrected Internal review
+
+- frozen corrected candidate tree: `781f14e38e28550a16e1105999f2b63f6176eacd`;
+- changed paths reviewed: 25/25, no sampling;
+- financial formulas, lifecycle generation, historical exact-date semantics, ownership/anti-enumeration, OpenAPI/runtime alignment, frontend server-owned arithmetic boundary, migration governance and explicit non-scope: PASS;
+- blocking findings: 0;
+- reviewer edits during the review phase: 0;
+- verdict: `APPROVED`.
+
+Human commit/push permission was obtained after that corrected Internal review. The exact reviewed tree was then published as commit `14a824b6959329e6e10d0336ec12a864f1cbbfea` on PR #155.
+
+### Exact-head CI
+
+GitHub Actions CI run #465 (`34169041943`) executed against exact published head `14a824b6959329e6e10d0336ec12a864f1cbbfea` and completed `SUCCESS` with 10/10 jobs successful: Go tests, Python tests, Frontend build and typecheck, OpenAPI contract, Docker Compose config, PostgreSQL migration validation, Go vet, Go race tests, Go vulnerability scan, and Dependency security scan.
+
+### Fresh External review
+
+The published 25-file diff was reviewed independently from canonical base `e7c15c6587f114abc9eb9e601dd060b8e720c100` without using the Internal-review verdict or findings as evidence.
+
+The first External pass found no blocking runtime/code defect but returned `REQUEST CHANGES` because the PR description still identified the superseded pre-correction commit/tree/manifest. That governance finding was published in PR comment `5576561274`.
+
+The PR description was then corrected as metadata only: it now identifies published head `14a824b6959329e6e10d0336ec12a864f1cbbfea`, tree `781f14e38e28550a16e1105999f2b63f6176eacd`, does not reuse the superseded manifest hash, and records exact-head CI run #465. No repository file, commit, branch ref, candidate tree, or changed-file surface changed during that metadata correction.
+
+Fresh External re-review confirmed no code/head drift, 25/25 changed paths, exact-head CI `SUCCESS`, zero blocking findings, and verdict `APPROVED`. The approval evidence is published in PR comment `5576571231`.
+
+Stage 3.76 remains a Draft implementation candidate and non-canonical until the remaining human Ready and protected squash-merge gates are completed. Stage 3.77+ remains not authorized.
