@@ -16,16 +16,17 @@ import {
   idempotencyIntentForBrowser,
   principalScopedIdempotencyScope,
 } from "@/common/api/idempotency";
+import { useAuth } from "@/features/auth/components/AuthShell";
 
 type Props = {
   accessToken: string;
-  principalId: string;
   portfolioId: string;
   transaction: Transaction;
   onMutated: () => Promise<void>;
 };
 
-export function TransactionRepairControls({ accessToken, principalId, portfolioId, transaction, onMutated }: Props) {
+export function TransactionRepairControls({ accessToken, portfolioId, transaction, onMutated }: Props) {
+  const { principalId } = useAuth();
   const correctionIntentRef = useRef(emptyIdempotencyIntent);
   const reversalIntentRef = useRef(emptyIdempotencyIntent);
   const [mode, setMode] = useState<"edit" | "reverse" | null>(null);
