@@ -36,7 +36,6 @@ jobs:
                   raise SystemExit(f"missing expected anchor: {label}")
               return new
 
-          # Move all active next-gate metadata beyond the now-canonical Stage 3.74.
           for path in [
               "docs/ROADMAP.md",
               "docs/SOURCE_OF_TRUTH.md",
@@ -49,7 +48,6 @@ jobs:
               text = read(path).replace("Stage 3.74+", "Stage 3.75+")
               write(path, text)
 
-          # README product frontier + evidence.
           path = "README.md"
           text = read(path)
           text = sub_required(
@@ -66,7 +64,6 @@ jobs:
           )
           write(path, text)
 
-          # Source of Truth frontiers.
           path = "docs/SOURCE_OF_TRUTH.md"
           text = read(path)
           text = sub_required(
@@ -89,7 +86,6 @@ jobs:
           )
           write(path, text)
 
-          # Roadmap row.
           path = "docs/ROADMAP.md"
           text = read(path)
           text = sub_required(
@@ -100,7 +96,6 @@ jobs:
           )
           write(path, text)
 
-          # Document index row.
           path = "docs/DOCUMENT_INDEX.md"
           text = read(path)
           text = sub_required(
@@ -111,7 +106,6 @@ jobs:
           )
           write(path, text)
 
-          # Implementation log stage summary + row.
           path = "docs/IMPLEMENTATION_LOG.md"
           text = read(path)
           text = sub_required(
@@ -128,7 +122,6 @@ jobs:
           )
           write(path, text)
 
-          # Stage implementation dossier becomes factual post-merge evidence.
           path = "docs/stages/STAGE_03_74_TRANSACTION_CORRECTION_REVERSAL_IMPLEMENTATION.md"
           text = read(path)
           text = sub_required(
@@ -146,7 +139,6 @@ jobs:
               text += f"\n\n## Post-merge lifecycle closure\n\nStage 3.74 passed final implementation review and exact-head CI #435 / run `{RUN}` with all 10 required jobs SUCCESS on `{HEAD}`. After explicit human authorization, PR #150 was squash-merged into protected `develop` at `{MERGE}`. The merge preserves the immutable financial-ledger model: correction appends revisions, reversal appends a separate immutable reversal row, Stage 3.71 remains the sole WAC/acquisition-basis engine, and Stage 3.72/3.73 consume deterministic effective-ledger truth.\n\nThe final review also records the defects closed before merge: corrected-command responses expose `CORRECTED`, snapshot overflow preserves canonical `ErrInvalidInput`, replay witnesses use valid request/trace metadata, frontend assertions are robust, browser retries preserve principal-scoped idempotency identity, and dedicated HTTP witnesses cover PATCH/DELETE routing, DTOs, stale-revision 409 mapping and required nested settlement-date semantics.\n\nThis post-merge closure changes no runtime behavior, database schema, provider activation, production deployment, paid infrastructure or later-stage authorization. Stage 3.74 is COMPLETE / CANONICAL; the next product/runtime gate is Stage 3.75+.\n"
           write(path, text)
 
-          # Changelog gets an explicit final Stage 3.74 entry at the front of history.
           path = "docs/CHANGELOG.md"
           text = read(path)
           marker = "## 2026-09-07 — Stage 3.74 transaction correction/reversal canonical and documentation synchronized"
@@ -158,25 +150,19 @@ jobs:
               text = text[:insert_at] + block + text[insert_at:]
           write(path, text)
 
-          # Version matrix gets an explicit current stage record without altering historical rows.
           path = "docs/VERSION_MATRIX.md"
           text = read(path)
           marker = "Stage 3.74 Transaction Correction & Reversal / Ledger Repair UX"
           if marker not in text:
-              insert_at = text.find("\n## ")
-              if insert_at < 0:
-                  raise SystemExit("VERSION_MATRIX has no section anchor")
-              block = f"\n\n## Stage 3.74 current implementation authority\n\n| Scope | Authority | Evidence |\n| --- | --- | --- |\n| {marker} | COMPLETE / CANONICAL | PR #150; final head `{HEAD}`; CI #435 / run `{RUN}` 10/10 SUCCESS; protected squash merge `{MERGE}` |\n"
-              text = text[:insert_at] + block + text[insert_at:]
+              block = f"\n\nStage 3.74 current implementation authority\n\n| Scope | Authority | Evidence |\n| --- | --- | --- |\n| {marker} | COMPLETE / CANONICAL | PR #150; final head `{HEAD}`; CI #435 / run `{RUN}` 10/10 SUCCESS; protected squash merge `{MERGE}` |\n"
+              text = text.rstrip() + block + "\n"
           write(path, text)
 
-          # Open Questions: Stage 3.74 is no longer future work.
           path = "docs/OPEN_QUESTIONS.md"
           text = read(path)
           text = text.replace("Stage 3.73 is the last documentation-closed implementation stage", "Stage 3.74 is the last documentation-closed implementation stage")
           write(path, text)
 
-          # Reconciliation history remains historical, but records subsequent Stage 3.74 completion.
           path = "docs/governance/REPOSITORY_DOCUMENTATION_RECONCILIATION.md"
           text = read(path)
           old = "This reconciliation remains the historical canonical synchronization baseline through Stage 3.72. Stage 3.73 subsequently became COMPLETE / CANONICAL through PR #148 squash merge `683f9c4647f888bb3dbdfb9dd365b84b95137b46` after exact-head CI #424; no Stage 3.74 work is implied by this historical reconciliation or by the Stage 3.73 closure. Any new product/runtime stage must be separately planned and reviewed."
@@ -187,7 +173,6 @@ jobs:
               raise SystemExit("missing governance reconciliation next-gate anchor")
           write(path, text)
 
-          # Guard final scope before commit.
           import subprocess
           changed = subprocess.check_output(["git", "diff", "--name-only"], text=True).splitlines()
           allowed = {"README.md"}
