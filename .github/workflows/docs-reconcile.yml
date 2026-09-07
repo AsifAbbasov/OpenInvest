@@ -1,0 +1,38 @@
+name: Documentation reconciliation applicator
+
+on:
+  push:
+    branches:
+      - docs/repository-documentation-reconciliation
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    if: ${{ !contains(github.event.head_commit.message, 'docs: reconcile repository documentation through Stage 3.72') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: docs/repository-documentation-reconciliation
+          fetch-depth: 0
+      - name: Apply exact documentation reconciliation
+        run: python3 scripts/docs-reconcile.py
+      - name: Verify runtime scope is untouched
+        run: |
+          changed="$(git diff --name-only)"
+          echo "$changed"
+          test -n "$changed"
+          if echo "$changed" | grep -Ev '^(README\.md|docs/|scripts/docs-reconcile\.py|\.github/workflows/docs-reconcile\.yml)$'; then
+            echo 'Unexpected non-documentation path changed' >&2
+            exit 1
+          fi
+      - name: Commit reconciled documentation
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'docs: reconcile repository documentation through Stage 3.72'
+          git push origin HEAD:docs/repository-documentation-reconciliation
