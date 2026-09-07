@@ -1,0 +1,71 @@
+{
+  "positionsResponse": {
+    "value": {
+      "data": {
+        "items": [
+          {
+            "ticker": "GAZP",
+            "assetType": "STOCK",
+            "quantity": "1.00000000",
+            "weightedAverageCost": {
+              "amount": "79328.77813505",
+              "currency": "RUB"
+            },
+            "acquisitionBasis": {
+              "amount": "79328.77813505",
+              "currency": "RUB"
+            },
+            "acquisitionBasisWeight": "0.65790000",
+            "marketValuation": {
+              "status": "UNAVAILABLE",
+              "reason": "NO_APPROVED_MARKET_PRICE_SOURCE",
+              "marketPrice": null,
+              "marketValue": null,
+              "unrealizedGain": null,
+              "marketWeight": null,
+              "provider": null,
+              "asOf": null
+            }
+          },
+          {
+            "ticker": "SBER",
+            "assetType": "STOCK",
+            "quantity": "150.00000000",
+            "weightedAverageCost": {
+              "amount": "275.00000000",
+              "currency": "RUB"
+            },
+            "acquisitionBasis": {
+              "amount": "41250.00000000",
+              "currency": "RUB"
+            },
+            "acquisitionBasisWeight": "0.34210000",
+            "marketValuation": {
+              "status": "UNAVAILABLE",
+              "reason": "NO_APPROVED_MARKET_PRICE_SOURCE",
+              "marketPrice": null,
+              "marketValue": null,
+              "unrealizedGain": null,
+              "marketWeight": null,
+              "provider": null,
+              "asOf": null
+            }
+          }
+        ],
+        "totalAcquisitionBasis": {
+          "amount": "120578.77813505",
+          "currency": "RUB"
+        },
+        "calculation": {
+          "methodologyVersion": "portfolio-position-projection-v1",
+          "inputsAsOf": "2026-09-03"
+        }
+      },
+      "meta": {
+        "requestId": "10000000-0000-4000-8000-000000000372",
+        "traceId": "10000000000000000000000000000372",
+        "generatedAt": "2026-09-07T00:00:00Z"
+      }
+    }
+  }
+}

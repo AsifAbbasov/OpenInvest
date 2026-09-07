@@ -5,11 +5,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   getPortfolio,
+  getPortfolioPositions,
   getPortfolioSummary,
   listTransactions,
   type ApiResult,
   type ListData,
   type Portfolio,
+  type PortfolioPositionsProjection,
   type PortfolioSummary,
   type Transaction,
 } from "@/common/api/openinvest";
@@ -17,6 +19,7 @@ import { formatMoney, formatNullableDecimal } from "@/common/presentation/format
 import { useAuth } from "@/features/auth/components/AuthShell";
 import { AddTransactionForm } from "@/features/portfolio/components/AddTransactionForm";
 import { ImportUploadReviewPanel } from "@/features/portfolio/components/ImportUploadReviewPanel";
+import { PositionsBlock } from "@/features/portfolio/components/PositionsBlock";
 import { shouldCommitPortfolioLoad, startPortfolioLoad, type PortfolioLoadGuardState } from "@/features/portfolio/loadGuard";
 
 type PortfolioDetailSliceProps = {
@@ -26,6 +29,7 @@ type PortfolioDetailSliceProps = {
 type PortfolioDetailState = {
   portfolio: ApiResult<Portfolio>;
   summary: ApiResult<PortfolioSummary>;
+  positions: ApiResult<PortfolioPositionsProjection>;
   transactions: ApiResult<ListData<Transaction>>;
 };
 
@@ -35,23 +39,30 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
   const [isLoadingMoreTransactions, setIsLoadingMoreTransactions] = useState(false);
   const [moreTransactionsError, setMoreTransactionsError] = useState<string | null>(null);
   const loadGuard = useRef<PortfolioLoadGuardState>({ generation: 0, accessToken });
+  const loadIdentity = useRef({ principalId, portfolioId });
   loadGuard.current.accessToken = accessToken;
+  loadIdentity.current = { principalId, portfolioId };
 
   const load = useCallback(async () => {
+    const principalAtLoad = principalId;
+    const portfolioAtLoad = portfolioId;
     const { state: nextGuard, attempt } = startPortfolioLoad(loadGuard.current, loadGuard.current.accessToken);
     loadGuard.current = nextGuard;
     setState(null);
     setIsLoadingMoreTransactions(false);
     setMoreTransactionsError(null);
-    const [portfolio, summary, transactions] = await Promise.all([
+    const [portfolio, summary, positions, transactions] = await Promise.all([
       getPortfolio(portfolioId, { accessToken: attempt.accessToken }),
       getPortfolioSummary(portfolioId, { accessToken: attempt.accessToken }),
+      getPortfolioPositions(portfolioId, { accessToken: attempt.accessToken }),
       listTransactions(portfolioId, { accessToken: attempt.accessToken }),
     ]);
-    if (shouldCommitPortfolioLoad(loadGuard.current, attempt)) {
-      setState({ portfolio, summary, transactions });
+    const identityIsCurrent =
+      loadIdentity.current.principalId === principalAtLoad && loadIdentity.current.portfolioId === portfolioAtLoad;
+    if (shouldCommitPortfolioLoad(loadGuard.current, attempt) && identityIsCurrent) {
+      setState({ portfolio, summary, positions, transactions });
     }
-  }, [accessToken, portfolioId]);
+  }, [accessToken, principalId, portfolioId]);
 
   useEffect(() => {
     void load();
@@ -148,6 +159,8 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
           <p>{state.summary.message}</p>
         </section>
       ) : null}
+
+      <PositionsBlock result={state?.positions ?? null} />
 
       <AddTransactionForm accessToken={accessToken} principalId={principalId} portfolioId={portfolioId} onSaved={load} />
 

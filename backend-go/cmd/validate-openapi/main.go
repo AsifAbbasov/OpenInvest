@@ -34,6 +34,7 @@ var requiredOperations = map[string]string{
 	"PATCH /api/v1/portfolios/{portfolioId}":                               "updatePortfolio",
 	"DELETE /api/v1/portfolios/{portfolioId}":                              "deletePortfolio",
 	"GET /api/v1/portfolios/{portfolioId}/summary":                         "getPortfolioSummary",
+	"GET /api/v1/portfolios/{portfolioId}/positions":                       "getPortfolioPositions",
 	"GET /api/v1/portfolios/{portfolioId}/snapshots":                       "listPortfolioSnapshots",
 	"GET /api/v1/portfolios/{portfolioId}/transactions":                    "listTransactions",
 	"POST /api/v1/portfolios/{portfolioId}/transactions":                   "createTransaction",
@@ -52,7 +53,9 @@ var idempotentOperations = stringSet("createPortfolio", "deletePortfolio", "crea
 
 var requiredSchemas = []string{
 	"Money", "Decimal", "BusinessDate", "SystemTimestamp", "Asset", "AssetType", "Portfolio", "Transaction",
-	"TransactionType", "PortfolioSummary", "PortfolioSnapshot", "ImportReviewResult", "ImportAppendResult", "DividendEvent", "DividendCalculation",
+	"TransactionType", "PortfolioSummary", "PortfolioSnapshot", "MarketValuationUnavailable", "PortfolioPositionProjection",
+	"PortfolioPositionsCalculation", "PortfolioPositionsProjection", "PortfolioPositionsResponse", "ImportReviewResult", "ImportAppendResult",
+	"DividendEvent", "DividendCalculation",
 	"RealReturn", "PurchasingPower", "Pagination", "Error", "BaseResponse", "ErrorResponse",
 }
 
@@ -366,6 +369,10 @@ func (v *validator) validateFinancialGuardVectors() {
 	v.rejectNegativeFields("PurchasingPowerEquivalent", schemas["PurchasingPowerEquivalent"], []string{"quantity"}, negativeDecimal, schemasPath)
 	v.rejectNegativeFields("PortfolioPosition", schemas["PortfolioPosition"], []string{"quantity", "weight"}, negativeDecimal, schemasPath)
 	v.rejectNegativeFields("PortfolioPosition", schemas["PortfolioPosition"], []string{"weightedAverageCost", "marketPrice", "marketValue"}, negativeMoney, schemasPath)
+	v.rejectNegativeFields("PortfolioPositionProjection", schemas["PortfolioPositionProjection"], []string{"quantity", "acquisitionBasisWeight"}, negativeDecimal, schemasPath)
+	v.rejectNegativeFields("PortfolioPositionProjection", schemas["PortfolioPositionProjection"], []string{"weightedAverageCost", "acquisitionBasis"}, negativeMoney, schemasPath)
+	positionProjection := asMap(asMap(schemas["PortfolioPositionProjection"])["properties"])
+	v.rejectVector("PortfolioPositionProjection.acquisitionBasisWeight above one", "1.00000001", positionProjection["acquisitionBasisWeight"], schemasPath)
 	v.rejectNegativeFields("DividendEvent", schemas["DividendEvent"], []string{"amountPerUnit"}, negativeMoney, schemasPath)
 	v.rejectNegativeFields("PortfolioSummary", schemas["PortfolioSummary"], []string{"stockValue", "bondValue", "investedCapital", "dividendsReceived", "couponsReceived"}, negativeMoney, schemasPath)
 	v.rejectNegativeFields("PortfolioSnapshot", schemas["PortfolioSnapshot"], []string{"stockValue", "bondValue", "investedCapital"}, negativeMoney, schemasPath)

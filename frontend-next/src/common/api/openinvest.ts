@@ -212,6 +212,41 @@ export type ImportAppendPayload = ImportReviewPayload & {
 
 export type AssetType = "STOCK" | "BOND";
 
+export type MarketValuationUnavailable = {
+  status: "UNAVAILABLE";
+  reason: "NO_APPROVED_MARKET_PRICE_SOURCE";
+  marketPrice: null;
+  marketValue: null;
+  unrealizedGain: null;
+  marketWeight: null;
+  provider: null;
+  asOf: null;
+};
+
+export type PortfolioPositionProjection = {
+  ticker: string;
+  assetType: AssetType;
+  quantity: string;
+  weightedAverageCost: Money;
+  acquisitionBasis: Money;
+  acquisitionBasisWeight: string | null;
+  marketValuation: MarketValuationUnavailable;
+};
+
+export type PortfolioPositionsProjection = {
+  items: PortfolioPositionProjection[];
+  totalAcquisitionBasis: Money;
+  calculation: {
+    methodologyVersion: "portfolio-position-projection-v1";
+    inputsAsOf: string | null;
+  };
+};
+
+export type PortfolioPositionsRequestOptions = {
+  asOfDate?: string;
+  signal?: AbortSignal;
+};
+
 export type AssetSummary = {
   ticker: string;
   name: string;
@@ -466,6 +501,22 @@ export async function getPortfolioSummary(
   return request<PortfolioSummary>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/summary`, {
     headers: bearerHeaders(auth.accessToken),
   });
+}
+
+export async function getPortfolioPositions(
+  portfolioId: string,
+  auth: AuthenticatedRequest,
+  options: PortfolioPositionsRequestOptions = {},
+): Promise<ApiResult<PortfolioPositionsProjection>> {
+  const searchParams = new URLSearchParams();
+  if (options.asOfDate) {
+    searchParams.set("asOfDate", options.asOfDate);
+  }
+  const query = searchParams.toString();
+  return request<PortfolioPositionsProjection>(
+    `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/positions${query === "" ? "" : `?${query}`}`,
+    { headers: bearerHeaders(auth.accessToken), signal: options.signal },
+  );
 }
 
 export async function listTransactions(
