@@ -20,6 +20,7 @@ import { useAuth } from "@/features/auth/components/AuthShell";
 import { AddTransactionForm } from "@/features/portfolio/components/AddTransactionForm";
 import { ImportUploadReviewPanel } from "@/features/portfolio/components/ImportUploadReviewPanel";
 import { PositionsBlock } from "@/features/portfolio/components/PositionsBlock";
+import { TransactionRepairControls } from "@/features/portfolio/components/TransactionRepairControls";
 import { shouldCommitPortfolioLoad, startPortfolioLoad, type PortfolioLoadGuardState } from "@/features/portfolio/loadGuard";
 
 type PortfolioDetailSliceProps = {
@@ -295,6 +296,7 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
                   <th>Trade date</th>
                   <th>Amount</th>
                   <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -304,7 +306,15 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
                     <td>{transaction.ticker ?? "RUB cash"}</td>
                     <td>{transaction.tradeDate}</td>
                     <td>{formatMoney(transaction.grossAmount)}</td>
-                    <td>{transaction.status}</td>
+                    <td>{transaction.status}{transaction.revision > 1 ? ` · revision ${transaction.revision}` : ""}</td>
+                    <td>
+                      <TransactionRepairControls
+                        accessToken={accessToken}
+                        portfolioId={portfolioId}
+                        transaction={transaction}
+                        onMutated={refreshAfterLedgerMutation}
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>
