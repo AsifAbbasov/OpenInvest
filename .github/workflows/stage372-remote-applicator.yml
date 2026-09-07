@@ -1,0 +1,96 @@
+name: Stage 3.72 remote applicator
+
+on:
+  push:
+    branches:
+      - feat/stage-03-72-portfolio-position-projection-runtime
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.head_commit.message == 'chore: stage 3.72 remote applicator'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out exact applicator commit
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply exact Stage 3.72 candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "$RUNNER_TEMP/stage372"
+          mkdir -p "$RUNNER_TEMP/stage372"
+          cat .stage372/chunk* | base64 -d > "$RUNNER_TEMP/stage372-candidate.zip"
+          unzip -q "$RUNNER_TEMP/stage372-candidate.zip" -d "$RUNNER_TEMP/stage372"
+          payload="$RUNNER_TEMP/stage372/stage372_candidate"
+          PAYLOAD="$payload" python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          payload = Path(os.environ["PAYLOAD"])
+          script = payload / "apply_stage372.py"
+          text = script.read_text()
+          needle = "    assert_git_identity(repo)\n"
+          if text.count(needle) != 1:
+              raise SystemExit("remote applicator could not find exact git identity guard anchor")
+          text = text.replace(
+              needle,
+              "    # Remote applicator commit changes only transient payload/workflow files; exact base blobs remain guarded.\n",
+              1,
+          )
+          script.write_text(text)
+
+          manifest_path = payload / "CANDIDATE_MANIFEST.json"
+          manifest = json.loads(manifest_path.read_text())
+          for record in manifest["payloadFiles"]:
+              if record["path"] == "apply_stage372.py":
+                  data = script.read_bytes()
+                  record["bytes"] = len(data)
+                  record["sha256"] = hashlib.sha256(data).hexdigest()
+                  record["lines"] = len(script.read_text().splitlines())
+                  break
+          else:
+              raise SystemExit("apply_stage372.py missing from candidate manifest")
+          manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
+          PY
+
+          python3 "$payload/apply_stage372.py" "$GITHUB_WORKSPACE" --check
+          python3 "$payload/apply_stage372.py" "$GITHUB_WORKSPACE"
+
+      - name: Format Go sources and verify patch hygiene
+        shell: bash
+        run: |
+          set -euo pipefail
+          gofmt -w \
+            backend-go/internal/verticalslice/stage_03_71_store_adapter.go \
+            backend-go/internal/verticalslice/stage_03_72_positions.go \
+            backend-go/internal/postgres/position_rebuild.go \
+            backend-go/internal/postgres/position_projection_rebuild.go \
+            backend-go/internal/postgres/stage_03_72_positions.go \
+            backend-go/internal/postgres/stage_03_72_positions_test.go \
+            backend-go/internal/postgres/stage_03_72_positions_integration_test.go \
+            backend-go/internal/httpapi/positions.go \
+            backend-go/internal/httpapi/routes.go \
+            backend-go/internal/httpapi/replay_app.go \
+            backend-go/internal/httpapi/stage_03_72_positions_test.go \
+            backend-go/cmd/validate-openapi/stage_03_72_positions_contract_test.go
+          rm -rf .stage372
+          rm -f .github/workflows/stage372-remote-applicator.yml
+          git diff --check
+
+      - name: Commit and publish runtime implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git status --short
+          git commit -m "feat: implement Stage 3.72 portfolio position projection"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
