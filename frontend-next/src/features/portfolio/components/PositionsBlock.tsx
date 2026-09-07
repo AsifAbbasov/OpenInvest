@@ -3,15 +3,30 @@ import { formatMoney, formatQuantityForDisplay, formatRatioAsPercent } from "@/c
 
 type PositionsBlockProps = {
   result: ApiResult<PortfolioPositionsProjection> | null;
+  viewMode: "current" | "historical";
+  historicalDate: string;
+  onShowCurrent: () => void;
+  onShowHistorical: () => void;
+  onHistoricalDateChange: (value: string) => void;
 };
 
-export function PositionsBlock({ result }: PositionsBlockProps) {
+export function PositionsBlock({
+  result,
+  viewMode,
+  historicalDate,
+  onShowCurrent,
+  onShowHistorical,
+  onHistoricalDateChange,
+}: PositionsBlockProps) {
+  const historicalSelectionPending = viewMode === "historical" && historicalDate === "";
+  const heading = viewMode === "historical" && historicalDate !== "" ? `Portfolio on ${historicalDate}` : "Positions";
+
   return (
     <section className="panel" aria-label="Portfolio positions">
       <div className="section-heading positions-heading">
         <div>
-          <p className="eyebrow">Cost basis view</p>
-          <h2>Positions</h2>
+          <p className="eyebrow">{viewMode === "historical" ? "Portfolio time machine" : "Cost basis view"}</p>
+          <h2>{heading}</h2>
         </div>
         {result?.ok ? (
           <div className="positions-meta">
@@ -22,7 +37,42 @@ export function PositionsBlock({ result }: PositionsBlockProps) {
         ) : null}
       </div>
 
-      {result === null ? <p className="muted">Loading positions from the canonical ledger projection…</p> : null}
+      <div className="segmented-control" aria-label="Portfolio position date mode">
+        <button type="button" className={viewMode === "current" ? "active" : undefined} onClick={onShowCurrent}>
+          Current
+        </button>
+        <button type="button" className={viewMode === "historical" ? "active" : undefined} onClick={onShowHistorical}>
+          Historical
+        </button>
+      </div>
+
+      {viewMode === "historical" ? (
+        <label>
+          Historical date
+          <input
+            type="date"
+            value={historicalDate}
+            onChange={(event) => onHistoricalDateChange(event.target.value)}
+            aria-describedby="portfolio-time-machine-status"
+          />
+        </label>
+      ) : null}
+
+      <p id="portfolio-time-machine-status" className="muted">
+        {viewMode === "current"
+          ? "Viewing the latest accepted ledger projection. Current is not a wall-clock market valuation."
+          : historicalDate === ""
+            ? "Choose a historical BusinessDate to reconstruct positions from the immutable ledger."
+            : `Viewing portfolio as of ${historicalDate}.`}
+      </p>
+
+      {result === null && !historicalSelectionPending ? (
+        <p className="muted">
+          {viewMode === "historical"
+            ? `Loading portfolio as of ${historicalDate} from the canonical ledger projection…`
+            : "Loading positions from the canonical ledger projection…"}
+        </p>
+      ) : null}
 
       {result?.ok === false ? (
         <div className="warning position-warning" role="status">
@@ -33,7 +83,11 @@ export function PositionsBlock({ result }: PositionsBlockProps) {
       ) : null}
 
       {result?.ok && result.data.items.length === 0 ? (
-        <p className="muted">No open stock or bond positions.</p>
+        <p className="muted">
+          {viewMode === "historical" && historicalDate !== ""
+            ? `No open stock or bond positions on ${historicalDate}.`
+            : "No open stock or bond positions."}
+        </p>
       ) : null}
 
       {result?.ok && result.data.items.length > 0 ? (
