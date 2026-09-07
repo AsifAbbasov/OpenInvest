@@ -70,11 +70,14 @@ func TestStage375MixedLedgerCashFlowMonthlySummaryAndRange(t *testing.T) {
 	assertMoney375(t, projection.Totals.Fees, "230.00000000", "fees")
 	assertMoney375(t, projection.Totals.Taxes, "596.00000000", "taxes")
 	assertMoney375(t, projection.Totals.NetExternalFlow, "95000.00000000", "net external flow")
-	assertMoney375(t, projection.Totals.NetInvestmentIncome, "3374.00000000", "net investment income")
+	assertMoney375(t, projection.Totals.NetInvestmentIncome, "3644.00000000", "net investment income")
 	assertMoney375(t, projection.Totals.NetCashFlow, "27374.00000000", "net cash flow")
 	if projection.Periods[0].Month != "2026-01" || projection.Periods[1].Month != "2026-02" || projection.Periods[2].Month != "2026-03" {
 		t.Fatalf("monthly ordering/grouping drifted: %+v", projection.Periods)
 	}
+	assertMoney375(t, projection.Periods[0].Totals.NetInvestmentIncome, "0.00000000", "January net investment income")
+	assertMoney375(t, projection.Periods[1].Totals.NetInvestmentIncome, "3644.00000000", "February net investment income")
+	assertMoney375(t, projection.Periods[2].Totals.NetInvestmentIncome, "0.00000000", "March net investment income")
 
 	february, err := h.service.GetPortfolioCashFlow(h.ctx, h.subjectID, h.portfolioID, "2026-02-01", "2026-02-28")
 	if err != nil {
@@ -84,6 +87,7 @@ func TestStage375MixedLedgerCashFlowMonthlySummaryAndRange(t *testing.T) {
 	assertMoney375(t, february.Totals.CouponsGross, "1200.00000000", "February coupons")
 	assertMoney375(t, february.Totals.Fees, "10.00000000", "February fees")
 	assertMoney375(t, february.Totals.Taxes, "546.00000000", "February taxes")
+	assertMoney375(t, february.Totals.NetInvestmentIncome, "3644.00000000", "February net investment income")
 	assertMoney375(t, february.Totals.NetCashFlow, "3644.00000000", "February net cash")
 	if len(february.Periods) != 1 || february.Periods[0].Month != "2026-02" || february.InputsAsOf == nil || *february.InputsAsOf != "2026-02-28" {
 		t.Fatalf("explicit range metadata mismatch: %+v", february)
@@ -124,6 +128,7 @@ func TestStage375MixedLedgerCashFlowMonthlySummaryAndRange(t *testing.T) {
 		t.Fatalf("cash flow after correction: %v", err)
 	}
 	assertMoney375(t, afterCorrection.Totals.DividendsGross, "2500.00000000", "corrected dividends")
+	assertMoney375(t, afterCorrection.Totals.NetInvestmentIncome, "3144.00000000", "income after dividend correction")
 	assertMoney375(t, afterCorrection.Totals.NetCashFlow, "26874.00000000", "cash after dividend correction")
 }
 
@@ -139,6 +144,7 @@ func TestStage375ReversalDateBackdatedRangeAndIsolation(t *testing.T) {
 		t.Fatalf("cash flow before reversal effective date: %v", err)
 	}
 	assertMoney375(t, before.Totals.CouponsGross, "1000.00000000", "historical coupon before reversal")
+	assertMoney375(t, before.Totals.NetInvestmentIncome, "870.00000000", "historical coupon net investment income")
 	assertMoney375(t, before.Totals.NetCashFlow, "870.00000000", "historical coupon net cash")
 
 	after, err := h.service.GetPortfolioCashFlow(h.ctx, h.subjectID, h.portfolioID, "2026-01-01", "2026-04-01")
@@ -146,6 +152,7 @@ func TestStage375ReversalDateBackdatedRangeAndIsolation(t *testing.T) {
 		t.Fatalf("cash flow on reversal effective date: %v", err)
 	}
 	assertMoney375(t, after.Totals.CouponsGross, "0.00000000", "coupon after reversal")
+	assertMoney375(t, after.Totals.NetInvestmentIncome, "0.00000000", "net investment income after reversal")
 	if len(after.Periods) != 0 {
 		t.Fatalf("reversed economic effect must disappear from effective periods: %+v", after.Periods)
 	}
@@ -160,6 +167,7 @@ func TestStage375ReversalDateBackdatedRangeAndIsolation(t *testing.T) {
 		t.Fatalf("backdated event must group by tradeDate, got %+v", march.Periods)
 	}
 	assertMoney375(t, march.Totals.DividendsGross, "333.33333333", "backdated March dividend")
+	assertMoney375(t, march.Totals.NetInvestmentIncome, "333.33333333", "backdated March net investment income")
 
 	_, err = h.service.GetPortfolioCashFlow(h.ctx, uuid.NewString(), h.portfolioID, "", "")
 	if !errors.Is(err, postgres.ErrNotFound) {
@@ -173,5 +181,6 @@ func TestStage375ReversalDateBackdatedRangeAndIsolation(t *testing.T) {
 	if len(empty.Periods) != 0 || empty.ToDate == nil || *empty.ToDate != "2035-12-31" {
 		t.Fatalf("empty range mismatch: %+v", empty)
 	}
+	assertMoney375(t, empty.Totals.NetInvestmentIncome, "0.00000000", "empty range net investment income")
 	assertMoney375(t, empty.Totals.NetCashFlow, "0.00000000", "empty range net cash")
 }
