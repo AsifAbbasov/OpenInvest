@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/openinvest/openinvest/backend-go/internal/decimal"
+	"github.com/openinvest/openinvest/backend-go/internal/postgres"
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
@@ -253,7 +254,7 @@ func TestStage376RejectsInvalidPriceTickerAndForeignPortfolio(t *testing.T) {
 		Ticker:      "SBER",
 		Price:       verticalslice.Money{Amount: decimal.Must("100.00000000"), Currency: verticalslice.RUB},
 		AsOfDate:    "2026-09-08",
-	}); !errors.Is(err, verticalslice.ErrNotFound) {
+	}); !errors.Is(err, postgres.ErrNotFound) {
 		t.Fatalf("foreign subject must not enumerate portfolio valuation: %v", err)
 	}
 }

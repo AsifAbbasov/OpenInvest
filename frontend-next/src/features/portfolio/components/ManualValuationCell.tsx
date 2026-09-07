@@ -37,17 +37,27 @@ export function ManualValuationCell({
     setEditing(false);
     setIsSaving(false);
     setError(null);
-    setPrice(available ? item.marketValuation.marketPrice.amount : "");
-    setAsOfDate(available ? item.marketValuation.asOf : "");
+    if (item.marketValuation.status === "AVAILABLE") {
+      setPrice(item.marketValuation.marketPrice.amount);
+      setAsOfDate(item.marketValuation.asOf);
+    } else {
+      setPrice("");
+      setAsOfDate("");
+    }
     return () => {
       mutationGeneration.current += 1;
     };
-  }, [available, item.marketValuation, item.ticker, portfolioId, viewMode]);
+  }, [item.marketValuation, item.ticker, portfolioId, viewMode]);
 
   function beginEdit() {
     setError(null);
-    setPrice(available ? item.marketValuation.marketPrice.amount : "");
-    setAsOfDate(available ? item.marketValuation.asOf : "");
+    if (item.marketValuation.status === "AVAILABLE") {
+      setPrice(item.marketValuation.marketPrice.amount);
+      setAsOfDate(item.marketValuation.asOf);
+    } else {
+      setPrice("");
+      setAsOfDate("");
+    }
     setEditing(true);
   }
 
