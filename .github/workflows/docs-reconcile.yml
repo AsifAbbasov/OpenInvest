@@ -21,10 +21,10 @@ jobs:
         run: python3 scripts/docs-reconcile.py
       - name: Verify runtime scope is untouched
         run: |
-          changed="$(git diff --name-only)"
+          changed="$(git status --porcelain=v1 | sed -E 's/^.. //')"
           echo "$changed"
           test -n "$changed"
-          if echo "$changed" | grep -Ev '^(README\.md|docs/|scripts/docs-reconcile\.py|\.github/workflows/docs-reconcile\.yml)$'; then
+          if echo "$changed" | grep -Ev '^(README\.md|docs/.*|scripts/docs-reconcile\.py|\.github/workflows/docs-reconcile\.yml)$'; then
             echo 'Unexpected non-documentation path changed' >&2
             exit 1
           fi
