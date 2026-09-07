@@ -14,12 +14,12 @@ const styles = await readFile(new URL("../src/app/styles.css", import.meta.url),
 
 test("Stage 3.72 current positions remain in the existing guarded portfolio load", () => {
   assert.match(detail, /getPortfolioPositions\(portfolioId, \{ accessToken: attempt\.accessToken \}\)/);
-  assert.match(detail, /const \[portfolio, summary, positions, transactions\] = await Promise\.all/);
+  assert.match(detail, /const \[portfolio, summary, positions, cashFlow, transactions\] = await Promise\.all/);
   assert.match(detail, /shouldCommitPortfolioLoad\(loadGuard\.current, attempt\)/);
   assert.match(detail, /loadIdentity\.current\.principalId === principalAtLoad/);
   assert.match(detail, /loadIdentity\.current\.portfolioId === portfolioAtLoad/);
   assert.match(detail, /\[accessToken, principalId, portfolioId\]/);
-  assert.match(detail, /setState\(\{ portfolio, summary, positions, transactions \}\)/);
+  assert.match(detail, /setState\(\{ portfolio, summary, positions, cashFlow, transactions \}\)/);
   assert.match(detail, /positionViewMode === "historical" \? historicalPositions : state\?\.positions \?\? null/);
   assert.match(detail, /result=\{visiblePositions\}/);
 });

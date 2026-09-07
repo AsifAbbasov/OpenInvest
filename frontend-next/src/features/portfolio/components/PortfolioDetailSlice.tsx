@@ -5,19 +5,22 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   getPortfolio,
+  getPortfolioCashFlow,
   getPortfolioPositions,
   getPortfolioSummary,
   listTransactions,
   type ApiResult,
   type ListData,
   type Portfolio,
+  type PortfolioCashFlowProjection,
   type PortfolioPositionsProjection,
   type PortfolioSummary,
   type Transaction,
 } from "@/common/api/openinvest";
-import { formatMoney, formatNullableDecimal } from "@/common/presentation/format";
+import { formatMoney } from "@/common/presentation/format";
 import { useAuth } from "@/features/auth/components/AuthShell";
 import { AddTransactionForm } from "@/features/portfolio/components/AddTransactionForm";
+import { CashFlowIncomeBlock } from "@/features/portfolio/components/CashFlowIncomeBlock";
 import { ImportUploadReviewPanel } from "@/features/portfolio/components/ImportUploadReviewPanel";
 import { PositionsBlock } from "@/features/portfolio/components/PositionsBlock";
 import { TransactionRepairControls } from "@/features/portfolio/components/TransactionRepairControls";
@@ -31,6 +34,7 @@ type PortfolioDetailState = {
   portfolio: ApiResult<Portfolio>;
   summary: ApiResult<PortfolioSummary>;
   positions: ApiResult<PortfolioPositionsProjection>;
+  cashFlow: ApiResult<PortfolioCashFlowProjection>;
   transactions: ApiResult<ListData<Transaction>>;
 };
 
@@ -62,16 +66,17 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
     setState(null);
     setIsLoadingMoreTransactions(false);
     setMoreTransactionsError(null);
-    const [portfolio, summary, positions, transactions] = await Promise.all([
+    const [portfolio, summary, positions, cashFlow, transactions] = await Promise.all([
       getPortfolio(portfolioId, { accessToken: attempt.accessToken }),
       getPortfolioSummary(portfolioId, { accessToken: attempt.accessToken }),
       getPortfolioPositions(portfolioId, { accessToken: attempt.accessToken }),
+      getPortfolioCashFlow(portfolioId, { accessToken: attempt.accessToken }),
       listTransactions(portfolioId, { accessToken: attempt.accessToken }),
     ]);
     const identityIsCurrent =
       loadIdentity.current.principalId === principalAtLoad && loadIdentity.current.portfolioId === portfolioAtLoad;
     if (shouldCommitPortfolioLoad(loadGuard.current, attempt) && identityIsCurrent) {
-      setState({ portfolio, summary, positions, transactions });
+      setState({ portfolio, summary, positions, cashFlow, transactions });
     }
   }, [accessToken, principalId, portfolioId]);
 
@@ -226,10 +231,8 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
           <Metric label="Cash" value={formatMoney(summary.cashValue)} />
           <Metric label="Stocks" value={formatMoney(summary.stockValue)} />
           <Metric label="Invested capital" value={formatMoney(summary.investedCapital)} />
-          <Metric label="Nominal return rate" value={formatNullableDecimal(summary.nominalReturnRate)} />
-          <Metric label="XIRR" value={formatNullableDecimal(summary.xirr)} />
-          <Metric label="Real gain" value={summary.realReturn ? formatMoney(summary.realReturn.realGain) : "Unavailable"} />
-          <Metric label="Purchasing power basis" value={formatMoney(summary.purchasingPower.portfolioValue)} />
+          <Metric label="Gross dividends recorded" value={formatMoney(summary.dividendsReceived)} />
+          <Metric label="Gross coupons recorded" value={formatMoney(summary.couponsReceived)} />
         </section>
       ) : null}
 
@@ -258,6 +261,8 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
         onShowHistorical={showHistoricalPositions}
         onHistoricalDateChange={changeHistoricalDate}
       />
+
+      {positionViewMode === "current" ? <CashFlowIncomeBlock result={state?.cashFlow ?? null} /> : null}
 
       <AddTransactionForm
         accessToken={accessToken}

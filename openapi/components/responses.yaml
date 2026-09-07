@@ -193,6 +193,17 @@ responses:
         examples:
           default: { $ref: "../examples/positions.json#/positionsResponse" }
 
+  PortfolioCashFlow:
+    description: Deterministic effective-ledger cash-flow and income aggregate.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/PortfolioCashFlowResponse" }
+        examples:
+          default: { $ref: "../examples/cash-flow.json#/cashFlowResponse" }
+
   SnapshotList:
     description: Cursor-paginated versioned portfolio snapshots.
     headers:

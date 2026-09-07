@@ -212,25 +212,23 @@ func effectiveSnapshotCashTx(ctx context.Context, tx *sql.Tx, portfolioID string
 	if err != nil {
 		return decimal.Zero(), decimal.Zero(), "", err
 	}
-	cash := decimal.Zero()
+	amounts := zeroCashFlowAmounts()
 	invested := decimal.Zero()
 	for _, row := range rows {
-		switch row.TransactionType {
-		case "DEPOSIT":
-			cash = cash.Add(row.GrossAmount)
-		case "WITHDRAWAL":
-			cash = cash.Sub(row.GrossAmount)
-		case "BUY":
+		if err := amounts.apply(row); err != nil {
+			return decimal.Zero(), decimal.Zero(), "", err
+		}
+		if row.TransactionType == "BUY" {
 			outflow := row.GrossAmount.Add(row.Commission).Add(row.Tax)
-			cash = cash.Sub(outflow)
 			invested = invested.Add(outflow)
-		case "SELL":
-			inflow := row.GrossAmount.Sub(row.Commission).Sub(row.Tax)
-			cash = cash.Add(inflow)
+			if !invested.FitsStorage() {
+				return decimal.Zero(), decimal.Zero(), "", fmt.Errorf("%w: snapshot financial values exceed NUMERIC(28,8)", verticalslice.ErrInvalidInput)
+			}
 		}
-		if !cash.FitsStorage() || !invested.FitsStorage() {
-			return decimal.Zero(), decimal.Zero(), "", fmt.Errorf("%w: snapshot financial values exceed NUMERIC(28,8)", verticalslice.ErrInvalidInput)
-		}
+	}
+	cash := amounts.netCashFlow()
+	if !cash.FitsStorage() {
+		return decimal.Zero(), decimal.Zero(), "", fmt.Errorf("%w: snapshot financial values exceed NUMERIC(28,8)", verticalslice.ErrInvalidInput)
 	}
 	var watermark string
 	if err := tx.QueryRowContext(ctx, `
