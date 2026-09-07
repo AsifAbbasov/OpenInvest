@@ -1349,6 +1349,79 @@ PortfolioSummary:
     calculation:
       $ref: "#/CalculationMeta"
 
+
+PortfolioCashFlowTotals:
+  type: object
+  additionalProperties: false
+  required:
+    [deposits, withdrawals, buyOutflows, sellInflows, dividendsGross, couponsGross, fees, taxes, netExternalFlow, netInvestmentIncome, netCashFlow]
+  properties:
+    deposits: { $ref: "#/Money" }
+    withdrawals: { $ref: "#/Money" }
+    buyOutflows: { $ref: "#/Money" }
+    sellInflows: { $ref: "#/Money" }
+    dividendsGross: { $ref: "#/Money" }
+    couponsGross: { $ref: "#/Money" }
+    fees: { $ref: "#/Money" }
+    taxes: { $ref: "#/Money" }
+    netExternalFlow: { $ref: "#/Money" }
+    netInvestmentIncome: { $ref: "#/Money" }
+    netCashFlow: { $ref: "#/Money" }
+
+PortfolioCashFlowPeriod:
+  type: object
+  additionalProperties: false
+  required: [month, totals]
+  properties:
+    month:
+      type: string
+      pattern: "^[0-9]{4}-(0[1-9]|1[0-2])$"
+    totals: { $ref: "#/PortfolioCashFlowTotals" }
+
+PortfolioCashFlowCalculation:
+  type: object
+  additionalProperties: false
+  required: [methodologyVersion, inputsAsOf]
+  properties:
+    methodologyVersion:
+      type: string
+      const: portfolio-cash-flow-income-v1
+    inputsAsOf:
+      oneOf:
+        - $ref: "#/BusinessDate"
+        - type: "null"
+
+PortfolioCashFlowProjection:
+  type: object
+  additionalProperties: false
+  required: [portfolioId, fromDate, toDate, totals, periods, calculation]
+  properties:
+    portfolioId:
+      type: string
+      format: uuid
+    fromDate:
+      oneOf:
+        - $ref: "#/BusinessDate"
+        - type: "null"
+    toDate:
+      oneOf:
+        - $ref: "#/BusinessDate"
+        - type: "null"
+    totals: { $ref: "#/PortfolioCashFlowTotals" }
+    periods:
+      type: array
+      items: { $ref: "#/PortfolioCashFlowPeriod" }
+    calculation: { $ref: "#/PortfolioCashFlowCalculation" }
+
+PortfolioCashFlowResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      required: [data]
+      properties:
+        data: { $ref: "#/PortfolioCashFlowProjection" }
+
+
 PortfolioSnapshot:
   type: object
   additionalProperties: false

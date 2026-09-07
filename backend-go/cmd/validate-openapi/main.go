@@ -35,6 +35,7 @@ var requiredOperations = map[string]string{
 	"DELETE /api/v1/portfolios/{portfolioId}":                              "deletePortfolio",
 	"GET /api/v1/portfolios/{portfolioId}/summary":                         "getPortfolioSummary",
 	"GET /api/v1/portfolios/{portfolioId}/positions":                       "getPortfolioPositions",
+	"GET /api/v1/portfolios/{portfolioId}/cash-flow":                       "getPortfolioCashFlow",
 	"GET /api/v1/portfolios/{portfolioId}/snapshots":                       "listPortfolioSnapshots",
 	"GET /api/v1/portfolios/{portfolioId}/transactions":                    "listTransactions",
 	"POST /api/v1/portfolios/{portfolioId}/transactions":                   "createTransaction",
@@ -54,7 +55,9 @@ var idempotentOperations = stringSet("createPortfolio", "deletePortfolio", "crea
 var requiredSchemas = []string{
 	"Money", "Decimal", "BusinessDate", "SystemTimestamp", "Asset", "AssetType", "Portfolio", "Transaction",
 	"TransactionType", "PortfolioSummary", "PortfolioSnapshot", "MarketValuationUnavailable", "PortfolioPositionProjection",
-	"PortfolioPositionsCalculation", "PortfolioPositionsProjection", "PortfolioPositionsResponse", "ImportReviewResult", "ImportAppendResult",
+	"PortfolioPositionsCalculation", "PortfolioPositionsProjection", "PortfolioPositionsResponse",
+	"PortfolioCashFlowTotals", "PortfolioCashFlowPeriod", "PortfolioCashFlowCalculation", "PortfolioCashFlowProjection", "PortfolioCashFlowResponse",
+	"ImportReviewResult", "ImportAppendResult",
 	"DividendEvent", "DividendCalculation",
 	"RealReturn", "PurchasingPower", "Pagination", "Error", "BaseResponse", "ErrorResponse",
 }

@@ -266,6 +266,43 @@ export type PortfolioPositionsRequestOptions = {
   signal?: AbortSignal;
 };
 
+export type PortfolioCashFlowTotals = {
+  deposits: Money;
+  withdrawals: Money;
+  buyOutflows: Money;
+  sellInflows: Money;
+  dividendsGross: Money;
+  couponsGross: Money;
+  fees: Money;
+  taxes: Money;
+  netExternalFlow: Money;
+  netInvestmentIncome: Money;
+  netCashFlow: Money;
+};
+
+export type PortfolioCashFlowPeriod = {
+  month: string;
+  totals: PortfolioCashFlowTotals;
+};
+
+export type PortfolioCashFlowProjection = {
+  portfolioId: string;
+  fromDate: string | null;
+  toDate: string | null;
+  totals: PortfolioCashFlowTotals;
+  periods: PortfolioCashFlowPeriod[];
+  calculation: {
+    methodologyVersion: "portfolio-cash-flow-income-v1";
+    inputsAsOf: string | null;
+  };
+};
+
+export type PortfolioCashFlowRequestOptions = {
+  fromDate?: string;
+  toDate?: string;
+  signal?: AbortSignal;
+};
+
 export type AssetSummary = {
   ticker: string;
   name: string;
@@ -534,6 +571,21 @@ export async function getPortfolioPositions(
   const query = searchParams.toString();
   return request<PortfolioPositionsProjection>(
     `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/positions${query === "" ? "" : `?${query}`}`,
+    { headers: bearerHeaders(auth.accessToken), signal: options.signal },
+  );
+}
+
+export async function getPortfolioCashFlow(
+  portfolioId: string,
+  auth: AuthenticatedRequest,
+  options: PortfolioCashFlowRequestOptions = {},
+): Promise<ApiResult<PortfolioCashFlowProjection>> {
+  const searchParams = new URLSearchParams();
+  if (options.fromDate) searchParams.set("fromDate", options.fromDate);
+  if (options.toDate) searchParams.set("toDate", options.toDate);
+  const query = searchParams.toString();
+  return request<PortfolioCashFlowProjection>(
+    `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/cash-flow${query === "" ? "" : `?${query}`}`,
     { headers: bearerHeaders(auth.accessToken), signal: options.signal },
   );
 }
