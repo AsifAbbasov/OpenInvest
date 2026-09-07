@@ -121,6 +121,10 @@ func (s *Store) CorrectTransactionWithReplayStage374(
 	if err != nil {
 		return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
 	}
+	// The newly appended row is itself the latest logical revision. The legacy raw-entry
+	// selector cannot infer CORRECTED for that row because there is no later revision yet.
+	// The command response is a logical transaction projection, so make the frozen status explicit.
+	transaction.Status = "CORRECTED"
 	artifact, err := build(transaction)
 	if err != nil {
 		return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
