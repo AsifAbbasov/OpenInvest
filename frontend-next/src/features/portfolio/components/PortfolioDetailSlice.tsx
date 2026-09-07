@@ -101,7 +101,7 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
     if (shouldCommitPortfolioLoad(historicalLoadGuard.current, attempt) && identityIsCurrent) {
       setHistoricalPositions(positions);
     }
-  }, [historicalDate, positionViewMode, principalId, portfolioId]);
+  }, [accessToken, historicalDate, positionViewMode, principalId, portfolioId]);
 
   useEffect(() => {
     void load();
@@ -208,8 +208,8 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
         </section>
       ) : null}
 
-      {summary ? (
-        <section className="metric-grid" aria-label="Portfolio summary">
+      {summary && positionViewMode === "current" ? (
+        <section className="metric-grid" aria-label="Current portfolio summary">
           <Metric label="Total capital" value={formatMoney(summary.totalValue)} />
           <Metric label="Cash" value={formatMoney(summary.cashValue)} />
           <Metric label="Stocks" value={formatMoney(summary.stockValue)} />
@@ -221,7 +221,17 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
         </section>
       ) : null}
 
-      {state?.summary.ok === false ? (
+      {positionViewMode === "historical" ? (
+        <section className="panel" aria-label="Historical positions scope">
+          <p className="eyebrow">Historical positions only</p>
+          <p className="muted">
+            Current portfolio summary metrics are hidden in Time Machine mode because Stage 3.73 reconstructs
+            positions only. It does not fabricate historical market value, returns, cash, or performance.
+          </p>
+        </section>
+      ) : null}
+
+      {state?.summary.ok === false && positionViewMode === "current" ? (
         <section className="panel warning">
           <h2>Summary not available</h2>
           <p>{state.summary.message}</p>
