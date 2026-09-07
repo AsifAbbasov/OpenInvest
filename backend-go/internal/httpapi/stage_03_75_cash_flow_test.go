@@ -36,8 +36,27 @@ func cashMoney375(amount string) verticalslice.Money {
 	return verticalslice.Money{Amount: decimal.Must(amount), Currency: verticalslice.RUB}
 }
 
+func zeroCashFlowTotals375HTTP() verticalslice.PortfolioCashFlowTotals {
+	zero := cashMoney375("0.00000000")
+	return verticalslice.PortfolioCashFlowTotals{
+		Deposits:            zero,
+		Withdrawals:         zero,
+		BuyOutflows:         zero,
+		SellInflows:         zero,
+		DividendsGross:      zero,
+		CouponsGross:        zero,
+		Fees:                zero,
+		Taxes:               zero,
+		NetExternalFlow:     zero,
+		NetInvestmentIncome: zero,
+		NetCashFlow:         zero,
+	}
+}
+
 func TestStage375CashFlowHTTPPreservesRangeAndBackendTotals(t *testing.T) {
 	inputsAsOf := "2026-03-31"
+	periodTotals := zeroCashFlowTotals375HTTP()
+	periodTotals.NetCashFlow = cashMoney375("3830.00000000")
 	store := &stage375HTTPStore{projection: verticalslice.PortfolioCashFlowProjection{
 		PortfolioID: "00000000-0000-4000-8000-000000000002",
 		FromDate:    stringPtr375HTTP("2026-01-01"),
@@ -51,10 +70,10 @@ func TestStage375CashFlowHTTPPreservesRangeAndBackendTotals(t *testing.T) {
 			NetCashFlow: cashMoney375("27374.00000000"),
 		},
 		Periods: []verticalslice.PortfolioCashFlowPeriod{{
-			Month: "2026-03",
-			Totals: verticalslice.PortfolioCashFlowTotals{NetCashFlow: cashMoney375("3830.00000000")},
+			Month:  "2026-03",
+			Totals: periodTotals,
 		}},
-		InputsAsOf: &inputsAsOf,
+		InputsAsOf:         &inputsAsOf,
 		MethodologyVersion: verticalslice.PortfolioCashFlowMethodologyVersion,
 	}}
 	app := NewDevelopment(verticalslice.NewService(store, fixedHTTPClock{}))
