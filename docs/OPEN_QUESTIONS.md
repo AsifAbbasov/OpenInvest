@@ -9,11 +9,11 @@
 | Supersedes | Informal TODOs for architecture decisions |
 | Dependencies | Document 43 |
 | Last Review Date | 2026-09-07 |
-| Next Review Date | Before any new architecture decision affecting provider/public activation, market valuation, privacy lifecycle, tax basis, imported SELL semantics, or Stage 3.74+ scope, or 2026-12-19, whichever comes first |
+| Next Review Date | Before any new architecture decision affecting provider/public activation, market valuation, privacy lifecycle, tax basis, imported SELL semantics, or Stage 3.75+ scope, or 2026-12-19, whichever comes first |
 
 ## Current questions
 
-None. Stage 3.73 is implemented and canonical through PR #148 squash merge `683f9c4647f888bb3dbdfb9dd365b84b95137b46` after exact-head CI #424; it introduces no unresolved architecture question because it reuses the existing Stage 3.72 `asOfDate` projection without a new financial engine, API/schema, provider or market valuation. Any future Stage 3.74+ market provider/valuation, broader cost-basis/tax-lot semantics, imported SELL expansion or privacy-lifecycle implementation must enter this register if it changes frozen architecture.
+None. Stage 3.73 is implemented and canonical through PR #148 squash merge `683f9c4647f888bb3dbdfb9dd365b84b95137b46` after exact-head CI #424; it introduces no unresolved architecture question because it reuses the existing Stage 3.72 `asOfDate` projection without a new financial engine, API/schema, provider or market valuation. Any future Stage 3.75+ market provider/valuation, broader cost-basis/tax-lot semantics, imported SELL expansion or privacy-lifecycle implementation must enter this register if it changes frozen architecture.
 
 ## Resolved architecture questions
 

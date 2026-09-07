@@ -9,7 +9,16 @@
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-09-07 |
-| Next Review Date | Before any Stage 3.74+ runtime scope or architecture-changing provider, privacy, valuation, tax-basis, import, or infrastructure decision |
+| Next Review Date | Before any Stage 3.75+ runtime scope or architecture-changing provider, privacy, valuation, tax-basis, import, or infrastructure decision |
+
+
+## 2026-09-07 — Stage 3.74 transaction correction/reversal canonical and documentation synchronized
+
+- PR #150 was squash-merged into protected `develop` at `0580bf7e98c532202f84bbf9ceacd97aedbe4140` from exact final head `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02`.
+- CI #435 / run `34117662576` completed all 10 required jobs successfully before protected merge.
+- Stage 3.74 makes correction/reversal append-only and auditable, projects deterministic effective-ledger truth into positions/Time Machine, rejects historical oversell atomically, and exposes retry-safe Edit/Reverse UX.
+- No database migration, market provider activation, paid infrastructure or production rollout was introduced.
+- Post-merge documentation synchronization advances the next runtime gate to Stage 3.75+.
 
 ## 2026-09-07 — Stage 3.73 Portfolio Time Machine lifecycle closure
 
@@ -18,7 +27,7 @@
 - The Time Machine reuses the Stage 3.72 endpoint-local `asOfDate` projection and canonical Stage 3.71 ledger/WAC engine; no second financial engine, new API endpoint, database table, provider, cache or paid service was added.
 - Historical mode exposes exact BusinessDate holdings, WAC, acquisition basis and acquisition-basis weights while keeping market-derived valuation unavailable and hiding current-only summary metrics.
 - Post-merge documentation synchronization updates README, Source of Truth, Roadmap, Document Index, Implementation Log, Changelog, Version Matrix, Open Questions, the governance reconciliation history and the Stage 3.73 implementation dossier.
-- Next product/runtime work begins at a separately reviewed Stage 3.74+ gate.
+- Next product/runtime work begins at a separately reviewed Stage 3.75+ gate.
 
 ## 2026-09-07 — Repository documentation reconciliation through Stage 3.72
 
