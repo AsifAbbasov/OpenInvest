@@ -39,6 +39,10 @@ test("Stage 3.73 guards rapid historical switching by generation, principal, por
   assert.match(detail, /historicalLoadIdentity\.current\.viewKey === viewKeyAtLoad/);
   assert.match(detail, /shouldCommitPortfolioLoad\(historicalLoadGuard\.current, attempt\)/);
   assert.match(detail, /AS_OF:\$\{historicalDate\}/);
+  assert.match(detail, /function invalidateHistoricalLoad\(\)[\s\S]*generation: historicalLoadGuard\.current\.generation \+ 1/);
+  assert.match(detail, /function showCurrentPositions\(\) \{\s*invalidateHistoricalLoad\(\)/);
+  assert.match(detail, /function showHistoricalPositions\(\) \{\s*invalidateHistoricalLoad\(\)/);
+  assert.match(detail, /function changeHistoricalDate\(value: string\) \{\s*invalidateHistoricalLoad\(\)/);
 });
 
 test("Stage 3.73 has honest loading, date-selection, empty and error states", () => {
@@ -47,6 +51,13 @@ test("Stage 3.73 has honest loading, date-selection, empty and error states", ()
   assert.match(positions, /No open stock or bond positions on \$\{historicalDate\}/);
   assert.match(positions, /Positions unavailable/);
   assert.match(positions, /No values are inferred from portfolio summary or transaction rows/);
+});
+
+test("Stage 3.73 isolates current summary metrics from historical positions", () => {
+  assert.match(detail, /summary && positionViewMode === "current"/);
+  assert.match(detail, /Historical positions only/);
+  assert.match(detail, /Current portfolio summary metrics are hidden in Time Machine mode/);
+  assert.match(detail, /does not fabricate historical market value, returns, cash, or performance/);
 });
 
 test("Stage 3.73 preserves market-unavailable semantics in historical mode", () => {
