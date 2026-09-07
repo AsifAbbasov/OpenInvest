@@ -12,7 +12,7 @@ const positions = await readFile(
 );
 const styles = await readFile(new URL("../src/app/styles.css", import.meta.url), "utf8");
 
-test("Stage 3.72 positions participate in the existing guarded portfolio load", () => {
+test("Stage 3.72 current positions remain in the existing guarded portfolio load", () => {
   assert.match(detail, /getPortfolioPositions\(portfolioId, \{ accessToken: attempt\.accessToken \}\)/);
   assert.match(detail, /const \[portfolio, summary, positions, transactions\] = await Promise\.all/);
   assert.match(detail, /shouldCommitPortfolioLoad\(loadGuard\.current, attempt\)/);
@@ -20,7 +20,8 @@ test("Stage 3.72 positions participate in the existing guarded portfolio load", 
   assert.match(detail, /loadIdentity\.current\.portfolioId === portfolioAtLoad/);
   assert.match(detail, /\[accessToken, principalId, portfolioId\]/);
   assert.match(detail, /setState\(\{ portfolio, summary, positions, transactions \}\)/);
-  assert.match(detail, /<PositionsBlock result=\{state\?\.positions \?\? null\} \/>/);
+  assert.match(detail, /positionViewMode === "historical" \? historicalPositions : state\?\.positions \?\? null/);
+  assert.match(detail, /result=\{visiblePositions\}/);
 });
 
 test("Stage 3.72 positions render explicit loading, failure, empty and unavailable-market states without fallback math", () => {
@@ -37,10 +38,11 @@ test("Stage 3.72 positions render explicit loading, failure, empty and unavailab
   assert.doesNotMatch(positions, /weightedAverageCost\s*[+*\/-]|[+*\/-]\s*item\.weightedAverageCost/);
 });
 
-test("Stage 3.72 accepted transaction and import flows reload the positions projection", () => {
-  assert.match(detail, /<AddTransactionForm[\s\S]*onSaved=\{load\}/);
-  assert.match(detail, /<ImportUploadReviewPanel[\s\S]*onImported=\{load\}/);
-  assert.match(detail, /\[accessToken, principalId, portfolioId\]/);
+test("Stage 3.72 accepted transaction and import flows still refresh the canonical projections", () => {
+  assert.match(detail, /const refreshAfterLedgerMutation = useCallback/);
+  assert.match(detail, /Promise\.all\(\[load\(\), loadHistoricalPositions\(\)\]\)/);
+  assert.match(detail, /<AddTransactionForm[\s\S]*onSaved=\{refreshAfterLedgerMutation\}/);
+  assert.match(detail, /<ImportUploadReviewPanel[\s\S]*onImported=\{refreshAfterLedgerMutation\}/);
 });
 
 test("Stage 3.72 positions provide distinct desktop table and mobile card surfaces", () => {
