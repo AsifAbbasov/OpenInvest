@@ -66,70 +66,30 @@ jobs:
 
           path = "docs/SOURCE_OF_TRUTH.md"
           text = read(path)
-          text = sub_required(
-              text,
-              r"^\*\*Documentation registry baseline:.*$",
-              f"**Documentation registry baseline: Stage 3.74 is canonical on protected `develop` through PR #150 squash merge `{MERGE}` from exact final head `{HEAD}` after CI #435 / run `{RUN}` completed 10/10 SUCCESS; active registries are synchronized by the Stage 3.74 post-merge documentation closure.**",
-              "SOT registry baseline",
-          )
-          text = sub_required(
-              text,
-              r"^\*\*Implementation frontier:.*$",
-              f"**Implementation frontier: Stage 3.74 — Transaction Correction & Reversal / Ledger Repair UX is COMPLETE / CANONICAL through PR #150 squash merge `{MERGE}` from exact final head `{HEAD}` after CI #435 / run `{RUN}` completed 10/10 SUCCESS. Stage 3.74 is the last completed implementation stage; any Stage 3.75+ runtime or architecture-changing scope requires a separately reviewed gate.**",
-              "SOT implementation frontier",
-          )
-          text = sub_required(
-              text,
-              r"^\*\*Current candidate frontier:.*$",
-              "**Current candidate frontier: none. No Stage 3.75+ product/runtime scope is authorized by the Stage 3.74 merge or this documentation closure.**",
-              "SOT candidate frontier",
-          )
+          text = sub_required(text, r"^\*\*Documentation registry baseline:.*$", f"**Documentation registry baseline: Stage 3.74 is canonical on protected `develop` through PR #150 squash merge `{MERGE}` from exact final head `{HEAD}` after CI #435 / run `{RUN}` completed 10/10 SUCCESS; active registries are synchronized by the Stage 3.74 post-merge documentation closure.**", "SOT registry baseline")
+          text = sub_required(text, r"^\*\*Implementation frontier:.*$", f"**Implementation frontier: Stage 3.74 — Transaction Correction & Reversal / Ledger Repair UX is COMPLETE / CANONICAL through PR #150 squash merge `{MERGE}` from exact final head `{HEAD}` after CI #435 / run `{RUN}` completed 10/10 SUCCESS. Stage 3.74 is the last completed implementation stage; any Stage 3.75+ runtime or architecture-changing scope requires a separately reviewed gate.**", "SOT implementation frontier")
+          text = sub_required(text, r"^\*\*Current candidate frontier:.*$", "**Current candidate frontier: none. No Stage 3.75+ product/runtime scope is authorized by the Stage 3.74 merge or this documentation closure.**", "SOT candidate frontier")
           write(path, text)
 
           path = "docs/ROADMAP.md"
           text = read(path)
-          text = sub_required(
-              text,
-              r"^\| 3\.74 — Transaction Correction & Reversal / Ledger Repair UX \|.*$",
-              f"| 3.74 — Transaction Correction & Reversal / Ledger Repair UX | Wire the frozen correction/reversal commands, preserve append-only auditability, materialize deterministic effective ledger truth, reject historical oversell and expose Edit/Reverse UX | Complete / canonical through PR #150 squash merge `{MERGE}` from exact final head `{HEAD}` after CI #435 / run `{RUN}` 10/10 SUCCESS; no new migration, market provider or paid infrastructure; post-merge lifecycle/documentation synchronized |",
-              "ROADMAP Stage 3.74 row",
-          )
+          text = sub_required(text, r"^\| 3\.74 — Transaction Correction & Reversal / Ledger Repair UX \|.*$", f"| 3.74 — Transaction Correction & Reversal / Ledger Repair UX | Wire the frozen correction/reversal commands, preserve append-only auditability, materialize deterministic effective ledger truth, reject historical oversell and expose Edit/Reverse UX | Complete / canonical through PR #150 squash merge `{MERGE}` from exact final head `{HEAD}` after CI #435 / run `{RUN}` 10/10 SUCCESS; no new migration, market provider or paid infrastructure; post-merge lifecycle/documentation synchronized |", "ROADMAP Stage 3.74 row")
           write(path, text)
 
           path = "docs/DOCUMENT_INDEX.md"
           text = read(path)
-          text = sub_required(
-              text,
-              r"^\| Stage 3\.74 Transaction Correction & Reversal / Ledger Repair UX \|.*$",
-              f"| Stage 3.74 Transaction Correction & Reversal / Ledger Repair UX | Complete/canonical through PR #150 squash merge `{MERGE}` from exact final head `{HEAD}` after CI #435 / run `{RUN}` 10/10 SUCCESS; append-only revisions/reversals, effective-ledger materialization, oversell rollback, exact replay, retry-safe Edit/Reverse UX and HTTP contract witnesses | `stages/STAGE_03_74_TRANSACTION_CORRECTION_REVERSAL_IMPLEMENTATION.md` |",
-              "DOCUMENT_INDEX Stage 3.74 row",
-          )
+          text = sub_required(text, r"^\| Stage 3\.74 Transaction Correction & Reversal / Ledger Repair UX \|.*$", f"| Stage 3.74 Transaction Correction & Reversal / Ledger Repair UX | Complete/canonical through PR #150 squash merge `{MERGE}` from exact final head `{HEAD}` after CI #435 / run `{RUN}` 10/10 SUCCESS; append-only revisions/reversals, effective-ledger materialization, oversell rollback, exact replay, retry-safe Edit/Reverse UX and HTTP contract witnesses | `stages/STAGE_03_74_TRANSACTION_CORRECTION_REVERSAL_IMPLEMENTATION.md` |", "DOCUMENT_INDEX Stage 3.74 row")
           write(path, text)
 
           path = "docs/IMPLEMENTATION_LOG.md"
           text = read(path)
-          text = sub_required(
-              text,
-              r"^\| 3 — First Vertical Slice \|.*$",
-              "| 3 — First Vertical Slice | Deliver the staged MVP vertical slice and harden it through audit remediation and product feature increments | Complete through Stage 3.74 on protected `develop`; original repository audit 32/32 CLOSED; Stage 3.25 privacy evidence collection remains separate | [Roadmap](ROADMAP.md) |",
-              "IMPLEMENTATION_LOG Stage 3 summary",
-          )
-          text = sub_required(
-              text,
-              r"^\| 3\.74 — Transaction Correction & Reversal / Ledger Repair UX \|.*$",
-              f"| 3.74 — Transaction Correction & Reversal / Ledger Repair UX | Implement immutable correction/reversal commands, effective-ledger truth, historical oversell rejection, exact replay and user-visible Edit/Reverse controls | Complete / canonical through PR #150 squash merge `{MERGE}` from exact final head `{HEAD}` after CI #435 / run `{RUN}` 10/10 SUCCESS; lifecycle/documentation synchronized post-merge | [Stage 3.74 report](stages/STAGE_03_74_TRANSACTION_CORRECTION_REVERSAL_IMPLEMENTATION.md) |",
-              "IMPLEMENTATION_LOG Stage 3.74 row",
-          )
+          text = sub_required(text, r"^\| 3 — First Vertical Slice \|.*$", "| 3 — First Vertical Slice | Deliver the staged MVP vertical slice and harden it through audit remediation and product feature increments | Complete through Stage 3.74 on protected `develop`; original repository audit 32/32 CLOSED; Stage 3.25 privacy evidence collection remains separate | [Roadmap](ROADMAP.md) |", "IMPLEMENTATION_LOG Stage 3 summary")
+          text = sub_required(text, r"^\| 3\.74 — Transaction Correction & Reversal / Ledger Repair UX \|.*$", f"| 3.74 — Transaction Correction & Reversal / Ledger Repair UX | Implement immutable correction/reversal commands, effective-ledger truth, historical oversell rejection, exact replay and user-visible Edit/Reverse controls | Complete / canonical through PR #150 squash merge `{MERGE}` from exact final head `{HEAD}` after CI #435 / run `{RUN}` 10/10 SUCCESS; lifecycle/documentation synchronized post-merge | [Stage 3.74 report](stages/STAGE_03_74_TRANSACTION_CORRECTION_REVERSAL_IMPLEMENTATION.md) |", "IMPLEMENTATION_LOG Stage 3.74 row")
           write(path, text)
 
           path = "docs/stages/STAGE_03_74_TRANSACTION_CORRECTION_REVERSAL_IMPLEMENTATION.md"
           text = read(path)
-          text = sub_required(
-              text,
-              r"^\| Status \| IMPLEMENTATION CANDIDATE — canonical only after reviewed protected merge \|$",
-              "| Status | COMPLETE / CANONICAL |",
-              "Stage dossier status",
-          )
+          text = sub_required(text, r"^\| Status \| IMPLEMENTATION CANDIDATE — canonical only after reviewed protected merge \|$", "| Status | COMPLETE / CANONICAL |", "Stage dossier status")
           if "| Implementation PR | #150 |" not in text:
               anchor = "| Canonical base | `develop@18fff1150ac8d1d3c4eafbf7065d38d0bbb47f55` |"
               if anchor not in text:
@@ -155,7 +115,7 @@ jobs:
           marker = "Stage 3.74 Transaction Correction & Reversal / Ledger Repair UX"
           if marker not in text:
               block = f"\n\nStage 3.74 current implementation authority\n\n| Scope | Authority | Evidence |\n| --- | --- | --- |\n| {marker} | COMPLETE / CANONICAL | PR #150; final head `{HEAD}`; CI #435 / run `{RUN}` 10/10 SUCCESS; protected squash merge `{MERGE}` |\n"
-              text = text.rstrip() + block + "\n"
+              text = text.rstrip() + block
           write(path, text)
 
           path = "docs/OPEN_QUESTIONS.md"
