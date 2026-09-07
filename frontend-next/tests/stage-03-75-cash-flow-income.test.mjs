@@ -27,7 +27,13 @@ test("Stage 3.75 uses a typed bounded backend aggregate and renders server value
   assert.match(api, /\/cash-flow/);
   assert.match(api, /PortfolioCashFlowProjection/);
   assert.match(block, /projection\.periods\.map/);
+  assert.match(block, /formatMoney\(totals\.buyOutflows\)/);
+  assert.match(block, /formatMoney\(totals\.sellInflows\)/);
   assert.match(block, /formatMoney\(totals\.netInvestmentIncome\)/);
+  assert.match(block, /period\.totals\.buyOutflows/);
+  assert.match(block, /period\.totals\.sellInflows/);
+  assert.match(block, /their own recorded commission\/tax/);
+  assert.match(block, /accepted future-dated rows/);
   assert.match(block, /not portfolio performance/);
   assert.doesNotMatch(block, /reduce\(/);
   assert.doesNotMatch(block, /parseFloat|Number\(/);
