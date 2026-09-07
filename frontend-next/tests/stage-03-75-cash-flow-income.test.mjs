@@ -39,6 +39,10 @@ test("Stage 3.75 uses a typed bounded backend aggregate and renders server value
   assert.doesNotMatch(block, /parseFloat|Number\(/);
   assert.match(detail, /getPortfolioCashFlow/);
   assert.match(detail, /CashFlowIncomeBlock/);
+  assert.match(detail, /Gross dividends recorded/);
+  assert.match(detail, /Gross coupons recorded/);
+  assert.doesNotMatch(detail, /label="Dividends received"/);
+  assert.doesNotMatch(detail, /label="Coupons received"/);
   assert.doesNotMatch(detail, /Nominal return rate/);
   assert.doesNotMatch(detail, />XIRR</);
   assert.doesNotMatch(detail, /Real gain/);
