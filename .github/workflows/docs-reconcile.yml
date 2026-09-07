@@ -10,7 +10,6 @@ permissions:
 
 jobs:
   reconcile:
-    if: ${{ !contains(github.event.head_commit.message, 'docs: reconcile repository documentation through Stage 3.72') }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
