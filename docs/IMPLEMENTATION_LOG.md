@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.2.1 |
+| Version | 1.2.2 |
 | Status | Current |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
 | Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md` |
 | Last Review Date | 2026-09-07 |
-| Next Review Date | Before any Stage 3.75+ runtime scope, provider/public activation, privacy-lifecycle implementation, tax-basis expansion, imported SELL expansion, or other architecture-changing work |
+| Next Review Date | Before any Stage 3.76+ runtime scope, provider/public activation, privacy-lifecycle implementation, tax-basis expansion, imported SELL expansion, or other architecture-changing work |
 
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
 
@@ -19,7 +19,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 1 — Documentation Consolidation | Establish the repository-owned Source of Truth and freeze v1.2 | Complete; awaiting review | [Stage 1 report](stages/STAGE_01_DOCUMENTATION_CONSOLIDATION.md) |
 | 2 — Contract and Canonical Model Freeze | Freeze the MVP API, canonical DTOs, logical ER model, and migration strategy | Complete / closed; merged into `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | [Stage 2 report](stages/STAGE_02_CONTRACT_AND_CANONICAL_MODEL.md) |
 | Web architecture amendment | Replace the Web skeleton with presentation-only Next.js under ADR-007 | Complete / closed; merged into `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | [Amendment report](stages/WEB_FRONTEND_ARCHITECTURE_AMENDMENT.md) |
-| 3 — First Vertical Slice | Deliver the staged MVP vertical slice and harden it through audit remediation and product feature increments | Complete through Stage 3.74 on protected `develop`; original repository audit 32/32 CLOSED; Stage 3.25 privacy evidence collection remains separate | [Roadmap](ROADMAP.md) |
+| 3 — First Vertical Slice | Deliver the staged MVP vertical slice and harden it through audit remediation and product feature increments | Complete through Stage 3.75 on protected `develop`; original repository audit 32/32 CLOSED; Stage 3.25 privacy evidence collection remains separate | [Roadmap](ROADMAP.md) |
 | 3.1 — Local Database Foundation | Add minimal PostgreSQL structures and migration validation for the first vertical slice | Complete / closed; merged into `develop` at `b1a3f23` | [Stage 3.1 report](stages/STAGE_03_01_DATABASE_FOUNDATION.md) |
 | 3.2 — Go API Vertical-Slice Backend | Implement portfolio create, transaction append, snapshot rebuild, and summary read in Go | Complete / closed; merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | [Stage 3.2 report](stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md) |
 | Product risk refinement | Convert hard PRD criticism into controlled MVP risk decisions | Complete / closed; merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | [MVP product risk refinement](product/MVP_PRODUCT_RISK_REFINEMENT.md) |
@@ -72,6 +72,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.72 — Portfolio Position Projection / Cost Basis View | Expose canonical open STOCK/BOND positions, acquisition-basis allocation and explicit market-unavailable semantics through API/UI | Complete / runtime and lifecycle canonical through PRs #145/#146 | [Stage 3.72 closure](stages/STAGE_03_72_PORTFOLIO_POSITION_PROJECTION_IMPLEMENTATION_CLOSURE.md) |
 | 3.73 — Portfolio Time Machine / Historical Position View | Expose exact historical holdings by BusinessDate using the existing Stage 3.72 `asOfDate` projection and canonical Stage 3.71 position engine | Complete / canonical through PR #148 squash merge `683f9c4647f888bb3dbdfb9dd365b84b95137b46` from exact final head `a74fd85a46843ccdfe8192f2ac8687169a5a2ac7` after CI #424 / run `34109389368` 10/10 SUCCESS; no new API, schema, provider or financial algorithm | [Stage 3.73 report](stages/STAGE_03_73_PORTFOLIO_TIME_MACHINE_IMPLEMENTATION.md) |
 | 3.74 — Transaction Correction & Reversal / Ledger Repair UX | Implement immutable correction/reversal commands, effective-ledger truth, historical oversell rejection, exact replay and user-visible Edit/Reverse controls | Complete / canonical through PR #150 squash merge `0580bf7e98c532202f84bbf9ceacd97aedbe4140` from exact final head `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02` after CI #435 / run `34117662576` 10/10 SUCCESS; lifecycle/documentation synchronized post-merge | [Stage 3.74 report](stages/STAGE_03_74_TRANSACTION_CORRECTION_REVERSAL_IMPLEMENTATION.md) |
+| 3.75 — Portfolio Cash Flow & Income Truth | Add effective-ledger cash/income projection, additive API, manual DIVIDEND/COUPON/FEE/TAX entry and truthful cash/dividend/coupon summary | Complete / canonical through PR #153 squash merge `57faae841805a5ab11ac959018a315cbada69207` from exact evidence head `fae674518e37d11cad0da28d91682c35bf8bf99a`; implementation head `f97f44016d22e783980c47bbde4799a3124623f4` passed CI #459 / run `34155729975` 10/10 SUCCESS; evidence head passed CI #460 / run `34156290105` 10/10 SUCCESS; fresh External and no-drift verification APPROVED; post-merge registry synchronization becomes canonical with this governance closure on protected `develop` | [Stage 3.75 report](stages/STAGE_03_75_PORTFOLIO_CASH_FLOW_INCOME_IMPLEMENTATION.md) |
 
 ## Stage completion protocol
 

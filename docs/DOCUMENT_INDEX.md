@@ -3,19 +3,19 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.72 |
+| Version | 1.1.73 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-09-07 |
-| Next Review Date | Before any Stage 3.75+ Portfolio Position / Cost Basis scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
+| Next Review Date | Before any Stage 3.76+ product/runtime or architecture-changing scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
 
 ## Canonical control documents
 
 | ID | Title | Version | Status | Location |
 | --- | --- | --- | --- | --- |
-| SOT-001 | Source of Truth | 1.4.94 | Approved | `SOURCE_OF_TRUTH.md` |
+| SOT-001 | Source of Truth | 1.4.98 | Approved | `SOURCE_OF_TRUTH.md` |
 | 42 | Architecture Amendments | 1.1.0 | Approved | `specifications/current/DOCUMENT_42_ARCHITECTURE_AMENDMENTS_v1.1.md` |
 | 43 | Architecture Decision Closure | 1.2.0 | Final | `specifications/current/DOCUMENT_43_ARCHITECTURE_CLOSURE_v1.2.md` |
 
@@ -56,7 +56,7 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | `ROADMAP.md` | Ordered implementation stages |
 | `IMPLEMENTATION_LOG.md` | Completed-stage index and completion protocol |
 | `audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md` | Canonical cross-finding status for all 32 original Stage 3.16 audit findings |
-| `governance/REPOSITORY_DOCUMENTATION_RECONCILIATION.md` | Current-state map reconciling README, registries, stage dossiers and lifecycle evidence through Stage 3.72 |
+| `governance/REPOSITORY_DOCUMENTATION_RECONCILIATION.md` | Historical reconciliation record through Stage 3.72; later active lifecycle state is carried by the canonical registries and stage dossiers |
 | `REVIEW_WORKFLOW.md` | Mandatory branch, PR, CI, specialist review, approval, and merge process |
 | `product/MVP_PRODUCT_RISK_REFINEMENT.md` | Proposed product-risk response, ICP sharpening, import/tax/purchasing-power guardrails |
 
@@ -146,10 +146,13 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Stage 3.72 lifecycle/documentation closure | Complete/canonical through PR #146 squash merge `ac0396eff47ce5cd862f41a5ec8ab2803de7fa58`; records purpose, implementation, expected behavior, verification and preserved boundaries | `stages/STAGE_03_72_PORTFOLIO_POSITION_PROJECTION_IMPLEMENTATION_CLOSURE.md` |
 | Stage 3.73 Portfolio Time Machine / Historical Position View | Complete/canonical through PR #148 squash merge `683f9c4647f888bb3dbdfb9dd365b84b95137b46` from exact final head `a74fd85a46843ccdfe8192f2ac8687169a5a2ac7` after CI #424 / run `34109389368` 10/10 SUCCESS; Current ↔ Historical UI, stale-result protection and historical financial witnesses over the existing Stage 3.72 `asOfDate` contract; no new endpoint/schema/provider | `stages/STAGE_03_73_PORTFOLIO_TIME_MACHINE_IMPLEMENTATION.md` |
 | Stage 3.74 Transaction Correction & Reversal / Ledger Repair UX | Complete/canonical through PR #150 squash merge `0580bf7e98c532202f84bbf9ceacd97aedbe4140` from exact final head `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02` after CI #435 / run `34117662576` 10/10 SUCCESS; append-only revisions/reversals, effective-ledger materialization, oversell rollback, exact replay, retry-safe Edit/Reverse UX and HTTP contract witnesses | `stages/STAGE_03_74_TRANSACTION_CORRECTION_REVERSAL_IMPLEMENTATION.md` |
+| Stage 3.75 Portfolio Cash Flow & Income Truth | Complete/canonical through PR #153 squash merge `57faae841805a5ab11ac959018a315cbada69207`; implementation head `f97f44016d22e783980c47bbde4799a3124623f4` passed CI #459 / run `34155729975` 10/10 SUCCESS; evidence head `fae674518e37d11cad0da28d91682c35bf8bf99a` passed CI #460 / run `34156290105` 10/10 SUCCESS; fresh External review and evidence/no-drift verification APPROVED; effective-ledger cash-flow/income truth, no provider/migration/cache table | `stages/STAGE_03_75_PORTFOLIO_CASH_FLOW_INCOME_IMPLEMENTATION.md` |
 
 Stage 3.71 lifecycle/documentation closure is canonical through PR #140 squash merge `97c35a7b0fe7e2cd487c63d03b8ba79f80dcfc7b`. `STAGE-03-72-GOV-01` is effective through PR #143 squash merge `be654b938484d4ef4e4796b247bb04bf7efd2049`, with historical noncompliance preserved and residual governance risk accepted. Stage 3.72 planning is canonical through PR #142 squash merge `2144c52f4dc5ba9e917947d396ced1f3c572fe51`, and Stage 3.72 runtime is canonical through PR #145 squash merge `e935f19b68624f0b8be6ca293ead8f4395cf555e` after CI #413 / run `34091588982` 10/10 SUCCESS. Stage 3.72 lifecycle/documentation closure is canonical through PR #146 squash merge `ac0396eff47ce5cd862f41a5ec8ab2803de7fa58`; it authorizes no later Portfolio Position / Cost Basis expansion, production rollout, imported SELL expansion, market provider/market-valued positions, XIRR/returns, correction/reversal, tax basis, bond NKD, notifications or AI.
 
 Stage 3.73 Portfolio Time Machine is complete/canonical through PR #148 squash merge `683f9c4647f888bb3dbdfb9dd365b84b95137b46` from exact final head `a74fd85a46843ccdfe8192f2ac8687169a5a2ac7` after CI #424 / run `34109389368` 10/10 SUCCESS. It is a Web/product projection over the existing Stage 3.72 `asOfDate` contract and authorizes no market provider activation, historical market-value/return calculation, new financial engine, API/schema expansion, tax-basis semantics, imported SELL expansion, privacy lifecycle, infrastructure expansion, notifications or AI.
+
+Stage 3.74 and Stage 3.75 are complete/canonical through protected PRs #150 and #153 respectively. Stage 3.75 adds backend-owned effective-ledger cash-flow/income truth without activating market valuation, P&L, XIRR, provider data, tax advice, Redis/workers, or paid infrastructure. No Stage 3.76+ product/runtime scope is authorized by this registry synchronization.
 
 ## Product refinement documents
 
