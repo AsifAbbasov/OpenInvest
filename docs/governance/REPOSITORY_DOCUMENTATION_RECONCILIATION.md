@@ -4,7 +4,7 @@
 | --- | --- |
 | Document ID | GOV-DOC-RECON-001 |
 | Version | 1.0.0 |
-| Status | CANONICAL ON PROTECTED `develop` |
+| Status | MERGE-ACTIVATED — CANONICAL ONLY AFTER PROTECTED MERGE |
 | Owner | Principal Architect |
 | Baseline | Stage 3.72 lifecycle closure / PR #146 squash merge `ac0396eff47ce5cd862f41a5ec8ab2803de7fa58` |
 | Date | 2026-09-07 |

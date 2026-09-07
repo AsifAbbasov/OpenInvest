@@ -4,7 +4,7 @@
 | --- | --- |
 | Document ID | REG-AUDIT-REMEDIATION-001 |
 | Version | 1.0.0 |
-| Status | CLOSED / CANONICAL ON PROTECTED `develop` |
+| Status | MERGE-ACTIVATED — CANONICAL ONLY AFTER PROTECTED MERGE |
 | Owner | Principal Architect |
 | Source audit | Stage 3.16 repository audit |
 | Original findings | P0=0, P1=5, P2=17, P3=10, total=32 |
