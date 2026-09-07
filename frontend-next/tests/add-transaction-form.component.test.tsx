@@ -183,7 +183,6 @@ test("initial production form has no fixture-derived business values", { concurr
     "\"280.00000000\"",
     "\"2800.00000000\"",
     "\"2.80000000\"",
-    "\"0.00000000\"",
     "\"2026-01-10\"",
     "\"2026-01-13\"",
     "\"Stage 3.3 Web presentation slice\"",
@@ -192,6 +191,8 @@ test("initial production form has no fixture-derived business values", { concurr
   }
   assert.match(source, /useState<TransactionType>\("BUY"\)/);
   assert.match(source, /currency: "RUB"/);
+  assert.match(source, /isExpense \|\| isCashFlow \? "0\.00000000" : commission/);
+  assert.match(source, /isExpense \|\| isCashFlow \? "0\.00000000" : tax/);
 });
 
 test("BUY submission uses only user-entered values and preserves null semantics", { concurrency: false }, async (t) => {
