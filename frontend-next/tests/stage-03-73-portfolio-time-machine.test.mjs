@@ -21,13 +21,13 @@ test("Stage 3.73 reuses the Stage 3.72 positions endpoint instead of creating fr
 });
 
 test("Stage 3.73 exposes explicit Current and Historical states without calling Current Today", () => {
-  assert.match(positions, />Current</);
-  assert.match(positions, />Historical</);
+  assert.match(positions, />\s*Current\s*</);
+  assert.match(positions, />\s*Historical\s*</);
   assert.match(positions, /type="date"/);
   assert.match(positions, /Viewing the latest accepted ledger projection/);
   assert.match(positions, /Current is not a wall-clock market valuation/);
   assert.match(positions, /Viewing portfolio as of \$\{historicalDate\}/);
-  assert.doesNotMatch(positions, />Today</);
+  assert.doesNotMatch(positions, />\s*Today\s*</);
   assert.doesNotMatch(positions, /max=\{/);
 });
 
