@@ -102,6 +102,8 @@ func writeMappedErrorWithMeta(c fiber.Ctx, meta metaDTO, err error) error {
 		return writeErrorWithMeta(c, meta, http.StatusUnauthorized, "UNAUTHORIZED", "Invalid CSRF token")
 	case errors.Is(err, verticalslice.ErrInsufficientPositionQuantity):
 		return writeErrorWithMeta(c, meta, http.StatusConflict, "INSUFFICIENT_POSITION_QUANTITY", "Transaction would make the position quantity negative")
+	case errors.Is(err, verticalslice.ErrTransactionConflict):
+		return writeErrorWithMeta(c, meta, http.StatusConflict, "CONFLICT", "Transaction revision is stale or the transaction is already reversed")
 	case errors.Is(err, verticalslice.ErrInvalidInput):
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
 	case errors.Is(err, verticalslice.ErrMissingIdempotency):
@@ -252,7 +254,7 @@ type metaDTO struct {
 type paginationDTO struct {
 	NextCursor *string `json:"nextCursor"`
 	HasMore    bool    `json:"hasMore"`
-	Limit      int    `json:"limit"`
+	Limit      int     `json:"limit"`
 }
 
 type listData[T any] struct {

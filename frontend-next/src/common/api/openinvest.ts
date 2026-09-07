@@ -119,6 +119,25 @@ export type CreatePortfolioPayload = {
   baseCurrency: "RUB";
 };
 
+export type CorrectTransactionPayload = {
+  expectedRevision: number;
+  reason: string;
+  corrected: CreateTransactionPayload;
+};
+
+export type ReverseTransactionPayload = {
+  expectedRevision: number;
+  reason: string;
+  effectiveDate: string;
+};
+
+export type TransactionReversal = {
+  transactionId: string;
+  reversalTransactionId: string;
+  status: "REVERSED";
+  effectiveDate: string;
+};
+
 export type CreateTransactionPayload = {
   transactionType: TransactionType;
   ticker: string | null;
@@ -537,6 +556,32 @@ export async function appendTransaction(
 ): Promise<ApiResult<Transaction>> {
   return request<Transaction>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/transactions`, {
     method: "POST",
+    headers: { ...idempotentHeaders(auth.idempotencyKey), ...bearerHeaders(auth.accessToken) },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function correctTransaction(
+  portfolioId: string,
+  transactionId: string,
+  payload: CorrectTransactionPayload,
+  auth: IdempotentAuthenticatedRequest,
+): Promise<ApiResult<Transaction>> {
+  return request<Transaction>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/transactions/${encodeURIComponent(transactionId)}`, {
+    method: "PATCH",
+    headers: { ...idempotentHeaders(auth.idempotencyKey), ...bearerHeaders(auth.accessToken) },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function reverseTransaction(
+  portfolioId: string,
+  transactionId: string,
+  payload: ReverseTransactionPayload,
+  auth: IdempotentAuthenticatedRequest,
+): Promise<ApiResult<TransactionReversal>> {
+  return request<TransactionReversal>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/transactions/${encodeURIComponent(transactionId)}`, {
+    method: "DELETE",
     headers: { ...idempotentHeaders(auth.idempotencyKey), ...bearerHeaders(auth.accessToken) },
     body: JSON.stringify(payload),
   });

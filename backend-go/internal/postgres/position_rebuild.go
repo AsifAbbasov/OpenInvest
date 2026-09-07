@@ -8,7 +8,6 @@ import (
 	"math"
 
 	"github.com/openinvest/openinvest/backend-go/internal/decimal"
-	"github.com/openinvest/openinvest/backend-go/internal/position"
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
@@ -107,75 +106,8 @@ func validatePositionHistoryTx(ctx context.Context, tx *sql.Tx, portfolioID stri
 	if assetID == nil {
 		return nil
 	}
-	rows, err := tx.QueryContext(ctx, `
-		SELECT
-			te.transaction_type,
-			te.quantity::text,
-			te.unit_price_amount::text,
-			te.ledger_sequence,
-			te.revision,
-			te.prior_entry_id IS NOT NULL,
-			te.reverses_transaction_id IS NOT NULL
-		FROM investment.transaction_entries te
-		WHERE te.portfolio_id = $1
-			AND te.asset_id = $2
-			AND te.transaction_type IN ('BUY', 'SELL')
-		ORDER BY te.trade_date ASC, te.ledger_sequence ASC
-	`, portfolioID, *assetID)
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-
-	trades := []position.Trade{}
-	for rows.Next() {
-		var transactionType string
-		var quantityText string
-		var unitPriceText string
-		var ledgerSequence sql.NullInt64
-		var revision int
-		var corrected bool
-		var reversal bool
-		if err := rows.Scan(
-			&transactionType,
-			&quantityText,
-			&unitPriceText,
-			&ledgerSequence,
-			&revision,
-			&corrected,
-			&reversal,
-		); err != nil {
-			return err
-		}
-		if !ledgerSequence.Valid || ledgerSequence.Int64 <= 0 {
-			return ErrLedgerSequenceUnavailable
-		}
-		if revision != 1 || corrected || reversal {
-			return ErrUnsupportedPositionLedger
-		}
-		quantity, err := decimal.FromString(quantityText)
-		if err != nil {
-			return err
-		}
-		unitPrice, err := decimal.FromString(unitPriceText)
-		if err != nil {
-			return err
-		}
-		trades = append(trades, position.Trade{Type: transactionType, Quantity: quantity, UnitPrice: unitPrice})
-	}
-	if err := rows.Err(); err != nil {
-		return err
-	}
-
-	_, err = position.Rebuild(trades)
-	switch {
-	case errors.Is(err, position.ErrInsufficientQuantity):
-		return verticalslice.ErrInsufficientPositionQuantity
-	case errors.Is(err, position.ErrDerivedOverflow), errors.Is(err, position.ErrInvalidTrade):
-		return fmt.Errorf("%w: position rebuild exceeds canonical Decimal constraints", verticalslice.ErrInvalidInput)
-	default:
-		return err
-	}
+	_, _, err := rebuildPortfolioPositionsTx(ctx, tx, portfolioID, "")
+	return err
 }
 
 func portfolioAcquisitionValuesTx(ctx context.Context, tx *sql.Tx, portfolioID string, snapshotDate string) (acquisitionValueTotals, error) {

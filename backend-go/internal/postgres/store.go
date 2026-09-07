@@ -256,7 +256,7 @@ func (s *Store) ListTransactions(ctx context.Context, subjectID string, portfoli
 		conditions = append(conditions, "(te.trade_date, te.entry_id) < ($"+strconv.Itoa(len(args)-1)+"::date, $"+strconv.Itoa(len(args))+"::uuid)")
 	}
 	args = append(args, filter.Limit)
-	rows, err := s.db.QueryContext(ctx, transactionSelectSQL()+`
+	rows, err := s.db.QueryContext(ctx, currentTransactionSelectSQL()+`
 			WHERE `+strings.Join(conditions, " AND ")+`
 			ORDER BY te.trade_date DESC, te.entry_id DESC
 			LIMIT $`+strconv.Itoa(len(args))+`
@@ -976,7 +976,7 @@ func transactionSelectSQL() string {
 			COALESCE(te.source_fingerprint, ''),
 			COALESCE(te.source_identity_version, 0),
 			te.revision,
-			te.created_at,
+			(SELECT min(first_entry.created_at) FROM investment.transaction_entries first_entry WHERE first_entry.transaction_id = te.transaction_id AND first_entry.reverses_transaction_id IS NULL) AS created_at,
 			te.created_at AS updated_at
 		FROM investment.transaction_entries te
 		LEFT JOIN investment.assets a ON a.id = te.asset_id
