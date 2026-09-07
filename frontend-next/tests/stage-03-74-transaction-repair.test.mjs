@@ -16,8 +16,8 @@ test("Stage 3.74 uses the frozen PATCH and DELETE transaction commands", () => {
 
 test("Stage 3.74 exposes explicit Edit and Reverse UX without delete-permanently language", () => {
   assert.match(detail, /<th>Actions<\/th>/);
-  assert.match(controls, />Edit</);
-  assert.match(controls, />Reverse</);
+  assert.match(controls, />\s*Edit\s*</);
+  assert.match(controls, />\s*Reverse\s*</);
   assert.match(controls, /History will be preserved/);
   assert.doesNotMatch(controls, /Delete permanently/i);
   assert.match(controls, /Reason for correction/);
