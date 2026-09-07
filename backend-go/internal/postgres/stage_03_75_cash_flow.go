@@ -171,7 +171,10 @@ func portfolioCashFlowProjectionTx(
 			return verticalslice.PortfolioCashFlowProjection{}, err
 		}
 		month := row.TradeDate[:7]
-		period := monthly[month]
+		period, exists := monthly[month]
+		if !exists {
+			period = zeroCashFlowAmounts()
+		}
 		if err := period.apply(row); err != nil {
 			return verticalslice.PortfolioCashFlowProjection{}, err
 		}
