@@ -51,4 +51,4 @@ This reconciliation changes no Go, PostgreSQL schema/migration, OpenAPI runtime 
 
 ## Next gate
 
-No Stage 3.73 work is implied. Any new product/runtime stage must be separately planned and reviewed. Architecture-changing provider/public activation, market valuation, privacy lifecycle, tax-basis semantics, imported SELL expansion or other frozen-boundary changes must enter the existing Issue → ADR/plan → review → explicit authorization workflow.
+This reconciliation remains the historical canonical synchronization baseline through Stage 3.72. Stage 3.73 subsequently became COMPLETE / CANONICAL through PR #148 squash merge `683f9c4647f888bb3dbdfb9dd365b84b95137b46` after exact-head CI #424; no Stage 3.74 work is implied by this historical reconciliation or by the Stage 3.73 closure. Any new product/runtime stage must be separately planned and reviewed. Architecture-changing provider/public activation, market valuation, privacy lifecycle, tax-basis semantics, imported SELL expansion or other frozen-boundary changes must enter the existing Issue → ADR/plan → review → explicit authorization workflow.
