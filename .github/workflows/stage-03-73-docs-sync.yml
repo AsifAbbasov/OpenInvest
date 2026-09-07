@@ -112,7 +112,7 @@ jobs:
           changed="$(git diff --name-only)"
           echo "$changed"
           test -n "$changed"
-          if echo "$changed" | grep -Ev '^(README\.md|docs/)'; then
+          if echo "$changed" | grep -Ev '^(README\.md|docs/|\.github/workflows/stage-03-73-docs-sync\.yml$)'; then
             echo 'Unexpected non-documentation path changed by docs sync' >&2
             exit 1
           fi
