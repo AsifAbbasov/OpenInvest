@@ -1,0 +1,63 @@
+name: Stage 3.75 implementation applicator
+
+on:
+  push:
+    branches:
+      - feat/stage-03-75-cash-flow-income-truth
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ github.event.head_commit.message != 'feat: implement Stage 3.75 cash-flow and income truth' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/stage-03-75-cash-flow-income-truth
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend-go/go.mod
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend-next/pnpm-lock.yaml
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.17.1
+      - name: Apply Stage 3.75 patches
+        run: python3 scripts/stage375_apply.py
+      - name: Format and preflight
+        run: |
+          gofmt -w backend-go/internal/verticalslice/stage_03_75_cash_flow.go \
+            backend-go/internal/postgres/stage_03_75_cash_flow.go \
+            backend-go/internal/postgres/effective_ledger.go \
+            backend-go/internal/postgres/stage_03_71_summary.go \
+            backend-go/internal/httpapi/cash_flow.go \
+            backend-go/internal/httpapi/stage_03_75_cash_flow_test.go \
+            backend-go/internal/postgres/stage_03_75_cash_flow_integration_test.go \
+            backend-go/internal/verticalslice/service.go \
+            backend-go/internal/verticalslice/stage_03_71_store_adapter.go \
+            backend-go/internal/httpapi/routes.go \
+            backend-go/internal/httpapi/replay_app.go \
+            backend-go/cmd/validate-openapi/main.go
+          cd backend-go
+          go test ./internal/verticalslice ./internal/httpapi
+          go test ./cmd/validate-openapi
+          go run ./cmd/validate-openapi
+          cd ../frontend-next
+          pnpm install --frozen-lockfile
+          pnpm typecheck
+          pnpm test
+      - name: Remove one-shot applicator and commit product diff
+        run: |
+          git rm .github/workflows/stage375-apply.yml scripts/stage375_apply.py
+          git add README.md docs openapi backend-go frontend-next
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "feat: implement Stage 3.75 cash-flow and income truth"
+          git push origin HEAD:feat/stage-03-75-cash-flow-income-truth
