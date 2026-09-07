@@ -165,7 +165,7 @@ test("initial production form has no fixture-derived business values", { concurr
   const transactionOptions = [...(controlFor(container, "Transaction type") as HTMLSelectElement).options].map(
     (option) => option.value,
   );
-  assert.deepEqual(transactionOptions, ["BUY", "SELL", "DEPOSIT", "WITHDRAWAL"]);
+  assert.deepEqual(transactionOptions, ["BUY", "SELL", "DIVIDEND", "COUPON", "FEE", "TAX", "DEPOSIT", "WITHDRAWAL"]);
   for (const label of ["Ticker", "Quantity", "Unit price", "Commission", "Tax", "Trade date", "Settlement date", "Note"]) {
     assert.equal(controlFor(container, label).value, "", `${label} must start empty`);
   }
@@ -300,8 +300,6 @@ test("type switch prevents stale trade values from leaking into cash-flow payloa
 
   await setControl(container, "Transaction type", "DEPOSIT");
   await setControl(container, "Gross amount", "1000.00000000");
-  await setControl(container, "Commission", "0.00000000");
-  await setControl(container, "Tax", "0.00000000");
   await setControl(container, "Trade date", "2026-09-01");
   await setControl(container, "Settlement date", "");
   await setControl(container, "Note", "");
@@ -314,8 +312,84 @@ test("type switch prevents stale trade values from leaking into cash-flow payloa
   assert.equal(payload.quantity, null);
   assert.equal(payload.unitPrice, null);
   assert.deepEqual(payload.grossAmount, { amount: "1000.00000000", currency: "RUB" });
+  assert.deepEqual(payload.commission, { amount: "0.00000000", currency: "RUB" });
+  assert.deepEqual(payload.tax, { amount: "0.00000000", currency: "RUB" });
   assert.equal(payload.settlementDate, null);
   assert.equal(payload.note, null);
+});
+
+test("DIVIDEND preserves asset identity and optional quantity with recorded deductions", { concurrency: false }, async (t) => {
+  const originalFetch = globalThis.fetch;
+  const requests: Array<{ input: RequestInfo | URL; init?: RequestInit }> = [];
+  globalThis.fetch = async (input, init) => {
+    requests.push({ input, init });
+    return apiResponse({ id: "10000000-0000-4000-8000-000000000015" }, 201);
+  };
+  const { container, root } = mountForm();
+  t.after(async () => {
+    await act(async () => root.unmount());
+    dom.window.document.body.innerHTML = "";
+    globalThis.fetch = originalFetch;
+  });
+
+  await renderForm(root);
+  await setControl(container, "Transaction type", "DIVIDEND");
+  await setControl(container, "Ticker", "sber");
+  await setControl(container, "Quantity", "10.00000000");
+  await setControl(container, "Gross amount", "350.00000000");
+  await setControl(container, "Commission", "1.00000000");
+  await setControl(container, "Tax", "45.50000000");
+  await setControl(container, "Trade date", "2026-09-05");
+  await submit(container);
+
+  assert.equal(requests.length, 1);
+  assert.deepEqual(requestBody(requests[0].init), {
+    transactionType: "DIVIDEND",
+    ticker: "SBER",
+    quantity: "10.00000000",
+    unitPrice: null,
+    grossAmount: { amount: "350.00000000", currency: "RUB" },
+    commission: { amount: "1.00000000", currency: "RUB" },
+    tax: { amount: "45.50000000", currency: "RUB" },
+    tradeDate: "2026-09-05",
+    settlementDate: null,
+    note: null,
+  });
+});
+
+test("FEE uses standalone gross amount and prevents nested commission or tax double counting", { concurrency: false }, async (t) => {
+  const originalFetch = globalThis.fetch;
+  const requests: Array<{ input: RequestInfo | URL; init?: RequestInit }> = [];
+  globalThis.fetch = async (input, init) => {
+    requests.push({ input, init });
+    return apiResponse({ id: "10000000-0000-4000-8000-000000000016" }, 201);
+  };
+  const { container, root } = mountForm();
+  t.after(async () => {
+    await act(async () => root.unmount());
+    dom.window.document.body.innerHTML = "";
+    globalThis.fetch = originalFetch;
+  });
+
+  await renderForm(root);
+  await setControl(container, "Transaction type", "FEE");
+  await setControl(container, "Gross amount", "25.00000000");
+  await setControl(container, "Trade date", "2026-09-06");
+  await submit(container);
+
+  assert.equal(requests.length, 1);
+  assert.deepEqual(requestBody(requests[0].init), {
+    transactionType: "FEE",
+    ticker: null,
+    quantity: null,
+    unitPrice: null,
+    grossAmount: { amount: "25.00000000", currency: "RUB" },
+    commission: { amount: "0.00000000", currency: "RUB" },
+    tax: { amount: "0.00000000", currency: "RUB" },
+    tradeDate: "2026-09-06",
+    settlementDate: null,
+    note: null,
+  });
 });
 
 test("same failed intent reuses the same Idempotency-Key on retry", { concurrency: false }, async (t) => {
