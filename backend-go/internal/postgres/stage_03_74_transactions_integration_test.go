@@ -11,8 +11,13 @@ import (
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
-func stage374Artifact(transaction verticalslice.Transaction) (verticalslice.CommandReplayArtifact, error) {
-	return verticalslice.CommandReplayArtifact{StatusCode: 200, Body: []byte(transaction.ID)}, nil
+func stage374Artifact(requestContext verticalslice.RequestContext, transaction verticalslice.Transaction) (verticalslice.CommandReplayArtifact, error) {
+	return verticalslice.CommandReplayArtifact{
+		StatusCode: 200,
+		Body:       []byte(transaction.ID),
+		RequestID:  requestContext.RequestID,
+		TraceID:    requestContext.TraceID,
+	}, nil
 }
 
 func correctStage374(t *testing.T, h stage371Harness, transaction verticalslice.Transaction, quantity, price, tradeDate, key string) (verticalslice.Transaction, error) {
@@ -31,8 +36,9 @@ func correctStage374(t *testing.T, h stage371Harness, transaction verticalslice.
 		SettlementDate:  transaction.SettlementDate,
 		Note:            transaction.Note,
 	}
+	requestContext := verticalslice.RequestContext{RequestID: uuid.NewString(), TraceID: "stage-03-74-test"}
 	result, _, err := h.service.CorrectTransactionWithReplay(
-		h.ctx, verticalslice.RequestContext{}, h.subjectID, key,
+		h.ctx, requestContext, h.subjectID, key,
 		"/api/v1/portfolios/"+h.portfolioID+"/transactions/"+transaction.ID,
 		verticalslice.CorrectTransactionRequest{
 			PortfolioID:      h.portfolioID,
@@ -41,15 +47,18 @@ func correctStage374(t *testing.T, h stage371Harness, transaction verticalslice.
 			Reason:           "Incorrect broker value",
 			Corrected:        corrected,
 		},
-		stage374Artifact,
+		func(result verticalslice.Transaction) (verticalslice.CommandReplayArtifact, error) {
+			return stage374Artifact(requestContext, result)
+		},
 	)
 	return result, err
 }
 
 func reverseStage374(t *testing.T, h stage371Harness, transaction verticalslice.Transaction, effectiveDate, key string) (verticalslice.TransactionReversal, error) {
 	t.Helper()
+	requestContext := verticalslice.RequestContext{RequestID: uuid.NewString(), TraceID: "stage-03-74-test"}
 	result, _, err := h.service.ReverseTransactionWithReplay(
-		h.ctx, verticalslice.RequestContext{}, h.subjectID, key,
+		h.ctx, requestContext, h.subjectID, key,
 		"/api/v1/portfolios/"+h.portfolioID+"/transactions/"+transaction.ID,
 		verticalslice.ReverseTransactionRequest{
 			PortfolioID:      h.portfolioID,
@@ -59,7 +68,12 @@ func reverseStage374(t *testing.T, h stage371Harness, transaction verticalslice.
 			EffectiveDate:    effectiveDate,
 		},
 		func(result verticalslice.TransactionReversal) (verticalslice.CommandReplayArtifact, error) {
-			return verticalslice.CommandReplayArtifact{StatusCode: 200, Body: []byte(result.ReversalTransactionID)}, nil
+			return verticalslice.CommandReplayArtifact{
+				StatusCode: 200,
+				Body:       []byte(result.ReversalTransactionID),
+				RequestID:  requestContext.RequestID,
+				TraceID:    requestContext.TraceID,
+			}, nil
 		},
 	)
 	return result, err
