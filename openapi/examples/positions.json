@@ -19,9 +19,11 @@
             "marketValuation": {
               "status": "UNAVAILABLE",
               "reason": "NO_APPROVED_MARKET_PRICE_SOURCE",
+              "source": null,
               "marketPrice": null,
               "marketValue": null,
               "unrealizedGain": null,
+              "unrealizedReturn": null,
               "marketWeight": null,
               "provider": null,
               "asOf": null
@@ -43,9 +45,11 @@
             "marketValuation": {
               "status": "UNAVAILABLE",
               "reason": "NO_APPROVED_MARKET_PRICE_SOURCE",
+              "source": null,
               "marketPrice": null,
               "marketValue": null,
               "unrealizedGain": null,
+              "unrealizedReturn": null,
               "marketWeight": null,
               "provider": null,
               "asOf": null
@@ -56,15 +60,26 @@
           "amount": "120578.77813505",
           "currency": "RUB"
         },
+        "valuationSummary": {
+          "status": "PARTIAL",
+          "valuedPositions": 0,
+          "totalOpenPositions": 2,
+          "valuedPositionsMarketValue": { "amount": "0.00000000", "currency": "RUB" },
+          "valuedPositionsAcquisitionBasis": { "amount": "0.00000000", "currency": "RUB" },
+          "totalAcquisitionBasis": { "amount": "120578.77813505", "currency": "RUB" },
+          "unrealizedGain": { "amount": "0.00000000", "currency": "RUB" },
+          "cashValue": { "amount": "0.00000000", "currency": "RUB" },
+          "currentPortfolioValue": null
+        },
         "calculation": {
-          "methodologyVersion": "portfolio-position-projection-v1",
+          "methodologyVersion": "portfolio-position-projection-v2-manual-valuation",
           "inputsAsOf": "2026-09-03"
         }
       },
       "meta": {
         "requestId": "10000000-0000-4000-8000-000000000372",
         "traceId": "10000000000000000000000000000372",
-        "generatedAt": "2026-09-07T00:00:00Z"
+        "generatedAt": "2026-09-08T00:00:00Z"
       }
     }
   }

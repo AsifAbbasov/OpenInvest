@@ -234,13 +234,30 @@ export type AssetType = "STOCK" | "BOND";
 export type MarketValuationUnavailable = {
   status: "UNAVAILABLE";
   reason: "NO_APPROVED_MARKET_PRICE_SOURCE";
+  source: null;
   marketPrice: null;
   marketValue: null;
   unrealizedGain: null;
+  unrealizedReturn: null;
   marketWeight: null;
   provider: null;
   asOf: null;
 };
+
+export type MarketValuationAvailable = {
+  status: "AVAILABLE";
+  reason: null;
+  source: "USER_SUPPLIED";
+  marketPrice: Money;
+  marketValue: Money;
+  unrealizedGain: Money;
+  unrealizedReturn: string | null;
+  marketWeight: string | null;
+  provider: null;
+  asOf: string;
+};
+
+export type MarketValuation = MarketValuationUnavailable | MarketValuationAvailable;
 
 export type PortfolioPositionProjection = {
   ticker: string;
@@ -249,20 +266,42 @@ export type PortfolioPositionProjection = {
   weightedAverageCost: Money;
   acquisitionBasis: Money;
   acquisitionBasisWeight: string | null;
-  marketValuation: MarketValuationUnavailable;
+  marketValuation: MarketValuation;
+};
+
+export type PortfolioValuationSummary = {
+  status: "PARTIAL" | "COMPLETE";
+  valuedPositions: number;
+  totalOpenPositions: number;
+  valuedPositionsMarketValue: Money;
+  valuedPositionsAcquisitionBasis: Money;
+  totalAcquisitionBasis: Money;
+  unrealizedGain: Money;
+  cashValue: Money;
+  currentPortfolioValue: Money | null;
 };
 
 export type PortfolioPositionsProjection = {
   items: PortfolioPositionProjection[];
   totalAcquisitionBasis: Money;
+  valuationSummary: PortfolioValuationSummary;
   calculation: {
-    methodologyVersion: "portfolio-position-projection-v1";
+    methodologyVersion: "portfolio-position-projection-v2-manual-valuation";
     inputsAsOf: string | null;
   };
 };
 
 export type PortfolioPositionsRequestOptions = {
   asOfDate?: string;
+  signal?: AbortSignal;
+};
+
+export type ManualValuationPayload = {
+  marketPrice: Money;
+  asOfDate: string;
+};
+
+export type ManualValuationRequestOptions = {
   signal?: AbortSignal;
 };
 
@@ -572,6 +611,40 @@ export async function getPortfolioPositions(
   return request<PortfolioPositionsProjection>(
     `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/positions${query === "" ? "" : `?${query}`}`,
     { headers: bearerHeaders(auth.accessToken), signal: options.signal },
+  );
+}
+
+export async function upsertManualValuation(
+  portfolioId: string,
+  ticker: string,
+  payload: ManualValuationPayload,
+  auth: AuthenticatedRequest,
+  options: ManualValuationRequestOptions = {},
+): Promise<ApiResult<PortfolioPositionsProjection>> {
+  return request<PortfolioPositionsProjection>(
+    `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/valuations/${encodeURIComponent(ticker)}`,
+    {
+      method: "PUT",
+      headers: bearerHeaders(auth.accessToken),
+      body: JSON.stringify(payload),
+      signal: options.signal,
+    },
+  );
+}
+
+export async function clearManualValuation(
+  portfolioId: string,
+  ticker: string,
+  auth: AuthenticatedRequest,
+  options: ManualValuationRequestOptions = {},
+): Promise<ApiResult<PortfolioPositionsProjection>> {
+  return request<PortfolioPositionsProjection>(
+    `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/valuations/${encodeURIComponent(ticker)}`,
+    {
+      method: "DELETE",
+      headers: bearerHeaders(auth.accessToken),
+      signal: options.signal,
+    },
   );
 }
 

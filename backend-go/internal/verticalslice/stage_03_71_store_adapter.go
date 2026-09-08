@@ -18,7 +18,12 @@ func (adapter *stage371StoreAdapter) Ping(ctx context.Context) error {
 		return err
 	}
 	if stageStore, ok := adapter.Store.(Stage371ReadyStore); ok {
-		return stageStore.Stage371Ready(ctx)
+		if err := stageStore.Stage371Ready(ctx); err != nil {
+			return err
+		}
+	}
+	if stageStore, ok := adapter.Store.(Stage376ReadyStore); ok {
+		return stageStore.Stage376Ready(ctx)
 	}
 	return nil
 }
@@ -60,6 +65,31 @@ func (adapter *stage371StoreAdapter) GetPortfolioCashFlow(
 		return PortfolioCashFlowProjection{}, ErrCashFlowProjectionUnavailable
 	}
 	return cashFlowStore.GetPortfolioCashFlow(ctx, subjectID, portfolioID, fromDate, toDate)
+}
+
+func (adapter *stage371StoreAdapter) UpsertManualValuation(
+	ctx context.Context,
+	subjectID string,
+	request ManualValuationRequest,
+) error {
+	store, ok := adapter.Store.(ManualValuationStore)
+	if !ok {
+		return ErrManualValuationUnavailable
+	}
+	return store.UpsertManualValuation(ctx, subjectID, request)
+}
+
+func (adapter *stage371StoreAdapter) ClearManualValuation(
+	ctx context.Context,
+	subjectID string,
+	portfolioID string,
+	ticker string,
+) error {
+	store, ok := adapter.Store.(ManualValuationStore)
+	if !ok {
+		return ErrManualValuationUnavailable
+	}
+	return store.ClearManualValuation(ctx, subjectID, portfolioID, ticker)
 }
 
 func (adapter *stage371StoreAdapter) AppendTransaction(

@@ -11,10 +11,11 @@ import (
 )
 
 type rebuiltPortfolioPosition struct {
-	AssetID   string
-	Ticker    string
-	AssetType string
-	State     position.State
+	AssetID            string
+	Ticker             string
+	AssetType          string
+	PositionGeneration int64
+	State              position.State
 }
 
 func rebuildPortfolioPositionsTx(
@@ -49,6 +50,7 @@ func rebuildPortfolioPositionsTx(
 				State:     position.Empty(),
 			})
 		}
+		wasOpen := positions[index].State.Open
 		next, err := position.Apply(positions[index].State, position.Trade{
 			Type:      row.TransactionType,
 			Quantity:  *row.Quantity,
@@ -61,6 +63,9 @@ func rebuildPortfolioPositionsTx(
 			return nil, nil, fmt.Errorf("%w: position rebuild exceeds canonical Decimal constraints", verticalslice.ErrInvalidInput)
 		case err != nil:
 			return nil, nil, err
+		}
+		if row.TransactionType == "BUY" && !wasOpen {
+			positions[index].PositionGeneration = row.LedgerSequence
 		}
 		positions[index].State = next
 		if latestIncludedTradeDate == nil || row.TradeDate > *latestIncludedTradeDate {
