@@ -1,0 +1,125 @@
+PortfolioReturnCashFlow:
+  type: object
+  additionalProperties: false
+  required: [date, amount]
+  properties:
+    date:
+      $ref: "./schemas.yaml#/BusinessDate"
+    amount:
+      $ref: "./schemas.yaml#/Decimal"
+      description: >-
+        Investor-perspective external cash flow after Stage 3.74 correction/reversal semantics.
+        DEPOSIT is negative and WITHDRAWAL is positive. Internal BUY/SELL/income/fee/tax rows are excluded.
+
+PortfolioReturnCalculation:
+  type: object
+  additionalProperties: false
+  required: [methodologyVersion, dayCountConvention]
+  properties:
+    methodologyVersion:
+      type: string
+      const: portfolio-xirr-v1
+    dayCountConvention:
+      type: string
+      const: ACT/365
+
+PortfolioReturnAvailable:
+  type: object
+  additionalProperties: false
+  required:
+    - portfolioId
+    - asOfDate
+    - status
+    - reason
+    - xirr
+    - externalCashFlows
+    - terminalPortfolioValue
+    - calculation
+  properties:
+    portfolioId:
+      type: string
+      format: uuid
+    asOfDate:
+      $ref: "./schemas.yaml#/BusinessDate"
+    status:
+      type: string
+      const: AVAILABLE
+    reason:
+      type: "null"
+    xirr:
+      allOf:
+        - $ref: "./schemas.yaml#/Decimal"
+        - type: string
+          pattern: "^-?(0|[1-9][0-9]{0,19})\\.[0-9]{8}$"
+      description: Backend-owned money-weighted annual return as a canonical scale-8 Decimal string.
+    externalCashFlows:
+      type: array
+      minItems: 1
+      items:
+        $ref: "#/PortfolioReturnCashFlow"
+    terminalPortfolioValue:
+      $ref: "./schemas.yaml#/PositiveMoney"
+      description: >-
+        Exact-asOfDate RUB portfolio value from COMPLETE Stage 3.76 USER_SUPPLIED manual valuation coverage plus canonical cash.
+    calculation:
+      $ref: "#/PortfolioReturnCalculation"
+
+PortfolioReturnUnavailableReason:
+  type: string
+  enum:
+    - INCOMPLETE_VALUATION
+    - NO_EXTERNAL_CONTRIBUTIONS
+    - INSUFFICIENT_DATE_SPAN
+    - NO_SIGN_CHANGE
+    - NON_POSITIVE_TERMINAL_VALUE
+    - AMBIGUOUS_MULTIPLE_ROOTS
+    - NUMERICAL_SOLUTION_FAILED
+
+PortfolioReturnUnavailable:
+  type: object
+  additionalProperties: false
+  required:
+    - portfolioId
+    - asOfDate
+    - status
+    - reason
+    - xirr
+    - externalCashFlows
+    - terminalPortfolioValue
+    - calculation
+  properties:
+    portfolioId:
+      type: string
+      format: uuid
+    asOfDate:
+      $ref: "./schemas.yaml#/BusinessDate"
+    status:
+      type: string
+      const: UNAVAILABLE
+    reason:
+      $ref: "#/PortfolioReturnUnavailableReason"
+    xirr:
+      type: "null"
+    externalCashFlows:
+      type: array
+      items:
+        $ref: "#/PortfolioReturnCashFlow"
+    terminalPortfolioValue:
+      oneOf:
+        - $ref: "./schemas.yaml#/Money"
+        - type: "null"
+    calculation:
+      $ref: "#/PortfolioReturnCalculation"
+
+PortfolioReturnProjection:
+  oneOf:
+    - $ref: "#/PortfolioReturnAvailable"
+    - $ref: "#/PortfolioReturnUnavailable"
+
+PortfolioReturnResponse:
+  allOf:
+    - $ref: "./schemas.yaml#/BaseResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "#/PortfolioReturnProjection"

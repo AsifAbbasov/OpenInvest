@@ -49,6 +49,25 @@ func (s *Store) GetPortfolioPositions(
 		return verticalslice.PortfolioPositionsProjection{}, err
 	}
 
+	result, err := portfolioPositionsProjectionTx(ctx, tx, portfolioID, asOfDate)
+	if err != nil {
+		return verticalslice.PortfolioPositionsProjection{}, err
+	}
+	if err := tx.Commit(); err != nil {
+		return verticalslice.PortfolioPositionsProjection{}, err
+	}
+	return result, nil
+}
+
+// portfolioPositionsProjectionTx is the canonical Stage 3.76 transaction-level valuation
+// projection. Callers that already own a consistent database snapshot reuse this helper
+// rather than reimplementing position rebuild, manual valuation, and cash orchestration.
+func portfolioPositionsProjectionTx(
+	ctx context.Context,
+	tx *sql.Tx,
+	portfolioID string,
+	asOfDate string,
+) (verticalslice.PortfolioPositionsProjection, error) {
 	rebuilt, latestIncludedTradeDate, err := rebuildPortfolioPositionsTx(ctx, tx, portfolioID, asOfDate)
 	if err != nil {
 		return verticalslice.PortfolioPositionsProjection{}, err
@@ -67,14 +86,13 @@ func (s *Store) GetPortfolioPositions(
 		value := asOfDate
 		inputsAsOf = &value
 	}
-	result, err := buildPortfolioPositionsProjectionWithValuations(rebuilt, inputsAsOf, asOfDate, manualValuations, cashValue)
-	if err != nil {
-		return verticalslice.PortfolioPositionsProjection{}, err
-	}
-	if err := tx.Commit(); err != nil {
-		return verticalslice.PortfolioPositionsProjection{}, err
-	}
-	return result, nil
+	return buildPortfolioPositionsProjectionWithValuations(
+		rebuilt,
+		inputsAsOf,
+		asOfDate,
+		manualValuations,
+		cashValue,
+	)
 }
 
 // Retained for Stage 3.72 unit tests and compatibility witnesses. Production reads use the
@@ -208,7 +226,7 @@ func buildPortfolioPositionsProjectionWithValuations(
 	}
 
 	return verticalslice.PortfolioPositionsProjection{
-		Items: items,
+		Items:                 items,
 		TotalAcquisitionBasis: verticalslice.Money{Amount: totalAcquisitionBasis, Currency: verticalslice.RUB},
 		ValuationSummary: verticalslice.PortfolioValuationSummary{
 			Status:                          coverageStatus,

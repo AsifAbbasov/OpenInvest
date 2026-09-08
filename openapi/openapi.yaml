@@ -540,6 +540,45 @@ paths:
         "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
         "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
 
+  /api/v1/portfolios/{portfolioId}/returns:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+      - $ref: "#/components/parameters/PortfolioId"
+    get:
+      operationId: getPortfolioReturns
+      summary: Get exact-date portfolio money-weighted return (XIRR)
+      description: >-
+        Calculates backend-owned money-weighted return from the Stage 3.74 correction/reversal-aware
+        effective ledger and the exact requested BusinessDate terminal portfolio value. Only DEPOSIT
+        and WITHDRAWAL are external investor cash flows. Terminal value requires COMPLETE Stage 3.76
+        USER_SUPPLIED RUB manual valuation coverage. No live/provider price, wall-clock default, TWR,
+        nominal return, real return, inflation adjustment, or FX conversion is used.
+      tags: [Portfolios]
+      parameters:
+        - name: asOfDate
+          in: query
+          required: true
+          description: >-
+            Exact BusinessDate cutoff and terminal valuation date. This parameter is mandatory and
+            never defaults to the wall clock or latest completed MOEX business date.
+          schema: { $ref: "./components/schemas.yaml#/BusinessDate" }
+      responses:
+        "200":
+          description: AVAILABLE or explicitly UNAVAILABLE exact-date money-weighted return projection.
+          headers:
+            X-Request-ID: { $ref: "./components/responses.yaml#/headers/RequestId" }
+            X-Trace-ID: { $ref: "./components/responses.yaml#/headers/TraceId" }
+          content:
+            application/json:
+              schema: { $ref: "./components/stage_03_77.yaml#/PortfolioReturnResponse" }
+              examples:
+                available: { $ref: "./examples/portfolio-returns.json#/availableResponse" }
+                unavailable: { $ref: "./examples/portfolio-returns.json#/unavailableResponse" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
+
   /api/v1/portfolios/{portfolioId}/cash-flow:
     parameters:
       - $ref: "#/components/parameters/RequestId"
@@ -903,6 +942,13 @@ components:
     Transaction: { $ref: "./components/schemas.yaml#/Transaction" }
     TransactionType: { $ref: "./components/schemas.yaml#/TransactionType" }
     PortfolioSummary: { $ref: "./components/schemas.yaml#/PortfolioSummary" }
+    PortfolioReturnCashFlow: { $ref: "./components/stage_03_77.yaml#/PortfolioReturnCashFlow" }
+    PortfolioReturnCalculation: { $ref: "./components/stage_03_77.yaml#/PortfolioReturnCalculation" }
+    PortfolioReturnAvailable: { $ref: "./components/stage_03_77.yaml#/PortfolioReturnAvailable" }
+    PortfolioReturnUnavailableReason: { $ref: "./components/stage_03_77.yaml#/PortfolioReturnUnavailableReason" }
+    PortfolioReturnUnavailable: { $ref: "./components/stage_03_77.yaml#/PortfolioReturnUnavailable" }
+    PortfolioReturnProjection: { $ref: "./components/stage_03_77.yaml#/PortfolioReturnProjection" }
+    PortfolioReturnResponse: { $ref: "./components/stage_03_77.yaml#/PortfolioReturnResponse" }
     ManualValuationRequest: { $ref: "./components/stage_03_76.yaml#/ManualValuationRequest" }
     MarketValuationUnavailable: { $ref: "./components/stage_03_76.yaml#/MarketValuationUnavailable" }
     MarketValuationAvailable: { $ref: "./components/stage_03_76.yaml#/MarketValuationAvailable" }

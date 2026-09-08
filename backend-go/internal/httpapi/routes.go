@@ -22,6 +22,7 @@ func registerRoutes(app *fiber.App, api *API) {
 	app.Get("/api/v1/portfolios/:portfolioId/positions", api.getPortfolioPositions)
 	app.Put("/api/v1/portfolios/:portfolioId/valuations/:ticker", api.upsertManualValuation)
 	app.Delete("/api/v1/portfolios/:portfolioId/valuations/:ticker", api.clearManualValuation)
+	app.Get("/api/v1/portfolios/:portfolioId/returns", api.getPortfolioReturns)
 	app.Get("/api/v1/portfolios/:portfolioId/cash-flow", api.getPortfolioCashFlow)
 	app.Get("/api/v1/portfolios/:portfolioId/transactions", api.listTransactions)
 	app.Post("/api/v1/portfolios/:portfolioId/transactions", api.appendTransaction)

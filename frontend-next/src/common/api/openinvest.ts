@@ -342,6 +342,51 @@ export type PortfolioCashFlowRequestOptions = {
   signal?: AbortSignal;
 };
 
+export type PortfolioReturnUnavailableReason =
+  | "INCOMPLETE_VALUATION"
+  | "NO_EXTERNAL_CONTRIBUTIONS"
+  | "INSUFFICIENT_DATE_SPAN"
+  | "NO_SIGN_CHANGE"
+  | "NON_POSITIVE_TERMINAL_VALUE"
+  | "AMBIGUOUS_MULTIPLE_ROOTS"
+  | "NUMERICAL_SOLUTION_FAILED";
+
+export type PortfolioReturnCashFlow = {
+  date: string;
+  amount: string;
+};
+
+type PortfolioReturnBase = {
+  portfolioId: string;
+  asOfDate: string;
+  externalCashFlows: PortfolioReturnCashFlow[];
+  calculation: {
+    methodologyVersion: "portfolio-xirr-v1";
+    dayCountConvention: "ACT/365";
+  };
+};
+
+export type PortfolioReturnAvailable = PortfolioReturnBase & {
+  status: "AVAILABLE";
+  reason: null;
+  xirr: string;
+  terminalPortfolioValue: Money;
+};
+
+export type PortfolioReturnUnavailable = PortfolioReturnBase & {
+  status: "UNAVAILABLE";
+  reason: PortfolioReturnUnavailableReason;
+  xirr: null;
+  terminalPortfolioValue: Money | null;
+};
+
+export type PortfolioReturnProjection = PortfolioReturnAvailable | PortfolioReturnUnavailable;
+
+export type PortfolioReturnRequestOptions = {
+  asOfDate: string;
+  signal?: AbortSignal;
+};
+
 export type AssetSummary = {
   ticker: string;
   name: string;
@@ -610,6 +655,18 @@ export async function getPortfolioPositions(
   const query = searchParams.toString();
   return request<PortfolioPositionsProjection>(
     `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/positions${query === "" ? "" : `?${query}`}`,
+    { headers: bearerHeaders(auth.accessToken), signal: options.signal },
+  );
+}
+
+export async function getPortfolioReturns(
+  portfolioId: string,
+  auth: AuthenticatedRequest,
+  options: PortfolioReturnRequestOptions,
+): Promise<ApiResult<PortfolioReturnProjection>> {
+  const searchParams = new URLSearchParams({ asOfDate: options.asOfDate });
+  return request<PortfolioReturnProjection>(
+    `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/returns?${searchParams.toString()}`,
     { headers: bearerHeaders(auth.accessToken), signal: options.signal },
   );
 }
