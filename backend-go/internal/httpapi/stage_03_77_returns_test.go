@@ -102,7 +102,20 @@ func TestStage377ReturnsHTTPRequiresExplicitValidAsOfDate(t *testing.T) {
 
 func TestStage377SummaryMapperActivatesOnlyXIRR(t *testing.T) {
 	xirr := decimal.Must("0.10000000")
-	summary := verticalslice.PortfolioSummary{XIRR: &xirr}
+	zeroMoney := verticalslice.Money{Amount: decimal.Zero(), Currency: verticalslice.RUB}
+	summary := verticalslice.PortfolioSummary{
+		TotalValue:        zeroMoney,
+		CashValue:         zeroMoney,
+		StockValue:        zeroMoney,
+		BondValue:         zeroMoney,
+		InvestedCapital:   zeroMoney,
+		DividendsReceived: zeroMoney,
+		CouponsReceived:   zeroMoney,
+		XIRR:              &xirr,
+		PurchasingPower: verticalslice.PurchasingPower{
+			PortfolioValue: zeroMoney,
+		},
+	}
 	mapped := mapSummary(summary)
 	if mapped.XIRR == nil || *mapped.XIRR != "0.10000000" {
 		t.Fatalf("summary XIRR mirror mismatch: %+v", mapped.XIRR)
