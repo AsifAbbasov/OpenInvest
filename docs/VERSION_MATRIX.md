@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.2.2 |
+| Version | 1.2.3 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | Documents 42–43 |
-| Last Review Date | 2026-09-07 |
-| Next Review Date | Before any Stage 3.76+ runtime scope or architecture-changing provider/public activation, privacy, valuation, tax-basis, import, or infrastructure decision |
+| Last Review Date | 2026-09-08 |
+| Next Review Date | Before any Stage 3.77+ runtime scope or architecture-changing provider/public activation, privacy, valuation, tax-basis, import, or infrastructure decision |
 
 | Range | Version | Status under Freeze v1.2 | Priority | Owner | Review |
 | --- | --- | --- | --- | --- | --- |
@@ -17,9 +17,10 @@
 | Document 42 | 1.1.0 | Approved / current | 2 | Principal Architect | 2026-12-19 |
 | ADR-001–007 | 1.0.0 | Accepted, subject to 42–43 | 3 | Principal Architect | 2026-12-25 |
 | ADR-009 deterministic portfolio ledger ordering and WAC | 1.0.0 | Accepted / canonical through PR #137; runtime semantics implemented by Stage 3.71 | 3 | Principal Architect | Before any change to ledger ordering, WAC or acquisition-basis semantics |
-| Stage 3.73 Portfolio Time Machine / Historical Position View | 1.0.0 | Complete / canonical through PR #148 squash merge `683f9c4647f888bb3dbdfb9dd365b84b95137b46` from exact final head `a74fd85a46843ccdfe8192f2ac8687169a5a2ac7` after CI #424 / run `34109389368` 10/10 SUCCESS; reuses Stage 3.72 `asOfDate`; no new engine/API/schema/provider | 3 | Principal Architect | Before any Stage 3.76+ position-history, valuation, provider, tax-basis or accounting-semantics expansion |
+| Stage 3.73 Portfolio Time Machine / Historical Position View | 1.0.0 | Complete / canonical through PR #148 squash merge `683f9c4647f888bb3dbdfb9dd365b84b95137b46` from exact final head `a74fd85a46843ccdfe8192f2ac8687169a5a2ac7` after CI #424 / run `34109389368` 10/10 SUCCESS; reuses Stage 3.72 `asOfDate`; no new engine/API/schema/provider | 3 | Principal Architect | Before any Stage 3.77+ position-history, valuation, provider, tax-basis or accounting-semantics expansion |
 | Stage 3.74 Transaction Correction & Reversal / Ledger Repair UX | 1.0.0 | Complete / canonical through PR #150 squash merge `0580bf7e98c532202f84bbf9ceacd97aedbe4140` from exact final head `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02` after CI #435 / run `34117662576` 10/10 SUCCESS | 3 | Principal Architect | Before changes to correction/reversal or effective-ledger semantics |
-| Stage 3.75 Portfolio Cash Flow & Income Truth | 1.0.0 | Complete / canonical through PR #153 squash merge `57faae841805a5ab11ac959018a315cbada69207`; implementation head `f97f44016d22e783980c47bbde4799a3124623f4` passed CI #459 / run `34155729975` 10/10 SUCCESS; evidence head `fae674518e37d11cad0da28d91682c35bf8bf99a` passed CI #460 / run `34156290105` 10/10 SUCCESS; fresh External review and evidence/no-drift verification APPROVED | 3 | Principal Architect | Before Stage 3.76+ cash-flow, income-attribution, accounting or valuation expansion |
+| Stage 3.75 Portfolio Cash Flow & Income Truth | 1.0.0 | Complete / canonical through PR #153 squash merge `57faae841805a5ab11ac959018a315cbada69207`; implementation head `f97f44016d22e783980c47bbde4799a3124623f4` passed CI #459 / run `34155729975` 10/10 SUCCESS; evidence head `fae674518e37d11cad0da28d91682c35bf8bf99a` passed CI #460 / run `34156290105` 10/10 SUCCESS; fresh External review and evidence/no-drift verification APPROVED | 3 | Principal Architect | Before Stage 3.77+ cash-flow, income-attribution, accounting or valuation expansion |
+| Stage 3.76 Manual Market Valuation & Portfolio P/L | 1.0.0 | Complete / canonical through PR #155 squash merge `e00699f8d455bcbaea0c1dc69ce534460fea6ff9` from exact final head `f89e1e793ef505c31bf76de7d43c4d40fdd9c38b`, tree `5971ae4bf5461dd562d7a73289b5942b02f962ba`, after CI #467 / run `34174642209` 10/10 SUCCESS; Internal Review APPROVED; fresh External implementation re-review APPROVED; evidence publication/authority synchronization complete; no-drift PASS; valuation source remains explicit authenticated `USER_SUPPLIED` RUB and external providers remain dormant | 3 | Principal Architect | Before Stage 3.77+ automated/provider valuation, return methodology, tax-basis or accounting expansion |
 | ADR-008 privacy-lifecycle erasure and restore controls | 0.1.0 | Proposed / non-normative pending Security Review and human acceptance | N/A | Principal Architect | Before any privacy-lifecycle implementation proposal |
 | Stage 2 contract artifacts | 1.0.x | Closed / canonical baseline on `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | 3 | Principal Architect | 2026-12-25 |
 | Web presentation amendment | 1.0.x | Closed / canonical Web baseline on `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | 3 | Principal Architect | 2026-12-26 |
@@ -45,7 +46,7 @@
 | Stage 3.61–3.67 Corporate Actions | governed stage dossiers | Features 3A/3B/3C and request-cancellation lifecycle complete; Feature 3D real source remains separate | 3 | Principal Architect | Before Feature 3D source/use activation |
 | Stage 3.68–3.69 Dividend Calculator | governed stage dossiers | Complete / canonical; user-supplied exact Decimal calculator, no external provider dependency | 3 | Principal Architect | Before calculator scope or tax coupling changes |
 | Stage 3.70–3.71 Portfolio Position & Cost Basis Engine | governed stage dossiers / ADR-009 | Complete / canonical; deterministic ledger ordering, manual SELL, WAC and acquisition basis | 3 | Principal Architect | Before position-accounting semantic changes |
-| Stage 3.72 Portfolio Position Projection / Cost Basis View | 1.0.0 closure | Complete / runtime PR #145 and documentation PR #146 canonical; market valuation explicitly unavailable | 3 | Principal Architect | Before any market valuation/provider or broader position scope |
+| Stage 3.72 Portfolio Position Projection / Cost Basis View | 1.0.0 closure | Complete / runtime PR #145 and documentation PR #146 canonical; provider-derived market valuation was explicitly unavailable at that stage; Stage 3.76 later adds only explicit `USER_SUPPLIED` manual valuation without provider activation | 3 | Principal Architect | Before any provider activation or broader position scope |
 | Stage 3.1 database foundation | 0.1.x | Closed / merged into `develop` at `b1a3f23` | 3 | Principal Architect | 2026-12-27 |
 | Stage 3.2 Go API vertical slice | 0.1.x | Closed / merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | 3 | Principal Architect | 2026-12-27 |
 | Product risk refinement | 1.0.x | Approved / merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | 3 | Principal Architect | Before public MVP |
@@ -85,9 +86,10 @@
 
 `Legacy normative` means applicable only when not superseded or contradicted by a higher-priority source.
 
-Stage 3.75 current implementation authority
+Stage 3.76 current implementation authority
 
 | Scope | Authority | Evidence |
 | --- | --- | --- |
 | Stage 3.74 Transaction Correction & Reversal / Ledger Repair UX | COMPLETE / CANONICAL | PR #150; final head `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02`; CI #435 / run `34117662576` 10/10 SUCCESS; protected squash merge `0580bf7e98c532202f84bbf9ceacd97aedbe4140` |
 | Stage 3.75 Portfolio Cash Flow & Income Truth | COMPLETE / CANONICAL | PR #153; implementation head `f97f44016d22e783980c47bbde4799a3124623f4`; CI #459 / run `34155729975` 10/10 SUCCESS; External `APPROVED`; evidence head `fae674518e37d11cad0da28d91682c35bf8bf99a`; CI #460 / run `34156290105` 10/10 SUCCESS; no-drift verification `APPROVED`; protected squash merge `57faae841805a5ab11ac959018a315cbada69207` |
+| Stage 3.76 Manual Market Valuation & Portfolio P/L | COMPLETE / CANONICAL | PR #155; final head `f89e1e793ef505c31bf76de7d43c4d40fdd9c38b`; tree `5971ae4bf5461dd562d7a73289b5942b02f962ba`; CI #467 / run `34174642209` 10/10 SUCCESS; Internal `APPROVED`; fresh External implementation re-review `APPROVED`; evidence publication and authority synchronization complete; no-drift `PASS`; protected squash merge `e00699f8d455bcbaea0c1dc69ce534460fea6ff9` |
