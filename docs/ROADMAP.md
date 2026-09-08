@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.94 |
+| Version | 1.1.95 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
 | Dependencies | Architecture Freeze v1.2 |
-| Last Review Date | 2026-09-07 |
-| Next Review Date | Before any Stage 3.76+ product/runtime or architecture-changing scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
+| Last Review Date | 2026-09-08 |
+| Next Review Date | Before any Stage 3.77+ product/runtime or architecture-changing scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
 
 | Stage | Outcome | State |
 | --- | --- | --- |
@@ -128,7 +128,8 @@
 | 3.72 — Portfolio Position Projection lifecycle/documentation closure | Synchronize active canonical documentation with the already-merged Stage 3.72 runtime; record purpose, implementation, expected behavior, verification, preserved boundaries and residual scope without runtime change | Complete / PR #146 squash-merged into protected `develop` at `ac0396eff47ce5cd862f41a5ec8ab2803de7fa58`; Stage 3.72 lifecycle/documentation closure COMPLETE |
 | 3.73 — Portfolio Time Machine / Historical Position View | Turn the existing Stage 3.72 endpoint-local `asOfDate` semantics into user-visible Current ↔ Historical position navigation without a second financial engine, new endpoint, table, cache or provider | Complete / canonical through PR #148 squash merge `683f9c4647f888bb3dbdfb9dd365b84b95137b46` from exact final head `a74fd85a46843ccdfe8192f2ac8687169a5a2ac7` after CI #424 / run `34109389368` 10/10 SUCCESS; Stage 3.73 lifecycle/documentation closed by the protected merge and post-merge registry synchronization |
 | 3.74 — Transaction Correction & Reversal / Ledger Repair UX | Wire the frozen correction/reversal commands, preserve append-only auditability, materialize deterministic effective ledger truth, reject historical oversell and expose Edit/Reverse UX | Complete / canonical through PR #150 squash merge `0580bf7e98c532202f84bbf9ceacd97aedbe4140` from exact final head `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02` after CI #435 / run `34117662576` 10/10 SUCCESS; no new migration, market provider or paid infrastructure; post-merge lifecycle/documentation synchronized |
-| 3.75 — Portfolio Cash Flow & Income Truth | Reuse Stage 3.74 effective ledger for backend-owned cash/income totals, monthly aggregation, manual income/expense entry and truthful summary cash/income | Complete / canonical through PR #153 squash merge `57faae841805a5ab11ac959018a315cbada69207` from exact evidence head `fae674518e37d11cad0da28d91682c35bf8bf99a`; implementation CI #459 / run `34155729975` and evidence CI #460 / run `34156290105` both 10/10 SUCCESS; fresh External and evidence/no-drift verification APPROVED; zero-budget, no provider/migration/cache table; lifecycle/documentation synchronization becomes canonical when this approved closure is on protected `develop`; no Stage 3.76+ scope authorized |
+| 3.75 — Portfolio Cash Flow & Income Truth | Reuse Stage 3.74 effective ledger for backend-owned cash/income totals, monthly aggregation, manual income/expense entry and truthful summary cash/income | Complete / canonical through PR #153 squash merge `57faae841805a5ab11ac959018a315cbada69207` from exact evidence head `fae674518e37d11cad0da28d91682c35bf8bf99a`; implementation CI #459 / run `34155729975` and evidence CI #460 / run `34156290105` both 10/10 SUCCESS; fresh External and evidence/no-drift verification APPROVED; zero-budget, no provider/migration/cache table; lifecycle/documentation synchronization is canonical on protected `develop` |
+| 3.76 — Manual Market Valuation & Portfolio P/L | Add explicit authenticated `USER_SUPPLIED` RUB manual valuation for open STOCK/BOND positions, backend-owned market value/unrealized P/L/return, honest partial/complete portfolio coverage, and lifecycle-safe exact-date historical valuation eligibility | Complete / canonical through PR #155 squash merge `e00699f8d455bcbaea0c1dc69ce534460fea6ff9` from exact final head `f89e1e793ef505c31bf76de7d43c4d40fdd9c38b`, tree `5971ae4bf5461dd562d7a73289b5942b02f962ba`, after CI #467 / run `34174642209` 10/10 SUCCESS; Internal Review APPROVED; fresh External implementation re-review APPROVED; evidence publication/authority synchronization complete; no-drift PASS; provider-derived/live valuation remains NO-GO; post-merge lifecycle/documentation synchronization becomes canonical with this approved closure on protected `develop`; no Stage 3.77+ product/runtime scope authorized |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
