@@ -75,10 +75,11 @@ API existence       != approval
 technical access    != production-use rights
 public web page     != scraping permission
 free access         != redistribution permission
-support reply       != override of conflicting published terms
+support reply       != automatic Data Source Registry approval
+published-terms conflict must be explicitly reviewed
 ```
 
-If any material right remains `UNKNOWN` or published evidence conflicts, the source/use mode remains blocked or requires clarification.
+If any material right remains `UNKNOWN`, or provider evidence conflicts with published terms, the exact source/use mode remains blocked or requires a separately reviewed constrained decision.
 
 ## 3. How OpenInvest was positioned
 
@@ -106,12 +107,12 @@ Repository:
 | Finam | Broker / API | `agent@corp.finam.ru` → Trade API team | ROUTED TO TRADE API TEAM / AWAITING SUBSTANTIVE TECHNICAL RESPONSE |
 | Alfa Investments | Broker / bank | `support@alfadirect.ru` | AWAITING RESPONSE |
 | BCS | Broker | `info@bcs.ru` | AWAITING RESPONSE |
-| T-Invest | Broker / API | `openapi@tbank.ru` → `invest-public-api@tbank.ru`; support ticket `3-781291` | CONFLICTING EVIDENCE / PUBLIC PRODUCTION NO-GO PENDING CLARIFICATION |
+| T-Invest | Broker / API | `openapi@tbank.ru` → `invest-public-api@tbank.ru`; support ticket `3-781291` | EXACT OPENINVEST USE CONFIRMED BY SUPPORT / PUBLISHED FAQ CONFLICT REQUIRES SOURCE-RIGHTS REVIEW |
 | VTB | Broker / bank | `info@vtb.ru`; official postal route supplied by VTB | FORMAL POSTAL REQUEST REQUIRED / CURRENT ELECTRONIC OUTREACH PATH BLOCKED |
 | Gazprombank | Broker / bank | `broker@gazprombank.ru` | AWAITING RESPONSE |
 | Sber | Broker / bank | `sberbank@sberbank.ru` | AWAITING RESPONSE |
 | NSD / НРД | Market infrastructure | `datasales@nsd.ru` | NO-GO UNDER CURRENT PROJECT STATUS — LEGAL ENTITY REQUIRED |
-| Interfax / e-disclosure | Professional data vendor / disclosure infrastructure | `sales_support@interfax.ru` → response from e-disclosure service; test-access follow-up sent | TEST ACCESS OFFERED / TEST REQUEST SENT / RIGHTS AND COST TERMS UNRESOLVED |
+| Interfax / e-disclosure | Professional data vendor / disclosure infrastructure | response from e-disclosure service; test-access follow-up sent | TEST ACCESS OFFERED / TEST REQUEST SENT / RIGHTS AND COST TERMS UNRESOLVED |
 | InvestFunds / Cbonds | Professional data vendor | `database@cbonds.info`; response from Cbonds API/Data Feed | TRIAL AVAILABLE / RETRANSMISSION AND PRODUCTION TERMS UNRESOLVED / CLARIFICATION SENT |
 | SPB Exchange | Exchange / market infrastructure | `info@spbexchange.ru` | AWAITING RESPONSE |
 | Finmarket | Financial information | `news@finmarket.ru` | AWAITING RESPONSE |
@@ -128,16 +129,14 @@ The contact addresses above are recorded only as functional/business routing evi
 
 The initial `openapi@tbank.ru` route redirected the inquiry to `invest-public-api@tbank.ru`. T-Bank registered ticket `3-781291`.
 
-A substantive support response was subsequently received. Its material meaning was:
+The first substantive support response established the following provider statement:
 
 - requested data are available;
 - use was described as permitted;
 - support stated that no additional agreement was required;
 - technical details such as limits were referred to the official documentation.
 
-This is positive support evidence, but it is **not sufficient for production GO** because the current official T-Invest API FAQ states that a public service based on T-Invest API is not permitted and that the API is provided to T-Invest clients without retransmission rights.
-
-Official documentation also confirms strong technical fit for the current/future OpenInvest Corporate Actions scope:
+Official documentation confirms strong technical fit for the current/future OpenInvest Corporate Actions scope:
 
 - `GetDividends` — dividend payment events, filtered by record date;
 - `GetBondCoupons` — bond coupon schedule;
@@ -150,11 +149,31 @@ Relevant official documentation:
 
 - `https://developer.tbank.ru/invest/intro/faq`
 - `https://developer.tbank.ru/invest/intro/intro`
+- `https://developer.tbank.ru/invest/intro/intro/limits`
 - `https://developer.tbank.ru/invest/api/instruments-service-get-dividends`
 - `https://developer.tbank.ru/invest/api/instruments-service-get-bond-coupons`
 - `https://developer.tbank.ru/invest/api/instruments-service-get-bond-events`
 
-Evidence classification:
+A material conflict was then identified: the public T-Invest API FAQ states that a public service based on T-Invest API is not permitted and describes the API as provided to T-Invest clients without retransmission rights.
+
+Because OpenInvest does not expose the provider's raw API/feed, a targeted clarification was sent on 2026-09-09. The exact OpenInvest scenario described to T-Invest was:
+
+- OpenInvest is a free public research/educational application;
+- the OpenInvest backend obtains T-Invest API data;
+- OpenInvest normalizes provider data into its own domain model;
+- users do not receive the raw provider API/feed or the T-Invest token;
+- the public UI displays normalized dividend/coupon/event data;
+- the public UI may display derived analytics/calculations based on those normalized data.
+
+T-Invest support reopened ticket `3-781291` and then answered the targeted clarification with the provider statement:
+
+> `Такое использование разрешено.`
+
+This reply is material evidence because it answers the specifically described OpenInvest public-display / normalization / derived-analytics scenario rather than a generic API-availability question.
+
+However, the published FAQ remains textually inconsistent with the support clarification. Therefore this research document records the permission but does **not** silently convert it into a production registry approval.
+
+Current evidence classification:
 
 ```text
 Technical fit:                         STRONG
@@ -162,30 +181,42 @@ Dividend coverage:                    YES
 Coupon coverage:                      YES
 Bond event coverage:                  YES
 Automated API access:                 YES technically
-Public display rights:                CONFLICTING / NOT ESTABLISHED
-Derived analytics in public product:  NOT ESTABLISHED
+Exact OpenInvest normalized display:  YES — support confirmed exact scenario
+Derived analytics in public product:  YES — support confirmed exact scenario
+Raw API/feed redistribution:          NOT REQUESTED / NOT PART OF OPENINVEST USE MODE
 Caching/retention:                    NOT ESTABLISHED
 Attribution:                          NOT ESTABLISHED
 Cost for API access:                  FREE per public API documentation
-Production public OpenInvest use:     NO-GO PENDING CLARIFICATION
+Additional agreement:                 support previously stated NOT REQUIRED
+Published FAQ consistency:            CONFLICTING
+Production registry approval:         NOT YET GRANTED
 ```
-
-On 2026-09-09 a targeted clarification was sent in the existing support flow and copied to the specialist public-API address. It asks whether OpenInvest's exact scenario counts as prohibited retransmission:
-
-- backend obtains provider data;
-- OpenInvest normalizes them into its own domain model;
-- users do not receive the raw provider API/feed or token;
-- public UI displays normalized dividend/coupon/event data and derived analytics.
-
-The clarification also asks whether internal research/development use remains permitted if public display is prohibited, and whether any separate agreement/license can authorize the public OpenInvest scenario.
 
 Current classification:
 
 ```text
-T-Invest = CONFLICTING EVIDENCE / PUBLIC PRODUCTION NO-GO PENDING CLARIFICATION
+T-Invest = EXACT OPENINVEST USE CONFIRMED BY SUPPORT / PUBLISHED FAQ CONFLICT REQUIRES SOURCE-RIGHTS REVIEW
 ```
 
-No runtime integration or registry transition is authorized.
+Recommended next governance decision:
+
+```text
+Candidate verdict: CONDITIONAL GO FOR A CONSTRAINED SOURCE/USE PROPOSAL
+Runtime activation: NOT YET AUTHORIZED
+```
+
+A future constrained proposal must define, at minimum:
+
+- exact T-Invest methods and data fields used;
+- no raw API/feed redistribution;
+- secrets/token ownership and rotation;
+- rate-limit policy;
+- caching/retention behavior;
+- attribution behavior;
+- fail-closed provider availability semantics;
+- whether the support clarification is accepted as sufficient evidence despite the published FAQ conflict.
+
+Until that separately reviewed proposal is approved, no runtime integration or `Data Source Registry` transition is authorized.
 
 ### 5.2 NSD / НРД
 
@@ -204,8 +235,6 @@ NSD = NO-GO UNDER CURRENT PROJECT STATUS — LEGAL ENTITY REQUIRED
 ```
 
 This is not a permanent technical rejection of NSD. It is a current organizational/contractual blocker.
-
-The existing `NSD_CORPORATE_ACTIONS_API` registry verdict remains unchanged until a separately reviewed source/use proposal exists.
 
 ### 5.3 InvestFunds / Cbonds
 
@@ -244,8 +273,6 @@ Zero-budget production GO = NOT ESTABLISHED
 
 The e-disclosure / Interfax-CRKI disclosure service replied that API information is available and explicitly invited OpenInvest to submit a request for test connection/access.
 
-The response itself did not establish production rights, public-display rights, derived-use rights, caching/retention rules, attribution or production cost.
-
 On 2026-09-09 OpenInvest sent a test-access request asking for:
 
 - test connection procedure;
@@ -267,13 +294,11 @@ Interfax / e-disclosure = TEST ACCESS OFFERED / TEST REQUEST SENT / RIGHTS AND C
 Production GO = NOT ESTABLISHED
 ```
 
-This is currently one of the leading candidates for further Feature 3D source evaluation because the provider itself invited a test-access step, but no production-use authorization is implied.
-
 ### 5.5 Finam
 
 Finam confirmed receipt of the OpenInvest questions and stated that they would be passed to colleagues responsible for Trade API for a fuller technical answer.
 
-Finam also offered a separate partner/referral commercial program. That offer is unrelated to Corporate Actions/API data rights and must not be treated as source approval.
+A separate partner/referral offer is unrelated to Corporate Actions/API data rights and is not treated as source approval.
 
 Current classification:
 
@@ -287,7 +312,7 @@ VTB replied that an official request must be submitted in free form to the Presi
 
 `109147, г. Москва, ул. Воронцовская, д. 43, стр. 1`
 
-OpenInvest then asked for an electronic route because international paper delivery is inconvenient. VTB repeated that the official request is to be submitted to the bank's postal address.
+OpenInvest requested an electronic route because international paper delivery is inconvenient. VTB repeated that the official request is to be submitted to the bank's postal address.
 
 All substantive source-right dimensions remain unknown:
 
@@ -301,15 +326,13 @@ Attribution: UNKNOWN
 Cost/research access: UNKNOWN
 ```
 
-A paper-request text has been prepared for manual signing/postal submission. It has **not** been recorded as sent in this evidence log until physical dispatch actually occurs.
+A paper-request text has been prepared for manual signing/postal submission. It is **not** recorded as sent until physical dispatch actually occurs.
 
 Current classification:
 
 ```text
 VTB = FORMAL POSTAL REQUEST REQUIRED / CURRENT ELECTRONIC OUTREACH PATH BLOCKED
 ```
-
-This is not a permanent technical NO-GO; it is an operational routing blocker.
 
 ### 5.7 Bank of Russia / CBR
 
@@ -361,12 +384,13 @@ Media/community contacts do not block provider selection.
 ## 6. Current provider-selection tracks
 
 ```text
-TRACK A — rights clarification
+TRACK A — leading rights candidate
 T-Invest
 → technical fit confirmed
-→ support answer conflicts with published retransmission restriction
-→ targeted clarification sent
-→ production NO-GO until resolved
+→ exact OpenInvest normalized public-display / derived-analytics use confirmed by support
+→ published FAQ conflict remains
+→ prepare separately reviewed constrained source/use proposal
+→ no runtime activation before registry/governance approval
 
 TRACK B — active provider evaluation
 Interfax / e-disclosure
@@ -409,6 +433,9 @@ Follow-ups sent on 2026-09-09:
 - Interfax / e-disclosure — test-access and rights/cost request
 - Cbonds / InvestFunds — retransmission/public-display/retention/price clarification
 
+Follow-up answered on 2026-09-09:
+- T-Invest — exact OpenInvest use confirmed as permitted by support
+
 Still awaiting substantive response:
 - MOEX
 - Alfa Investments
@@ -442,7 +469,7 @@ Feature 3D may be proposed for implementation only when a **specific source/use 
 
 A sent email, generic support reply, API documentation, possession of credentials, sandbox access or technical connectivity must never be treated as `Data Source Registry` approval.
 
-Conflicting evidence is fail-closed until resolved.
+For T-Invest, the exact-use clarification materially strengthens public-display and derived-analytics evidence but does not by itself resolve caching/retention, attribution, operational token policy or the published FAQ inconsistency.
 
 ## 9. Public-repository evidence minimization
 
@@ -467,14 +494,14 @@ In particular:
 - `REVIEW REQUIRED` remains `REVIEW REQUIRED`;
 - outreach activity does not create a new approved source row;
 - test/sandbox access does not create production approval;
-- a support response does not override conflicting published terms;
 - only an exact, evidenced source/use mode may later be proposed for a registry transition.
 
 Specific current boundaries:
 
 - `NSD_CORPORATE_ACTIONS_API` remains the reviewed `NO-GO` source/use mode; the new reply additionally confirms the current legal-entity blocker;
 - `INTERFAX_EDISCLOSURE_API` remains the reviewed `NO-GO` e-Disclosure gateway use mode until new test/licensing evidence supports a separately reviewed proposal;
-- T-Invest does not receive an approved registry row from the positive support email because published FAQ evidence creates a material retransmission conflict;
+- T-Invest now has provider support evidence for the exact OpenInvest normalized public-display / derived-analytics scenario, but **no registry row or production approval is created by this research log**;
+- the T-Invest published FAQ conflict, caching/retention, attribution and token/runtime constraints must be addressed in a separately reviewed source/use proposal;
 - no new source is approved for Cbonds/InvestFunds, SPB Exchange, Finmarket, Smart-Lab, Banki.ru or RBC Investments;
 - the existing MOEX/source-rights NO-GO remains unaffected by silence on the new outreach.
 
@@ -506,11 +533,15 @@ SOURCE DUE DILIGENCE IN PROGRESS
 Approved production Corporate Actions source:
 NONE
 
-Leading active evaluation path:
-INTERFAX / E-DISCLOSURE TEST-ACCESS TRACK
+Leading source-rights candidate:
+T-INVEST — EXACT OPENINVEST USE CONFIRMED BY SUPPORT
 
-T-Invest public-product status:
-CONFLICTING EVIDENCE / NO-GO PENDING CLARIFICATION
+T-Invest governance status:
+CANDIDATE FOR CONSTRAINED CONDITIONAL GO REVIEW
+PUBLISHED FAQ CONFLICT / CACHE / ATTRIBUTION / TOKEN POLICY STILL OPEN
+
+Parallel active evaluation:
+INTERFAX / E-DISCLOSURE TEST-ACCESS TRACK
 
 Runtime/provider activation:
 NOT AUTHORIZED
@@ -522,4 +553,4 @@ Stage 3.78+:
 NOT STARTED / NOT AUTHORIZED BY THIS DOCUMENT
 ```
 
-The evidence pipeline is now active rather than purely awaiting replies: three targeted follow-ups were sent on 2026-09-09, while the source/use-rights gate remains fully fail-closed. Feature 3D implementation remains blocked until one exact production-usable source/use mode is evidenced and separately approved.
+The evidence pipeline is active rather than purely awaiting replies. T-Invest now has the strongest current source-rights evidence for the exact OpenInvest public normalized-data / derived-analytics scenario, but Feature 3D implementation remains blocked until a constrained source/use mode is separately reviewed and approved.
