@@ -3,14 +3,24 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.2.0 |
+| Version | 1.2.1 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-09-07 |
-| Next Review Date | Before any Stage 3.75+ runtime scope or architecture-changing provider, privacy, valuation, tax-basis, import, or infrastructure decision |
+| Last Review Date | 2026-09-09 |
+| Next Review Date | Before any Stage 3.78+ runtime/product scope, Feature 3D runtime activation or broader T-Invest source/use rights, or another architecture-changing provider, privacy, valuation, tax-basis, import, or infrastructure decision |
 
+## 2026-09-09 — Feature 3D constrained T-Invest Corporate Actions implementation merged; documentation closure synchronized
+
+- PR #164 was squash-merged into protected `develop` at `247081a95a7daf33c0077c88c5f41cb2e8161865` from final evidence head `ddc5b5be36f0b5ae127c6ee430918a9dba1b453e`; merged tree `ec7bc9152210913b1a6ef742bddd599abee50bc7` matches the final evidence tree.
+- Exact implementation-head CI #499 / run `34353668492` and final evidence-head CI #501 / run `34356672643` both completed all 10 protected jobs successfully.
+- Final Internal review and fresh External published-head review were `APPROVED`; evidence publication and no-semantic-drift verification completed with no blocking findings.
+- Feature 3D implements only registry mode `TINVEST_CORPORATE_ACTIONS_CONSTRAINED`: `GetDividends` -> `DIVIDEND` and `GetBondCoupons` -> `COUPON`, with static approved instruments, exact Decimal normalization, bounded REST transport, fail-fast concurrency, no retry/polling/persistence, and provider-neutral public contracts.
+- Source/use rights remain `CONDITIONAL-GO` for that exact mode only. Runtime activation remains `NO`; no live T-Invest token was used in implementation/review and no production provider traffic is claimed by Feature 3D. Provider events remain external reference truth and do not auto-mutate ledger/realized-income/tax truth.
+- GitHub event history records `AsifAbbasov` as the actor for the Ready transition and the squash merge; the assistant performed no merge mutation. A later chat message saying `разрешаю` occurred after the merge and is not treated as retroactive pre-merge evidence.
+- Added a post-merge closure dossier preserving the full problem/root-cause/failure-scenario/review/remediation/regression/evidence/residual-limitation history without rewriting historical implementation/review evidence.
+- This documentation closure starts no Stage 3.78 work and grants no broader T-Invest rights or operational activation.
 
 ## 2026-09-07 — Stage 3.74 transaction correction/reversal canonical and documentation synchronized
 

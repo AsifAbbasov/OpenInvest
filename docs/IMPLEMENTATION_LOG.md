@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.2.4 |
+| Version | 1.2.5 |
 | Status | Current |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
 | Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md` |
 | Last Review Date | 2026-09-09 |
-| Next Review Date | Before any Stage 3.78+ runtime scope, external/provider market-data activation, privacy-lifecycle implementation, tax-basis expansion, imported SELL expansion, or other architecture-changing work |
+| Next Review Date | Before any Stage 3.78+ runtime scope, Feature 3D runtime activation or broader T-Invest source/use expansion, external/provider market-data activation, privacy-lifecycle implementation, tax-basis expansion, imported SELL expansion, or other architecture-changing work |
 
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
 
@@ -19,7 +19,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 1 — Documentation Consolidation | Establish the repository-owned Source of Truth and freeze v1.2 | Complete; awaiting review | [Stage 1 report](stages/STAGE_01_DOCUMENTATION_CONSOLIDATION.md) |
 | 2 — Contract and Canonical Model Freeze | Freeze the MVP API, canonical DTOs, logical ER model, and migration strategy | Complete / closed; merged into `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | [Stage 2 report](stages/STAGE_02_CONTRACT_AND_CANONICAL_MODEL.md) |
 | Web architecture amendment | Replace the Web skeleton with presentation-only Next.js under ADR-007 | Complete / closed; merged into `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | [Amendment report](stages/WEB_FRONTEND_ARCHITECTURE_AMENDMENT.md) |
-| 3 — First Vertical Slice | Deliver the staged MVP vertical slice and harden it through audit remediation and product feature increments | Complete through Stage 3.77 on protected `develop`; original repository audit 32/32 CLOSED; Stage 3.25 privacy evidence collection remains separate | [Roadmap](ROADMAP.md) |
+| 3 — First Vertical Slice | Deliver the staged MVP vertical slice and harden it through audit remediation and product feature increments | Numbered product/runtime stages complete through Stage 3.77 on protected `develop`; separately governed Corporate Actions Feature 3D constrained adapter implementation is also merged through PR #164; original repository audit 32/32 CLOSED; Stage 3.25 privacy evidence collection remains separate | [Roadmap](ROADMAP.md) |
 | 3.1 — Local Database Foundation | Add minimal PostgreSQL structures and migration validation for the first vertical slice | Complete / closed; merged into `develop` at `b1a3f23` | [Stage 3.1 report](stages/STAGE_03_01_DATABASE_FOUNDATION.md) |
 | 3.2 — Go API Vertical-Slice Backend | Implement portfolio create, transaction append, snapshot rebuild, and summary read in Go | Complete / closed; merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | [Stage 3.2 report](stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md) |
 | Product risk refinement | Convert hard PRD criticism into controlled MVP risk decisions | Complete / closed; merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | [MVP product risk refinement](product/MVP_PRODUCT_RISK_REFINEMENT.md) |
@@ -66,7 +66,8 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.33–3.34 — Final P2 audit remediation / governance & CI hardening | Close snapshot/runtime immutability, GitHub governance and CI/security gaps | Complete; P2 backlog closed | [Roadmap](ROADMAP.md) |
 | 3.35–3.56 — P3 remediation and original-audit closure | Close password, Decimal grammar, timezone, retention, Unicode, dependency maintenance, HTTP decomposition, transaction defaults and migration-validator findings | Complete; Stage 3.56 closes original audit 32/32, remaining findings NONE | [Roadmap](ROADMAP.md) |
 | 3.57–3.60 — Market Data Provider Boundary / MOEX adapter lifecycle | Implement provider-neutral quote boundary and delayed MOEX ISS adapter, then record source-rights/public-use decision | Boundary and adapter implemented; production/public activation NO-GO, adapter dormant | [Roadmap](ROADMAP.md) |
-| 3.61–3.67 — Corporate Actions 3A/3B/3C | Implement provider-neutral Corporate Actions domain/projection, Calendar/Heatmap API/UI and request-cancellation hardening | Complete / documentation-closed; real-source Feature 3D remains separate | [Roadmap](ROADMAP.md) |
+| 3.61–3.67 — Corporate Actions 3A/3B/3C | Implement provider-neutral Corporate Actions domain/projection, Calendar/Heatmap API/UI and request-cancellation hardening | Complete / documentation-closed; later Feature 3D adapter implementation remains separately governed and does not alter the 3A/3B/3C provider-neutral boundary | [Roadmap](ROADMAP.md) |
+| Feature 3D — T-Invest Corporate Actions Provider | Implement only `TINVEST_CORPORATE_ACTIONS_CONSTRAINED` behind the existing provider-neutral boundary: static mapping, `GetDividends` → `DIVIDEND`, `GetBondCoupons` → `COUPON`, exact money, fail-closed lifecycle/transport/secrets, no provider persistence/polling/ledger mutation | Implementation complete / PR #164 squash-merged into protected `develop` at `247081a95a7daf33c0077c88c5f41cb2e8161865` from final evidence head `ddc5b5be36f0b5ae127c6ee430918a9dba1b453e`; implementation CI #499 and evidence CI #501 both 10/10 SUCCESS; Internal/External/no-drift APPROVED; source/use exact-mode CONDITIONAL-GO; runtime activation NO; live token NOT USED in implementation/review; production traffic not authorized/claimed | [Feature 3D closure](stages/FEATURE_3D_TINVEST_CORPORATE_ACTIONS_CLOSURE.md) |
 | 3.68–3.69 — Dividend Calculator | Implement backend-owned exact Decimal user-supplied dividend calculator with idempotency/replay and Web UI | Complete / lifecycle closed | [Roadmap](ROADMAP.md) |
 | 3.70–3.71 — Portfolio Position & Cost Basis Engine | Accept ADR-009 and implement deterministic portfolio-local ledger ordering, manual SELL, WAC and remaining acquisition basis | Complete / lifecycle closed | [Stage 3.71 report](stages/STAGE_03_71_PORTFOLIO_POSITION_COST_BASIS_IMPLEMENTATION.md) |
 | 3.72 — Portfolio Position Projection / Cost Basis View | Expose canonical open STOCK/BOND positions, acquisition-basis allocation and explicit market-unavailable semantics through API/UI | Complete / runtime and lifecycle canonical through PRs #145/#146 | [Stage 3.72 closure](stages/STAGE_03_72_PORTFOLIO_POSITION_PROJECTION_IMPLEMENTATION_CLOSURE.md) |
