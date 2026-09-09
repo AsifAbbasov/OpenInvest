@@ -198,23 +198,33 @@ Current classification:
 T-Invest = EXACT OPENINVEST USE CONFIRMED BY SUPPORT / PUBLISHED FAQ CONFLICT REQUIRES SOURCE-RIGHTS REVIEW
 ```
 
-Recommended next governance decision:
+Source-rights review conclusion for the evidence currently available:
 
 ```text
-Candidate verdict: CONDITIONAL GO FOR A CONSTRAINED SOURCE/USE PROPOSAL
-Runtime activation: NOT YET AUTHORIZED
+Public production GO:                 NOT YET
+Conditional GO for technical/staging evaluation: YES
+Candidate for constrained production proposal:    YES
 ```
 
-A future constrained proposal must define, at minimum:
+Reasoning:
+
+- the exact normalized public-display and derived-analytics scenario is now positively confirmed by provider support;
+- the FAQ still states that public services / retransmission are not permitted;
+- the FAQ itself says the service is governed by the user agreement;
+- caching/retention and attribution remain unresolved;
+- T-Invest API access requires a client token, so token ownership/rotation and production dependency on a client account must be explicitly designed;
+- current `DATA_SOURCE_REGISTRY.md` requires an exact approved source/use row before external-source implementation.
+
+A future constrained production proposal must define, at minimum:
 
 - exact T-Invest methods and data fields used;
 - no raw API/feed redistribution;
-- secrets/token ownership and rotation;
+- server-owned secret handling and token rotation;
 - rate-limit policy;
-- caching/retention behavior;
+- either explicit caching/retention rights or a `no-store` / no-persistence boundary;
 - attribution behavior;
 - fail-closed provider availability semantics;
-- whether the support clarification is accepted as sufficient evidence despite the published FAQ conflict.
+- the governance decision on whether the support clarification is sufficient evidence despite the published FAQ conflict.
 
 Until that separately reviewed proposal is approved, no runtime integration or `Data Source Registry` transition is authorized.
 
@@ -389,8 +399,8 @@ T-Invest
 → technical fit confirmed
 → exact OpenInvest normalized public-display / derived-analytics use confirmed by support
 → published FAQ conflict remains
-→ prepare separately reviewed constrained source/use proposal
-→ no runtime activation before registry/governance approval
+→ constrained source/use proposal is now justified
+→ no production runtime activation before registry/governance approval
 
 TRACK B — active provider evaluation
 Interfax / e-disclosure
@@ -536,9 +546,13 @@ NONE
 Leading source-rights candidate:
 T-INVEST — EXACT OPENINVEST USE CONFIRMED BY SUPPORT
 
-T-Invest governance status:
-CANDIDATE FOR CONSTRAINED CONDITIONAL GO REVIEW
-PUBLISHED FAQ CONFLICT / CACHE / ATTRIBUTION / TOKEN POLICY STILL OPEN
+T-Invest source-rights review:
+PUBLIC PRODUCTION GO = NOT YET
+TECHNICAL/STAGING CONDITIONAL GO = YES
+CONSTRAINED PRODUCTION PROPOSAL = JUSTIFIED
+
+Open T-Invest evidence items:
+PUBLISHED FAQ CONFLICT / CACHE-RETENTION / ATTRIBUTION / TOKEN POLICY
 
 Parallel active evaluation:
 INTERFAX / E-DISCLOSURE TEST-ACCESS TRACK
@@ -553,4 +567,4 @@ Stage 3.78+:
 NOT STARTED / NOT AUTHORIZED BY THIS DOCUMENT
 ```
 
-The evidence pipeline is active rather than purely awaiting replies. T-Invest now has the strongest current source-rights evidence for the exact OpenInvest public normalized-data / derived-analytics scenario, but Feature 3D implementation remains blocked until a constrained source/use mode is separately reviewed and approved.
+The evidence pipeline is active rather than purely awaiting replies. T-Invest now has the strongest current source-rights evidence for the exact OpenInvest public normalized-data / derived-analytics scenario. The next justified step is a separately reviewed constrained T-Invest source/use proposal; Feature 3D production implementation remains blocked until that proposal is approved.
