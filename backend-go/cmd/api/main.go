@@ -24,9 +24,16 @@ func newApp() *fiber.App {
 	if err := validateRuntimeSafety(databaseURL); err != nil {
 		log.Fatal(err)
 	}
+	corporateActionProvider, err := configuredTInvestCorporateActionProvider()
+	if err != nil {
+		log.Fatal(err)
+	}
 	if databaseURL == "" {
 		store := unavailableStore{}
-		return httpapi.NewDevelopmentReplay(verticalslice.NewService(store, verticalslice.SystemClock{}))
+		return httpapi.NewDevelopmentReplayWithCorporateActionProvider(
+			verticalslice.NewService(store, verticalslice.SystemClock{}),
+			corporateActionProvider,
+		)
 	}
 	store, err := openPostgresStore(databaseURL)
 	if err != nil {
@@ -41,10 +48,11 @@ func newApp() *fiber.App {
 	if err != nil {
 		log.Fatal(err)
 	}
-	app, err := httpapi.NewReplay(
+	app, err := httpapi.NewReplayWithCorporateActionProvider(
 		verticalslice.NewService(store, verticalslice.SystemClock{}),
 		authService,
 		configuredImportReviewTokenSecret(),
+		corporateActionProvider,
 	)
 	if err != nil {
 		log.Fatal(err)
