@@ -3,13 +3,28 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.2.2 |
+| Version | 1.2.3 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-09-10 |
 | Next Review Date | Before any Stage 3.78+ runtime/product scope, Feature 3D runtime activation or broader T-Invest source/use rights, or another architecture-changing provider, privacy, valuation, tax-basis, import, or infrastructure decision |
+
+## 2026-09-10 — Historical forensic reconciliation canonicalized after protected merge
+
+- PR #167 was squash-merged into protected `develop` at
+  `5da679f0d15f8742239659ff9cebc451a213894d`.
+- Reviewed PR tree
+  `e742d1084fdcc5751acf896738ba9065a4b0f741`
+  exactly matches the merged tree.
+- `CONTENT_DRIFT=NONE`.
+- Historical Feature Forensic Documentation Reconciliation for
+  Stages 3.57–3.77 is now canonical / closed.
+- This post-merge closure changes no Go runtime, frontend runtime,
+  OpenAPI, SQL/migrations, dependencies, provider/source-use state,
+  provider activation or financial semantics.
+- Stage 3.78 remains NOT STARTED and is not authorized by this closure.
 
 ## 2026-09-10 — Historical feature forensic documentation reconciliation
 
