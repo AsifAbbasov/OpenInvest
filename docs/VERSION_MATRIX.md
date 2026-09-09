@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.2.4 |
+| Version | 1.2.5 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | Documents 42–43 |
 | Last Review Date | 2026-09-09 |
-| Next Review Date | Before any Stage 3.78+ runtime scope or architecture-changing provider/public activation, privacy, valuation, tax-basis, import, or infrastructure decision |
+| Next Review Date | Before any Stage 3.78+ runtime scope, Feature 3D runtime activation or broader T-Invest source/use expansion, or another architecture-changing provider/public activation, privacy, valuation, tax-basis, import, or infrastructure decision |
 
 | Range | Version | Status under Freeze v1.2 | Priority | Owner | Review |
 | --- | --- | --- | --- | --- | --- |
@@ -44,7 +44,8 @@
 | Stage 3.33–3.34 final P2 remediation | governed stage dossiers | Complete; P2-10/P2-11/P2-12/P2-16/P2-17 CLOSED | 3 | Principal Architect | Historical closed range |
 | Stage 3.35–3.56 P3 remediation / original-audit closure | governed stage dossiers | Complete; original repository audit 32/32 CLOSED, no original findings remain | 3 | Principal Architect | Historical closed range |
 | Stage 3.57–3.60 market-data boundary / delayed MOEX adapter | governed stage dossiers | Provider-neutral boundary and adapter implemented; production/public activation NO-GO, adapter dormant | 3 | Principal Architect | Before any provider/public activation |
-| Stage 3.61–3.67 Corporate Actions | governed stage dossiers | Features 3A/3B/3C and request-cancellation lifecycle complete; Feature 3D real source remains separate | 3 | Principal Architect | Before Feature 3D source/use activation |
+| Stage 3.61–3.67 Corporate Actions | governed stage dossiers | Features 3A/3B/3C and request-cancellation lifecycle complete / canonical; Feature 3D remains a separately governed adapter/activation lifecycle and does not alter the provider-neutral 3A/3B/3C contract | 3 | Principal Architect | Before changing provider-neutral Corporate Actions domain/projection/API/UI semantics |
+| Feature 3D — T-Invest Corporate Actions Provider | 1.0.0 | Implementation complete / merged through PR #164 squash `247081a95a7daf33c0077c88c5f41cb2e8161865` from final evidence head `ddc5b5be36f0b5ae127c6ee430918a9dba1b453e`, tree `ec7bc9152210913b1a6ef742bddd599abee50bc7`; implementation CI #499 and evidence CI #501 both 10/10 SUCCESS; Internal Review APPROVED; fresh External review APPROVED; evidence/no-drift APPROVED; exact `TINVEST_CORPORATE_ACTIONS_CONSTRAINED` source/use remains CONDITIONAL-GO; runtime activation NO; live token NOT USED in implementation/review; production traffic not authorized/claimed | 3 | Principal Architect | Before runtime activation, broader T-Invest methods/source-use, provider persistence/cache/polling, provider-specific public-contract expansion, ledger coupling, or any change to the constrained adapter semantics |
 | Stage 3.68–3.69 Dividend Calculator | governed stage dossiers | Complete / canonical; user-supplied exact Decimal calculator, no external provider dependency | 3 | Principal Architect | Before calculator scope or tax coupling changes |
 | Stage 3.70–3.71 Portfolio Position & Cost Basis Engine | governed stage dossiers / ADR-009 | Complete / canonical; deterministic ledger ordering, manual SELL, WAC and acquisition basis | 3 | Principal Architect | Before position-accounting semantic changes |
 | Stage 3.72 Portfolio Position Projection / Cost Basis View | 1.0.0 closure | Complete / runtime PR #145 and documentation PR #146 canonical; provider-derived market valuation was explicitly unavailable at that stage; Stage 3.76 later adds only explicit `USER_SUPPLIED` manual valuation without provider activation | 3 | Principal Architect | Before any provider activation or broader position scope |
