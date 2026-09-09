@@ -201,16 +201,16 @@ T-Invest = EXACT OPENINVEST USE CONFIRMED BY SUPPORT / PUBLISHED FAQ CONFLICT RE
 Source-rights review conclusion for the evidence currently available:
 
 ```text
-Public production GO:                      NOT YET
-Conditional GO for non-public technical/staging evaluation: YES
-Candidate for constrained production proposal:             YES
+Public production GO:                                  NOT YET
+Conditional GO for non-public technical/staging use:   YES
+Candidate for constrained production proposal:         YES
 ```
 
 Reasoning:
 
-- the exact normalized public-display and derived-analytics scenario is now positively confirmed by provider support;
+- the exact normalized public-display and derived-analytics scenario is positively confirmed by provider support;
 - the FAQ still states that public services / retransmission are not permitted;
-- the FAQ itself says the service is governed by the user agreement;
+- the FAQ says the service is governed by the user agreement;
 - caching/retention and attribution remain unresolved;
 - T-Invest API access requires a client token, so token ownership/rotation and production dependency on a client account must be explicitly designed;
 - current `DATA_SOURCE_REGISTRY.md` requires an exact approved source/use row before external-source implementation.
