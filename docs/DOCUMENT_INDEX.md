@@ -3,19 +3,19 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.75 |
+| Version | 1.1.76 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
 | Last Review Date | 2026-09-09 |
-| Next Review Date | Before any Stage 3.78+ product/runtime or architecture-changing scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
+| Next Review Date | Before any Stage 3.78+ product/runtime or architecture-changing scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, Feature 3D runtime activation or broader T-Invest source/use scope, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
 
 ## Canonical control documents
 
 | ID | Title | Version | Status | Location |
 | --- | --- | --- | --- | --- |
-| SOT-001 | Source of Truth | 1.4.99 | Approved | `SOURCE_OF_TRUTH.md` |
+| SOT-001 | Source of Truth | 1.5.1 | Approved | `SOURCE_OF_TRUTH.md` |
 | 42 | Architecture Amendments | 1.1.0 | Approved | `specifications/current/DOCUMENT_42_ARCHITECTURE_AMENDMENTS_v1.1.md` |
 | 43 | Architecture Decision Closure | 1.2.0 | Final | `specifications/current/DOCUMENT_43_ARCHITECTURE_CLOSURE_v1.2.md` |
 
@@ -133,7 +133,11 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Stage 3.32 exact idempotency replay and browser retry recovery | Complete / closure canonical through PR #68 at `a73b7f8c008d2f903e22e9b8a85b7c6248d6d3be`; P2-09/P2-13 CLOSED | `stages/STAGE_03_32_IDEMPOTENCY_REPLAY_BROWSER_RECOVERY.md` |
 | Stage 3.33–3.56 repository-audit remediation continuation | Complete; all remaining P2/P3 findings closed and original audit 32/32 = 100% | `audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md` |
 | Stage 3.57–3.60 market-data lifecycle | Provider-neutral boundary and delayed MOEX ISS adapter implemented; production/public activation NO-GO | `governance/REPOSITORY_DOCUMENTATION_RECONCILIATION.md` |
-| Stage 3.61–3.67 Corporate Actions lifecycle | Features 3A/3B/3C and request-cancellation closure complete; Feature 3D real-source gate remains separate | `governance/REPOSITORY_DOCUMENTATION_RECONCILIATION.md` |
+| Stage 3.61–3.67 Corporate Actions lifecycle | Features 3A/3B/3C and request-cancellation closure complete; provider-neutral boundary remains canonical | `governance/REPOSITORY_DOCUMENTATION_RECONCILIATION.md` |
+| Feature 3D T-Invest Corporate Actions implementation | Complete / merged through PR #164; exact constrained `GetDividends`/`GetBondCoupons` adapter only; runtime activation remains NO | `stages/FEATURE_3D_TINVEST_CORPORATE_ACTIONS_IMPLEMENTATION.md` |
+| Feature 3D review evidence | Internal/External review chronology, CI #499, evidence publication and exact-head evidence CI #501 | `stages/FEATURE_3D_TINVEST_CORPORATE_ACTIONS_REVIEW_EVIDENCE.md` |
+| Feature 3D evidence errata | Append-only correction for `SourceEventID` ownership and observation-time `AsOf` semantics | `stages/FEATURE_3D_TINVEST_CORPORATE_ACTIONS_REVIEW_EVIDENCE_ERRATA.md` |
+| Feature 3D post-merge closure | Canonical lifecycle distinction: source/use CONDITIONAL-GO, implementation complete, runtime activation NO, live token/production traffic not authorized/claimed | `stages/FEATURE_3D_TINVEST_CORPORATE_ACTIONS_CLOSURE.md` |
 | Stage 3.68–3.69 Dividend Calculator lifecycle | Complete / canonical | `governance/REPOSITORY_DOCUMENTATION_RECONCILIATION.md` |
 | Stage 3.70 Portfolio Position & Cost Basis Engine planning | Complete/canonical through PR #137 squash merge `b772e52221fbb694b3116bd1b579db99d4e56302`; ADR-009 accepted; Stage 3.70 itself granted no runtime authorization | `stages/STAGE_03_70_PORTFOLIO_POSITION_COST_BASIS_PLANNING.md` |
 | Stage 3.71 Portfolio Position & Cost Basis Engine implementation | Canonical through PR #138 squash merge `827f49f909ace5a3f7bcb2a3f51ce7c638c458ad`; final evidence head `6f66f7f3da982b2f83637452bfd1f556b92b3956`; CI #382 / run `34028563925` 10/10 SUCCESS | `stages/STAGE_03_71_PORTFOLIO_POSITION_COST_BASIS_IMPLEMENTATION.md` |
