@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.2.3 |
+| Version | 1.2.4 |
 | Status | Current |
 | Owner | Builder Engineer |
 | Supersedes | Informal stage-status notes |
 | Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md` |
-| Last Review Date | 2026-09-08 |
-| Next Review Date | Before any Stage 3.77+ runtime scope, external/provider market-data activation, privacy-lifecycle implementation, tax-basis expansion, imported SELL expansion, or other architecture-changing work |
+| Last Review Date | 2026-09-09 |
+| Next Review Date | Before any Stage 3.78+ runtime scope, external/provider market-data activation, privacy-lifecycle implementation, tax-basis expansion, imported SELL expansion, or other architecture-changing work |
 
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
 
@@ -19,7 +19,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 1 — Documentation Consolidation | Establish the repository-owned Source of Truth and freeze v1.2 | Complete; awaiting review | [Stage 1 report](stages/STAGE_01_DOCUMENTATION_CONSOLIDATION.md) |
 | 2 — Contract and Canonical Model Freeze | Freeze the MVP API, canonical DTOs, logical ER model, and migration strategy | Complete / closed; merged into `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | [Stage 2 report](stages/STAGE_02_CONTRACT_AND_CANONICAL_MODEL.md) |
 | Web architecture amendment | Replace the Web skeleton with presentation-only Next.js under ADR-007 | Complete / closed; merged into `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | [Amendment report](stages/WEB_FRONTEND_ARCHITECTURE_AMENDMENT.md) |
-| 3 — First Vertical Slice | Deliver the staged MVP vertical slice and harden it through audit remediation and product feature increments | Complete through Stage 3.76 on protected `develop`; original repository audit 32/32 CLOSED; Stage 3.25 privacy evidence collection remains separate | [Roadmap](ROADMAP.md) |
+| 3 — First Vertical Slice | Deliver the staged MVP vertical slice and harden it through audit remediation and product feature increments | Complete through Stage 3.77 on protected `develop`; original repository audit 32/32 CLOSED; Stage 3.25 privacy evidence collection remains separate | [Roadmap](ROADMAP.md) |
 | 3.1 — Local Database Foundation | Add minimal PostgreSQL structures and migration validation for the first vertical slice | Complete / closed; merged into `develop` at `b1a3f23` | [Stage 3.1 report](stages/STAGE_03_01_DATABASE_FOUNDATION.md) |
 | 3.2 — Go API Vertical-Slice Backend | Implement portfolio create, transaction append, snapshot rebuild, and summary read in Go | Complete / closed; merged into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1` | [Stage 3.2 report](stages/STAGE_03_02_GO_API_VERTICAL_SLICE.md) |
 | Product risk refinement | Convert hard PRD criticism into controlled MVP risk decisions | Complete / closed; merged into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702` | [MVP product risk refinement](product/MVP_PRODUCT_RISK_REFINEMENT.md) |
@@ -74,6 +74,7 @@ This log is the index of implementation stages. Every stage must document its pu
 | 3.74 — Transaction Correction & Reversal / Ledger Repair UX | Implement immutable correction/reversal commands, effective-ledger truth, historical oversell rejection, exact replay and user-visible Edit/Reverse controls | Complete / canonical through PR #150 squash merge `0580bf7e98c532202f84bbf9ceacd97aedbe4140` from exact final head `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02` after CI #435 / run `34117662576` 10/10 SUCCESS; lifecycle/documentation synchronized post-merge | [Stage 3.74 report](stages/STAGE_03_74_TRANSACTION_CORRECTION_REVERSAL_IMPLEMENTATION.md) |
 | 3.75 — Portfolio Cash Flow & Income Truth | Add effective-ledger cash/income projection, additive API, manual DIVIDEND/COUPON/FEE/TAX entry and truthful cash/dividend/coupon summary | Complete / canonical through PR #153 squash merge `57faae841805a5ab11ac959018a315cbada69207` from exact evidence head `fae674518e37d11cad0da28d91682c35bf8bf99a`; implementation head `f97f44016d22e783980c47bbde4799a3124623f4` passed CI #459 / run `34155729975` 10/10 SUCCESS; evidence head passed CI #460 / run `34156290105` 10/10 SUCCESS; fresh External and no-drift verification APPROVED; post-merge registry synchronization canonical through PR #154 | [Stage 3.75 report](stages/STAGE_03_75_PORTFOLIO_CASH_FLOW_INCOME_IMPLEMENTATION.md) |
 | 3.76 — Manual Market Valuation & Portfolio P/L | Allow authenticated users to set, edit and clear explicit current RUB prices for open STOCK/BOND positions and derive truthful market value/unrealized P&L without activating an external provider | Complete / canonical through PR #155 squash merge `e00699f8d455bcbaea0c1dc69ce534460fea6ff9` from final evidence-authority head `f89e1e793ef505c31bf76de7d43c4d40fdd9c38b`, tree `5971ae4bf5461dd562d7a73289b5942b02f962ba`; exact-head CI #467 / run `34174642209` 10/10 SUCCESS; final External review APPROVED; USER_SUPPLIED only, provider/live activation remains NO-GO | [Stage 3.76 report](stages/STAGE_03_76_MANUAL_MARKET_VALUATION_IMPLEMENTATION.md) |
+| 3.77 — Portfolio Money-Weighted Return / XIRR | Compute backend-owned money-weighted return from correction/reversal-aware external investor flows and exact-date manual terminal valuation; expose the same canonical XIRR through `/returns`, summary and Web | Complete / canonical through PR #157 squash merge `63d916b447e91c4de54efee5c66b27cf7727be92` from final evidence head `b3bc17e710e306f9d1a4d7be95dfe56b3f7202ba`, tree `e91e28e96416d9510962a66c1399459844574bba`; protected exact-head CI run `34303895226` 10/10 SUCCESS; Internal and fresh External reviews APPROVED; evidence/no-drift complete; no TWR/real/inflation/FX/provider activation | [Stage 3.77 report](stages/STAGE_03_77_PORTFOLIO_XIRR_IMPLEMENTATION.md) |
 
 ## Stage completion protocol
 

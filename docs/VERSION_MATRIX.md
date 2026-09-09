@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.2.3 |
+| Version | 1.2.4 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | Documents 42–43 |
-| Last Review Date | 2026-09-08 |
-| Next Review Date | Before any Stage 3.77+ runtime scope or architecture-changing provider/public activation, privacy, valuation, tax-basis, import, or infrastructure decision |
+| Last Review Date | 2026-09-09 |
+| Next Review Date | Before any Stage 3.78+ runtime scope or architecture-changing provider/public activation, privacy, valuation, tax-basis, import, or infrastructure decision |
 
 | Range | Version | Status under Freeze v1.2 | Priority | Owner | Review |
 | --- | --- | --- | --- | --- | --- |
@@ -21,6 +21,7 @@
 | Stage 3.74 Transaction Correction & Reversal / Ledger Repair UX | 1.0.0 | Complete / canonical through PR #150 squash merge `0580bf7e98c532202f84bbf9ceacd97aedbe4140` from exact final head `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02` after CI #435 / run `34117662576` 10/10 SUCCESS | 3 | Principal Architect | Before changes to correction/reversal or effective-ledger semantics |
 | Stage 3.75 Portfolio Cash Flow & Income Truth | 1.0.0 | Complete / canonical through PR #153 squash merge `57faae841805a5ab11ac959018a315cbada69207`; implementation head `f97f44016d22e783980c47bbde4799a3124623f4` passed CI #459 / run `34155729975` 10/10 SUCCESS; evidence head `fae674518e37d11cad0da28d91682c35bf8bf99a` passed CI #460 / run `34156290105` 10/10 SUCCESS; fresh External review and evidence/no-drift verification APPROVED | 3 | Principal Architect | Before Stage 3.77+ cash-flow, income-attribution, accounting or valuation expansion |
 | Stage 3.76 Manual Market Valuation & Portfolio P/L | 1.0.0 | Complete / canonical through PR #155 squash merge `e00699f8d455bcbaea0c1dc69ce534460fea6ff9` from exact final head `f89e1e793ef505c31bf76de7d43c4d40fdd9c38b`, tree `5971ae4bf5461dd562d7a73289b5942b02f962ba`, after CI #467 / run `34174642209` 10/10 SUCCESS; Internal Review APPROVED; fresh External implementation re-review APPROVED; evidence publication/authority synchronization complete; no-drift PASS; valuation source remains explicit authenticated `USER_SUPPLIED` RUB and external providers remain dormant | 3 | Principal Architect | Before Stage 3.77+ automated/provider valuation, return methodology, tax-basis or accounting expansion |
+| Stage 3.77 Portfolio Money-Weighted Return / XIRR | 1.0.0 | Complete / canonical through PR #157 squash merge `63d916b447e91c4de54efee5c66b27cf7727be92` from final evidence head `b3bc17e710e306f9d1a4d7be95dfe56b3f7202ba`, tree `e91e28e96416d9510962a66c1399459844574bba`, after protected exact-head CI run `34303895226` 10/10 SUCCESS; Internal Review APPROVED; fresh External review APPROVED after remediation; evidence publication/no-drift complete; ACT/365 XIRR is backend-owned and terminal valuation remains exact-date `USER_SUPPLIED` RUB; TWR/real/inflation/FX/provider activation remain dormant | 3 | Principal Architect | Before Stage 3.78+ return methodology, automated/provider valuation, tax-basis or accounting expansion |
 | ADR-008 privacy-lifecycle erasure and restore controls | 0.1.0 | Proposed / non-normative pending Security Review and human acceptance | N/A | Principal Architect | Before any privacy-lifecycle implementation proposal |
 | Stage 2 contract artifacts | 1.0.x | Closed / canonical baseline on `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | 3 | Principal Architect | 2026-12-25 |
 | Web presentation amendment | 1.0.x | Closed / canonical Web baseline on `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | 3 | Principal Architect | 2026-12-26 |
@@ -93,3 +94,4 @@ Stage 3.76 current implementation authority
 | Stage 3.74 Transaction Correction & Reversal / Ledger Repair UX | COMPLETE / CANONICAL | PR #150; final head `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02`; CI #435 / run `34117662576` 10/10 SUCCESS; protected squash merge `0580bf7e98c532202f84bbf9ceacd97aedbe4140` |
 | Stage 3.75 Portfolio Cash Flow & Income Truth | COMPLETE / CANONICAL | PR #153; implementation head `f97f44016d22e783980c47bbde4799a3124623f4`; CI #459 / run `34155729975` 10/10 SUCCESS; External `APPROVED`; evidence head `fae674518e37d11cad0da28d91682c35bf8bf99a`; CI #460 / run `34156290105` 10/10 SUCCESS; no-drift verification `APPROVED`; protected squash merge `57faae841805a5ab11ac959018a315cbada69207` |
 | Stage 3.76 Manual Market Valuation & Portfolio P/L | COMPLETE / CANONICAL | PR #155; final head `f89e1e793ef505c31bf76de7d43c4d40fdd9c38b`; tree `5971ae4bf5461dd562d7a73289b5942b02f962ba`; CI #467 / run `34174642209` 10/10 SUCCESS; Internal `APPROVED`; fresh External implementation re-review `APPROVED`; evidence publication and authority synchronization complete; no-drift `PASS`; protected squash merge `e00699f8d455bcbaea0c1dc69ce534460fea6ff9` |
+| Stage 3.77 Portfolio Money-Weighted Return / XIRR | COMPLETE / CANONICAL | PR #157; final evidence head `b3bc17e710e306f9d1a4d7be95dfe56b3f7202ba`; tree `e91e28e96416d9510962a66c1399459844574bba`; exact-head CI run `34303895226` 10/10 SUCCESS; Internal `APPROVED`; fresh External published-head review `APPROVED` after remediation; evidence publication complete; no implementation drift; protected squash merge `63d916b447e91c4de54efee5c66b27cf7727be92` |

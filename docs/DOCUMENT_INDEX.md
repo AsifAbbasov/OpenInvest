@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.74 |
+| Version | 1.1.75 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-09-08 |
-| Next Review Date | Before any Stage 3.77+ product/runtime or architecture-changing scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
+| Last Review Date | 2026-09-09 |
+| Next Review Date | Before any Stage 3.78+ product/runtime or architecture-changing scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
 
 ## Canonical control documents
 
@@ -148,6 +148,7 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Stage 3.74 Transaction Correction & Reversal / Ledger Repair UX | Complete/canonical through PR #150 squash merge `0580bf7e98c532202f84bbf9ceacd97aedbe4140` from exact final head `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02` after CI #435 / run `34117662576` 10/10 SUCCESS; append-only revisions/reversals, effective-ledger materialization, oversell rollback, exact replay, retry-safe Edit/Reverse UX and HTTP contract witnesses | `stages/STAGE_03_74_TRANSACTION_CORRECTION_REVERSAL_IMPLEMENTATION.md` |
 | Stage 3.75 Portfolio Cash Flow & Income Truth | Complete/canonical through PR #153 squash merge `57faae841805a5ab11ac959018a315cbada69207`; implementation head `f97f44016d22e783980c47bbde4799a3124623f4` passed CI #459 / run `34155729975` 10/10 SUCCESS; evidence head `fae674518e37d11cad0da28d91682c35bf8bf99a` passed CI #460 / run `34156290105` 10/10 SUCCESS; fresh External review and evidence/no-drift verification APPROVED; effective-ledger cash-flow/income truth, no provider/migration/cache table | `stages/STAGE_03_75_PORTFOLIO_CASH_FLOW_INCOME_IMPLEMENTATION.md` |
 | Stage 3.76 Manual Market Valuation & Portfolio P/L | Complete/canonical through PR #155 squash merge `e00699f8d455bcbaea0c1dc69ce534460fea6ff9` from exact final head `f89e1e793ef505c31bf76de7d43c4d40fdd9c38b`, tree `5971ae4bf5461dd562d7a73289b5942b02f962ba`, after CI #467 / run `34174642209` 10/10 SUCCESS; authenticated `USER_SUPPLIED` RUB valuation, backend-derived market value/unrealized P/L, lifecycle-safe generation and exact historical-date semantics; external provider activation remains NO-GO | `stages/STAGE_03_76_MANUAL_MARKET_VALUATION_IMPLEMENTATION.md` |
+| Stage 3.77 Portfolio Money-Weighted Return / XIRR | Complete/canonical through PR #157 squash merge `63d916b447e91c4de54efee5c66b27cf7727be92` from final evidence head `b3bc17e710e306f9d1a4d7be95dfe56b3f7202ba`, tree `e91e28e96416d9510962a66c1399459844574bba`, after protected exact-head CI run `34303895226` 10/10 SUCCESS; backend-owned ACT/365 XIRR, exact seven unavailable reasons, strict explicit BusinessDate, Stage 3.74 external-flow truth and Stage 3.76 exact-date manual terminal valuation; External review APPROVED and no implementation drift | `stages/STAGE_03_77_PORTFOLIO_XIRR_IMPLEMENTATION.md` |
 
 Stage 3.71 lifecycle/documentation closure is canonical through PR #140 squash merge `97c35a7b0fe7e2cd487c63d03b8ba79f80dcfc7b`. `STAGE-03-72-GOV-01` is effective through PR #143 squash merge `be654b938484d4ef4e4796b247bb04bf7efd2049`, with historical noncompliance preserved and residual governance risk accepted. Stage 3.72 planning is canonical through PR #142 squash merge `2144c52f4dc5ba9e917947d396ced1f3c572fe51`, and Stage 3.72 runtime is canonical through PR #145 squash merge `e935f19b68624f0b8be6ca293ead8f4395cf555e` after CI #413 / run `34091588982` 10/10 SUCCESS. Stage 3.72 lifecycle/documentation closure is canonical through PR #146 squash merge `ac0396eff47ce5cd862f41a5ec8ab2803de7fa58`; it authorizes no later Portfolio Position / Cost Basis expansion, production rollout, imported SELL expansion, provider-derived market-valued positions, XIRR/returns, correction/reversal, tax basis, bond NKD, notifications or AI.
 
