@@ -85,6 +85,7 @@ func TestStage377ReturnsHTTPRequiresExplicitValidAsOfDate(t *testing.T) {
 		"/api/v1/portfolios/00000000-0000-4000-8000-000000000002/returns?asOfDate=",
 		"/api/v1/portfolios/00000000-0000-4000-8000-000000000002/returns?asOfDate=2026-02-30",
 		"/api/v1/portfolios/00000000-0000-4000-8000-000000000002/returns?asOfDate=%202026-02-17",
+		"/api/v1/portfolios/00000000-0000-4000-8000-000000000002/returns?asOfDate=2026-02-17&asOfDate=2026-02-18",
 	} {
 		response, err := app.Test(httptest.NewRequest(http.MethodGet, path, nil))
 		if err != nil {

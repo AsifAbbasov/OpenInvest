@@ -34,9 +34,9 @@ func (api *API) getPortfolioReturns(c fiber.Ctx) error {
 	if err != nil {
 		return writeMappedError(c, err)
 	}
-	rawAsOfDate, present := queryValue(c, "asOfDate")
-	if !present || strings.TrimSpace(rawAsOfDate) == "" {
-		return writeMappedError(c, fmt.Errorf("%w: asOfDate is required", verticalslice.ErrInvalidInput))
+	rawAsOfDate, err := requiredSingleQueryValue(c, "asOfDate")
+	if err != nil {
+		return writeMappedError(c, err)
 	}
 	projection, err := api.service.GetPortfolioReturns(
 		c.Context(),
@@ -48,6 +48,28 @@ func (api *API) getPortfolioReturns(c fiber.Ctx) error {
 		return writeMappedError(c, err)
 	}
 	return writeOK(c, mapPortfolioReturn(projection))
+}
+
+func requiredSingleQueryValue(c fiber.Ctx, name string) (string, error) {
+	args := c.Request().URI().QueryArgs()
+	count := 0
+	value := ""
+	args.VisitAll(func(key, rawValue []byte) {
+		if string(key) != name {
+			return
+		}
+		count++
+		if count == 1 {
+			value = string(rawValue)
+		}
+	})
+	if count == 0 || strings.TrimSpace(value) == "" {
+		return "", fmt.Errorf("%w: %s is required", verticalslice.ErrInvalidInput, name)
+	}
+	if count != 1 {
+		return "", fmt.Errorf("%w: %s must be supplied exactly once", verticalslice.ErrInvalidInput, name)
+	}
+	return value, nil
 }
 
 func mapPortfolioReturn(projection verticalslice.PortfolioReturnProjection) portfolioReturnDTO {
