@@ -128,7 +128,7 @@
 - Squash-merged PR #7 into `develop` at `b1a3f23`.
 - Started Stage 3.2 Go API Vertical-Slice Backend.
 - Added the first Go API path for portfolio creation, transaction append, local snapshot rebuild,
-  and summary read without changing the frozen OpenAPI contract.
+  and summary read with no frozen OpenAPI-contract change.
 - Kept frontend screens, mobile, tax, dividends, external providers, workers, and Redis out of
   Stage 3.2 scope.
 
@@ -459,7 +459,7 @@
 - Required runtime asset-detail `source` provenance to use only approved registry entries, never
   reserved `EXAMPLE_*` identifiers or fabricated providers.
 - Required mandatory stock/bond detail fields to use reviewed static fixture metadata only; no
-  invented sector, face value, maturity date, coupon type, price, coupon event, or analytics values.
+  invented sector, face value, maturity, coupon type, price, coupon event, or analytics values.
 - Published Stage 3.13 internal review evidence after the independent external verdict and closure
   merge.
 
@@ -469,7 +469,7 @@
   `2c4f7853599a455bb0cc04114b338a1145baf39c`.
 - Started the backend-only implementation slice on `feature/stage-03-14-asset-api-boundary`.
 - Added the implementation report for the public Go API asset search/detail boundary over the
-  approved Stage 3.13 local catalog.
+  approved Stage 3.13 backend-owned local catalog.
 - Scoped implementation to backend asset search summaries with `lastPrice: null` and a wired but
   deferred asset-detail boundary until registered runtime provenance and mandatory detail fields are
   available.
