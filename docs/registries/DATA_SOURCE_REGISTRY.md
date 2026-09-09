@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DATA-001 |
-| Version | 1.0.5 |
+| Version | 1.0.6 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | Ad hoc external-source selection |
@@ -30,7 +30,7 @@ Stage 3.61 originally recorded that no reviewed source satisfied OpenInvest's co
 
 `TINVEST_CORPORATE_ACTIONS_CONSTRAINED`
 
-The decision is intentionally narrow. It does not create an unrestricted T-Invest approval, does not activate runtime composition, and does not authorize a provider token, adapter implementation, persistence, polling, raw redistribution, broader T-Invest services or new CorporateActionEvent kinds.
+The decision is intentionally narrow. It does not create an unrestricted T-Invest approval, does not activate runtime composition, and does not authorize a provider token, persistence, polling, raw redistribution, broader T-Invest services or new CorporateActionEvent kinds.
 
 Accordingly:
 
@@ -41,7 +41,7 @@ Accordingly:
 - Bank of Russia does not provide the required universal issuer-event feed in the reviewed surfaces;
 - issuer-direct endpoints require exact per-endpoint review and cannot be generalized into a scraper.
 
-The constrained T-Invest row resolves only the exact source/use-rights decision described in `docs/research/CORPORATE_ACTIONS_SOURCE_OUTREACH.md` and `docs/research/T_INVEST_CONSTRAINED_SOURCE_USE_PROPOSAL.md`. A separately reviewed runtime implementation remains required before any shipped external HTTP ingestion occurs.
+The constrained T-Invest row resolves only the exact source/use-rights decision described in `docs/research/CORPORATE_ACTIONS_SOURCE_OUTREACH.md` and `docs/research/T_INVEST_CONSTRAINED_SOURCE_USE_PROPOSAL.md`. The separately reviewed Feature 3D adapter implementation is now complete through PR #164 / squash merge `247081a95a7daf33c0077c88c5f41cb2e8161865`. That implementation fact does **not** activate runtime, provision a token, authorize production traffic, or broaden this row. Operational use remains allowed only if separately activated under every restriction in this exact `CONDITIONAL-GO` row.
 
 Official/reviewed evidence:
 
@@ -119,7 +119,7 @@ Request-scoped deduplication/memoization may exist only within one in-flight req
 
 ### Authentication and secret boundary
 
-Any future separately authorized implementation must use:
+The reviewed implementation uses:
 
 - server-side read-only Bearer token only;
 - token supplied only through runtime secret/environment configuration;
@@ -127,9 +127,11 @@ Any future separately authorized implementation must use:
 - token never sent to frontend/mobile clients;
 - token never written to logs, traces, metrics or errors;
 - authorization headers redacted from observability;
-- separate development and production tokens;
+- separate development and production tokens required operationally;
 - no trading-capable token;
 - rotation without code changes.
+
+The implementation cannot prove broker-side token permissions without invoking additional unapproved surfaces, so read-only scope remains a deployment/provisioning contract.
 
 ### Traffic boundary
 
@@ -186,7 +188,7 @@ Realized portfolio truth remains ledger-owned through user/manual or separately 
 
 This registry decision is source/use-rights approval only. It does **not** by itself authorize or perform runtime activation.
 
-Before shipped use, a separate implementation review must still approve the adapter code, secret handling, bounded HTTP/gRPC client behavior, normalization tests, provider-neutral contract compatibility, failure semantics and exact runtime composition. Stage 3.78 is not started or authorized by this registry decision.
+The required adapter/secret/transport/normalization/provider-neutral/failure-semantics/runtime-composition implementation review was completed for Feature 3D through PR #164. The merged adapter remains disabled by default and no live token or production provider traffic is claimed by Feature 3D. Any operational activation, broader T-Invest method/use mode, persistence/cache/polling change, provider-specific public contract, or financial-ledger coupling requires a fresh separately reviewed authorization. Stage 3.78 is not started or authorized by this registry/closure synchronization.
 
 ## MOEX_ISS_DELAYED_TQBR activation decision
 
