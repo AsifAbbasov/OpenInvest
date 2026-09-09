@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.76 |
+| Version | 1.1.77 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-09-09 |
+| Last Review Date | 2026-09-10 |
 | Next Review Date | Before any Stage 3.78+ product/runtime or architecture-changing scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, Feature 3D runtime activation or broader T-Invest source/use scope, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
 
 ## Canonical control documents
@@ -57,6 +57,7 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | `IMPLEMENTATION_LOG.md` | Completed-stage index and completion protocol |
 | `audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md` | Canonical cross-finding status for all 32 original Stage 3.16 audit findings |
 | `governance/REPOSITORY_DOCUMENTATION_RECONCILIATION.md` | Historical reconciliation record through Stage 3.72; later active lifecycle state is carried by the canonical registries and stage dossiers |
+| `governance/HISTORICAL_FEATURE_FORENSIC_DOCUMENTATION_RECONCILIATION.md` | Cross-stage forensic reconciliation for Stages 3.57–3.77; preserves material review/remediation history, explicit evidence gaps and the Feature 3D reference standard without rewriting historical dossiers |
 | `REVIEW_WORKFLOW.md` | Mandatory branch, PR, CI, specialist review, approval, and merge process |
 | `product/MVP_PRODUCT_RISK_REFINEMENT.md` | Proposed product-risk response, ICP sharpening, import/tax/purchasing-power guardrails |
 

@@ -3,13 +3,21 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.2.1 |
+| Version | 1.2.2 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-09-09 |
+| Last Review Date | 2026-09-10 |
 | Next Review Date | Before any Stage 3.78+ runtime/product scope, Feature 3D runtime activation or broader T-Invest source/use rights, or another architecture-changing provider, privacy, valuation, tax-basis, import, or infrastructure decision |
+
+## 2026-09-10 — Historical feature forensic documentation reconciliation
+
+- Reconciled the contemporary engineering-review history for Stages 3.57–3.77 into one cross-stage forensic governance addendum, using Feature 3D only as the formatting/reference standard and without rewriting historical stage dossiers.
+- The candidate records 47 material forensic records: 33 with full forensic coverage and 14 partial records, with 60 unsupported historical forensic fields explicitly marked `NOT RECORDED IN CONTEMPORANEOUS EVIDENCE` rather than reconstructed.
+- Preserved known evidence limits non-retroactively, including the unavailable original Stage 3.75 prepublication Internal Review record and the separately dispositioned Stage 3.71/3.72 governance deviations.
+- The reconciliation changes no Go runtime, SQL/migrations, OpenAPI behavior, frontend runtime, dependency, provider/source-use decision, provider activation state or Stage 3.78 authorization.
+- This documentation reconciliation is non-canonical until this exact candidate completes the required review, exact-head CI, explicit human authorization and protected squash merge.
 
 ## 2026-09-09 — Feature 3D constrained T-Invest Corporate Actions implementation merged; documentation closure synchronized
 
