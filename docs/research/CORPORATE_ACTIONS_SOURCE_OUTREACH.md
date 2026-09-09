@@ -154,7 +154,7 @@ Relevant official documentation:
 - `https://developer.tbank.ru/invest/api/instruments-service-get-bond-coupons`
 - `https://developer.tbank.ru/invest/api/instruments-service-get-bond-events`
 
-A material conflict was then identified: the public T-Invest API FAQ states that a public service based on T-Invest API is not permitted and describes the API as provided to T-Invest clients without retransmission rights.
+A material conflict was identified: the public T-Invest API FAQ states that a public service based on T-Invest API is not permitted and describes the API as provided to T-Invest clients without retransmission rights.
 
 Because OpenInvest does not expose the provider's raw API/feed, a targeted clarification was sent on 2026-09-09. The exact OpenInvest scenario described to T-Invest was:
 
