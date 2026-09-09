@@ -3,12 +3,18 @@
 | Field | Value |
 | --- | --- |
 | Document ID | GOV-HIST-FEATURE-FORENSIC-001 |
-| Version | 0.1.0-candidate |
-| Status | CANDIDATE / NON-CANONICAL — becomes canonical only after required review, exact-head CI, explicit human authorization and protected squash merge |
+| Version | 1.0.0 |
+| Status | APPROVED / CANONICAL |
 | Owner | Principal Architect |
 | Repository | `AsifAbbasov/OpenInvest` |
 | Canonical base | `develop@5d8ed09ff1061a57281b231cd4f448df174a625a` |
 | Canonical base tree | `78579ebb3d39501a28bb87a8d843791a5983b325` |
+| Reviewed PR head | `fa2f0a164c7e2c4fe414a7bb9469eedf5ea7df54` |
+| Reviewed tree | `e742d1084fdcc5751acf896738ba9065a4b0f741` |
+| Protected develop merge | `5da679f0d15f8742239659ff9cebc451a213894d` |
+| Merged tree | `e742d1084fdcc5751acf896738ba9065a4b0f741` |
+| Content drift | NONE |
+| Exact-head CI | 10/10 SUCCESS |
 | Historical scope | Stages 3.57–3.77 inclusive |
 | Reference standard | Feature 3D post-merge forensic closure; referenced, not rewritten |
 | Runtime / API / SQL / dependency / provider activation change | NONE |
@@ -54,7 +60,7 @@ Where a required forensic field cannot be supported, the literal marker is:
 NOT RECORDED IN CONTEMPORANEOUS EVIDENCE
 ```
 
-This candidate contains exactly **60** such explicit field markers across the 47 material forensic records below.
+This reconciliation contains exactly **60** such explicit field markers across the 47 material forensic records below.
 
 ## 3. Classification vocabulary
 
@@ -1115,7 +1121,7 @@ This reconciliation does not duplicate or rewrite Feature 3D. It uses that shape
 
 ## 12. Future forensic documentation standard — proposed, not workflow-authoritative
 
-This candidate does **not** modify `docs/REVIEW_WORKFLOW.md`.
+This reconciliation does **not** modify `docs/REVIEW_WORKFLOW.md`.
 
 A later, separately reviewed governance amendment should consider requiring the following for future substantive stages with material findings:
 
@@ -1131,26 +1137,49 @@ This proposal is explanatory only. It creates no new mandatory control until sep
 
 ## 13. Reconciliation verdict
 
-At candidate preparation time:
-
 ```text
-CANONICAL_BASE_COMMIT = 5d8ed09ff1061a57281b231cd4f448df174a625a
-CANONICAL_BASE_TREE   = 78579ebb3d39501a28bb87a8d843791a5983b325
+POST_MERGE_CANONICAL_STATE
 
-HISTORICAL_SCOPE      = STAGES_3_57_THROUGH_3_77
-FEATURE_3D_REFERENCE  = YES
-MATERIAL_RECORDS      = 47
-NOT_RECORDED_FIELDS   = 60
+HISTORICAL_SCOPE = STAGES_3_57_THROUGH_3_77
+FEATURE_3D_REFERENCE = YES
+
+MATERIAL_RECORDS = 47
+FULL_FORENSIC_RECORDS = 33
+PARTIAL_FORENSIC_RECORDS = 14
+NOT_RECORDED_FIELDS = 60
+
+ORIGINAL_REVIEWED_BASE_COMMIT =
+5d8ed09ff1061a57281b231cd4f448df174a625a
+
+ORIGINAL_REVIEWED_BASE_TREE =
+78579ebb3d39501a28bb87a8d843791a5983b325
+
+REVIEWED_HEAD =
+fa2f0a164c7e2c4fe414a7bb9469eedf5ea7df54
+
+REVIEWED_TREE =
+e742d1084fdcc5751acf896738ba9065a4b0f741
+
+MERGED_DEVELOP =
+5da679f0d15f8742239659ff9cebc451a213894d
+
+MERGED_TREE =
+e742d1084fdcc5751acf896738ba9065a4b0f741
+
+CONTENT_DRIFT = NONE
+CI = 10/10 SUCCESS
 
 HISTORICAL_DOSSIERS_REWRITTEN = NO
-RUNTIME_DRIFT                  = NONE
-OPENAPI_DRIFT                  = NONE
-DATABASE_OR_MIGRATION_DRIFT    = NONE
-DEPENDENCY_DRIFT               = NONE
-PROVIDER_ACTIVATION_DRIFT      = NONE
-STAGE_3_78_AUTHORIZATION       = NONE
 
-DOCUMENT_STATUS = CANDIDATE / PENDING REQUIRED REVIEW + CI + EXPLICIT HUMAN AUTHORIZATION + PROTECTED MERGE
+RUNTIME_DRIFT = NONE
+OPENAPI_DRIFT = NONE
+DATABASE_OR_MIGRATION_DRIFT = NONE
+DEPENDENCY_DRIFT = NONE
+PROVIDER_ACTIVATION_DRIFT = NONE
+
+STAGE_3_78_AUTHORIZATION = NONE
+STAGE_3_78_STARTED = NO
+
+DOCUMENT_STATUS = APPROVED / CANONICAL
+FORENSIC_RECONCILIATION = CLOSED
 ```
-
-If this exact documentation candidate is later protected-merged after the required gates, the repository may describe Stages 3.57–3.77 as **forensically reconciled**. Protected merge would not change any historical review verdict, runtime behavior, source-use permission, provider activation state or later-stage authorization.
