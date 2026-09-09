@@ -201,9 +201,9 @@ T-Invest = EXACT OPENINVEST USE CONFIRMED BY SUPPORT / PUBLISHED FAQ CONFLICT RE
 Source-rights review conclusion for the evidence currently available:
 
 ```text
-Public production GO:                 NOT YET
-Conditional GO for technical/staging evaluation: YES
-Candidate for constrained production proposal:    YES
+Public production GO:                      NOT YET
+Conditional GO for non-public technical/staging evaluation: YES
+Candidate for constrained production proposal:             YES
 ```
 
 Reasoning:
@@ -548,7 +548,7 @@ T-INVEST — EXACT OPENINVEST USE CONFIRMED BY SUPPORT
 
 T-Invest source-rights review:
 PUBLIC PRODUCTION GO = NOT YET
-TECHNICAL/STAGING CONDITIONAL GO = YES
+NON-PUBLIC TECHNICAL/STAGING CONDITIONAL GO = YES
 CONSTRAINED PRODUCTION PROPOSAL = JUSTIFIED
 
 Open T-Invest evidence items:
