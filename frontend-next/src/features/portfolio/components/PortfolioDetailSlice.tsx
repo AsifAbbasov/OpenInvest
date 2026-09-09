@@ -7,6 +7,7 @@ import {
   getPortfolio,
   getPortfolioCashFlow,
   getPortfolioPositions,
+  getPortfolioReturns,
   getPortfolioSummary,
   listTransactions,
   type ApiResult,
@@ -14,6 +15,7 @@ import {
   type Portfolio,
   type PortfolioCashFlowProjection,
   type PortfolioPositionsProjection,
+  type PortfolioReturnProjection,
   type PortfolioSummary,
   type Transaction,
 } from "@/common/api/openinvest";
@@ -22,6 +24,7 @@ import { useAuth } from "@/features/auth/components/AuthShell";
 import { AddTransactionForm } from "@/features/portfolio/components/AddTransactionForm";
 import { CashFlowIncomeBlock } from "@/features/portfolio/components/CashFlowIncomeBlock";
 import { ImportUploadReviewPanel } from "@/features/portfolio/components/ImportUploadReviewPanel";
+import { PerformanceBlock } from "@/features/portfolio/components/PerformanceBlock";
 import { PositionsBlock } from "@/features/portfolio/components/PositionsBlock";
 import { TransactionRepairControls } from "@/features/portfolio/components/TransactionRepairControls";
 import { shouldCommitPortfolioLoad, startPortfolioLoad, type PortfolioLoadGuardState } from "@/features/portfolio/loadGuard";
@@ -46,6 +49,8 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
   const [positionViewMode, setPositionViewMode] = useState<PositionViewMode>("current");
   const [historicalDate, setHistoricalDate] = useState("");
   const [historicalPositions, setHistoricalPositions] = useState<ApiResult<PortfolioPositionsProjection> | null>(null);
+  const [performanceDate, setPerformanceDate] = useState("");
+  const [performanceResult, setPerformanceResult] = useState<ApiResult<PortfolioReturnProjection> | null>(null);
   const [isLoadingMoreTransactions, setIsLoadingMoreTransactions] = useState(false);
   const [moreTransactionsError, setMoreTransactionsError] = useState<string | null>(null);
   const loadGuard = useRef<PortfolioLoadGuardState>({ generation: 0, accessToken });
@@ -53,10 +58,14 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
   const historicalLoadGuard = useRef<PortfolioLoadGuardState>({ generation: 0, accessToken });
   const historicalViewKey = positionViewMode === "historical" ? `AS_OF:${historicalDate}` : "CURRENT";
   const historicalLoadIdentity = useRef({ principalId, portfolioId, viewKey: historicalViewKey });
+  const performanceLoadGuard = useRef<PortfolioLoadGuardState>({ generation: 0, accessToken });
+  const performanceLoadIdentity = useRef({ principalId, portfolioId, asOfDate: performanceDate });
   loadGuard.current.accessToken = accessToken;
   loadIdentity.current = { principalId, portfolioId };
   historicalLoadGuard.current.accessToken = accessToken;
   historicalLoadIdentity.current = { principalId, portfolioId, viewKey: historicalViewKey };
+  performanceLoadGuard.current.accessToken = accessToken;
+  performanceLoadIdentity.current = { principalId, portfolioId, asOfDate: performanceDate };
 
   const load = useCallback(async () => {
     const principalAtLoad = principalId;
@@ -109,10 +118,46 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
     }
   }, [accessToken, historicalDate, positionViewMode, principalId, portfolioId]);
 
+  const loadPerformance = useCallback(async () => {
+    const principalAtLoad = principalId;
+    const portfolioAtLoad = portfolioId;
+    const asOfDateAtLoad = performanceDate;
+    const { state: nextGuard, attempt } = startPortfolioLoad(
+      performanceLoadGuard.current,
+      performanceLoadGuard.current.accessToken,
+    );
+    performanceLoadGuard.current = nextGuard;
+    setPerformanceResult(null);
+
+    if (asOfDateAtLoad === "") {
+      return;
+    }
+
+    const returns = await getPortfolioReturns(
+      portfolioId,
+      { accessToken: attempt.accessToken },
+      { asOfDate: asOfDateAtLoad },
+    );
+    const identityIsCurrent =
+      performanceLoadIdentity.current.principalId === principalAtLoad &&
+      performanceLoadIdentity.current.portfolioId === portfolioAtLoad &&
+      performanceLoadIdentity.current.asOfDate === asOfDateAtLoad;
+    if (shouldCommitPortfolioLoad(performanceLoadGuard.current, attempt) && identityIsCurrent) {
+      setPerformanceResult(returns);
+    }
+  }, [accessToken, performanceDate, principalId, portfolioId]);
+
   function invalidateHistoricalLoad() {
     historicalLoadGuard.current = {
       ...historicalLoadGuard.current,
       generation: historicalLoadGuard.current.generation + 1,
+    };
+  }
+
+  function invalidatePerformanceLoad() {
+    performanceLoadGuard.current = {
+      ...performanceLoadGuard.current,
+      generation: performanceLoadGuard.current.generation + 1,
     };
   }
 
@@ -126,14 +171,28 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
 
   useEffect(() => {
     invalidateHistoricalLoad();
+    invalidatePerformanceLoad();
     setPositionViewMode("current");
     setHistoricalDate("");
     setHistoricalPositions(null);
+    setPerformanceDate("");
+    setPerformanceResult(null);
   }, [principalId, portfolioId]);
+
+  useEffect(() => {
+    void loadPerformance();
+  }, [loadPerformance]);
 
   const refreshAfterLedgerMutation = useCallback(async () => {
     await Promise.all([load(), loadHistoricalPositions()]);
-  }, [load, loadHistoricalPositions]);
+    const performanceIdentityIsCurrent =
+      performanceLoadIdentity.current.principalId === principalId &&
+      performanceLoadIdentity.current.portfolioId === portfolioId &&
+      performanceLoadIdentity.current.asOfDate === performanceDate;
+    if (performanceIdentityIsCurrent) {
+      await loadPerformance();
+    }
+  }, [load, loadHistoricalPositions, loadPerformance, performanceDate, principalId, portfolioId]);
 
   function showCurrentPositions() {
     invalidateHistoricalLoad();
@@ -150,6 +209,12 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
     invalidateHistoricalLoad();
     setHistoricalPositions(null);
     setHistoricalDate(value);
+  }
+
+  function changePerformanceDate(value: string) {
+    invalidatePerformanceLoad();
+    setPerformanceResult(null);
+    setPerformanceDate(value);
   }
 
   async function loadMoreTransactions() {
@@ -219,8 +284,8 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
           <p className="eyebrow">Portfolio detail</p>
           <h1>{portfolio.name}</h1>
           <p className="summary">
-            This page renders canonical API responses only. Return methodology remains unavailable until
-            canonical calculation vectors are approved.
+            This page renders canonical API responses. Money-weighted return is backend-owned and exact-date; TWR,
+            nominal return, real return, and inflation-adjusted performance remain unavailable.
           </p>
         </section>
       ) : null}
@@ -252,6 +317,12 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
           <p>{state.summary.message}</p>
         </section>
       ) : null}
+
+      <PerformanceBlock
+        result={performanceResult}
+        asOfDate={performanceDate}
+        onAsOfDateChange={changePerformanceDate}
+      />
 
       <PositionsBlock
         result={visiblePositions}

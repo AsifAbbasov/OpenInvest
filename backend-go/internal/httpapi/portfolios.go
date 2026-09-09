@@ -166,6 +166,11 @@ func mapPortfolio(item verticalslice.Portfolio) portfolioDTO {
 }
 
 func mapSummary(item verticalslice.PortfolioSummary) summaryDTO {
+	var xirr *string
+	if item.XIRR != nil {
+		value := item.XIRR.String()
+		xirr = &value
+	}
 	return summaryDTO{
 		PortfolioID:       item.PortfolioID,
 		AsOfDate:          item.AsOfDate,
@@ -177,7 +182,7 @@ func mapSummary(item verticalslice.PortfolioSummary) summaryDTO {
 		DividendsReceived: mapMoney(item.DividendsReceived),
 		CouponsReceived:   mapMoney(item.CouponsReceived),
 		NominalReturnRate: nil,
-		XIRR:              nil,
+		XIRR:              xirr,
 		RealReturn:        nil,
 		PurchasingPower: powerDTO{
 			PortfolioValue: mapMoney(item.PurchasingPower.PortfolioValue),

@@ -34,6 +34,13 @@ func (s *Store) GetPortfolioSummaryStage371(
 	}
 	summary.DividendsReceived = cashFlow.Totals.DividendsGross
 	summary.CouponsReceived = cashFlow.Totals.CouponsGross
+	returns, err := portfolioReturnProjectionTx(ctx, tx, portfolioID, summary.AsOfDate)
+	if err != nil {
+		return verticalslice.PortfolioSummary{}, err
+	}
+	if returns.Status == verticalslice.PortfolioReturnAvailableStatus {
+		summary.XIRR = returns.XIRR
+	}
 	if err := tx.Commit(); err != nil {
 		return verticalslice.PortfolioSummary{}, err
 	}
