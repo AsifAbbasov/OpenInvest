@@ -3,13 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.96 |
+| Version | 1.1.97 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal stage ordering |
 | Dependencies | Architecture Freeze v1.2 |
 | Last Review Date | 2026-09-09 |
-| Next Review Date | Before any Stage 3.78+ product/runtime or architecture-changing scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, Feature 3D corporate-actions source/use planning, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
+| Next Review Date | Before any Stage 3.78+ product/runtime or architecture-changing scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, Feature 3D runtime activation or broader T-Invest source/use rights, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
 
 | Stage | Outcome | State |
 | --- | --- | --- |
@@ -131,6 +131,7 @@
 | 3.75 — Portfolio Cash Flow & Income Truth | Reuse Stage 3.74 effective ledger for backend-owned cash/income totals, monthly aggregation, manual income/expense entry and truthful summary cash/income | Complete / canonical through PR #153 squash merge `57faae841805a5ab11ac959018a315cbada69207` from exact evidence head `fae674518e37d11cad0da28d91682c35bf8bf99a`; implementation CI #459 / run `34155729975` and evidence CI #460 / run `34156290105` both 10/10 SUCCESS; fresh External and evidence/no-drift verification APPROVED; zero-budget, no provider/migration/cache table; lifecycle/documentation synchronization is canonical on protected `develop` |
 | 3.76 — Manual Market Valuation & Portfolio P/L | Add explicit authenticated `USER_SUPPLIED` RUB manual valuation for open STOCK/BOND positions, backend-owned market value/unrealized P/L/return, honest partial/complete portfolio coverage, and lifecycle-safe exact-date historical valuation eligibility | Complete / canonical through PR #155 squash merge `e00699f8d455bcbaea0c1dc69ce534460fea6ff9` from exact final head `f89e1e793ef505c31bf76de7d43c4d40fdd9c38b`, tree `5971ae4bf5461dd562d7a73289b5942b02f962ba`, after CI #467 / run `34174642209` 10/10 SUCCESS; Internal Review APPROVED; fresh External implementation re-review APPROVED; evidence publication/authority synchronization complete; no-drift PASS; provider-derived/live valuation remains NO-GO; post-merge lifecycle/documentation synchronization becomes canonical with this approved closure on protected `develop`; no Stage 3.77+ product/runtime scope authorized |
 | 3.77 — Portfolio Money-Weighted Return / XIRR | Add backend-owned money-weighted return from Stage 3.74 external investor flows and exact-date Stage 3.76 manual terminal valuation; expose one ACT/365 XIRR truth through API, summary and Web with scale-8 Half-Even output and fail-closed multiple-root/numerical semantics | Complete / canonical through PR #157 squash merge `63d916b447e91c4de54efee5c66b27cf7727be92` from final evidence head `b3bc17e710e306f9d1a4d7be95dfe56b3f7202ba`, tree `e91e28e96416d9510962a66c1399459844574bba`; protected exact-head CI run `34303895226` 10/10 SUCCESS; Internal Review APPROVED; fresh External published-head review APPROVED after remediation; evidence publication and no-drift verification complete; post-merge lifecycle/documentation synchronization becomes canonical with this approved closure on protected `develop`; no Stage 3.78+ product/runtime scope authorized |
+| Feature 3D — Constrained T-Invest Corporate Actions Provider | Implement only registry mode `TINVEST_CORPORATE_ACTIONS_CONSTRAINED` behind the existing provider-neutral Corporate Actions boundary: static mapping, `GetDividends` → `DIVIDEND`, `GetBondCoupons` → `COUPON`, exact money, bounded REST, fail-closed lifecycle/errors, no persistence/polling/ledger mutation | Complete / canonical implementation through PR #164 squash merge `247081a95a7daf33c0077c88c5f41cb2e8161865` from final evidence head `ddc5b5be36f0b5ae127c6ee430918a9dba1b453e`, tree `ec7bc9152210913b1a6ef742bddd599abee50bc7`; implementation CI #499 / run `34353668492` and evidence CI #501 / run `34356672643` both 10/10 SUCCESS; Internal and fresh External reviews APPROVED; evidence/no-drift APPROVED; source/use remains exact-scope `CONDITIONAL-GO`; runtime activation NO; live token NOT USED; production provider traffic not authorized/claimed; Stage 3.78 NOT STARTED |
 
 The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
 therefore implements the first vertical slice incrementally instead of recreating the repository.
@@ -223,7 +224,7 @@ PR #127 squash merge `a8f9e95c065ee708885461166e1e992d1f4aae22`; Feature 3C is c
 PR #128 squash merge `c204ee9eee320e6171b55983cfde5cf74a2008df`, whose protected merge tree
 `33dd90d3928286c7d2628dd56e7d9f55eece08b5` exactly matches the approved final evidence tree.
 Corporate Actions now has the provider-neutral event boundary, deterministic Calendar/Heatmap projection,
-Go HTTP/OpenAPI surface, typed Next.js client, and UI. No real corporate-actions source is activated.
+Go HTTP/OpenAPI surface, typed Next.js client, and UI.
 
 Stage 3.65 documentation/governance closure is canonical through PR #129 squash merge
 `1c30a4bf637c933e7c210cff6e26fabd91d8bab1`, protected tree
@@ -244,8 +245,12 @@ Stage 3.69 Dividend Calculator closure governance is canonical through PR #134 s
 `e98bad4b2431eb7f45a5bfff17c3601c49554b45` after CI #354 / run `33983374426` 10/10 SUCCESS and exact
 published-head closure verification `APPROVED`. Stage 3.68 lifecycle/documentation closure is COMPLETE. This closure
 changes no calculator/runtime/API/database/math/security/dependency behavior.
-Feature 3D remains a separate source/use-rights, licensing/public-display, rate/cost, caching/retention and
-runtime-composition planning gate; no real corporate-actions source is activated by Stages 3.65–3.69.
+Feature 3D source/use planning is no longer pending: the exact `TINVEST_CORPORATE_ACTIONS_CONSTRAINED`
+mode is registry `CONDITIONAL-GO`, and its separately reviewed adapter implementation is canonical through
+PR #164 / squash `247081a95a7daf33c0077c88c5f41cb2e8161865`. The implementation preserves the provider-neutral
+3A/3B/3C boundary and the reviewed no-persistence/no-polling/no-ledger-mutation constraints. Runtime activation
+remains a separate operational gate: no live T-Invest token was used in implementation/review, production T-Invest traffic is not authorized/claimed by Feature 3D,
+and broader methods/source-use rights or Stage 3.78+ work require a new reviewed scope.
 
 No further audit-remediation implementation begins without a separately reviewed planning/remediation gate.
 
