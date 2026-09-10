@@ -83,6 +83,7 @@ func main() {
 func (v *validator) validate() {
 	rootDocument := v.loadDocument(v.root)
 	v.validateStructure(asMap(rootDocument))
+	v.validateRuntimeRouteParity(asMap(rootDocument))
 	v.validateFinancialGuardVectors()
 	v.validateExampleSourceCodes()
 	v.validateImportExamples()
