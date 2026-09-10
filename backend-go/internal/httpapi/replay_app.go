@@ -33,6 +33,7 @@ func NewReplayWithCorporateActionProvider(
 		auth:                    authService,
 		corporateActionProvider: corporateActionProvider,
 		authLimiter:             newAuthRateLimiter(20, time.Minute),
+		dividendLimiter:         newDividendCalculatorRateLimiter(),
 		importReviewSecret:      secret,
 		paginationCursorSecret:  derivePaginationCursorSecret(secret),
 	}), nil
@@ -59,6 +60,7 @@ func NewDevelopmentReplayWithCorporateActionProvider(
 		corporateActionProvider: corporateActionProvider,
 		allowDevelopmentSubject: true,
 		authLimiter:             newAuthRateLimiter(20, time.Minute),
+		dividendLimiter:         newDividendCalculatorRateLimiter(),
 		importReviewSecret:      secret,
 		paginationCursorSecret:  derivePaginationCursorSecret(secret),
 	})
@@ -78,6 +80,7 @@ func newReplayApp(api *API) *fiber.App {
 	app.Get("/api/v1/assets/search", api.searchAssets)
 	app.Get("/api/v1/assets/:ticker", api.getAsset)
 	app.Get("/api/v1/corporate-actions/projection", api.getCorporateActionProjection)
+	app.Post("/api/v1/dividends/calculate", api.calculateDividend)
 	app.Get("/api/v1/portfolios", api.listPortfolios)
 	app.Post("/api/v1/portfolios", api.createPortfolioReplay)
 	app.Get("/api/v1/portfolios/:portfolioId", api.getPortfolio)
