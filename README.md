@@ -1,99 +1,224 @@
 # OpenInvest
 
-OpenInvest is an independent, privacy-first investment analytics platform. It is not a broker, bank, asset manager, trading system, or investment adviser.
+OpenInvest is a privacy-first investment portfolio accounting and analytics platform for retail investors.
+It records investment activity, reconstructs portfolio state, and calculates portfolio analytics without silently inventing market data.
 
-This repository contains the closed Stage 2 contract/canonical-model baseline, the accepted Next.js
-Web presentation-layer baseline, and the staged Stage 3 MVP vertical-slice implementation.
+OpenInvest is not a broker, bank, exchange, trading platform, asset manager, or investment adviser.
 
-The numbered Stage 3 product/runtime frontier is canonically implemented through **Stage 3.77 — Portfolio Money-Weighted Return / XIRR**. The current product baseline includes the PostgreSQL/Go/Next.js vertical slice, authenticated portfolio and transaction flows, CSV import/reconciliation, backend-owned instrument catalog and asset discovery, hardened idempotency/security boundaries, provider-neutral market-data architecture, Corporate Actions Calendar/Heatmap API and UI, the user-supplied Dividend Calculator, deterministic manual SELL/WAC/acquisition-basis accounting, the dedicated portfolio positions API/UI, historical position reconstruction by explicit BusinessDate through the existing Stage 3.72 as-of contract, immutable transaction repair through Stage 3.74, backend-owned effective-ledger cash-flow/income truth through Stage 3.75, explicit authenticated `USER_SUPPLIED` RUB manual valuation with backend-derived market value/unrealized P/L through Stage 3.76, and backend-owned money-weighted return/XIRR through Stage 3.77. Separately governed **Corporate Actions Feature 3D** now has a merged constrained T-Invest adapter implementation through PR #164 / squash commit `247081a95a7daf33c0077c88c5f41cb2e8161865`; this does not renumber or start Stage 3.78.
+## What OpenInvest does
 
-The original Stage 3.16 repository audit is **fully remediated: 32/32 findings CLOSED (P0/P1/P2/P3 = 0/0/0/0)** through Stage 3.56. Stage 3.59 contains a delayed MOEX ISS TQBR adapter, but Stage 3.60 records production/public activation as **NO-GO** under the reviewed source-rights and zero-budget constraints, so that adapter remains dormant. Stage 3.76 does not change that market-data decision: valuation is available only from authenticated explicit `USER_SUPPLIED` prices, not from MOEX/provider/live market data. Corporate Actions Features 3A/3B/3C are implemented provider-neutrally; Feature 3D now implements only the registry-approved `TINVEST_CORPORATE_ACTIONS_CONSTRAINED` mode (`GetDividends` → `DIVIDEND`, `GetBondCoupons` → `COUPON`) and was protected-merged through PR #164 after implementation CI #499 and final evidence-head CI #501 both completed 10/10 SUCCESS, with Internal/External review and no-semantic-drift verification `APPROVED`. **Feature 3D runtime activation remains NO, no live T-Invest token was used, and production T-Invest traffic is not authorized/claimed by Feature 3D.** Stage 3.68 Dividend Calculator and Stages 3.71–3.77 portfolio position/cost-basis, Time Machine, immutable transaction-repair, cash-flow/income, manual valuation, and money-weighted return flows remain canonical. No Stage 3.78+ product/runtime scope is authorized by Feature 3D or this documentation closure. Stage 3.25 privacy evidence collection remains documentation-only and does not authorize privacy-lifecycle implementation.
+The current product supports authenticated portfolios, an immutable financial ledger, broker CSV import/reconciliation, portfolio positions and acquisition basis, historical holdings, append-only correction/reversal, cash-flow and income analytics, explicit user-supplied valuation, money-weighted return (XIRR), a dividend calculator, and provider-neutral Corporate Actions surfaces.
 
-Product-risk refinement remains part of the MVP governance baseline. For canonical lifecycle status start with `docs/SOURCE_OF_TRUTH.md`, `docs/ROADMAP.md`, `docs/IMPLEMENTATION_LOG.md`, and `docs/governance/REPOSITORY_DOCUMENTATION_RECONCILIATION.md`.
+The canonical ledger supports:
 
-## Historical audit remediation chronology (Stages 3.27–3.32)
+`BUY`, `SELL`, `DIVIDEND`, `COUPON`, `FEE`, `TAX`, `DEPOSIT`, and `WITHDRAWAL`.
 
-> This section preserves the early remediation chronology. It is not the current audit status. Subsequent Stages 3.33–3.56 closed every remaining original finding; the canonical original-audit state is 32/32 CLOSED.
+## Architecture
 
-Stage 3.27 is an audit-remediation slice for import financial identity and cash-flow semantics. The
-repository audit identified three P1 defects: broker-operation identity was not persisted through the
-append boundary, cash near-match classification omitted the transaction amount, and deposits/withdrawals
-accepted fee fields whose economic effect was undefined. The remediation uses versioned persisted import
-identity, amount-aware cash reconciliation, and fail-closed zero-fee cash-flow semantics. Detailed root
-cause, design rationale, migration impact, regression coverage, and verification evidence are recorded in
-[`docs/stages/STAGE_03_27_IMPORT_FINANCIAL_IDENTITY_REMEDIATION.md`](docs/stages/STAGE_03_27_IMPORT_FINANCIAL_IDENTITY_REMEDIATION.md).
-Stage 3.27 is closed for P1-02, P1-03, and P1-04 after implementation PR #55 was squash-merged into `develop` at `6e8c806de857f844954f1db513487357dfe90187` following exact-head CI #90, renewed independent `APPROVED` review on `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c`, explicit human merge approval, and closure governance recorded through PR #58.
+```mermaid
+flowchart TD
+    Browser[Browser]
+    Web[Next.js / React]
+    API[Go / Fiber API]
+    DB[(PostgreSQL)]
 
-Stage 3.28 subsequently remediated the remaining P1-01 refresh-token replay/session-family issue and P1-05 Argon2 resource-admission issue; implementation PR #59 was squash-merged into `develop` at `dc83f5f3a11da164e6809593861d96ccf47b29ca` after exact-head CI #114, renewed independent `APPROVED` review on `92edab5d3e93dafe2fcc6247644e38e878a4202f`, and explicit human merge approval. Detailed root cause, failure modes and security impact, chosen remediation, decision rationale, rejected alternatives, concurrency trade-offs, regression evidence, review history, and verification evidence are recorded in [`docs/stages/STAGE_03_28_AUTH_SECURITY_REMEDIATION.md`](docs/stages/STAGE_03_28_AUTH_SECURITY_REMEDIATION.md). Stage 3.28 is closed for P1-01/P1-05; closure governance was squash-merged through PR #60 at `0ddc618a3450ea81fd4befb3b10c959b3cb82a25`. Stage 3.25 privacy evidence planning and the P2/P3 audit backlog remain separate.
+    Browser --> Web
+    Web --> API
+    API --> DB
+```
 
-Stage 3.29 remediates repository-audit P2-05, P2-06, P2-07, P2-08, and P2-15 across financial input/error semantics, Unicode note limits, `NUMERIC(28,8)` ingress and aggregate snapshot bounds, strict JSON financial commands, and fail-closed duplicate CSV headers. Implementation PR #61 was squash-merged into `develop` at `7331d3f34783baec3997497d1a79b78eaa558bd4` after exact-head CI #124, a first independent `REQUEST CHANGES` on aggregate snapshot arithmetic, blocker remediation on exact head `f9e70e70956c76edbc2ab02c52d45124b2dea525`, renewed independent `APPROVED`, and explicit human merge authorization. Detailed root cause, failure modes, chosen remediation, decision rationale, rejected alternatives, PostgreSQL atomicity evidence, and regression coverage are recorded in [`docs/stages/STAGE_03_29_INPUT_CONTRACT_HARDENING.md`](docs/stages/STAGE_03_29_INPUT_CONTRACT_HARDENING.md). Stage 3.29 is closed for those five P2 findings; closure governance was squash-merged through PR #62 at `0bfb3ea9f8e4cc7337a92caef5c7a73f9a8921bc`. Stage 3.25 privacy evidence planning remains separate.
+The Web layer is presentation-oriented and talks to the Go API.
+Financial state and calculations are backend-owned, with PostgreSQL as the canonical persisted data store.
 
-Stage 3.30 remediates repository-audit P2-02, P2-03, and P2-04 across import review-token semantic binding, parser-owned row admission, and complete targeted historical reconciliation. The implementation introduces a versioned 15-minute review token bound to normalized parser semantics and review-time APPENDABLE rows, fails on the 101st CSV data record inside `ReviewCSV`, and replaces the misleading latest-100 ledger page with a PostgreSQL targeted full-history query over reconciliation-relevant dates and privacy-minimized identity keys. Implementation PR #63 was squash-merged into `develop` at `8f68dd18800918e6a9882e995e13dba2723dc929` after exact-head CI #128, independent final `APPROVED` review on `2f788e0811d78c9def0502676a74bee2f9922bf5`, and explicit human merge authorization. Detailed root cause, design rationale, rejected alternatives, race/idempotency trade-offs, PostgreSQL evidence, and regression coverage are recorded in [`docs/stages/STAGE_03_30_IMPORT_REVIEW_INTEGRITY.md`](docs/stages/STAGE_03_30_IMPORT_REVIEW_INTEGRITY.md). Stage 3.30 is closed for P2-02/P2-03/P2-04; closure governance was squash-merged through PR #64 at `ae6497050692798795efb85678af64db97cc5f53`. Stage 3.25 privacy evidence planning remains separate.
+## Demo and current status
 
-Stage 3.31 remediates repository-audit P2-01 and P2-14 across logout admission and bounded authentication limiter lifecycle. Implementation PR #65 was squash-merged into `develop` at `9bf4d1d31597918eacf0c3358bf6caa2aa9db897` after exact-head CI #133, independent final `APPROVED` review on `82557c55c0772a66707088b858ec9eafc2073119`, and explicit human squash-merge authorization. The implementation places logout behind auth admission before rejected-auth persistence, bounds per-key attempts, total downstream auth attempts per window, and active key-bucket cardinality, and reclaims expired buckets without introducing Redis or distributed limiter scope. Detailed engineering rationale and regression evidence are recorded in [`docs/stages/STAGE_03_31_AUTH_OPERATIONAL_HARDENING.md`](docs/stages/STAGE_03_31_AUTH_OPERATIONAL_HARDENING.md). Closure governance was squash-merged through PR #66 at `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746`; P2-01/P2-14 are closed.
+**Public demo: not deployed yet.**
 
-Stage 3.32 remediates repository-audit P2-09 and P2-13 across exact original-response idempotent replay and browser retry continuity/isolation. Implementation PR #67 was squash-merged into `develop` at `0623d5ef326cd783b7dc0417dbcb02f18c506171` after exact-head CI #181, a first independent `REQUEST CHANGES` that kept P2-13 open for cross-principal retry-slot collision, remediation with stable-principal-scoped browser retry storage, repeat independent `APPROVED` review on `02aa2417a3caca79e2afc4e7b598b92055de96b7`, and explicit human squash-merge authorization. P2-09 persists and replays the exact original response artifact atomically with the financial mutation; P2-13 preserves unresolved retry identity across reload/remount while isolating authenticated principals without persisting raw financial payloads or authentication tokens. Detailed evidence is recorded in [`docs/stages/STAGE_03_32_IDEMPOTENCY_REPLAY_BROWSER_RECOVERY.md`](docs/stages/STAGE_03_32_IDEMPOTENCY_REPLAY_BROWSER_RECOVERY.md). Stage 3.32 closure is canonical through PR #68 at `a73b7f8c008d2f903e22e9b8a85b7c6248d6d3be`; later Stages 3.33–3.56 closed every remaining original audit finding. The original repository audit is now 32/32 CLOSED. Stage 3.25 privacy evidence planning remains separate.
+The main market-data limitation is deliberate:
 
-## Components
+> Automated live market prices are not currently an approved production source. Portfolio valuation can use explicit user-supplied RUB prices.
 
-- `backend-go/` — Go 1.24+ API using Fiber.
-- `frontend-next/` — Next.js App Router, TypeScript, and pnpm Web presentation layer.
-- `microservice-python/` — FastAPI analytics worker skeleton.
-- `infrastructure/` — local infrastructure configuration.
-- `docs/` — frozen architecture and architecture decision records.
+The delayed MOEX market-data adapter remains dormant.
+This is an OpenInvest fail-closed source/use decision; it is not a claim that Moscow Exchange rejected the project.
 
-## Root commands
+A constrained T-Invest Corporate Actions adapter exists for dividend and bond-coupon reference events, but production provider traffic is not activated. It does not provide brokerage-account synchronization, order placement, trading, or live market prices.
 
-Use pnpm from the repository root for common local workflows:
+For deeper technical state, start with the
+[Source of Truth](docs/SOURCE_OF_TRUTH.md) and
+[Architecture Freeze](docs/ARCHITECTURE_FREEZE_v1.2.md).
+
+## Current capabilities
+
+### Accounts and portfolios
+
+- Registration, login, session refresh, and logout are implemented.
+- Users can create and inspect portfolios through the Go API and Next.js Web application.
+- Portfolio access is isolated by authenticated ownership boundaries.
+
+### Financial ledger
+
+Financial history is append-oriented.
+Corrections and reversals preserve the original transaction rather than rewriting historical rows in place.
+
+### Import and reconciliation
+
+User-supplied broker CSV files can be parsed into reviewable candidates, reconciled against existing portfolio history, explicitly approved, and appended through the backend-owned import flow.
+
+### Holdings and accounting
+
+OpenInvest derives open stock and bond positions from ledger history, including:
+
+- quantity;
+- weighted-average acquisition cost;
+- remaining and total acquisition basis;
+- historical positions for an explicit business date;
+- correction/reversal-aware effective ledger state.
+
+### Portfolio analytics
+
+Current backend-owned analytics include:
+
+- portfolio cash-flow and income breakdowns;
+- gross recorded dividend and coupon income;
+- fees and taxes;
+- explicit manual portfolio valuation;
+- derived market value and unrealized P/L from user-supplied prices;
+- money-weighted return using XIRR and exact-date terminal valuation.
+
+### Dividend and Corporate Actions surfaces
+
+The dividend calculator uses user-supplied values and backend decimal arithmetic; it does not require a live market-data provider.
+
+Corporate Actions Calendar and Heatmap API/UI surfaces are implemented around a provider-neutral boundary.
+External source activation remains separately governed from the existence of the product surfaces and adapter code.
+
+## Engineering highlights
+
+- **Append-only financial repair.** Correction and reversal preserve ledger auditability instead of mutating historical financial truth in place.
+- **Idempotent financial commands.** Write paths preserve command identity and exact response replay semantics for retry safety.
+- **Exact financial arithmetic.** Decimal parsing, database numeric bounds, weighted-average cost, valuation, and return calculations avoid binary floating-point financial truth.
+- **Historical reconstruction.** Portfolio positions can be reconstructed for an explicit date from the same ledger/accounting boundary used for current holdings.
+- **Backend-owned XIRR.** Money-weighted return uses investor cash flows and exact-date terminal valuation with explicit unavailable/fail-closed outcomes.
+- **Contract/runtime validation.** OpenAPI validation checks the published contract against shipped Replay routes and keeps intentionally planned operations on an exact allowlist.
+- **Security and privacy boundaries.** Authentication, ownership isolation, bounded admission, session/idempotency lifecycle controls, and provider-use restrictions are explicit parts of the design.
+
+## Current limitations
+
+OpenInvest intentionally does not present unfinished or unapproved integrations as active product capabilities.
+
+- No approved automated live market-price source is active in the shipped runtime.
+- Market valuation therefore depends on explicit authenticated `USER_SUPPLIED` prices.
+- The MOEX ISS quote adapter is implemented but dormant for production/public use.
+- The constrained T-Invest Corporate Actions adapter is implemented but runtime activation and production traffic remain separately gated.
+- Broker account synchronization, order placement, and trading are not implemented product capabilities.
+- Future work such as broader market-data activation, inflation-adjusted returns, tax automation, notifications, and mobile clients must pass their own implementation and source/use gates.
+
+Source/provider status is tracked in the
+[Data Source Registry](docs/registries/DATA_SOURCE_REGISTRY.md) and
+[Corporate Actions source research](docs/research/CORPORATE_ACTIONS_SOURCE_OUTREACH.md).
+
+## Run locally
+
+### Requirements
+
+The current repository toolchain includes:
+
+- Go `1.25.14`;
+- Node.js `>=22.22.2`;
+- pnpm `11.8.0`;
+- Docker / Docker Compose;
+- Python `>=3.12` and `uv` for the Python verification path.
+
+### Start the local stack
+
+From the repository root:
 
 ```bash
+cp .env.example .env
 pnpm run infra:up
+```
+
+Start the API:
+
+```bash
 pnpm run dev:api
+```
+
+In a second terminal, start the Web application:
+
+```bash
 pnpm run dev:web
-pnpm run verify
-pnpm run verify:e2e
 ```
 
-`dev:api` and `dev:web` are intentionally separate long-running commands. Run them in two terminal
-tabs when manually checking the Web UI.
+The root Web script points the local frontend at `http://localhost:8080` by default.
 
-`dev:api` sets `OPENINVEST_ENV=development` by default so the local auth bypass and insecure local
-refresh cookie cannot accidentally become production behavior. An API process without `DATABASE_URL`
-starts only with an explicit `OPENINVEST_ENV=development` or `local`; staging and production fail
-closed. Production or staging runs with a configured `DATABASE_URL` must keep unsafe local auth flags disabled and provide
-`OPENINVEST_ACCESS_TOKEN_SECRET` and `OPENINVEST_IMPORT_REVIEW_TOKEN_SECRET`. Both secrets must
-contain at least 32 high-entropy bytes and must be different values.
+### Verify the repository
 
-## Local checks
+Run the repository verification suite:
 
 ```bash
 pnpm run verify
 ```
 
-For the Stage 3.4 vertical-slice smoke proof, run:
+Run the local end-to-end smoke path:
 
 ```bash
 pnpm run verify:e2e
 ```
 
-If local port `5432` is already used by another PostgreSQL process, use an alternate local port:
+If local PostgreSQL port `5432` is already occupied, the existing smoke tooling also supports an alternate port:
 
 ```bash
 POSTGRES_PORT=55432 pnpm run verify:e2e
 ```
 
-The smoke script starts its own Go API on `http://localhost:8080` with the matching `DATABASE_URL`.
-Stop any already-running local Go API before running `verify:e2e`.
+## Documentation
 
-## Local infrastructure
+The README is the product entry point, not the complete engineering record.
 
-Copy `.env.example` to `.env`, replace the development-only values, then run:
+### Architecture
 
-```bash
-docker compose up -d
-```
+- [Source of Truth](docs/SOURCE_OF_TRUTH.md) — current architecture and product/runtime authority.
+- [Architecture Freeze v1.2](docs/ARCHITECTURE_FREEZE_v1.2.md) — frozen architecture principles and change boundary.
+- [Document Index](docs/DOCUMENT_INDEX.md) — repository documentation map.
 
-Architecture changes require an ADR and Source of Truth update. Start with `docs/SOURCE_OF_TRUTH.md` and `docs/ARCHITECTURE_FREEZE_v1.2.md`.
+### Current state
 
-Implementation progress and completed-stage reports are recorded in `docs/IMPLEMENTATION_LOG.md`.
-Product risk decisions are recorded in `docs/product/MVP_PRODUCT_RISK_REFINEMENT.md`.
+- [Source of Truth](docs/SOURCE_OF_TRUTH.md) — current product/runtime authority.
+
+### Planning
+
+- [Roadmap](docs/ROADMAP.md) — completed and future planning.
+- [MVP Product Risk Refinement](docs/product/MVP_PRODUCT_RISK_REFINEMENT.md) — product-risk decisions and MVP constraints.
+
+### Implementation history
+
+- [Implementation Log](docs/IMPLEMENTATION_LOG.md) — implementation chronology and lifecycle history.
+
+### API
+
+- [OpenAPI contract](openapi/openapi.yaml) — current machine-readable HTTP contract.
+
+### External data
+
+- [Data Source Registry](docs/registries/DATA_SOURCE_REGISTRY.md) — approved, conditional, dormant, and rejected source/use modes.
+- [Corporate Actions source research](docs/research/CORPORATE_ACTIONS_SOURCE_OUTREACH.md) — provider evidence and unresolved rights/cost questions.
+
+### Engineering evidence
+
+- [Repository Audit Remediation Register](docs/audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md) — canonical index for the original repository audit and its remediation.
+- [Review Workflow](docs/REVIEW_WORKFLOW.md) — repository review and evidence process.
+
+## Historical engineering evidence
+
+Detailed implementation chronology, rejected alternatives, remediation rationale, review findings, CI evidence, and source-rights research are intentionally preserved outside this README.
+
+Use:
+
+- [Implementation Log](docs/IMPLEMENTATION_LOG.md) for the stage-level implementation index;
+- [Historical Feature Forensic Documentation Reconciliation](docs/governance/HISTORICAL_FEATURE_FORENSIC_DOCUMENTATION_RECONCILIATION.md) for deeper feature evidence;
+- [Repository Audit Remediation Register](docs/audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md) for the original audit closure index;
+- `docs/stages/` for individual planning, implementation, closure, remediation, and evidence dossiers.
+
+The historical records are evidence of how the system evolved. They are not a substitute for the current-state authority in
+[Source of Truth](docs/SOURCE_OF_TRUTH.md).
