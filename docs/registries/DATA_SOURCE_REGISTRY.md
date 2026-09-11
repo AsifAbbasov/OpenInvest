@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DATA-001 |
-| Version | 1.0.6 |
+| Version | 1.0.7 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | Ad hoc external-source selection |
 | Dependencies | Documents 42–43 |
-| Last Review Date | 2026-09-09 |
+| Last Review Date | 2026-09-11 |
 | Next Review Date | 2026-12-21 |
 
 External source implementation remains prohibited unless the exact source/use mode has an approved row below.
@@ -64,6 +64,9 @@ Official/reviewed evidence:
 The registry decision relies on the exact-scenario evidence preserved in the canonical outreach and constrained proposal documents. OpenInvest described a free public application where the backend obtains T-Invest API data, normalizes it into OpenInvest's provider-neutral domain model, does not expose the raw API/feed or token, publicly displays normalized dividend/coupon/event data, and builds derived OpenInvest analytics. T-Invest support answered ticket `3-781291` for that scenario:
 
 > `Такое использование разрешено.`
+
+> English translation for readability: `This use is permitted.`
+> The original Russian provider wording above is preserved as the primary evidence.
 
 The published T-Invest FAQ still contains generic language that public services/retransmission are not permitted. That conflict is **not** treated as resolved or erased. The support answer is accepted only as scoped provider evidence for the exact normalized-display/derived-analytics scenario described above. Raw redistribution remains forbidden, and any broader T-Invest use requires a new source-rights review.
 

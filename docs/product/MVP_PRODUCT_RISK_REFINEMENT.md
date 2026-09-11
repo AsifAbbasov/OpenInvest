@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | PROD-RISK-001 |
-| Version | 1.0.0 |
+| Version | 1.0.1 |
 | Status | Approved / merged into `develop` |
 | Owner | Principal Architect |
 | Supersedes | Unstructured PRD criticism outside the repository |
 | Dependencies | `SOURCE_OF_TRUTH.md`; Documents 42–43; ADR-003; ADR-006; ADR-007 |
-| Last Review Date | 2026-06-27 |
+| Last Review Date | 2026-09-11 |
 | Next Review Date | Before public MVP scope lock |
 
 ## Purpose
@@ -178,12 +178,15 @@ without compromising data ownership, calculation transparency, or product neutra
 - Do not add a feature unless it improves capital, return, dividends, taxes-as-data, or purchasing
   power understanding.
 
-## Near-term roadmap adjustment
+## Historical near-term roadmap adjustment
 
-The implementation order remains architecture-first, but public-MVP readiness requires import
-earlier than the legacy roadmap suggested.
+The sequence below records the near-term recommendation at the time this product-risk refinement
+was approved. At that time, the implementation order remained architecture-first while public-MVP
+readiness required import earlier than the legacy roadmap suggested. Stages 3.3–3.6 were
+subsequently completed; current stage status and sequencing are recorded in
+[ROADMAP.md](../ROADMAP.md).
 
-Recommended sequence after the first vertical slice:
+Historical recommendation after the first vertical slice:
 
 1. Stage 3.3 — Next.js presentation slice for the current Go API.
 2. Stage 3.4 — End-to-end verification and onboarding.
@@ -191,7 +194,9 @@ Recommended sequence after the first vertical slice:
 4. Stage 3.6 — File-import vertical slice, if approved after design review.
 5. Later — WAC/XIRR/real-return algorithms with financial test vectors.
 
-This is a product-risk recommendation, not automatic implementation authorization.
+This was a product-risk recommendation, not automatic implementation authorization. The
+recommendation was subsequently executed through separately reviewed stages and does not redefine
+the current roadmap.
 
 ## Success criteria for public MVP
 
