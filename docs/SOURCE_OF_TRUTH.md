@@ -3,13 +3,20 @@
 | Field | Value |
 | --- | --- |
 | Document ID | SOT-001 |
-| Version | 1.5.1 |
+| Version | 1.5.2 |
 | Status | Approved / Architecture Freeze Active |
 | Owner | Principal Architect |
 | Supersedes | Disconnected source-of-truth declarations in legacy documents |
 | Dependencies | Documents 42–43 and accepted ADRs |
-| Last Review Date | 2026-09-09 |
+| Last Review Date | 2026-09-12 |
 | Next Review Date | Before any Stage 3.78+ product/runtime or architecture-changing scope, Stage 3.25 privacy evidence-collection plan review, Feature 3D runtime activation or broader T-Invest source/use expansion, or the next separately reviewed audit-remediation scope |
+
+> **Document role — current human-readable authority**
+>
+> This file owns the repository's current human-readable product/runtime state.
+> The executable HTTP contract is [`../openapi/openapi.yaml`](../openapi/openapi.yaml); future sequencing is [`ROADMAP.md`](ROADMAP.md); implementation chronology is [`IMPLEMENTATION_LOG.md`](IMPLEMENTATION_LOG.md).
+> Accepted [`ADR/`](ADR/) records own architectural rationale, [`registries/DATA_SOURCE_REGISTRY.md`](registries/DATA_SOURCE_REGISTRY.md) owns provider/source-use decisions, and [`stages/`](stages/) preserves historical implementation/review evidence.
+> These sources complement this document rather than being redefined by it.
 
 ## Architecture status
 

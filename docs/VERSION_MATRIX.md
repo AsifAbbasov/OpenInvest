@@ -3,13 +3,19 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.2.5 |
+| Version | 1.2.6 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | Documents 42–43 |
-| Last Review Date | 2026-09-09 |
+| Last Review Date | 2026-09-12 |
 | Next Review Date | Before any Stage 3.78+ runtime scope, Feature 3D runtime activation or broader T-Invest source/use expansion, or another architecture-changing provider/public activation, privacy, valuation, tax-basis, import, or infrastructure decision |
+
+> **Document role — version / compatibility / reference metadata**
+>
+> This matrix records document versions, compatibility, ownership/review, and reference metadata.
+> It does not override runtime code or migrations, [`SOURCE_OF_TRUTH.md`](SOURCE_OF_TRUTH.md), the executable [`../openapi/openapi.yaml`](../openapi/openapi.yaml), [`registries/DATA_SOURCE_REGISTRY.md`](registries/DATA_SOURCE_REGISTRY.md), or accepted [`ADR/`](ADR/).
+> It is not the repository's current product/runtime lifecycle-status authority.
 
 | Range | Version | Status under Freeze v1.2 | Priority | Owner | Review |
 | --- | --- | --- | --- | --- | --- |

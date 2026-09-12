@@ -3,13 +3,19 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.2.3 |
+| Version | 1.2.4 |
 | Status | Active |
 | Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-09-10 |
+| Last Review Date | 2026-09-12 |
 | Next Review Date | Before any Stage 3.78+ runtime/product scope, Feature 3D runtime activation or broader T-Invest source/use rights, or another architecture-changing provider, privacy, valuation, tax-basis, import, or infrastructure decision |
+
+> **Document role — dated change history**
+>
+> This file records what changed over time; historical entries remain evidence of what was true when recorded.
+> It does not define current runtime truth, future sequencing, executable HTTP authority, provider/source-use rights, or architectural decision authority.
+> Use [`SOURCE_OF_TRUTH.md`](SOURCE_OF_TRUTH.md), [`ROADMAP.md`](ROADMAP.md), [`../openapi/openapi.yaml`](../openapi/openapi.yaml), [`registries/DATA_SOURCE_REGISTRY.md`](registries/DATA_SOURCE_REGISTRY.md), and accepted [`ADR/`](ADR/) for those respective roles.
 
 ## 2026-09-10 — Historical forensic reconciliation canonicalized after protected merge
 
