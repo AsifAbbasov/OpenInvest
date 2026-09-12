@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-OQ-001 |
-| Version | 1.0.8 |
+| Version | 1.0.9 |
 | Status | Active / no current questions |
 | Owner | Principal Architect |
 | Supersedes | Informal TODOs for architecture decisions |
@@ -19,7 +19,9 @@
 
 ## Current questions
 
-None. Stage 3.77 remains the last numbered implementation stage and is complete/canonical through PR #157 squash merge `63d916b447e91c4de54efee5c66b27cf7727be92` from final evidence head `b3bc17e710e306f9d1a4d7be95dfe56b3f7202ba` / tree `e91e28e96416d9510962a66c1399459844574bba` after protected exact-head CI run `34303895226` completed 10/10 SUCCESS. Separately governed Feature 3D is now implemented/canonical through PR #164 squash merge `247081a95a7daf33c0077c88c5f41cb2e8161865` from final evidence head `ddc5b5be36f0b5ae127c6ee430918a9dba1b453e`, tree `ec7bc9152210913b1a6ef742bddd599abee50bc7`; implementation CI #499 / run `34353668492` and evidence-head CI #501 / run `34356672643` both completed 10/10 SUCCESS, final Internal and fresh External reviews were `APPROVED`, and evidence/no-semantic-drift verification was `APPROVED`. This closes the Feature 3D implementation question only: `TINVEST_CORPORATE_ACTIONS_CONSTRAINED` source/use remains exact-scope `CONDITIONAL-GO`, runtime activation remains NO, no live T-Invest token was used in implementation/review, no production provider traffic is authorized or claimed by Feature 3D, and broader methods, persistence/cache/polling, provider-specific public-contract expansion, ledger coupling, or operational activation require a new separately admitted decision. The existing Stage 3.77 XIRR semantics and exclusions remain unchanged. Stage 3.78+ remains not started/unauthorized.
+None.
+
+Current product/runtime state is maintained in [`SOURCE_OF_TRUTH.md`](SOURCE_OF_TRUTH.md). Provider/source-use decisions are maintained in [`registries/DATA_SOURCE_REGISTRY.md`](registries/DATA_SOURCE_REGISTRY.md). Implementation chronology is maintained in [`IMPLEMENTATION_LOG.md`](IMPLEMENTATION_LOG.md), and future sequencing in [`ROADMAP.md`](ROADMAP.md).
 
 ## Resolved architecture questions
 
