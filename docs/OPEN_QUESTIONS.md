@@ -3,13 +3,19 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-OQ-001 |
-| Version | 1.0.7 |
+| Version | 1.0.8 |
 | Status | Active / no current questions |
 | Owner | Principal Architect |
 | Supersedes | Informal TODOs for architecture decisions |
 | Dependencies | Document 43 |
-| Last Review Date | 2026-09-09 |
+| Last Review Date | 2026-09-12 |
 | Next Review Date | Before Feature 3D runtime activation or broader T-Invest source/use rights, any new architecture decision affecting provider/public activation, external market valuation, privacy lifecycle, tax basis, imported SELL semantics, or Stage 3.78+ scope, or 2026-12-19, whichever comes first |
+
+> **Document role — decision-question register**
+>
+> This register preserves unresolved and resolved questions, ADR admission evidence, and historical decision context.
+> An open question is not current product state; a resolved question is not runtime authority; a proposal is not approval; closing a question does not itself implement runtime behavior.
+> Current human-readable product/runtime truth lives in [`SOURCE_OF_TRUTH.md`](SOURCE_OF_TRUTH.md).
 
 ## Current questions
 

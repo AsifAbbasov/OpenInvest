@@ -3,13 +3,33 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.77 |
+| Version | 1.1.78 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-09-10 |
+| Last Review Date | 2026-09-12 |
 | Next Review Date | Before any Stage 3.78+ product/runtime or architecture-changing scope, Stage 3.25 evidence-collection plan review, evidence collection, formal Security Review, ADR-008 acceptance, Feature 3D runtime activation or broader T-Invest source/use scope, privacy-lifecycle migration proposal, or the next separately reviewed audit-remediation scope |
+
+> **Document role — navigation and authority map**
+>
+> This index points readers to the repository authority for each subject; it does not independently define product/runtime truth.
+> Historical and reference documents remain indexed for traceability and do not become current authority merely by appearing here.
+
+## Authority quick map
+
+| Subject | Repository authority |
+| --- | --- |
+| Current human-readable product/runtime truth | [`SOURCE_OF_TRUTH.md`](SOURCE_OF_TRUTH.md) |
+| Planning and high-level lifecycle/status | [`ROADMAP.md`](ROADMAP.md) |
+| Implementation chronology | [`IMPLEMENTATION_LOG.md`](IMPLEMENTATION_LOG.md) |
+| Executable HTTP contract | [`../openapi/openapi.yaml`](../openapi/openapi.yaml) |
+| Architecture decision rationale | Accepted [`ADR/`](ADR/) records |
+| Provider/source-use rights | [`registries/DATA_SOURCE_REGISTRY.md`](registries/DATA_SOURCE_REGISTRY.md) |
+| Dated repository/change history | [`CHANGELOG.md`](CHANGELOG.md) |
+| Version/compatibility/reference metadata | [`VERSION_MATRIX.md`](VERSION_MATRIX.md) |
+| Decision-question register | [`OPEN_QUESTIONS.md`](OPEN_QUESTIONS.md) |
+| Historical implementation/review evidence | [`stages/`](stages/) |
 
 ## Canonical control documents
 
@@ -48,13 +68,13 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 
 | Document | Purpose |
 | --- | --- |
-| `VERSION_MATRIX.md` | Version, ownership, review, and precedence matrix |
-| `CHANGELOG.md` | Architecture/documentation change history |
-| `OPEN_QUESTIONS.md` | Controlled unresolved-decision register |
-| `registries/DATA_SOURCE_REGISTRY.md` | Approved external-source register |
+| `VERSION_MATRIX.md` | Version / compatibility / document-reference metadata; not runtime or lifecycle authority |
+| `CHANGELOG.md` | Dated repository/documentation change history; not current runtime authority |
+| `OPEN_QUESTIONS.md` | Unresolved/resolved decision-question register; not current product/runtime authority |
+| `registries/DATA_SOURCE_REGISTRY.md` | External provider/source-use authority |
 | `BACKLOG_V2.md` | Ideas excluded from MVP |
-| `ROADMAP.md` | Ordered implementation stages |
-| `IMPLEMENTATION_LOG.md` | Completed-stage index and completion protocol |
+| `ROADMAP.md` | Planning and high-level lifecycle/status |
+| `IMPLEMENTATION_LOG.md` | Implementation chronology and completion protocol |
 | `audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md` | Canonical cross-finding status for all 32 original Stage 3.16 audit findings |
 | `governance/REPOSITORY_DOCUMENTATION_RECONCILIATION.md` | Historical reconciliation record through Stage 3.72; later active lifecycle state is carried by the canonical registries and stage dossiers |
 | `governance/HISTORICAL_FEATURE_FORENSIC_DOCUMENTATION_RECONCILIATION.md` | Cross-stage forensic reconciliation for Stages 3.57–3.77; preserves material review/remediation history, explicit evidence gaps and the Feature 3D reference standard without rewriting historical dossiers |
@@ -66,11 +86,11 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | Document | Status | Location |
 | --- | --- | --- |
 | ADR-006 | Accepted | `ADR/ADR-006-contract-and-canonical-model-freeze.md` |
-| API contract | Closed / canonical Stage 2 baseline | `api/API_CONTRACT_STAGE_02.md` |
-| Canonical model | Closed / canonical Stage 2 baseline | `domain/CANONICAL_MODEL_STAGE_02.md` |
-| Logical ER model | Closed / canonical Stage 2 baseline | `database/ER_MODEL_STAGE_02.md` |
-| Migration strategy | Closed / canonical Stage 2 baseline | `database/MIGRATION_STRATEGY_STAGE_02.md` |
-| Stage report | Closed / merged into `develop` | `stages/STAGE_02_CONTRACT_AND_CANONICAL_MODEL.md` |
+| API contract | Historical Stage 2 baseline / explanatory; current executable HTTP authority is `../openapi/openapi.yaml` | `api/API_CONTRACT_STAGE_02.md` |
+| Canonical model | Historical Stage 2 baseline / reference | `domain/CANONICAL_MODEL_STAGE_02.md` |
+| Logical ER model | Historical Stage 2 baseline / reference | `database/ER_MODEL_STAGE_02.md` |
+| Migration strategy | Historical Stage 2 baseline / reference | `database/MIGRATION_STRATEGY_STAGE_02.md` |
+| Stage report | Historical Stage 2 implementation evidence / merged into `develop` | `stages/STAGE_02_CONTRACT_AND_CANONICAL_MODEL.md` |
 
 ## Proposed architecture decisions
 
