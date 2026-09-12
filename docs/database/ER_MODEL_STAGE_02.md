@@ -3,13 +3,20 @@
 | Field | Value |
 | --- | --- |
 | Document ID | DB-ER-STAGE-02 |
-| Version | 1.0.0 |
+| Version | 1.0.1 |
 | Status | Proposed Logical Model / No SQL Authorized |
 | Owner | Principal Architect |
 | Supersedes | Conflicting physical table drafts in legacy documents |
 | Dependencies | Documents 42–43; ADR-002; ADR-004; ADR-005; ADR-006 |
-| Last Review Date | 2026-06-20 |
+| Last Review Date | 2026-09-12 |
 | Next Review Date | Before Stage 4 migrations |
+
+> **Historical Stage 2 baseline / reference**
+>
+> This document preserves the Stage 2 logical ER design/review snapshot, including its historical `Proposed Logical Model / No SQL Authorized` wording.
+> It is historical/reference evidence, not the current database/runtime authority.
+> Current human-readable product/runtime status: [`../SOURCE_OF_TRUTH.md`](../SOURCE_OF_TRUTH.md).
+> Current executable migration history: [`../../infrastructure/postgres/migrations/`](../../infrastructure/postgres/migrations/).
 
 ## Scope and non-goal
 

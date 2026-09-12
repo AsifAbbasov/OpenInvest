@@ -3,13 +3,20 @@
 | Field | Value |
 | --- | --- |
 | Document ID | DB-MIGRATION-STAGE-02 |
-| Version | 1.0.0 |
+| Version | 1.0.1 |
 | Status | Proposed Strategy / No Migrations Authorized |
 | Owner | Principal Architect |
 | Supersedes | Ad hoc migration guidance in legacy documents |
 | Dependencies | Documents 42–43; ADR-002; ADR-006 |
-| Last Review Date | 2026-06-20 |
+| Last Review Date | 2026-09-12 |
 | Next Review Date | Before Stage 4 migrations |
+
+> **Historical Stage 2 baseline / reference**
+>
+> This document preserves the Stage 2 migration-strategy design/review snapshot, including its historical `Proposed Strategy / No Migrations Authorized` wording.
+> That no-migrations authorization boundary describes the Stage 2 snapshot; it is not the current repository state.
+> Current human-readable product/runtime status: [`../SOURCE_OF_TRUTH.md`](../SOURCE_OF_TRUTH.md).
+> Current executable migration history: [`../../infrastructure/postgres/migrations/`](../../infrastructure/postgres/migrations/).
 
 ## Purpose
 
