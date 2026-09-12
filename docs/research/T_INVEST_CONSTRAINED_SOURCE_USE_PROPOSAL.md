@@ -37,6 +37,9 @@ T-Invest support answered ticket `3-781291` for that scenario with the provider 
 
 > `Такое использование разрешено.`
 
+> English translation for readability: `This use is permitted.`
+> The original Russian provider wording above is preserved as the primary evidence.
+
 An earlier support response also stated, in substance, that the requested data are available, use is permitted, and no additional agreement is required.
 
 This is strong scoped evidence for the described OpenInvest use mode.

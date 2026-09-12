@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | PROD-BL-002 |
-| Version | 2.0.1 |
+| Version | 2.0.2 |
 | Status | Frozen until after MVP |
 | Owner | Principal Architect |
 | Supersedes | Feature ideas mixed into MVP scope |
 | Dependencies | Documents 42–43 |
-| Last Review Date | 2026-06-19 |
+| Last Review Date | 2026-09-11 |
 | Next Review Date | After MVP release |
 
 The following ideas cannot alter MVP implementation without an approved architecture/product update: AI Assistant, scenario analysis, premium analytics, Tax XML export, email automation, forecasting, family accounts, public API, foreign securities/markets, iOS, Android, and desktop applications.
@@ -24,7 +24,10 @@ Adding an item here is not approval to implement it.
 - Purchasing Power entertainment-style equivalents are backlog unless product review confirms they
   improve understanding without distracting from real return.
 
-## Moved toward MVP-readiness review
+## Historical MVP-readiness adjustment
 
-Broker file import and reconciliation is no longer treated as a late generic backlog item. It is a
-public-MVP readiness candidate that requires a separate design stage before implementation.
+Broker file import and reconciliation was moved out of the late generic backlog into public-MVP
+readiness scope. The subsequent design and implementation stages are complete; current lifecycle
+status is recorded in [ROADMAP.md](ROADMAP.md), and implementation chronology is recorded in
+[IMPLEMENTATION_LOG.md](IMPLEMENTATION_LOG.md). This section preserves the product decision that
+import moved earlier; it is not a current implementation gate.

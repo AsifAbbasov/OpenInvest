@@ -138,6 +138,9 @@ Provider support answered that exact described use with:
 
 > `Такое использование разрешено.`
 
+> English translation for readability: `This use is permitted.`
+> The original Russian provider wording above is preserved as the primary evidence.
+
 Official technical evidence established:
 
 - `GetDividends`;
