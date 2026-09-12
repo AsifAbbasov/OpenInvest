@@ -16,6 +16,14 @@
 | Draft PR | NOT AUTHORIZED / NOT CREATED |
 | Stage 3.78 | NOT STARTED / NOT AUTHORIZED by this Feature 3D candidate |
 
+> **Historical implementation evidence**
+>
+> This document preserves the Feature 3D implementation/review/activation snapshot that was current when it was written.
+> Lifecycle, authorization and activation statements below are historical evidence and do not define the current repository state.
+> Current product/runtime status: [`../SOURCE_OF_TRUTH.md`](../SOURCE_OF_TRUTH.md).
+> Current source/use authority: [`../registries/DATA_SOURCE_REGISTRY.md`](../registries/DATA_SOURCE_REGISTRY.md).
+> Post-merge Feature 3D closure: [`FEATURE_3D_TINVEST_CORPORATE_ACTIONS_CLOSURE.md`](FEATURE_3D_TINVEST_CORPORATE_ACTIONS_CLOSURE.md).
+
 ## 1. Purpose
 
 Feature 3D implements the smallest production-capable adapter for the exact source/use mode already approved as

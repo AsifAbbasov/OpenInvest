@@ -1,5 +1,13 @@
 # Stage 3.77 — Portfolio Money-Weighted Return / XIRR Implementation
 
+> **Historical Stage 3.77 implementation/review snapshot**
+>
+> This dossier preserves the Stage 3.77 implementation/review state that was current when it was written.
+> Draft-PR, authorization, CI/evidence-head and next-stage statements below are historical evidence; they do not define the current repository state.
+> Current product/runtime status: [`../SOURCE_OF_TRUTH.md`](../SOURCE_OF_TRUTH.md).
+> Current planning/status: [`../ROADMAP.md`](../ROADMAP.md).
+> Implementation chronology: [`../IMPLEMENTATION_LOG.md`](../IMPLEMENTATION_LOG.md).
+
 ## Status
 
 Stage 3.77 is published as Draft PR #157 against the immutable Stage 3.76 canonical base. Ready-for-review, merge, and Stage 3.78+ remain unauthorized. Full canonical closure is not claimed by this document.

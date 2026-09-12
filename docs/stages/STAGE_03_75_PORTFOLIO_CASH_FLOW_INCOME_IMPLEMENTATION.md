@@ -9,6 +9,14 @@
 | New database migration | none |
 | Review path | development path under `docs/REVIEW_WORKFLOW.md` |
 
+> **Historical implementation evidence**
+>
+> This document preserves the Stage 3.75 implementation/review snapshot that was current when it was written.
+> Lifecycle, PR, review and evidence statements below are historical evidence and do not define the current repository state.
+> Current product/runtime status: [`../SOURCE_OF_TRUTH.md`](../SOURCE_OF_TRUTH.md).
+> Current planning/status: [`../ROADMAP.md`](../ROADMAP.md).
+> Implementation chronology: [`../IMPLEMENTATION_LOG.md`](../IMPLEMENTATION_LOG.md).
+
 ## Purpose
 
 Stage 3.75 closes the financial gap between the immutable transaction ledger and user-visible cash/income truth. It reuses Stage 3.74 effective-ledger correction/reversal semantics and adds one backend-owned, rebuildable aggregate projection for deposits, withdrawals, trades, income, fees and recorded taxes.
