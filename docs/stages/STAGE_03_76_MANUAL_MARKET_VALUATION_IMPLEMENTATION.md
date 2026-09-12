@@ -10,6 +10,14 @@
 | Authorized price provenance | `USER_SUPPLIED` only |
 | Next stage | Stage 3.77 NOT AUTHORIZED |
 
+> **Historical implementation evidence**
+>
+> This document preserves the Stage 3.76 implementation/review snapshot that was current when it was written.
+> Lifecycle, PR, review and evidence statements below are historical evidence and do not define the current repository state.
+> Current product/runtime status: [`../SOURCE_OF_TRUTH.md`](../SOURCE_OF_TRUTH.md).
+> Current planning/status: [`../ROADMAP.md`](../ROADMAP.md).
+> Implementation chronology: [`../IMPLEMENTATION_LOG.md`](../IMPLEMENTATION_LOG.md).
+
 ## Purpose
 
 Stage 3.76 lets an authenticated portfolio owner persist an explicit manual RUB price for an open STOCK/BOND position and see backend-derived market value, unrealized gain/loss, unrealized return, portfolio valuation coverage, valued-position allocation, cash, and a complete current portfolio value only when every open position is valued.
