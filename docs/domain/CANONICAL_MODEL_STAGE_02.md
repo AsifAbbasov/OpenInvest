@@ -3,13 +3,20 @@
 | Field | Value |
 | --- | --- |
 | Document ID | DOMAIN-STAGE-02 |
-| Version | 1.0.0 |
+| Version | 1.0.1 |
 | Status | Proposed / Awaiting Review |
 | Owner | Principal Architect |
 | Supersedes | Conflicting DTO shapes in legacy documents |
 | Dependencies | Documents 42–43; ADR-003; ADR-004; ADR-006 |
-| Last Review Date | 2026-06-20 |
+| Last Review Date | 2026-09-12 |
 | Next Review Date | At Stage 2 approval |
+
+> **Historical Stage 2 baseline / reference**
+>
+> This document preserves the Stage 2 canonical-model design/review snapshot, including its historical `Proposed / Awaiting Review` wording.
+> It is historical/reference evidence, not the current product/runtime authority.
+> Current human-readable product/runtime status: [`../SOURCE_OF_TRUTH.md`](../SOURCE_OF_TRUTH.md).
+> Current executable HTTP contract: [`../../openapi/openapi.yaml`](../../openapi/openapi.yaml).
 
 ## Purpose
 

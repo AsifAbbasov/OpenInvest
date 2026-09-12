@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.78 |
+| Version | 1.1.79 |
 | Status | Approved |
 | Owner | Principal Architect |
 | Supersedes | Informal attachment-only inventory |
@@ -35,7 +35,7 @@
 
 | ID | Title | Version | Status | Location |
 | --- | --- | --- | --- | --- |
-| SOT-001 | Source of Truth | 1.5.1 | Approved | `SOURCE_OF_TRUTH.md` |
+| SOT-001 | Source of Truth | 1.5.3 | Approved | `SOURCE_OF_TRUTH.md` |
 | 42 | Architecture Amendments | 1.1.0 | Approved | `specifications/current/DOCUMENT_42_ARCHITECTURE_AMENDMENTS_v1.1.md` |
 | 43 | Architecture Decision Closure | 1.2.0 | Final | `specifications/current/DOCUMENT_43_ARCHITECTURE_CLOSURE_v1.2.md` |
 
@@ -178,6 +178,8 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 Stage 3.71 lifecycle/documentation closure is canonical through PR #140 squash merge `97c35a7b0fe7e2cd487c63d03b8ba79f80dcfc7b`. `STAGE-03-72-GOV-01` is effective through PR #143 squash merge `be654b938484d4ef4e4796b247bb04bf7efd2049`, with historical noncompliance preserved and residual governance risk accepted. Stage 3.72 planning is canonical through PR #142 squash merge `2144c52f4dc5ba9e917947d396ced1f3c572fe51`, and Stage 3.72 runtime is canonical through PR #145 squash merge `e935f19b68624f0b8be6ca293ead8f4395cf555e` after CI #413 / run `34091588982` 10/10 SUCCESS. Stage 3.72 lifecycle/documentation closure is canonical through PR #146 squash merge `ac0396eff47ce5cd862f41a5ec8ab2803de7fa58`; it authorizes no later Portfolio Position / Cost Basis expansion, production rollout, imported SELL expansion, provider-derived market-valued positions, XIRR/returns, correction/reversal, tax basis, bond NKD, notifications or AI.
 
 Stage 3.73 Portfolio Time Machine is complete/canonical through PR #148 squash merge `683f9c4647f888bb3dbdfb9dd365b84b95137b46` from exact final head `a74fd85a46843ccdfe8192f2ac8687169a5a2ac7` after CI #424 / run `34109389368` 10/10 SUCCESS. It is a Web/product projection over the existing Stage 3.72 `asOfDate` contract and authorizes no market provider activation, historical provider market-value/return calculation, new financial engine, API/schema expansion, tax-basis semantics, imported SELL expansion, privacy lifecycle, infrastructure expansion, notifications or AI.
+
+> **Historical Stage 3.76 closure note.** The paragraph below records the boundary of the Stage 3.76 registry synchronization. It is historical evidence, not current lifecycle authority. Stage 3.77 was later separately reviewed and is indexed above as complete/canonical.
 
 Stages 3.74–3.76 are complete/canonical through protected PRs #150, #153 and #155. Stage 3.76 adds authenticated explicit `USER_SUPPLIED` RUB manual valuation and backend-derived current market value/unrealized P/L while preserving exact-date historical eligibility and lifecycle-safe position generations. It does not activate MOEX, broker, scraping, quote providers, polling, workers, Redis, Kafka, FX, XIRR/TWR, tax logic, notifications, AI, mobile or paid infrastructure. No Stage 3.77+ product/runtime scope is authorized by this registry synchronization.
 
