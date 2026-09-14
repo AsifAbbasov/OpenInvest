@@ -121,22 +121,40 @@ Source/provider status is tracked in the
 
 ### Requirements
 
-The current repository toolchain includes:
-
 - Go `1.25.14`;
 - Node.js `>=22.22.2`;
-- pnpm `11.8.0`;
+- pnpm `11.8.0` through Corepack;
 - Docker / Docker Compose;
-- Python `>=3.12` and `uv` for the Python verification path.
+- Python `>=3.12` and `uv` only for the full Python verification path.
 
-### Start the local stack
+### Fresh clone
 
-From the repository root:
+Enable the pinned package manager and install the Web dependencies:
 
 ```bash
-cp .env.example .env
-pnpm run infra:up
+corepack enable
+cd frontend-next
+corepack pnpm install --frozen-lockfile
+cd ..
 ```
+
+The default local path uses PostgreSQL `openinvest/openinvest-local` on port `5432` and Redis on
+port `6379`. Both `pnpm run bootstrap` and the `dev:api` fallback derive the local PostgreSQL
+database identity from `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_PORT`;
+an explicit `DATABASE_URL` still overrides the API fallback. `.env.example` documents optional
+overrides and production security boundaries.
+
+Bootstrap infrastructure and the complete current PostgreSQL schema:
+
+```bash
+pnpm run bootstrap
+```
+
+`bootstrap` validates the repository migration policy, starts PostgreSQL and Redis, discovers every
+canonical `infrastructure/postgres/migrations/*.up.sql` migration in deterministic filename order,
+and applies the complete set to a fresh database. Re-running it against a database whose schema
+already matches the canonical migration set is a safe no-op. A partially initialized or ambiguous
+database fails closed; the command never drops or recreates developer data automatically.
 
 Start the API:
 
@@ -150,27 +168,24 @@ In a second terminal, start the Web application:
 pnpm run dev:web
 ```
 
-The root Web script points the local frontend at `http://localhost:8080` by default.
+The local Web script points to `http://localhost:8080` by default.
 
-### Verify the repository
-
-Run the repository verification suite:
+### Verify
 
 ```bash
 pnpm run verify
-```
-
-Run the local end-to-end smoke path:
-
-```bash
 pnpm run verify:e2e
 ```
 
-If local PostgreSQL port `5432` is already occupied, the existing smoke tooling also supports an alternate port:
+The E2E smoke path uses the same canonical bootstrap mechanism rather than a historical migration subset.
+
+### Stop local infrastructure
 
 ```bash
-POSTGRES_PORT=55432 pnpm run verify:e2e
+pnpm run infra:down
 ```
+
+This stops the normal local containers without deleting the PostgreSQL or Redis volumes.
 
 ## Documentation
 

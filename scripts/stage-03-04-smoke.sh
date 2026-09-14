@@ -36,6 +36,34 @@ wait_for_api() {
   return 1
 }
 
+cleanup_controlled_api() {
+  local pid="${API_PID:-}"
+  local i=0
+
+  if [[ -n "$pid" ]] && kill -0 "$pid" >/dev/null 2>&1; then
+    kill -TERM "$pid" >/dev/null 2>&1 || true
+    while kill -0 "$pid" >/dev/null 2>&1 && [[ "$i" -lt 40 ]]; do
+      sleep 0.25
+      i=$((i + 1))
+    done
+    if kill -0 "$pid" >/dev/null 2>&1; then
+      kill -KILL "$pid" >/dev/null 2>&1 || true
+    fi
+  fi
+
+  if [[ -n "$pid" ]]; then
+    wait "$pid" >/dev/null 2>&1 || true
+  fi
+
+  if [[ -n "${API_TMP_DIR:-}" && -d "$API_TMP_DIR" ]]; then
+    rm -rf "$API_TMP_DIR"
+  fi
+
+  API_PID=""
+  API_BIN=""
+  API_TMP_DIR=""
+}
+
 start_controlled_api() {
   if [[ "$API_BASE_URL" != "$CONTROLLED_API_BASE_URL" ]]; then
     echo "Stage 3.4 smoke starts the Go API itself and currently supports only ${CONTROLLED_API_BASE_URL}." >&2
@@ -49,15 +77,24 @@ start_controlled_api() {
     exit 1
   fi
 
-  echo "Starting Go API at ${API_BASE_URL}"
+  API_TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/openinvest-stage-03-04-api.XXXXXX")"
+  API_BIN="$API_TMP_DIR/api"
+
+  echo "Building disposable Go API binary."
   (
     cd "$ROOT_DIR/backend-go"
+    go build -o "$API_BIN" ./cmd/api
+  )
+
+  echo "Starting Go API at ${API_BASE_URL}"
+  (
     export OPENINVEST_ENV="${OPENINVEST_ENV:-development}"
     export OPENINVEST_DEV_AUTH_BYPASS="${OPENINVEST_DEV_AUTH_BYPASS:-true}"
-    go run ./cmd/api
+    exec "$API_BIN"
   ) >"$API_LOG" 2>&1 &
   API_PID=$!
-  trap 'kill "${API_PID:-}" >/dev/null 2>&1 || true' EXIT
+
+  trap cleanup_controlled_api EXIT
   wait_for_api
 }
 
@@ -99,63 +136,6 @@ SQL
   fi
 }
 
-apply_migration_if_needed() {
-  local exists
-  exists="$(
-    docker compose exec -T postgres psql \
-      -U "$POSTGRES_USER" \
-      -d "$POSTGRES_DB" \
-      -Atqc "SELECT to_regclass('investment.portfolios') IS NOT NULL;"
-  )"
-
-  if [[ "$exists" != "t" ]]; then
-    echo "Applying Stage 3.1 migration."
-    docker compose exec -T postgres psql \
-      -v ON_ERROR_STOP=1 \
-      -U "$POSTGRES_USER" \
-      -d "$POSTGRES_DB" \
-      < "$ROOT_DIR/infrastructure/postgres/migrations/000001_stage_03_01_vertical_slice.up.sql"
-  else
-    echo "Database foundation schema already exists; skipping Stage 3.1 migration replay."
-  fi
-
-  exists="$(
-    docker compose exec -T postgres psql \
-      -U "$POSTGRES_USER" \
-      -d "$POSTGRES_DB" \
-      -Atqc "SELECT to_regclass('identity.sessions') IS NOT NULL;"
-  )"
-
-  if [[ "$exists" != "t" ]]; then
-    echo "Applying Stage 3.11 auth/privacy migration."
-    docker compose exec -T postgres psql \
-      -v ON_ERROR_STOP=1 \
-      -U "$POSTGRES_USER" \
-      -d "$POSTGRES_DB" \
-      < "$ROOT_DIR/infrastructure/postgres/migrations/000002_stage_03_11_auth_privacy.up.sql"
-  else
-    echo "Auth/privacy schema already exists; skipping Stage 3.11 migration replay."
-  fi
-
-  exists="$(
-    docker compose exec -T postgres psql \
-      -U "$POSTGRES_USER" \
-      -d "$POSTGRES_DB" \
-      -Atqc "SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'investment' AND table_name = 'transaction_entries' AND column_name = 'source_kind');"
-  )"
-
-  if [[ "$exists" != "t" ]]; then
-    echo "Applying Stage 3.16 transaction provenance migration."
-    docker compose exec -T postgres psql \
-      -v ON_ERROR_STOP=1 \
-      -U "$POSTGRES_USER" \
-      -d "$POSTGRES_DB" \
-      < "$ROOT_DIR/infrastructure/postgres/migrations/000003_stage_03_16_transaction_source_provenance.up.sql"
-  else
-    echo "Stage 3.16 transaction provenance schema already exists; skipping migration replay."
-  fi
-}
-
 api_post() {
   local path="$1"
   local key="$2"
@@ -177,19 +157,8 @@ require_command go
 require_command python3
 
 cd "$ROOT_DIR"
-echo "Starting local PostgreSQL and Redis."
-docker compose up -d postgres redis >/dev/null
-
-echo "Waiting for PostgreSQL readiness."
-for _ in $(seq 1 40); do
-  if docker compose exec -T postgres pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" >/dev/null 2>&1; then
-    break
-  fi
-  sleep 1
-done
-docker compose exec -T postgres pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" >/dev/null
-
-apply_migration_if_needed
+echo "Bootstrapping local infrastructure and the canonical PostgreSQL schema."
+bash "$ROOT_DIR/scripts/bootstrap-local.sh"
 start_controlled_api
 
 suffix="$(date +%s)"
@@ -231,11 +200,14 @@ for field, amount in expected.items():
 if len(transactions) != 2:
     raise SystemExit(f"expected 2 transactions, got {len(transactions)}")
 
-if summary["calculation"]["methodologyVersion"] != "stage-03-02-local-cost-snapshot-v1":
+if summary["calculation"]["methodologyVersion"] != "stage-03-71-position-cost-snapshot-v1":
     raise SystemExit("unexpected snapshot methodology version")
 PY
 
 assert_database_state "$portfolio_id"
+
+cleanup_controlled_api
+trap - EXIT
 
 echo "Stage 3.4 smoke verification passed:"
 echo "- Next.js-compatible Go API base URL: ${API_BASE_URL}"
