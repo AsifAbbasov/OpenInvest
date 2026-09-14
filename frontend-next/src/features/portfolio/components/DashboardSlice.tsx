@@ -51,23 +51,22 @@ export function DashboardSlice() {
     <main className="page-shell">
       <section className="hero">
         <p className="eyebrow">Personal Capital Operating System</p>
-        <h1>Capital, return, dividends — from the Go API.</h1>
+        <h1>Track portfolios, returns and dividends in one place.</h1>
         <p className="summary">
-          Stage 3.3 renders the first Web presentation slice. Next.js does not calculate portfolio
-          values and does not access databases or external providers.
+          Review your portfolios, investment activity, income and returns with OpenInvest.
         </p>
         <Link href="/dividends/calculator" className="secondary-button">
           Dividend calculator
         </Link>
       </section>
 
-      {result === null ? <section className="panel skeleton">Loading portfolios from Go API…</section> : null}
+      {result === null ? <section className="panel skeleton">Loading portfolios…</section> : null}
 
       {result?.ok === false ? (
         <section className="panel warning">
-          <h2>Go API unavailable</h2>
+          <h2>Portfolio data unavailable</h2>
           <p>{result.message}</p>
-          <p className="muted">Start PostgreSQL/Redis and backend-go, then refresh this page.</p>
+          <p className="muted">We could not load your portfolios right now. Try again in a moment.</p>
         </section>
       ) : null}
 
@@ -132,7 +131,7 @@ export function DashboardSlice() {
             </div>
           </div>
           <p className="muted">
-            Search supported MVP assets through the public Go API before adding transactions.
+            Search supported assets before adding transactions.
           </p>
         </section>
       ) : null}

@@ -105,7 +105,7 @@ export function ImportUploadReviewPanel({ accessToken, principalId, portfolioId,
     if (file.size > maxCsvPayloadBytes) {
       setCsvPayload("");
       setFileName(null);
-      setStatus("CSV file is larger than the Go API 2 MiB limit.");
+      setStatus("CSV file must be 2 MiB or smaller.");
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -164,7 +164,7 @@ export function ImportUploadReviewPanel({ accessToken, principalId, portfolioId,
     }
     setReviewedCsvPayload(payloadAtSubmit);
     setReviewedSourceAccountLabel(sourceAccountLabelAtSubmit);
-    setStatus("Review received from the Go API. Select only rows you explicitly approve.");
+    setStatus("Review complete. Select only the rows you want to import.");
   }
 
   async function submitAppend() {
@@ -174,7 +174,7 @@ export function ImportUploadReviewPanel({ accessToken, principalId, portfolioId,
     if (csvPayload !== reviewedCsvPayload) {
       const nextOperation = startImportReview(importOperationGuardRef.current, importScope);
       importOperationGuardRef.current = nextOperation.state;
-      setStatus("CSV changed after review. Run review again before append.");
+      setStatus("CSV changed after review. Review it again before importing.");
       setReviewResult(null);
       setReviewedCsvPayload("");
       setReviewedSourceAccountLabel(undefined);
@@ -220,6 +220,8 @@ export function ImportUploadReviewPanel({ accessToken, principalId, portfolioId,
       if (result.status === 409 && result.message === idempotencyConflictMessage) {
         await clearBrowserIdempotencyIntent(retryScope);
         appendIdempotencyIntentRef.current = emptyIdempotencyIntent;
+        setStatus("This request could not be retried safely. Please submit it again.");
+        return;
       }
       setStatus(result.message);
       return;
@@ -236,7 +238,7 @@ export function ImportUploadReviewPanel({ accessToken, principalId, portfolioId,
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-    setStatus("Approved rows appended. Raw CSV was cleared from the browser state.");
+    setStatus("Approved rows imported. The selected CSV is no longer kept in this browser session.");
     onImported();
   }
 
@@ -260,10 +262,10 @@ export function ImportUploadReviewPanel({ accessToken, principalId, portfolioId,
       <div className="section-heading">
         <div>
           <p className="eyebrow">Broker CSV import</p>
-          <h2>Review before append</h2>
+          <h2>Review before import</h2>
           <p className="muted">
-            Next.js only holds the selected CSV in memory for this interaction. Parsing, duplicate checks,
-            idempotency, ledger append, audit evidence, and snapshot rebuilds remain in the Go API.
+            The selected CSV is used only for this review. OpenInvest checks for duplicates and conflicts,
+            and nothing is imported until you approve rows.
           </p>
         </div>
       </div>
@@ -297,7 +299,7 @@ export function ImportUploadReviewPanel({ accessToken, principalId, portfolioId,
           {isReviewing ? "Reviewing…" : "Review CSV"}
         </button>
         <p className="form-status">
-          {fileName ? `${fileName} loaded in memory only.` : "Raw CSV is never stored by the Web layer."}
+          {fileName ? `${fileName} ready for review.` : "The selected CSV is used for review and is not saved by OpenInvest."}
         </p>
       </form>
 
@@ -309,14 +311,14 @@ export function ImportUploadReviewPanel({ accessToken, principalId, portfolioId,
         <div className="import-review">
           <div className="metric-grid" aria-label="Import review summary">
             <ImportMetric label="Total rows" value={String(review.summary.totalRows)} />
-            <ImportMetric label="Appendable" value={String(review.summary.appendableRows)} />
+            <ImportMetric label="Ready to import" value={String(review.summary.appendableRows)} />
             <ImportMetric label="Duplicates" value={String(review.summary.duplicateRows)} />
             <ImportMetric label="Conflicts" value={String(review.summary.conflictRows)} />
             <ImportMetric label="Invalid" value={String(review.summary.invalidRows)} />
           </div>
 
           <p className="muted">
-            Retention: {review.retentionPolicy}. The signed review token and backend checks are required before append.
+            The selected CSV is not retained after review. Nothing is imported until you approve rows.
           </p>
 
           <div className="table-wrap">
@@ -347,13 +349,13 @@ export function ImportUploadReviewPanel({ accessToken, principalId, portfolioId,
                     </td>
                     <td>{row.rowNumber}</td>
                     <td>
-                      <span className={`status-pill status-${row.status.toLowerCase()}`}>{row.status}</span>
+                      <span className={`status-pill status-${row.status.toLowerCase()}`}>{row.status === "APPENDABLE" ? "Ready" : row.status === "DUPLICATE" ? "Duplicate" : row.status === "CONFLICT" ? "Needs review" : "Invalid"}</span>
                     </td>
                     <td>{row.candidate?.transactionType ?? "—"}</td>
                     <td>{row.candidate?.ticker ?? "RUB cash"}</td>
                     <td>{row.candidate?.tradeDate ?? "—"}</td>
                     <td>{row.candidate ? formatMoney(row.candidate.grossAmount) : "—"}</td>
-                    <td>{row.reasonCodes.length > 0 ? row.reasonCodes.join(", ") : "—"}</td>
+                    <td>{row.reasonCodes.length > 0 ? row.reasonCodes.map((code) => code.toLowerCase().replaceAll("_", " ")).join(", ") : "—"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -361,7 +363,7 @@ export function ImportUploadReviewPanel({ accessToken, principalId, portfolioId,
           </div>
 
           <button type="button" disabled={isAppending || selectedAppendableRows.length === 0} onClick={submitAppend}>
-            {isAppending ? "Appending…" : `Append ${selectedAppendableRows.length} approved row(s)`}
+            {isAppending ? "Importing…" : `Import ${selectedAppendableRows.length} approved row(s)`}
           </button>
         </div>
       ) : null}
@@ -369,11 +371,10 @@ export function ImportUploadReviewPanel({ accessToken, principalId, portfolioId,
       {appendResult?.ok === false ? <p className="warning-text">{appendResult.message}</p> : null}
       {appendResult?.ok === true ? (
         <div className="success-panel">
-          <p className="eyebrow">Import appended</p>
-          <h3>{appendResult.data.acceptedRowCount} row(s) appended atomically</h3>
+          <p className="eyebrow">Import complete</p>
+          <h3>{appendResult.data.acceptedRowCount} row(s) imported</h3>
           <p className="muted">
-            Snapshot dates rebuilt: {appendResult.data.snapshotDatesRebuilt.join(", ")}. Raw payload rule:{" "}
-            {appendResult.data.rawPayloadRetentionRule}.
+            Your approved rows were added and portfolio totals were refreshed.
           </p>
         </div>
       ) : null}

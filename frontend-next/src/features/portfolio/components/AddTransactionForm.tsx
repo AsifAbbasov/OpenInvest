@@ -72,13 +72,15 @@ export function AddTransactionForm({ accessToken, principalId, portfolioId, onSa
       if (result.status === 409 && result.message === idempotencyConflictMessage) {
         await clearBrowserIdempotencyIntent(retryScope);
         idempotencyIntentRef.current = emptyIdempotencyIntent;
+        setStatus("This request could not be retried safely. Please submit it again.");
+        return;
       }
       setStatus(result.message);
       return;
     }
     await clearBrowserIdempotencyIntent(retryScope);
     idempotencyIntentRef.current = emptyIdempotencyIntent;
-    setStatus("Transaction appended. Summary and history are reloaded from the Go API.");
+    setStatus("Transaction saved. Portfolio summary and history are up to date.");
     onSaved();
   }
 
@@ -101,12 +103,11 @@ export function AddTransactionForm({ accessToken, principalId, portfolioId, onSa
   return (
     <form className="panel form-grid" onSubmit={submit}>
       <div>
-        <p className="eyebrow">Append-only ledger</p>
+        <p className="eyebrow">Portfolio activity</p>
         <h2>Add transaction</h2>
         <p className="muted">
-          This form only builds the OpenAPI request. The Go API validates and stores immutable
-          transactions, recalculates snapshots, and returns canonical results. Stage 3.75 exposes
-          manual trades, income, expenses, deposits and withdrawals while broker-import SELL remains intentionally unavailable.
+          Add trades, income, expenses, deposits and withdrawals. OpenInvest validates each entry and preserves
+          transaction history when you edit or reverse a transaction. Broker-imported SELL transactions are not available yet.
         </p>
       </div>
 
@@ -177,7 +178,7 @@ export function AddTransactionForm({ accessToken, principalId, portfolioId, onSa
       </label>
 
       <button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Saving…" : "Append transaction"}
+        {isSubmitting ? "Saving…" : "Add transaction"}
       </button>
       {status ? <p className="form-status">{status}</p> : null}
     </form>

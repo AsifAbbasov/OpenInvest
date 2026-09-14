@@ -9,9 +9,9 @@ export function CashFlowIncomeBlock({ result }: CashFlowIncomeBlockProps) {
   if (result === null) {
     return (
       <section className="panel" aria-label="Cash Flow & Income">
-        <p className="eyebrow">Ledger-derived cash truth</p>
+        <p className="eyebrow">Cash activity</p>
         <h2>Cash Flow &amp; Income</h2>
-        <p className="muted">Loading cash-flow aggregates from the canonical effective ledger…</p>
+        <p className="muted">Loading cash flow and income…</p>
       </section>
     );
   }
@@ -19,7 +19,7 @@ export function CashFlowIncomeBlock({ result }: CashFlowIncomeBlockProps) {
   if (!result.ok) {
     return (
       <section className="panel warning" aria-label="Cash Flow & Income">
-        <p className="eyebrow">Ledger-derived cash truth</p>
+        <p className="eyebrow">Cash activity</p>
         <h2>Cash Flow &amp; Income unavailable</h2>
         <p>{result.message}</p>
       </section>
@@ -33,20 +33,19 @@ export function CashFlowIncomeBlock({ result }: CashFlowIncomeBlockProps) {
     <section className="panel" aria-label="Cash Flow & Income">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Ledger-derived cash truth</p>
+          <p className="eyebrow">Cash activity</p>
           <h2>Cash Flow &amp; Income</h2>
         </div>
-        <span className="muted">{projection.calculation.methodologyVersion}</span>
+        <span className="muted">Recorded activity</span>
       </div>
       <p className="muted">
-        Recorded RUB cash movements from the immutable effective ledger. Gross dividends/coupons are shown before
-        deductions recorded on those income rows. Net investment income uses only DIVIDEND/COUPON gross amounts and
-        their own recorded commission/tax; unrelated trade or standalone expenses affect net cash instead. These figures
-        are not portfolio performance, market return, or tax advice.
+        Recorded RUB cash movements. Gross dividends and coupons are shown before recorded fees and taxes.
+        Net investment income reflects dividend and coupon income after deductions recorded on those entries.
+        Other trade or standalone expenses affect net cash movement. These figures are not portfolio performance,
+        market return or tax advice.
       </p>
       <p className="muted">
-        With no date filter, the canonical current projection includes all accepted effective-ledger rows, including
-        accepted future-dated rows.
+        With no date filter, all recorded activity is included, including future-dated entries.
       </p>
 
       <div className="metric-grid">
@@ -64,7 +63,7 @@ export function CashFlowIncomeBlock({ result }: CashFlowIncomeBlockProps) {
       </div>
 
       {projection.periods.length === 0 ? (
-        <p className="muted">No effective ledger cash flows in this range.</p>
+        <p className="muted">No recorded cash flows in this range.</p>
       ) : (
         <div className="table-wrap">
           <table>

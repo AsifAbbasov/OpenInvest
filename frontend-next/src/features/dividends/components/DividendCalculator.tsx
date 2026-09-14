@@ -113,11 +113,11 @@ export function DividendCalculator() {
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
-        <p className={styles.eyebrow}>Stage 3.68 · Dividend Calculator</p>
-        <h1>Calculate gross dividend income without hidden market data.</h1>
+        <p className={styles.eyebrow}>Dividend calculator</p>
+        <h1>Calculate gross dividend income from your inputs.</h1>
         <p>
-          You provide the position inputs. The Go API performs the exact financial arithmetic and returns
-          the canonical result. Gross only; tax is not included.
+          Enter your position and dividend inputs. OpenInvest calculates gross dividend income and, when
+          position cost is provided, gross yield. Tax is not included.
         </p>
       </section>
 

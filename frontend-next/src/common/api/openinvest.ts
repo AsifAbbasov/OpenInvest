@@ -859,11 +859,11 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<ApiResu
       return {
         ok: false,
         status: response.status,
-        message: "error" in payload ? payload.error?.message ?? "Go API request failed" : "Go API request failed",
+        message: "error" in payload ? payload.error?.message ?? "The request could not be completed." : "The request could not be completed.",
       };
     }
     if (!("data" in payload)) {
-      return { ok: false, status: response.status, message: "Go API returned an unexpected response" };
+      return { ok: false, status: response.status, message: "OpenInvest returned an unexpected response. Please try again." };
     }
     return {
       ok: true,
@@ -871,7 +871,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<ApiResu
       requestId: payload.meta.requestId,
     };
   } catch {
-    return { ok: false, message: "Go API is unavailable. Start backend-go and local PostgreSQL first." };
+    return { ok: false, message: "OpenInvest is temporarily unavailable. Please try again." };
   }
 }
 

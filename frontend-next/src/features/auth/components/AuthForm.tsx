@@ -44,11 +44,10 @@ export function AuthForm({ message, onLogin, onRegister }: AuthFormProps) {
   return (
     <main className="page-shell auth-shell">
       <section className="hero compact">
-        <p className="eyebrow">OpenInvest Web session</p>
+        <p className="eyebrow">OpenInvest account</p>
         <h1>Sign in to your private capital workspace.</h1>
         <p className="summary">
-          Registration and login go directly to the Go API. Refresh tokens stay in HttpOnly cookies;
-          this browser shell keeps only the active access token in memory.
+          Sign in or create an account to access your private portfolios. Your session is protected with secure cookies.
         </p>
       </section>
 

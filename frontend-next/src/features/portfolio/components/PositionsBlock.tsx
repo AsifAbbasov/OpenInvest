@@ -67,10 +67,10 @@ export function PositionsBlock({
 
       <p id="portfolio-time-machine-status" className="muted">
         {viewMode === "current"
-          ? "Viewing the latest accepted ledger projection. Current is not a wall-clock market valuation. Manual prices are explicit user-supplied valuation inputs, not live quotes."
+          ? "Viewing current positions. Manual prices are user-supplied inputs, not live quotes."
           : historicalDate === ""
-            ? "Choose a historical BusinessDate to reconstruct positions from the immutable ledger."
-            : `Viewing portfolio as of ${historicalDate}. Manual valuation is shown only for an exact matching price date and position lifecycle.`}
+            ? "Choose a historical date to reconstruct your positions."
+            : `Viewing portfolio as of ${historicalDate}. Manual prices are shown only when their price date matches the selected date.`}
       </p>
 
       {result?.ok && viewMode === "current" ? (
@@ -91,8 +91,8 @@ export function PositionsBlock({
       {result === null && !historicalSelectionPending ? (
         <p className="muted">
           {viewMode === "historical"
-            ? `Loading portfolio as of ${historicalDate} from the canonical ledger projection…`
-            : "Loading positions from the canonical ledger projection…"}
+            ? `Loading portfolio as of ${historicalDate}…`
+            : "Loading positions…"}
         </p>
       ) : null}
 
@@ -100,7 +100,7 @@ export function PositionsBlock({
         <div className="warning position-warning" role="status">
           <strong>Positions unavailable</strong>
           <p>{result.message}</p>
-          <p>No values are inferred from portfolio summary or transaction rows.</p>
+          <p>Unavailable values are left unavailable rather than estimated.</p>
         </div>
       ) : null}
 

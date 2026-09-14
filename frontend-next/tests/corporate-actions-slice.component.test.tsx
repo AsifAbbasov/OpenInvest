@@ -129,8 +129,8 @@ test("503 source unavailable is not rendered as zero events", { concurrency: fal
   await submit(container);
 
   assert.match(container.textContent ?? "", /Corporate actions source unavailable/);
-  assert.match(container.textContent ?? "", /not shown as “zero events”/);
-  assert.doesNotMatch(container.textContent ?? "", /legitimate empty projection/);
+  assert.match(container.textContent ?? "", /No events are shown until a data source responds/);
+  assert.doesNotMatch(container.textContent ?? "", /responded successfully and returned no events/);
 });
 
 test("successful empty provider response renders a legitimate empty state", { concurrency: false }, async (t) => {
@@ -156,8 +156,8 @@ test("successful empty provider response renders a legitimate empty state", { co
   await submit(container);
 
   assert.equal(new URL(requestedURL).searchParams.get("instrumentId"), "SBER,GAZP");
-  assert.match(container.textContent ?? "", /No current dated events/);
-  assert.match(container.textContent ?? "", /legitimate empty projection/);
+  assert.match(container.textContent ?? "", /No dated events found for this selection/);
+  assert.match(container.textContent ?? "", /responded successfully and returned no events/);
 });
 
 test("more than fifty unique instruments is rejected before fetch", { concurrency: false }, async (t) => {
@@ -220,9 +220,9 @@ test("populated projection preserves lifecycle status and count-only heatmap", {
 
   assert.match(container.textContent ?? "", /ANNOUNCED/);
   assert.match(container.textContent ?? "", /not guaranteed income/);
-  assert.match(container.textContent ?? "", /Counts only/);
+  assert.match(container.textContent ?? "", /Shows event counts only/);
   assert.match(container.textContent ?? "", /Source: FIXTURE/);
-  assert.match(container.textContent ?? "", /Retrieved: 2026-09-05T00:01:00Z/);
+  assert.match(container.textContent ?? "", /Updated: 2026-09-05T00:01:00Z/);
   assert.equal(container.querySelector('[data-density-level="4"]')?.textContent, "1");
 });
 
@@ -289,7 +289,7 @@ test("aborted request does not update state or surface a false application error
   assert.ok(observedSignal);
   assert.equal(observedSignal.aborted, true);
   assert.match(container.textContent ?? "", /Choose an instrument set and date window/);
-  assert.doesNotMatch(container.textContent ?? "", /Go API is unavailable/);
+  assert.doesNotMatch(container.textContent ?? "", /OpenInvest is temporarily unavailable/);
   assert.doesNotMatch(container.textContent ?? "", /Corporate actions source unavailable/);
   assert.equal(container.querySelector('[role="alert"]'), null);
 });
@@ -327,8 +327,8 @@ test("replacement request aborts the older request and the newer result wins", {
   assert.ok(firstSignal);
   assert.equal(firstSignal.aborted, true);
   assert.equal(calls, 2);
-  assert.match(container.textContent ?? "", /legitimate empty projection/);
-  assert.doesNotMatch(container.textContent ?? "", /Go API is unavailable/);
+  assert.match(container.textContent ?? "", /responded successfully and returned no events/);
+  assert.doesNotMatch(container.textContent ?? "", /OpenInvest is temporarily unavailable/);
 });
 
 test("genuine Corporate Actions HTTP/API error still surfaces normally", { concurrency: false }, async (t) => {
@@ -353,7 +353,7 @@ test("genuine Corporate Actions HTTP/API error still surfaces normally", { concu
   assert.ok(container.querySelector('[role="alert"]'));
 });
 
-test("genuine network failure still surfaces the existing Go API unavailable error", { concurrency: false }, async (t) => {
+test("genuine network failure still surfaces the OpenInvest unavailable error", { concurrency: false }, async (t) => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => {
     throw new TypeError("network failed");
@@ -369,7 +369,7 @@ test("genuine network failure still surfaces the existing Go API unavailable err
   await prepareForm(container);
   await submit(container);
 
-  assert.match(container.textContent ?? "", /Go API is unavailable/);
+  assert.match(container.textContent ?? "", /OpenInvest is temporarily unavailable/);
   assert.ok(container.querySelector('[role="alert"]'));
 });
 
@@ -398,7 +398,7 @@ test("stale request completion cannot overwrite a newer corporate-action query",
     await Promise.resolve();
   });
   await submit(container);
-  assert.match(container.textContent ?? "", /legitimate empty projection/);
+  assert.match(container.textContent ?? "", /responded successfully and returned no events/);
 
   await act(async () => {
     first.resolve(errorResponse(503, "CORPORATE_ACTIONS_SOURCE_UNAVAILABLE", "Corporate actions source is unavailable"));
@@ -406,6 +406,6 @@ test("stale request completion cannot overwrite a newer corporate-action query",
     await Promise.resolve();
   });
 
-  assert.match(container.textContent ?? "", /legitimate empty projection/);
+  assert.match(container.textContent ?? "", /responded successfully and returned no events/);
   assert.doesNotMatch(container.textContent ?? "", /Corporate actions source unavailable/);
 });

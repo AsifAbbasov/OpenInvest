@@ -270,7 +270,7 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
         ← Dashboard
       </Link>
 
-      {state === null ? <section className="panel skeleton">Loading portfolio from Go API…</section> : null}
+      {state === null ? <section className="panel skeleton">Loading portfolio…</section> : null}
 
       {state?.portfolio.ok === false ? (
         <section className="panel warning">
@@ -284,8 +284,8 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
           <p className="eyebrow">Portfolio detail</p>
           <h1>{portfolio.name}</h1>
           <p className="summary">
-            This page renders canonical API responses. Money-weighted return is backend-owned and exact-date; TWR,
-            nominal return, real return, and inflation-adjusted performance remain unavailable.
+            Review portfolio value, income, positions and money-weighted return. Time-weighted, nominal,
+            real and inflation-adjusted return views are not available yet.
           </p>
         </section>
       ) : null}
@@ -305,8 +305,8 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
         <section className="panel" aria-label="Historical positions scope">
           <p className="eyebrow">Historical positions only</p>
           <p className="muted">
-            Current portfolio summary metrics are hidden in Time Machine mode because Stage 3.73 reconstructs
-            positions only. It does not fabricate historical market value, returns, cash, or performance.
+            Time Machine reconstructs positions for the selected date. Historical market value, cash and
+            performance are not shown when the required data is unavailable.
           </p>
         </section>
       ) : null}
@@ -355,7 +355,7 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
       <section className="panel">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">Immutable history</p>
+            <p className="eyebrow">Transaction history</p>
             <h2>Transactions</h2>
           </div>
           <button type="button" className="secondary-button" onClick={() => void load()}>
@@ -364,7 +364,7 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
         </div>
         {state?.transactions.ok === false ? <p className="warning-text">{state.transactions.message}</p> : null}
         {transactions.length === 0 ? (
-          <p className="muted">No transactions yet. Append the first transaction above.</p>
+          <p className="muted">No transactions yet. Add the first transaction above.</p>
         ) : (
           <div className="table-wrap">
             <table>
@@ -385,7 +385,7 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
                     <td>{transaction.ticker ?? "RUB cash"}</td>
                     <td>{transaction.tradeDate}</td>
                     <td>{formatMoney(transaction.grossAmount)}</td>
-                    <td>{transaction.status}{transaction.revision > 1 ? ` · revision ${transaction.revision}` : ""}</td>
+                    <td>{transaction.status}{transaction.revision > 1 ? ` · edited` : ""}</td>
                     <td>
                       <TransactionRepairControls
                         accessToken={accessToken}
