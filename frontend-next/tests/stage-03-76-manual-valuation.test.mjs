@@ -42,8 +42,8 @@ test("Stage 3.76 exposes partial versus complete portfolio valuation honestly", 
   assert.match(positions, /Manual valuation coverage/);
   assert.match(positions, /currentPortfolioValue/);
   assert.match(positions, /Unavailable until every open position has a manual valuation/);
-  assert.match(positions, /Current is not a wall-clock market valuation/);
-  assert.match(positions, /exact matching price date and position lifecycle/);
+  assert.match(positions, /Manual prices are user-supplied inputs, not live quotes/);
+  assert.match(positions, /Manual prices are shown only when their price date matches the selected date/);
 });
 
 test("Stage 3.76 mutations refresh existing guarded current and historical projections", () => {

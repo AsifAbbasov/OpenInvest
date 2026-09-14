@@ -237,10 +237,9 @@ export function AssetDiscoverySlice() {
     <main className="page-shell">
       <section className="hero compact">
         <p className="eyebrow">Asset discovery</p>
-        <h1>Find supported assets from the Go API.</h1>
+        <h1>Find supported stocks and bonds.</h1>
         <p className="summary">
-          Search the approved local catalog without browser-held market data, frontend fixtures, or
-          financial calculations.
+          Search supported assets by ticker or name. Missing market data is left unavailable rather than estimated.
         </p>
         <Link href="/" className="back-link">Back to portfolios</Link>
       </section>
@@ -328,22 +327,22 @@ export function AssetDiscoverySlice() {
         >
           <div className="section-heading">
             <div>
-              <p className="eyebrow">{detail.status === "deferred" ? "Deferred asset detail" : "Asset detail"}</p>
+              <p className="eyebrow">{detail.status === "deferred" ? "More details unavailable" : "Asset detail"}</p>
               <h2 id="asset-detail-heading">{detail.ticker}</h2>
             </div>
             <button type="button" className="secondary-button" onClick={closeDetail}>Close</button>
           </div>
-          {detail.status === "loading" ? <p className="skeleton">Checking the Go asset detail endpoint...</p> : null}
+          {detail.status === "loading" ? <p className="skeleton">Loading asset details...</p> : null}
           {detail.status === "deferred" ? (
             <p className="muted">
-              {detail.message} The UI does not infer sector, source, face value, maturity, coupon
-              type, live price, yield, return, or tax values.
+              {detail.message} Missing sector, face value, maturity, coupon, price, return and tax details
+              are left unavailable rather than estimated.
             </p>
           ) : null}
           {detail.status === "available" ? (
             <p className="muted">
-              Asset detail is available from the Go API for {detail.asset.ticker}. The UI still does
-              not calculate yield, return, WAC, XIRR, purchasing power, or tax values.
+              Details loaded for {detail.asset.ticker}. This screen does not estimate yield, returns,
+              purchasing power or tax values.
             </p>
           ) : null}
           {detail.status === "error" ? <p role="alert" className="form-status">{detail.message}</p> : null}

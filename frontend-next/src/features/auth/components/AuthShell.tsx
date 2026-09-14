@@ -101,16 +101,16 @@ export function AuthShell({ children }: Readonly<{ children: ReactNode }>) {
     <AuthContext.Provider value={value}>
       <div className="auth-bar">
         <div>
-          <p className="eyebrow">Authenticated session</p>
+          <p className="eyebrow">Signed in</p>
           <strong>{state.user.email}</strong>
-          <span>Privacy Mode ON · Tax Profile OFF · Notifications OFF · anonymous analytics</span>
+          <span>Privacy mode on · Tax profile off · Notifications off · Anonymous analytics</span>
         </div>
         <div className="auth-actions">
           <button type="button" className="secondary-button" disabled={pendingOperation !== null} onClick={() => void refresh()}>
             {pendingOperation === "refresh" ? "Refreshing..." : "Refresh session"}
           </button>
           <button type="button" disabled={pendingOperation !== null} onClick={() => void signOut(false)}>
-            {pendingOperation === "logout" ? "Logging out..." : "Logout"}
+            {pendingOperation === "logout" ? "Signing out..." : "Sign out"}
           </button>
         </div>
       </div>

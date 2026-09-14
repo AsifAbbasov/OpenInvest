@@ -87,7 +87,7 @@ export function TransactionRepairControls({ accessToken, portfolioId, transactio
     correctionIntentRef.current = emptyIdempotencyIntent;
     setMode(null);
     setReason("");
-    setMessage(`Saved revision ${result.data.revision}.`);
+    setMessage("Changes saved.");
     await onMutated();
   }
 
@@ -125,7 +125,7 @@ export function TransactionRepairControls({ accessToken, portfolioId, transactio
     reversalIntentRef.current = emptyIdempotencyIntent;
     setMode(null);
     setReason("");
-    setMessage(`Reversed effective ${result.data.effectiveDate}.`);
+    setMessage(`Reversed from ${result.data.effectiveDate}.`);
     await onMutated();
   }
 
@@ -142,7 +142,7 @@ export function TransactionRepairControls({ accessToken, portfolioId, transactio
 
       {mode === "edit" ? (
         <fieldset disabled={busy}>
-          <legend>Edit transaction · revision {transaction.revision}</legend>
+          <legend>Edit transaction</legend>
           {transaction.transactionType === "BUY" || transaction.transactionType === "SELL" ? (
             <>
               <label>Quantity<input value={quantity} onChange={(event) => setQuantity(event.target.value)} inputMode="decimal" /></label>
@@ -163,7 +163,7 @@ export function TransactionRepairControls({ accessToken, portfolioId, transactio
       {mode === "reverse" ? (
         <fieldset disabled={busy}>
           <legend>Reverse transaction</legend>
-          <p id={`reverse-help-${transaction.id}`} className="muted">History will be preserved; the operation is cancelled by a separate immutable ledger entry.</p>
+          <p id={`reverse-help-${transaction.id}`} className="muted">History is preserved. Reversing creates a separate record that cancels this transaction from the selected date.</p>
           <label>Effective date<input type="date" value={effectiveDate} onChange={(event) => setEffectiveDate(event.target.value)} /></label>
           <label>Reason for reversal<input value={reason} maxLength={300} required onChange={(event) => setReason(event.target.value)} /></label>
           <div className="button-row">

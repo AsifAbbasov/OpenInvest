@@ -63,13 +63,15 @@ export function CreatePortfolioForm({ accessToken, principalId, onCreated }: Cre
         // intent, so the old retry key can now be safely abandoned for this principal only.
         await clearBrowserIdempotencyIntent(retryScope);
         idempotencyIntentRef.current = emptyIdempotencyIntent;
+        setStatus("This request could not be retried safely. Please submit it again.");
+        return;
       }
       setStatus(result.message);
       return;
     }
     await clearBrowserIdempotencyIntent(retryScope);
     idempotencyIntentRef.current = emptyIdempotencyIntent;
-    setStatus("Portfolio created. Loading portfolio data from Go API…");
+    setStatus("Portfolio created. Loading portfolio data…");
     onCreated();
   }
 
@@ -79,8 +81,7 @@ export function CreatePortfolioForm({ accessToken, principalId, onCreated }: Cre
         <p className="eyebrow">First portfolio</p>
         <h2>Create a RUB portfolio</h2>
         <p className="muted">
-          The web layer sends the request to the Go API. Portfolio ownership, idempotency, and ledger
-          rules remain on the backend.
+          Create a RUB portfolio to record transactions, track positions and review performance.
         </p>
       </div>
       <label>

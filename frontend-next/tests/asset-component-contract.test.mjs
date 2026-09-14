@@ -26,8 +26,8 @@ test("asset discovery component wires detail invalidation helpers", () => {
 
 test("asset discovery component renders distinct successful and deferred detail states", () => {
   assert.match(component, /detail\.status === "available"/);
-  assert.match(component, /Asset detail is available from the Go API/);
+  assert.match(component, /Details loaded for/);
   assert.match(component, /detail\.status === "deferred"/);
   assert.match(component, /Asset detail is unavailable for this selection/);
-  assert.match(component, /detail\.status === "deferred" \? "Deferred asset detail" : "Asset detail"/);
+  assert.match(component, /detail\.status === "deferred" \? "More details unavailable" : "Asset detail"/);
 });

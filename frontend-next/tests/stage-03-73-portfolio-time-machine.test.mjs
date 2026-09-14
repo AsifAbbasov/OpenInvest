@@ -24,8 +24,8 @@ test("Stage 3.73 exposes explicit Current and Historical states without calling 
   assert.match(positions, />\s*Current\s*</);
   assert.match(positions, />\s*Historical\s*</);
   assert.match(positions, /type="date"/);
-  assert.match(positions, /Viewing the latest accepted ledger projection/);
-  assert.match(positions, /Current is not a wall-clock market valuation/);
+  assert.match(positions, /Viewing current positions/);
+  assert.match(positions, /Manual prices are user-supplied inputs, not live quotes/);
   assert.match(positions, /Viewing portfolio as of \$\{historicalDate\}/);
   assert.doesNotMatch(positions, />\s*Today\s*</);
   assert.doesNotMatch(positions, /max=\{/);
@@ -46,18 +46,18 @@ test("Stage 3.73 guards rapid historical switching by generation, principal, por
 });
 
 test("Stage 3.73 has honest loading, date-selection, empty and error states", () => {
-  assert.match(positions, /Choose a historical BusinessDate/);
+  assert.match(positions, /Choose a historical date to reconstruct your positions/);
   assert.match(positions, /Loading portfolio as of \$\{historicalDate\}/);
   assert.match(positions, /No open stock or bond positions on \$\{historicalDate\}/);
   assert.match(positions, /Positions unavailable/);
-  assert.match(positions, /No values are inferred from portfolio summary or transaction rows/);
+  assert.match(positions, /Unavailable values are left unavailable rather than estimated/);
 });
 
 test("Stage 3.73 isolates current summary metrics from historical positions", () => {
   assert.match(detail, /summary && positionViewMode === "current"/);
   assert.match(detail, /Historical positions only/);
-  assert.match(detail, /Current portfolio summary metrics are hidden in Time Machine mode/);
-  assert.match(detail, /does not fabricate historical market value, returns, cash, or performance/);
+  assert.match(detail, /Time Machine reconstructs positions for the selected date/);
+  assert.match(detail, /Historical market value, cash and\s+performance are not shown when the required data is unavailable/);
 });
 
 test("Stage 3.73 preserves market-unavailable semantics in historical mode", () => {

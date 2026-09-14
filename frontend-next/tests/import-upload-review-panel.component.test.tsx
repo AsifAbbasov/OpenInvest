@@ -137,7 +137,7 @@ test("mounted panel ignores a stale review response after a portfolio or token r
 
   assert.equal(imported, 0);
   assert.equal(container.querySelector(".import-review"), null);
-  assert.doesNotMatch(container.textContent ?? "", /Review received from the Go API/);
+  assert.doesNotMatch(container.textContent ?? "", /Review complete/);
 });
 
 test("mounted panel does not invoke onImported for a stale append response", async (t) => {
@@ -168,7 +168,7 @@ test("mounted panel does not invoke onImported for a stale append response", asy
     (container.querySelector('input[aria-label="Approve row 2"]') as HTMLInputElement).click();
   });
   await act(async () => {
-    [...container.querySelectorAll("button")].find((button) => button.textContent?.startsWith("Append"))!.click();
+    [...container.querySelectorAll("button")].find((button) => button.textContent?.startsWith("Import"))!.click();
     await Promise.resolve();
   });
   await act(async () => root.render(<ImportUploadReviewPanel accessToken="token-b" principalId={principalId} portfolioId="portfolio-b" onImported={() => { imported += 1; }} />));

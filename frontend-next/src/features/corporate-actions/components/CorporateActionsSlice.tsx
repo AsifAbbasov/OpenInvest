@@ -91,10 +91,10 @@ export function CorporateActionsSlice() {
     <main className="page-shell">
       <section className="hero compact">
         <p className="eyebrow">Corporate actions</p>
-        <h1>Dividend and coupon calendar with an evidence-aware heatmap.</h1>
+        <h1>Dividend and coupon calendar with an event activity heatmap.</h1>
         <p className="summary">
-          OpenInvest keeps source unavailability separate from a legitimate empty result and never fabricates
-          dates, amounts, lifecycle states, or all-market coverage.
+          If corporate-action data is unavailable, OpenInvest says so instead of showing an empty calendar.
+          Dates and amounts are shown only when supplied by the data source.
         </p>
         <Link href="/" className="back-link">Back to portfolios</Link>
       </section>
@@ -109,7 +109,7 @@ export function CorporateActionsSlice() {
               onChange={(event) => setInstrumentInput(event.target.value)}
               aria-describedby="corporate-actions-instruments-hint"
             />
-            <small id="corporate-actions-instruments-hint" className="muted">Comma- or space-separated canonical instrument IDs.</small>
+            <small id="corporate-actions-instruments-hint" className="muted">Enter one or more instrument identifiers, separated by commas or spaces.</small>
           </label>
           <label>
             From
@@ -126,21 +126,20 @@ export function CorporateActionsSlice() {
 
         <div className={styles.status} aria-live="polite">
           {state.status === "idle" ? <p className="muted">Choose an instrument set and date window.</p> : null}
-          {state.status === "loading" ? <p className="skeleton">Loading validated corporate-action evidence...</p> : null}
+          {state.status === "loading" ? <p className="skeleton">Loading corporate actions...</p> : null}
           {state.status === "unavailable" ? (
             <div role="status" className="asset-state">
               <strong>Corporate actions source unavailable.</strong>
               <p className="muted">
-                No approved and configured production source is available for this request. This is not shown as
-                “zero events”.
+                Corporate-action data is temporarily unavailable. No events are shown until a data source responds.
               </p>
             </div>
           ) : null}
           {state.status === "error" ? <p role="alert" className="form-status">{state.message}</p> : null}
           {state.status === "empty" ? (
             <div className="asset-state">
-              <strong>No current dated events in this validated result.</strong>
-              <p className="muted">The provider answered successfully; this is a legitimate empty projection.</p>
+              <strong>No dated events found for this selection.</strong>
+              <p className="muted">The data source responded successfully and returned no events.</p>
             </div>
           ) : null}
         </div>
@@ -153,7 +152,7 @@ export function CorporateActionsSlice() {
 
 export function CorporateActionProjectionView({ projection }: { projection: CorporateActionProjection }) {
   return (
-    <section className={styles.projectionGrid} aria-label="Corporate action projection">
+    <section className={styles.projectionGrid} aria-label="Corporate action results">
       <CorporateActionCalendar entries={projection.calendar} />
       <CorporateActionHeatmap buckets={projection.heatmap} />
     </section>
@@ -191,10 +190,10 @@ function CorporateActionCalendar({ entries }: { entries: CorporateActionCalendar
                   : "unknown"}
               </span>
               <span>Source: {entry.event.provenance.provider}</span>
-              <span>Evidence as of: {entry.event.asOf}</span>
-              <span>Retrieved: {entry.event.retrievedAt}</span>
+              <span>Data as of: {entry.event.asOf}</span>
+              <span>Updated: {entry.event.retrievedAt}</span>
             </p>
-            <small className="muted">Evidence status is explicit; ANNOUNCED is not guaranteed income.</small>
+            <small className="muted">Announced events are not guaranteed income.</small>
           </li>
         ))}
       </ul>
@@ -212,7 +211,7 @@ function CorporateActionHeatmap({ buckets }: { buckets: CorporateActionHeatmapBu
           <h2>Event density</h2>
         </div>
       </div>
-      <p className="muted">Counts only. No money, FX, yield, tax, or portfolio-income aggregation.</p>
+      <p className="muted">Shows event counts only; it does not estimate income, yield, tax or currency effects.</p>
       <div className={styles.legend} aria-label="Lifecycle dimensions">
         <span className="status-pill">ANNOUNCED</span>
         <span className="status-pill">CONFIRMED</span>

@@ -30,7 +30,8 @@ test("Stage 3.77 UI renders AVAILABLE and UNAVAILABLE backend states distinctly"
   assert.match(performance, /XIRR unavailable/);
   assert.match(performance, /ACT\/365/);
   assert.match(performance, /explicit manual valuation/);
-  assert.match(performance, /Reason: \{result\.data\.reason\}/);
+  assert.match(performance, /unavailableReasonText\[result\.data\.reason\]/);
+  assert.doesNotMatch(performance, /Reason: \{result\.data\.reason\}/);
   assert.doesNotMatch(performance, /unavailable[^\n]*0%|0%[^\n]*unavailable/i);
 });
 

@@ -25,9 +25,9 @@ test("Stage 3.72 current positions remain in the existing guarded portfolio load
 });
 
 test("Stage 3.72 positions render explicit loading, failure, empty and unavailable-market states without fallback math", () => {
-  assert.match(positions, /Loading positions from the canonical ledger projection/);
+  assert.match(positions, /Loading positions…/);
   assert.match(positions, /Positions unavailable/);
-  assert.match(positions, /No values are inferred from portfolio summary or transaction rows/);
+  assert.match(positions, /Unavailable values are left unavailable rather than estimated/);
   assert.match(positions, /No open stock or bond positions/);
   assert.match(positions, /Market valuation unavailable/);
   assert.match(positions, /formatQuantityForDisplay\(item\.quantity\)/);

@@ -18,7 +18,7 @@ test("Stage 3.74 exposes explicit Edit and Reverse UX without delete-permanently
   assert.match(detail, /<th>Actions<\/th>/);
   assert.match(controls, />\s*Edit\s*</);
   assert.match(controls, />\s*Reverse\s*</);
-  assert.match(controls, /History will be preserved/);
+  assert.match(controls, /History is preserved/);
   assert.doesNotMatch(controls, /Delete permanently/i);
   assert.match(controls, /Reason for correction/);
   assert.match(controls, /Reason for reversal/);
