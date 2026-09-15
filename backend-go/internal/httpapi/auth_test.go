@@ -298,6 +298,88 @@ func TestAuthLogoutClearsRefreshCookie(t *testing.T) {
 	}
 }
 
+func TestAuthInfrastructureFailuresUseSanitizedInternalError(t *testing.T) {
+	assertInternal := func(t *testing.T, response *http.Response, leaked string) {
+		t.Helper()
+		defer response.Body.Close()
+		if response.StatusCode != http.StatusInternalServerError {
+			t.Fatalf("expected status %d, got %d", http.StatusInternalServerError, response.StatusCode)
+		}
+		var payload errorResponse
+		if err := json.NewDecoder(response.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode internal error response: %v", err)
+		}
+		if payload.Error.Code != "INTERNAL_ERROR" || payload.Error.Message != "Internal server error" {
+			t.Fatalf("unexpected sanitized error payload: %+v", payload.Error)
+		}
+		if strings.Contains(payload.Error.Message, leaked) {
+			t.Fatalf("raw infrastructure error leaked to client: %q", payload.Error.Message)
+		}
+	}
+
+	t.Run("login infrastructure failure", func(t *testing.T) {
+		infrastructureErr := fmt.Errorf("postgres login outage marker")
+		store := &httpAuthTestStore{findErr: infrastructureErr}
+		app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
+		response := authRequest(t, app, http.MethodPost, "/api/v1/auth/login", `{
+			"email":"investor@example.com",
+			"password":"correct horse battery staple"
+		}`, "", "")
+		assertInternal(t, response, infrastructureErr.Error())
+	})
+
+	t.Run("refresh infrastructure failure", func(t *testing.T) {
+		infrastructureErr := fmt.Errorf("postgres refresh outage marker")
+		store := &httpAuthTestStore{}
+		app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
+		registerResponse := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", `{
+			"email":"refresh-infra@example.com",
+			"password":"correct horse battery staple",
+			"language":"en",
+			"theme":"system",
+			"timezone":"UTC"
+		}`, "", "")
+		refreshCookie := requireCookie(t, registerResponse, auth.RefreshCookieName)
+		csrfToken := readCSRFToken(t, registerResponse)
+		registerResponse.Body.Close()
+		store.rotateErr = infrastructureErr
+		response := authRequest(t, app, http.MethodPost, "/api/v1/auth/refresh", "", refreshCookie.Value, csrfToken)
+		assertInternal(t, response, infrastructureErr.Error())
+	})
+
+	t.Run("logout infrastructure failure", func(t *testing.T) {
+		infrastructureErr := fmt.Errorf("postgres logout outage marker")
+		store := &httpAuthTestStore{}
+		app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
+		registerResponse := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", `{
+			"email":"logout-infra@example.com",
+			"password":"correct horse battery staple",
+			"language":"en",
+			"theme":"system",
+			"timezone":"UTC"
+		}`, "", "")
+		refreshCookie := requireCookie(t, registerResponse, auth.RefreshCookieName)
+		csrfToken := readCSRFToken(t, registerResponse)
+		registerResponse.Body.Close()
+		store.revokeErr = infrastructureErr
+		response := authRequest(t, app, http.MethodPost, "/api/v1/auth/logout", `{"allSessions":false}`, refreshCookie.Value, csrfToken)
+		assertInternal(t, response, infrastructureErr.Error())
+	})
+
+	t.Run("real invalid credentials remain unauthorized", func(t *testing.T) {
+		store := &httpAuthTestStore{}
+		app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
+		response := authRequest(t, app, http.MethodPost, "/api/v1/auth/login", `{
+			"email":"missing@example.com",
+			"password":"correct horse battery staple"
+		}`, "", "")
+		defer response.Body.Close()
+		if response.StatusCode != http.StatusUnauthorized {
+			t.Fatalf("expected invalid credentials status %d, got %d", http.StatusUnauthorized, response.StatusCode)
+		}
+	})
+}
+
 func newHTTPAuthService(t *testing.T, store *httpAuthTestStore) *auth.Service {
 	t.Helper()
 	service, err := auth.NewService(store, fixedHTTPClock{}, auth.Config{
@@ -378,6 +460,9 @@ type httpAuthTestStore struct {
 	authEvents    []auth.AuthAuditRecord
 	registerCalls int
 	findCalls     int
+	findErr       error
+	rotateErr     error
+	revokeErr     error
 }
 
 func (store *httpAuthTestStore) RegisterUser(_ context.Context, record auth.RegistrationRecord) (auth.StoredUser, error) {
@@ -399,6 +484,9 @@ func (store *httpAuthTestStore) RegisterUser(_ context.Context, record auth.Regi
 
 func (store *httpAuthTestStore) FindUserByEmail(_ context.Context, email string) (auth.StoredUser, string, error) {
 	store.findCalls++
+	if store.findErr != nil {
+		return auth.StoredUser{}, "", store.findErr
+	}
 	if email != store.user.Email {
 		return auth.StoredUser{}, "", auth.ErrInvalidCredentials
 	}
@@ -414,6 +502,9 @@ func (store *httpAuthTestStore) CreateSession(_ context.Context, record auth.Ses
 }
 
 func (store *httpAuthTestStore) RotateSession(_ context.Context, currentRefreshTokenHash string, currentCSRFTokenHash string, next auth.SessionRecord, _ time.Time) (auth.StoredUser, error) {
+	if store.rotateErr != nil {
+		return auth.StoredUser{}, store.rotateErr
+	}
 	current, ok := store.sessions[currentRefreshTokenHash]
 	if !ok || current.CSRFTokenHash != currentCSRFTokenHash {
 		return auth.StoredUser{}, auth.ErrInvalidSession
@@ -425,6 +516,9 @@ func (store *httpAuthTestStore) RotateSession(_ context.Context, currentRefreshT
 }
 
 func (store *httpAuthTestStore) RevokeSession(_ context.Context, refreshTokenHash string, csrfTokenHash string, allSessions bool, _ time.Time) (bool, error) {
+	if store.revokeErr != nil {
+		return false, store.revokeErr
+	}
 	current, ok := store.sessions[refreshTokenHash]
 	if !ok || current.CSRFTokenHash != csrfTokenHash {
 		return false, auth.ErrInvalidSession
