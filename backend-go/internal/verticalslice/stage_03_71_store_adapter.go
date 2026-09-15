@@ -13,19 +13,28 @@ func adaptStage371Store(store Store) Store {
 	return &stage371StoreAdapter{Store: store}
 }
 
+// RuntimeIntegrityStore separates controlled startup integrity validation from cheap request readiness.
+type RuntimeIntegrityStore interface {
+	ValidateRuntimeIntegrity(ctx context.Context) error
+}
+
 func (adapter *stage371StoreAdapter) Ping(ctx context.Context) error {
-	if err := adapter.Store.Ping(ctx); err != nil {
+	return adapter.Store.Ping(ctx)
+}
+
+func (adapter *stage371StoreAdapter) ValidateRuntimeIntegrity(ctx context.Context) error {
+	stage371, ok := adapter.Store.(Stage371ReadyStore)
+	if !ok {
+		return ErrRuntimeIntegrityUnavailable
+	}
+	if err := stage371.Stage371Ready(ctx); err != nil {
 		return err
 	}
-	if stageStore, ok := adapter.Store.(Stage371ReadyStore); ok {
-		if err := stageStore.Stage371Ready(ctx); err != nil {
-			return err
-		}
+	stage376, ok := adapter.Store.(Stage376ReadyStore)
+	if !ok {
+		return ErrRuntimeIntegrityUnavailable
 	}
-	if stageStore, ok := adapter.Store.(Stage376ReadyStore); ok {
-		return stageStore.Stage376Ready(ctx)
-	}
-	return nil
+	return stage376.Stage376Ready(ctx)
 }
 
 func (adapter *stage371StoreAdapter) GetPortfolioSummary(

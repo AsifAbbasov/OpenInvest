@@ -22,6 +22,7 @@ var (
 	ErrNotFound                     = errors.New("not found")
 	ErrReplayUnavailable            = errors.New("idempotency replay persistence unavailable")
 	ErrInsufficientPositionQuantity = errors.New("insufficient position quantity")
+	ErrRuntimeIntegrityUnavailable  = errors.New("runtime integrity validation unavailable")
 )
 
 var tickerPattern = regexp.MustCompile(`^[A-Z0-9]{1,32}$`)
@@ -38,7 +39,21 @@ func NewService(store Store, clock Clock) *Service {
 }
 
 func (s *Service) Ready(ctx context.Context) error {
+	if s == nil || s.store == nil {
+		return ErrRuntimeIntegrityUnavailable
+	}
 	return s.store.Ping(ctx)
+}
+
+func (s *Service) ValidateRuntimeIntegrity(ctx context.Context) error {
+	if s == nil || s.store == nil {
+		return ErrRuntimeIntegrityUnavailable
+	}
+	validator, ok := s.store.(RuntimeIntegrityStore)
+	if !ok {
+		return ErrRuntimeIntegrityUnavailable
+	}
+	return validator.ValidateRuntimeIntegrity(ctx)
 }
 
 func (s *Service) SearchAssets(ctx context.Context, filter AssetSearchFilter) (AssetSearchResult, error) {
