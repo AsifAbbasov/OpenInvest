@@ -18,7 +18,10 @@ import (
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
-const developmentImportReviewTokenSecret = "openinvest-development-import-review-token-secret"
+const (
+	developmentImportReviewTokenSecret = "openinvest-development-import-review-token-secret"
+	runtimeIntegrityStartupTimeout     = 30 * time.Second
+)
 
 func newApp() *fiber.App {
 	databaseURL := strings.TrimSpace(os.Getenv("DATABASE_URL"))
@@ -45,6 +48,10 @@ func newApp() *fiber.App {
 	if err != nil {
 		log.Fatal(err)
 	}
+	service, err := newValidatedRuntimeService(store)
+	if err != nil {
+		log.Fatal(err)
+	}
 	authService, err := auth.NewService(store, verticalslice.SystemClock{}, auth.Config{
 		AccessTokenSecret:               []byte(os.Getenv("OPENINVEST_ACCESS_TOKEN_SECRET")),
 		RefreshCookieSecure:             !envBool("OPENINVEST_REFRESH_COOKIE_INSECURE"),
@@ -55,7 +62,7 @@ func newApp() *fiber.App {
 		log.Fatal(err)
 	}
 	app, err := httpapi.NewReplayWithCorporateActionProviderAndHTTPNetworkConfig(
-		verticalslice.NewService(store, verticalslice.SystemClock{}),
+		service,
 		authService,
 		configuredImportReviewTokenSecret(),
 		corporateActionProvider,
@@ -74,6 +81,16 @@ func openPostgresStore(databaseURL string) (*postgres.Store, error) {
 		return postgres.Open(databaseURL)
 	}
 	return postgres.OpenRuntime(databaseURL)
+}
+
+func newValidatedRuntimeService(store verticalslice.Store) (*verticalslice.Service, error) {
+	service := verticalslice.NewService(store, verticalslice.SystemClock{})
+	ctx, cancel := context.WithTimeout(context.Background(), runtimeIntegrityStartupTimeout)
+	defer cancel()
+	if err := service.ValidateRuntimeIntegrity(ctx); err != nil {
+		return nil, fmt.Errorf("validate runtime integrity: %w", err)
+	}
+	return service, nil
 }
 
 func validateRuntimeSafety(databaseURL string) error {
