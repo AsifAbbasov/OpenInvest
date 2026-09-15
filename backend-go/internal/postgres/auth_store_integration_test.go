@@ -16,6 +16,28 @@ import (
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
+func TestStoreFindUserByEmailMapsMissingUserToAuthDomainSentinel(t *testing.T) {
+	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
+	if databaseURL == "" {
+		t.Skip("OPENINVEST_DATABASE_TEST_URL is not set")
+	}
+
+	store, err := postgres.Open(databaseURL)
+	if err != nil {
+		t.Fatalf("open postgres store: %v", err)
+	}
+	defer store.Close()
+
+	missingEmail := "missing-" + uuid.NewString() + "@example.com"
+	_, _, err = store.FindUserByEmail(context.Background(), missingEmail)
+	if !errors.Is(err, auth.ErrInvalidCredentials) {
+		t.Fatalf("expected missing active user to map to auth.ErrInvalidCredentials, got %v", err)
+	}
+	if errors.Is(err, sql.ErrNoRows) {
+		t.Fatalf("raw sql.ErrNoRows must not escape the PostgreSQL auth adapter")
+	}
+}
+
 func TestStoreAuthPrivacySessionLifecycle(t *testing.T) {
 	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
 	if databaseURL == "" {

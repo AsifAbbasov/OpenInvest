@@ -87,10 +87,13 @@ func (s *Service) Login(ctx context.Context, request LoginRequest) (AuthResult, 
 	}
 	user, passwordHash, err := s.store.FindUserByEmail(ctx, email)
 	if err != nil {
-		if capacityErr := verifyPasswordAgainstDummy(request.Password); capacityErr != nil {
-			return AuthResult{}, capacityErr
+		if errors.Is(err, ErrInvalidCredentials) {
+			if capacityErr := verifyPasswordAgainstDummy(request.Password); capacityErr != nil {
+				return AuthResult{}, capacityErr
+			}
+			return AuthResult{}, ErrInvalidCredentials
 		}
-		return AuthResult{}, ErrInvalidCredentials
+		return AuthResult{}, err
 	}
 	verified, err := verifyPassword(request.Password, passwordHash)
 	if err != nil {
@@ -128,7 +131,10 @@ func (s *Service) Refresh(ctx context.Context, refreshToken string, csrfToken st
 	}
 	user, err := s.store.RotateSession(ctx, tokenHash(refreshToken), tokenHash(csrfToken), nextSession, s.clock.Now())
 	if err != nil {
-		return AuthResult{}, ErrInvalidSession
+		if errors.Is(err, ErrInvalidSession) {
+			return AuthResult{}, ErrInvalidSession
+		}
+		return AuthResult{}, err
 	}
 	return s.result(user, nextRefreshToken, nextCSRFToken)
 }
@@ -148,7 +154,10 @@ func (s *Service) Logout(ctx context.Context, refreshToken string, csrfToken str
 	}
 	revoked, err := s.store.RevokeSession(ctx, tokenHash(refreshToken), tokenHash(csrfToken), allSessions, s.clock.Now())
 	if err != nil {
-		return false, ErrInvalidSession
+		if errors.Is(err, ErrInvalidSession) {
+			return false, ErrInvalidSession
+		}
+		return false, err
 	}
 	return revoked, nil
 }

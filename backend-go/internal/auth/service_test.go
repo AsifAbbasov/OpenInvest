@@ -178,6 +178,94 @@ func TestServiceRejectsOverlongEmail(t *testing.T) {
 	}
 }
 
+func TestServiceLoginWrongPasswordRemainsInvalidCredentials(t *testing.T) {
+	store := &memoryStore{}
+	service := newTestService(t, store)
+	_, err := service.Register(context.Background(), RegistrationRequest{
+		Email:    "investor@example.com",
+		Password: "correct horse battery staple",
+		Language: LanguageEN,
+		Theme:    ThemeSystem,
+		Timezone: "UTC",
+	})
+	if err != nil {
+		t.Fatalf("register: %v", err)
+	}
+
+	_, err = service.Login(context.Background(), LoginRequest{
+		Email:    "investor@example.com",
+		Password: "definitely the wrong password",
+	})
+	if !errors.Is(err, ErrInvalidCredentials) {
+		t.Fatalf("expected wrong password to remain invalid credentials, got %v", err)
+	}
+}
+
+func TestServiceLoginPropagatesInfrastructureFailure(t *testing.T) {
+	infrastructureErr := errors.New("auth store unavailable")
+	store := &memoryStore{findErr: infrastructureErr}
+	service := newTestService(t, store)
+
+	_, err := service.Login(context.Background(), LoginRequest{
+		Email:    "investor@example.com",
+		Password: "correct horse battery staple",
+	})
+	if !errors.Is(err, infrastructureErr) {
+		t.Fatalf("expected infrastructure error to propagate, got %v", err)
+	}
+	if errors.Is(err, ErrInvalidCredentials) {
+		t.Fatalf("infrastructure error must not become invalid credentials")
+	}
+}
+
+func TestServiceRefreshDistinguishesInvalidSessionFromInfrastructureFailure(t *testing.T) {
+	t.Run("invalid session", func(t *testing.T) {
+		store := &memoryStore{rotateErr: ErrInvalidSession}
+		service := newTestService(t, store)
+		_, err := service.Refresh(context.Background(), "refresh-token", "csrf-token")
+		if !errors.Is(err, ErrInvalidSession) {
+			t.Fatalf("expected invalid session, got %v", err)
+		}
+	})
+
+	t.Run("infrastructure failure", func(t *testing.T) {
+		infrastructureErr := errors.New("rotate transaction unavailable")
+		store := &memoryStore{rotateErr: infrastructureErr}
+		service := newTestService(t, store)
+		_, err := service.Refresh(context.Background(), "refresh-token", "csrf-token")
+		if !errors.Is(err, infrastructureErr) {
+			t.Fatalf("expected infrastructure error to propagate, got %v", err)
+		}
+		if errors.Is(err, ErrInvalidSession) {
+			t.Fatalf("infrastructure error must not become invalid session")
+		}
+	})
+}
+
+func TestServiceLogoutDistinguishesInvalidSessionFromInfrastructureFailure(t *testing.T) {
+	t.Run("invalid session", func(t *testing.T) {
+		store := &memoryStore{revokeErr: ErrInvalidSession}
+		service := newTestService(t, store)
+		_, err := service.Logout(context.Background(), "refresh-token", "csrf-token", false)
+		if !errors.Is(err, ErrInvalidSession) {
+			t.Fatalf("expected invalid session, got %v", err)
+		}
+	})
+
+	t.Run("infrastructure failure", func(t *testing.T) {
+		infrastructureErr := errors.New("logout transaction unavailable")
+		store := &memoryStore{revokeErr: infrastructureErr}
+		service := newTestService(t, store)
+		_, err := service.Logout(context.Background(), "refresh-token", "csrf-token", false)
+		if !errors.Is(err, infrastructureErr) {
+			t.Fatalf("expected infrastructure error to propagate, got %v", err)
+		}
+		if errors.Is(err, ErrInvalidSession) {
+			t.Fatalf("infrastructure error must not become invalid session")
+		}
+	})
+}
+
 func newTestService(t *testing.T, store *memoryStore) *Service {
 	t.Helper()
 	service, err := NewService(store, fixedClock{}, Config{
@@ -205,6 +293,9 @@ type memoryStore struct {
 	revoked     bool
 	rotateCalls int
 	findCalls   int
+	findErr     error
+	rotateErr   error
+	revokeErr   error
 }
 
 func (store *memoryStore) RegisterUser(_ context.Context, record RegistrationRecord) (StoredUser, error) {
@@ -226,6 +317,9 @@ func (store *memoryStore) RegisterUser(_ context.Context, record RegistrationRec
 
 func (store *memoryStore) FindUserByEmail(_ context.Context, email string) (StoredUser, string, error) {
 	store.findCalls++
+	if store.findErr != nil {
+		return StoredUser{}, "", store.findErr
+	}
 	if email != store.user.Email {
 		return StoredUser{}, "", ErrInvalidCredentials
 	}
@@ -242,6 +336,9 @@ func (store *memoryStore) CreateSession(_ context.Context, record SessionRecord)
 
 func (store *memoryStore) RotateSession(_ context.Context, currentRefreshTokenHash string, currentCSRFTokenHash string, next SessionRecord, _ time.Time) (StoredUser, error) {
 	store.rotateCalls++
+	if store.rotateErr != nil {
+		return StoredUser{}, store.rotateErr
+	}
 	current, ok := store.sessions[currentRefreshTokenHash]
 	if !ok {
 		return StoredUser{}, ErrInvalidSession
@@ -257,6 +354,9 @@ func (store *memoryStore) RotateSession(_ context.Context, currentRefreshTokenHa
 }
 
 func (store *memoryStore) RevokeSession(_ context.Context, refreshTokenHash string, csrfTokenHash string, allSessions bool, _ time.Time) (bool, error) {
+	if store.revokeErr != nil {
+		return false, store.revokeErr
+	}
 	current, ok := store.sessions[refreshTokenHash]
 	if !ok || current.CSRFTokenHash != csrfTokenHash {
 		return false, ErrInvalidSession

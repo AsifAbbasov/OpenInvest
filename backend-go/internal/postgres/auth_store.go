@@ -80,6 +80,9 @@ func (s *Store) FindUserByEmail(ctx context.Context, normalizedEmail string) (au
 		WHERE u.email_normalized = $1 AND u.account_state = 'active'
 	`, normalizedEmail), &passwordHash)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return auth.StoredUser{}, "", auth.ErrInvalidCredentials
+		}
 		return auth.StoredUser{}, "", err
 	}
 	return user, passwordHash, nil

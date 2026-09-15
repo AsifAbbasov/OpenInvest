@@ -65,7 +65,13 @@ export function applyRefreshResult(
   result: ApiResult<AuthSession>,
 ): AuthState {
   if (!result.ok) {
-    return anonymousState("Session expired. Sign in again.");
+    if (result.status === 401) {
+      return anonymousState("Session expired. Sign in again.");
+    }
+    if (state.status !== "authenticated") {
+      return state;
+    }
+    return { ...state, message: result.message };
   }
   if (state.status !== "authenticated") {
     return state;
@@ -124,6 +130,15 @@ export async function logoutActiveSession(
     return result;
   }
   completeSessionOperation(runtime, generation);
-  runtime.setState(anonymousState(result.ok ? "Signed out." : result.message));
+  if (result.ok) {
+    runtime.setState(anonymousState("Signed out."));
+  } else {
+    runtime.setState((latestState) => {
+      if (latestState.status !== "authenticated") {
+        return latestState;
+      }
+      return { ...latestState, message: result.message };
+    });
+  }
   return result;
 }
