@@ -2,12 +2,19 @@ package httpapi
 
 import (
 	"errors"
-	"github.com/gofiber/fiber/v3"
+	"fmt"
+	"net/netip"
+	"strings"
 	"sync"
 	"time"
+
+	"github.com/gofiber/fiber/v3"
 )
 
-var errAuthRateLimited = errors.New("auth rate limited")
+var (
+	errAuthRateLimited = errors.New("auth rate limited")
+	errInvalidClientIP = errors.New("invalid resolved client IP")
+)
 
 type authRateLimiter struct {
 	mu             sync.Mutex
@@ -111,11 +118,27 @@ func nonNegativeInt(value int) int {
 	return value
 }
 
+func canonicalClientIP(raw string) (string, error) {
+	addr, err := netip.ParseAddr(strings.TrimSpace(raw))
+	if err != nil {
+		return "", fmt.Errorf("%w: %q", errInvalidClientIP, raw)
+	}
+	return addr.Unmap().String(), nil
+}
+
+func normalizedClientIP(c fiber.Ctx) (string, error) {
+	return canonicalClientIP(c.IP())
+}
+
 func (api *API) checkAuthRateLimit(c fiber.Ctx) error {
 	if api.authLimiter == nil {
 		return nil
 	}
-	key := c.Path() + "|" + c.IP()
+	clientIP, err := normalizedClientIP(c)
+	if err != nil {
+		return err
+	}
+	key := c.Path() + "|" + clientIP
 	if !api.authLimiter.allow(key, api.nowUTC()) {
 		return errAuthRateLimited
 	}

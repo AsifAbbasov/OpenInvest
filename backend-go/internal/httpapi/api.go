@@ -17,6 +17,7 @@ type API struct {
 	importReviewSecret      []byte
 	paginationCursorSecret  []byte
 	now                     func() time.Time
+	httpNetworkConfig       HTTPNetworkConfig
 }
 
 func New(service *verticalslice.Service, authService *auth.Service, importReviewTokenSecret []byte) (*fiber.App, error) {
@@ -57,7 +58,7 @@ func (api *API) nowUTC() time.Time {
 }
 
 func newApp(api *API) *fiber.App {
-	app := fiber.New(fiber.Config{AppName: "OpenInvest API"})
+	app := newFiberApp(api.httpNetworkConfig)
 
 	app.Use(localDevelopmentCORS)
 	registerRoutes(app, api)

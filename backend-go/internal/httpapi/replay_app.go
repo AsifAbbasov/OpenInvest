@@ -24,6 +24,36 @@ func NewReplayWithCorporateActionProvider(
 	importReviewTokenSecret []byte,
 	corporateActionProvider verticalslice.CorporateActionProvider,
 ) (*fiber.App, error) {
+	return newReplayWithCorporateActionProviderAndHTTPNetworkConfig(
+		service, authService, importReviewTokenSecret, corporateActionProvider, HTTPNetworkConfig{},
+		newDividendCalculatorRateLimiter(),
+	)
+}
+
+// NewReplayWithCorporateActionProviderAndHTTPNetworkConfig is the production/bootstrap variant
+// that accepts a validated HTTP peer/proxy trust boundary while preserving constructor-local
+// limiter initialization required by the frozen replay regression contract.
+func NewReplayWithCorporateActionProviderAndHTTPNetworkConfig(
+	service *verticalslice.Service,
+	authService *auth.Service,
+	importReviewTokenSecret []byte,
+	corporateActionProvider verticalslice.CorporateActionProvider,
+	httpNetworkConfig HTTPNetworkConfig,
+) (*fiber.App, error) {
+	return newReplayWithCorporateActionProviderAndHTTPNetworkConfig(
+		service, authService, importReviewTokenSecret, corporateActionProvider, httpNetworkConfig,
+		newDividendCalculatorRateLimiter(),
+	)
+}
+
+func newReplayWithCorporateActionProviderAndHTTPNetworkConfig(
+	service *verticalslice.Service,
+	authService *auth.Service,
+	importReviewTokenSecret []byte,
+	corporateActionProvider verticalslice.CorporateActionProvider,
+	httpNetworkConfig HTTPNetworkConfig,
+	dividendLimiter *authRateLimiter,
+) (*fiber.App, error) {
 	secret, err := normalizedImportReviewSecret(importReviewTokenSecret)
 	if err != nil {
 		return nil, err
@@ -33,9 +63,10 @@ func NewReplayWithCorporateActionProvider(
 		auth:                    authService,
 		corporateActionProvider: corporateActionProvider,
 		authLimiter:             newAuthRateLimiter(20, time.Minute),
-		dividendLimiter:         newDividendCalculatorRateLimiter(),
+		dividendLimiter:         dividendLimiter,
 		importReviewSecret:      secret,
 		paginationCursorSecret:  derivePaginationCursorSecret(secret),
+		httpNetworkConfig:       httpNetworkConfig,
 	}), nil
 }
 
@@ -51,6 +82,29 @@ func NewDevelopmentReplayWithCorporateActionProvider(
 	service *verticalslice.Service,
 	corporateActionProvider verticalslice.CorporateActionProvider,
 ) *fiber.App {
+	return newDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig(
+		service, corporateActionProvider, HTTPNetworkConfig{}, newDividendCalculatorRateLimiter(),
+	)
+}
+
+// NewDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig keeps local composition
+// explicit while sharing the exact same bounded Fiber server configuration path as production.
+func NewDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig(
+	service *verticalslice.Service,
+	corporateActionProvider verticalslice.CorporateActionProvider,
+	httpNetworkConfig HTTPNetworkConfig,
+) *fiber.App {
+	return newDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig(
+		service, corporateActionProvider, httpNetworkConfig, newDividendCalculatorRateLimiter(),
+	)
+}
+
+func newDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig(
+	service *verticalslice.Service,
+	corporateActionProvider verticalslice.CorporateActionProvider,
+	httpNetworkConfig HTTPNetworkConfig,
+	dividendLimiter *authRateLimiter,
+) *fiber.App {
 	secret, err := normalizedImportReviewSecret([]byte("openinvest-development-import-review-token-secret"))
 	if err != nil {
 		panic(err)
@@ -60,14 +114,15 @@ func NewDevelopmentReplayWithCorporateActionProvider(
 		corporateActionProvider: corporateActionProvider,
 		allowDevelopmentSubject: true,
 		authLimiter:             newAuthRateLimiter(20, time.Minute),
-		dividendLimiter:         newDividendCalculatorRateLimiter(),
+		dividendLimiter:         dividendLimiter,
 		importReviewSecret:      secret,
 		paginationCursorSecret:  derivePaginationCursorSecret(secret),
+		httpNetworkConfig:       httpNetworkConfig,
 	})
 }
 
 func newReplayApp(api *API) *fiber.App {
-	app := fiber.New(fiber.Config{AppName: "OpenInvest API"})
+	app := newFiberApp(api.httpNetworkConfig)
 
 	app.Use(localDevelopmentCORS)
 

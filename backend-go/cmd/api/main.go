@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -24,15 +25,20 @@ func newApp() *fiber.App {
 	if err := validateRuntimeSafety(databaseURL); err != nil {
 		log.Fatal(err)
 	}
+	httpNetworkConfig, err := configuredHTTPNetworkConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
 	corporateActionProvider, err := configuredTInvestCorporateActionProvider()
 	if err != nil {
 		log.Fatal(err)
 	}
 	if databaseURL == "" {
 		store := unavailableStore{}
-		return httpapi.NewDevelopmentReplayWithCorporateActionProvider(
+		return httpapi.NewDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig(
 			verticalslice.NewService(store, verticalslice.SystemClock{}),
 			corporateActionProvider,
+			httpNetworkConfig,
 		)
 	}
 	store, err := openPostgresStore(databaseURL)
@@ -48,11 +54,12 @@ func newApp() *fiber.App {
 	if err != nil {
 		log.Fatal(err)
 	}
-	app, err := httpapi.NewReplayWithCorporateActionProvider(
+	app, err := httpapi.NewReplayWithCorporateActionProviderAndHTTPNetworkConfig(
 		verticalslice.NewService(store, verticalslice.SystemClock{}),
 		authService,
 		configuredImportReviewTokenSecret(),
 		corporateActionProvider,
+		httpNetworkConfig,
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -103,6 +110,30 @@ func isExplicitDevelopmentEnvironment() bool {
 		return true
 	default:
 		return false
+	}
+}
+
+func configuredHTTPNetworkConfig() (httpapi.HTTPNetworkConfig, error) {
+	trustProxy, err := strictEnvBool("OPENINVEST_TRUST_PROXY")
+	if err != nil {
+		return httpapi.HTTPNetworkConfig{}, err
+	}
+	rawAllowlist := strings.TrimSpace(os.Getenv("OPENINVEST_TRUSTED_PROXY_CIDRS"))
+	var allowlist []string
+	if rawAllowlist != "" {
+		allowlist = strings.Split(rawAllowlist, ",")
+	}
+	return httpapi.NewHTTPNetworkConfig(trustProxy, allowlist)
+}
+
+func strictEnvBool(name string) (bool, error) {
+	switch strings.ToLower(strings.TrimSpace(os.Getenv(name))) {
+	case "", "0", "false", "no":
+		return false, nil
+	case "1", "true", "yes":
+		return true, nil
+	default:
+		return false, fmt.Errorf("%s must be an explicit boolean", name)
 	}
 }
 

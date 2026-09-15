@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestHealth(t *testing.T) {
@@ -162,6 +163,8 @@ func setExplicitDevelopmentEnvironment(t *testing.T) {
 	t.Helper()
 	t.Setenv("DATABASE_URL", "")
 	t.Setenv("OPENINVEST_ENV", "development")
+	t.Setenv("OPENINVEST_TRUST_PROXY", "false")
+	t.Setenv("OPENINVEST_TRUSTED_PROXY_CIDRS", "")
 }
 
 func TestAppendTransactionRequiresSettlementDateField(t *testing.T) {
@@ -187,5 +190,58 @@ func TestAppendTransactionRequiresSettlementDateField(t *testing.T) {
 
 	if response.StatusCode != http.StatusBadRequest {
 		t.Fatalf("expected status %d, got %d", http.StatusBadRequest, response.StatusCode)
+	}
+}
+func TestOINew0506MainDirectNetworkConfig(t *testing.T) {
+	setExplicitDevelopmentEnvironment(t)
+
+	app := newApp()
+	config := app.Config()
+	if config.TrustProxy || config.ProxyHeader != "" || config.EnableIPValidation {
+		t.Fatalf("direct mode must ignore proxy headers: trust=%t header=%q validate=%t", config.TrustProxy, config.ProxyHeader, config.EnableIPValidation)
+	}
+	if config.ReadTimeout != 15*time.Second || config.WriteTimeout != 30*time.Second || config.IdleTimeout != 60*time.Second {
+		t.Fatalf("production bootstrap timeout mismatch: read=%s write=%s idle=%s", config.ReadTimeout, config.WriteTimeout, config.IdleTimeout)
+	}
+}
+
+func TestOINew0506MainTrustedProxyConfig(t *testing.T) {
+	setExplicitDevelopmentEnvironment(t)
+	t.Setenv("OPENINVEST_TRUST_PROXY", "true")
+	t.Setenv("OPENINVEST_TRUSTED_PROXY_CIDRS", "127.0.0.1/32,10.10.1.0/24")
+
+	app := newApp()
+	config := app.Config()
+	if !config.TrustProxy || config.ProxyHeader != "X-Forwarded-For" || !config.EnableIPValidation {
+		t.Fatalf("trusted mode was not applied to production bootstrap path: trust=%t header=%q validate=%t", config.TrustProxy, config.ProxyHeader, config.EnableIPValidation)
+	}
+	if len(config.TrustProxyConfig.Proxies) != 2 {
+		t.Fatalf("unexpected trusted proxy count: %#v", config.TrustProxyConfig.Proxies)
+	}
+}
+
+func TestOINew0506ConfiguredHTTPNetworkConfigRejectsInvalidValues(t *testing.T) {
+	tests := []struct {
+		name      string
+		trust     string
+		allowlist string
+	}{
+		{name: "empty-allowlist", trust: "true", allowlist: ""},
+		{name: "malformed-ip", trust: "true", allowlist: "999.1.1.1"},
+		{name: "malformed-cidr", trust: "true", allowlist: "10.0.0.0/99"},
+		{name: "ipv4-trust-all", trust: "true", allowlist: "0.0.0.0/0"},
+		{name: "ipv6-trust-all", trust: "true", allowlist: "::/0"},
+		{name: "unknown-boolean", trust: "sometimes", allowlist: "127.0.0.1/32"},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Setenv("OPENINVEST_TRUST_PROXY", test.trust)
+			t.Setenv("OPENINVEST_TRUSTED_PROXY_CIDRS", test.allowlist)
+			if _, err := configuredHTTPNetworkConfig(); err == nil {
+				t.Fatal("expected invalid HTTP network configuration to be rejected")
+			}
+		})
 	}
 }
