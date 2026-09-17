@@ -376,6 +376,7 @@ paths:
         "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
         "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
         "409": { $ref: "./components/responses.yaml#/responses/IdempotencyConflict" }
+        "503": { $ref: "./components/responses.yaml#/responses/ReplayStateUnavailable" }
         "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
 
   /api/v1/portfolios/{portfolioId}:
@@ -669,7 +670,8 @@ paths:
         "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
         "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
         "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
-        "409": { $ref: "./components/responses.yaml#/responses/TransactionConflict" }
+        "409": { $ref: "./components/responses.yaml#/responses/FinancialMutationConflict" }
+        "503": { $ref: "./components/responses.yaml#/responses/ReplayStateUnavailable" }
 
   /api/v1/portfolios/{portfolioId}/transactions/{transactionId}:
     parameters:
@@ -696,7 +698,8 @@ paths:
         "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
         "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
         "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
-        "409": { $ref: "./components/responses.yaml#/responses/Conflict" }
+        "409": { $ref: "./components/responses.yaml#/responses/FinancialMutationConflict" }
+        "503": { $ref: "./components/responses.yaml#/responses/ReplayStateUnavailable" }
     delete:
       operationId: reverseTransaction
       summary: Append a reversal transaction
@@ -716,7 +719,8 @@ paths:
         "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
         "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
         "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
-        "409": { $ref: "./components/responses.yaml#/responses/Conflict" }
+        "409": { $ref: "./components/responses.yaml#/responses/FinancialMutationConflict" }
+        "503": { $ref: "./components/responses.yaml#/responses/ReplayStateUnavailable" }
 
   /api/v1/portfolios/{portfolioId}/imports/review:
     parameters:
@@ -773,7 +777,8 @@ paths:
         "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
         "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
         "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
-        "409": { $ref: "./components/responses.yaml#/responses/IdempotencyConflict" }
+        "409": { $ref: "./components/responses.yaml#/responses/FinancialMutationConflict" }
+        "503": { $ref: "./components/responses.yaml#/responses/ReplayStateUnavailable" }
         "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
 
   /api/v1/dividends/calendar:

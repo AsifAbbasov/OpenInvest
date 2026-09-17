@@ -61,7 +61,8 @@ var approvedAssetFixtures = map[string]assetFixture{
 }
 
 type Store struct {
-	db *sql.DB
+	db                       *sql.DB
+	runtimeCapabilityProfile RuntimeCapabilityProfile
 }
 
 func Open(databaseURL string) (*Store, error) {
@@ -72,7 +73,7 @@ func Open(databaseURL string) (*Store, error) {
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(30 * time.Minute)
-	return &Store{db: db}, nil
+	return &Store{db: db, runtimeCapabilityProfile: RuntimeCapabilityR0}, nil
 }
 
 func (s *Store) Close() error {
@@ -208,6 +209,9 @@ func (s *Store) CreatePortfolio(ctx context.Context, command verticalslice.Comma
 		}
 		return portfolio, tx.Commit()
 	}
+	if err := s.assertReplayWriteWindowTx(ctx, tx); err != nil {
+		return verticalslice.Portfolio{}, err
+	}
 
 	now := command.Now
 	_, err = tx.ExecContext(ctx, `
@@ -216,6 +220,9 @@ func (s *Store) CreatePortfolio(ctx context.Context, command verticalslice.Comma
 		VALUES ($1, $2, $3, $4, 'active', 1, $5, $5)
 	`, portfolioID, command.SubjectID, request.Name, request.BaseCurrency, now)
 	if err != nil {
+		return verticalslice.Portfolio{}, err
+	}
+	if err := s.appendGenesisIfActiveTx(ctx, tx, portfolioID, now); err != nil {
 		return verticalslice.Portfolio{}, err
 	}
 

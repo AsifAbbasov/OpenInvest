@@ -381,6 +381,47 @@ responses:
           idempotencyConflict: { $ref: "../examples/errors.json#/idempotencyConflict" }
           insufficientPositionQuantity: { $ref: "../examples/errors.json#/insufficientPositionQuantity" }
 
+  FinancialMutationConflict:
+    description: >-
+      Financial mutation conflict. This includes ordinary transaction/idempotency conflicts,
+      insufficient position quantity, and an OI-NEW-04 retroactive operation outside the
+      currently admitted mutable replay horizon.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/ErrorResponse" }
+        examples:
+          conflict:
+            value:
+              error: { code: CONFLICT, message: Transaction revision is stale or the transaction is already reversed, details: [] }
+              meta: { requestId: "10000000-0000-4000-8000-000000000001", traceId: "10000000000000000000000000000001", generatedAt: "2026-09-16T00:00:00Z" }
+          retroactiveReplayWindowExceeded:
+            value:
+              error: { code: RETROACTIVE_REPLAY_WINDOW_EXCEEDED, message: Requested retroactive change is outside the active replay window, details: [] }
+              meta: { requestId: "10000000-0000-4000-8000-000000000002", traceId: "10000000000000000000000000000002", generatedAt: "2026-09-16T00:00:00Z" }
+
+  ReplayStateUnavailable:
+    description: >-
+      OI-NEW-04 replay state is missing, stale, corrupt, or otherwise unsafe to use.
+      The server fails closed and never falls back to whole-history financial mutation replay.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/ErrorResponse" }
+        examples:
+          stale:
+            value:
+              error: { code: REPLAY_STATE_STALE, message: Portfolio replay state is temporarily unavailable, details: [] }
+              meta: { requestId: "10000000-0000-4000-8000-000000000003", traceId: "10000000000000000000000000000003", generatedAt: "2026-09-16T00:00:00Z" }
+          missingEpoch:
+            value:
+              error: { code: REPLAY_EPOCH_MISSING, message: Portfolio replay state is temporarily unavailable, details: [] }
+              meta: { requestId: "10000000-0000-4000-8000-000000000004", traceId: "10000000000000000000000000000004", generatedAt: "2026-09-16T00:00:00Z" }
+
   RateLimited:
     description: Rate limit exceeded.
     headers:

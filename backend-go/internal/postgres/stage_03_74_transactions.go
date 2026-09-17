@@ -52,9 +52,6 @@ func (s *Store) CorrectTransactionWithReplayStage374(
 	if err := lockPortfolioTx(ctx, tx, command.SubjectID, request.PortfolioID); err != nil {
 		return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
 	}
-	if err := validateEffectiveLedgerShapeTx(ctx, tx, request.PortfolioID); err != nil {
-		return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
-	}
 	current, err := latestLogicalEntryTx(ctx, tx, request.PortfolioID, request.TransactionID)
 	if err != nil {
 		return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
@@ -66,6 +63,22 @@ func (s *Store) CorrectTransactionWithReplayStage374(
 	if reversed || current.Revision != request.ExpectedRevision {
 		return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, verticalslice.ErrTransactionConflict
 	}
+	plan, err := s.prepareFinancialReplayPlanTx(ctx, tx, request.PortfolioID, replayMutationImpact{
+		Kind:               "correct",
+		RawRows:            1,
+		TradeDates:         []string{current.TradeDate, request.Corrected.TradeDate},
+		TransactionID:      request.TransactionID,
+		CurrentTradeDate:   current.TradeDate,
+		CorrectedTradeDate: request.Corrected.TradeDate,
+	}, command.Now)
+	if err != nil {
+		return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
+	}
+	if plan.Legacy {
+		if err := validateEffectiveLedgerShapeTx(ctx, tx, request.PortfolioID); err != nil {
+			return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
+		}
+	}
 	gross, err := verticalslice.GrossFor(request.Corrected)
 	if err != nil {
 		return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
@@ -74,9 +87,12 @@ func (s *Store) CorrectTransactionWithReplayStage374(
 	if err != nil {
 		return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
 	}
-	ledgerSequence, err := nextLedgerSequenceTx(ctx, tx, request.PortfolioID)
-	if err != nil {
-		return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
+	ledgerSequence := plan.ObservedWatermark + 1
+	if plan.Legacy {
+		ledgerSequence, err = nextLedgerSequenceTx(ctx, tx, request.PortfolioID)
+		if err != nil {
+			return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
+		}
 	}
 
 	_, err = tx.ExecContext(ctx, `
@@ -107,14 +123,16 @@ func (s *Store) CorrectTransactionWithReplayStage374(
 		return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
 	}
 
-	if _, _, err := rebuildPortfolioPositionsTx(ctx, tx, request.PortfolioID, ""); err != nil {
-		return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
+	if plan.Legacy {
+		if _, _, err := rebuildPortfolioPositionsTx(ctx, tx, request.PortfolioID, ""); err != nil {
+			return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
+		}
 	}
 	affectedDates, err := planAffectedSnapshotDates(ctx, tx, request.PortfolioID, []string{current.TradeDate, request.Corrected.TradeDate})
 	if err != nil {
 		return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
 	}
-	if err := rebuildSnapshotPlan(ctx, tx, request.PortfolioID, affectedDates, command.Now); err != nil {
+	if err := s.executeFinancialReplayPlanTx(ctx, tx, request.PortfolioID, plan, affectedDates, command.Now); err != nil {
 		return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
 	}
 	transaction, err := getTransactionByEntryTx(ctx, tx, request.PortfolioID, reservation.ID)
@@ -163,9 +181,6 @@ func (s *Store) ReverseTransactionWithReplayStage374(
 	if err := lockPortfolioTx(ctx, tx, command.SubjectID, request.PortfolioID); err != nil {
 		return verticalslice.TransactionReversal{}, verticalslice.CommandReplayArtifact{}, err
 	}
-	if err := validateEffectiveLedgerShapeTx(ctx, tx, request.PortfolioID); err != nil {
-		return verticalslice.TransactionReversal{}, verticalslice.CommandReplayArtifact{}, err
-	}
 	current, err := latestLogicalEntryTx(ctx, tx, request.PortfolioID, request.TransactionID)
 	if err != nil {
 		return verticalslice.TransactionReversal{}, verticalslice.CommandReplayArtifact{}, err
@@ -177,9 +192,28 @@ func (s *Store) ReverseTransactionWithReplayStage374(
 	if reversed || current.Revision != request.ExpectedRevision {
 		return verticalslice.TransactionReversal{}, verticalslice.CommandReplayArtifact{}, verticalslice.ErrTransactionConflict
 	}
-	ledgerSequence, err := nextLedgerSequenceTx(ctx, tx, request.PortfolioID)
+	plan, err := s.prepareFinancialReplayPlanTx(ctx, tx, request.PortfolioID, replayMutationImpact{
+		Kind:              "reverse",
+		RawRows:           1,
+		TradeDates:        []string{request.EffectiveDate},
+		TransactionID:     request.TransactionID,
+		CurrentTradeDate:  current.TradeDate,
+		ReversalEffective: request.EffectiveDate,
+	}, command.Now)
 	if err != nil {
 		return verticalslice.TransactionReversal{}, verticalslice.CommandReplayArtifact{}, err
+	}
+	if plan.Legacy {
+		if err := validateEffectiveLedgerShapeTx(ctx, tx, request.PortfolioID); err != nil {
+			return verticalslice.TransactionReversal{}, verticalslice.CommandReplayArtifact{}, err
+		}
+	}
+	ledgerSequence := plan.ObservedWatermark + 1
+	if plan.Legacy {
+		ledgerSequence, err = nextLedgerSequenceTx(ctx, tx, request.PortfolioID)
+		if err != nil {
+			return verticalslice.TransactionReversal{}, verticalslice.CommandReplayArtifact{}, err
+		}
 	}
 	reversalTransactionID := uuid.NewString()
 	_, err = tx.ExecContext(ctx, `
@@ -209,14 +243,16 @@ func (s *Store) ReverseTransactionWithReplayStage374(
 		return verticalslice.TransactionReversal{}, verticalslice.CommandReplayArtifact{}, err
 	}
 
-	if _, _, err := rebuildPortfolioPositionsTx(ctx, tx, request.PortfolioID, ""); err != nil {
-		return verticalslice.TransactionReversal{}, verticalslice.CommandReplayArtifact{}, err
+	if plan.Legacy {
+		if _, _, err := rebuildPortfolioPositionsTx(ctx, tx, request.PortfolioID, ""); err != nil {
+			return verticalslice.TransactionReversal{}, verticalslice.CommandReplayArtifact{}, err
+		}
 	}
 	affectedDates, err := planAffectedSnapshotDates(ctx, tx, request.PortfolioID, []string{request.EffectiveDate})
 	if err != nil {
 		return verticalslice.TransactionReversal{}, verticalslice.CommandReplayArtifact{}, err
 	}
-	if err := rebuildSnapshotPlan(ctx, tx, request.PortfolioID, affectedDates, command.Now); err != nil {
+	if err := s.executeFinancialReplayPlanTx(ctx, tx, request.PortfolioID, plan, affectedDates, command.Now); err != nil {
 		return verticalslice.TransactionReversal{}, verticalslice.CommandReplayArtifact{}, err
 	}
 	result := verticalslice.TransactionReversal{
