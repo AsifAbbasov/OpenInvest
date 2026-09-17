@@ -440,7 +440,17 @@ paths:
       summary: Get calculated capital, return, and purchasing-power summary
       tags: [Portfolios]
       parameters:
-        - $ref: "#/components/parameters/AsOfDate"
+        - name: asOfDate
+          in: query
+          required: false
+          description: >-
+            When supplied, selects the latest available calculated portfolio snapshot whose snapshot
+            date is less than or equal to the requested BusinessDate. data.asOfDate reports the actual
+            selected snapshot date and may be earlier; if none qualifies, the endpoint returns 404.
+            When omitted, selects the latest available calculated snapshot from accepted portfolio
+            history without a wall-clock or MOEX-calendar cutoff, so an accepted future-dated snapshot
+            may be selected.
+          schema: { $ref: "./components/schemas.yaml#/BusinessDate" }
       responses:
         "200": { $ref: "./components/responses.yaml#/responses/PortfolioSummary" }
         "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
