@@ -41,7 +41,7 @@ func (s *Store) AppendTransactionStage371(
 		return transaction, tx.Commit()
 	}
 
-	transaction, err := appendTransactionStage371Mutation(ctx, tx, command, request, entryID)
+	transaction, err := s.appendTransactionStage371Mutation(ctx, tx, command, request, entryID)
 	if err != nil {
 		return verticalslice.Transaction{}, err
 	}
@@ -81,7 +81,7 @@ func (s *Store) AppendTransactionWithReplayStage371(
 		return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
 	}
 
-	transaction, err := appendTransactionStage371Mutation(ctx, tx, command, request, reservation.ID)
+	transaction, err := s.appendTransactionStage371Mutation(ctx, tx, command, request, reservation.ID)
 	if err != nil {
 		return verticalslice.Transaction{}, verticalslice.CommandReplayArtifact{}, err
 	}
@@ -98,7 +98,7 @@ func (s *Store) AppendTransactionWithReplayStage371(
 	return transaction, artifact, nil
 }
 
-func appendTransactionStage371Mutation(
+func (s *Store) appendTransactionStage371Mutation(
 	ctx context.Context,
 	tx *sql.Tx,
 	command verticalslice.CommandContext,
@@ -119,19 +119,21 @@ func appendTransactionStage371Mutation(
 	if err != nil {
 		return verticalslice.Transaction{}, err
 	}
-	if err := insertTransactionEntryStage371WithID(
-		ctx,
-		tx,
-		command,
-		request,
-		entryID,
-		"MANUAL",
-		"",
-		"",
-	); err != nil {
+	plan, err := s.prepareFinancialReplayPlanTx(ctx, tx, request.PortfolioID, replayMutationImpact{
+		Kind: "append", RawRows: 1, TradeDates: []string{request.TradeDate},
+	}, command.Now)
+	if err != nil {
 		return verticalslice.Transaction{}, err
 	}
-	if request.TransactionType == "BUY" || request.TransactionType == "SELL" {
+	if plan.Legacy {
+		err = insertTransactionEntryStage371WithID(ctx, tx, command, request, entryID, "MANUAL", "", "")
+	} else {
+		err = insertTransactionEntryStage371AtSequence(ctx, tx, command, request, entryID, "MANUAL", "", "", plan.ObservedWatermark+1)
+	}
+	if err != nil {
+		return verticalslice.Transaction{}, err
+	}
+	if plan.Legacy && (request.TransactionType == "BUY" || request.TransactionType == "SELL") {
 		if err := validatePositionHistoryTx(ctx, tx, request.PortfolioID, assetID); err != nil {
 			return verticalslice.Transaction{}, err
 		}
@@ -141,7 +143,7 @@ func appendTransactionStage371Mutation(
 	if err != nil {
 		return verticalslice.Transaction{}, err
 	}
-	if err := rebuildSnapshotPlan(ctx, tx, request.PortfolioID, affectedDates, command.Now); err != nil {
+	if err := s.executeFinancialReplayPlanTx(ctx, tx, request.PortfolioID, plan, affectedDates, command.Now); err != nil {
 		return verticalslice.Transaction{}, err
 	}
 	return getTransactionByEntryTx(ctx, tx, request.PortfolioID, entryID)
@@ -173,7 +175,7 @@ func (s *Store) AppendImportedTransactionsStage371(
 		return transactions, tx.Commit()
 	}
 
-	outcome, err := appendImportedTransactionsStage371Mutation(ctx, tx, command, commandID, request)
+	outcome, err := s.appendImportedTransactionsStage371Mutation(ctx, tx, command, commandID, request)
 	if err != nil {
 		return nil, err
 	}
@@ -224,7 +226,7 @@ func (s *Store) AppendImportedTransactionsWithOutcomeStage371(
 		return verticalslice.ImportAppendOutcome{}, ErrUnsupportedDuplicate
 	}
 
-	outcome, err := appendImportedTransactionsStage371Mutation(ctx, tx, command, commandID, request)
+	outcome, err := s.appendImportedTransactionsStage371Mutation(ctx, tx, command, commandID, request)
 	if err != nil {
 		return verticalslice.ImportAppendOutcome{}, err
 	}
@@ -263,7 +265,7 @@ func (s *Store) AppendImportedTransactionsWithOutcomeReplayStage371(
 	if err := lockPortfolioTx(ctx, tx, command.SubjectID, request.PortfolioID); err != nil {
 		return nil, verticalslice.CommandReplayArtifact{}, err
 	}
-	outcome, err := appendImportedTransactionsStage371Mutation(ctx, tx, command, reservation.ID, request)
+	outcome, err := s.appendImportedTransactionsStage371Mutation(ctx, tx, command, reservation.ID, request)
 	if err != nil {
 		return nil, verticalslice.CommandReplayArtifact{}, err
 	}
@@ -280,7 +282,7 @@ func (s *Store) AppendImportedTransactionsWithOutcomeReplayStage371(
 	return outcome.Transactions, artifact, nil
 }
 
-func appendImportedTransactionsStage371Mutation(
+func (s *Store) appendImportedTransactionsStage371Mutation(
 	ctx context.Context,
 	tx *sql.Tx,
 	command verticalslice.CommandContext,
@@ -314,35 +316,39 @@ func appendImportedTransactionsStage371Mutation(
 	if err := ensureAssets(ctx, tx, request.Transactions); err != nil {
 		return verticalslice.ImportAppendOutcome{}, err
 	}
+	tradeDates := make([]string, 0, len(request.Transactions))
+	for _, transactionRequest := range request.Transactions {
+		tradeDates = append(tradeDates, transactionRequest.TradeDate)
+	}
+	plan, err := s.prepareFinancialReplayPlanTx(ctx, tx, request.PortfolioID, replayMutationImpact{
+		Kind: "import", RawRows: len(request.Transactions), TradeDates: tradeDates,
+	}, command.Now)
+	if err != nil {
+		return verticalslice.ImportAppendOutcome{}, err
+	}
 
 	entryIDs := make([]string, 0, len(request.Transactions))
-	tradeDates := make([]string, 0, len(request.Transactions))
 	for index, transactionRequest := range request.Transactions {
 		entryID, err := importEntryID(commandID, index)
 		if err != nil {
 			return verticalslice.ImportAppendOutcome{}, err
 		}
-		if err := insertTransactionEntryStage371WithID(
-			ctx,
-			tx,
-			command,
-			transactionRequest,
-			entryID,
-			request.SourceKind,
-			request.SourceFileHash,
-			request.SourceAccountLabel,
-		); err != nil {
+		if plan.Legacy {
+			err = insertTransactionEntryStage371WithID(ctx, tx, command, transactionRequest, entryID, request.SourceKind, request.SourceFileHash, request.SourceAccountLabel)
+		} else {
+			err = insertTransactionEntryStage371AtSequence(ctx, tx, command, transactionRequest, entryID, request.SourceKind, request.SourceFileHash, request.SourceAccountLabel, plan.ObservedWatermark+int64(index)+1)
+		}
+		if err != nil {
 			return verticalslice.ImportAppendOutcome{}, err
 		}
 		entryIDs = append(entryIDs, entryID)
-		tradeDates = append(tradeDates, transactionRequest.TradeDate)
 	}
 
 	affectedDates, err := planAffectedSnapshotDates(ctx, tx, request.PortfolioID, tradeDates)
 	if err != nil {
 		return verticalslice.ImportAppendOutcome{}, err
 	}
-	if err := rebuildSnapshotPlan(ctx, tx, request.PortfolioID, affectedDates, command.Now); err != nil {
+	if err := s.executeFinancialReplayPlanTx(ctx, tx, request.PortfolioID, plan, affectedDates, command.Now); err != nil {
 		return verticalslice.ImportAppendOutcome{}, err
 	}
 	if err := recordImportAppendAudit(ctx, tx, command, request.PortfolioID); err != nil {
@@ -373,15 +379,31 @@ func insertTransactionEntryStage371WithID(
 	sourceFileHash string,
 	sourceAccountLabel string,
 ) error {
+	ledgerSequence, err := nextLedgerSequenceTx(ctx, tx, request.PortfolioID)
+	if err != nil {
+		return err
+	}
+	return insertTransactionEntryStage371AtSequence(
+		ctx, tx, command, request, entryID, sourceKind, sourceFileHash, sourceAccountLabel, ledgerSequence,
+	)
+}
+
+func insertTransactionEntryStage371AtSequence(
+	ctx context.Context,
+	tx *sql.Tx,
+	command verticalslice.CommandContext,
+	request verticalslice.AppendTransactionRequest,
+	entryID string,
+	sourceKind string,
+	sourceFileHash string,
+	sourceAccountLabel string,
+	ledgerSequence int64,
+) error {
 	gross, err := verticalslice.GrossFor(request)
 	if err != nil {
 		return err
 	}
 	assetID, err := activeAssetID(ctx, tx, request)
-	if err != nil {
-		return err
-	}
-	ledgerSequence, err := nextLedgerSequenceTx(ctx, tx, request.PortfolioID)
 	if err != nil {
 		return err
 	}

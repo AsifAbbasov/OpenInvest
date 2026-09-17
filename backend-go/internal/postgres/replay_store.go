@@ -48,6 +48,9 @@ func (s *Store) CreatePortfolioWithReplay(
 		}
 		return verticalslice.Portfolio{}, reservation.Artifact, nil
 	}
+	if err := s.assertReplayWriteWindowTx(ctx, tx); err != nil {
+		return verticalslice.Portfolio{}, verticalslice.CommandReplayArtifact{}, err
+	}
 
 	if err := ensureSubject(ctx, tx, command.SubjectID); err != nil {
 		return verticalslice.Portfolio{}, verticalslice.CommandReplayArtifact{}, err
@@ -59,6 +62,9 @@ func (s *Store) CreatePortfolioWithReplay(
 		VALUES ($1, $2, $3, $4, 'active', 1, $5, $5)
 	`, reservation.ID, command.SubjectID, request.Name, request.BaseCurrency, command.Now)
 	if err != nil {
+		return verticalslice.Portfolio{}, verticalslice.CommandReplayArtifact{}, err
+	}
+	if err := s.appendGenesisIfActiveTx(ctx, tx, reservation.ID, command.Now); err != nil {
 		return verticalslice.Portfolio{}, verticalslice.CommandReplayArtifact{}, err
 	}
 

@@ -18,6 +18,10 @@ type RuntimeIntegrityStore interface {
 	ValidateRuntimeIntegrity(ctx context.Context) error
 }
 
+type OINew04ReadyStore interface {
+	StageOINew04Ready(ctx context.Context) error
+}
+
 func (adapter *stage371StoreAdapter) Ping(ctx context.Context) error {
 	return adapter.Store.Ping(ctx)
 }
@@ -34,7 +38,14 @@ func (adapter *stage371StoreAdapter) ValidateRuntimeIntegrity(ctx context.Contex
 	if !ok {
 		return ErrRuntimeIntegrityUnavailable
 	}
-	return stage376.Stage376Ready(ctx)
+	if err := stage376.Stage376Ready(ctx); err != nil {
+		return err
+	}
+	oiNew04, ok := adapter.Store.(OINew04ReadyStore)
+	if !ok {
+		return ErrRuntimeIntegrityUnavailable
+	}
+	return oiNew04.StageOINew04Ready(ctx)
 }
 
 func (adapter *stage371StoreAdapter) GetPortfolioSummary(

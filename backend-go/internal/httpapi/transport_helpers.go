@@ -118,6 +118,12 @@ func writeMappedErrorWithMeta(c fiber.Ctx, meta metaDTO, err error) error {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
 	case errors.Is(err, importflow.ErrNoApprovedRows):
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "at least one appendable import row must be approved")
+	case errors.Is(err, postgres.ErrRetroactiveReplayWindowExceeded):
+		return writeErrorWithMeta(c, meta, http.StatusConflict, "RETROACTIVE_REPLAY_WINDOW_EXCEEDED", "Requested retroactive change is outside the active replay window")
+	case errors.Is(err, postgres.ErrReplayStateStale):
+		return writeErrorWithMeta(c, meta, http.StatusServiceUnavailable, "REPLAY_STATE_STALE", "Portfolio replay state is temporarily unavailable")
+	case errors.Is(err, postgres.ErrReplayEpochMissing):
+		return writeErrorWithMeta(c, meta, http.StatusServiceUnavailable, "REPLAY_EPOCH_MISSING", "Portfolio replay state is temporarily unavailable")
 	case errors.Is(err, postgres.ErrNotFound):
 		return writeErrorWithMeta(c, meta, http.StatusNotFound, "NOT_FOUND", "Resource not found")
 	case errors.Is(err, postgres.ErrIdempotencyConflict):

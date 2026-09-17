@@ -264,6 +264,17 @@ func parseType(p *parser) (sqlType, string, bool) {
 		}
 		return sqlType{kind: "varchar", n: int(n64)}, "", true
 	}
+	if p.take("CHAR") {
+		if !p.exact("(") || p.i >= len(p.t) || !canonPositiveRE.MatchString(p.t[p.i].text) {
+			return sqlType{}, "R051", false
+		}
+		n64, e := strconv.ParseInt(p.t[p.i].text, 10, 64)
+		p.i++
+		if e != nil || !p.exact(")") || n64 < 1 || n64 > 10485760 {
+			return sqlType{}, "R051", false
+		}
+		return sqlType{kind: "char", n: int(n64)}, "", true
+	}
 	return sqlType{}, "R008", false
 }
 func parseCol(p *parser) (string, sqlType, bool, string, bool) {
@@ -275,7 +286,13 @@ func parseCol(p *parser) (string, sqlType, bool, string, bool) {
 	if !ok {
 		return "", sqlType{}, false, rule, false
 	}
-	p.take("NULL")
+	if p.take("NOT") {
+		if !p.take("NULL") {
+			return "", sqlType{}, false, "R048", false
+		}
+	} else {
+		p.take("NULL")
+	}
 	hasDefault := false
 	if p.take("DEFAULT") {
 		if p.i >= len(p.t) || !validLiteral(p.t[p.i], typ) {
@@ -454,6 +471,9 @@ func parseUpDDL(s statement, st *upState) (effect, error) {
 			}
 			seen[c] = true
 			cols = append(cols, c)
+			if !p.take("ASC") {
+				p.take("DESC")
+			}
 			if p.exact(")") {
 				break
 			}
@@ -521,7 +541,7 @@ func parseUpDDL(s statement, st *upState) (effect, error) {
 			}
 			return eff, nil
 		}
-		if !p.take("CONSTRAINT") || st.created[table] != nil {
+		if !p.take("CONSTRAINT") {
 			return eff, badRule("R033")
 		}
 		cn, ok := p.ident()
@@ -530,6 +550,8 @@ func parseUpDDL(s statement, st *upState) (effect, error) {
 		}
 		eff.minRisk = 2
 		eff.key = "constraint:" + table + "." + cn
+		createdCols := st.created[table]
+		isNewTable := createdCols != nil
 		if p.take("CHECK") {
 			if !p.exact("(") {
 				return eff, badRule("R052")
@@ -542,6 +564,9 @@ func parseUpDDL(s statement, st *upState) (effect, error) {
 				return eff, badRule("R040")
 			}
 			ty, ok := st.added[table+"."+col]
+			if !ok && isNewTable {
+				ty, ok = createdCols[col]
+			}
 			if !ok {
 				return eff, badRule("R040")
 			}
@@ -549,6 +574,27 @@ func parseUpDDL(s statement, st *upState) (effect, error) {
 				p.take("NOT")
 				if !p.take("NULL") {
 					return eff, badRule("R040")
+				}
+			} else if p.take("IN") {
+				if !p.exact("(") {
+					return eff, badRule("R040")
+				}
+				count := 0
+				for {
+					if p.i >= len(p.t) || !validLiteral(p.t[p.i], ty) {
+						return eff, badRule("R040")
+					}
+					p.i++
+					count++
+					if count > 16 {
+						return eff, badRule("R040")
+					}
+					if p.exact(")") {
+						break
+					}
+					if !p.exact(",") {
+						return eff, badRule("R040")
+					}
 				}
 			} else {
 				if p.i >= len(p.t) || !in(makeSet([]string{"=", "<>", "<", "<=", ">", ">="}), p.t[p.i].text) {
@@ -567,7 +613,15 @@ func parseUpDDL(s statement, st *upState) (effect, error) {
 			if p.peek("AND") || p.peek("OR") {
 				return eff, badRule("R040")
 			}
-			if !p.exact(")") || !p.take("NOT") || !p.take("VALID") || !p.end() {
+			if !p.exact(")") {
+				return eff, badRule("R052")
+			}
+			if !isNewTable {
+				if !p.take("NOT") || !p.take("VALID") {
+					return eff, badRule("R052")
+				}
+			}
+			if !p.end() {
 				return eff, badRule("R052")
 			}
 			eff.class = "add_check_constraint"
@@ -586,7 +640,27 @@ func parseUpDDL(s statement, st *upState) (effect, error) {
 				return eff, badRule("R033")
 			}
 			ref, ok := idList(p, 32)
-			if !ok || !p.exact(")") || len(local) != len(ref) || !p.take("NOT") || !p.take("VALID") || !p.end() {
+			if !ok || !p.exact(")") || len(local) != len(ref) {
+				return eff, badRule("R033")
+			}
+			if isNewTable {
+				for _, col := range local {
+					if _, ok := createdCols[col]; !ok {
+						return eff, badRule("R033")
+					}
+				}
+			}
+			if p.take("ON") {
+				if !p.take("DELETE") || (!p.take("CASCADE") && !p.take("RESTRICT")) {
+					return eff, badRule("R033")
+				}
+			}
+			if !isNewTable {
+				if !p.take("NOT") || !p.take("VALID") {
+					return eff, badRule("R033")
+				}
+			}
+			if !p.end() {
 				return eff, badRule("R033")
 			}
 			eff.class = "add_foreign_key"

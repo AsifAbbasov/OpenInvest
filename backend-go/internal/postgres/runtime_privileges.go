@@ -65,10 +65,18 @@ var runtimeColumnUpdateCapabilities = map[string]map[string]struct{}{
 // or executable SECURITY DEFINER routine remains fail-closed. Every SET-reachable role is validated too.
 // Migration/schema-owner connections use Open.
 func OpenRuntime(databaseURL string) (*Store, error) {
+	return OpenRuntimeWithCapability(databaseURL, RuntimeCapabilityR0)
+}
+
+func OpenRuntimeWithCapability(databaseURL string, profile RuntimeCapabilityProfile) (*Store, error) {
+	if !profile.valid() {
+		return nil, fmt.Errorf("%w: unknown expected runtime capability profile %q", ErrUnsafeRuntimeDatabaseRole, profile)
+	}
 	store, err := Open(databaseURL)
 	if err != nil {
 		return nil, err
 	}
+	store.runtimeCapabilityProfile = profile
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -84,6 +92,10 @@ func (s *Store) ValidateRuntimePrivileges(ctx context.Context) error {
 		return fmt.Errorf("%w: database store is not initialized", ErrUnsafeRuntimeDatabaseRole)
 	}
 
+	profile := s.runtimeCapabilityProfile
+	if !profile.valid() {
+		return fmt.Errorf("%w: invalid expected runtime capability profile %q", ErrUnsafeRuntimeDatabaseRole, profile)
+	}
 	conn, err := s.db.Conn(ctx)
 	if err != nil {
 		return fmt.Errorf("%w: acquire validation connection: %v", ErrUnsafeRuntimeDatabaseRole, err)
@@ -116,7 +128,7 @@ func (s *Store) ValidateRuntimePrivileges(ctx context.Context) error {
 	if err := validateNoRuntimeParameterPrivileges(ctx, conn, sessionUser, "authenticated principal"); err != nil {
 		return err
 	}
-	if err := validateRuntimeRoleCapabilities(ctx, conn, sessionUser, true, "authenticated principal"); err != nil {
+	if err := validateRuntimeRoleCapabilities(ctx, conn, sessionUser, profile, true, "authenticated principal"); err != nil {
 		return err
 	}
 	if err := validateNoRoleAdministration(ctx, conn, sessionUser, "authenticated principal"); err != nil {
@@ -140,7 +152,7 @@ func (s *Store) ValidateRuntimePrivileges(ctx context.Context) error {
 		if err := validateNoRuntimeParameterPrivileges(ctx, conn, roleName, "SET-reachable role"); err != nil {
 			return err
 		}
-		if err := validateRuntimeRoleCapabilities(ctx, conn, roleName, false, "SET-reachable role"); err != nil {
+		if err := validateRuntimeRoleCapabilities(ctx, conn, roleName, profile, false, "SET-reachable role"); err != nil {
 			return err
 		}
 		if err := validateNoRoleAdministration(ctx, conn, roleName, "SET-reachable role"); err != nil {
@@ -179,17 +191,17 @@ func validateRuntimeRoleAttributes(ctx context.Context, conn *sql.Conn, roleName
 	return nil
 }
 
-func validateRuntimeRoleCapabilities(ctx context.Context, conn *sql.Conn, roleName string, requireExact bool, roleKind string) error {
+func validateRuntimeRoleCapabilities(ctx context.Context, conn *sql.Conn, roleName string, profile RuntimeCapabilityProfile, requireExact bool, roleKind string) error {
 	if err := validateRuntimeDatabase(ctx, conn, roleName, requireExact, roleKind); err != nil {
 		return err
 	}
 	if err := validateRuntimeSchemas(ctx, conn, roleName, requireExact, roleKind); err != nil {
 		return err
 	}
-	if err := validateRuntimeRelations(ctx, conn, roleName, requireExact, roleKind); err != nil {
+	if err := validateRuntimeRelations(ctx, conn, roleName, profile, requireExact, roleKind); err != nil {
 		return err
 	}
-	if err := validateRuntimeColumns(ctx, conn, roleName, requireExact, roleKind); err != nil {
+	if err := validateRuntimeColumns(ctx, conn, roleName, profile, requireExact, roleKind); err != nil {
 		return err
 	}
 	if err := validateRuntimeSequences(ctx, conn, roleName, roleKind); err != nil {
@@ -257,9 +269,10 @@ func validateRuntimeSchemas(ctx context.Context, conn *sql.Conn, roleName string
 	return nil
 }
 
-func validateRuntimeRelations(ctx context.Context, conn *sql.Conn, roleName string, requireExact bool, roleKind string) error {
-	expected := make(map[string]runtimeRelationCapability, len(runtimeRelationCapabilities))
-	for _, capability := range runtimeRelationCapabilities {
+func validateRuntimeRelations(ctx context.Context, conn *sql.Conn, roleName string, profile RuntimeCapabilityProfile, requireExact bool, roleKind string) error {
+	capabilities := runtimeRelationCapabilitiesForProfile(profile)
+	expected := make(map[string]runtimeRelationCapability, len(capabilities))
+	for _, capability := range capabilities {
 		expected[capability.Schema+"."+capability.Name] = capability
 	}
 
@@ -351,9 +364,10 @@ func validateRuntimeRelations(ctx context.Context, conn *sql.Conn, roleName stri
 	return nil
 }
 
-func validateRuntimeColumns(ctx context.Context, conn *sql.Conn, roleName string, requireExact bool, roleKind string) error {
-	expected := make(map[string]runtimeRelationCapability, len(runtimeRelationCapabilities))
-	for _, capability := range runtimeRelationCapabilities {
+func validateRuntimeColumns(ctx context.Context, conn *sql.Conn, roleName string, profile RuntimeCapabilityProfile, requireExact bool, roleKind string) error {
+	capabilities := runtimeRelationCapabilitiesForProfile(profile)
+	expected := make(map[string]runtimeRelationCapability, len(capabilities))
+	for _, capability := range capabilities {
 		expected[capability.Schema+"."+capability.Name] = capability
 	}
 

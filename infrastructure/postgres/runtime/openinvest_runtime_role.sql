@@ -1,5 +1,11 @@
 \set ON_ERROR_STOP on
 
+-- OI-NEW-04 capability target. Omitted means exact legacy-compatible R0.
+\if :{?runtime_capability_profile}
+\else
+\set runtime_capability_profile R0
+\endif
+
 -- OI-NEW-01 PostgreSQL runtime least-privilege capability role.
 -- Run with the migration/schema-owner connection after canonical migrations.
 -- The entire capability reconstruction is transactional: already-running API sessions never observe
@@ -9,6 +15,12 @@
 -- user-schema CREATE, and executable SECURITY DEFINER paths even when acquired by the provider LOGIN independently.
 
 BEGIN;
+
+CREATE TEMP TABLE openinvest_runtime_capability_target (
+    profile TEXT PRIMARY KEY CHECK (profile IN ('R0', 'R1', 'R2'))
+) ON COMMIT DROP;
+INSERT INTO openinvest_runtime_capability_target(profile)
+VALUES (upper(:'runtime_capability_profile'));
 
 DO $runtime_role$
 BEGIN
@@ -99,6 +111,40 @@ GRANT SELECT (id) ON audit.actors TO openinvest_runtime;
 -- Stage 3.33 frozen invariant: audit evidence remains read + append only.
 REVOKE UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON audit.events FROM PUBLIC, openinvest_runtime;
 GRANT SELECT, INSERT ON audit.events TO openinvest_runtime;
+
+-- Runtime identifiers are application-generated UUIDs; sequences are never a runtime capability.
+-- OI-NEW-04 replay state: R0 grants nothing, R1 is read-only, R2 adds INSERT only on derived state.
+DO $replay_profile$
+DECLARE
+    target_profile text;
+BEGIN
+    SELECT profile INTO STRICT target_profile FROM openinvest_runtime_capability_target;
+
+    IF to_regclass('analytics.replay_policy_generations') IS NOT NULL THEN
+        REVOKE ALL PRIVILEGES ON analytics.replay_policy_generations FROM openinvest_runtime;
+        REVOKE ALL PRIVILEGES ON analytics.replay_policy_events FROM openinvest_runtime;
+        REVOKE ALL PRIVILEGES ON analytics.portfolio_replay_epochs FROM openinvest_runtime;
+        REVOKE ALL PRIVILEGES ON analytics.portfolio_replay_positions FROM openinvest_runtime;
+        REVOKE ALL PRIVILEGES ON analytics.portfolio_replay_financial_state FROM openinvest_runtime;
+
+        IF target_profile IN ('R1', 'R2') THEN
+            GRANT SELECT ON analytics.replay_policy_generations TO openinvest_runtime;
+            GRANT SELECT ON analytics.replay_policy_events TO openinvest_runtime;
+            GRANT SELECT ON analytics.portfolio_replay_epochs TO openinvest_runtime;
+            GRANT SELECT ON analytics.portfolio_replay_positions TO openinvest_runtime;
+            GRANT SELECT ON analytics.portfolio_replay_financial_state TO openinvest_runtime;
+        END IF;
+
+        IF target_profile = 'R2' THEN
+            GRANT INSERT ON analytics.portfolio_replay_epochs TO openinvest_runtime;
+            GRANT INSERT ON analytics.portfolio_replay_positions TO openinvest_runtime;
+            GRANT INSERT ON analytics.portfolio_replay_financial_state TO openinvest_runtime;
+        END IF;
+    ELSIF target_profile <> 'R0' THEN
+        RAISE EXCEPTION 'runtime capability profile % requires OI-NEW-04 replay schema', target_profile;
+    END IF;
+END
+$replay_profile$;
 
 -- Runtime identifiers are application-generated UUIDs; sequences are never a runtime capability.
 REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA identity, investment, analytics, audit FROM openinvest_runtime;

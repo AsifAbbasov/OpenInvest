@@ -44,7 +44,11 @@ func newApp() *fiber.App {
 			httpNetworkConfig,
 		)
 	}
-	store, err := openPostgresStore(databaseURL)
+	runtimeCapability, err := postgres.ParseRuntimeCapabilityProfile(os.Getenv("OPENINVEST_RUNTIME_CAPABILITY_PROFILE"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	store, err := openPostgresStore(databaseURL, runtimeCapability)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -74,13 +78,13 @@ func newApp() *fiber.App {
 	return app
 }
 
-func openPostgresStore(databaseURL string) (*postgres.Store, error) {
+func openPostgresStore(databaseURL string, runtimeCapability postgres.RuntimeCapabilityProfile) (*postgres.Store, error) {
 	if isExplicitDevelopmentEnvironment() {
 		// Local development may use the schema owner for migration convenience. Staging and
 		// production must prove the dedicated append-only runtime privilege boundary at startup.
-		return postgres.Open(databaseURL)
+		return postgres.OpenOwnerWithApplicationCapability(databaseURL, runtimeCapability)
 	}
-	return postgres.OpenRuntime(databaseURL)
+	return postgres.OpenRuntimeWithCapability(databaseURL, runtimeCapability)
 }
 
 func newValidatedRuntimeService(store verticalslice.Store) (*verticalslice.Service, error) {

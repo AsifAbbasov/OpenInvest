@@ -1,0 +1,41 @@
+BEGIN;
+SET LOCAL lock_timeout = '5000ms';
+SET LOCAL statement_timeout = '30000ms';
+
+-- DESTRUCTIVE TEST-ENVIRONMENT INVERSE ONLY.
+-- Never use this as an ordinary production rollback after replay activation or replay-state writes.
+ALTER TABLE analytics.portfolio_replay_financial_state DROP CONSTRAINT portfolio_replay_financial_state_epoch_fk;
+DROP INDEX analytics.portfolio_replay_financial_state_uidx;
+DROP TABLE analytics.portfolio_replay_financial_state;
+
+ALTER TABLE analytics.portfolio_replay_positions DROP CONSTRAINT portfolio_replay_positions_generation_positive;
+ALTER TABLE analytics.portfolio_replay_positions DROP CONSTRAINT portfolio_replay_positions_wac_positive;
+ALTER TABLE analytics.portfolio_replay_positions DROP CONSTRAINT portfolio_replay_positions_quantity_positive;
+ALTER TABLE analytics.portfolio_replay_positions DROP CONSTRAINT portfolio_replay_positions_asset_type_check;
+ALTER TABLE analytics.portfolio_replay_positions DROP CONSTRAINT portfolio_replay_positions_asset_fk;
+ALTER TABLE analytics.portfolio_replay_positions DROP CONSTRAINT portfolio_replay_positions_epoch_fk;
+DROP INDEX analytics.portfolio_replay_positions_uidx;
+DROP TABLE analytics.portfolio_replay_positions;
+
+ALTER TABLE analytics.portfolio_replay_epochs DROP CONSTRAINT portfolio_replay_epochs_watermark_nonnegative;
+ALTER TABLE analytics.portfolio_replay_epochs DROP CONSTRAINT portfolio_replay_epochs_boundary_nonnegative;
+ALTER TABLE analytics.portfolio_replay_epochs DROP CONSTRAINT portfolio_replay_epochs_generation_positive;
+ALTER TABLE analytics.portfolio_replay_epochs DROP CONSTRAINT portfolio_replay_epochs_policy_fk;
+ALTER TABLE analytics.portfolio_replay_epochs DROP CONSTRAINT portfolio_replay_epochs_portfolio_fk;
+DROP INDEX analytics.portfolio_replay_epochs_current_idx;
+DROP INDEX analytics.portfolio_replay_epochs_generation_uidx;
+DROP INDEX analytics.portfolio_replay_epochs_epoch_uidx;
+DROP TABLE analytics.portfolio_replay_epochs;
+
+ALTER TABLE analytics.replay_policy_events DROP CONSTRAINT replay_policy_events_type_check;
+ALTER TABLE analytics.replay_policy_events DROP CONSTRAINT replay_policy_events_generation_fk;
+DROP INDEX analytics.replay_policy_events_generation_event_uidx;
+DROP INDEX analytics.replay_policy_events_event_uidx;
+DROP TABLE analytics.replay_policy_events;
+
+ALTER TABLE analytics.replay_policy_generations DROP CONSTRAINT replay_policy_generations_bound_exact;
+ALTER TABLE analytics.replay_policy_generations DROP CONSTRAINT replay_policy_generations_generation_positive;
+DROP INDEX analytics.replay_policy_generations_uidx;
+DROP TABLE analytics.replay_policy_generations;
+
+COMMIT;
