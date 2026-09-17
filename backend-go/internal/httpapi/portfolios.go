@@ -84,7 +84,11 @@ func (api *API) getPortfolioSummary(c fiber.Ctx) error {
 	if err != nil {
 		return writeMappedError(c, err)
 	}
-	summary, err := api.service.GetPortfolioSummary(c.Context(), subjectID, c.Params("portfolioId"), c.Query("asOfDate"))
+	asOfDate, err := optionalQueryValue(c, "asOfDate")
+	if err != nil {
+		return writeMappedError(c, err)
+	}
+	summary, err := api.service.GetPortfolioSummary(c.Context(), subjectID, c.Params("portfolioId"), asOfDate)
 	if err != nil {
 		return writeMappedError(c, err)
 	}
