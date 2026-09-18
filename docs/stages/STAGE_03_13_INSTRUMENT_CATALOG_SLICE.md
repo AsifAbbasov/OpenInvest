@@ -5,11 +5,8 @@
 | Document ID | STAGE-03-13-INSTRUMENT-CATALOG-SLICE |
 | Version | 0.1.3 |
 | Status | Complete / closed |
-| Owner | Builder Engineer |
 | Supersedes | Stage 3.13 instrument catalog planning |
 | Dependencies | `SOURCE_OF_TRUTH.md`; Stage 2 contract baseline; Stage 3.13 instrument catalog planning |
-| Last Review Date | 2026-07-13 |
-| Next Review Date | Before Stage 3.14 implementation |
 
 ## Purpose
 
@@ -48,7 +45,7 @@ This slice does not add:
 - stock-card or bond-card pages, cards, or financial calculations;
 - WAC, XIRR, real return, inflation, purchasing-power, or tax calculations;
 - mobile implementation;
-- AI functionality.
+-  functionality.
 
 ## Work Completed So Far
 
@@ -74,32 +71,13 @@ This slice does not add:
 - `backend-go`: `OPENINVEST_DATABASE_TEST_URL='postgres://openinvest:openinvest-local@127.0.0.1:55432/openinvest?sslmode=disable' GOCACHE=/private/tmp/openinvest-gocache go test ./internal/postgres -run 'TestStoreAppendTransaction(RejectsUnsupportedTicker|SeedsApprovedBondFixture|AcceptsCanonicalFixtureWithLegacyID|DoesNotReactivateInactiveFixture|RejectsConflictingActiveFixture)|TestStoreVerticalSlice|TestStoreAppendImportedTransactionsIsAtomicAndIdempotent' -count=1 -v`
 - Repository root: `GOCACHE=/private/tmp/openinvest-gocache UV_CACHE_DIR=/private/tmp/openinvest-uv-cache pnpm run verify`
 
-## Internal Review Evidence
-
-- Changed files reviewed: PR #35 complete diff, including backend catalog/store changes, persistence
-  integration tests, vertical-slice tests, stage report, changelog, implementation log, Source of
-  Truth, and registry updates.
-- Review verdict: `APPROVED` after follow-up fixes.
-- Blocking findings: none remaining after the final follow-up review.
-- Resolved findings: ticker canonicalization, catalog fixture mutation behavior, metadata mismatch
-  rejection, shared database cleanup, PR metadata completeness, and withheld-evidence publication
-  timing.
-- Remaining non-blocking notes: live PostgreSQL integration coverage remains local/test-environment
-  evidence rather than a GitHub CI service dependency.
-- Confirmation that Review Agent did not edit code: confirmed read-only separate Codex review-window
-  review.
-- Runtime lookup accepts an existing active backend-owned asset row with matching canonical ticker,
-  type, name, currency, market, lifecycle, ISIN, and lot-size metadata even when its internal UUID
-  predates the deterministic fixture seed. Conflicting metadata remains rejected.
-- Catalog-mutation integration tests restore shared database state with checked cleanup operations.
-
 ## Review Focus
 
 Review must verify:
 
 - unsupported tickers cannot silently create canonical assets;
 - approved fixtures stay narrow, deterministic, and backend-owned;
-- no OpenAPI, SQL migration, handler, frontend, provider, worker, market-data, tax, mobile, or AI
+- no OpenAPI, SQL migration, handler, frontend, provider, worker, market-data, tax, mobile, or
   scope entered the slice;
 - existing idempotency and import append behavior remains compatible;
 - stock and bond type classification uses backend-owned asset metadata without introducing new
@@ -109,10 +87,9 @@ Review must verify:
 
 - Draft PR: `#35`
 - Branch: `feature/stage-03-13-instrument-catalog`
-- Final reviewed head: `033f388062eb6116635fdc1098f52f0404a20d09`
+Canonical record: commit(s) `033f388062eb6116635fdc1098f52f0404a20d09`.
 - Squash merge into `develop`: `b9c05fb14d0ee03e6de4dfc04ff67c16da33040b`
 - Merge date: 2026-07-13
-- Final separate Codex review-window verdict: `APPROVED`
 - GitHub CI on final head: green
 
 ## Recommended Next Step

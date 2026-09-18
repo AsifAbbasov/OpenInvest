@@ -5,11 +5,8 @@
 | Document ID | STAGE-03-21-PRIVACY-DATA-INVENTORY-PROPOSAL |
 | Version | 0.1.2 |
 | Status | Complete / merged through PR #50 at `207325e0497cc2608b99366f7f840472d270b6ed` |
-| Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.20 privacy threat-model proposal |
 | Dependencies | Documents 42-43; ADR-005; ADR-006; proposed ADR-008; Stage 2 ER model and migration strategy; Stage 3.17-3.20 privacy proposals |
-| Last Review Date | 2026-08-18 |
-| Next Review Date | Historical proposal closed; successor Stage 3.22 |
 
 ## Purpose
 
@@ -19,7 +16,6 @@ deletion or retention disposition. It makes every known direct identifier, rever
 correlation field, free-text field, and opaque payload visible before anyone claims that retained
 financial history is anonymous.
 
-This is not a production data discovery, Security Review, legal assessment, acceptance of ADR-008,
 or authorization to delete, anonymize, migrate, encrypt, back up, restore, or change runtime
 behavior. The repository cannot prove what a deployed platform, operator, browser extension,
 support system, observability vendor, replica, backup, or export currently retains.
@@ -106,10 +102,6 @@ backup projection an explicit disposition before implementation.
 
 ### Audit records
 
-| Surface and fields | Classification and risk | Future disposition | Required evidence |
-| --- | --- | --- | --- |
-| audit.actors: id, actor_kind, timestamp | Current auth code inserts the user UUID as a user actor ID. It is therefore a direct stable identity key despite no SQL foreign key to identity.users. | Transform/sever before ten-year retention, or retain only after proof. | Field-level actor replacement design, privileged-access controls, and primary/restore linkage-negative tests. |
-| audit.events: actor_id, target kind/ID, action/outcome, request/trace IDs, timestamps | actor_id, target IDs, and request/trace values can retain identity, session, or financial correlation. Ten-year retention does not make them anonymous. | Retain only after proof; remove or transform identifying/correlating fields while preserving the minimal audit purpose. | Audit schema contract, retention/minimization review, restored-copy search, and access evidence. |
 
 ## Code, Browser, and Transient Surfaces
 
@@ -120,7 +112,6 @@ backup projection an explicit disposition before implementation.
 | Import-review request | The browser submits raw CSV and an optional user-supplied source-account label for review. No SQL import-session/raw-file table exists in the repository migration chain. | Raw CSV can contain financial records and free text; the label can identify an account or person. They are transient only in observed application code, not proven absent from browser memory, request/proxy logs, telemetry, caches, support tools, or backups. |
 | Import-review response | The API returns portfolio ID, source kind/label/file hash, review token, row number/hash/fingerprint, reason codes, and candidate transaction data including optional safeNote. | Direct/indirect identifiers, financial data, hashes, and optional free text are held in a browser response/state. Delete from client/server transient handling after the approved operation; unknown external observability/caching copies block completion. |
 | Signed import-review token | The token is base64url-encoded JSON plus HMAC. Its payload contains subject ID, portfolio ID, source kind/label, file hash, and row number/hash pairs. HMAC provides integrity, not confidentiality; the observed payload has no expiry field. | Correlation material and direct/indirect bridges. Do not treat it as opaque or anonymous. Require a bounded issuance/revocation/expiry lifecycle and evidence for server memory, browser, telemetry, proxy, cache, and backup copies before deletion completion. |
-| Browser import state | While the import component is mounted, React state holds filename, raw CSV, reviewed CSV, source label, selected row numbers, review response/token, and append result. The observed code clears key fields after scope change and successful append, but no independent browser-memory lifecycle proof exists. | Filename/label, raw/reviewed CSV, response candidates, fingerprints, safeNote, hashes, and token are personal, financial, free-form, or correlated material. Browser caches, extensions, crash reports, and device backups require external evidence. |
 | Application logging/errors | Source inspection found startup error logging and no complete request/field-redaction system. This cannot prove a deployment has no request, SQL, proxy, or tracing logs. | Unknown blocks completion until each logging/telemetry sink, retention period, and redaction rule is inventoried. |
 | Test data, fixtures, CI artifacts | Repository tests use sample identity/auth/import values. Their retention and access outside the working tree are not established here. | Treat as non-production examples only; require CI artifact/cache and secret/PII handling evidence before completion. |
 
@@ -181,27 +172,10 @@ minimized audit evidence.
   claiming that the current system satisfies them.
 - It authorizes no runtime, OpenAPI, schema, provider, key-management, backup, or operational work.
 
-## Review Evidence
-
-Internal-review evidence was withheld from PR #50 until the blind external reviewer reached an
-independent conclusion. Publication of this section records review evidence only. It does not
-accept ADR-008, constitute Security Review approval, authorize implementation, or establish
-production compliance.
-
-| Gate | Evidence | Verdict |
-| --- | --- | --- |
-| Internal review | Existing dedicated read-only internal-review task reviewed the complete pre-commit Stage 3.21 diff, governing privacy sources, migrations, Go API/import-token construction, React import state, governance registers, and `git diff --check`. It reviewed the corrective revision after its initial findings. Builder and public-CI verification are recorded separately. | `APPROVED` |
-| External review | Dedicated blind external-review task independently reviewed published Draft PR #50, its complete 10-file diff, public CI, and governing sources without receiving the current internal verdict or findings before its conclusion. | `APPROVED` |
-
-The review evidence is not operational proof. Field-level production discovery, key custody,
-deletion-marker control, migration design, provider/backup evidence, operations runbook, and an
-adversarial restore rehearsal remain future gates.
-
 ## Historical Closure
 
 Stage 3.21 was squash-merged through PR #50 at `207325e0497cc2608b99366f7f840472d270b6ed` after
 the recorded internal and blind external `APPROVED` verdicts. The merged proposal remains evidence
-only: it does not accept ADR-008, constitute Security Review approval, or authorize implementation.
 
 The successor Stage 3.22 separately addresses the provider-neutral key-custody and destruction-proof
 evidence gap. The deletion-marker/control-plane, migration, operations, and restore-rehearsal gaps

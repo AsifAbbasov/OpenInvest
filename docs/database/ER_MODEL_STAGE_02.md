@@ -5,11 +5,8 @@
 | Document ID | DB-ER-STAGE-02 |
 | Version | 1.0.1 |
 | Status | Proposed Logical Model / No SQL Authorized |
-| Owner | Principal Architect |
 | Supersedes | Conflicting physical table drafts in legacy documents |
 | Dependencies | Documents 42–43; ADR-002; ADR-004; ADR-005; ADR-006 |
-| Last Review Date | 2026-09-12 |
-| Next Review Date | Before Stage 4 migrations |
 
 > **Historical Stage 2 baseline / reference**
 >
@@ -210,7 +207,6 @@ audit event, never an UPDATE.
 
 `tax` exists as an isolated namespace only. Stage 2 authorizes no tax profile, calculation,
 document, XML, PDF, or export tables. Tax Export remains disabled/experimental and requires its
-own feature approval, data classification, retention review, threat model, and migrations.
 
 ## Relationship invariants
 

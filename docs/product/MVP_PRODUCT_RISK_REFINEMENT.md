@@ -5,11 +5,8 @@
 | Document ID | PROD-RISK-001 |
 | Version | 1.0.1 |
 | Status | Approved / merged into `develop` |
-| Owner | Principal Architect |
 | Supersedes | Unstructured PRD criticism outside the repository |
 | Dependencies | `SOURCE_OF_TRUTH.md`; Documents 42–43; ADR-003; ADR-006; ADR-007 |
-| Last Review Date | 2026-09-11 |
-| Next Review Date | Before public MVP scope lock |
 
 ## Purpose
 
@@ -82,19 +79,6 @@ Import
 
 No import may silently mutate historical records.
 
-### Tax must be deterministic, not LLM-driven
-
-Risk: presenting AI as a tax calculator creates correctness, legal, and user-trust risk.
-
-Decision:
-
-- the tax calculation core, if enabled later, must be a deterministic rules engine with test vectors;
-- LLM/AI may only explain, summarize, assist review, or guide user input;
-- AI must never be the source of tax truth;
-- Tax XML/PDF export remains outside MVP and behind a future feature flag;
-- any tax feature requiring personal data must support temporary in-memory entry or encrypted
-  opt-in storage according to Privacy by Design.
-
 ### ICP must be narrower
 
 Risk: a generic "all investors" target produces weak messaging and weak product decisions.
@@ -145,9 +129,6 @@ Risk: full broker API synchronization is expensive, legally sensitive, and sourc
 
 Decision:
 
-- broker import moves earlier as a product requirement candidate;
-- full multi-broker API synchronization remains outside early implementation;
-- the first practical step is user-supplied file import with explicit review and no credentials.
 
 ## Rejected or already mitigated criticism
 
@@ -170,7 +151,7 @@ without compromising data ownership, calculation transparency, or product neutra
 ## Product guardrails
 
 - Do not sell the product as a trading terminal.
-- Do not sell AI as financial, investment, or tax truth.
+- Do not sell  as financial, investment, or tax truth.
 - Do not make Purchasing Power the primary dashboard metric.
 - Do not require passport, INN, phone, address, or stored tax profile for portfolio analytics.
 - Do not add external provider data without the Data Source Registry.
@@ -191,12 +172,8 @@ Historical recommendation after the first vertical slice:
 1. Stage 3.3 — Next.js presentation slice for the current Go API.
 2. Stage 3.4 — End-to-end verification and onboarding.
 3. Stage 3.5 — Broker file import and reconciliation design.
-4. Stage 3.6 — File-import vertical slice, if approved after design review.
 5. Later — WAC/XIRR/real-return algorithms with financial test vectors.
 
-This was a product-risk recommendation, not automatic implementation authorization. The
-recommendation was subsequently executed through separately reviewed stages and does not redefine
-the current roadmap.
 
 ## Success criteria for public MVP
 

@@ -5,7 +5,6 @@
 | Document ID | GOV-DOC-RECON-001 |
 | Version | 1.0.0 |
 | Status | MERGE-ACTIVATED — CANONICAL ONLY AFTER PROTECTED MERGE |
-| Owner | Principal Architect |
 | Baseline | Stage 3.72 lifecycle closure / PR #146 squash merge `ac0396eff47ce5cd862f41a5ec8ab2803de7fa58` |
 | Date | 2026-09-07 |
 
@@ -31,19 +30,9 @@ This record remains non-canonical while it exists only on the reconciliation bra
 
 The following surfaces are synchronized by this documentation-only closure:
 
-1. `README.md` — project entrypoint and current product state;
-2. `docs/SOURCE_OF_TRUTH.md` — authoritative current architecture/lifecycle status;
-3. `docs/ROADMAP.md` — ordered stage history through 3.72;
-4. `docs/IMPLEMENTATION_LOG.md` — implementation continuation through 3.72;
-5. `docs/CHANGELOG.md` — current reconciliation milestone and historical chronology;
-6. `docs/VERSION_MATRIX.md` — canonical lifecycle ranges and review gates;
-7. `docs/OPEN_QUESTIONS.md` — no stale pre-3.72 trigger;
-8. `docs/DOCUMENT_INDEX.md` — navigation to the reconciliation and audit register;
-9. `docs/audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md` — all 32 original findings indexed as closed.
 
 ## Documentation precedence
 
-Detailed stage dossiers remain the source for exact implementation rationale, test vectors, review findings, residual risk and commit/CI evidence. When a short registry summary conflicts with a canonical stage dossier or `SOURCE_OF_TRUTH.md`, the Source of Truth and accepted ADR/stage authority take precedence according to the existing documentation freeze rules.
 
 ## No runtime change
 
@@ -51,4 +40,4 @@ This reconciliation changes no Go, PostgreSQL schema/migration, OpenAPI runtime 
 
 ## Next gate
 
-This reconciliation remains the historical canonical synchronization baseline through Stage 3.72. Stage 3.73 subsequently became COMPLETE / CANONICAL through PR #148, and Stage 3.74 subsequently became COMPLETE / CANONICAL through PR #150 squash merge `0580bf7e98c532202f84bbf9ceacd97aedbe4140` from exact final head `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02` after CI #435 / run `34117662576` 10/10 SUCCESS. Neither historical reconciliation grants later runtime scope; any Stage 3.75+ product/runtime stage must be separately planned and reviewed. Architecture-changing provider/public activation, market valuation, privacy lifecycle, tax-basis semantics, imported SELL expansion or other frozen-boundary changes must enter the existing Issue → ADR/plan → review → explicit authorization workflow.
+Canonical record: PR #148, PR #150; commit(s) `0580bf7e98c532202f84bbf9ceacd97aedbe4140`, `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02`.

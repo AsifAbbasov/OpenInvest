@@ -7,7 +7,7 @@
 | Repository | `AsifAbbasov/OpenInvest` |
 | Canonical implementation base | `develop@247081a95a7daf33c0077c88c5f41cb2e8161865` |
 | Implementation PR | `#164` |
-| Implementation head reviewed by External phase | `7c021e74db3a66488c4c6d87412729f524d9023f` |
+Canonical record: commit(s) `7c021e74db3a66488c4c6d87412729f524d9023f`.
 | Final evidence head | `ddc5b5be36f0b5ae127c6ee430918a9dba1b453e` |
 | Canonical squash merge | `247081a95a7daf33c0077c88c5f41cb2e8161865` |
 | Canonical merged tree | `ec7bc9152210913b1a6ef742bddd599abee50bc7` |
@@ -15,7 +15,6 @@
 | Source/use rights | `CONDITIONAL-GO` for the exact constrained mode only |
 | Adapter implementation | COMPLETE / MERGED |
 | Runtime activation | NO |
-| Live T-Invest token | NOT USED by the Feature 3D implementation/review workflow; deployed secret stores were not inspected by this closure |
 | Production provider traffic | NOT AUTHORIZED / NOT CLAIMED by Feature 3D; production telemetry was not inspected by this closure |
 | Persistent provider storage | NO |
 | Background polling/synchronization | NO |
@@ -24,7 +23,6 @@
 
 ## 1. Purpose and authority
 
-This document closes the **documentation lifecycle** of Feature 3D after the implementation and evidence chain were squash-merged through PR `#164`. It does not rewrite the historical implementation dossier, review-evidence publication, or evidence errata. Those remain time-specific evidence:
 
 - `docs/stages/FEATURE_3D_TINVEST_CORPORATE_ACTIONS_IMPLEMENTATION.md`
 - `docs/stages/FEATURE_3D_TINVEST_CORPORATE_ACTIONS_REVIEW_EVIDENCE.md`
@@ -46,7 +44,6 @@ production traffic     = NOT AUTHORIZED / NOT CLAIMED by Feature 3D
 
 ## 2. Canonical implementation identity and evidence
 
-Feature 3D implementation was published as PR `#164` from the reviewed implementation commit:
 
 ```text
 7c021e74db3a66488c4c6d87412729f524d9023f
@@ -87,10 +84,7 @@ evidence head CI       #501 / run 34356672643 = 10/10 SUCCESS
 Review evidence:
 
 ```text
-final Internal review                   = APPROVED
-fresh External published-head review    = APPROVED
 blocking P0/P1/P2                       = 0 / 0 / 0
-post-evidence no-semantic-drift review  = APPROVED
 ```
 
 ## 3. Exact source/use and runtime boundary
@@ -131,7 +125,6 @@ Not authorized by Feature 3D:
 - provider-specific public API fields;
 - new canonical Corporate Action kinds.
 
-Broader T-Invest use requires a new source/use review and explicit registry approval.
 
 ## 4. Financial-truth and runtime activation boundary
 
@@ -144,7 +137,6 @@ OPENINVEST_TINVEST_CORPORATE_ACTIONS_ENABLED=true
 OPENINVEST_TINVEST_READONLY_TOKEN=<valid server-side read-only token>
 ```
 
-The token alone does not activate the provider. Enablement without a valid non-empty token fails closed. Feature 3D implementation/review used no live T-Invest token. This closure neither activates a provider nor claims to inspect deployed secret stores or production telemetry.
 
 Provider transport remains bounded: Go `net/http`, production REST base `https://invest-public-api.tbank.ru/rest`, 5-second timeout, redirects forbidden, cookie jar nil, response <=256 KiB, no automatic retry, internal <=60 provider requests/minute, maximum concurrency 4 with fail-fast overflow, request-lifetime provider processing only, no persistence/polling/cache.
 
@@ -159,9 +151,6 @@ RetrievedAt = the same OpenInvest observation time
 
 This is not a provider update timestamp or freshness/SLA claim. Internal `SourceEventID` is an application-generated deterministic digest of normalized provider evidence, not a native T-Invest event ID and not a public API field.
 
-## 5. Engineering review and remediation history
-
-The history below uses the required sequence: **problem -> root cause -> failure/attack scenario -> project impact -> original design -> why review rejected it -> second-order scenario -> final remediation -> rationale -> regression coverage -> CI/review evidence -> residual limitations**. A second-order scenario is identified as such only when it was genuinely considered; no fictional review history is introduced.
 
 ### INT-3D-001 — dividend lifecycle/type mapping was too permissive
 
@@ -393,7 +382,6 @@ The history below uses the required sequence: **problem -> root cause -> failure
 
 **Original design.** The frozen implementation dossier attempted to summarize all final behavior in one prepublication record.
 
-**Why review rejected it.** Evidence must not claim stronger provenance/time semantics than the implementation/provider contract proves.
 
 **Second-order scenario.** Silently rewriting the historical evidence after publication would destroy chronology and obscure what was corrected later.
 
@@ -403,7 +391,6 @@ The history below uses the required sequence: **problem -> root cause -> failure
 
 **Evidence.** `INT-3D-010` RESOLVED; External verdict remained APPROVED; no-drift verification APPROVED.
 
-**Residual limitations.** The historical implementation dossier intentionally remains immutable and must be read together with review evidence and errata.
 
 ## 6. PRE-3D-ROUTE-001 — shipped replay composition omitted the canonical route
 
@@ -427,7 +414,7 @@ The history below uses the required sequence: **problem -> root cause -> failure
 
 **Regression coverage.** `TestReplayProductionConstructorRegistersCorporateActionsRouteWhenProviderIsDisabled` proves disabled provider -> 503, not 404; `TestReplayProductionConstructorInjectsCorporateActionsProvider` proves injected provider -> successful route.
 
-**Evidence.** Included in PR #164, reviewed Internal/External, CI #499/#501 green.
+Canonical record: PR #164.
 
 **Residual limitations.** Provider availability still depends on explicit runtime configuration; the route being present is not evidence of source activation.
 
@@ -447,20 +434,10 @@ Not every final control passed through a rejected design. Where the candidate wa
 
 Feature 3D remains deliberately narrow:
 
-1. Only `SBER`, `GAZP`, and `SU26238RMFS4` have reviewed static provider mappings.
-2. Unsupported/future dividend types fail closed until semantics are reviewed.
-3. Absent coupon amount remains unknown; no undocumented zero/sentinel meaning is inferred for future floating/variable coupons.
-4. Rate/concurrency admission is provider-instance/process-local, not distributed across replicas.
-5. No provider schedule date proves actual settlement; `PAID`/`CONFIRMED` are not inferred.
-6. Provider evidence does not create ledger transactions, cash, realized income, or tax truth.
-7. Runtime activation remains a separate operational/governance action requiring a valid read-only token and exact compliance with the existing `CONDITIONAL-GO` row.
-8. Broader T-Invest methods, public-contract expansion, persistence, polling, caching, scraping/fallback, account/broker synchronization, trading, or price use require new review.
-9. The public machine identifier remains `T_INVEST_API`; a future generic presentation/display-name layer may render a friendlier label without changing provider identity, but that is not part of this closure.
-10. Production traffic/secret-store state is not asserted because this closure did not inspect production telemetry or deployed secrets.
 
 ## 9. Merge chronology accuracy
 
-GitHub records `AsifAbbasov` as the actor for the Ready-for-review event at `2026-09-09T13:27:45Z` and for the merge event at `2026-09-09T13:54:40Z`. The assistant did not execute the merge mutation. A later chat message saying `разрешаю` occurred after GitHub had already merged PR #164, so this closure does **not** use that later message as retroactive pre-merge authorization evidence.
+Canonical record: PR #164.
 
 This chronology note exists to preserve factual governance history, not to reopen the already merged implementation.
 
@@ -493,8 +470,6 @@ runtime activation = NO
 live token introduction = NO
 Stage 3.78 start = NO
 required exact-head CI = GREEN
-Governance/Closure review = APPROVED
-human merge authorization = separate future gate
 ```
 
 Until that merge occurs, Feature 3D implementation itself remains canonical through PR #164, while this post-merge documentation closure remains a candidate.

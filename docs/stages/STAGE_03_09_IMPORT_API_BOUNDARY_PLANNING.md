@@ -5,11 +5,8 @@
 | Document ID | STAGE-03-09 |
 | Version | 0.1.0 |
 | Status | Complete / planning closed |
-| Owner | Builder Engineer |
 | Supersedes | Internal-only import flow state |
 | Dependencies | Stage 3.6 import reconciliation slice; Stage 3.7 import append slice; Stage 3.8 import review append flow slice; Documents 42–43 |
-| Last Review Date | 2026-07-08 |
-| Next Review Date | 2027-01-08 |
 
 ## Purpose
 
@@ -59,9 +56,6 @@ POST /api/v1/portfolios/{portfolioId}/imports/{reviewId}/append
 → appends approved rows atomically
 ```
 
-This is a planning sketch, not an approved contract. The exact OpenAPI paths, request schemas,
-response schemas, retention rules, and persistence model require a separate implementation PR and
-review.
 
 ## Boundary decisions to preserve
 
@@ -104,7 +98,7 @@ The planning PR did not introduce:
 - background workers;
 - tax calculation;
 - mobile code;
-- AI assistance;
+-  assistance;
 - Stage 3.10 or later work.
 
 ## Questions that must be answered before implementation
@@ -130,5 +124,3 @@ This planning PR is complete:
 - privacy, idempotency, audit, and retention questions are listed;
 - governance registries reference the planned stage;
 - no implementation code or OpenAPI contract is changed;
-- independent review approves;
-- human approval is given before merge.

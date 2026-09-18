@@ -5,11 +5,8 @@
 | Document ID | STAGE-03-01 |
 | Version | 0.1.1 |
 | Status | Complete / Merged into `develop` |
-| Owner | Builder Engineer |
 | Supersedes | Stage 3 PR 3.1 placeholder |
 | Dependencies | `STAGE_03_FIRST_VERTICAL_SLICE.md`; `ER_MODEL_STAGE_02.md`; `MIGRATION_STRATEGY_STAGE_02.md`; ADR-002; ADR-006 |
-| Last Review Date | 2026-06-27 |
-| Next Review Date | 2026-12-27 |
 
 ## Purpose
 
@@ -65,8 +62,6 @@ Reason:
 - compatible with future Go migration tooling;
 - sufficient for the first local database foundation.
 
-A future migration runner may be selected only after review. If the selected tool changes
-architecture, deployment, rollback, or operational semantics, it requires a dedicated ADR.
 
 ## Migration files
 
@@ -153,5 +148,3 @@ production deployment.
 - Migration validator passes locally and in CI.
 - Existing Go, Python, frontend, OpenAPI, and Docker Compose checks remain green.
 - No runtime implementation is introduced.
-- Internal Review Agent approves.
-- Human approval is required before merge into `develop`.

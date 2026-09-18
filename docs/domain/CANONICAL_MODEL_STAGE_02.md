@@ -5,11 +5,8 @@
 | Document ID | DOMAIN-STAGE-02 |
 | Version | 1.0.1 |
 | Status | Proposed / Awaiting Review |
-| Owner | Principal Architect |
 | Supersedes | Conflicting DTO shapes in legacy documents |
 | Dependencies | Documents 42–43; ADR-003; ADR-004; ADR-006 |
-| Last Review Date | 2026-09-12 |
-| Next Review Date | At Stage 2 approval |
 
 > **Historical Stage 2 baseline / reference**
 >
@@ -301,5 +298,4 @@ without contract review and an ADR when breaking.
 
 ## Open questions
 
-None. New uncertainty must enter `OPEN_QUESTIONS.md` through Issue → ADR → review → approval;
 it cannot be left as a production TODO or silently decided during backend implementation.

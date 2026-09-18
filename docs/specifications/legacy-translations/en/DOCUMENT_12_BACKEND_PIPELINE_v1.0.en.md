@@ -133,7 +133,7 @@ complex mathematics;
 
 data enrichment;
 
-AI recommendations.
+ recommendations.
 
 ---
 
@@ -543,7 +543,6 @@ EMAIL
 
 Push
 
-AI
 
 are not executed synchronously.
 
@@ -765,13 +764,13 @@ separate queue.
 
 ---
 
-# 30. AI ENGINE
+# 30.  ENGINE
 
-AI never runs inside the API.
+ never runs inside the API.
 
 ---
 
-AI is a separate Worker.
+ is a separate Worker.
 
 ---
 
@@ -936,17 +935,3 @@ With 100 000 users:
 • the user never notices the background infrastructure working.
 
 ---
-
-# 40. CODEX REQUIREMENT
-
-Codex must implement any new function only after checking:
-
-1. Does it increase the number of requests to official APIs?
-
-2. Does it increase memory consumption?
-
-3. Does it increase client internet traffic?
-
-4. Does it violate Cache First and API First principles?
-
-5. Does it reduce project scalability?

@@ -5,11 +5,8 @@
 | Document ID | STAGE-03-13-INSTRUMENT-CATALOG-PLAN |
 | Version | 0.1.4 |
 | Status | Complete / closed; merged into `develop` at `ca16af9adba249fc8c32c9b246b5f92f7e290b92` |
-| Owner | Builder Engineer |
 | Supersedes | Informal next-step discussion after Stage 3.12 |
 | Dependencies | `SOURCE_OF_TRUTH.md`; Stage 2 contract baseline; Stage 3.12 Web authentication UI slice |
-| Last Review Date | 2026-07-13 |
-| Next Review Date | Before Stage 3.14 implementation |
 
 ## Purpose
 
@@ -23,7 +20,6 @@ architecture decisions or introduce external-provider integrations, financial ca
 workers, tax logic, or frontend business authority.
 
 This document is planning only. It does not authorize implementation by itself, and approval of
-this document does not waive the normal migration, OpenAPI, backend, frontend, review, or CI gates
 for any later implementation PR.
 
 ## Problem
@@ -44,7 +40,6 @@ needs a narrower implementation slice that respects the frozen canonical boundar
 
 ## Candidate backend outcome
 
-A separately reviewed implementation PR may target this local demonstration only after this plan is
 merged and implementation is explicitly approved:
 
 ```text
@@ -61,19 +56,6 @@ Authenticated user opens portfolio detail
 The following are candidate surfaces for a later Stage 3.13 implementation PR. They are not
 authorized by this planning document, and each changed surface must pass its own established gate:
 
-- a minimal backend-owned projection of the frozen Stage 2 asset model for MVP MOEX shares and
-  bonds;
-- use of the existing Stage 3.01 `investment.assets` table and indexes, without adding duplicate
-  asset-identity schema;
-- Go repository/service validation behind existing approved API behavior to resolve transaction
-  tickers to backend-owned asset entries;
-- deterministic local seed or fixture data for a narrow reviewed MVP instrument set;
-- no OpenAPI request/response changes unless implementation first stops for the separate
-  contract-change proposal required by the Stage 3 API-first rule;
-- no SQL migrations unless implementation first stops for a separate migration/contract-impact
-  review compatible with the frozen Stage 2 ER model;
-- tests for validation, privacy, idempotency compatibility, and asset-catalog lookup behavior;
-- documentation updates.
 
 ## Forbidden scope
 
@@ -87,7 +69,7 @@ Stage 3.13 must not add:
 - stock-card or bond-card financial calculations;
 - WAC, XIRR, real return, inflation, purchasing-power, or tax calculations;
 - broker synchronization or credential scraping;
-- AI functionality;
+-  functionality;
 - mobile implementation;
 - Next.js Route Handlers or Server Actions for business domains;
 - direct database access from Next.js;
@@ -109,15 +91,6 @@ Stage 3.13 must not add:
 
 ## Decisions documented for implementation
 
-- Minimal local fixtures are limited to `SBER`, `GAZP`, and `SU26238RMFS4` for the first
-  implementation slice.
-- Transaction append rejects unknown or noncanonical tickers immediately with the existing invalid
-  input path; it does not preserve unresolved asset references.
-- No OpenAPI DTO changes are authorized for the first implementation slice.
-- Historical transactions keep referencing the stable backend asset identity. Later display-name
-  lifecycle changes require a separately reviewed metadata-management slice.
-- Rejected instrument references do not add a new audit event in this slice; existing request/error
-  telemetry remains the only evidence until a separately reviewed rejection-audit design exists.
 
 ## Acceptance criteria for a future implementation PR
 
@@ -132,19 +105,11 @@ Stage 3.13 must not add:
 - If OpenAPI or migration changes are needed, implementation stops for the separate proposal
   required by Stage 3 governance before code changes continue.
 - CI is green.
-- Independent review confirms Stage 3.13 stays within the approved instrument-catalog scope.
 
 ## Review focus
 
 Review must specifically verify:
 
-- no provider integration or market-data ingestion entered the planning or implementation scope;
-- no frontend business authority was introduced;
-- no financial calculations were authorized;
-- migrations, OpenAPI changes, and Go handler changes remain unauthorized until the required
-  separate proposal/review gate explicitly approves that surface;
-- the plan does not authorize stock-card, bond-card, frontend presentation, dividend, coupon, tax,
-  mobile, or AI scope.
 
 ## Recommended next step
 

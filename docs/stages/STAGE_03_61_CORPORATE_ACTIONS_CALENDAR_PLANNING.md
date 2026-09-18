@@ -1,15 +1,6 @@
 # Stage 3.61 — Dividend / Coupon Calendar + Heatmap Source and Boundary Planning
 
-| Field | Value |
-| --- | --- |
-| Document ID | STAGE-03-61-CORPORATE-ACTIONS-CALENDAR-PLAN |
-| Version | 0.1.0-candidate |
-| Status | Published Draft planning/source-governance candidate; no runtime ingestion, API, DB, frontend, Ready, merge, or implementation authorization |
-| Owner | Principal Architect / Corporate Actions |
-| Canonical planning base | `develop@7c022e6de1ab0a86ebf96ede48fafabc15b9f71c` |
-| Protected-base tree | `13ffddcb1557953f49df0b8b0bd69e71dc5adb58` |
-| Dependencies | Stage 3.60; Data Source Registry; Review Workflow v1.4.0 |
-| Date | 2026-09-04 |
+Canonical record: commit(s) `7c022e6de1ab0a86ebf96ede48fafabc15b9f71c`, `13ffddcb1557953f49df0b8b0bd69e71dc5adb58`.
 
 ## 1. Purpose
 
@@ -223,6 +214,5 @@ Stage 3.61 planning is acceptable only if:
 
 This planning bundle is published in Draft PR #125. Publication itself does not authorize Feature 3A implementation, Ready, or merge.
 
-The exact current published head must pass all required GitHub CI checks and the same designated review chat must perform exact-published-head Governance / Closure verification under `docs/REVIEW_WORKFLOW.md` v1.4.0.
 
-Only after those gates pass and the Principal Architect gives separate explicit Ready/squash-merge authorization may Stage 3.61 planning become canonical on protected `develop`. Feature 3A implementation then requires a separate explicit human authorization from that merged canonical base.
+Only after those gates pass and the Principal Architect gives separate explicit Ready/squash-merge authorization may Stage 3.61 planning become canonical on protected `develop`. Feature 3A implementation then requires a separate explicit merge gate from that merged canonical base.

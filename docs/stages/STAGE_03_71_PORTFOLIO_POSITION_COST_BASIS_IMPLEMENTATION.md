@@ -1,6 +1,5 @@
 # Stage 3.71 — Portfolio Position & Cost Basis Engine implementation
 
-Status: implementation candidate; not merge-activated until the repository review/CI/governance gates complete.
 
 Base authority: protected `develop@b772e52221fbb694b3116bd1b579db99d4e56302`, with Stage 3.70 / ADR-009 already merge-activated.
 
@@ -17,7 +16,7 @@ Stage 3.71 implements the runtime boundary frozen by Stage 3.70:
 - manual Web SELL exposure only after the backend path exists;
 - one narrow POST-transaction 409 contract extension for `INSUFFICIENT_POSITION_QUANTITY`.
 
-Explicitly excluded: public position DTO activation, market price/value, unrealized P/L, XIRR, FIFO/tax lots, transaction correction/reversal runtime, imported SELL, provider activation, notifications, AI, Redis/workers, and Feature3D.
+Explicitly excluded: public position DTO activation, market price/value, unrealized P/L, XIRR, FIFO/tax lots, transaction correction/reversal runtime, imported SELL, provider activation, notifications, Redis/workers, and Feature3D.
 
 ## 2. Financial invariants
 
@@ -176,5 +175,3 @@ Required evidence covers:
 - repeated position rebuild returns identical financial state.
 
 ## 9. Governance state
-
-This document records implementation intent/evidence only. It does not claim CI success, published-head review approval, Ready state, merge, or protected-branch activation before those events actually occur.

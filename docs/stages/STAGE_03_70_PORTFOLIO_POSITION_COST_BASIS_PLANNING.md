@@ -4,11 +4,8 @@
 | --- | --- |
 | Document ID | STAGE-03-70-PORTFOLIO-POSITION-COST-BASIS-PLAN |
 | Version | 0.1.1-candidate |
-| Status | Merge-activated planning decision — candidate/non-normative before required review/CI/evidence gates; COMPLETE/CANONICAL only after explicit Principal Architect acceptance and squash merge of this exact decision to protected `develop`; no Stage 3.71 runtime/Ready/merge authorization by this document |
-| Owner | Principal Architect / Portfolio & Analytics |
 | Canonical planning base | `develop@d2258134433fe214695db43db7de3b6bf003e9cf` |
 | Protected-base tree | `9b73746a298a4d36c6dcb0e1037ba45b17dfb0e6` |
-| Dependencies | Documents 42–43; ADR-006; Stage 2 API/canonical/ER freeze; Stage 3.02; Stage 3.33; Stage 3.69; `docs/REVIEW_WORKFLOW.md` v1.4.0 |
 | Proposed decision | ADR-009 — Deterministic Portfolio Ledger Ordering and Weighted-Average-Cost Position Semantics |
 | Architecture Issue | GitHub #136 — `https://github.com/AsifAbbasov/OpenInvest/issues/136` |
 | Date | 2026-09-06 |
@@ -21,7 +18,7 @@ The engine must answer one question:
 
 > Given the immutable ledger, what are the exact remaining quantity, Weighted Average Cost (WAC), and remaining acquisition basis for each asset at any BusinessDate?
 
-This is the next dependency below SELL, position summary, P/L, XIRR, real return and attribution. It requires no external provider, paid source, scraping, Redis, worker or AI service.
+This is the next dependency below SELL, position summary, P/L, XIRR, real return and attribution. It requires no external provider, paid source, scraping, Redis, worker or  service.
 
 Current repository evidence already establishes:
 
@@ -35,19 +32,6 @@ Current repository evidence already establishes:
 
 ## 2. Governance classification
 
-This is documentation-only but changes implementation-affecting financial semantics, so it follows the **development path** in `REVIEW_WORKFLOW.md` v1.4.0.
-
-```text
-local candidate
-→ local checks
-→ Internal read-only full review
-→ explicit human commit/push permission
-→ Draft PR + CI
-→ fresh External published-head review
-→ Internal evidence publication + evidence CI/verification
-→ explicit human ADR acceptance + Ready/squash-merge authorization
-→ protected develop
-```
 
 Stage 3.71 runtime coding is forbidden until Stage 3.70/ADR-009 are canonical and separately authorized.
 
@@ -434,7 +418,7 @@ DIVIDEND/COUPON/FEE/TAX import expansion
 bond NKD / YTM / duration / amortization
 FIFO / tax lots
 Corporate Actions Feature 3D
-notifications / AI / Monte Carlo
+notifications /, Monte Carlo
 Redis / workers / cron
 new paid or external service
 ```
@@ -460,5 +444,3 @@ STOP before Stage 3.71 if:
 - scope expands into reversal/correction, imported SELL, XIRR, tax, market data or bond NKD.
 
 GitHub Issue #136 carries the admitted architecture question, owner, due date, affected decisions and proposed ADR-009. The Issue does not authorize implementation or repository publication by itself.
-
-After Stage 3.70/ADR-009 is accepted and squash-merged to protected `develop`, the next action is a separate explicit human authorization for Stage 3.71 runtime implementation. No additional multi-stage planning programme is required unless review finds a new blocking architecture question.

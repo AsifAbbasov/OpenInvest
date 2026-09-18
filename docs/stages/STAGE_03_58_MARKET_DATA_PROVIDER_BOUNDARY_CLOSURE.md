@@ -4,12 +4,10 @@
 | --- | --- |
 | Status | MERGE-ACTIVATED CLOSURE RECORD — before protected activation Stage 3.57 Feature 1 runtime is already merged but lifecycle documentation synchronization remains pending; once this record and the synchronized canonical surfaces are present on protected `develop`, Feature 1 is canonically CLOSED |
 | Date | 2026-09-04 |
-| Canonical workflow | `docs/REVIEW_WORKFLOW.md` v1.4.0 |
 | Closure base | protected `develop@cd97f3217811bb123ad96d92b7d8a4be0e03c8bb` / tree `0510971289c204e9b5226359f2efdd1941542309` |
 | Stage 3.57 planning | PR #119 / squash merge `8316d404d057f0a895713bd1d496a342409903c4` / plan blob `6ddd4682b49a6a259c64474d9adf8882279eca5d` / SHA-256 `e85fc028550663b51daafdea14deddc18f79ae1a3c917e3f5a8c414d5f5ce8ed` |
 | Stage 3.57 implementation | PR #120 / initial implementation head `95ec859481d08e1f53e090834a6bb39f0a845dfa` / final evidence head `35db51707fce970e67bf9d5a9485f79619ec366d` / approved tree `0510971289c204e9b5226359f2efdd1941542309` / squash merge `cd97f3217811bb123ad96d92b7d8a4be0e03c8bb` |
 | Stage 3.57 final CI | CI #321 / run `33861987999` — 10/10 SUCCESS on final evidence head; same-head dependency-security retry followed an external npm-registry timeout and changed no project bytes |
-| Stage 3.57 review | Internal `APPROVED`; fresh External published-head `APPROVED`; evidence-publication verification `APPROVED`; blocking findings none |
 | Runtime/schema/data/SQL/OpenAPI/frontend/dependency change | None — Stage 3.58 is documentation/governance synchronization only |
 | Feature 2 authorization | None — this closure does not authorize real MOEX ISS HTTP, provider parsing, source activation, production provider wiring, API enrichment, persistence, cache, worker, or frontend work |
 
@@ -139,30 +137,6 @@ Exact-threshold values remain `FRESH`; only strictly older values are `STALE`.
 
 No universal production freshness threshold is selected by Feature 1.
 
-## 7. Verification and review evidence
-
-The final evidence head `35db51707fce970e67bf9d5a9485f79619ec366d` completed CI #321 / run `33861987999` with all ten required checks successful:
-
-1. Go tests;
-2. Python tests;
-3. Frontend build and typecheck;
-4. OpenAPI contract;
-5. Docker Compose config;
-6. PostgreSQL migration validation;
-7. Go vet;
-8. Go race tests;
-9. Go vulnerability scan;
-10. Dependency security scan.
-
-The first dependency-security attempt encountered an external timeout while `pnpm audit` contacted `registry.npmjs.org`. The job was rerun on the same exact head without any project-byte change and succeeded. This is preserved as infrastructure chronology, not reclassified as an application defect.
-
-Review evidence:
-
-- frozen Internal review: `APPROVED`, blocking findings none;
-- fresh External published-head review: `APPROVED`, blocking findings none;
-- evidence-only follow-up changed only the Stage 3.57 implementation document;
-- final evidence-publication verification: `APPROVED`, semantic/runtime drift `NONE`.
-
 ## 8. Explicit non-scope preserved
 
 Feature 1 and this closure do not include or authorize:
@@ -188,7 +162,6 @@ Production asset search therefore continues to preserve the existing honest `las
 
 The next market-data work is not implicitly activated by Stage 3.58.
 
-A separately reviewed Feature 2 stage must decide the concrete real-provider integration scope before implementation. At minimum it must address, where applicable:
 
 - exact MOEX ISS endpoint(s) and response contract;
 - adapter-owned wire-schema parsing and column mapping;
@@ -222,8 +195,7 @@ Activation is structural:
 1. Stage 3.57 runtime remains canonical on protected `develop` at merge `cd97f3217811bb123ad96d92b7d8a4be0e03c8bb`;
 2. before this exact closure record and synchronized canonical surfaces are present on protected `develop`, lifecycle documentation synchronization remains pending;
 3. the complete Stage 3.58 change must remain documentation/governance-only;
-4. it must pass the mandatory post-development governance/closure path under `docs/REVIEW_WORKFLOW.md` v1.4.0;
 5. once the approved closure record and synchronized surfaces are squash-merged into protected `develop`, Stage 3.57 Feature 1 is canonically CLOSED;
-6. Feature 2 remains NOT AUTHORIZED until a separate explicit governed stage and human authorization.
+6. Feature 2 remains NOT AUTHORIZED until a separate explicit governed stage and merge gate.
 
 No branch deletion is authorized by this record.

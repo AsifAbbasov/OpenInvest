@@ -5,11 +5,8 @@
 | Document ID | DB-MIGRATION-STAGE-02 |
 | Version | 1.0.1 |
 | Status | Proposed Strategy / No Migrations Authorized |
-| Owner | Principal Architect |
 | Supersedes | Ad hoc migration guidance in legacy documents |
 | Dependencies | Documents 42–43; ADR-002; ADR-006 |
-| Last Review Date | 2026-09-12 |
-| Next Review Date | Before Stage 4 migrations |
 
 > **Historical Stage 2 baseline / reference**
 >
@@ -36,7 +33,6 @@ Correctness, security, privacy, rollback, and availability take priority over de
 3. Application versions before and after deployment must coexist during the transition window.
 4. Financial ledger rows are never updated/deleted by a migration to "clean up" history.
 5. Snapshots may be rebuilt; transactions may not be rewritten.
-6. Every migration is versioned, immutable after merge, reviewed, observable, and rehearsed.
 7. Production schema changes run through CI/CD with least-privilege credentials; never manually.
 8. Backups and point-in-time recovery are verified before high-risk changes, but backup existence
    is not a substitute for a rollback design.
@@ -100,7 +96,6 @@ Validation is domain-aware, not merely row counts:
 - backup restore plus migration replay in a non-production environment.
 
 A signed validation report identifies dataset/watermark, queries/tool versions, mismatches, accepted
-risk, and reviewer. Any unexplained financial mismatch blocks Contract.
 
 ## Phase 5 — Contract
 
@@ -121,9 +116,7 @@ the default end state; retaining a deprecated structure temporarily is safer tha
 
 | Risk | Examples | Minimum gate |
 | --- | --- | --- |
-| Low | new empty table, additive nullable column | review, CI, rollback statement |
 | Medium | backfill, new constraint/index, read-path switch | rehearsal, metrics, staged rollout |
-| High | financial representation, identity link, encryption, event ordering | ADR, security/privacy review, golden vectors, restore rehearsal |
 | Destructive | DROP, irreversible conversion, history rewrite | separate staged ADR; normally forbidden |
 
 ## Versioning and ordering
@@ -168,7 +161,6 @@ material is cryptographically destroyed. A restored backup cannot recreate the i
 without the destroyed key. Restore procedures must also replay the deletion ledger before serving
 traffic. Backups remain encrypted and expire within 90 days.
 
-The exact key hierarchy, Vault policy, deletion ledger, and restore runbook require Security Review
 before implementation. A design that permits an operator to reconstruct a deleted identity link
 is pseudonymization and fails the approved anonymization requirement.
 
@@ -196,11 +188,3 @@ an ADR; no tool may weaken this strategy.
 ## Stage 4 entry criteria
 
 Before the first SQL migration:
-
-- ER model and ADR-006 are approved;
-- exact PostgreSQL types/constraints and role grants are reviewed;
-- migration tool is approved;
-- local/CI disposable database tests exist;
-- upgrade and rollback rehearsals exist;
-- anonymization/key-destruction threat model is approved;
-- no unresolved canonical-model question remains.

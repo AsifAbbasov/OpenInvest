@@ -6,7 +6,7 @@
 | Status | COMPLETE / CANONICAL |
 | Canonical base | `develop@18fff1150ac8d1d3c4eafbf7065d38d0bbb47f55` |
 | Implementation PR | #150 |
-| Final reviewed head | `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02` |
+Canonical record: commit(s) `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02`.
 | Exact-head CI | #435 / run `34117662576` — 10/10 SUCCESS |
 | Protected squash merge | `0580bf7e98c532202f84bbf9ceacd97aedbe4140` |
 | Runtime budget | 0 ₽ |
@@ -67,7 +67,7 @@ The implementation adds PostgreSQL witnesses for correction WAC/basis, revision 
 
 ## Non-scope
 
-No market provider, market value, P/L, XIRR, inflation, corporate-action source activation, broker sync, imported SELL expansion, tax-basis methodology, bond NKD/YTM, AI, notifications, Redis, Kafka, workers, new SaaS or paid dependency is introduced.
+No market provider, market value, P/L, XIRR, inflation, corporate-action source activation, broker sync, imported SELL expansion, tax-basis methodology, bond NKD/YTM, notifications, Redis, Kafka, workers, new SaaS or paid dependency is introduced.
 
 ## Expected result
 
@@ -76,8 +76,7 @@ A user can correct a mistaken price/quantity/date with a reason, see the current
 
 ## Post-merge lifecycle closure
 
-Stage 3.74 passed final implementation review and exact-head CI #435 / run `34117662576` with all 10 required jobs SUCCESS on `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02`. After explicit human authorization, PR #150 was squash-merged into protected `develop` at `0580bf7e98c532202f84bbf9ceacd97aedbe4140`. The merge preserves the immutable financial-ledger model: correction appends revisions, reversal appends a separate immutable reversal row, Stage 3.71 remains the sole WAC/acquisition-basis engine, and Stage 3.72/3.73 consume deterministic effective-ledger truth.
+Canonical record: PR #150; commit(s) `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02`, `0580bf7e98c532202f84bbf9ceacd97aedbe4140`.
 
-The final review also records the defects closed before merge: corrected-command responses expose `CORRECTED`, snapshot overflow preserves canonical `ErrInvalidInput`, replay witnesses use valid request/trace metadata, frontend assertions are robust, browser retries preserve principal-scoped idempotency identity, and dedicated HTTP witnesses cover PATCH/DELETE routing, DTOs, stale-revision 409 mapping and required nested settlement-date semantics.
 
 This post-merge closure changes no runtime behavior, database schema, provider activation, production deployment, paid infrastructure or later-stage authorization. Stage 3.74 is COMPLETE / CANONICAL; the next product/runtime gate is Stage 3.75+.

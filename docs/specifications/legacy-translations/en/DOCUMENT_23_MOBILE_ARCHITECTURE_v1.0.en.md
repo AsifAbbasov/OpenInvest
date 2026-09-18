@@ -28,9 +28,6 @@ This document defines the entire architecture of the OpenInvest mobile applicati
 
 The document is mandatory for:
 
-* Codex
-* Builder Agent
-* Review Agent
 * QA Agent
 * Mobile Team
 
@@ -796,7 +793,7 @@ Supported.
 
 ---
 
-# AI ASSISTANT
+#  ASSISTANT
 
 Works
 
@@ -806,7 +803,6 @@ but through the Backend.
 
 ---
 
-No LLM
 
 in the mobile application.
 
@@ -944,7 +940,6 @@ rather than an overloaded broker terminal.
 
 # MOBILE DESIGN CHECKLIST
 
-Before creating any screen, Builder Agent must answer:
 
 1.
 

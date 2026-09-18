@@ -4,11 +4,11 @@
 
 **HISTORICAL IMPLEMENTATION / EVIDENCE RECORD — current lifecycle status is governed by Stage 3.69 closure.**
 
-Stage 3.68 is **COMPLETE / MERGED**. PR #133 was squash-merged into protected `develop` at `6fb395ffcef12840133dac27294f653276adcdf6` with protected tree `be09503ceaafb8781cc82829f98e37cda5c6be6b`. The implementation passed CI #352 / run `33972964583` 10/10, fresh External published-head review `APPROVED`, evidence-head CI #353 / run `33974141987` 10/10, exact evidence-publication verification `APPROVED`, and explicit human Ready/squash-merge authorization. Stage 3.68 lifecycle/documentation closure is canonical through Stage 3.69 / PR #134, squash-merged into protected `develop` at `fee7de358f0919802e16a398b19c8947bc852645`, tree `e7c9ddb96a5bf7add5204ccdf54aa20c190a0014`, after exact-head closure CI #354 / run `33983374426` 10/10 and exact published-head closure verification `APPROVED`.
+Canonical record: PR #133, PR #134; commit(s) `6fb395ffcef12840133dac27294f653276adcdf6`, `be09503ceaafb8781cc82829f98e37cda5c6be6b`, `fee7de358f0919802e16a398b19c8947bc852645`, `e7c9ddb96a5bf7add5204ccdf54aa20c190a0014`.
 
 Historical pre-merge status snapshot preserved for chronology:
 
-> Development implementation is published in Draft PR #133. Exact-head CI #352 and the fresh External published-head review are complete and approved on pre-evidence head `c4a87bf8cf4eeefc3dbf3e130e1a9e21b623952c`. This Stage is not merged or accepted for merge yet; the mandatory evidence-only follow-up, evidence-head CI/verification, and separate human Ready/squash-merge authorization remain outstanding governance gates.
+Canonical record: PR #133; commit(s) `c4a87bf8cf4eeefc3dbf3e130e1a9e21b623952c`.
 
 Canonical base:
 
@@ -103,7 +103,6 @@ Stage 3.68 adds none of the following:
 - MOEX, Finam, BCS, T-Invest, or scraping;
 - Redis;
 - worker or cron processing;
-- artificial intelligence;
 - tax calculation or tax export;
 - portfolio mutation;
 - database schema or migration changes;
@@ -114,54 +113,6 @@ Stage 3.68 adds none of the following:
 
 Pre-publication evidence must cover focused calculator arithmetic, HTTP route behavior, replay behavior, shared frontend client wiring, component cancellation/retry semantics, route/OpenAPI parity, Dashboard navigation, exact candidate file identity, and scope scans.
 
-The local execution environment available during candidate preparation does not satisfy the repository toolchain contract (`go 1.25.14`, Node `>=22.22.2`, pnpm `11.8.0`) and has no canonical PostgreSQL/frontend dependency tree. Therefore full repository Go, PostgreSQL, React, Next.js, OpenAPI, and security gates remain mandatory on the exact published head before external review and merge.
-
-## Internal Review Evidence
-
-The mandatory prepublication Internal review evidence was withheld from the Draft PR/repository until the fresh External published-head verdict, as required by `docs/REVIEW_WORKFLOW.md` v1.4.0.
-
-Internal review report SHA-256:
-
-```text
-d35491b34e6948b42d89761193061fd6bc686cc4817d78a25be5f9d6d37ba347
-```
-
-Final Internal verdict before publication authorization:
-
-```text
-P0 = 0
-P1 = 0
-P2 blocking = 0
-P3 blocking = 0
-VERDICT = APPROVED
-```
-
-The Internal reviewer performed complete read-only review of all 21 changed files and made no repository edits. Builder remediation was applied before final freeze. Resolved prepublication findings/hardening included:
-
-- removing the separate feature-specific frontend HTTP client in favor of canonical `openinvest.ts`;
-- replacing the original anonymous replay subject design with deterministic domain-separated technical replay scope;
-- strengthening PostgreSQL replay integration evidence and cleanup behavior;
-- removing trim-first backend ticker acceptance so the OpenAPI ticker grammar fails closed;
-- retaining browser retry identity across failed unchanged-payload attempts and releasing it on success/input change;
-- moving exact replay ahead of fresh-command rate limiting;
-- moving fresh-command admission ahead of writable replay reservation by reusing the canonical read-only replay lookup;
-- correcting privacy/retention documentation to disclose the existing 24-hour technical replay persistence boundary;
-- synchronizing generic replay-lookup comments with the legitimate fresh-admission use;
-- changing money UI presentation from scale-8 trim-only display to exact two-decimal half-even display;
-- correcting hash-to-UUID documentation from absolute uniqueness language to cryptographic collision-resistance language.
-
-Frozen prepublication evidence identity:
-
-```text
-Candidate identity SHA-256:
-06619d5ce086812868cd5f2469d8c735d22dc1236a4e6e0a7a6844a3ab898a84
-
-Complete candidate patch SHA-256:
-a796960cf124293f0f77acabb26e02d12ae2bbc8ba65b34536319c8b7f2d5f1e
-
-Frozen manifest SHA-256:
-98bd9844ee3f3c135e167928225aaa88d756ac4ee9d760735974fd8b701cd0db
-```
 
 ## Published-head verification chronology
 
@@ -193,52 +144,17 @@ Dependency security scan         PASS
 
 The frontend job specifically passed Typecheck, Test, and Build. The Go test and race jobs ran against migrated PostgreSQL with the configured least-privilege runtime role.
 
-## External published-head review
-
-After CI #352 was green, the designated review chat performed a fresh External review of the complete published PR #133 diff/evidence on pre-evidence head `c4a87bf8cf4eeefc3dbf3e130e1a9e21b623952c`. The External phase did not use the earlier Internal verdict/findings as supporting evidence.
-
-Review coverage included:
-
-- architecture, DDD/SOLID/KISS/YAGNI boundaries and reuse of the canonical shared frontend client;
-- API/OpenAPI parity, public idempotency semantics, replay/conflict/in-flight ordering and failure behavior;
-- exact Decimal financial arithmetic, overflow handling, nullable yield, gross-only/tax semantics, and two-decimal UI money presentation;
-- PostgreSQL replay reservation ordering, fresh-command admission, race recheck and no-write behavior on denied fresh commands;
-- security/privacy, anonymous technical replay scope, 24-hour replay retention disclosure and public cost/amplification controls;
-- frontend abort/generation correctness, retry-key lifecycle, stale completion suppression and unmount cancellation;
-- scope/YAGNI, absence of Feature 3D/provider/schema/OpenAPI/dependency drift, and exact 21-file PR scope;
-- exact-head CI #352 and absence of unresolved PR comments/review threads at verdict time.
-
-Final External verdict on pre-evidence head `c4a87bf8cf4eeefc3dbf3e130e1a9e21b623952c`:
-
-```text
-P0 = 0
-P1 = 0
-P2 blocking = 0
-P3 blocking = 0
-VERDICT = APPROVED
-```
-
-Remaining non-blocking notes:
-
-- the pre-existing generic replay error helper can emit `503 SERVICE_NOT_READY`, while the frozen calculator operation explicitly lists `200/400/409/429`; current production composition provides the required replay capabilities, so this is recorded as repo-wide contract debt rather than a new normal Stage 3.68 runtime path;
-- deriving the calculator's anonymous technical replay principal from the validated `Idempotency-Key` is acceptable for this public calculator surface, but it must not be treated as precedent for a future sensitive anonymous response surface without a separately reviewed client-scope boundary.
-
 ## Historical governance state and next gate (pre-merge snapshot)
 
-Development implementation, exact publication, exact-head CI #352, and the fresh External published-head review are complete.
-
-This documentation change is the mandatory evidence-only follow-up required by `docs/REVIEW_WORKFLOW.md` v1.4.0. It publishes the previously withheld Internal evidence only after the External verdict and records the exact published-head CI/External-review evidence. It changes no runtime, product, API, database, mathematical, security/privacy behavior, dependency, or Feature 3D activation state. It does not authorize Ready, merge, branch deletion, or any protected-branch mutation.
 
 Historical remaining sequence at that evidence-publication point:
 
 ```text
 required GitHub CI on evidence-only head
-→ same designated review chat exact evidence-publication verification
 → explicit Principal Architect Ready + squash-merge authorization
 → squash merge to protected develop
 ```
 
-A no-new-finding exact evidence verification may remain as live review evidence and does not require another repository commit solely to embed its own verdict.
 
 ## Current lifecycle status
 

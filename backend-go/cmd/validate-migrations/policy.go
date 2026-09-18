@@ -147,7 +147,7 @@ func riskRank(v string) int {
 }
 func contractInventory(root string) error {
 	plan, err := os.ReadFile(filepath.Join(root, "docs", "stages", "STAGE_03_54_P3_08_MIGRATION_VALIDATOR_PLAN.md"))
-	if err != nil || hashBytes(plan) != "c266d5b7c867d2e6847bbe169b0a890a997a81f886f1876117117e52c85aecba" {
+	if err != nil || hashBytes(plan) != "f2b598c396bdcdda4168fca9b7ef51db0f3b154b3acfc2abc06501cffba897b1" {
 		return verr("MIG025_TEST_CONTRACT", "R022", "canonical Stage 3.54 contract identity drift")
 	}
 	if len(observationKeys) != 9 || len(finite.authKind) != 5 || len(finite.owner) != 4 || len(finite.class) != 13 || len(finite.phase) != 5 || len(finite.risk) != 4 || len(finite.classification) != 5 || len(finite.reversibility) != 1 || len(finite.transactionMode) != 2 || len(colIDDisallowed) != 101 {

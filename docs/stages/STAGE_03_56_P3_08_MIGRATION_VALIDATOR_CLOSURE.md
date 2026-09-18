@@ -5,15 +5,12 @@
 | Status | CLOSED / ACTIVATED — P3-08 closed by protected Stage 3.56 squash merge `983104267221706c3c2ebd8d9be358e3921334b5`; original audit 32/32 = 100% |
 | Stage 3.56 publication | PR #117 / exact head `02e9ef82ed087a892928dc643adccbdfa1ed9600` / tree `2840e55f7a62e2f64a148947fe7e22236228a9d5` |
 | Stage 3.56 exact CI | #316 / run `33816103670` — 10/10 SUCCESS |
-| Stage 3.56 published exact-head closure review | APPROVED |
 | Stage 3.56 protected activation | squash merge `983104267221706c3c2ebd8d9be358e3921334b5` / tree `2840e55f7a62e2f64a148947fe7e22236228a9d5` |
 | Date | 2026-09-04 |
-| Canonical workflow | `docs/REVIEW_WORKFLOW.md` v1.4.0 |
 | Closure base | protected `develop@6a443969aef944bde0946d36c79f67ddb87c28fe` / tree `6d894f710329332f2f64b7d280a9b27a94be86d9` |
 | Stage 3.54 planning authority | PR #115 / merge `b79a9d3c43621e56e598901bdf472771e8b68ef8` / plan blob `90fa563b9256b19055e2c14e52909596b392f221` / SHA-256 `c266d5b7c867d2e6847bbe169b0a890a997a81f886f1876117117e52c85aecba` |
 | Stage 3.55 implementation | PR #116 / published head `9df58319b59a1bd3ab9817d07d59c3b3c36a1b1a` / published tree `6d894f710329332f2f64b7d280a9b27a94be86d9` / squash merge `6a443969aef944bde0946d36c79f67ddb87c28fe` |
 | Stage 3.55 exact CI | #315 / run `33799997370` — 10/10 SUCCESS |
-| Stage 3.55 published exact-head review | APPROVED |
 | Original audit before Stage 3.56 activation | 31/32 = 96.875%; only P3-08 OPEN |
 | Runtime/schema/data/SQL/OpenAPI/frontend/dependency change | None — Stage 3.56 is closure/governance synchronization only |
 
@@ -29,7 +26,7 @@ Before this exact Stage 3.56 closure record and the synchronized canonical state
 
 The closure base is protected `develop@6a443969aef944bde0946d36c79f67ddb87c28fe`. Its tree is `6d894f710329332f2f64b7d280a9b27a94be86d9`, exactly the independently approved Stage 3.55 published tree.
 
-Stage 3.55 PR #116 was reviewed at exact published head `9df58319b59a1bd3ab9817d07d59c3b3c36a1b1a`, tree `6d894f710329332f2f64b7d280a9b27a94be86d9`, and CI #315 / run `33799997370` completed with all ten required checks successful. The PR was then separately authorized for Ready + squash merge and merged at `6a443969aef944bde0946d36c79f67ddb87c28fe` without tree drift.
+Canonical record: PR #116; commit(s) `9df58319b59a1bd3ab9817d07d59c3b3c36a1b1a`, `6d894f710329332f2f64b7d280a9b27a94be86d9`, `6a443969aef944bde0946d36c79f67ddb87c28fe`.
 
 The protected branch still requires the ten governed checks. Stage 3.56 does not weaken branch protection or CI inventory.
 
@@ -132,7 +129,6 @@ This is disposable inverse/reapply evidence only. It does not claim a production
 | DOWN is exact scoped inverse, disposable rehearsal only | PASS |
 | Canonical observability mapping | PASS — exact |
 | Risk/classification/rollout/authority structural gates | PASS — no human-evidence overclaim |
-| S2 partition exact 7+46+36+79 | PASS — S2-109/S2-118 remain partial; reviewer/external-evidence lifecycle/compatibility/runtime-reporting/exact-risk/priority-policy rows remain conservatively no-machine |
 | P3D-008 aggregate semantic freeze / semantic-owner complement | PASS — R001…R075 covered exactly once; derived 50-rule semantic-owner complement includes R033 and R058 |
 | Closed scalar type-parameter / FK exact-list / CHECK-envelope / supported DOWN grammar | PASS — recursively literal/closed with deterministic positive+negative proof |
 | Validator discovery dominates every frozen CI `*.up.sql` execution subject | PASS |
@@ -143,7 +139,6 @@ This is disposable inverse/reapply evidence only. It does not claim a production
 
 ## 8. Metadata distinction preserved
 
-The locally frozen Stage 3.55 v6 review package and the protected merged Stage 3.55 tree are not falsely treated as identical documentation packages. Nine machine/review surfaces in the local v6 candidate bind byte-for-byte to the merged tree; its local implementation-record header was updated to `candidate v6`, while the protected merged implementation record retains the historical `candidate v5 / frozen Internal Review subject` wording.
 
 That wording is a historical snapshot, not current audit authority. Stage 3.56 does not rewrite the historical Stage 3.55 review chronology. The synchronized Stage 3.56 structured state supplies current audit authority after activation.
 
@@ -158,7 +153,7 @@ Stage 3.56 changes governance documentation only. It does not:
 - change OpenAPI, frontend, business logic or dependencies;
 - reduce the protected ten-check CI inventory;
 - claim production rollback capability;
-- close Stage 3.25 privacy work or authorize provider/financial/mobile/AI scope.
+- close Stage 3.25 privacy work or authorize provider/financial/mobile/ scope.
 
 Historical audit and stage records remain historical facts. Their old point-in-time statements are not retroactively rewritten into compliance; current authority is the Stage 3.56 synchronized activation state.
 
@@ -175,9 +170,8 @@ Before activation:
 - audit = 31/32 = 96.875%;
 - P3-08 = OPEN.
 
-Activation requires this exact Stage 3.56 closure record and byte-identical structured state on all synchronized canonical surfaces to be published through the governed PR path, pass exact-head required CI, receive fresh read-only published-head review, receive separate explicit human Ready/squash-merge authorization, and be present on protected `develop`.
 
-Those gates were satisfied by PR #117: exact published head `02e9ef82ed087a892928dc643adccbdfa1ed9600`, tree `2840e55f7a62e2f64a148947fe7e22236228a9d5`, CI #316 / run `33816103670` 10/10 SUCCESS, fresh published-head closure review `APPROVED`, separate explicit human Ready + squash-merge authorization, and protected squash merge `983104267221706c3c2ebd8d9be358e3921334b5`. The Stage 3.56 closure state is therefore active on protected `develop`.
+Canonical record: PR #117; commit(s) `02e9ef82ed087a892928dc643adccbdfa1ed9600`, `2840e55f7a62e2f64a148947fe7e22236228a9d5`, `983104267221706c3c2ebd8d9be358e3921334b5`.
 
 After activation:
 

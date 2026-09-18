@@ -548,7 +548,7 @@ by currencies.
 
 # REBALANCING
 
-AI shows:
+ shows:
 
 ```
 If you buy another 10 shares,
@@ -598,7 +598,7 @@ Price Return
 
 # PORTFOLIO HEALTH SCORE
 
-AI calculates an integral score.
+ calculates an integral score.
 
 Takes into account:
 
@@ -675,15 +675,3 @@ The engine must support without rewriting the architecture:
 * joint investment accounts.
 
 ---
-
-# CODEX REQUIREMENT
-
-Any new function must pass mandatory checks:
-
-1. Does it violate XIRR?
-2. Does it violate Average Cost?
-3. Does it violate tax calculation?
-4. Does it violate inflation calculation?
-5. Does it violate purchasing-power calculation?
-6. Does it reduce Backend performance?
-7. Does it increase network traffic unnecessarily?

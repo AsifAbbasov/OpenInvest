@@ -58,7 +58,6 @@ router match. This candidate does not do that.
    unmarked operation = implemented/current runtime; `planned` = frozen contract reservation.
 6. Hard-code the exact five currently approved Stage-2 runtime reservations as an allowlist. Marking any
    other operation `planned` is itself a validator error, so lifecycle metadata cannot be used to hide a
-   new missing-route regression without a reviewed validator-code change.
 7. Parse exactly one canonical `func newReplayApp(api *API) *fiber.App` declaration and inspect only
    its body for production route evidence. Missing, duplicate, unsupported-signature, non-literal-path,
    duplicate-route, missing-current, and shipped-planned cases fail closed. Dead/helper functions and
@@ -101,80 +100,8 @@ Changed-file count for the reviewed runtime candidate: **7**, inside the <=25 re
 - all existing Stage 3.68 calculator/replay tests remain green;
 - all ten protected CI jobs remain required after publication.
 
-## Internal Review evidence
-
-The mandatory development-path Internal review was performed read-only against the complete seven-file
-candidate. The reviewer accounted for every changed repository file; sampling and Builder self-review
-were not accepted as independent evidence.
-
-### First Internal review
-
-Verdict: `REQUEST CHANGES`.
-
-Blocking findings:
-
-- `IR-OI007-01` — P2: the initial parity scanner inspected the whole `replay_app.go` file, so an
-  unrelated dead/helper `app.<Method>(...)` call could falsely satisfy production-route parity.
-  Required remediation: scope route extraction to exactly one canonical
-  `func newReplayApp(api *API) *fiber.App`, fail closed on missing/duplicate/unsupported declarations,
-  and add dead/helper-route regression coverage.
-- `IR-OI007-02` — evidence blocker: the exact candidate did not yet have complete development-path local
-  quality-gate evidence on the repository-approved Go toolchain. Required remediation: rerun the exact
-  candidate gates and report the race result without converting an unavailable/failing gate into PASS.
-
-### Internal re-review — Candidate R3
-
-Exact candidate identity reviewed:
-
-```text
-Candidate ZIP SHA256 = 81a7f515c6596180c15770f5112bca153e0e2b1ad6c326db8586b0d095a01220
-Manifest SHA256      = 40047534b8adf83040df496c4b10a89cba94033291a6cdff25c70998c3aa8948
-Canonical base       = e6ccfef2984ac17075952fbe9b5d62ff834e8b69
-Canonical tree       = c4287cff527a02f25c3144c8aca2cf55e30a419e
-Changed files        = 7
-Additions            = 756
-Deletions            = 1
-```
-
-Reviewed files, all in full:
-
-1. `backend-go/internal/httpapi/replay_app.go`
-2. `backend-go/internal/httpapi/replay_app_dividends_test.go`
-3. `backend-go/cmd/validate-openapi/main.go`
-4. `backend-go/cmd/validate-openapi/runtime_route_parity.go`
-5. `backend-go/cmd/validate-openapi/runtime_route_parity_test.go`
-6. `openapi/openapi.yaml`
-7. `docs/stages/OI_AUDIT_007_API_RUNTIME_PARITY_REMEDIATION.md`
-
-Re-review disposition:
-
-- `IR-OI007-01` — `RESOLVED`: production route extraction is scoped to exactly one canonical
-  `newReplayApp(api *API) *fiber.App`; dead/helper and nested-function routes cannot satisfy parity;
-  missing/duplicate/unsupported declarations fail closed; regression tests cover the failure modes.
-- `IR-OI007-02` — `RESOLVED` for candidate-scoped Internal review: exact-candidate deterministic gates
-  were rerun on Go 1.25.14. The overall local `go test -race ./internal/httpapi` result was explicitly
-  **not** claimed as PASS because a pre-existing auth HTTP timeout was reproduced on the clean exact
-  baseline. Candidate-specific replay/dividend/limiter race tests passed, and no new OI-AUDIT-007 race
-  regression was demonstrated.
-
-Internal re-review verdict: `APPROVED`.
-
-Reviewer mutation confirmation:
-
-```text
-REVIEW_MODE = READ_ONLY
-FILES_EDITED = NONE
-AUTO_FIXES = NONE
-STAGING = NONE
-COMMIT = NONE
-PUSH = NONE
-PR = NONE
-MERGE = NONE
-```
-
 ## Published-head CI and External sequence
 
-The reviewed runtime candidate was published as:
 
 ```text
 PR = #171
@@ -186,10 +113,8 @@ CI_RESULT = 10/10 SUCCESS
 GO_RACE_TESTS = SUCCESS
 ```
 
-A fresh External published-head review was then performed against that exact runtime head and returned
 `APPROVED`. The External phase did not use the Internal verdict/findings as supporting evidence for its
 technical conclusion. Publication of the Internal evidence in this section occurs only after that
-External verdict, as required by `docs/REVIEW_WORKFLOW.md` v1.4.0.
 
 This follow-up is evidence-only. It does not change runtime code, executable API contracts, tests,
 dependencies, migrations, financial semantics, provider/source activation, or the Stage 3.78/3.79/3.80

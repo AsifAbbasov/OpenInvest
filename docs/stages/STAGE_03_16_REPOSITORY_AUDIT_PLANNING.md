@@ -5,12 +5,8 @@
 | Document ID | STAGE-03-16-REPOSITORY-AUDIT-PLAN |
 | Version | 0.1.2 |
 | Status | Closed / merged into `develop`; audit executed |
-| Owner | Builder Engineer |
 | Supersedes | Informal next-step discussion after Stage 3.15 |
 | Superseded By | `STAGE_03_16_REPOSITORY_AUDIT_REPORT.md`; `STAGE_03_16_REPOSITORY_AUDIT_FIXES.md` |
-| Dependencies | `SOURCE_OF_TRUTH.md`; `REVIEW_WORKFLOW.md`; Stage 3.15 closure governance |
-| Last Review Date | 2026-08-04 |
-| Next Review Date | None; retained as historical planning evidence |
 
 ## Purpose
 
@@ -22,7 +18,6 @@ return, inflation-adjusted return, dividends, or purchasing-power work begins.
 
 ## Trigger
 
-`REVIEW_WORKFLOW.md` requires every fifth completed stage to receive a full repository
 line-by-line audit covering architecture, DDD, SOLID, API, security, privacy, performance,
 dependencies, tests, documentation, cost, and ADR consistency before the next stage proceeds.
 
@@ -53,59 +48,15 @@ The executed audit was required to inspect:
 
 Stage 3.16 planning does not authorize:
 
-- code changes;
-- OpenAPI changes;
-- SQL migrations;
-- dependency changes;
-- financial algorithms or calculation formulas;
-- market data, provider integrations, workers, or scheduled collectors;
-- stock-card or bond-card calculations;
-- dividend/coupon ingestion or calendars;
-- purchasing-power equivalents;
-- tax, mobile, AI, premium, public API, or email automation;
-- direct pushes or merges outside the reviewed PR workflow.
 
 ## Audit Method
 
 The audit ran as its own reviewed stage and produced a durable report. It was required to:
 
-- start only after this planning PR is reviewed, merged, and the main checkout is fast-forwarded to
-  `develop`;
-- record the immutable audit target SHA as the full 40-character `git rev-parse HEAD` value after
-  the planning merge;
-- generate a tracked-file coverage manifest from that exact SHA before review starts;
-- mark every `git ls-files` path in the manifest as `audited` or `excluded`;
-- justify every exclusion by file or narrow class; acceptable exclusions are limited to generated,
-  vendored, binary, or archival materials whose contents are not active product/runtime authority;
-- treat active source, tests, migrations, OpenAPI, configuration, lockfiles, scripts, and governance
-  documents as in scope unless the audit report gives a specific, reviewed reason otherwise;
-- provide line-by-line evidence for every active audited file, or a structured-parser equivalent for
-  machine-generated/lockfile content where literal line review would be misleading;
-- separate blocking findings from non-blocking observations;
-- identify each finding with file/line evidence where possible;
-- map findings to architecture, DDD, SOLID, API, privacy/security, test, performance, dependency,
-  documentation, cost, and ADR-consistency risk;
-- require fixes or explicit human risk acceptance before the next implementation stage.
 
 ## Acceptance Criteria
 
-- The audit plan is reviewed and merged before audit execution starts.
-- The audit report names one immutable post-planning audit target SHA.
-- The audit report includes a file-level coverage manifest for every tracked path at that
-  SHA.
-- The audit report covers every required category in `REVIEW_WORKFLOW.md`: architecture,
-  DDD, SOLID, API, security, privacy, performance, dependencies, tests, documentation, cost, and ADR
-  consistency.
-- Every manifest entry is either audited with evidence or excluded with a narrow reviewed reason.
-- The audit report does not silently authorize implementation work.
-- Any financial-algorithm stage remains blocked until audit findings are resolved or explicitly
-  accepted.
-- No market-data, provider, tax, mobile, AI, or worker scope enters through the audit gate.
 
 ## Closure
 
-This planning document was reviewed and merged before audit execution. The audit returned
-`REQUEST CHANGES`; its in-scope blocking findings were resolved by the Stage 3.16 audit fixes and
-PR #44 was squash-merged into `develop` at `9e6b8a753bf73ef020ce40461df25a5878344d92`. The durable
-audit report retains its historical verdict. No subsequent implementation stage is authorized; the
-next work requires a separately reviewed planning gate.
+Canonical record: PR #44; commit(s) `9e6b8a753bf73ef020ce40461df25a5878344d92`.

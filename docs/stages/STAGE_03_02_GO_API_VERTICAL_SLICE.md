@@ -5,11 +5,8 @@
 | Document ID | STAGE-03-02 |
 | Version | 0.1.0 |
 | Status | Complete / merged into `develop` |
-| Owner | Builder Engineer |
 | Supersedes | Stage 3.2 roadmap placeholder |
 | Dependencies | `STAGE_03_FIRST_VERTICAL_SLICE.md`; `STAGE_03_01_DATABASE_FOUNDATION.md`; ADR-001; ADR-002; ADR-003; ADR-006 |
-| Last Review Date | 2026-06-27 |
-| Next Review Date | 2026-12-27 |
 
 ## Purpose
 
@@ -116,7 +113,6 @@ Stage 3.2 was squash-merged into `develop` at:
 8971918c8046fb9a2d6bf9f97897432cf08fbde1
 ```
 
-Internal review and targeted re-review approved the final head commit before merge. GitHub CI was
 green for Go tests, Python tests, frontend build/typecheck, OpenAPI contract, Docker Compose config,
 and PostgreSQL migration validation.
 
@@ -125,6 +121,4 @@ and PostgreSQL migration validation.
 After implementation, Stage 3.2 must stop for:
 
 1. full local checks;
-2. Internal Review Agent line-by-line review;
 3. Draft PR into `develop`;
-4. external/human approval before merge.

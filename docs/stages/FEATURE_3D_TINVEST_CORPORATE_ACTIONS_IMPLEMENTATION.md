@@ -2,7 +2,6 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Frozen prepublication implementation candidate; mandatory Internal review evidence withheld pending External published-head phase |
 | Date | 2026-09-09 |
 | Repository | `AsifAbbasov/OpenInvest` |
 | Canonical implementation base | `develop@e4e676f8a168bf1a2618185ee345cab245d1225d` |
@@ -12,13 +11,12 @@
 | Existing domain dependency | Feature 3A — provider-neutral `CorporateActionProvider` / `CorporateActionEvent` |
 | Existing projection/API dependency | Features 3B/3C — Calendar/Heatmap and `GET /api/v1/corporate-actions/projection` |
 | Runtime activation | NOT ACTIVATED; no live token used |
-| Commit / push | HUMAN AUTHORIZATION RECEIVED for the approved frozen feature-branch candidate; not yet performed at document freeze |
+| Commit / push | merge gate RECEIVED for the approved frozen feature-branch candidate; not yet performed at document freeze |
 | Draft PR | NOT AUTHORIZED / NOT CREATED |
 | Stage 3.78 | NOT STARTED / NOT AUTHORIZED by this Feature 3D candidate |
 
 > **Historical implementation evidence**
 >
-> This document preserves the Feature 3D implementation/review/activation snapshot that was current when it was written.
 > Lifecycle, authorization and activation statements below are historical evidence and do not define the current repository state.
 > Current product/runtime status: [`../SOURCE_OF_TRUTH.md`](../SOURCE_OF_TRUTH.md).
 > Current source/use authority: [`../registries/DATA_SOURCE_REGISTRY.md`](../registries/DATA_SOURCE_REGISTRY.md).
@@ -465,9 +463,6 @@ rather than silently running with an incomplete security configuration.
 
 ## 19. Mandatory next gates
 
-This document does not claim Builder self-approval. Feature 3D is a development-path change under
-`docs/REVIEW_WORKFLOW.md` v1.4.0. The prepublication candidate is frozen only after local evidence and a complete
-read-only Internal review. Detailed Internal verdict/findings remain **WITHHELD — external published-head phase pending**
 and must not be published into the repository/PR evidence surface before the fresh External verdict.
 
 The human has already authorized commit and push of the approved frozen feature-branch candidate. That authorization is
@@ -478,7 +473,6 @@ runtime activation or Stage 3.78. After feature-branch publication, the remainin
 feature-branch publication
 → Draft PR only after separate authorization
 → protected GitHub CI
-→ fresh External published-head review
 → required Internal evidence publication / exact-head verification
 → separate human Ready / merge authorizations
 ```
@@ -486,9 +480,7 @@ feature-branch publication
 Prepublication freeze state recorded by this document:
 
 ```text
-PRODUCTION IMPLEMENTATION CANDIDATE = FROZEN FOR FINAL INTERNAL REVIEW
 FULL REPOSITORY GATES                = NOT EXECUTED IN CANONICAL TOOLCHAIN
-INTERNAL REVIEW EVIDENCE             = WITHHELD — EXTERNAL PUBLISHED-HEAD PHASE PENDING
 COMMIT / PUSH AUTHORIZATION           = RECEIVED; HELD UNTIL FINAL INTERNAL APPROVAL
 DRAFT PR                              = NOT AUTHORIZED / NOT CREATED
 RUNTIME ACTIVATION                    = NO

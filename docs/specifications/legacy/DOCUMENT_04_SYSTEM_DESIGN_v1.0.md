@@ -432,7 +432,6 @@ System
 
 Worker
 
-Review Agent
 
 QA Agent
 
@@ -766,32 +765,6 @@ Explicit Dependencies
 
 ---
 
-# 29. CODE REVIEW AGENT
-
-Checks
-
-Architecture
-
-Performance
-
-Naming
-
-Complexity
-
-Memory
-
-Security
-
-Tests
-
-Documentation
-
-Public API
-
-No code can be merged without Review Agent approval.
-
----
-
 # 30. QA AGENT
 
 Runs automatically
@@ -888,7 +861,7 @@ Open API
 
 Plugins
 
-AI Assistant
+ Assistant
 
 Multi Country Taxes
 

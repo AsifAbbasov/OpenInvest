@@ -5,11 +5,8 @@
 | Document ID | STAGE-03-05 |
 | Version | 0.1.1 |
 | Status | Complete / closed |
-| Owner | Builder Engineer |
 | Supersedes | Stage 3.5 roadmap placeholder |
 | Dependencies | Stage 3.4; `product/MVP_PRODUCT_RISK_REFINEMENT.md`; ADR-003; ADR-006; Documents 42–43 |
-| Last Review Date | 2026-07-02 |
-| Next Review Date | Before atomic import append implementation |
 
 ## Purpose
 
@@ -64,7 +61,6 @@ The first import implementation candidate should support only:
 
 - user-supplied broker files;
 - CSV first;
-- XLSX only if the dependency and file-safety model are approved in review;
 - Russian ruble-denominated ordinary brokerage-account statements;
 - transaction types already understood by the Stage 3 ledger model or explicitly mapped to a
   review-needed state;
@@ -87,18 +83,6 @@ Uploaded broker files are user-provided private data, not approved external data
 
 Rules:
 
-- files are treated as untrusted input;
-- no macros are executed;
-- formulas are ignored or resolved only through safe library primitives if XLSX is later approved;
-- spreadsheet-compatible previews, exports, diagnostics, and downloaded review files must neutralize
-  formula-injection payloads;
-- untrusted cell text beginning with `=`, `+`, `-`, `@`, tab, carriage return, or line feed must
-  be escaped or rendered as inert text before export;
-- original files are temporary by default;
-- parsed rows must not be logged with personal or financial details;
-- generated diagnostics must use safe row numbers and error codes;
-- user can cancel the import before append;
-- import preview must be exportable or inspectable before confirmation.
 
 The Data Source Registry remains unchanged: a user-uploaded file is not a production external-source
 approval for a broker, MOEX, CBR, Rosstat, or any provider.
@@ -109,27 +93,6 @@ Stage 3.6 may need persistence for import sessions, but Stage 3.5 does not creat
 
 Conceptual entities:
 
-- `ImportSession`
-  - user/subject boundary;
-  - source kind: `USER_UPLOADED_FILE`;
-  - file metadata: safe filename, size, media type, hash;
-  - state: uploaded, parse_failed, parsed, validation_failed, normalized, review_required,
-    cancelled, approved, append_in_progress, append_failed_retryable, append_failed_terminal,
-    appended, rejected, expired;
-  - created/updated timestamps.
-- `ImportRow`
-  - source row number;
-  - persisted row hash, normalized candidate, and safe diagnostics only by default;
-  - raw row text may exist only transiently in memory during parse/review rendering;
-  - persistent raw row text storage requires a separate explicit retention approval and privacy review;
-  - normalized candidate transaction;
-  - validation status;
-  - matching status;
-  - duplicate/conflict reason.
-- `ImportDecision`
-  - user action: approve, ignore, map manually, reject;
-  - decision timestamp;
-  - append result when approved.
 
 These are design concepts only. Any schema requires a separate Stage 3.6 migration PR and review.
 
@@ -209,58 +172,12 @@ Examples:
 - imported candidate appears to reverse or correct an existing transaction but lacks explicit user
   confirmation.
 
-## User review workflow
-
-The product UI for Stage 3.6 should present:
-
-- file-level summary;
-- row count;
-- parsed rows;
-- invalid rows;
-- duplicate candidates;
-- conflict candidates;
-- appendable candidates;
-- per-row decision controls;
-- final confirmation.
-
-The final append action must be explicit:
-
-```text
-Review
-→ Confirm append
-→ Append immutable transactions
-→ Rebuild affected snapshots
-→ Show import result
-```
-
-No automatic push, notification, declaration, tax export, or external submission is allowed.
-
 ## Failure, retry, and partial append semantics
 
 Stage 3.6 must not introduce ambiguous import recovery behavior.
 
 Normative rules:
 
-- parse and validation failures are terminal for the affected raw file version until the user uploads
-  a corrected file or changes mapping decisions;
-- user cancellation leaves no ledger effect;
-- cancellation, rejection, expiration, or terminal validation failure must delete transient raw row text;
-- rejected rows leave no ledger effect;
-- approved rows enter `append_in_progress` before ledger writes start;
-- the append operation must be atomic for all approved rows in the session;
-- if any approved row cannot be appended, the entire append operation must roll back and the session
-  becomes `append_failed_retryable` or `append_failed_terminal`;
-- `append_failed_retryable` may be retried only with the same approved row set and the same
-  normalized fingerprints;
-- retry must use an idempotency key derived from import session ID, approved row IDs, and normalized
-  fingerprints;
-- `append_failed_terminal` requires a new user review before any future append attempt;
-- partial ledger append is forbidden in the MVP import path;
-- snapshots rebuild only after the append transaction commits successfully;
-- if snapshot rebuild fails after successful append, the immutable ledger remains committed and the
-  snapshot rebuild must be retried idempotently from canonical transactions;
-- import diagnostics must expose row numbers, safe error codes, and decision status, not raw private
-  row contents.
 
 ## Security and privacy requirements
 
@@ -301,34 +218,14 @@ Test vectors should live under:
 tests/financial/import/
 ```
 
-No production import parser should merge without these vectors or an explicit reviewed exception.
 
 ## Stage 3.6 candidate scope
 
 If this design is approved, Stage 3.6 may implement the smallest vertical import slice:
 
-- upload or local test fixture ingestion;
-- CSV parse only;
-- normalize into candidate transactions;
-- duplicate/conflict detection;
-- user-review representation through API or CLI test fixture;
-- append only after explicit approval;
-- snapshot rebuild after append;
-- tests and examples.
 
 Anything beyond this requires separate approval.
 
 ## Acceptance criteria
 
 Stage 3.5 is complete when:
-
-- import scope is explicitly limited;
-- credential scraping and direct broker API are explicitly forbidden;
-- append-only reconciliation is documented;
-- duplicate and conflict rules are documented;
-- privacy/security rules are documented;
-- test-vector plan is documented;
-- Stage 3.6 candidate scope is documented;
-- governance registries point to this design;
-- no implementation code, migrations, workers, or UI were added;
-- strict review approves the design.

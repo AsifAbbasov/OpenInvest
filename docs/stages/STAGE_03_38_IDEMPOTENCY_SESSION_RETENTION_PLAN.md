@@ -2,7 +2,6 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Planning/review gate only; runtime implementation not authorized |
 | Date | 2026-08-25 |
 | Canonical planning base | `develop` at `305a53bb07136b274717ff48778a5e93d7b1607c` |
 | Finding | P3-05 — idempotency/session cleanup |
@@ -492,7 +491,6 @@ It does **not** claim:
 - provider-specific retention proof;
 - cryptographic erasure;
 - deletion-marker completion;
-- Stage 3.25 Privacy Security Review completion.
 
 `audit.events` is explicitly out of cleanup scope and remains append/read-only for the runtime role.
 
@@ -509,7 +507,6 @@ This plan does not absorb or close:
 - P3-08 — migration validator weaker than migration policy;
 - P3-09 — Next.js maintenance;
 - P3-10 — Fiber maintenance;
-- Stage 3.25 privacy Security Review evidence work;
 - P2-14 auth rate-limiter lifecycle, already separately closed.
 
 Also out of scope:
@@ -559,9 +556,8 @@ scope.
 
 Rejected because Stage 3.32 explicitly requires that recovery path to remain read-only.
 
-## 15. Planning review history
+## 15. technical reassessment history
 
-The first independent pre-commit Stage 3.38 planning review returned `REQUEST CHANGES` with one P3
 blocker and no P0/P1/P2 findings.
 
 The blocker was a stale-clock race: the first candidate defined exact expiry using timestamps captured
@@ -586,12 +582,9 @@ P3-05 remains OPEN after this planning document.
 
 Runtime implementation may begin only after:
 
-1. independent planning review returns `APPROVED`;
 2. separate human commit/push authorization;
 3. planning PR exact-head CI is green;
-4. fresh independent published-head planning review returns `APPROVED`;
-5. separate human squash-merge authorization;
+5. separate merge gate;
 6. planning PR is merged into `develop`.
 
-Runtime implementation then requires its own full review/CI/merge cycle, followed by separately governed
 closure evidence before P3-05 may be canonically CLOSED.

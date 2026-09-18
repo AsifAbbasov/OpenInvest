@@ -1,49 +1,48 @@
-## Stage and responsibility
+# Pull Request
 
-- Stage:
-- Single responsibility:
+## Summary
+
+- Technical purpose:
 - User value / why now:
 - Out of scope:
 
-## Architecture checklist
-
-- [ ] ADR affected: `None` or link
-- [ ] DDD / bounded contexts affected: `None` or list
-- [ ] OpenAPI changed: `No` or explanation
-- [ ] Database / migration changed: `No` or explanation
-- [ ] Mathematical behavior changed: `No` or vectors
-- [ ] Performance impact assessed
-- [ ] Security impact assessed
-- [ ] Privacy impact assessed
-- [ ] Cost impact assessed
-- [ ] External data source affected: `No` or registry entry
-- [ ] Backward compatibility assessed
-- [ ] Rollback documented and available
-
-## Verification
-
-- Local commands and results:
-- Required CI checks:
-- Financial vectors, if applicable:
-- Coverage impact:
-
-## Review budget
+## Scope
 
 - Changed files:
-- Hand-written business-logic lines:
-- Generated/lock/migration/specification files excluded from that count:
-- Exception approved: `No` or rationale
+- Architecture / ADR impact:
+- OpenAPI impact:
+- Database / migration impact:
+- Dependency impact:
+- Backward compatibility:
 
-## Review evidence
+## Testing
 
-- ChatGPT Architecture Review:
-- ChatGPT Security Review:
-- ChatGPT Performance Review:
-- Human approval:
+- Local commands and results:
+- Regression coverage:
+- Financial vectors, if applicable:
 
-## Builder declaration
+## CI
 
-- [ ] No direct push to `develop` or `main`
-- [ ] No unrelated feature or refactor included
-- [ ] Documentation and stage report updated
-- [ ] No unresolved production-code TODO substitutes for an Open Question/Issue
+- Required checks:
+- Result:
+
+## Security impact
+
+- Security boundary changed: `No` or explanation
+- Privacy impact: `No` or explanation
+- External data/source-use impact: `No` or registry entry
+
+## Financial semantics impact
+
+- Financial methodology changed: `No` or explanation
+- Decimal / rounding behavior changed: `No` or explanation
+- Ledger semantics changed: `No` or explanation
+
+## Documentation impact
+
+- Documentation changed: `No` or list
+- Current-state documents synchronized: `No` or list
+
+## Rollback
+
+- Rollback / revert plan:

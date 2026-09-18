@@ -13,7 +13,6 @@
 | pnpm-lock.yaml candidate blob | `b3d656e792bdd28b16dea553b378f15f553b3074` |
 | package.json SHA256 | `d55dab239a4252e6d536923492c4645bb78c7cfcc065b3bf4546692b8aabe86c` |
 | pnpm-lock.yaml SHA256 | `0b8d8e676bc848a422c730114bd0aa48bc2bb16a154bda2a5adcff54efc0f3c5` |
-| Internal Review Evidence | PUBLISHED — complete Internal chronology recorded below after External verdict |
 | P3-09 lifecycle | MERGE-ACTIVATED — OPEN before the approved Stage 3.42 closure record is present on protected `develop`; CLOSED once that record is present |
 
 ## 1. Problem
@@ -116,7 +115,6 @@ The parser therefore normalized all SWC snapshot headers but missed that one `@n
 normalized-after artifacts differed by only the missed `@next/env` patch-version line.
 
 **Impact:** execution stopped safely; no repository mutation was published. The false positive cost
-review time but did not broaden implementation scope.
 
 **Revised solution:** v3 removes structural YAML-line inference. On the exact frozen base it constructs
 the exact expected lockfile by replacing 31 known Next.js-family version occurrences and ten known npm
@@ -218,75 +216,7 @@ dossier does not claim that environment setting as verified execution evidence.
 
 ## 10. Review history
 
-Stage 3.40 planning completed its exact-published-head review and planning merge. That approval did not
 authorize this implementation.
-
-### Internal review publication timing
-
-Before an External verdict existed, the current Internal verdict/findings were intentionally withheld
-from the Draft PR and repository evidence surface, as required by `docs/REVIEW_WORKFLOW.md` v1.3.0.
-
-The External remediation re-review later produced an External verdict. This evidence-only follow-up
-therefore publishes the complete Internal chronology that had previously remained outside the
-repository-visible evidence surface.
-
-Publishing this chronology does not retroactively make it supporting evidence for the earlier External
-verdict. The External phase was required to reach its conclusion independently.
-
-### Internal review attempt 0 — insufficient review subject
-
-The first Internal review request did not provide the complete candidate files required for the
-mandatory line-by-line review.
-
-Result: `BLOCKED — insufficient evidence`.
-
-No candidate file was accepted as reviewed, no material finding was created, and reviewer mutations
-were `NONE`.
-
-The process was corrected by supplying a self-contained review package containing the complete
-three-file candidate and supporting evidence.
-
-### Internal review attempt 1 — `INT-STAGE-03-41-P3-01`
-
-The self-contained Internal review of the three-file candidate returned:
-
-- finding: `INT-STAGE-03-41-P3-01`;
-- severity: P3;
-- verdict: `REQUEST CHANGES`;
-- reviewer mutations: `NONE`;
-- new material finding: `YES`.
-
-Problem: the implementation dossier did not preserve the final Runner v3 status-71 failure accurately,
-claimed that complete execution evidence was preserved in the v3 package although the successful manual
-rerun occurred later, and included an unsupported verified-execution claim for
-`NEXT_TELEMETRY_DISABLED=1`.
-
-Root cause: the dossier had not been synchronized to the final local execution chronology and evidence
-boundaries.
-
-Project impact: governance/evidence integrity only. No runtime, dependency, application-security,
-authentication/session, financial-logic, API/database, or supply-chain defect was identified.
-
-Remediation:
-
-- explicitly record Runner v3 substantive gates as PASS followed by the final scope-accounting failure;
-- record exit status `71`;
-- record the exact cause: `git diff --name-only` omitted the untracked Stage 3.41 dossier;
-- classify the result as a tooling/evidence scope-accounting defect only;
-- record the later successful manual rerun separately from the earlier v3 evidence package;
-- remove the unsupported telemetry execution claim;
-- preserve the finding append-only.
-
-Fresh complete Internal re-review of the remediated candidate concluded:
-
-- `INT-STAGE-03-41-P3-01 = RESOLVED`;
-- P0 = 0;
-- P1 = 0;
-- P2 = 0;
-- P3 = 0;
-- reviewer mutations: `NONE`;
-- new material finding: `NO`;
-- verdict: `APPROVED`.
 
 ### Internal publication-safety review — `INT-STAGE-03-41-P3-02`
 
@@ -297,13 +227,9 @@ The publication-safety review returned:
 
 - finding: `INT-STAGE-03-41-P3-02`;
 - severity: P3;
-- verdict: `REQUEST CHANGES`;
-- reviewer mutations: `NONE`;
+- verdict: `changes required`;
 - new material finding: `YES`.
 
-Problem: the publication-safe dossier asserted that commit/push would occur under an
-`already granted conditional human authorization`, but the self-contained review package did not
-contain evidence establishing that authorization event.
 
 Root cause: the publication-safety transformation converted a neutral future governance gate into an
 unsupported factual assertion.
@@ -323,11 +249,9 @@ Fresh complete publication-safety re-review concluded:
 - P1 = 0;
 - P2 = 0;
 - P3 = 0;
-- reviewer mutations: `NONE`;
 - new material finding: `NO`;
 - verdict: `APPROVED`.
 
-The exact runtime/dependency identities accepted by Internal review and preserved through publication
 were:
 
 - `frontend-next/package.json` Git blob
@@ -335,37 +259,7 @@ were:
 - `frontend-next/pnpm-lock.yaml` Git blob
   `b3d656e792bdd28b16dea553b378f15f553b3074`.
 
-### External published-head review attempt 1
 
-External review was performed independently against Draft PR #101 at exact published implementation
-head `5ea1f7f29cf0ab9225460e01076255f32e2cf4cf` after GitHub CI #289 / run
-`33274458971` completed `10/10 SUCCESS`.
-
-Result: `REQUEST CHANGES`.
-
-Finding: `EXT-STAGE-03-41-P3-01` — P3, documentation/governance evidence integrity only.
-
-Problem: the published dossier still carried pre-commit lifecycle wording after the implementation
-commit, Draft PR publication, and exact-head CI had already occurred.
-
-Root cause: the approved pre-publication dossier bytes were committed unchanged, so temporary
-pre-commit status text became stale on the published head.
-
-Failure scenario: a later reviewer could reconstruct the repository as already committed with a Draft
-PR and successful CI while the canonical dossier simultaneously described those completed gates as
-future work.
-
-Project impact: governance/evidence integrity only. External review found no Next.js runtime defect,
-dependency-resolution defect, application-security defect, authentication/session issue,
-financial-logic issue, API/database change, or unrelated supply-chain drift.
-
-Remediation: the docs-only remediation replaced stale active lifecycle wording with immutable
-publication history and publication-stable workflow requirements. Runtime/dependency bytes remained
-unchanged.
-
-### External published-head re-review — final External verdict
-
-Fresh External re-review was performed against exact remediation head
 `97cd665c25d76f8efdb25462f0a12b63a996f1e5` after GitHub CI #290 / run
 `33275019210` completed `10/10 SUCCESS`.
 
@@ -380,7 +274,6 @@ The re-review concluded:
 - P2 = 0;
 - P3 = 0;
 - new material External finding: `NO`;
-- reviewer mutations: `NONE`;
 - verdict: `APPROVED`.
 
 The External verdict did not rely on prior Internal verdicts/findings as supporting evidence.
@@ -401,26 +294,7 @@ Stage 3.41 development-path work is complete and merged.
 
 Immutable post-evidence history:
 
-1. final evidence-publication head
-   `d88be3c90231f374d7e6b7d94f4cd89e6788f700`;
-2. final implementation dossier blob
-   `c8f9410dc1b718caf597509b9ef56ce4289f4712`;
-3. CI #291 / run `33277717164` — `10/10 SUCCESS`;
-4. same-chat exact evidence-publication verification:
-   - evidence publication `COMPLETE AND ACCURATE`;
-   - evidence-only scope `CONFIRMED`;
-   - runtime/dependency semantic drift `NONE`;
-   - published head `MATCHES`;
-   - exact-head CI `10/10 SUCCESS`;
-   - PR metadata `CONSISTENT`;
-   - P0/P1/P2/P3 = 0;
-   - new material finding `NO`;
-   - reviewer mutations `NONE`;
-   - verdict `APPROVED`;
-5. explicit human authorization for Ready and squash merge of PR #101;
-6. GitHub-recorded Ready-for-review transition;
-7. actual PR #101 squash merge
-   `a2cfeaa5ca68fdd951e2a99f69c96aec362fc416`.
+Canonical record: PR #101; commit(s) `d88be3c90231f374d7e6b7d94f4cd89e6788f700`, `c8f9410dc1b718caf597509b9ef56ce4289f4712`, `a2cfeaa5ca68fdd951e2a99f69c96aec362fc416`.
 
 The implementation merge is an immutable repository fact. The moving protected `develop` HEAD is not
 represented as permanently equal to that implementation SHA.

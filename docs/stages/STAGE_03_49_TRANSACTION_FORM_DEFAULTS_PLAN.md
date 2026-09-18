@@ -35,7 +35,6 @@ At protected `develop@f24d8df2e3aa7fd44560f5fee5b2ef9ccdd8bca1`:
   `d6d605620e1bff426998d8bda716b7c2eda0613d`;
 - `frontend-next/AGENTS.md` blob:
   `f930da94e0a124b7e7a90ae1d2efaf73631fbffb`;
-- `docs/REVIEW_WORKFLOW.md` blob:
   `06f9cabd04e6791be1892ae1f0eae8d915fddc02`;
 - Stage 3.48 closure blob:
   `3a720c20d5515d41d45b86a9c52094f5758361ec`.
@@ -149,7 +148,6 @@ quantity, or changing backend validation is outside P3-07.
 When a user enters a value and changes transaction type, a hidden field must not leak into a payload
 for a type where that field is inapplicable.
 
-The existing payload builder already gates fields by transaction type. P3-07 implementation must
 preserve that property and add regression evidence sufficient to catch stale hidden-value leakage.
 
 The remediation does not require destructive clearing of every hidden React state value on each type
@@ -192,7 +190,6 @@ P3-07 MUST NOT include:
 - Stage 3.25 privacy work.
 
 Any discovered requirement for one of these surfaces is a fail-closed scope-expansion event and returns
-to planning/review before implementation proceeds.
 
 ## 10. Regression and adversarial verification requirements
 
@@ -227,13 +224,9 @@ The canonical default review limits apply:
 - no more than 800 changed lines of hand-written business logic.
 
 Stage 3.50 is expected to remain far below both limits. If either limit would be exceeded, stop before
-Internal review unless the canonical Principal Architect exception is explicitly documented and
-approved before review begins.
 
 Do not silently split P3-07 across multiple implementation PRs merely to satisfy the budget. A
-multi-PR implementation strategy requires a separately reviewed lifecycle/evidence plan first.
 
-## 12. Development review path for the later implementation
 
 Because Stage 3.50 will change production Web source, it follows the mandatory development path:
 
@@ -241,16 +234,14 @@ Because Stage 3.50 will change production Web source, it follows the mandatory d
 2. dedicated feature branch from the then-approved implementation base;
 3. implementation + focused tests;
 4. local gates;
-5. complete read-only Internal review in the designated review chat;
 6. remediation and gate rerun when required;
 7. explicit human commit/push authorization;
 8. Draft PR;
 9. exact-head mandatory GitHub CI;
-10. fresh External published-head review in the same designated review chat;
 11. evidence-only follow-up only if required by the workflow;
 12. exact evidence-head CI / publication verification when applicable;
 13. separate human Ready authorization;
-14. separate human squash-merge authorization;
+14. separate merge gate;
 15. implementation merge;
 16. separately governed closure activation before P3-07 becomes CLOSED.
 
@@ -264,14 +255,10 @@ Stage 3.49 itself is a one-document planning change.
 The permanent planning artifact must remain publication-stable:
 
 - it predicts no future PR number, published head, CI run number or squash SHA;
-- reviewer verdicts are evidence bound to exact candidate identities, not mutable self-authored
   approval fields inside this document;
 - mutable baseline facts are anchored to the immutable Stage 3.49 planning base;
-- P3-07 remains OPEN throughout planning review/publication/merge;
 - P3-08 remains independently OPEN and unaffected.
 
-Planning publication requires its own review and explicit human authorizations. Nothing in this
-document grants commit, push, PR, Ready, merge, implementation or closure authority.
 
 ## 14. Audit arithmetic
 

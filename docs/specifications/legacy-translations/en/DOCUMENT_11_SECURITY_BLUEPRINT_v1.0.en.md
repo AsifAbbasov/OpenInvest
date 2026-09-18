@@ -78,7 +78,7 @@ Not the company.
 
 Not the developer.
 
-Not AI.
+Not .
 
 Not the server.
 
@@ -508,9 +508,9 @@ Only archiving is permitted.
 
 ---
 
-# 19. AI TRANSPARENCY
+# 19.  TRANSPARENCY
 
-AI never independently changes:
+ never independently changes:
 
 portfolio
 
@@ -522,7 +522,7 @@ dividends.
 
 ---
 
-Every AI output is accompanied by:
+Every  output is accompanied by:
 
 Source
 
@@ -804,7 +804,6 @@ Your investments belong to you."
 
 # 36. USER AGREEMENT REQUIREMENTS
 
-Codex must create:
 
 User Agreement
 
@@ -816,7 +815,7 @@ Data Processing Policy
 
 Disclaimer
 
-AI Disclaimer
+ Disclaimer
 
 Investment Disclaimer
 

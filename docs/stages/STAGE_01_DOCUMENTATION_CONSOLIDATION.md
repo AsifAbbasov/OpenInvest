@@ -1,10 +1,7 @@
 # Stage 1 — Documentation Consolidation
 
-**Status:** Complete; awaiting Principal Architect review
 **Started:** 2026-06-19
 **Completed:** 2026-06-19
-**Owner:** Builder Agent (Codex)
-**Reviewer:** Principal Architect
 
 ## Why
 
@@ -29,12 +26,6 @@ Move architecture from chat attachments into a versioned, navigable, conflict-re
 
 ## Completed work
 
-- Preserved 43 legacy sources covering Documents 00–41, including both historical Document 14 sources as 14A and 14B.
-- Added canonical Documents 42 and 43 with mandatory governance metadata.
-- Created Source of Truth, document index, version matrix, changelog, open-question register, data-source registry, MVP backlog, roadmap, and Architecture Freeze v1.2.
-- Defined Personal, Pseudonymized, and Anonymous Data and named the detached ledger Anonymous Financial History.
-- Recorded the real execution history: Stage 0 already created the repository; Stage 3 will harden rather than recreate it.
-- Added the mandatory review/delivery workflow and GitHub pull-request template.
 
 ## Verification
 
@@ -50,5 +41,3 @@ Move architecture from chat attachments into a versioned, navigable, conflict-re
 - Legacy documents preserve historical contradictions by design; consumers must use the documented priority chain.
 
 ## Recommended next step
-
-Principal Architect reviews Stage 1. After explicit approval, commit and push the reviewed documentation, then begin Stage 2 — OpenAPI Freeze.

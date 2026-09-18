@@ -5,10 +5,8 @@
 | Document ID | STAGE-03-60-MOEX-ISS-RUNTIME-SOURCE-ACTIVATION-PLAN |
 | Version | 0.1.0-candidate |
 | Status | Planning / source-governance decision only; NO shipped-runtime activation authorized |
-| Owner | Principal Architect / Market Data |
 | Canonical planning base | `develop@f55ad38c1f5ea52ba4502904fefa51c164c45006` |
 | Protected-base tree | `42596285fa8de467108ee1553b1575718761c7f2` |
-| Dependencies | Stage 3.57 provider boundary; Stage 3.59 planning + implementation; `docs/registries/DATA_SOURCE_REGISTRY.md`; `docs/REVIEW_WORKFLOW.md` v1.4.0 |
 | Date | 2026-09-04 |
 
 ## 1. Purpose
@@ -127,7 +125,6 @@ The following remains allowed inside the already-approved engineering/test bound
 - retaining the merged adapter source code;
 - deterministic unit and `httptest` coverage;
 - CI compilation/testing/security analysis;
-- static code review;
 - provider-contract documentation;
 - optional human-run technical smoke evidence used only to verify adapter compatibility, provided it is not shipped as a product feature, automated as a production collector, cached/persisted for product use, or redistributed.
 
@@ -153,7 +150,6 @@ cmd/api
 NewServiceWithQuoteProvider(..., moexiss.Provider)
 ```
 
-A future accidental provider wiring before source approval is a governance defect and must fail review.
 
 ## 7. No product-level workaround
 
@@ -176,16 +172,6 @@ Any of those use modes requires a separately reviewed rights/terms basis.
 
 A future Stage may reconsider activation only after all of the following are established with evidence:
 
-1. exact intended use mode is defined: display, redistribution, non-display, derived-data, internal use, or another MOEX-defined category;
-2. Moscow Exchange contractual/usage rights for that exact mode are documented;
-3. required attribution/display/audit obligations are understood;
-4. monetary cost is known and explicitly accepted by the Principal Architect;
-5. rate-limit/traffic expectations are documented;
-6. caching/retention/persistence rights are documented if any such behavior is planned;
-7. the Data Source Registry is updated from NO-GO to an exact approved production use mode;
-8. runtime composition wiring receives a separately reviewed implementation plan;
-9. public API/UI contract changes, if any, receive their own review;
-10. exact-head CI, fresh External review, evidence publication, and explicit human merge authorization pass.
 
 Absence of evidence for any required right remains UNKNOWN and therefore cannot be converted into production permission.
 
@@ -246,7 +232,7 @@ This planning decision is acceptable only when review confirms:
 
 ## 13. Review focus
 
-Planning review must challenge:
+technical reassessment must challenge:
 
 - whether NO-GO is actually supported by official MOEX materials;
 - whether any text accidentally authorizes a hidden non-display production path;
@@ -258,7 +244,6 @@ Planning review must challenge:
 
 ## 14. Next governed action
 
-This document and the synchronized Data Source Registry candidate must receive mandatory read-only Internal planning/governance review.
 
 Only after `APPROVED` and a separate human commit/push/Draft-PR authorization may this two-file documentation/governance candidate be published.
 

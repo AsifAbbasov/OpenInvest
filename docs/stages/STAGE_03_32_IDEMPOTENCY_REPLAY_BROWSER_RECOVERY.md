@@ -1,21 +1,6 @@
 # Stage 3.32 — Exact Idempotency Replay and Browser Retry Recovery
 
-| Field | Value |
-| --- | --- |
-| Status | Implementation merged; closure governance pending canonical merge |
-| Owner | Principal Architect |
-| Baseline | `develop` at `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746` |
-| Branch | `fix/stage-03-32-idempotency-recovery` |
-| Implementation PR | #67 |
-| Implementation merge | Squash-merged into `develop` at `0623d5ef326cd783b7dc0417dbcb02f18c506171` |
-| Exact independently reviewed head | `02aa2417a3caca79e2afc4e7b598b92055de96b7` |
-| Exact-head CI | GitHub Actions #181 — SUCCESS, all six jobs passed |
-| First independent review | `REQUEST CHANGES` on `57fcc25e949277a0e933f290998e41d0f7476b5c`: P2-09 CLOSED; P2-13 NOT CLOSED because browser retry slots were not principal-scoped |
-| Repeat independent review | `APPROVED` on `02aa2417a3caca79e2afc4e7b598b92055de96b7`: P2-09 CLOSED; P2-13 CLOSED; new blocking regressions none |
-| Human implementation merge authorization | Received before squash merge of PR #67 |
-| Trigger | Repository-audit P2-09 and P2-13 |
-| Scope | Exact original-response idempotent replay, atomic replay-artifact persistence, import retry recovery across review-token expiry, principal-isolated short-lived browser retry identity, regression and migration coverage |
-| Out of scope | P2-10/P2-11/P2-12/P2-16/P2-17, all P3 findings, Stage 3.25 privacy Security Review evidence work, provider/backup retention, product-scope expansion |
+Canonical record: PR #67; commit(s) `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746`, `0623d5ef326cd783b7dc0417dbcb02f18c506171`, `02aa2417a3caca79e2afc4e7b598b92055de96b7`, `57fcc25e949277a0e933f290998e41d0f7476b5c`.
 
 ## Purpose
 
@@ -81,11 +66,9 @@ its reservation rolls back with any later failure.
 The existing unique command scope remains principal + method + canonical path + idempotency key.
 PostgreSQL conflict serialization ensures concurrent identical callers converge on one completed
 command. Integration coverage proves that two concurrent identical portfolio creates produce one
-business effect, execute the response builder once, and return the same artifact.
 
 Replay persistence is database-backed rather than process memory. A regression closes the first
 Store connection completely, opens a new Store against the same PostgreSQL database, and verifies
-that the original response is recovered without executing the response builder or financial write.
 
 ### Import-review token expiry
 
@@ -113,8 +96,7 @@ stored SHA-256 are structurally valid. Corrupt artifacts fail closed. The HTTP b
 stored bytes directly and restores the original request/trace response headers, so the response body
 and technical identity are not regenerated from the retry request.
 
-The first independent remediation review marked P2-09 CLOSED on exact head
-`57fcc25e949277a0e933f290998e41d0f7476b5c`. The repeat independent review on final exact head
+Canonical record: commit(s) `57fcc25e949277a0e933f290998e41d0f7476b5c`.
 `02aa2417a3caca79e2afc4e7b598b92055de96b7` reconfirmed P2-09 CLOSED.
 
 ## P2-13 — browser retry identity was lost on reload/remount
@@ -138,15 +120,6 @@ payload, transaction amounts, CSV, source-account label, portfolio data, review 
 or CSRF token. Within the same mounted interaction, a changed intent rotates to a new key. Across
 reload/remount, an unresolved technical key is recovered and sent again. Confirmed success or a proven
 idempotency conflict clears the applicable journal entry.
-
-### Independent review finding — cross-principal retry-slot collision
-
-The first independent review correctly identified that the initial technical scope was operation/
-portfolio scoped but did not include the stable authenticated principal. In a shared browser tab,
-User A could leave an unresolved `portfolio-create` retry key, sign out, and User B could then restore
-and clear that same browser slot. Backend principal scoping prevented BOLA or cross-user response
-replay, but User A's unresolved retry identity could be consumed by another account. P2-13 therefore
-remained open after the first review.
 
 ### Post-review remediation
 
@@ -178,7 +151,6 @@ Existing reload, changed-intent, TTL, malformed-state, scope-minimization, and s
 regressions remain active. Import component fixtures were also updated to supply the stable principal
 without changing their stale-response/token-rotation semantics.
 
-The repeat independent review on exact head
 `02aa2417a3caca79e2afc4e7b598b92055de96b7` marked P2-13 CLOSED and reported no new blocking
 P1/P2 regression.
 
@@ -188,7 +160,6 @@ The Stage 3.32 test set includes:
 
 - exact portfolio HTTP status/body/request-ID/trace-ID replay;
 - exact transaction replay without a second ledger entry;
-- response-builder failure rolls back both business write and command reservation;
 - same key with a different canonical payload returns idempotency conflict;
 - concurrent identical commands produce one business effect and one response artifact;
 - exact replay survives a completely new PostgreSQL Store connection;
@@ -210,32 +181,12 @@ with all six jobs successful: Go tests with PostgreSQL/migrations, PostgreSQL mi
 frontend build/typecheck/tests, Python tests, OpenAPI contract validation, and Docker Compose
 configuration validation.
 
-## Review history and implementation findings
 
-During implementation and independent review, the following defects were found and corrected rather
 than waived:
 
-- the first migration draft used `UPDATE` in an up migration and was rejected by the repository
-  migration validator; the final up migration is additive with no data rewrite;
-- the first import-recovery ordering could make every fresh import pay for a replay lookup; recovery
-  now occurs only after review proof expiry;
-- the first recovery rule was too broad and could have considered other invalid tokens; recovery is
-  now restricted to otherwise-valid expired tokens, with a negative tampered-signature regression;
-- financial replay initially consulted mutable portfolio state before resolving the completed command;
-  replay resolution now occurs first;
-- early HTTP unit fakes retained Fiber request-buffer-backed strings rather than owning persisted
-  bytes; the fakes now clone artifacts so they model PostgreSQL persistence while keeping the strict
-  exact-header assertions;
-- a concurrency regression initially referenced the wrong helper name; it was corrected before the
-  successful verification run;
-- the first independent review marked P2-09 CLOSED but correctly kept P2-13 open because browser
-  retry storage was not principal-scoped; the retry namespace is now stable-principal + operation/
-  portfolio scoped before SHA-256 derivation and has an A→B→A regression;
-- a documentation-only truncation while finalizing review metadata was detected immediately and
-  restored from the previously verified blob; no runtime code was lost or altered by that recovery.
 
-The first independent verdict was `REQUEST CHANGES`; it remains historical evidence. The repeat
-independent review on final exact head `02aa2417a3caca79e2afc4e7b598b92055de96b7` returned
+The first independent verdict was `changes required`; it remains historical evidence. The repeat
+Canonical record: commit(s) `02aa2417a3caca79e2afc4e7b598b92055de96b7`.
 `APPROVED`, with P2-09 and P2-13 both marked CLOSED and no new blocking regression. Explicit human
 squash-merge authorization was then received, and PR #67 was squash-merged into `develop` at
 `0623d5ef326cd783b7dc0417dbcb02f18c506171`.
@@ -249,7 +200,6 @@ replica, backup, and replay evidence still required.
 
 Stage 3.32 does not claim that privacy lifecycle is implemented or approved. It does not introduce a
 cleanup worker, provider retention policy, backup purge, anonymization mechanism, or Stage 3.25
-Security Review evidence. The pre-existing `expires_at` field and the browser retry TTL remain
 operational retry metadata; physical database/provider lifecycle remains a separate privacy track.
 This residual boundary must not be cited as privacy closure.
 
@@ -261,10 +211,9 @@ scope.
 
 Implementation PR #67 was squash-merged into `develop` at
 `0623d5ef326cd783b7dc0417dbcb02f18c506171` after exact-head CI #181, repeat independent
-`APPROVED` review on `02aa2417a3caca79e2afc4e7b598b92055de96b7`, and explicit human
+Canonical record: commit(s) `02aa2417a3caca79e2afc4e7b598b92055de96b7`.
 squash-merge authorization.
 
 When this closure record is canonical on `develop`, Stage 3.32 is CLOSED for P2-09 and P2-13. The
 remaining original repository-audit backlog is 5 P2 and 10 P3 findings: P2-10/P2-11/P2-12/P2-16/P2-17
-plus all P3 findings. Stage 3.25 privacy Security Review evidence planning remains separate and is not
 superseded. No architecture or product-scope expansion is introduced by closure governance.

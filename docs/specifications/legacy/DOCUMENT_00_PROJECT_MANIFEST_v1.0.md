@@ -5,11 +5,8 @@
 | Document ID | 00 |
 | Version | 1.0.0 |
 | Status | Approved legacy; consolidated edition |
-| Owner | Principal Architect |
 | Supersedes | Cancelled OpenInvest OS draft originally attached to the project |
 | Dependencies | Documents 42–43 |
-| Last Review Date | 2026-06-19 |
-| Next Review Date | 2026-12-19 |
 
 ## Mission
 

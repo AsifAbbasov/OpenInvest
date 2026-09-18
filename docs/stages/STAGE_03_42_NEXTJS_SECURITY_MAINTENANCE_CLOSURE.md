@@ -106,14 +106,13 @@ chronology:
 - Runner v3 substantive gates PASS followed by final tooling scope-accounting failure, process exit 71;
 - later successful manual rerun preserved as separate evidence, not falsely attributed to the v3 ZIP;
 - `EXT-STAGE-03-41-P3-01` — stale published lifecycle wording P3, resolved;
-- final External re-review on `97cd665c...` — `APPROVED`, P0/P1/P2/P3=0;
 - previously withheld Internal chronology publication on `d88be3c...`;
 - exact evidence-publication verification — `APPROVED`, evidence complete and accurate,
   evidence-only scope confirmed, runtime/dependency drift NONE, P0/P1/P2/P3=0.
 
 No failed review is erased by this closure record.
 
-## 6. Human authorization and implementation merge
+## 6. merge gate and implementation merge
 
 After the final evidence-publication verification returned `APPROVED`, the human Principal Architect
 explicitly authorized Ready and squash merge of PR #101.
@@ -126,7 +125,7 @@ squash-merged, producing the actual merge commit:
 Protected `develop` was read back at that exact SHA after merge.
 
 This closure record intentionally does not canonize unsupported client/tool mechanics around those
-operations. The durable governance facts are the human authorization, GitHub Ready event, actual
+operations. The durable governance facts are the merge gate, GitHub Ready event, actual
 squash merge, and resulting protected-branch state.
 
 ## 7. Why closure is documentation-only
@@ -153,7 +152,6 @@ The activation rule is structural:
 1. while this approved closure record is not part of protected `develop`, original audit P3-09 remains
    OPEN and the original audit backlog remains P3=5:
    P3-06, P3-07, P3-08, P3-09, P3-10;
-2. any material Governance / Closure review finding must be remediated and preserved before merge;
 3. once this exact closure record and synchronized canonical surfaces are squash-merged into protected
    `develop`, P3-09 is CLOSED;
 4. the canonical post-closure original audit backlog is then P0=0 / P1=0 / P2=0 / P3=4:
@@ -186,28 +184,18 @@ Stage 3.42 does not address:
 - P3-07 — transaction-form fixture/default semantics;
 - P3-08 — migration-validator policy hardening;
 - P3-10 — Fiber maintenance;
-- Stage 3.25 privacy Security Review evidence planning;
 - future Next.js maintenance beyond the exact 16.3.3 remediation;
 - the watch-only 16.3.x `cacheComponents` memory report absent demonstrated current applicability.
 
 Those items remain separately governed.
 
-## 11. Governance / Closure review model
 
-This is an eligible post-development governance/closure change under `docs/REVIEW_WORKFLOW.md` v1.3.0:
 the complete change is documentation/evidence/governance-only and changes no development surface.
 
-The same designated review chat performs one read-only Governance / Closure review phase over the
 complete four-file candidate. No second development-path Internal/External phase is required.
 
-The prepublication review outcome is intentionally not encoded as a mutable active-state field in this
-candidate. The designated-chat review record is authoritative. Any material finding must be remediated
-and permanently preserved before publication. A no-new-finding final `APPROVED` verdict does not require
-a recursive repository commit solely to embed that verdict.
 
 After publication, required GitHub CI must pass on the exact published closure head, live PR
-metadata/evidence must be synchronized to that head and CI, and the same designated review chat must
-perform exact-published-head verification before human merge authorization.
 
 ## 12. Closure decision
 

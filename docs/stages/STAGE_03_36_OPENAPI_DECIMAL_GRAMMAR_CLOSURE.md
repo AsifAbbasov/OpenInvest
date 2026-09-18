@@ -1,16 +1,6 @@
 # Stage 3.36 — P3-03 OpenAPI Decimal Grammar Closure
 
-| Field | Value |
-| --- | --- |
-| Status | Closure candidate / independent closure review pending |
-| Date | 2026-08-25 |
-| Finding | P3-03 — OpenAPI Decimal Grammar |
-| Planning gate | PR #87 squash-merged at `251296e0831cbb0b81c7799cc82cbdf3b451ae6e` |
-| Runtime PR | PR #88 — `fix: enforce OpenAPI Decimal grammar` |
-| Frozen runtime head | `131f1bf963e9d232b9e23273edd54caf54c10ffb` |
-| Runtime merge | `ebbc1c17b905e60d9e82337fc4a1ecd6cf9bccaa` |
-| Exact-head CI | GitHub Actions CI #257 / run `32822925542`, 10/10 required jobs successful |
-| Closure merge authorized here | No |
+Canonical record: PR #87, PR #88; commit(s) `251296e0831cbb0b81c7799cc82cbdf3b451ae6e`, `131f1bf963e9d232b9e23273edd54caf54c10ffb`, `ebbc1c17b905e60d9e82337fc4a1ecd6cf9bccaa`.
 
 ## 1. Finding / symptom
 
@@ -60,26 +50,11 @@ runtime admission to describe one reproducible request language. P3-03 violated 
 
 ## 7. Considered solutions
 
-The approved plan considered broadening OpenAPI, normalizing non-contract spellings, requiring exactly
-eight input fractional digits, deferring rejection to PostgreSQL, accepting JSON numbers, accepting
-stale parser-version review tokens for fresh writes, changing Decimal arithmetic, and adding a
-permissive CSV exception.
 
 ## 8. Chosen remediation
 
 PR #88 implemented the narrow approved remediation:
 
-- `decimal.FromString` now admits only the published complete ASCII Decimal grammar;
-- ingress is bounded to the grammar-derived maximum before `big.Int` conversion;
-- valid values retain fixed-eight-place serialization and existing half-even arithmetic;
-- CSV keeps only its pre-existing field-edge whitespace normalization and then uses the same strict
-  Decimal parser;
-- `ReviewParserVersion` moved from 1 to 2 so a parser-v1 review token cannot authorize a new append;
-- historic parser semantics are isolated to authenticated reconstruction of an already-completed,
-  exact, read-only import replay;
-- recovery revalidates signed historical proof and remains scoped to principal, canonical path,
-  idempotency key, and canonical request identity;
-- OpenAPI/runtime parity tests pin the published pattern and accepted/rejected corpus.
 
 No migration, Decimal arithmetic change, float conversion, stored-data rewrite, snapshot change, or
 other P3 remediation was included.
@@ -93,18 +68,6 @@ fresh-write authorization fail closed while preserving exact replay of immutable
 
 ## 10. Rejected alternatives
 
-- Broaden OpenAPI to match the legacy parser — rejected because it weakens the published contract and
-  retains unbounded lexical admission.
-- Normalize plus/whitespace/leading-zero spellings — rejected because it hides client mistakes and
-  preserves contract drift.
-- Require exactly eight fractional input digits — rejected because existing conforming values such as
-  `1` and `1.2` are valid.
-- Let PostgreSQL reject bad input — rejected as too late and less deterministic.
-- Permit JSON numbers — rejected because financial transport must not introduce binary floating-point
-  ambiguity.
-- Let old review tokens authorize fresh appends — rejected because parser-version invalidation is a
-  financial write-safety boundary.
-- Change arithmetic or rounding — rejected as unrelated scope expansion.
 
 ## 11. Trade-offs
 
@@ -143,10 +106,7 @@ published Decimal pattern rather than relying on Go regular-expression behavior 
 oracle, added carriage-return/line-ending adversarial vectors, added canonical-path replay isolation,
 and corrected the implementation record.
 
-GitHub-native PR review submissions and PR comments for PR #88 are empty. Therefore this closure
-record does not fabricate a GitHub-hosted external-review artifact. A fresh independent closure
-review must verify the final merged runtime head/diff and this closure package before P3-03 is marked
-canonically CLOSED.
+Canonical record: PR #88.
 
 ## 14. Remediation iterations
 
@@ -172,7 +132,6 @@ P3-03 does not close or absorb:
 - P3-08 migration-validator policy hardening;
 - P3-09 Next.js maintenance;
 - P3-10 Fiber maintenance;
-- Stage 3.25 privacy Security Review evidence collection.
 
 The historic parser-v1 replay path remains only as compatibility code for immutable completed-command
 recovery and must not be generalized into fresh-write admission.
@@ -208,7 +167,6 @@ At the base of this closure candidate, the canonical repository audit count rema
 
 P3-03 runtime remediation is canonical in `develop`, but the finding is not declared canonically
 CLOSED by this unmerged branch. P3-03 becomes CLOSED only when this closure package receives a fresh
-independent `APPROVED` review, the closure candidate has exact-head green CI, the user separately
 and explicitly authorizes the closure squash merge, and the closure PR is merged into `develop`.
 
 The resulting post-closure backlog is P0=0 / P1=0 / P2=0 / P3=8, consisting of P3-02, P3-04,

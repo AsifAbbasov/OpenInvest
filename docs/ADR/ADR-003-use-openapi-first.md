@@ -12,5 +12,3 @@ Web, mobile, desktop, and future public clients must share one server-side busin
 Design and version HTTP contracts in OpenAPI before implementation. Clients consume server-calculated results and do not duplicate business logic.
 
 ## Consequences
-
-Contract changes must be reviewed before code changes. Generated clients and contract tests may be introduced in later stages.

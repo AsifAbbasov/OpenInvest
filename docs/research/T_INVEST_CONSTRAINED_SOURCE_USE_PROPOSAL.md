@@ -241,7 +241,6 @@ Official protocol documentation:
 
 Non-public development/staging evaluation may use sandbox where the relevant InstrumentsService behavior is available.
 
-A production provider endpoint must remain disabled until the exact source/use mode receives registry approval and separately reviewed runtime wiring is merged.
 
 ## 10. Rate-limit / traffic policy
 
@@ -422,16 +421,6 @@ This text is a proposal only. `docs/registries/DATA_SOURCE_REGISTRY.md` is uncha
 
 All must be true:
 
-1. this proposal is reviewed line-by-line;
-2. exact-head CI is green;
-3. Principal Architect accepts or rejects the FAQ/support-evidence conflict for this constrained mode;
-4. a separate registry PR creates the exact approved row if accepted;
-5. implementation scope is separately authorized;
-6. secret-handling design is verified;
-7. no persistence/cache/background polling is introduced accidentally;
-8. public OpenAPI remains provider-neutral unless a separately approved contract change is necessary;
-9. frontend provenance UX is explicitly defined;
-10. adapter tests use fixtures only and contain no real token/data dump.
 
 ## 19. Explicit non-goals
 
@@ -452,7 +441,6 @@ This proposal does not authorize:
 - Feature 3.78+;
 - changes to existing source registry rows.
 
-## 20. Review verdict requested
 
 The requested decision is narrow:
 

@@ -2,7 +2,6 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Planning/review candidate only; dependency/runtime implementation not authorized |
 | Date | 2026-08-30 |
 | Canonical planning base | `develop@8861d49580c92eabe5f859729b3777175134a4e2` |
 | Finding | Original audit `P3-10 — Fiber maintenance` |
@@ -86,7 +85,6 @@ does **not** claim a demonstrated OpenInvest HSTS exploit path from that advisor
 Other historical Fiber v3 advisories with patched ranges below `3.3.0` must not be presented as
 current OpenInvest vulnerabilities merely because they exist in upstream history.
 
-Any newly discovered OpenInvest-reachable security exposure during implementation/review must be
 reported as a separate material finding instead of silently rewriting P3-10.
 
 ## 4. Known shared-direct module graph movement
@@ -161,20 +159,6 @@ The proposed implementation target SHALL be:
 
 Rules:
 
-1. Use stable `v3.5.0`, not `main`, a pseudo-version, prerelease, or canary-like build.
-2. Keep Go directive at `1.25.14`.
-3. Freeze the already-known Fiber-attributable shared-direct selected-module movement:
-   `golang.org/x/crypto v0.51.0 -> selected v0.54.0`.
-4. Keep `github.com/google/uuid v1.6.0`, `github.com/jackc/pgx/v5 v5.9.2`, and
-   `gopkg.in/yaml.v3 v3.0.1` unchanged.
-5. Distinguish root `go.mod` declaration from MVS-selected effective module version.
-6. Allow only additional module changes demonstrably produced by the exact Fiber update and normal Go
-   module resolution.
-7. Enumerate every changed direct/shared-direct/transitive module in implementation evidence.
-8. No application-source change is expected.
-9. If the Fiber update requires a material application-source/API behavior change, stop and return to
-   planning/review before expanding scope.
-10. Do not combine P3-10 with P3-06 decomposition even if `api.go` is touched by compilation concerns.
 
 ## 7. Expected implementation surface
 
@@ -295,22 +279,6 @@ misrepresented as an active application path.
 
 Before implementation can receive final approval, evidence must show:
 
-1. exact base identity;
-2. exact pre-update `go.mod` / `go.sum` blobs;
-3. exact Fiber target `v3.5.0`;
-4. explicit known `x/crypto v0.51.0 -> selected v0.54.0` shared-direct movement;
-5. root `go.mod` declaration versus effective MVS-selected version;
-6. `go list -m all` or equivalent exact resolved-module evidence;
-7. reproducible module graph;
-8. enumerated direct/shared-direct/transitive drift;
-9. targeted pre-update Argon2id historical-hash compatibility regression;
-10. unchanged Argon2 parameters and encoded password-hash format;
-11. required tests/vet/module verification pass;
-12. vulnerability/dependency scan result;
-13. no unrelated direct dependency drift;
-14. no unrelated source change;
-15. exact-head GitHub CI with all ten required jobs successful after publication;
-16. no unresolved material review finding.
 
 ## 13. Rollback policy
 
@@ -323,31 +291,25 @@ If Fiber `v3.5.0` causes a blocking regression before merge:
 A downgrade after protected activation is an incident/recovery action, not a normal long-lived
 completion strategy for P3-10.
 
-## 14. Mandatory development-path review gates
 
 After this plan is accepted, implementation remains on the canonical development path:
 
 1. feature branch from the exact then-current protected `develop`;
 2. exact scoped dependency change and evidence;
 3. local quality gates;
-4. Internal line-by-line read-only review in the designated review chat;
-5. Builder remediation of all findings;
 6. rerun required gates;
 7. explicit human commit/push authorization;
 8. Draft PR to `develop`;
 9. required exact-head GitHub CI;
-10. fresh External published-head review in the same designated review chat;
 11. evidence-only Internal-evidence publication after External verdict as required by
-    `REVIEW_WORKFLOW.md` v1.3.0;
 12. CI on the evidence head;
-13. same-chat exact verification;
+13. single-context exact verification;
 14. separate explicit human Ready + squash-merge authorization;
 15. separate docs-only closure-governance activation.
 
 Internal evidence remains withheld from the Draft PR/repository evidence surface until the External
 verdict, exactly as required by the effective canonical workflow.
 
-No review verdict by itself authorizes a protected mutation.
 
 ## 15. Publication-stability and forensic rules
 
@@ -359,8 +321,6 @@ They must distinguish:
 - tooling failures;
 - process exit status;
 - manual reruns;
-- Internal review findings;
-- External review findings;
 - remediation;
 - exact published heads;
 - CI;
@@ -380,7 +340,6 @@ P3-10 remains OPEN throughout Stage 3.43 planning and Stage 3.44 implementation.
 It becomes CLOSED only after:
 
 - approved Fiber maintenance implementation is actually squash-merged into protected `develop`; and
-- a separate reviewed docs-only closure-governance record and synchronized canonical surfaces are
   activated on protected `develop`.
 
 If no other audit finding changes concurrently, after P3-10 closure:

@@ -26,10 +26,7 @@ This document defines the only permitted OpenInvest Frontend architecture.
 
 It is mandatory for:
 
-* Builder Agent
-* Review Agent
 * QA Agent
-* Codex
 
 No UI decisions may be made without complying with this document.
 
@@ -857,7 +854,7 @@ Loss due to inflation
 
 ---
 
-# AI PANEL
+#  PANEL
 
 Does not advise buying.
 
@@ -1030,27 +1027,3 @@ but calmly explains
 what is happening with their capital.
 
 ---
-
-# CODEX REQUIREMENTS
-
-Before creating any new screen, Builder Agent must answer:
-
-1. Can the screen be understood within 5 seconds?
-
-2. Can 30% of the elements be removed without losing functionality?
-
-3. Is the most important number the largest one?
-
-4. Does the screen avoid copying a broker terminal?
-
-5. Can the screen be used one-handed on a phone?
-
-6. Does it comply with Mobile First?
-
-7. Does it avoid increasing battery and mobile data consumption?
-
-8. Does it comply with the OpenInvest philosophy:
-
-**"Maximum useful information with minimum visual noise."**
-
-Only after passing these checks may the screen proceed to implementation.

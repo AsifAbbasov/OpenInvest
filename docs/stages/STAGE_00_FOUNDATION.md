@@ -50,5 +50,3 @@ Create a small, reproducible foundation that proves the frozen technology choice
 - FastAPI/Starlette currently emits an upstream TestClient deprecation warning about the future `httpx2` transition.
 
 ## Recommended next step
-
-Commit the foundation after review, then define the next approved stage around CI and the first OpenAPI contract without adding financial business logic prematurely.

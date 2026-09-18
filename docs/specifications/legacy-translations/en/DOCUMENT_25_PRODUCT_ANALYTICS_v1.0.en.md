@@ -452,7 +452,6 @@ Email
 
 Monitoring
 
-AI
 
 Total
 ```
@@ -463,7 +462,6 @@ Total
 
 If expenses exceed the limit,
 
-Builder Agent receives a task:
 
 > reduce cost without degrading UX.
 
@@ -553,7 +551,6 @@ Tax Module
 
 Charts
 
-AI
 
 PDF
 
@@ -643,9 +640,9 @@ Without recording user actions.
 
 ---
 
-# AI ANALYTICS
+#  ANALYTICS
 
-AI analyzes:
+ analyzes:
 
 ---
 
@@ -661,7 +658,7 @@ where users leave.
 
 ---
 
-AI does not analyze:
+ does not analyze:
 
 personal data;
 
@@ -684,7 +681,6 @@ Evidence
 
 ↓
 
-Architecture Review
 
 ↓
 

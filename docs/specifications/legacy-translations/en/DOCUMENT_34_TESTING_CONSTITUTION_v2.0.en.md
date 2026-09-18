@@ -669,7 +669,6 @@ WebView
 
 # USER EXPERIENCE TESTS
 
-AI Agent automatically:
 
 ---
 
@@ -787,7 +786,7 @@ Visual Regression
 
 ---
 
-AI UX Review
+ UX Review
 
 ---
 
@@ -875,32 +874,6 @@ Documentation Outdated
 
 ---
 
-# REVIEW AGENT CHECKLIST
-
-Before Merge, the agent must answer:
-
----
-
-Can the test be removed?
-
----
-
-Can tests be combined?
-
----
-
-Is there duplication?
-
----
-
-Are there false-positive checks?
-
----
-
-Are there nondeterministic tests?
-
----
-
 # BUG CLASSIFICATION
 
 P0
@@ -943,6 +916,5 @@ is fixed immediately.
 
 > **OpenInvest is considered tested not when all tests have passed successfully.**
 
-> **OpenInvest is considered tested when Review Agent, QA Agent, Security Agent, Performance Agent, and Chaos Agent together have failed to drive the system into an incorrect financial result, loss of user data, or violation of the user experience.**
 
 > **Any code without tests is an assumption. Any tested code is an engineering decision.**

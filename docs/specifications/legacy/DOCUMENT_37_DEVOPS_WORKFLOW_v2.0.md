@@ -68,7 +68,6 @@ Git Repository
 
 # PROJECT INITIALIZATION
 
-Codex обязан выполнить следующие действия.
 
 ```text
 ~/Documents
@@ -133,7 +132,6 @@ Issue
 
 ↓
 
-Architecture Review
 
 ↓
 
@@ -141,11 +139,9 @@ feature branch
 
 ↓
 
-Builder Agent
 
 ↓
 
-Review Agent
 
 ↓
 
@@ -161,7 +157,6 @@ Performance Agent
 
 ↓
 
-Human Approval
 
 ↓
 
@@ -194,13 +189,11 @@ docs(api): update openapi contract
 
 # PUSH POLICY
 
-Codex запрещено выполнять Push автоматически.
 
 ---
 
 После завершения каждого этапа:
 
-Codex обязан сообщить:
 
 ---
 
@@ -274,9 +267,6 @@ Documentation Updated
 
 ---
 
-# CODE REVIEW
-
-Review Agent обязан проверить:
 
 ---
 
@@ -334,7 +324,6 @@ OpenAPI Compatibility
 
 # REVIEW RESULT
 
-Review Agent может вернуть только:
 
 ---
 
@@ -710,7 +699,6 @@ Tax
 
 ---
 
-AI
 
 ---
 
@@ -724,7 +712,6 @@ License Review
 
 ---
 
-Security Review
 
 ---
 
@@ -818,7 +805,7 @@ Bundle Analysis
 
 ---
 
-AI UX Review
+ UX Review
 
 ---
 
@@ -854,7 +841,6 @@ Storage Health
 
 ---
 
-Architecture Review
 
 ---
 
@@ -908,7 +894,6 @@ API Cost
 
 ---
 
-LLM Cost
 
 ---
 
@@ -920,11 +905,9 @@ LLM Cost
 
 # AUTOMATED AGENTS
 
-Builder Agent
 
 ↓
 
-Review Agent
 
 ↓
 
@@ -988,7 +971,6 @@ Plugin API
 
 # ENGINEERING RULE
 
-Codex после завершения каждого этапа обязан объяснить:
 
 ---
 
@@ -1016,6 +998,5 @@ Codex после завершения каждого этапа обязан о�
 
 > **OpenInvest должен разрабатываться так, чтобы любой релиз можно было воспроизвести, проверить, откатить и объяснить.**
 
-> **Ни один байт кода не должен попадать в Production без прохождения Builder Agent, Review Agent, QA Agent, Security Agent, Performance Agent и явного подтверждения владельца проекта.**
 
 > **Главная задача DevOps — не доставить код быстрее, а сделать так, чтобы через пять лет проект можно было безопасно развивать без страха сломать работающую систему.**

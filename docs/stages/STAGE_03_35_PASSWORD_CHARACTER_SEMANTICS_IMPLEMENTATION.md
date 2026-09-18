@@ -72,12 +72,6 @@ The following are **NOT_VERIFIED** locally in this environment because a full re
 
 These items must not be represented as PASS before authoritative exact-head CI or an equivalent complete local checkout executes them.
 
-## Internal Review Evidence
-
-`WITHHELD — blind external review pending`.
-
-This is a governance placeholder only. It does not assert that the pre-commit candidate has already received an internal `APPROVED` verdict. The actual internal findings/verdict remain out of the future PR until the independent external review gate is complete, as required by `docs/REVIEW_WORKFLOW.md`.
-
 ## Rollback
 
 The implementation is code/contract-only with no migration or stored-data rewrite. Rollback is the inverse code change while preserving existing password hashes. No rehash campaign is required.

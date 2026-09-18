@@ -5,11 +5,8 @@
 | Document ID | STAGE-03-17-PRIVACY-LIFECYCLE-PLANNING |
 | Version | 0.1.1 |
 | Status | Complete / merged into `develop` through PR #46 at `1e8c240` |
-| Owner | Principal Architect |
 | Supersedes | Informal disposition of the Stage 3.16 privacy-lifecycle audit blocker |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-005; Documents 42-43; Stage 2 API contract and ER model; Stage 3.11 auth/privacy slice; Stage 3.16 audit report and audit fixes |
-| Last Review Date | 2026-08-09 |
-| Next Review Date | Historical planning gate closed; successor proposal is Stage 3.18 |
 
 ## Purpose
 
@@ -51,52 +48,19 @@ This stage defines the gates and acceptance criteria for a later implementation 
   restoration;
 - retention and destruction evidence for encrypted backups, including the maximum 90-day expiry
   bound already defined by the canonical database migration strategy;
-- future API, migration, service, operational-runbook, test, rollback, and security-review gates.
 
 ## Required Decisions Before Implementation
 
-No privacy-lifecycle implementation may begin until each item below has a reviewed record in the
 appropriate contract, security, or operations proposal:
 
-1. The account-deletion command contract. The current OpenAPI contract has no account-deletion
-   endpoint, so a future public command requires its own OpenAPI change review; this planning stage
-   neither adds nor approves a path, request body, response, or status code.
-2. The deletion state machine and grace period. The future design must state who may request or
-   cancel deletion, how the request is authenticated, the immutable completion trigger, and how
-   retries are idempotent without retaining prohibited personal data.
-3. The deletion-request persistence model. The canonical ER model names `identity.deletion_requests`,
-   but the deployed migrations do not create it. A later migration proposal must minimize retained
-   identity data and define retention/deletion of request metadata.
-4. The anonymization inventory. The proposal must prove that every remaining field in portfolios,
-   ledger records, snapshots, imports, audit records, logs, and exports is either non-personal or
-   removed/irreversibly anonymized. It must not assume that a user-entered label is safe merely
-   because it lives outside the identity schema.
-5. The backup and key-destruction design. The exact key hierarchy, authority boundary, deletion
-   ledger, encrypted-backup expiry, and restore runbook require Security Review before
-   implementation. Operators must not be able to reconstruct a deleted identity link from an older
-   backup.
-6. The audit-retention design. Audit evidence must remain useful for the approved retention period
-   without retaining an identity link, raw credentials, tokens, or other personal payloads.
 
 Any choice that changes the approved privacy model, data ownership, external-provider policy, or
-operational cost must follow the repository's Issue -> ADR -> Review -> Approval process before
 implementation begins.
 
 ## Future Implementation Sequence
 
 The later implementation proposal must keep these phases separate and reversible where possible:
 
-1. Add a reviewed account-deletion contract and a minimal request-state persistence model.
-2. On a valid request, transition the account to pending deletion, prevent new sessions and protected
-   mutations, and revoke existing sessions without exposing token material.
-3. Permit cancellation only within the approved grace period and restore access only through an
-   explicitly audited transition.
-4. At completion, remove credentials, privacy settings, sessions, the identity row, and the sole
-   identity-to-subject link; mark the retained subject anonymous in the same reviewed consistency
-   boundary.
-5. Destroy the approved per-subject key material and record only non-reidentifying deletion evidence.
-6. Enforce encrypted-backup expiry and require restored environments to replay the deletion ledger
-   before serving traffic.
 
 The implementation must not physically erase immutable transaction or snapshot history merely to
 delete an account. It must instead meet Document 43's Anonymous Financial History requirement.
@@ -112,7 +76,7 @@ This planning stage does not authorize:
 - deletion of financial ledger or snapshot records;
 - privacy export, password reset, email verification, OAuth, passkeys, 2FA, device management, or
   profile editing;
-- market data, financial calculations, tax, mobile, AI, premium, public API, or provider work;
+- market data, financial calculations, tax, mobile, premium, public API, or provider work;
 - legal-compliance claims, a production-readiness declaration, or a shortened retention period.
 
 ## Security and Privacy Invariants
@@ -143,7 +107,6 @@ The future implementation cannot be accepted until it proves at least:
   replay completes before traffic is served;
 - backup expiry/destruction, restore rehearsal, migration rollback, and operational escalation have
   durable evidence;
-- OpenAPI, Go, PostgreSQL, Web, and operational tests are green, with a dedicated Security Review
   before merge.
 
 ## Planning Acceptance Criteria
@@ -153,14 +116,13 @@ The future implementation cannot be accepted until it proves at least:
   gate are explicit.
 - Anonymous Financial History is preserved without claiming that the current implementation already
   provides it.
-- Future implementation scope and exclusions are clear enough for independent review.
 - Canonical governance registers identify this as planning-only while active and preserve its merged
   closure without granting implementation authorization.
 - No runtime code, OpenAPI, migration, dependency, or operational configuration changes are included.
 
 ## Recommended Next Step
 
-This planning gate received strict read-only review and was squash-merged through PR #46 at
+Canonical record: PR #46.
 `1e8c240`. Its successor, Stage 3.18, remains a separate contract/security proposal; only after
-that proposal's required approvals and explicit human authorization may a privacy-lifecycle
+that proposal's required approvals and explicit merge gate may a privacy-lifecycle
 implementation stage be proposed.

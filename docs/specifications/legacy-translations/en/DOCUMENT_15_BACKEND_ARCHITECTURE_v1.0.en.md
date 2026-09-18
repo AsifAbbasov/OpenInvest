@@ -170,7 +170,7 @@ XIRR
 
 Inflation
 
-AI recommendations
+ recommendations
 
 Audit
 
@@ -898,7 +898,7 @@ Desktop
 
 Public API
 
-AI Assistant
+ Assistant
 
 Multi Broker
 
@@ -907,23 +907,3 @@ Multi Country
 Multi Currency
 
 ---
-
-# CODEX REQUIREMENTS
-
-Before writing each Backend module, check:
-
-1. Can the number of external requests be reduced?
-
-2. Can Cache be used?
-
-3. Can Snapshot be used instead of a heavy calculation?
-
-4. Can RAM usage be reduced?
-
-5. Can network traffic be reduced?
-
-6. Will the implementation cause free official APIs to block us?
-
-7. Does the code comply with SOLID, KISS, DRY, YAGNI, SRP, DIP, ISP, LSP, Open/Closed, and Privacy by Design?
-
-Only after passing these checks is the module considered ready for Review Agent and QA Agent.

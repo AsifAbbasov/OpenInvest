@@ -2,33 +2,33 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Planning-only candidate v20 after independent v19 `REQUEST CHANGES`; grants no implementation authorization |
+| Status | Planning-only candidate v20 after independent v19 `CHANGES REQUIRED`; grants no implementation permission |
 | Date | 2026-09-03 |
 | Canonical planning base | `develop@35c4413c84c3442989e76469742a2fd06155f484` |
 | Protected-base tree | `4e6b51ead36bcf84af768fb890901003269631b0` |
 | Finding | Original audit `P3-08 — migration validator weaker than migration policy` / `migration-validator policy hardening` |
 | Planning-base audit state | 31 / 32 closed = 96.875%; P3-08 is the only remaining original finding |
-| First planning review | `REQUEST CHANGES`; `P3-08-PLAN-01` derived from failed manifest/adversarial areas and remediated in v3 |
-| v3 planning re-review | `REQUEST CHANGES`; four numbered findings: hidden Populate, procedural/dynamic SQL, incomplete policy coverage, incomplete positive acceptance coverage |
-| v4 planning re-review | `REQUEST CHANGES`; PLAN-02/03 confirmed, PLAN-04/05 incomplete, new PLAN-06/07 added |
-| v7 planning re-review | `REQUEST CHANGES`; PLAN-07/10/13/14/15 confirmed PASS; residual PLAN-04/11/16 plus finite-domain root cause remain |
-| v8 planning re-review | `REQUEST CHANGES`; v7 blockers fixed, but residual PLAN-04 source purity/fidelity, residual PLAN-11 TC contradiction, and new rollout-reference semantic ambiguity remained |
-| v9 planning re-review | `REQUEST CHANGES`; PLAN-11 and PLAN-18 confirmed PASS; residual PLAN-04 source completeness/provenance, PLAN-07/16 manifest primitives, and PLAN-10 literal CREATE TABLE/ADD COLUMN grammar remained |
-| v10 planning re-review | `REQUEST CHANGES`; source-anchor completeness/provenance and v9 path/trim/CREATE TABLE fixes confirmed, but residual PLAN-04 evidence bindings, PLAN-16 aggregate proof, PLAN-10 nested SQL grammars and PLAN-12 CI discovery dominance remained; no PLAN-19 |
-| v11 planning re-review | `REQUEST CHANGES`; all five v10 residuals were confirmed fixed, but residual PLAN-04 source-authority/evidence-scope defects and PLAN-16 aggregate/P3D-evidence/FK-negative-proof defects remained; no PLAN-19 |
-| v12 planning re-review | `REQUEST CHANGES`; all five v11 blockers were confirmed fixed; residual PLAN-04 complete-machine observability, PLAN-16 CREATE TABLE max-boundary proof, and PLAN-10 keyword/identifier lexical overlap remained; no PLAN-19 |
-| v13 planning re-review | `REQUEST CHANGES`; all three v12 blockers were confirmed fixed; preventive layer itself exposed wrong PostgreSQL ColId authority projection, three omitted bounded estimate fields, and incomplete migration-subject sibling discovery; no PLAN-19/GUARD-07 |
-| v14 planning re-review | `REQUEST CHANGES`; all three v13 blockers were confirmed fixed in current semantics, but bound discovery was still name-hard-coded, ColId proof was satisfied by a duplicate summary instead of the primary authority, semantic-atom ownership lacked a real atom universe, and `S2-101→R018` was semantically unrelated; no PLAN-19/GUARD-07 |
-| v15 planning re-review | `REQUEST CHANGES`; all v14 current-semantic blockers were confirmed fixed, but global single-source enforcement, occurrence-level ATOM bijection, stale evidence-partition summary, four semantically unrelated partial S2→R edges, and missing UP/DOWN-independent positive acceptance remained; no PLAN-19/GUARD-07 |
-| v16 planning re-review | `REQUEST CHANGES`; v15 blockers were largely closed; residuals were incomplete structural-cardinality universe, coarse owner-level ATOM semantics, and the remaining prerequisite-only `S2-107→R028` edge; no PLAN-19/GUARD-07 |
-| v17 planning re-review | `REQUEST CHANGES`; S2-107 and all 36 remaining partial S2→R bindings were accepted, but an active observer summary said 90 instead of derived 89, sibling child semantics still drifted beyond PROP-001…014 after evidence regeneration, BND/CARD scope definitions contradicted each other, and the prompt-required extra-red-team runner was missing from the frozen ZIP; no PLAN-19/GUARD-07 |
-| v18 planning re-review | `REQUEST CHANGES`; package/reproducibility proof passed, but `TC/MPROP-591` and `TC/MPROP-597` froze stale S2 partition facts, four machine acceptance branches remained prose-only, and an active checklist mislabeled `SEMANTIC_PROPERTY_MANIFEST` as semantic authority; no PLAN-19/GUARD-07 |
-| v19 planning re-review | `REQUEST CHANGES`; all v18 blockers confirmed closed; residuals were four-field UP/DOWN execution-metadata independence narrowed to timeout-only proof plus stale unvalidated `CANDIDATE_SIZE_BYTES` in the frozen review-package contract; no PLAN-19/GUARD-07 |
-| Current planning revision | v20 — `P3-08-PLAN-01…18` and `P3-08-GUARD-01…06` retained; v19 residuals remediated narrowly by parameterizing `TC-598/599` across all four direction-specific execution metadata fields and binding the frozen package candidate-size fact to actual bytes; pending independent re-review |
-| Implementation authorized here | No |
-| Commit / push authorized here | No |
-| Pull Request / Ready / merge authorized here | No |
-| Runtime/database schema change authorized here | No |
+| First technical reassessment | `CHANGES REQUIRED`; `P3-08-PLAN-01` derived from failed manifest/adversarial areas and remediated in v3 |
+| v3 technical reassessment | `CHANGES REQUIRED`; four numbered findings: hidden Populate, procedural/dynamic SQL, incomplete policy coverage, incomplete positive acceptance coverage |
+| v4 technical reassessment | `CHANGES REQUIRED`; PLAN-02/03 confirmed, PLAN-04/05 incomplete, new PLAN-06/07 added |
+| v7 technical reassessment | `CHANGES REQUIRED`; PLAN-07/10/13/14/15 confirmed PASS; residual PLAN-04/11/16 plus finite-domain root cause remain |
+| v8 technical reassessment | `CHANGES REQUIRED`; v7 blockers fixed, but residual PLAN-04 source purity/fidelity, residual PLAN-11 TC contradiction, and new rollout-reference semantic ambiguity remained |
+| v9 technical reassessment | `CHANGES REQUIRED`; PLAN-11 and PLAN-18 confirmed PASS; residual PLAN-04 source completeness/provenance, PLAN-07/16 manifest primitives, and PLAN-10 literal CREATE TABLE/ADD COLUMN grammar remained |
+| v10 technical reassessment | `CHANGES REQUIRED`; source-anchor completeness/provenance and v9 path/trim/CREATE TABLE fixes confirmed, but residual PLAN-04 evidence bindings, PLAN-16 aggregate proof, PLAN-10 nested SQL grammars and PLAN-12 CI discovery dominance remained; no PLAN-19 |
+| v11 technical reassessment | `CHANGES REQUIRED`; all five v10 residuals were confirmed fixed, but residual PLAN-04 source-authority/evidence-scope defects and PLAN-16 aggregate/P3D-evidence/FK-negative-proof defects remained; no PLAN-19 |
+| v12 technical reassessment | `CHANGES REQUIRED`; all five v11 blockers were confirmed fixed; residual PLAN-04 complete-machine observability, PLAN-16 CREATE TABLE max-boundary proof, and PLAN-10 keyword/identifier lexical overlap remained; no PLAN-19 |
+| v13 technical reassessment | `CHANGES REQUIRED`; all three v12 blockers were confirmed fixed; preventive layer itself exposed wrong PostgreSQL ColId authority projection, three omitted bounded estimate fields, and incomplete migration-subject sibling discovery; no PLAN-19/GUARD-07 |
+| v14 technical reassessment | `CHANGES REQUIRED`; all three v13 blockers were confirmed fixed in current semantics, but bound discovery was still name-hard-coded, ColId proof was satisfied by a duplicate summary instead of the primary authority, semantic-atom ownership lacked a real atom universe, and `S2-101→R018` was semantically unrelated; no PLAN-19/GUARD-07 |
+| v15 technical reassessment | `CHANGES REQUIRED`; all v14 current-semantic blockers were confirmed fixed, but global single-source enforcement, occurrence-level ATOM bijection, stale evidence-partition summary, four semantically unrelated partial S2→R edges, and missing UP/DOWN-independent positive acceptance remained; no PLAN-19/GUARD-07 |
+| v16 technical reassessment | `CHANGES REQUIRED`; v15 blockers were largely closed; residuals were incomplete structural-cardinality universe, coarse owner-level ATOM semantics, and the remaining prerequisite-only `S2-107→R028` edge; no PLAN-19/GUARD-07 |
+| v17 technical reassessment | `CHANGES REQUIRED`; S2-107 and all 36 remaining partial S2→R bindings were accepted, but an active observer summary said 90 instead of derived 89, sibling child semantics still drifted beyond PROP-001…014 after evidence regeneration, BND/CARD scope definitions contradicted each other, and the prompt-required extra-red-team runner was missing from the frozen ZIP; no PLAN-19/GUARD-07 |
+| v18 technical reassessment | `CHANGES REQUIRED`; package/reproducibility proof passed, but `TC/MPROP-591` and `TC/MPROP-597` froze stale S2 partition facts, four machine acceptance branches remained prose-only, and an active checklist mislabeled `SEMANTIC_PROPERTY_MANIFEST` as semantic authority; no PLAN-19/GUARD-07 |
+| v19 technical reassessment | `CHANGES REQUIRED`; all v18 blockers confirmed closed; residuals were four-field UP/DOWN execution-metadata independence narrowed to timeout-only proof plus stale unvalidated `CANDIDATE_SIZE_BYTES` in the frozen validation-package contract; no PLAN-19/GUARD-07 |
+| Current planning revision | v20 — `P3-08-PLAN-01…18` and `P3-08-GUARD-01…06` retained; v19 residuals remediated narrowly by parameterizing `TC-598/599` across all four direction-specific execution metadata fields and binding the frozen package candidate-size fact to actual bytes; pending independent validation |
+| Implementation permitted here | No |
+| Commit / push permitted here | No |
+| Pull Request / Ready / merge permitted here | No |
+| Runtime/database schema change permitted here | No |
 
 ## 1. Objective
 
@@ -42,7 +42,7 @@ The remediation must not:
 - rewrite already-merged SQL migration history;
 - manufacture retrospective policy compliance;
 - reduce existing PostgreSQL apply/rollback/reapply evidence;
-- treat a manifest string as proof that an ADR/review/rehearsal happened;
+- treat a manifest string as proof that an ADR/validation/rehearsal happened;
 - introduce a migration framework or external parser dependency;
 - silently weaken the canonical migration strategy.
 
@@ -57,7 +57,7 @@ At protected `develop@35c4413c84c3442989e76469742a2fd06155f484`:
 - current migration validator blob: `d601accc49306983320c9ba61f1a91f85a7495e7`;
 - current CI workflow blob: `8437eba4f9f33ea3c331da839296e244719be6f8`;
 - Stage 3.1 database-foundation record blob: `e10f1df9874d0e5aa78f7f4c0e70a76fcb23db61`;
-- canonical review workflow blob: `3d0dd80e9d3825858c52b7dc0043010e549f720a`;
+- canonical repository workflow blob: `3d0dd80e9d3825858c52b7dc0043010e549f720a`;
 - current Source of Truth blob: `7af217c527cfddb4bb1379af92e765e351af64f8`.
 
 The migration directory contains exactly seven merged SQL migration pairs / fourteen SQL files,
@@ -77,17 +77,17 @@ PERCENT=96.875%
 REMAINING=P3-08
 ```
 
-## 3. Planning-review finding ledger
+## 3. technical reassessment finding ledger
 
-Planning-review defects are permanent forensic records inside Stage 3.54. They are **not** added to the
+technical reassessment defects are permanent forensic records inside Stage 3.54. They are **not** added to the
 original 32-finding audit. P3-08 remains the sole open original finding.
 
 ### P3-08-PLAN-01 — timeout requirement not closed through schema + tests
 
 | Field | Value |
 | --- | --- |
-| Source | First planning review |
-| Status | REMEDIATED in v3 / reviewer-confirmed in v3 re-review / RETAINED |
+| Source | First technical reassessment |
+| Status | REMEDIATED in v3 / evidence-confirmed in v3 re-validation / RETAINED |
 | Root cause | timeout policy existed in prose but not in typed schema and deterministic tests |
 | Permanent regression | typed per-direction timeout metadata + exact SQL timeout-application checks + negative/positive tests |
 
@@ -95,8 +95,8 @@ original 32-finding audit. P3-08 remains the sole open original finding.
 
 | Field | Value |
 | --- | --- |
-| Source | v3 re-review Finding 1 |
-| Status | REMEDIATED in v4 / reviewer-confirmed PASS in v4 re-review / RETAINED |
+| Source | v3 re-validation Finding 1 |
+| Status | REMEDIATED in v4 / evidence-confirmed PASS in v4 re-validation / RETAINED |
 | Root cause | blocklist did not define a phase-specific executable statement contract |
 | Permanent regression | narrow up-statement allowlist; DML/materialization/unknown statements rejected |
 
@@ -104,8 +104,8 @@ original 32-finding audit. P3-08 remains the sole open original finding.
 
 | Field | Value |
 | --- | --- |
-| Source | v3 re-review Finding 2 |
-| Status | REMEDIATED in v4 / reviewer-confirmed PASS in v4 re-review / RETAINED |
+| Source | v3 re-validation Finding 2 |
+| Status | REMEDIATED in v4 / evidence-confirmed PASS in v4 re-validation / RETAINED |
 | Root cause | top-level lexical scanning did not close later execution of SQL hidden inside procedural/string bodies |
 | Permanent regression | procedural/dynamic SQL and psql execution surfaces rejected in enforced v1 |
 
@@ -113,13 +113,13 @@ original 32-finding audit. P3-08 remains the sole open original finding.
 
 | Field | Value |
 | --- | --- |
-| Source | v3 re-review Finding 3; v4 re-review Finding 1; v5 re-review Findings 4–5; v10 re-review Finding 1 |
-| Status | REMEDIATED in v17 / v17 reviewer confirmed `S2-107` demotion and all 36 remaining partial S2→R bindings as defensible direct subsets / RETAINED in v19 |
+| Source | v3 re-validation Finding 3; v4 re-validation Finding 1; v5 re-validation Findings 4–5; v10 re-validation Finding 1 |
+| Status | REMEDIATED in v17 / v17 evidence-confirmed `S2-107` demotion and all 36 remaining partial S2→R bindings as defensible direct subsets / RETAINED in v19 |
 | v4 residual defect A | registry declared six legal dispositions but used non-enum variants |
 | v4 residual defect B | normative controls were still compressed/omitted |
 | v4 residual defect C | dependency **graph validity** was incorrectly conflated with dependency **semantic completeness** |
 | Impact | false `MIG021_POLICY_COVERAGE` completeness / machine-proof overclaim |
-| v5 remediation | stable `S2-*` IDs and six-value enum improved coverage but v5 reviewer still found three omitted normative controls plus two machine-proof overclaims |
+| v5 remediation | stable `S2-*` IDs and six-value enum improved coverage but v5 validator still found three omitted normative controls plus two machine-proof overclaims |
 | v6 remediation | registry expanded and evidence overclaims were corrected, but v6 mixed a derived CI-hardening control into `S2-*` and omitted atomic Low/Destructive risk-example anchors |
 | v7 residual | source/derived namespaces and risk anchors were fixed, but `S2-137` copied only `logs` and silently dropped canonical `metrics` privacy wording |
 | v8 remediation | `S2-137` preserves the exact combined metrics+logs sensitive-content prohibition; machine proof remains limited to controlled validator/CI surfaces and total production observability hygiene remains Security/Operations evidence |
@@ -127,8 +127,8 @@ original 32-finding audit. P3-08 remains the sole open original finding.
 | v9 remediation | source-only `S2-*` wording is restored; derived pre-existing-index, executable-timeout-binding and operation-risk-floor strengthenings move to `P3D-*`; missing Snapshot Expand is appended as stable `S2-165`; lost source qualifiers are restored |
 | v9 residual | canonical `never manually`, `require diagnosis`, `canonical ledger`, exact `key hierarchy`/`Vault policy` fidelity and source/derived dependency/per-direction provenance were still incomplete; no byte-bound source-anchor registry existed |
 | v10 remediation | adds exact `SA-001…SA-082` source anchors bound to Stage 2 line ranges and fragment SHA-256; every active `S2-*` is mapped exactly once; adds `S2-166` (`never manually`) and `S2-167` (`require diagnosis`); restores lossy qualifiers; moves dependency-graph/semantic-adequacy/per-direction strengthenings to `P3D-015…017`; R045 fails on missing/hash-drift/unknown/duplicate source accountability |
-| v10 residual | `S2-021` was incorrectly marked fully MACHINE even though index grammar/concurrency cannot prove old-application behavioral compatibility; `S2-093` cited dependency-graph rule R018 even though graph validity cannot prove an approved ongoing Populate responsibility |
-| v11 remediation | `S2-021` becomes `STRUCTURE_PLUS_HUMAN_ADEQUACY` with R008/R029 explicitly limited to index structure/concurrency and Compatibility review owning old-version behavior; `S2-093` has no machine rule and requires operational/architecture approval evidence; §23.1a freezes complete-machine, paired-SQL-scope-rejected, partial-machine and no-machine S2 evidence scopes and P3D-021/R049/TC-469…472 reject semantically unrelated or overclaiming S2→R bindings |
+| v10 residual | `S2-021` was incorrectly marked fully MACHINE even though index grammar/concurrency cannot prove old-application behavioral compatibility; `S2-093` cited dependency-graph rule R018 even though graph validity cannot prove an accepted ongoing Populate responsibility |
+| v11 remediation | `S2-021` becomes `STRUCTURE_PLUS_HUMAN_ADEQUACY` with R008/R029 explicitly limited to index structure/concurrency and Compatibility validation owning old-version behavior; `S2-093` has no machine rule and requires operational/architecture acceptance evidence; §23.1a freezes complete-machine, paired-SQL-scope-rejected, partial-machine and no-machine S2 evidence scopes and P3D-021/R049/TC-469…472 reject semantically unrelated or overclaiming S2→R bindings |
 | v11 residual | `SA-001` hashed only the lifecycle sequence and excluded the source byte carrying `mandatory`; `S2-109` and `S2-118` were still classified full-machine even though R010/R028 observe only governed migration SQL/disposable DOWN, not every production rollback/snapshot mechanism |
 | v12 remediation | `SA-001` now binds lines 16–20 including the Purpose scope plus `mandatory`; line-accounting excludes only genuinely non-normative/context bytes; `S2-109`/`S2-118` move to partial machine evidence with explicit external rollback/snapshot remainders; R045/R049 mutation proofs now cover authority-qualifier drift and external-behavior overclaim |
 | v12 residual | `S2-005` still treated a global **no migration rewrites ledger history** invariant as complete-machine even though separately governed operational migrations (including Populate) lie outside paired-SQL observation |
@@ -138,18 +138,18 @@ original 32-finding audit. P3-08 remains the sole open original finding.
 
 | Field | Value |
 | --- | --- |
-| Source | v3 re-review Finding 4; v4 re-review Finding 2 |
-| Status | REMEDIATED in v16 / v16 reviewer-confirmed PASS for explicit UP≠DOWN positive branch / RETAINED |
+| Source | v3 re-validation Finding 4; v4 re-validation Finding 2 |
+| Status | REMEDIATED in v16 / v16 evidence-confirmed PASS for explicit UP≠DOWN positive branch / RETAINED |
 | v4 residual examples | valid high risk, sensitive/mixed classification, measured observability, permitted N/A observability and mixed profile had no explicit positive |
-| Impact | validator could reject reviewed-valid branches while all negative tests stayed green |
+| Impact | validator could reject validated-valid branches while all negative tests stayed green |
 | v5 remediation | complete `ALLOWED-*` registry; every allowed enum/cross-field/statement/rollback branch maps to at least one explicit positive `TC-*`; missing map is `MIG021_POLICY_COVERAGE` |
 
 ### P3-08-PLAN-06 — up/down statement safety was internally contradictory
 
 | Field | Value |
 | --- | --- |
-| Source | v4 re-review Finding 3 |
-| Status | REMEDIATED in v5 / reviewer-confirmed PASS in v5 re-review / RETAINED |
+| Source | v4 re-validation Finding 3 |
+| Status | REMEDIATED in v5 / evidence-confirmed PASS in v5 re-validation / RETAINED |
 | Root cause | v4 applied lifecycle destructive-DDL rules to both `up.sql` and `down.sql` while also requiring a paired safe rollback |
 | Concrete failure | safe Expand `CREATE TABLE` required down `DROP TABLE`, which v4 could reject as destructive outside Contract; exempting all down DROP would permit unrelated destructive rollback |
 | Impact | either valid additive migrations could never pass or down safety would be weakened by an improvised exception |
@@ -160,14 +160,14 @@ original 32-finding audit. P3-08 remains the sole open original finding.
 
 | Field | Value |
 | --- | --- |
-| Source | v4 re-review Finding 4; v5 re-review Finding 6 |
-| Status | REMEDIATED in v10 / reviewer-confirmed PASS for authority-path and ASCII-trim primitives in v10 re-review / RETAINED |
+| Source | v4 re-validation Finding 4; v5 re-validation Finding 6 |
+| Status | REMEDIATED in v10 / evidence-confirmed PASS for authority-path and ASCII-trim primitives in v10 re-validation / RETAINED |
 | Root cause | v4 referred to cases 1–119 defined only in rejected/unmerged v3; v5 then left several allegedly frozen enums/bounds/type/operator/hash semantics unspecified |
 | Impact | future protected-repository audit could not reconstruct the meaning of more than half the claimed permanent test contract |
 | v5 remediation | all test definitions became physically self-contained |
 | v6 remediation | lock modes, replication enum, major numeric bounds, type allowlist, FK defaults and raw-statement hashing were frozen, but numeric/string/CHECK literal grammar remained implementation-defined |
 | Numbering rule | v5 is the first prospective self-contained canonical test registry; earlier rejected-candidate numeric labels have no canonical authority |
-| v9 Builder residual | aggregate/open-domain manifest fields still allowed Stage 3.55 to choose element/reference semantics or string normalization even though finite enums were closed |
+| v9 implementation residual | aggregate/open-domain manifest fields still allowed Stage 3.55 to choose element/reference semantics or string normalization even though finite enums were closed |
 | v9 remediation | §7.11 freezes aggregate field JSON types/requiredness, binds `rollout.metrics[]` and `monitoring.signals[]` to exact measured observability category keys, and freezes required open-text validation/preservation semantics; H181…H185 + P3D-014 + R044 + TC-435…TC-441 retain regression coverage |
 | v9 residual | `safe normalized repository-relative path` and `ASCII-edge trimming` still allowed materially different Stage 3.55 accepted languages |
 | v10 remediation | §7.9 freezes an ASCII canonical path grammar with no implicit normalization and exact `(kind,path)` uniqueness; §7.11 freezes `ASCII_TRIM_BYTES={09,0A,0B,0C,0D,20}` and preserves non-ASCII whitespace/content; P3D-019 + R046/R047 + TC-447…TC-458 retain boundary coverage |
@@ -177,8 +177,8 @@ original 32-finding audit. P3-08 remains the sole open original finding.
 
 | Field | Value |
 | --- | --- |
-| Source | Builder v5 pre-review closure-design audit after v4 `REQUEST CHANGES`; v5 re-review Finding 2 |
-| Status | REMEDIATED in v6 / reviewer-confirmed PASS in v7 re-review / RETAINED |
+| Source | implementation v5 pre-validation closure-design audit after v4 `CHANGES REQUIRED`; v5 re-validation Finding 2 |
+| Status | REMEDIATED in v6 / evidence-confirmed PASS in v7 re-validation / RETAINED |
 | Root cause | earlier planning could validate timeout metadata as structure without requiring the migration SQL execution path to actually apply the declared PostgreSQL timeout values before governed DDL |
 | Concrete failure | manifest declares `lock_timeout_ms=5000` and `statement_timeout_ms=30000`, while SQL executes DDL without matching `SET` / `SET LOCAL`, applies different values, applies them after DDL, or weakens/resets them before DDL |
 | Impact | validator could report timeout-policy compliance while PostgreSQL executes without the declared protection; this is false machine evidence and leaves the validator weaker than policy |
@@ -191,11 +191,11 @@ original 32-finding audit. P3-08 remains the sole open original finding.
 
 | Field | Value |
 | --- | --- |
-| Source | Builder v5 pre-review closure-design audit |
-| Status | REMEDIATED in v5 / reviewer-confirmed PASS in v5 re-review / RETAINED |
+| Source | implementation v5 pre-validation closure-design audit |
+| Status | REMEDIATED in v5 / evidence-confirmed PASS in v5 re-validation / RETAINED |
 | Root cause | one `up_transaction_mode` existed, but the earlier contract did not explicitly reject a direction mixing ordinary transactional DDL with `CREATE INDEX CONCURRENTLY` |
-| Concrete failure | an up file could contain `CREATE TABLE ...` plus `CREATE INDEX CONCURRENTLY ...`; treating the file transactional breaks PostgreSQL concurrent-index rules, while treating it non-transactional silently broadens the reviewed non-transactional surface |
-| Impact | Stage 3.55 could invent unreviewed execution semantics or accept a migration whose framing cannot satisfy the reviewed contract |
+| Concrete failure | an up file could contain `CREATE TABLE ...` plus `CREATE INDEX CONCURRENTLY ...`; treating the file transactional breaks PostgreSQL concurrent-index rules, while treating it non-transactional silently broadens the validated non-transactional surface |
+| Impact | Stage 3.55 could invent unreviewed execution semantics or accept a migration whose framing cannot satisfy the validated contract |
 | v5 remediation | §15/§16 freeze direction homogeneity: transactional up may contain only transactional allowlisted effects; non-transactional up may contain only supported concurrent-index effects and timeout session controls; mixed directions reject/rescope |
 | Permanent regression | H101/H102 + `TC-307…TC-309` under R032 |
 
@@ -203,11 +203,11 @@ original 32-finding audit. P3-08 remains the sole open original finding.
 
 | Field | Value |
 | --- | --- |
-| Source | Builder v5 pre-review closure-design audit; v10 re-review Findings 3–4 |
-| Status | REMEDIATED in v16 / v15 reviewer confirmed current PostgreSQL ColId projection but found section-local rather than global single-source enforcement / pending re-verification |
+| Source | implementation v5 pre-validation closure-design audit; v10 re-validation Findings 3–4 |
+| Status | REMEDIATED in v16 / v15 evidence-confirmed current PostgreSQL ColId projection but found section-local rather than global single-source enforcement / pending re-verification |
 | Root cause | "safe CREATE TABLE / CHECK / FK" wording was narrower than v4 but not yet exact enough to prevent drift-masking (`IF NOT EXISTS`) and hidden behavior through generated/serial/custom types, function-bearing CHECK/default expressions, referential actions, or unsupported table storage/lifecycle options |
 | Concrete failure | `CREATE TABLE IF NOT EXISTS` can silently reuse a pre-existing object and the paired down can later drop it; a CHECK can call a function; FK `ON DELETE CASCADE` changes future write/delete semantics; `SERIAL`/identity/generated/custom types introduce hidden objects/dependencies |
-| Impact | validator could accept behavior outside the reviewed additive Expand subset, or a disposable down could destroy an object that was not actually created by the migration |
+| Impact | validator could accept behavior outside the validated additive Expand subset, or a disposable down could destroy an object that was not actually created by the migration |
 | v5 remediation | §§15–17 narrowed DDL substantially; v6 further removed embedded CREATE TABLE constraints, but `frozen simple column-key grammar` and identifier truncation semantics remained incomplete |
 | v9 residual | CREATE TABLE/ADD COLUMN defined allowed/forbidden clause families but not exact clause order, multiplicity, empty/trailing-comma/duplicate-column or mandatory `COLUMN` behavior |
 | v10 remediation | §15.3 introduces one exact token grammar for `create_table`, `column_def`, and scalar types; §15.4 binds ADD COLUMN to the same `column_def`, mandates `COLUMN`, freezes clause order/multiplicity, 1..64 table columns, duplicate-name rejection and fail-closed extra-token behavior |
@@ -216,7 +216,7 @@ original 32-finding audit. P3-08 remains the sole open original finding.
 | v11 residual | FOREIGN KEY local/reference list-cardinality equality was normative but lacked deterministic negative regression, so an implementation could omit the equality check and rely on PostgreSQL to reject |
 | v12 remediation | explicit two-way FK cardinality-mismatch negatives plus a matching multi-column positive bind the equality invariant to R033 before PostgreSQL execution; the FK grammar owner is also included in the aggregate semantic freeze |
 | v12 residual | keyword terminals and unquoted identifier regex overlap, but Stage 3.54 did not freeze reserved-keyword exclusion/context precedence; two scanners could accept different SQL languages |
-| v13 remediation | §15.3a froze an exact 78-member `RESERVED_KEYWORD` extraction, but v13 review proved that category alone is not PostgreSQL `ColId` admissibility |
+| v13 remediation | §15.3a froze an exact 78-member `RESERVED_KEYWORD` extraction, but v13 validation proved that category alone is not PostgreSQL `ColId` admissibility |
 | v13 residual | PostgreSQL `TYPE_FUNC_NAME_KEYWORD` words such as `collation`, `concurrently`, and `cross` are not legal `ColId` table/column names, yet v13 accepted them because it rejected only `RESERVED_KEYWORD` |
 | v14 remediation | §15.3a freezes the actual REL_18_6 `ColId := IDENT | unreserved_keyword | col_name_keyword` grammar and derives the exact 101-member project disallowed set as `TYPE_FUNC_NAME_KEYWORD ∪ RESERVED_KEYWORD`; both `kwlist.h` and `gram.y` blob identities, category sets, union, hashes and contextual witnesses are frozen; authority-projection mutation is mandatory |
 | Permanent regression | H103…H109 + H194…H203 + `TC-310…TC-319` + `TC-459…TC-497` under R033/R048/R051/R052/R053 |
@@ -225,14 +225,14 @@ original 32-finding audit. P3-08 remains the sole open original finding.
 
 | Field | Value |
 | --- | --- |
-| Source | Builder v5 pre-review Stage 2 classification cross-check; v5 re-review Finding 3 |
-| Status | REMEDIATED in v9 / reviewer-confirmed PASS in v9 re-review / RETAINED |
+| Source | implementation v5 pre-validation Stage 2 classification cross-check; v5 re-validation Finding 3 |
+| Status | REMEDIATED in v9 / evidence-confirmed PASS in v9 re-validation / RETAINED |
 | Root cause | v5 had strong gates after a risk value was chosen and still permitted constraint syntax inside CREATE TABLE, allowing machine-obvious medium effects to hide under a low CREATE TABLE minimum |
 | Concrete failure | a pre-existing-table index or new FK/CHECK constraint could declare `risk=low`, avoiding staged-rollout structural requirements while all low-risk validations pass |
 | Impact | risk-specific policy gates can be bypassed by under-declaring risk; validator remains weaker than the classification policy |
 | v5 remediation | explicit index/ADD CONSTRAINT minimums were added but did not cover embedded CREATE TABLE constraints |
-| v6 remediation | CREATE TABLE removed CHECK/FK/PK/UNIQUE/EXCLUDE, but still allowed column-level `NOT NULL`; v7 reviewer correctly identified PostgreSQL NOT NULL as a constraint that could remain under the low ADD COLUMN floor |
-| v8 remediation | paired-SQL v1 rejects `NOT NULL` in both CREATE TABLE and ADD COLUMN; the only low column/table forms are nullable; any future NOT NULL support is explicit scope expansion with a reviewed medium-or-higher risk contract |
+| v6 remediation | CREATE TABLE removed CHECK/FK/PK/UNIQUE/EXCLUDE, but still allowed column-level `NOT NULL`; v7 validator correctly identified PostgreSQL NOT NULL as a constraint that could remain under the low ADD COLUMN floor |
+| v8 remediation | paired-SQL v1 rejects `NOT NULL` in both CREATE TABLE and ADD COLUMN; the only low column/table forms are nullable; any future NOT NULL support is explicit scope expansion with a validated medium-or-higher risk contract |
 | v8 residual | `TC-331` still said generic nullable ADD COLUMN may remain low, contradicting the frozen `ADD COLUMN + literal DEFAULT => minimum medium` rule and TC-424 |
 | v9 remediation | `TC-331` is narrowed to nullable ADD COLUMN **without DEFAULT**; TC-265 remains the medium positive path for literal DEFAULT and TC-424 remains the laundering rejection |
 | Permanent regression | H110/H111/H162/H171/H172/H176 + `TC-320…TC-324`,`TC-413`,`TC-414`,`TC-424` under R033/R034; Stage 2 registry explicitly includes classification-example dispositions |
@@ -241,23 +241,23 @@ original 32-finding audit. P3-08 remains the sole open original finding.
 
 | Field | Value |
 | --- | --- |
-| Source | Builder v5 pre-review inspection of current `.github/workflows/ci.yml`; v5 re-review Finding 1; v10 re-review Finding 5 |
-| Status | REMEDIATED in v11 / reviewer-confirmed PASS in v11 re-review / RETAINED |
+| Source | implementation v5 pre-validation inspection of current `.github/workflows/ci.yml`; v5 re-validation Finding 1; v10 re-validation Finding 5 |
+| Status | REMEDIATED in v11 / evidence-confirmed PASS in v11 re-validation / RETAINED |
 | Root cause | v5 modeled only `migrations` + `go`, while frozen CI also has `go-race` with its own PostgreSQL migration apply path |
 | Concrete failure | PR adds a migration containing policy-forbidden SQL; GitHub schedules `Go tests` first/parallel and its `Apply PostgreSQL migrations` step executes exact candidate bytes before `PostgreSQL migration validation` returns failure |
 | Impact | validator is a merge gate but not an execution-before-use gate across CI; unsafe/rejected SQL can execute in CI under the PostgreSQL service superuser before validation |
 | v5 remediation | dominance was added for `go` only and was incomplete |
 | v6 remediation | exact current SQL-executing inventory is frozen as job IDs `migrations`, `go`, `go-race`; both dependent Go jobs require `needs: migrations` plus exact `validated_sha`; conservative workflow inventory test fails on migration-application markers outside the frozen inventory |
 | v10 residual | CI executes every `*.up.sql`, while validator planning said only an invalid `.sql` file that "resembles a migration" rejects; a refactor could therefore ignore `evil.up.sql` while CI still executes it |
-| v11 remediation | §10 defines `VALIDATOR_SQL_DISCOVERY_SET` as every migration-directory basename ending exactly `.sql`; every member must match the canonical UP/DOWN filename grammar or validation fails, never ignores; current `*.up.sql` CI execution set is mechanically proven a subset of validator discovery/approval through P3D-026/R054/TC-498…502 |
+| v11 remediation | §10 defines `VALIDATOR_SQL_DISCOVERY_SET` as every migration-directory basename ending exactly `.sql`; every member must match the canonical UP/DOWN filename grammar or validation fails, never ignores; current `*.up.sql` CI execution set is mechanically proven a subset of validator discovery/acceptance through P3D-026/R054/TC-498…502 |
 | Permanent regression | H112…H115 + H204 + R035/R054 + `TC-325…TC-327`,`TC-337…TC-341`,`TC-498…TC-502`; exact published-head CI is required evidence |
 
 ### P3-08-PLAN-13 — PostgreSQL identifier truncation was not frozen
 
 | Field | Value |
 | --- | --- |
-| Source | v6 re-review Finding 4 |
-| Status | REMEDIATED in v7 / reviewer-confirmed PASS in subsequent re-reviews / RETAINED |
+| Source | v6 re-validation Finding 4 |
+| Status | REMEDIATED in v7 / evidence-confirmed PASS in subsequent re-validations / RETAINED |
 | Root cause | future SQL identifiers were lowercase/unquoted but had no byte-length invariant, while PostgreSQL 18 truncates identifiers beyond its default 63-byte maximum |
 | Concrete failure | validator derives effect identity from a >63-byte source identifier while PostgreSQL creates/catalogs the truncated name; two source names sharing the first 63 bytes can collide |
 | Impact | validator identity and database identity can diverge, weakening exact inverse and ownership proofs |
@@ -268,8 +268,8 @@ original 32-finding audit. P3-08 remains the sole open original finding.
 
 | Field | Value |
 | --- | --- |
-| Source | v6 re-review Finding 5 |
-| Status | REMEDIATED in v7 / reviewer-confirmed PASS in v7 re-review / RETAINED |
+| Source | v6 re-validation Finding 5 |
+| Status | REMEDIATED in v7 / evidence-confirmed PASS in v7 re-validation / RETAINED |
 | Root cause | meta-audit checked ID existence and polarity but did not assert exact equality of the two independently written edge sets |
 | Concrete failure | a TC row can name a rule absent from that rule's coverage list, or a rule can name a test that does not name the rule |
 | Impact | two conforming-looking coverage reports can produce different semantic graphs while all headline counts remain green |
@@ -280,7 +280,7 @@ original 32-finding audit. P3-08 remains the sole open original finding.
 
 | Field | Value |
 | --- | --- |
-| Source | v6 re-review Finding 6; v15 re-review stale `60` vs derived `59`; v17 re-review V17-F01 (`90` vs derived `89`) |
+| Source | v6 re-validation Finding 6; v15 re-validation stale `60` vs derived `59`; v17 re-validation V17-F01 (`90` vs derived `89`) |
 | Status | REMEDIATED again in v19 / all active observer/partition numeric summaries are derived from the canonical S2 partition and no stale numeric literal is an independent authority / pending independent re-verification |
 | Root cause | prose summary retained a stale bare count (`35-rule`) after the exact registry became `R001…R036` |
 | Concrete failure | implementation/closure readers can derive different expected totals from summary vs normative registry |
@@ -291,28 +291,28 @@ original 32-finding audit. P3-08 remains the sole open original finding.
 | v19 remediation | one canonical S2 partition is parsed first; observer-bearing is derived as complete+scope-rejected+partial; every active numeric observer/partition representation is checked against the derived tuple; a `89→90` mutation fails |
 | Permanent regression | H148/H263 + R038/R056/R063 + stale-summary/observer mutation fixtures |
 
-### P3-08-PLAN-16 — Builder meta-audit proved structure but not semantic-freeze completeness
+### P3-08-PLAN-16 — implementation meta-audit proved structure but not semantic-freeze completeness
 
 | Field | Value |
 | --- | --- |
-| Source | Builder root-cause analysis after v6 `REQUEST CHANGES`; v10 re-review Finding 2; v16 re-review V16-F01/F02; v17 re-review V17-F02/F03 |
-| Status | REMEDIATED architecturally in v19 / v17 reviewer confirmed byte manifests and known PROP fixtures but found sibling child-semantic survivors and contradictory BND/CARD scope / pending independent re-verification |
+| Source | implementation root-cause analysis after v6 `CHANGES REQUIRED`; v10 re-validation Finding 2; v16 re-validation V16-F01/F02; v17 re-validation V17-F02/F03 |
+| Status | REMEDIATED architecturally in v19 / v17 evidence-confirmed byte manifests and known PROP fixtures but found sibling child-semantic survivors and contradictory BND/CARD scope / pending independent re-verification |
 | Root cause | prior meta-audits proved contiguous IDs, valid references, polarity and positive mappings, but did not prove source/derived namespace purity, literal symbol resolution, PostgreSQL identifier semantics, exact grammar closure, bidirectional coverage-edge equality **or exhaustive finite-domain field definitions** |
 | Concrete failure | a plan can be internally count-consistent yet still leave implementation-selected semantics or two inconsistent semantic mappings |
-| Impact | reviewer repeatedly finds defects outside the syntactic registry checks; headline `META_AUDIT=PASS` was weaker than users reasonably inferred |
+| Impact | validator repeatedly finds defects outside the syntactic registry checks; headline `META_AUDIT=PASS` was weaker than users reasonably inferred |
 | v7 remediation | added source purity, grammar, edge equality and placeholder lint, but still allowed a required field to have `unknown value → reject` without a literal exhaustive allowed set |
 | v8 remediation | adds an exact finite-domain registry for every finite manifest field, scanner-derived `statement_class` mapping, exact five-value authority-kind enum, and meta-gates requiring domain presence, normative equality and no delegation to Stage 3.55/code/tests |
-| v9 Builder residual | finite-domain exactness still did not prove semantic completeness of open-domain arrays/text; this is a residual of the existing semantic-meta-audit class, not a new PLAN ID |
+| v9 implementation residual | finite-domain exactness still did not prove semantic completeness of open-domain arrays/text; this is a residual of the existing semantic-meta-audit class, not a new PLAN ID |
 | v9 remediation | package proof audit now inventories formal manifest aggregate/open fields and checks their exact type/reference/normalization contracts through §7.11, P3D-014, R044 and TC-435…TC-441 |
-| v10 remediation | Builder meta-audit now verifies exact `SA-*` line-range/hash/S2 accountability against the canonical Stage 2 bytes, exact path grammar markers, exact trim-byte set, literal CREATE TABLE/ADD COLUMN productions and their deterministic boundary tests; structural PASS cannot bypass these semantic checks |
+| v10 remediation | implementation meta-audit now verifies exact `SA-*` line-range/hash/S2 accountability against the canonical Stage 2 bytes, exact path grammar markers, exact trim-byte set, literal CREATE TABLE/ADD COLUMN productions and their deterministic boundary tests; structural PASS cannot bypass these semantic checks |
 | v10 residual | `P3D-008` claimed no implementation-selected alias/enum/bound/grammar/normalization but was mapped only to R040/R041, leaving path, trim, finite-domain, CREATE TABLE/ADD COLUMN and other frozen semantic surfaces outside the aggregate proof |
-| v11 remediation | §23.2a defines one exact `SEMANTIC_FREEZE_RULE_SET`; P3D-008 points only to aggregate R050; R050 fails if any required semantic rule is omitted/added and mutation cases exercise enum, path, trim, CREATE TABLE/ADD COLUMN, CREATE INDEX, scalar/value/type-parameter, CHECK, DOWN and validator-discovery semantics; Builder meta-audit checks the exact set rather than known needles |
+| v11 remediation | §23.2a defines one exact `SEMANTIC_FREEZE_RULE_SET`; P3D-008 points only to aggregate R050; R050 fails if any required semantic rule is omitted/added and mutation cases exercise enum, path, trim, CREATE TABLE/ADD COLUMN, CREATE INDEX, scalar/value/type-parameter, CHECK, DOWN and validator-discovery semantics; implementation meta-audit checks the exact set rather than known needles |
 | v11 residual | aggregate set omitted existing FK grammar owner R033; P3D-003 still claimed all literal/operator/type bounds while citing only R040; FK list-cardinality rejection lacked deterministic negative proof |
 | v12 remediation | semantic-freeze scope is derived from an exact semantic-owner inventory instead of a hand-picked family list; R033 is in-scope; P3D-003 is narrowed to the R040 scalar-data/CHECK-predicate surface while P3D-023 exclusively owns type-parameter bounds; P3D-027/R055 adds machine-scope accounting for every P3D binding; FK cardinality mismatch is covered by explicit negatives |
 | v12 residual | the explicit CREATE TABLE `1..64` project cap had no exact `64 PASS / 65 REJECT` witnesses, so the bound could disappear while every registered test stayed green |
 | v13 remediation | GUARD-02/R057 inventories finite bounds globally and requires exact boundary/adjacent-invalid witnesses plus mutation-kill coverage; CREATE TABLE gets TC-521/522 and the guard scans sibling cardinality/length/range bounds rather than only this fixture |
 | v13 residual | the BND registry was still a hand-authored expected set and omitted three formal-manifest integer fields (`affected_rows_estimate`, `disk_impact_bytes_estimate`, `wal_impact_bytes_estimate`) with exact `0..INT64_MAX` bounds |
-| v14 remediation | BND-17…19 add independent lower/upper witnesses for those fields; more importantly, Builder discovery parses bounded integer manifest fields from §§7.4/7.5/7.11 and requires discovered semantic keys to be represented in BND, while a synthetic bounded-field mutation must fail without relying on an expected BND count |
+| v14 remediation | BND-17…19 add independent lower/upper witnesses for those fields; more importantly, implementation discovery parses bounded integer manifest fields from §§7.4/7.5/7.11 and requires discovered semantic keys to be represented in BND, while a synthetic bounded-field mutation must fail without relying on an expected BND count |
 | v16 residual | BND occurrence enforcement was sound, but the declared boundary universe omitted structural cardinalities; the owner-level ATOM registry hashed broad R bodies rather than individual machine properties |
 | v17 remediation/residual | SEM/CARD all-line manifests and `PROP-001…014` closed the known v16 mutations, but independent sibling JSON/dependency/filename properties could still drift after legitimate evidence regeneration; BND/CARD scope also had two conflicting definitions |
 | v19 remediation | machine acceptance/rejection is exactly the canonical `TC↔MPROP` bijection; every TC condition/outcome/owner set has a direct atomic MPROP witness, mutation obligations are registry-derived for every MPROP, and exactly one `TA-01` authority defines BND vs structural-cardinality/MPROP scope. SEM/CARD/NLA are byte-accountability only and cannot masquerade as semantic completeness |
@@ -322,8 +322,8 @@ original 32-finding audit. P3-08 remains the sole open original finding.
 
 | Field | Value |
 | --- | --- |
-| Source | Builder root-cause analysis after v7 `REQUEST CHANGES` Findings 3–4 |
-| Status | REMEDIATED in v8 / reviewer-confirmed PASS in v9 re-review / RETAINED |
+| Source | implementation root-cause analysis after v7 `CHANGES REQUIRED` Findings 3–4 |
+| Status | REMEDIATED in v8 / evidence-confirmed PASS in v9 re-validation / RETAINED |
 | Root cause | semantic lint looked for known placeholder phrases but did not inventory every required finite-domain manifest field and prove that its exhaustive value set was frozen inside Stage 3.54 |
 | Concrete failure | `statement_class` could reject an "unknown" value even though the valid set was undefined; authority `kind` said values "include" five examples and delegated the exact enum to future code/tests |
 | Impact | two Stage 3.55 implementations could produce incompatible canonical manifests while both claiming semantic-freeze compliance |
@@ -334,8 +334,8 @@ original 32-finding audit. P3-08 remains the sole open original finding.
 
 | Field | Value |
 | --- | --- |
-| Source | v8 re-review Finding 4 |
-| Status | REMEDIATED in v9 / reviewer-confirmed PASS in v9 re-review / RETAINED |
+| Source | v8 re-validation Finding 4 |
+| Status | REMEDIATED in v9 / evidence-confirmed PASS in v9 re-validation / RETAINED |
 | Root cause | `rollout.plan_ref` and `authority_refs[kind=staged_rollout]` represented the same rollout-plan identity through two independent fields without an exact equality/reference rule |
 | Concrete failure | a manifest could bind a validated immutable staged-rollout authority ref to plan A while `rollout.plan_ref` named plan B, or two implementations could interpret `plan_ref` as path/hash/index/string differently |
 | Impact | medium/high risk evidence binding was implementation-defined; two compliant implementations could accept incompatible manifests |
@@ -346,36 +346,36 @@ original 32-finding audit. P3-08 remains the sole open original finding.
 ### Finding-ledger invariants
 
 1. `P3-08-PLAN-01…18` remain permanently visible in every later Stage 3.54 revision.
-2. No reviewer-confirmed finding may be silently reopened, renamed, merged away or erased.
+2. No evidence-confirmed finding may be silently reopened, renamed, merged away or erased.
 3. A newly discovered material planning defect receives the next `P3-08-PLAN-NN`; a residual of an existing finding stays under that existing ID with a new residual entry.
 4. Every remediation must add or strengthen a permanent prevention rule and deterministic regression.
-5. `REMEDIATED` means Builder design exists; `REVIEWER_CONFIRMED` requires explicit designated-reviewer confirmation.
+5. `REMEDIATED` means implementation design exists; `REVIEWER_CONFIRMED` requires explicit designated-validator confirmation.
 6. Original audit arithmetic remains exactly 31/32 until separately governed protected P3-08 closure.
 
 ### Preventive failure-class guard ledger — v13
 
-The immutable `P3-08-PLAN-01…18` ledger remains forensic history. v13 adds a **separate preventive guard registry** so a recurring root cause is machine-gated even when a concrete Reviewer finding is correctly classified as a residual of an old PLAN. A GUARD is not a replacement/renumbering of PLAN findings and does not manufacture `PLAN-19`.
+The immutable `P3-08-PLAN-01…18` ledger remains forensic history. v13 adds a **separate preventive guard registry** so a recurring root cause is machine-gated even when a concrete validator finding is correctly classified as a residual of an old PLAN. A GUARD is not a replacement/renumbering of PLAN findings and does not manufacture `PLAN-19`.
 
-| Guard | Generic failure class | Mandatory pre-review prevention |
+| Guard | Generic failure class | Mandatory pre-validation prevention |
 | --- | --- | --- |
 | `P3-08-GUARD-01` | **evidence-observability / quantified-subject escape** — a rule proves a subset of an `all/every/never/no` requirement but the row is promoted to complete-machine | freeze requirement subject universe + observer universe; complete-machine requires `subject_universe ⊆ observer_universe`; scan all sibling global controls |
-| `P3-08-GUARD-02` | **finite-boundary proof omission** — a frozen min/max/cardinality/length/range exists in prose/grammar without exact boundary witness and adjacent-invalid rejection | global finite-bound inventory; boundary PASS/NEG pair or explicit mathematical N/A; semantic mutation must kill Builder gate |
+| `P3-08-GUARD-02` | **finite-boundary proof omission** — a frozen min/max/cardinality/length/range exists in prose/grammar without exact boundary witness and adjacent-invalid rejection | global finite-bound inventory; boundary PASS/NEG pair or explicit mathematical N/A; semantic mutation must kill implementation gate |
 | `P3-08-GUARD-03` | **lexical token-class overlap** — two token classes overlap and precedence/context/exclusion is implementation-selected | inventory every non-empty token-class intersection; freeze owner/precedence/context/exclusion set and positive/negative witnesses |
-| `P3-08-GUARD-04` | **latent semantic owner omission** — a normative semantic atom exists in prose but no exact R owner represents it | semantic-atom registry/inventory; each atom maps exactly once to an R owner or explicit reviewer-only evidence class |
+| `P3-08-GUARD-04` | **latent semantic owner omission** — a normative semantic atom exists in prose but no exact R owner represents it | semantic-atom registry/inventory; each atom maps exactly once to an R owner or explicit validator-only evidence class |
 | `P3-08-GUARD-05` | **mutation survivor** — a materially changed frozen semantic constant can leave all canonical gates green | one mutation-kill proof per semantic-atom class; changing bound/set/owner/normalization/evidence scope must fail |
-| `P3-08-GUARD-06` | **fixture-only remediation** — Builder fixes named Reviewer examples but does not scan the complete sibling domain | every remediation records generic predicate, sibling domain, exhaustive scan result and permanent regression before Builder PASS |
+| `P3-08-GUARD-06` | **fixture-only remediation** — implementation fixes named validator examples but does not scan the complete sibling domain | every remediation records generic predicate, sibling domain, exhaustive scan result and permanent regression before implementation PASS |
 
 Guard invariants:
 
 1. `P3-08-GUARD-01…06` are exact and append-only for this prevention layer.
-2. Every future Reviewer blocker must be classified twice: forensic PLAN class **and** preventive GUARD class/predicate (or explicit reason no Guard applies).
+2. Every future validator blocker must be classified twice: forensic PLAN class **and** preventive GUARD class/predicate (or explicit reason no Guard applies).
 3. A known example passing is insufficient; the complete sibling domain must be scanned.
 4. `BUILDER_PROOF_OBLIGATIONS_PASS` requires `PO-01…20` plus `GP-01…06`.
 5. A Guard may be strengthened without changing the forensic PLAN ID of a residual finding.
 
 ## 4. Broader fail-closed bypass/error register
 
-The finding ledger records defects actually found in review. The H-register records bypass/error
+The finding ledger records defects actually found in validation. The H-register records bypass/error
 classes the design must proactively defend against. H entries are prevention requirements, not
 additional original-audit findings.
 
@@ -396,11 +396,11 @@ additional original-audit findings.
 | P3-08-H13 | supplied base is not supported ancestor | resolve commit + ancestry validation |
 | P3-08-H14 | future migration hides inside legacy baseline | frozen separate legacy structure capped at `000007` |
 | P3-08-H15 | retrospective metadata invented for legacy | legacy stores identity/hashes only + explicit non-retroactive status |
-| P3-08-H16 | evidence reference string treated as approval | typed reference structure only; substantive adequacy external |
-| P3-08-H17 | final CI/review evidence required before CI can run | final evidence stays outside pre-CI manifest |
+| P3-08-H16 | evidence reference string treated as acceptance | typed reference structure only; substantive adequacy external |
+| P3-08-H17 | final CI/validation evidence required before CI can run | final evidence stays outside pre-CI manifest |
 | P3-08-H18 | one transaction mode cannot model up/down safely | separate up/down transaction modes |
 | P3-08-H19 | non-positive/inverted timeout satisfies field presence | numeric bounds + cross-field consistency |
-| P3-08-H20 | manifest schema silently weakened | schema version frozen; redesign requires reviewed scope |
+| P3-08-H20 | manifest schema silently weakened | schema version frozen; redesign requires validated scope |
 | P3-08-H21 | hard-coded Stage 3.1/3.11 guards disappear | preserve or replace with equal/stronger assertions |
 | P3-08-H22 | first/reapplied schemas diverge after rollback rehearsal | deterministic catalog fingerprint/invariant equivalence |
 | P3-08-H23 | rollback leaves managed objects behind | explicit rollback-baseline postcondition |
@@ -418,7 +418,7 @@ additional original-audit findings.
 | P3-08-H35 | policy row absent from coverage matrix | exhaustive policy inventory + completeness test/record |
 | P3-08-H36 | allowed branch has no positive test | bidirectional rule-to-test mapping |
 | P3-08-H37 | statement impact metadata does not bind to actual SQL | normalized statement SHA-256 + exact statement-count/bijection |
-| P3-08-H38 | fake precise estimate passes structure | adequacy explicitly human-reviewed; machine checks type/range/source/rationale only |
+| P3-08-H38 | fake precise estimate passes structure | adequacy explicitly human-validated; machine checks type/range/source/rationale only |
 | P3-08-H39 | `SELECT` in Validate invokes side-effecting function | arbitrary SELECT is not in v1 Validate allowlist |
 | P3-08-H40 | security-sensitive `COPY PROGRAM` / file IO | all COPY rejected in enforced v1 |
 | P3-08-H41 | prepared statement hides dynamic execution | PREPARE/EXECUTE rejected in enforced v1 |
@@ -432,10 +432,10 @@ additional original-audit findings.
 | P3-08-H49 | rewrite/side-effect hides inside DDL expression/default | allow only frozen safe DDL subforms; unsupported expressions/function-bearing defaults/constraints fail closed |
 | P3-08-H50 | alternate PostgreSQL string syntax confuses scanner | handle standard/prefixed/dollar-quoted lexical forms deterministically or fail |
 | P3-08-H51 | transaction-control variant escapes exact framing | only frozen BEGIN/COMMIT framing allowed; SAVEPOINT/CHAIN/other control rejected unless explicitly supported |
-| P3-08-H52 | index online/concurrent policy omitted behind generic impact metadata | per-index online strategy disposition; non-concurrent path requires explicit structural rationale + human adequacy review |
+| P3-08-H52 | index online/concurrent policy omitted behind generic impact metadata | per-index online strategy disposition; non-concurrent path requires explicit structural rationale + human adequacy validation |
 | P3-08-H53 | policy disposition enum drift | every `S2-*` row uses exactly one frozen six-value primary disposition; secondary notes are separate fields |
 | P3-08-H54 | normative Stage 2 control omitted from registry | self-contained exhaustive `S2-*` inventory + exact control-ID set test |
-| P3-08-H55 | graph-valid dependency list omits a semantically required dependency | graph validity MACHINE; semantic completeness STRUCTURE_PLUS_HUMAN_ADEQUACY and explicitly reviewed |
+| P3-08-H55 | graph-valid dependency list omits a semantically required dependency | graph validity MACHINE; semantic completeness STRUCTURE_PLUS_HUMAN_ADEQUACY and explicitly validated |
 | P3-08-H56 | allowed enum/cross-field branch has no positive test | `ALLOWED-*` registry requires at least one positive `TC-*` per allowed branch |
 | P3-08-H57 | up lifecycle safety policy reused blindly for down | separate up contract and disposable-down inverse contract |
 | P3-08-H58 | down drops unrelated pre-existing object | down inverse target must derive exactly from an up effect in the same migration |
@@ -447,7 +447,7 @@ additional original-audit findings.
 | P3-08-H64 | unqualified/quoted/search-path-dependent identifiers break object identity | enforced v1 uses schema-qualified lowercase ASCII object identifiers; search-path mutation/quoted object identity unsupported |
 | P3-08-H65 | timeout metadata exists but PostgreSQL never applies it | exact timeout `SET`/`SET LOCAL` statements must precede DDL and match per-direction manifest values |
 | P3-08-H66 | down execution has different timeout/lock/impact profile but only up is modeled | separate `up_execution`, `down_execution`, `up_ddl_impact`, `down_ddl_impact` |
-| P3-08-H67 | disposable down file is mistaken for approved production rollback | manifest/workflow explicitly label down as disposable rehearsal inverse only; production rollback is a separate reviewed plan |
+| P3-08-H67 | disposable down file is mistaken for accepted production rollback | manifest/workflow explicitly label down as disposable rehearsal inverse only; production rollback is a separate validated plan |
 | P3-08-H68 | `IF EXISTS` masks missing/wrong rollback object | `IF EXISTS` is rejected in future enforced down inverses |
 | P3-08-H69 | `CASCADE` expands rollback beyond intended effect | `CASCADE` rejected in enforced down |
 | P3-08-H70 | multi-effect up has partial rollback | every reversible up effect must have exactly one down inverse |
@@ -506,14 +506,14 @@ additional original-audit findings.
 | P3-08-H123 | Validate row-count-only prohibition omitted from Stage 2 registry | atomic rejected/deferred Validate control |
 | P3-08-H124 | declared metric names are overclaimed as proof that real metrics exist/usefully emit | metrics structure separated from human/operational adequacy |
 | P3-08-H125 | validator log-redaction fixture is overclaimed as proof of whole production migration logging hygiene | total logging hygiene classified operational/closure; machine fixture is partial support only |
-| P3-08-H126 | implementation chooses a different lock-mode enum than reviewed plan | exact eight-value enum frozen in Stage 3.54 |
+| P3-08-H126 | implementation chooses a different lock-mode enum than validated plan | exact eight-value enum frozen in Stage 3.54 |
 | P3-08-H127 | implementation chooses a different replication-impact enum | exact four-value enum frozen |
 | P3-08-H128 | implementation chooses arbitrary timeout/duration/impact integer bounds | exact numeric bounds frozen |
-| P3-08-H129 | implementation broadens/narrows CREATE/ADD type allowlist without planning review | exact built-in type forms frozen |
+| P3-08-H129 | implementation broadens/narrows CREATE/ADD type allowlist without technical reassessment | exact built-in type forms frozen |
 | P3-08-H130 | implementation invents a broader CHECK/FK comparison grammar | exact atomic CHECK + FK syntax frozen |
 | P3-08-H131 | implementations compute `statement_sha256` from different normalization algorithms | exact raw-statement byte-slice hashing algorithm frozen |
-| P3-08-H132 | canonical Low-risk `new empty table` example omitted from source registry | atomic source row + reviewed disposition |
-| P3-08-H133 | canonical Low-risk `additive nullable column` example omitted from source registry | atomic source row + reviewed disposition |
+| P3-08-H132 | canonical Low-risk `new empty table` example omitted from source registry | atomic source row + validated disposition |
+| P3-08-H133 | canonical Low-risk `additive nullable column` example omitted from source registry | atomic source row + validated disposition |
 | P3-08-H134 | destructive risk examples compressed/omitted as classification anchors | atomic DROP / irreversible-conversion / history-rewrite source rows |
 | P3-08-H135 | P3-08-derived hardening is mislabeled as literal Stage 2 source policy | separate `P3D-*` derived-control namespace |
 | P3-08-H136 | numeric literal plus-sign acceptance differs by implementation | exact numeric lexical grammar forbids leading `+` |
@@ -531,7 +531,7 @@ additional original-audit findings.
 | P3-08-H148 | summary prose contains stale registry count/range | range/count assertions derived and linted from exact registries |
 | P3-08-H149 | source and derived policy namespaces are mixed | `S2-*` source-only + `P3D-*` derived-only registry invariant |
 | P3-08-H150 | derived control is missing/duplicate/unknown | exact `P3D-*` ID-set equality |
-| P3-08-H151 | source extraction keeps contiguous IDs but omits a risk-table cell | atomic risk-table source anchors + designated reviewer source comparison |
+| P3-08-H151 | source extraction keeps contiguous IDs but omits a risk-table cell | atomic risk-table source anchors + designated validator source comparison |
 | P3-08-H152 | index name omitted and PostgreSQL auto-generates identity | exact index grammar requires explicit name |
 | P3-08-H153 | expression/partial/include/method/opclass/collation/sort/null index semantics leak through "simple" grammar | literal index EBNF; all extra clause families reject |
 | P3-08-H154 | index key list is empty/oversized/contains duplicates | exact 1–32 distinct simple-column keys |
@@ -540,10 +540,10 @@ additional original-audit findings.
 | P3-08-H157 | varchar default exceeds declared length | decoded payload length must be <= n |
 | P3-08-H158 | CHECK operator is accepted for a type whose frozen v1 grammar does not permit it | exact operator-by-type matrix |
 | P3-08-H159 | a placeholder phrase (`safe-literal`, `simple grammar`, `frozen later`) survives semantic freeze | semantic-lint forbidden-placeholder set |
-| P3-08-H160 | structural meta-audit passes while literal grammar/hash/registry summaries remain unresolved | semantic-freeze meta-gate must pass before reviewer package |
+| P3-08-H160 | structural meta-audit passes while literal grammar/hash/registry summaries remain unresolved | semantic-freeze meta-gate must pass before validator package |
 
 | P3-08-H161 | compound canonical control is partially copied and one subject (`metrics` vs `logs`) disappears | source extraction preserves every subject/qualifier of the atomic canonical sentence |
-| P3-08-H162 | `NOT NULL` constraint is syntactically hidden inside low-risk table/column form | paired-SQL v1 rejects NOT NULL; future support requires reviewed scope expansion |
+| P3-08-H162 | `NOT NULL` constraint is syntactically hidden inside low-risk table/column form | paired-SQL v1 rejects NOT NULL; future support requires validated scope expansion |
 | P3-08-H163 | required finite-domain field rejects unknown values but has no exhaustive valid set | every finite field must exist in §7.10 exact domain registry |
 | P3-08-H164 | authority enum wording says `include` rather than `exactly` | authority kinds are exactly five; no alias/additional kind |
 | P3-08-H165 | enum/domain is delegated to code/tests | semantic freeze forbids future authority direction; plan is authoritative |
@@ -586,8 +586,8 @@ additional original-audit findings.
 | P3-08-H201 | `numeric(01,0)`, `numeric(+1,0)`, `varchar(0005)` or equivalent spelling passes because implementation validates only numeric value bounds | exact canonical decimal-token productions for precision/scale/varchar length; signs/leading zeros/underscores/exponents reject |
 | P3-08-H202 | CHECK predicate is narrow but outer `ALTER TABLE ... ADD CONSTRAINT ... CHECK (...) NOT VALID` envelope accepts extra parentheses/options/tokens | exact full CHECK statement token production; anything outside the production rejects |
 | P3-08-H203 | DOWN effect identity is correct but scanner accepts alternate/multi-target/`RESTRICT`/extra-token spellings | exact literal production per supported DOWN inverse class; all optional/alternate tokens outside the production reject |
-| P3-08-H204 | validator ignores a noncanonical `evil.up.sql` while frozen CI `*.up.sql` glob executes it | validator discovery includes every exact `.sql` suffix entry and rejects every noncanonical filename; current CI execution set must be a subset of validator-approved subjects |
-| P3-08-H205 | pre-publication package review requires a remote branch that workflow intentionally forbids publishing before local approval | review stage is explicit: PRE_PUBLICATION_PACKAGE binds exact bytes/base/scope and remote branch is NOT_APPLICABLE; PUBLISHED_EXACT_HEAD review later requires remote ref/head/CI and cannot inherit local approval |
+| P3-08-H204 | validator ignores a noncanonical `evil.up.sql` while frozen CI `*.up.sql` glob executes it | validator discovery includes every exact `.sql` suffix entry and rejects every noncanonical filename; current CI execution set must be a subset of validator-accepted subjects |
+| P3-08-H205 | pre-publication package validation requires a remote branch that workflow intentionally forbids publishing before local acceptance | validation stage is explicit: PRE_PUBLICATION_PACKAGE binds exact bytes/base/scope and remote branch is NOT_APPLICABLE; PUBLISHED_EXACT_HEAD validation later requires remote ref/head/CI and cannot inherit local acceptance |
 | P3-08-H206 | source anchor preserves a value/sequence but excludes the nearby byte that gives it mandatory/forbidden/required authority | qualifier-bearing source anchors; mutation of obligation-strength source bytes must invalidate R045 proof |
 | P3-08-H207 | clean governed migration SQL is treated as proof that every external production rollback mechanism preserves financial facts | S2-109 partial evidence: SQL/DOWN subset machine-proven, actual production rollback procedure remains Operations/Architecture evidence |
 | P3-08-H208 | clean migration SQL is treated as proof that separate snapshot rebuild/runtime code never mutates historical transactions | S2-118 partial evidence: governed SQL subset machine-proven, snapshot/runtime immutability remains separate evidence |
@@ -595,42 +595,42 @@ additional original-audit findings.
 | P3-08-H210 | a broad P3D English requirement cites a narrower rule and silently overclaims its proof scope | P3D evidence-scope registry + R055; broad claims must bind complete owner set or be narrowed |
 | P3-08-H211 | FK parser validates tokens/options but omits local/reference column-count equality and relies on PostgreSQL to reject | deterministic 2→1 and 1→2 mismatch negatives plus 2→2 positive, all pre-execution under R033 |
 | P3-08-H212 | FK column list admits duplicate local or referenced identifiers and defers duplicate-column rejection to PostgreSQL | exact pairwise-distinct local and referenced lists under R033 |
-| P3-08-H213 | FK column-list cardinality has no project cap so scanner accepts a form the reviewed v1 language did not bound | exact `1..32` project-policy cap for each list; 33-column form rejects before PostgreSQL |
+| P3-08-H213 | FK column-list cardinality has no project cap so scanner accepts a form the validated v1 language did not bound | exact `1..32` project-policy cap for each list; 33-column form rejects before PostgreSQL |
 | P3-08-H214 | FK scanner/catalog responsibilities are conflated, causing either hidden server-oracle syntax or impossible lexical proof of catalog state | scanner owns exact token/list/cardinality grammar; disposable PostgreSQL rehearsal owns table/column existence, type compatibility and referenced uniqueness after lexical acceptance |
 | P3-08-H215 | paired-SQL scope rejection is mislabeled as full machine proof of an external Stage 2 lifecycle/operational requirement | four-way S2 evidence taxonomy separates MACHINE_COMPLETE from PAIRED_SQL_SCOPE_REJECTED; scope rejection never claims the external requirement itself is machine-proven |
-| P3-08-H216 | a P3D meta/provenance/evidence requirement is marked fully MACHINE even though its final semantic-subset/source-classification judgment is reviewer-owned | exact P3D machine-vs-structure-plus-human partition + P3D evidence-scope registry; R055 freezes structure while independent reviewer owns semantic adequacy |
+| P3-08-H216 | a P3D meta/provenance/evidence requirement is marked fully MACHINE even though its final semantic-subset/source-classification judgment is validator-owned | exact P3D machine-vs-structure-plus-human partition + P3D evidence-scope registry; R055 freezes structure while independent validator owns semantic adequacy |
 | P3-08-H217 | a globally quantified migration invariant is marked complete-machine although operational/Populate migration mechanisms exist outside paired-SQL observation | GUARD-01 + R056: exact subject/observer universes; global rows cannot be complete unless machine observation covers all migration mechanisms |
 | P3-08-H218 | a finite project cap is frozen in grammar but has no exact maximum PASS and adjacent-invalid NEG | GUARD-02 + R057 boundary inventory and mutation-kill proof |
 | P3-08-H219 | SQL keyword and identifier lexical classes overlap and implementations choose different precedence/context behavior | GUARD-03 + R058 exact PostgreSQL 18.6 reserved set and contextual identifier policy |
-| P3-08-H220 | a later finite bound/cardinality/length is added without entering the global boundary-proof inventory | GUARD-02 requires every finite semantic atom to enter the inventory before Builder PASS |
+| P3-08-H220 | a later finite bound/cardinality/length is added without entering the global boundary-proof inventory | GUARD-02 requires every finite semantic atom to enter the inventory before implementation PASS |
 | P3-08-H221 | a material semantic rule exists only in English prose and therefore escapes the registered semantic-owner complement | GUARD-04/R059 exact semantic-atom ownership + GUARD-05 mutation survivor rejection |
-| P3-08-H222 | remediation closes the Reviewer-named fixture while a sibling instance of the same generic predicate remains | GUARD-06/R061 requires generic predicate + complete sibling scan + permanent regression |
+| P3-08-H222 | remediation closes the validator-named fixture while a sibling instance of the same generic predicate remains | GUARD-06/R061 requires generic predicate + complete sibling scan + permanent regression |
 | P3-08-H223 | exact upstream bytes/hash are correct but extraction criterion proves a different semantic property than the project claims | GUARD-03/04 + R062 authority-projection proof: parser production + keyword categories + project context must compose to the claimed language |
 | P3-08-H224 | a completeness checker validates a hand-authored expected set and therefore self-validates omissions | GUARD-01/02/06 + R063: discovered candidate universe must be computed from normative controls/field schema and equal the declared registry |
 | P3-08-H225 | bounded integer manifest field exists but has no BND atom because expected BND count was not updated | bounded-field discovery from §§7.4/7.5/7.11 + BND exact semantic-key equality + synthetic new-field mutation |
 | P3-08-H226 | migration-subject control exists but is outside the sibling registry because the expected sibling set omitted it | all-168 S2 discovery predicate + explicit discovered/deferred partition + synthetic new-global-control mutation |
 | P3-08-H227 | PostgreSQL keyword category is mistaken for object-identifier admissibility without consulting `ColId` grammar | exact REL_18_6 `gram.y` ColId production plus kwlist category projection; `TYPE_FUNC_NAME_KEYWORD` and `RESERVED_KEYWORD` both reject in project ColId positions |
 | P3-08-H228 | authority category is added/removed upstream while frozen project projection/hash remains internally self-consistent | exact two-source authority identity, category-set hashes, union hash and projection mutation test |
-| P3-08-H229 | a new semantic candidate is introduced but all existing mutation fixtures touch only already-registered atoms | GUARD-05 candidate-injection mutations must create an unregistered bounded field / migration-subject / lexical category and force Builder failure |
+| P3-08-H229 | a new semantic candidate is introduced but all existing mutation fixtures touch only already-registered atoms | GUARD-05 candidate-injection mutations must create an unregistered bounded field / migration-subject / lexical category and force implementation failure |
 | P3-08-H230 | positive completeness fixture asserts `all exact` without independently deriving the candidate universe | positive guard proof must compare discovery output to registry; expected counts are diagnostic only |
 | P3-08-H231 | bounded-field discovery filters candidates through pre-known field names and therefore misses a new bounded field | parse every formal-manifest integer field generically; every non-singleton integer field must resolve to one machine-readable BOUND-SPEC |
 | P3-08-H232 | normative bound prose and BND/field schema carry independently editable numeric copies | one authoritative BOUND_SPEC_REGISTRY; prose references it; BND witnesses must equal its exact lower/upper values |
 | P3-08-H233 | a correct ColId production is duplicated and the checker finds the stale copy after the primary authority mutates | one anchored COLID_POLICY_SPEC in §15.3a; later sections may cite only its digest/ID, never repeat the production |
-| P3-08-H234 | registered R complement is exact while a new normative semantic sentence has no R owner or TC | frozen semantic-candidate line accountability plus exact ATOM↔semantic-R bijection; new normative candidate line fails without evidence regeneration/re-review |
+| P3-08-H234 | registered R complement is exact while a new normative semantic sentence has no R owner or TC | frozen semantic-candidate line accountability plus exact ATOM↔semantic-R bijection; new normative candidate line fails without evidence regeneration/re-validation |
 | P3-08-H235 | semantic atom body mutates while owner/counts stay fixed | ATOM digest is computed from the exact authoritative R semantic body and must match frozen atom evidence |
-| P3-08-H236 | an S2 partial evidence edge references a valid but semantically unrelated R-rule | no-machine/reviewer-only is preferred when no genuine machine subset exists; `S2-101→R018` is removed and regression-forbidden |
+| P3-08-H236 | an S2 partial evidence edge references a valid but semantically unrelated R-rule | no-machine/validator-only is preferred when no genuine machine subset exists; `S2-101→R018` is removed and regression-forbidden |
 | P3-08-H237 | mutation suite is described in prose but never executed against the frozen checker | packaged v20 property-mutation and extra-red-team runners execute from the frozen ZIP; property obligations are registry-derived and exact totals are independently recounted |
 | P3-08-H238 | changing a normative candidate line and its nearby summary leaves structural registries green | external frozen NORMATIVE_LINE_ACCOUNTABILITY evidence is compared independently from plan counts/IDs and must mismatch |
 | P3-08-H239 | a second machine-readable BOUND-SPEC authority appears outside the canonical registry and section-local proof still reports single-source | global physical occurrence scan: every `BOUND-SPEC|` row in the entire candidate must belong to the one anchored BOUND_SPEC_REGISTRY; identical or conflicting duplicates reject |
 | P3-08-H240 | a second machine-readable COLID_POLICY production appears outside §15.3a while the anchored policy remains correct | global physical occurrence scan requires exactly one `COLID_POLICY|` row in the entire candidate and it must be the anchored authority |
 | P3-08-H241 | duplicate ATOM declarations collapse through dictionary assignment and preserve the apparent unique-ID set | parse physical ATOM occurrences first; exact declaration count, ID multiplicity, owner multiplicity and digest validity are checked before any map construction |
 | P3-08-H242 | a stale prose partition cardinality is frozen by NLA and contradicts the derived evidence registry | one machine-readable S2 evidence-partition authority is derived from canonical rows; every active numeric partition summary is compared to it, never trusted independently |
-| P3-08-H243 | a valid R rule is attached to an S2 control because it is a prerequisite/mechanism rather than a logical subset | conservative evidence policy is applied to every partial edge: confirmed plus proactively identified prerequisite-only behavioral/reporting/compatibility/classification/policy rows are reviewer/external-evidence only; the full remaining partial-edge set is frozen for independent semantic re-review |
+| P3-08-H243 | a valid R rule is attached to an S2 control because it is a prerequisite/mechanism rather than a logical subset | conservative evidence policy is applied to every partial edge: confirmed plus proactively identified prerequisite-only behavioral/reporting/compatibility/classification/policy rows are validator/external-evidence only; the full remaining partial-edge set is frozen for independent semantic re-validation |
 | P3-08-H244 | UP and DOWN execution metadata are each valid in isolation but implementation silently requires equality | explicit accepted cross-field branch with one migration using different valid UP/DOWN lock+statement timeout values; equality coupling must fail the positive contract |
 | P3-08-H245 | a specialized Guard appears green only because NLA or candidate identity catches the same mutation first | specialized mutation fixtures regenerate NLA and isolate identity where appropriate, proving the intended global-uniqueness/bijection/acceptance guard itself fails closed |
 | P3-08-H246 | duplicate authority/atom mutation keeps unique IDs and headline counts unchanged | occurrence-level counters and globally anchored authority locations are proof inputs; count-preserving duplicate+missing substitutions reject |
-| P3-08-H247 | machine evidence proves only a prerequisite/declaration for an S2 behavioral or policy proposition | full partial-edge semantic pass applies the logical-subset rule uniformly; behavior/reporting/compatibility/classification/policy rows without a direct machine-observable conjunct are reviewer/external-evidence only |
-| P3-08-H248 | a future edit reattaches one of the conservatively demoted prerequisite-only S2 rows under a different valid R ID | exact reviewer-only non-subset set plus family mutation regressions fail any machine-rule reattachment regardless of whether the R ID itself exists and is well-tested |
+| P3-08-H247 | machine evidence proves only a prerequisite/declaration for an S2 behavioral or policy proposition | full partial-edge semantic pass applies the logical-subset rule uniformly; behavior/reporting/compatibility/classification/policy rows without a direct machine-observable conjunct are validator/external-evidence only |
+| P3-08-H248 | a future edit reattaches one of the conservatively demoted prerequisite-only S2 rows under a different valid R ID | exact validator-only non-subset set plus family mutation regressions fail any machine-rule reattachment regardless of whether the R ID itself exists and is well-tested |
 
 
 
@@ -642,18 +642,18 @@ additional original-audit findings.
 | P3-08-H254 | touched-schema owner equality can weaken to subset while broad owner-consistency R title is unchanged | property-level `PROP-SPEC` freezes set relation `EQUAL`, owner R019 and acceptance/rejection witnesses |
 | P3-08-H255 | pre-existing-table index CONCURRENTLY requirement can become optional under unchanged R029 title | property-level boolean `PROP-SPEC` freezes `required=true` for pre-existing-table index concurrency and direct witnesses |
 | P3-08-H256 | exact UP↔DOWN inverse multiplicity can drift from 1↔1 to one-to-many | structural-cardinality + property-level specs freeze both directions at exactly one and bind duplicate/missing inverse witnesses |
-| P3-08-H257 | `S2-107→R028` treats structural exact inverse as evidence that a schema down is demonstrably safe | S2-107 demoted to reviewer/Operations no-machine; R028 remains mandatory validator hardening but is not canonical safety evidence |
-| P3-08-H258 | semantic-accountability evidence can be regenerated after a prose mutation, bypassing byte-only NLA | v20 retains v19 treatment of NLA/SEM/CARD as byte evidence only; machine behavior cannot change without an explicit canonical TC+MPROP contract change that is itself re-reviewed |
+| P3-08-H257 | `S2-107→R028` treats structural exact inverse as evidence that a schema down is demonstrably safe | S2-107 demoted to validator/Operations no-machine; R028 remains mandatory validator hardening but is not canonical safety evidence |
+| P3-08-H258 | semantic-accountability evidence can be regenerated after a prose mutation, bypassing byte-only NLA | v20 retains v19 treatment of NLA/SEM/CARD as byte evidence only; machine behavior cannot change without an explicit canonical TC+MPROP contract change that is itself re-validated |
 | P3-08-H259 | property registry could become another hand-picked expected list | v19 MPROP is mechanically one-to-one with the entire canonical TC set; unknown TC or orphan MPROP fails exact-set equality |
 | P3-08-H260 | coarse semantic owner and atomic normative property were conflated | v19 explicitly distinguishes owner-level ATOM/R grouping from atomic TC↔MPROP machine properties; one R may own many MPROPs |
 | P3-08-H261 | lexical semantic discovery can omit new obligation/relation vocabulary | v20 retains the v19 rule that machine semantics are not discovered from English tokens; the machine behavior universe is the exact canonical TC↔MPROP set |
-| P3-08-H262 | regenerated byte manifests can self-authorize prose drift if they are mistaken for machine semantic authority | v19 removes that claim: byte manifests may regenerate only as evidence; any intended machine behavior change requires an explicit TC+MPROP change and a new independent review |
+| P3-08-H262 | regenerated byte manifests can self-authorize prose drift if they are mistaken for machine semantic authority | v19 removes that claim: byte manifests may regenerate only as evidence; any intended machine behavior change requires an explicit TC+MPROP change and a new independent validation |
 | P3-08-H263 | derived observer count is hand-written and contradicts canonical partition (`90` vs derived `89`) | compute observer count only from canonical S2 partition and reject every active count-bearing observer summary that differs |
 | P3-08-H264 | byte-complete SEM/CARD manifests are mistaken for semantic machine-property completeness | SEM/CARD are byte-accountability only; canonical machine behavior is exactly TC↔MPROP |
 | P3-08-H265 | sibling child semantics drift behind broad R ownership after evidence regeneration | every canonical TC has exactly one atomic MPROP with exact condition/outcome/owners/direct witness; broad R closure is grouping only |
 | P3-08-H266 | BND is simultaneously defined as all-cardinality and quantitative-only | one global TAXONOMY-AUTHORITY defines BND/structural-cardinality/MPROP scope; competing definitions reject |
 | P3-08-H267 | REVIEW_PROMPT requires a runner absent from frozen package | package-contract verifier parses every referenced v19 runner, requires presence/checksum, and clean-unzip executes all mandatory runners |
-| P3-08-H268 | unknown machine behavior is introduced in prose without a canonical test/property | prose cannot create acceptance behavior; new machine behavior requires a new/changed TC plus exactly-one MPROP and a new review |
+| P3-08-H268 | unknown machine behavior is introduced in prose without a canonical test/property | prose cannot create acceptance behavior; new machine behavior requires a new/changed TC plus exactly-one MPROP and a new validation |
 | P3-08-H269 | mutation suite is exemplar-selected and misses the next sibling | mutation obligations are generated one-to-one from every MPROP, including drift/polarity/owner/orphan attacks |
 
 ## 5. Canonical policy model and enforcement boundary
@@ -699,15 +699,15 @@ Examples:
 
 Examples:
 
-- substantive ADR approval;
-- substantive Security/Privacy Review quality;
+- substantive ADR acceptance;
+- substantive Security/Privacy validation quality;
 - real production cardinality;
 - old/new application coexistence in production;
 - a fresh usable production backup;
 - point-in-time restore success;
 - representative SLO/performance evidence;
 - observation-window completion;
-- human review occurrence merely because a string says "review";
+- human validation occurrence merely because a string says "validation";
 - adequacy of a chosen timeout for unknown production load.
 
 Documentation and validator output MUST use language such as `structure validated`,
@@ -899,7 +899,7 @@ The scanner derives the class from executable SQL; the manifest does not choose 
 | exact disposable `DROP INDEX CONCURRENTLY` inverse | `drop_index_concurrently` |
 
 Any alias, case variant, broader/narrower class name, or manifest value that does not equal the scanner-derived
-class rejects. No class may be added in Stage 3.55 without a separately reviewed Stage 3.54 scope change.
+class rejects. No class may be added in Stage 3.55 without a separately validated Stage 3.54 scope change.
 
 #### Frozen statement-hash algorithm
 
@@ -1027,7 +1027,7 @@ disposable_down_exact_inverse
 
 for paired-SQL v1.
 
-This does **not** mean the down file is approved for production rollback.
+This does **not** mean the down file is accepted for production rollback.
 
 `production_rollback` separately declares:
 
@@ -1044,7 +1044,7 @@ application_or_config_rollback
 leave_additive_structure_unused
 ```
 
-A production schema-destructive rollback is not authorized by the presence of `.down.sql`.
+A production schema-destructive rollback is not permitted by the presence of `.down.sql`.
 
 The down file exists for disposable rehearsal and must be an exact scoped structural inverse under §17.
 
@@ -1136,7 +1136,7 @@ vocabulary without conflating it with an unknown value.
 
 `FD-001…FD-019` is the exact v16 finite-domain set. No additional finite manifest domain exists outside
 this registry. If Stage 3.55 needs another finite field/domain/value, implementation stops and returns to a
-reviewed Stage 3.54 scope change.
+validated Stage 3.54 scope change.
 
 Meta-validation MUST maintain exact equality between this registry and the finite-domain inventory
 implemented by the strict decoder. It compares both the exact `FD-*` ID set and each exact member set
@@ -1216,7 +1216,7 @@ this decision because it would implement a broader language than the frozen cont
 
 `monitoring.signals[]` and `rollout.metrics[]` are references to the already-frozen observability category
 keys, not assertions that an external production metric actually exists or emits correctly. Operational
-existence/use/adequacy remains reviewer/Operations evidence.
+existence/use/adequacy remains validator/Operations evidence.
 
 ## 8. Strict JSON integrity rules
 
@@ -1396,7 +1396,7 @@ STRUCTURE_PLUS_HUMAN_ADEQUACY
 
 because an omitted dependency may not be inferable from the narrow SQL forms alone.
 
-For allowlisted DDL, the scanner MAY surface directly visible object references as review evidence, but
+For allowlisted DDL, the scanner MAY surface directly visible object references as validation evidence, but
 v5 does not turn partial reference inference into a false completeness claim.
 
 The policy registry therefore separates:
@@ -1456,7 +1456,7 @@ Output must state base-relative history comparison was **not applicable**, not "
 The migration CI job SHALL make the actual PR base commit available.
 
 The implementation may use the already-pinned `actions/checkout` with sufficient history
-(e.g. `fetch-depth: 0`) or an equivalently deterministic explicit fetch. No new Action is authorized.
+(e.g. `fetch-depth: 0`) or an equivalently deterministic explicit fetch. No new Action is permitted.
 
 PR CI invokes validator with the actual pull-request base SHA.
 
@@ -1475,7 +1475,7 @@ Once `policy_manifest.json` is merged:
 
 Changing an existing entry in a future PR fails base-relative validation even if SQL is unchanged.
 
-A future schema-version redesign requires a separate reviewed governance/development scope; P3-08 v1
+A future schema-version redesign requires a separate validated governance/development scope; P3-08 v1
 does not create a self-authorizing schema-upgrade escape hatch.
 
 ## 15. Paired-SQL v1 phase and UP statement contract
@@ -1520,7 +1520,7 @@ The first canonical v1 allowlist is intentionally small:
 4. `CREATE INDEX` / `CREATE UNIQUE INDEX` using the exact §15.6 simple-column index grammar;
 5. `CREATE INDEX CONCURRENTLY` / `CREATE UNIQUE INDEX CONCURRENTLY` using the same exact §15.6 grammar.
 
-Everything else fails closed until separately reviewed.
+Everything else fails closed until separately validated.
 
 `IF NOT EXISTS` is forbidden for every future enforced CREATE/ALTER/INDEX form. A migration must fail
 on unexpected pre-existing state rather than silently claim ownership of an object it did not create.
@@ -1698,7 +1698,7 @@ The exact frozen category/union members remain:
 
 ```text
 PG18_6_TYPE_FUNC_NAME_WORDS =
-authorization
+permission
 binary
 collation
 concurrently
@@ -1734,7 +1734,7 @@ array
 as
 asc
 asymmetric
-authorization
+permission
 binary
 both
 case
@@ -1835,7 +1835,7 @@ Index names themselves are unqualified in `CREATE INDEX`; the index schema is de
 parent table schema. DOWN references the derived `schema.index_name`.
 
 Future schema creation is not supported by v1. The four currently governed schemas already exist;
-adding another schema requires reviewed scope expansion.
+adding another schema requires validated scope expansion.
 
 ### 15.4 Exact ADD COLUMN production and safe literal grammar
 
@@ -1861,7 +1861,7 @@ Therefore:
 - `NOT NULL` rejects in paired-SQL v1 even with a literal default.
 
 PostgreSQL 18 treats NOT NULL as a constraint, while canonical Stage 2 names only an additive **nullable**
-column as the Low classification example. Future NOT NULL support therefore requires separately reviewed
+column as the Low classification example. Future NOT NULL support therefore requires separately validated
 scope with an explicit medium-or-higher operation-risk contract.
 
 The default-literal grammar is literal and implementation-independent.
@@ -1953,7 +1953,7 @@ Rejected additionally:
 - any `NOT NULL` in v1 CREATE TABLE or ADD COLUMN.
 
 Machine validation proves the exact lexical/type/range contract only; business compatibility and lock
-adequacy remain human reviewed with the impact declaration.
+adequacy remain human validated with the impact declaration.
 
 ### 15.5 Safe ADD CONSTRAINT grammar
 
@@ -2116,7 +2116,7 @@ statically. For a pre-existing table/column surface, catalog existence/type corr
 the disposable PostgreSQL apply gate; the lexical scanner does not fabricate base-schema knowledge.
 
 This exact subset is intentionally much narrower than PostgreSQL's full CREATE INDEX grammar. Any
-additional index semantic requires a reviewed planning expansion.
+additional index semantic requires a validated planning expansion.
 
 ### 15.7 Hidden data movement remains forbidden
 
@@ -2200,7 +2200,7 @@ all other psql backslash meta-commands
 psql variable substitution
 ```
 
-A future legitimate need returns to separately reviewed scope.
+A future legitimate need returns to separately validated scope.
 
 ### 16.3 Allowed control statements
 
@@ -2348,7 +2348,7 @@ than inventing a complex runner.
 
 ### 17.5 Production rollback is separate
 
-`production_rollback` describes the reviewed production strategy. For additive Expand, expected
+`production_rollback` describes the validated production strategy. For additive Expand, expected
 strategies are application/config rollback and/or leaving the additive structure unused.
 
 The existence and successful CI execution of `.down.sql` means only:
@@ -2360,7 +2360,7 @@ the disposable structural inverse is syntactically/executably rehearsable
 It does not mean:
 
 ```text
-production data-loss rollback is approved
+production data-loss rollback is accepted
 ```
 
 This distinction is mandatory in validator output, implementation documentation and Stage 3.56 closure
@@ -2385,9 +2385,9 @@ Risk gates:
 
 | Risk | Machine-enforced structure | External/human adequacy |
 | --- | --- | --- |
-| low | review/CI path, rollback structure, observability declaration, timeout/impact metadata | ordinary review |
+| low | validation/CI path, rollback structure, observability declaration, timeout/impact metadata | ordinary validation |
 | medium | `rollout.mode=staged`, non-empty declared rollout metric references, exactly one typed `authority_refs[kind=staged_rollout]` | real rehearsal, real metrics existence/use and staged-rollout adequacy |
-| high | all medium structures + ADR ref + security/privacy ref + golden-vectors ref + restore-rehearsal ref | actual approval/rehearsal/vector adequacy |
+| high | all medium structures + ADR ref + security/privacy ref + golden-vectors ref + restore-rehearsal ref | actual acceptance/rehearsal/vector adequacy |
 
 The validator checks only structured presence/type/path/hash and operation-derived minimum risk. It
 never claims that a referenced dashboard/metric exists in production, emits correctly, is adequate, or
@@ -2458,9 +2458,9 @@ Minimum structural gates:
 
 - `sensitive` and `mixed` require a security/privacy reference;
 - `identity_personal` requires a security/privacy reference;
-- `financial` remains subject to financial/domain review and high-risk rules when risk is high;
+- `financial` remains subject to financial/domain validation and high-risk rules when risk is high;
 - `schema_only` must not be used when the touched schema/object semantics obviously require a stronger
-  classification under the reviewed change.
+  classification under the validated change.
 
 Machine validation checks enum and required structural refs. Classification correctness remains
 `STRUCTURE_PLUS_HUMAN_ADEQUACY`.
@@ -2483,7 +2483,7 @@ schema ownership convention.
 
 ### 18.5 No circular final evidence
 
-Final PR CI results, Internal/External verdicts, Ready authorization and merge authorization are not
+Final PR CI results, Internal/External results, Ready permission and merge permission are not
 embedded as pre-CI manifest requirements.
 
 They remain governed by `REVIEW_WORKFLOW.md` and later closure evidence.
@@ -2536,7 +2536,7 @@ Where applicable it identifies:
 - queries/tool versions;
 - mismatches;
 - accepted risk;
-- reviewer/sign-off evidence.
+- validator/sign-off evidence.
 
 An unexplained financial mismatch blocks the later Contract mechanism. Paired-SQL v1 does not implement
 Contract.
@@ -2550,7 +2550,7 @@ The following are never declared machine-proven by the migration validator:
 - old/new application coexistence;
 - observation-window completion;
 - actual staged-rollout execution;
-- actual Security/Privacy approval;
+- actual Security/Privacy acceptance;
 - golden-vector adequacy;
 - actual restore rehearsal;
 - least-privilege production principal identity.
@@ -2568,7 +2568,7 @@ Additional rules:
 - value cannot be empty or null;
 - classification is immutable after merge with the manifest entry;
 - touched-schema/declared-owner consistency is machine-checked;
-- reviewer verifies whether the chosen classification is semantically strong enough.
+- validator verifies whether the chosen classification is semantically strong enough.
 
 The validator never downgrades a classification automatically to make a migration pass.
 
@@ -2673,7 +2673,7 @@ go-race
 
 The CI-policy test inspects `.github/workflows/ci.yml` and fails if:
 
-- any of these three job IDs disappears/renames without a reviewed inventory update;
+- any of these three job IDs disappears/renames without a validated inventory update;
 - `go` or `go-race` loses `needs: migrations`;
 - either dependent job lacks the exact-SHA assertion before its migration-apply step;
 - the workflow contains a migration-application marker outside the frozen inventory.
@@ -2683,13 +2683,13 @@ repository path token `infrastructure/postgres/migrations` together with either 
 or a `psql` invocation in that same job. The guard is intentionally conservative and may fail closed
 on ambiguous workflow edits.
 
-This static inventory rule proves the reviewed current workflow shapes and catches obvious future
+This static inventory rule proves the validated current workflow shapes and catches obvious future
 migration-apply paths. It does **not** claim semantic detection of arbitrary future shell/download/code
-that somehow executes migrations without those markers; workflow review remains responsible for such
+that somehow executes migrations without those markers; workflow validation remains responsible for such
 scope changes.
 
 This is an execution-before-use guarantee for the three current repository CI SQL paths, not
-production deployment authorization.
+production deployment permission.
 
 ### 22.2 PR-mode base context
 
@@ -2725,7 +2725,7 @@ CI output and Stage 3.55 documentation must call `.down.sql`:
 disposable rollback/rehearsal inverse
 ```
 
-and must not call successful down execution proof of approved production rollback.
+and must not call successful down execution proof of accepted production rollback.
 
 ### 22.6 Required check inventory
 
@@ -2734,7 +2734,7 @@ The protected repository remains at exactly ten required checks. P3-08 strengthe
 
 ## 23. Exhaustive canonical Stage 2 control registry — closes P3-08-PLAN-04
 
-v12 retains the stable atomic source IDs and the v11 reviewer-confirmed source-wording/source-derived separation, while tightening source-authority bytes and evidence scope.
+v12 retains the stable atomic source IDs and the v11 evidence-confirmed source-wording/source-derived separation, while tightening source-authority bytes and evidence scope.
 
 Exactly six primary dispositions are legal:
 
@@ -2763,7 +2763,7 @@ UTF-8/LF bytes exactly as stored in the protected base
 ```
 
 An `SA-*` fragment hash is SHA-256 over the exact UTF-8 bytes of the inclusive canonical source line
-range, including each stored terminal LF. The line ranges below are the complete reviewed set of
+range, including each stored terminal LF. The line ranges below are the complete validated set of
 normative Stage 2 semantic blocks for P3-08. Headings, blank lines, Markdown fences/table headers and
 document metadata are intentionally not normative anchors. To prevent that exclusion boundary from
 becoming another hand-waved completeness gap, the exact non-blank canonical line set that is **not**
@@ -2775,12 +2775,12 @@ SOURCE_NON_NORMATIVE_NONBLANK_LINES =
 ```
 
 Those 29 lines are limited to the document title/metadata table, section headings, Markdown fence/table
-syntax, and non-normative Purpose context. The metadata status `Proposed Strategy / No Migrations Authorized` is
+syntax, and non-normative Purpose context. The metadata status `Proposed Strategy / No Migrations permitted` is
 document-state context, not a future migration-validator control. The obligation-strength bytes `The mandatory lifecycle is:`
 and the lifecycle sequence are one authority unit and are byte-bound together by `SA-001` across lines 16–20. Any
 future non-blank canonical source line outside the union of the `SA-*` coverage and that exact exclusion
-set fails source-accountability proof. The Builder gate therefore proves all **149/149 non-blank source
-lines are accounted** as either normative anchor coverage or an explicitly reviewed non-normative line; **120**
+set fails source-accountability proof. The implementation gate therefore proves all **149/149 non-blank source
+lines are accounted** as either normative anchor coverage or an explicitly validated non-normative line; **120**
 non-blank lines are anchor-covered and exactly **29** are explicitly excluded.
 
 Every `SA-*` row MUST satisfy all of these:
@@ -2793,7 +2793,7 @@ Every `SA-*` row MUST satisfy all of these:
 6. `S2-*` requirement wording may split an anchor into atomic conjuncts but may not add semantics absent
    from that anchor; any stronger P3-08 rule belongs in `P3D-*`;
 7. changing the canonical source blob, anchor range, fragment hash or accountability mapping requires a
-   separately reviewed Stage 3.54 source-extraction update; Stage 3.55 may not infer a replacement.
+   separately validated Stage 3.54 source-extraction update; Stage 3.55 may not infer a replacement.
 
 | Source anchor | Canonical source lines | Exact fragment SHA-256 | Accountable source controls | Semantic unit |
 | --- | ---: | --- | --- | --- |
@@ -2824,7 +2824,7 @@ Every `SA-*` row MUST satisfy all of these:
 | `SA-025` | `61-61` | `2f6b46e98c185883344211a9034479f85504def1af2778b71617058d117aed40` | `S2-038` | pause/resume no duplicate effects |
 | `SA-026` | `62-62` | `c90c897cdd02423cdf832b26a7f6c3644ea78f5f66db8fd60f8fa439e5c91584` | `S2-039` | no binary float |
 | `SA-027` | `63-63` | `75f08bb5297f80e848bfaf66a9b6698245373209b7195cd73d202c0de322efe1` | `S2-040` | no local timezone conversion |
-| `SA-028` | `65-66` | `303346cae81e2f92849cf5822ab301c39b949659191fb9113ce3c4f74e16455c` | `S2-041,S2-042,S2-093` | operational jobs/business worker/removal/approved ongoing exception |
+| `SA-028` | `65-66` | `303346cae81e2f92849cf5822ab301c39b949659191fb9113ce3c4f74e16455c` | `S2-041,S2-042,S2-093` | operational jobs/business worker/removal/accepted ongoing exception |
 | `SA-029` | `70-70` | `4e1ab3d584202c85039e77958271a5e6cf8f097f707245f87187f1fe6b8c970c` | `S2-043` | separately deployable switch app change |
 | `SA-030` | `72-72` | `167b82bb5e8ce0c1f4800de8cf8c89771f86803afc33831a9bbf5a57d0068ef1` | `S2-044` | read both reps |
 | `SA-031` | `73-73` | `2cdec9abefe70f765c2564137ac35c90fca88d7d457f2c544d1003cc7029069a` | `S2-045` | shadow reads where privacy permits |
@@ -2872,7 +2872,7 @@ Every `SA-*` row MUST satisfy all of these:
 | `SA-073` | `159-160` | `87049dd46b1260a99a0c650d025116bb2bed7632307006e7a81933e287300db5` | `S2-121` | delete live rows/mapping + cryptographically destroy key |
 | `SA-074` | `160-161` | `61d0de68a6debf510942290ab364dffc79434d273351746d190e09d7d25ea8dc` | `S2-122` | restored backup cannot recreate link |
 | `SA-075` | `161-162` | `8ec351a8c489c2663bbe7e7c7dc7861b0584ce27f987e2ec09c702101a390d89` | `S2-123,S2-124,S2-125` | replay deletion ledger + backups encrypted/expire 90d |
-| `SA-076` | `164-165` | `a528f92550b54a36bcd545f4d2dcd1388a92f0bc59d4b8248eafe4b7bf0f8962` | `S2-126` | exact key hierarchy/Vault/deletion ledger/runbook Security Review |
+| `SA-076` | `164-165` | `a528f92550b54a36bcd545f4d2dcd1388a92f0bc59d4b8248eafe4b7bf0f8962` | `S2-126` | exact key hierarchy/Vault/deletion ledger/runbook Security validation |
 | `SA-077` | `165-166` | `a91716f65b4a7b54dd8df4955fd49432260b90f5f3f3e732386f18306924cc8a` | `S2-127` | operator reconstruction = pseudonymization/fails anonymization |
 | `SA-078` | `170-177` | `c4790cd00dd14ec9cb2ae58f037a4957f98b65199085fe07ce4ba5c45d00c3b6` | `S2-128,S2-129,S2-130,S2-131,S2-132,S2-133,S2-134,S2-135,S2-136` | production migration reports fields |
 | `SA-079` | `179-180` | `7310a6de43dd13e645077423383dda97f6938b53556e1d3520bdf933944cec27` | `S2-137` | metrics and logs sensitive-content prohibition |
@@ -2882,47 +2882,47 @@ Every `SA-*` row MUST satisfy all of these:
 
 `SA-001…SA-082` is the exact source-anchor set for the current candidate. `R045` mechanically verifies exact SA ID/range/hash
 and exact-once S2 accountability. This does **not** make human source-fidelity judgment unnecessary:
-Reviewer still checks that each atomic S2 wording preserves the subject, qualifier, conjunction and scope
+validator still checks that each atomic S2 wording preserves the subject, qualifier, conjunction and scope
 of its mapped source bytes. It does make silent source-unit omission or known-needle-only proof impossible
-without failing the Builder gate.
+without failing the implementation gate.
 
 ### 23.1 Canonical control rows
 
 | Control ID | Stage 2 source | Atomic normative control | Primary disposition | Machine rule IDs | External owner/gate |
 | --- | --- | --- | --- | --- | --- |
-| `S2-001` | Purpose | Expand→Populate→Switch→Validate→Contract is the mandatory lifecycle | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Principal Architect / lifecycle review; lifecycle vocabulary is prerequisite, not proof of mandatory sequencing |
+| `S2-001` | Purpose | Expand→Populate→Switch→Validate→Contract is the mandatory lifecycle | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Principal Architect / lifecycle validation; lifecycle vocabulary is prerequisite, not proof of mandatory sequencing |
 | `S2-002` | Non-negotiable 1 | No destructive one-step migration | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R007,R008 | separately governed operational migrations and lifecycle mechanisms must independently avoid destructive one-step migration |
 | `S2-003` | Non-negotiable 2 | DROP/destructive type conversion/rename/semantic reuse requires staged ADR authority | `REJECTED_BY_PAIRED_SQL_V1` | R007,R008 | Separate destructive-migration scope |
 | `S2-004` | Non-negotiable 3 | Old/new application versions coexist during transition window | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Release/closure evidence |
 | `S2-005` | Non-negotiable 4 | Financial ledger rows are never UPDATE/DELETE rewritten for cleanup | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R010,R008,R009 | every separately governed operational migration, including Populate tooling, must independently preserve financial-ledger history |
-| `S2-006` | Non-negotiable 5 | Snapshots may be rebuilt; transactions may not be rewritten | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R010 | Domain reviewer |
+| `S2-006` | Non-negotiable 5 | Snapshots may be rebuilt; transactions may not be rewritten | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R010 | Domain validator |
 | `S2-007` | Non-negotiable 6 | Every migration is versioned | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R002,R005 | separately governed operational migrations must carry independently governed immutable/versioned identity where Stage 2 calls them migrations |
 | `S2-008` | Non-negotiable 6 | Every merged migration is immutable | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R004,R006 | immutability of separately governed operational migration artifacts remains outside paired-SQL validator observation |
-| `S2-009` | Non-negotiable 6 | Every migration is reviewed | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | REVIEW_WORKFLOW exact-head evidence |
-| `S2-010` | Non-negotiable 6 | Every migration is observable | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Operations/reviewer; declaration profile is prerequisite, not proof that production migration is observable |
+| `S2-009` | Non-negotiable 6 | Every migration is validated | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | REVIEW_WORKFLOW exact-head evidence |
+| `S2-010` | Non-negotiable 6 | Every migration is observable | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Operations/validator; declaration profile is prerequisite, not proof that production migration is observable |
 | `S2-011` | Non-negotiable 6 | Every migration is rehearsed | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R023 | Risk-specific operational evidence |
 | `S2-012` | Non-negotiable 7 | Production schema changes execute through CI/CD | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Deployment evidence |
 | `S2-013` | Non-negotiable 7 | Production schema changes use least-privilege credentials | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Deployment/security evidence |
 | `S2-014` | Non-negotiable 8 | Backup/PITR verified before high-risk changes | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | High-risk closure gate |
-| `S2-015` | Non-negotiable 8 | Backup existence is not a substitute for rollback design | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R026 | Reviewer |
-| `S2-016` | Non-negotiable 9 | No production-code TODO may defer a known migration risk; use Issue→ADR→approval | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Review/governance gate |
-| `S2-017` | Phase 1 | Expand structures are backward-compatible | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Compatibility reviewer; additive grammar/impact metadata are prerequisites, not proof of backward compatibility |
+| `S2-015` | Non-negotiable 8 | Backup existence is not a substitute for rollback design | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R026 | validator |
+| `S2-016` | Non-negotiable 9 | No production-code TODO may defer a known migration risk; use Issue→ADR→acceptance | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | validation/governance gate |
+| `S2-017` | Phase 1 | Expand structures are backward-compatible | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Compatibility validator; additive grammar/impact metadata are prerequisites, not proof of backward compatibility |
 | `S2-018` | Phase 1 | New column is nullable or uses safe server-side default | `MACHINE` | R008 | — |
-| `S2-019` | Phase 1 | New table is ignored by old application versions | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Compatibility reviewer |
-| `S2-020` | Phase 1 | New schema is ignored by old application versions | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | Separate reviewed schema-extension scope |
-| `S2-021` | Phase 1 | New index is ignored by old application versions | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Compatibility reviewer; grammar/concurrency are prerequisites, not evidence of old-version ignore behavior |
-| `S2-022` | Phase 1 | New enum/check behavior only after old readers tolerate it | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Compatibility reviewer |
+| `S2-019` | Phase 1 | New table is ignored by old application versions | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Compatibility validator |
+| `S2-020` | Phase 1 | New schema is ignored by old application versions | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | Separate validated schema-extension scope |
+| `S2-021` | Phase 1 | New index is ignored by old application versions | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Compatibility validator; grammar/concurrency are prerequisites, not evidence of old-version ignore behavior |
+| `S2-022` | Phase 1 | New enum/check behavior only after old readers tolerate it | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Compatibility validator |
 | `S2-023` | Phase 1 | New read model/event version coexists with old representation | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | Separate application/event lifecycle scope |
-| `S2-024` | Phase 1 | Additive API field only when clients tolerate unknown fields | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | API/OpenAPI review |
+| `S2-024` | Phase 1 | Additive API field only when clients tolerate unknown fields | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | API/OpenAPI validation |
 | `S2-025` | Phase 1 | Large-table indexes use PostgreSQL online/concurrent mechanisms where supported | `MACHINE` | R029 | — |
 | `S2-026` | Phase 1 | Large-table indexes are kept out of transactions when PostgreSQL requires it | `MACHINE` | R011,R029 | — |
 | `S2-027` | Phase 1 | Lock timeout is explicit | `MACHINE` | R012 | — |
 | `S2-028` | Phase 1 | Statement timeout is explicit | `MACHINE` | R012 | — |
-| `S2-029` | Phase 1 | Every DDL statement has an estimated lock mode | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R013 | Reviewer adequacy |
-| `S2-030` | Phase 1 | Every DDL statement has an affected row count | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R013 | Reviewer adequacy |
-| `S2-031` | Phase 1 | Every DDL statement has a disk impact | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R013 | Reviewer adequacy |
-| `S2-032` | Phase 1 | Every DDL statement has a replication/WAL impact | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R013 | Reviewer adequacy |
-| `S2-033` | Phase 1 | Every DDL statement has an abort condition | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R013 | Reviewer adequacy |
+| `S2-029` | Phase 1 | Every DDL statement has an estimated lock mode | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R013 | validator adequacy |
+| `S2-030` | Phase 1 | Every DDL statement has an affected row count | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R013 | validator adequacy |
+| `S2-031` | Phase 1 | Every DDL statement has a disk impact | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R013 | validator adequacy |
+| `S2-032` | Phase 1 | Every DDL statement has a replication/WAL impact | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R013 | validator adequacy |
+| `S2-033` | Phase 1 | Every DDL statement has an abort condition | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R013 | validator adequacy |
 | `S2-034` | Phase 2 | Populate uses resumable/idempotent batches ordered by stable primary key | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Operational-migration scope |
 | `S2-035` | Phase 2 | Populate uses bounded transactions and rate limits | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Operational-migration scope |
 | `S2-036` | Phase 2 | Populate persists progress/watermark separately from business data | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Operational-migration scope |
@@ -2938,16 +2938,16 @@ without failing the Builder gate.
 | `S2-046` | Phase 3 | Traffic switch uses narrowly scoped feature/config control | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Application/config scope |
 | `S2-047` | Phase 3 | Old read/write path is retained for rollback during observation | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Release scope |
 | `S2-048` | Phase 3 | Indefinite dual writes are avoided | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Application scope |
-| `S2-049` | Phase 3 | If dual writes unavoidable, ordering/failure recovery/source of truth are explicit | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Architecture review |
-| `S2-050` | Phase 3 | Canonical source remains explicit throughout Switch | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Architecture/release review |
-| `S2-051` | Phase 3 | Cache invalidation is part of Switch plan | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Application/release review |
-| `S2-052` | Phase 3 | OpenAPI-breaking switch uses versioned contract and is not hidden in DB migration | `REJECTED_BY_PAIRED_SQL_V1` | R007 | API review |
+| `S2-049` | Phase 3 | If dual writes unavoidable, ordering/failure recovery/source of truth are explicit | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Architecture validation |
+| `S2-050` | Phase 3 | Canonical source remains explicit throughout Switch | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Architecture/release validation |
+| `S2-051` | Phase 3 | Cache invalidation is part of Switch plan | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Application/release validation |
+| `S2-052` | Phase 3 | OpenAPI-breaking switch uses versioned contract and is not hidden in DB migration | `REJECTED_BY_PAIRED_SQL_V1` | R007 | API validation |
 | `S2-053` | Phase 4 | Validate checks referential/uniqueness invariants | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Separate validation mechanism |
 | `S2-054` | Phase 4 | Validate checks decimal scale and half-even expected results | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Separate validation mechanism |
 | `S2-055` | Phase 4 | Validate checks transaction revision continuity/reversal integrity | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Separate validation mechanism |
 | `S2-056` | Phase 4 | Validate checks BusinessDate equality without UTC drift | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Separate validation mechanism |
 | `S2-057` | Phase 4 | Validate checks snapshot rebuild equality against canonical ledger and methodology version | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Separate validation mechanism |
-| `S2-058` | Phase 4 | Validate checks identity/investment separation and absence of personal data in financial schemas | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Separate validation + privacy review |
+| `S2-058` | Phase 4 | Validate checks identity/investment separation and absence of personal data in financial schemas | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Separate validation + privacy validation |
 | `S2-059` | Phase 4 | Validate checks outbox/inbox deduplication and business-version monotonicity | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Separate validation mechanism |
 | `S2-060` | Phase 4 | Validate checks query plans and SLO evidence on representative volume | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Performance/validation scope |
 | `S2-061` | Phase 4 | Validate includes backup restore plus migration replay in non-production | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Restore/validation scope |
@@ -2955,7 +2955,7 @@ without failing the Builder gate.
 | `S2-063` | Phase 4 | Signed validation report identifies queries/tool versions | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Validation/closure evidence |
 | `S2-064` | Phase 4 | Signed validation report records mismatches | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Validation/closure evidence |
 | `S2-065` | Phase 4 | Signed validation report records accepted risk | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Validation/closure evidence |
-| `S2-066` | Phase 4 | Signed validation report identifies reviewer | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Validation/closure evidence |
+| `S2-066` | Phase 4 | Signed validation report identifies validator | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Validation/closure evidence |
 | `S2-067` | Phase 4 | Unexplained financial mismatch blocks Contract | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Principal Architect / closure |
 | `S2-068` | Phase 5 | Contract only after all production traffic uses new path | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Destructive/Contract scope |
 | `S2-069` | Phase 5 | Contract only after rollback/observation window elapsed | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Destructive/Contract scope |
@@ -2966,15 +2966,15 @@ without failing the Builder gate.
 | `S2-074` | Phase 5 | A fresh backup/restore rehearsal proves the final path before Contract | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Destructive/Contract scope |
 | `S2-075` | Phase 5 | Contract is its own PR/deployment and not bundled with Expand/Switch | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Destructive/Contract scope |
 | `S2-076` | Phase 5 | DROP is not the default end state; retaining a deprecated structure temporarily is safer than premature loss | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Destructive/Contract scope |
-| `S2-077` | Risk table | Low risk minimum gate: review | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | REVIEW_WORKFLOW |
+| `S2-077` | Risk table | Low risk minimum gate: validation | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | REVIEW_WORKFLOW |
 | `S2-078` | Risk table | Low risk minimum gate: CI | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Required CI |
-| `S2-079` | Risk table | Low risk minimum gate: rollback statement | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R026 | Reviewer |
-| `S2-080` | Risk table | Medium risk minimum gate: rehearsal | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R023 | Operational/review evidence |
-| `S2-081` | Risk table | Medium risk minimum gate: metrics | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R014,R025 | Machine proves declared metric/observability/rollout structure only; real production metrics existence/emission/use and adequacy require reviewer/operations evidence |
-| `S2-082` | Risk table | Medium risk minimum gate: staged rollout | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R025 | Release/reviewer adequacy |
+| `S2-079` | Risk table | Low risk minimum gate: rollback statement | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R026 | validator |
+| `S2-080` | Risk table | Medium risk minimum gate: rehearsal | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R023 | Operational/validation evidence |
+| `S2-081` | Risk table | Medium risk minimum gate: metrics | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R014,R025 | Machine proves declared metric/observability/rollout structure only; real production metrics existence/emission/use and adequacy require validator/operations evidence |
+| `S2-082` | Risk table | Medium risk minimum gate: staged rollout | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R025 | Release/validator adequacy |
 | `S2-083` | Risk table | High risk minimum gate: ADR | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R015,R016 | Principal Architect |
-| `S2-084` | Risk table | High risk minimum gate: security/privacy review | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R015,R016,R017 | Security/Privacy reviewer |
-| `S2-085` | Risk table | High risk minimum gate: golden vectors | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R015,R016 | Domain/math reviewer |
+| `S2-084` | Risk table | High risk minimum gate: security/privacy validation | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R015,R016,R017 | Security/Privacy validator |
+| `S2-085` | Risk table | High risk minimum gate: golden vectors | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R015,R016 | Domain/math validator |
 | `S2-086` | Risk table | High risk minimum gate: restore rehearsal | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | High-risk operational gate |
 | `S2-087` | Risk table | Destructive risk requires separate staged ADR and is normally forbidden | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Destructive scope |
 | `S2-088` | Versioning | Migration IDs are monotonic | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R002,R005 | IDs/ordering for any separately governed operational migrations must satisfy the Stage 2 versioning model through their own governance |
@@ -2982,7 +2982,7 @@ without failing the Builder gate.
 | `S2-090` | Versioning | Each future migration declares schema owner | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R019 | schema-owner declaration for separately governed operational migrations remains external governance evidence |
 | `S2-091` | Versioning | Each future migration declares lifecycle phase | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R007 | phase declaration for separately governed operational migrations remains external governance evidence |
 | `S2-092` | Versioning | Each future migration declares dependency | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R018 | dependency declaration for separately governed operational migrations remains external governance evidence |
-| `S2-093` | Phase 2 | A Populate job may remain after validation/Contract only when an approved ongoing responsibility remains | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Approved Architecture/reviewer evidence for the continuing responsibility |
+| `S2-093` | Phase 2 | A Populate job may remain after validation/Contract only when an accepted ongoing responsibility remains | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | accepted Architecture/validator evidence for the continuing responsibility |
 | `S2-094` | Versioning | Each future migration declares reversibility | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R026,R028 | reversibility semantics for separately governed operational migrations remain external governance evidence |
 | `S2-095` | Versioning | Each future migration declares expected duration | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R012 | expected-duration declaration for separately governed operational migrations remains external governance evidence |
 | `S2-096` | Versioning | Each future migration declares lock risk | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R012 | lock-risk declaration for separately governed operational migrations remains external governance evidence |
@@ -2990,13 +2990,13 @@ without failing the Builder gate.
 | `S2-098` | Versioning | Each future migration declares monitoring | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R014 | monitoring declaration/adequacy for separately governed operational migrations remains external evidence |
 | `S2-099` | Versioning | Each future migration declares rollback procedure | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R026 | rollback procedure for separately governed operational migrations remains external governance evidence |
 | `S2-100` | Versioning | Each future migration declares roll-forward procedure | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R026 | roll-forward procedure for separately governed operational migrations remains external governance evidence |
-| `S2-101` | Versioning | Separate context migrations may deploy independently | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Architecture review |
-| `S2-102` | Versioning | Cross-schema dependencies are explicit | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R018 | Architecture review |
+| `S2-101` | Versioning | Separate context migrations may deploy independently | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Architecture validation |
+| `S2-102` | Versioning | Cross-schema dependencies are explicit | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R018 | Architecture validation |
 | `S2-103` | Versioning | Production runtime verifies compatible migration range, not merely latest | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | Runtime/migration-tool scope |
 | `S2-104` | Versioning | Failed migration stops pipeline | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R023 | failure propagation/stoppage for separately governed operational migration mechanisms remains external pipeline evidence |
 | `S2-105` | Versioning | Failed migration is not manually marked successful | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Operations/process evidence |
-| `S2-106` | Rollback | Rollback prefers application/config rollback while expanded structures remain additive | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Reviewer/operations; rollback-strategy declaration is prerequisite, not proof of operational preference |
-| `S2-107` | Rollback | Schema down migration is used only when demonstrably safe | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Rollback/Operations/Reviewer; exact inverse is a prerequisite, not evidence that production execution is demonstrably safe |
+| `S2-106` | Rollback | Rollback prefers application/config rollback while expanded structures remain additive | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | validator/operations; rollback-strategy declaration is prerequisite, not proof of operational preference |
+| `S2-107` | Rollback | Schema down migration is used only when demonstrably safe | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Rollback/Operations/validator; exact inverse is a prerequisite, not evidence that production execution is demonstrably safe |
 | `S2-108` | Rollback | Populated data may remain unused after rollback | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | Operational migration scope |
 | `S2-109` | Rollback | Financial facts are never deleted to simulate rollback | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R010,R028 | Operations/Architecture evidence that actual production rollback mechanisms never delete financial facts |
 | `S2-110` | Rollback | If a migration created external side effects or emitted events, rollback is compensating and idempotent | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | Operational/event migration scope |
@@ -3007,7 +3007,7 @@ without failing the Builder gate.
 | `S2-115` | Snapshot | Snapshot switches reads by methodology/version | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | Snapshot lifecycle scope |
 | `S2-116` | Snapshot | Snapshot retains prior version through rollback window | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | Snapshot lifecycle scope |
 | `S2-117` | Snapshot | Snapshot contracts only when retention/audit permits | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | Snapshot lifecycle scope |
-| `S2-118` | Snapshot | Historical transactions are never mutated to make snapshot match | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R010 | Snapshot/runtime reviewer evidence that rebuild/runtime mechanisms preserve historical transaction immutability |
+| `S2-118` | Snapshot | Historical transactions are never mutated to make snapshot match | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R010 | Snapshot/runtime validator evidence that rebuild/runtime mechanisms preserve historical transaction immutability |
 | `S2-119` | Identity deletion | Identity deletion remains irreversible after restoring older encrypted backup | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | Security/privacy deletion architecture |
 | `S2-120` | Identity deletion | Sensitive identity/link material is protected with revocable per-subject encryption-key material | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | Security/privacy deletion architecture |
 | `S2-121` | Identity deletion | Deletion removes live rows/reversible mapping and cryptographically destroys the corresponding key material | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | Security/privacy deletion architecture |
@@ -3015,8 +3015,8 @@ without failing the Builder gate.
 | `S2-123` | Identity deletion | Restore replays deletion ledger before serving traffic | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | Security/privacy restore runbook |
 | `S2-124` | Identity deletion | Backups remain encrypted | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Security/operations evidence |
 | `S2-125` | Identity deletion | Backups expire within 90 days | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Security/operations evidence |
-| `S2-126` | Identity deletion | The exact key hierarchy, Vault policy, deletion ledger and restore runbook require Security Review before implementation | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Security Review |
-| `S2-127` | Identity deletion | Operator-reconstructable deleted identity link is pseudonymization and fails the approved anonymization requirement | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Security/privacy review |
+| `S2-126` | Identity deletion | The exact key hierarchy, Vault policy, deletion ledger and restore runbook require Security validation before implementation | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Security validation |
+| `S2-127` | Identity deletion | Operator-reconstructable deleted identity link is pseudonymization and fails the accepted anonymization requirement | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Security/privacy validation |
 | `S2-128` | Observability | Production migration reports version/phase/owner/start/end/status | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Execution evidence; report schema declaration is prerequisite, not proof of runtime emission |
 | `S2-129` | Observability | Production migration reports rows/batches processed without row content | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Execution evidence; report schema declaration is prerequisite, not proof of runtime emission |
 | `S2-130` | Observability | Production migration reports lock wait | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Execution evidence; report schema declaration is prerequisite, not proof of runtime emission |
@@ -3030,28 +3030,28 @@ without failing the Builder gate.
 | `S2-138` | Tooling | Selecting a migration library is a Stage 4 dependency decision | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | Migration-tool selection scope |
 | `S2-139` | Tooling | Tool selection considers Go compatibility, checksum/locking behavior, transactional support, observability, maintenance, license and rollback workflow | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | Migration-tool selection scope |
 | `S2-140` | Tooling | A library choice that affects architecture or creates lock-in requires an ADR | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Principal Architect |
-| `S2-141` | Tooling | No tool may weaken Stage 2 strategy | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Architecture/reviewer |
-| `S2-142` | Stage 4 entry | Stage 4 entry required ER model and ADR-006 approval | `HISTORICAL_ENTRY_CRITERION_ONLY` | — | Historical entry criterion |
-| `S2-143` | Stage 4 entry | Stage 4 entry required exact PostgreSQL types/constraints/role grants reviewed | `HISTORICAL_ENTRY_CRITERION_ONLY` | — | Historical entry criterion |
-| `S2-144` | Stage 4 entry | Stage 4 entry required migration tool approved | `HISTORICAL_ENTRY_CRITERION_ONLY` | — | Historical entry criterion |
+| `S2-141` | Tooling | No tool may weaken Stage 2 strategy | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Architecture/validator |
+| `S2-142` | Stage 4 entry | Stage 4 entry required ER model and ADR-006 acceptance | `HISTORICAL_ENTRY_CRITERION_ONLY` | — | Historical entry criterion |
+| `S2-143` | Stage 4 entry | Stage 4 entry required exact PostgreSQL types/constraints/role grants validated | `HISTORICAL_ENTRY_CRITERION_ONLY` | — | Historical entry criterion |
+| `S2-144` | Stage 4 entry | Stage 4 entry required migration tool accepted | `HISTORICAL_ENTRY_CRITERION_ONLY` | — | Historical entry criterion |
 | `S2-145` | Stage 4 entry | Stage 4 entry required local/CI disposable database tests | `HISTORICAL_ENTRY_CRITERION_ONLY` | — | Historical entry criterion |
 | `S2-146` | Stage 4 entry | Stage 4 entry required upgrade/rollback rehearsals | `HISTORICAL_ENTRY_CRITERION_ONLY` | — | Historical entry criterion |
-| `S2-147` | Stage 4 entry | Stage 4 entry required anonymization/key-destruction threat model approved | `HISTORICAL_ENTRY_CRITERION_ONLY` | — | Historical entry criterion |
+| `S2-147` | Stage 4 entry | Stage 4 entry required anonymization/key-destruction threat model accepted | `HISTORICAL_ENTRY_CRITERION_ONLY` | — | Historical entry criterion |
 | `S2-148` | Stage 4 entry | Stage 4 entry required no unresolved canonical-model question | `HISTORICAL_ENTRY_CRITERION_ONLY` | — | Historical entry criterion |
-| `S2-149` | Risk table examples | `new empty table` is a canonical Low-risk example | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Reviewer/domain risk adequacy; minimum floor is prerequisite, not proof of exact Low classification |
-| `S2-150` | Risk table examples | `additive nullable column` is a canonical Low-risk example | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Reviewer/domain risk adequacy; minimum floor is prerequisite, not proof of exact Low classification |
+| `S2-149` | Risk table examples | `new empty table` is a canonical Low-risk example | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | validator/domain risk adequacy; minimum floor is prerequisite, not proof of exact Low classification |
+| `S2-150` | Risk table examples | `additive nullable column` is a canonical Low-risk example | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | validator/domain risk adequacy; minimum floor is prerequisite, not proof of exact Low classification |
 | `S2-151` | Risk table examples | `backfill` is a canonical Medium-risk example | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Separate Populate mechanism |
 | `S2-152` | Risk table examples | `new constraint` is a canonical Medium-risk example | `MACHINE` | R034 | — |
 | `S2-153` | Risk table examples | `new index` is a canonical Medium-risk example | `MACHINE` | R034 | — |
 | `S2-154` | Risk table examples | `read-path switch` is a canonical Medium-risk example | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Separate Switch/application mechanism |
 | `S2-155` | Risk table examples | `financial representation` is a canonical High-risk classification anchor | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Domain/Principal Architect; structural high-risk gates are prerequisite, not proof of classification-anchor semantics |
-| `S2-156` | Risk table examples | `identity link` is a canonical High-risk classification anchor | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Security/Privacy reviewer; structural high-risk gates are prerequisite, not proof of classification-anchor semantics |
-| `S2-157` | Risk table examples | `encryption` is a canonical High-risk classification anchor | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | Security/Privacy review |
-| `S2-158` | Risk table examples | `event ordering` is a canonical High-risk classification anchor | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | Architecture/domain review |
+| `S2-156` | Risk table examples | `identity link` is a canonical High-risk classification anchor | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Security/Privacy validator; structural high-risk gates are prerequisite, not proof of classification-anchor semantics |
+| `S2-157` | Risk table examples | `encryption` is a canonical High-risk classification anchor | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | Security/Privacy validation |
+| `S2-158` | Risk table examples | `event ordering` is a canonical High-risk classification anchor | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | Architecture/domain validation |
 | `S2-159` | Risk table examples | `DROP` is a canonical Destructive-risk example | `REJECTED_BY_PAIRED_SQL_V1` | R008,R010 | Separate staged ADR / outside Expand-only paired SQL |
 | `S2-160` | Risk table examples | `irreversible conversion` is a canonical Destructive-risk example | `REJECTED_BY_PAIRED_SQL_V1` | R008 | Separate staged ADR / outside Expand-only paired SQL |
 | `S2-161` | Risk table examples | `history rewrite` is a canonical Destructive-risk example | `REJECTED_BY_PAIRED_SQL_V1` | R010 | Financial history rewrite remains forbidden |
-| `S2-162` | Global priority | Correctness, security, privacy, rollback and availability take priority over delivery speed | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Architecture/reviewer decision rule; registry presence is prerequisite, not proof that operational priority conflicts are resolved by the policy |
+| `S2-162` | Global priority | Correctness, security, privacy, rollback and availability take priority over delivery speed | `OPERATIONAL_OR_CLOSURE_EVIDENCE` | — | Architecture/validator decision rule; registry presence is prerequisite, not proof that operational priority conflicts are resolved by the policy |
 | `S2-163` | Phase 2 Populate | Populate/backfill must not change the active read path while new representation is being filled | `REJECTED_BY_PAIRED_SQL_V1` | R007,R008 | Separate governed Populate mechanism; paired-SQL v1 rejects data movement |
 | `S2-164` | Phase 4 Validate | Validation must be domain-aware and must not rely only on row counts | `REJECTED_BY_PAIRED_SQL_V1` | R007 | Separate governed Validate mechanism/closure evidence |
 | `S2-165` | Snapshot | Snapshot lifecycle expands a new snapshot representation/version before rebuild/switch | `DEFERRED_TO_SEPARATE_RUNTIME_TOOLING_SCOPE` | — | Snapshot lifecycle scope; appended in v9 to preserve stable earlier S2 IDs |
@@ -3094,7 +3094,7 @@ S2_PAIRED_SQL_SCOPE_REJECTED_SET = {
 
 This set has exactly **46** rows and every member has disposition `REJECTED_BY_PAIRED_SQL_V1`. For these rows, the machine evidence establishes only **scope exclusion / rejection on the paired-SQL v1 surface**. It is never represented as complete proof that the external lifecycle, application, operational, privacy, validation, Contract or destructive-governance requirement itself occurred or is adequate.
 
-`S2-002`, `S2-005`, `S2-007`, `S2-008`, `S2-088…S2-100`, `S2-104`, `S2-109` and `S2-118` are intentionally outside both sets because the machine observes only a subset of their global/operational subject. `S2-001`, `S2-010`, `S2-017`, `S2-019`, `S2-021`, `S2-022`, `S2-093`, `S2-101`, `S2-106`, `S2-107`, `S2-128`, `S2-129`, `S2-130`, `S2-131`, `S2-132`, `S2-133`, `S2-134`, `S2-135`, `S2-136`, `S2-141`, `S2-149`, `S2-150`, `S2-155`, `S2-156` and `S2-162` intentionally have no machine rule and remain reviewer/external-evidence owned because no direct machine-observable logical subset is claimed.
+`S2-002`, `S2-005`, `S2-007`, `S2-008`, `S2-088…S2-100`, `S2-104`, `S2-109` and `S2-118` are intentionally outside both sets because the machine observes only a subset of their global/operational subject. `S2-001`, `S2-010`, `S2-017`, `S2-019`, `S2-021`, `S2-022`, `S2-093`, `S2-101`, `S2-106`, `S2-107`, `S2-128`, `S2-129`, `S2-130`, `S2-131`, `S2-132`, `S2-133`, `S2-134`, `S2-135`, `S2-136`, `S2-141`, `S2-149`, `S2-150`, `S2-155`, `S2-156` and `S2-162` intentionally have no machine rule and remain validator/external-evidence owned because no direct machine-observable logical subset is claimed.
 
 Every other S2 row carrying machine-rule IDs is in the exact partial-evidence registry below.
 
@@ -3119,7 +3119,7 @@ Every other S2 row carrying machine-rule IDs is in the exact partial-evidence re
 | `S2-104` | R023 proves any paired-SQL apply/DOWN/baseline/reapply failure fails the validator/CI pipeline | failure propagation/stoppage for separately governed operational migration mechanisms remains external pipeline evidence |
 | `S2-006` | R010 proves governed SQL does not rewrite financial facts through prohibited DML | snapshot rebuild correctness and domain equivalence |
 | `S2-011` | R023 proves the disposable rehearsal sequence executes | freshness, representativeness and operational adequacy |
-| `S2-015` | R026 proves rollback/roll-forward structure is declared | backup and rollback design adequacy remain reviewer-owned |
+| `S2-015` | R026 proves rollback/roll-forward structure is declared | backup and rollback design adequacy remain validator-owned |
 | `S2-029` | R013 proves an estimated lock-mode field exists in the frozen domain | correctness/adequacy of the estimate for production |
 | `S2-030` | R013 proves an affected-row estimate field exists with frozen type/bounds | correctness/adequacy of the production estimate |
 | `S2-031` | R013 proves a disk-impact declaration exists with frozen type/bounds | correctness/adequacy of the production estimate |
@@ -3128,10 +3128,10 @@ Every other S2 row carrying machine-rule IDs is in the exact partial-evidence re
 | `S2-079` | R026 proves rollback/roll-forward structure is present | low-risk rollback strategy adequacy |
 | `S2-080` | R023 proves disposable rehearsal execution | medium-risk rehearsal freshness/representativeness |
 | `S2-081` | R014/R025 prove metrics/observability/rollout structure only | real metrics emission/use and operational adequacy |
-| `S2-082` | R025 proves staged-rollout fields and typed evidence structure | staged rollout plan adequacy and release approval |
-| `S2-083` | R015/R016 prove required typed ADR authority-reference/risk structure | substantive ADR approval and architectural adequacy |
-| `S2-084` | R015/R016/R017 prove required security/privacy authority-reference/classification structure | substantive Security/Privacy Review occurrence and adequacy |
-| `S2-085` | R015/R016 prove required golden-vector authority-reference/risk structure | domain/math correctness and review adequacy of vectors |
+| `S2-082` | R025 proves staged-rollout fields and typed evidence structure | staged rollout plan adequacy and release acceptance |
+| `S2-083` | R015/R016 prove required typed ADR authority-reference/risk structure | substantive ADR acceptance and architectural adequacy |
+| `S2-084` | R015/R016/R017 prove required security/privacy authority-reference/classification structure | substantive Security/Privacy validation occurrence and adequacy |
+| `S2-085` | R015/R016 prove required golden-vector authority-reference/risk structure | domain/math correctness and validation adequacy of vectors |
 | `S2-102` | R018 proves explicit declared dependency edges are valid | semantic completeness of cross-schema dependencies |
 | `S2-109` | R010/R028 prove governed migration SQL and disposable same-UP DOWN cannot delete financial facts through prohibited SQL/effects | actual production rollback procedure/application/tooling never deletes financial facts to simulate rollback |
 | `S2-118` | R010 proves governed migration SQL contains no historical-transaction mutation surface | separate snapshot rebuild/runtime/application tooling never mutates historical transaction rows to force snapshot equality |
@@ -3145,19 +3145,19 @@ S2-EVIDENCE-PARTITION|complete=7|scope_rejected=46|partial=36|none=79
 
 No other row outside `S2_MACHINE_COMPLETE_SET`, `S2_PAIRED_SQL_SCOPE_REJECTED_SET` and this partial registry may carry a machine-rule ID.
 
-`S2-101` has no machine-proven subset in the current candidate: dependency-graph validity is not a logical subset of independent deployability, so its machine-rule cell is `—` and Architecture review owns the control. Reintroducing R018 there is a mandatory mutation failure (TC-571).
+`S2-101` has no machine-proven subset in the current candidate: dependency-graph validity is not a logical subset of independent deployability, so its machine-rule cell is `—` and Architecture validation owns the control. Reintroducing R018 there is a mandatory mutation failure (TC-571).
 
 A machine binding is valid only if its machine-proven subset is a logical subset of the S2 requirement. For any Requirement containing the semantic quantifiers `all`, `every`, `never`, or `no` over **migration(s)**, `GUARD-01` additionally requires an explicit `REQUIREMENT_SUBJECT_UNIVERSE` and `MACHINE_OBSERVER_UNIVERSE`; complete `MACHINE` is legal only when `REQUIREMENT_SUBJECT_UNIVERSE ⊆ MACHINE_OBSERVER_UNIVERSE`. The sibling scan covers every such S2 row, not only previously reported examples.
-The existence of a valid rule ID is never sufficient. Builder and reviewer mutation fixtures must fail when:
+The existence of a valid rule ID is never sufficient. implementation and validator mutation fixtures must fail when:
 
-- any machine edge is reattached to reviewer-only `S2-019`, `S2-021`, `S2-022`, or `S2-141`;
+- any machine edge is reattached to validator-only `S2-019`, `S2-021`, `S2-022`, or `S2-141`;
 - `S2-093` is given R018 or any unrelated machine rule;
 - `S2-109` or `S2-118` is promoted to complete-machine while external rollback/snapshot behavior remains outside validator observation;
 - a partial S2 binding lacks an explicit machine subset or non-machine remainder;
 - a non-complete-machine, non-scope-rejected S2 row carries a machine rule but is absent from this registry;
 - a `REJECTED_BY_PAIRED_SQL_V1` row is described as complete machine proof of its external Stage 2 requirement rather than scope rejection only.
 
-`R049` enforces the exact structural sets/registry identities. The designated independent reviewer still owns the semantic-subset judgment. v20 carries forward the full v19 semantic pass over every prior partial edge: four reviewer-confirmed prerequisite bindings plus eighteen additional prerequisite-only behavioral/reporting/compatibility/classification/policy bindings are conservatively reviewer/external-evidence owned. The exact remaining 36 partial-edge IDs are frozen. Builder rejects any unreviewed partial-set drift; independent review must still inspect all 36 semantic edges rather than infer relevance from R existence.
+`R049` enforces the exact structural sets/registry identities. The designated independent validator still owns the semantic-subset judgment. v20 carries forward the full v19 semantic pass over every prior partial edge: four evidence-confirmed prerequisite bindings plus eighteen additional prerequisite-only behavioral/reporting/compatibility/classification/policy bindings are conservatively validator/external-evidence owned. The exact remaining 36 partial-edge IDs are frozen. implementation rejects any unreviewed partial-set drift; independent validation must still inspect all 36 semantic edges rather than infer relevance from R existence.
 
 ### 23.2 P3-08-derived hardening registry
 
@@ -3175,24 +3175,24 @@ P3-08-specific strengthenings are typed separately:
 | `P3D-007` | every registry summary uses exact ID range plus computed count; stale bare counts fail semantic lint | `MACHINE` | R038 |
 | `P3D-008` | implementation may not introduce an alias, enum value, bound, grammar form or normalization rule absent from the frozen plan | `MACHINE` | R050 |
 | `P3D-009` | every required finite-domain manifest field has an exhaustive in-plan value set; scanner-derived enums equal manifest declarations; no domain is delegated to Stage 3.55/code/tests | `MACHINE` | R042 |
-| `P3D-010` | every supported index on a pre-existing table uses the reviewed concurrent form even when the table is not independently proven large | `MACHINE` | R029 |
+| `P3D-010` | every supported index on a pre-existing table uses the validated concurrent form even when the table is not independently proven large | `MACHINE` | R029 |
 | `P3D-011` | declared lock/statement timeout metadata is bound to the actual validated PostgreSQL execution controls before governed DDL | `MACHINE` | R012 |
 | `P3D-012` | machine-obvious supported SQL effects impose the frozen §18.1 minimum-risk floor; author declaration may raise but never lower it | `MACHINE` | R034 |
 | `P3D-013` | rollout-plan identity has exactly one source of truth: staged mode has exactly one typed staged-rollout authority ref, standard mode has zero, and `rollout.plan_ref` is forbidden | `MACHINE` | R043 |
 | `P3D-014` | manifest aggregate/open-domain field types and reference grammars are frozen; rollout/monitoring arrays reference measured canonical observability keys and required free text has one exact string policy | `MACHINE` | R044 |
 | `P3D-015` | dependency graph validity is a P3-08 machine strengthening distinct from the canonical Stage 2 requirement merely to declare dependency | `MACHINE` | R018 |
-| `P3D-016` | dependency semantic completeness/adequacy is a human-review strengthening distinct from structural dependency declaration | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R018 |
+| `P3D-016` | dependency semantic completeness/adequacy is a human-validation strengthening distinct from structural dependency declaration | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R018 |
 | `P3D-017` | expected-duration and lock-risk manifest/execution modeling is per direction even though Stage 2 requires only migration-level declaration | `MACHINE` | R012 |
-| `P3D-018` | canonical Stage 2 source accountability is byte-bound through `SA-*` anchors rather than inferred from S2 continuity or known-needle checks; normative classification/fidelity remains independently reviewed | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R045 |
+| `P3D-018` | canonical Stage 2 source accountability is byte-bound through `SA-*` anchors rather than inferred from S2 continuity or known-needle checks; normative classification/fidelity remains independently validated | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R045 |
 | `P3D-019` | authority-path identity and open-string emptiness use exact lexical/byte grammars with no implementation-selected normalization | `MACHINE` | R046,R047 |
 | `P3D-020` | CREATE TABLE and ADD COLUMN accepted token languages are the exact literal productions in §§15.3–15.4 | `MACHINE` | R048 |
-| `P3D-021` | the S2 evidence-binding registry is structurally closed: complete-machine/scope-rejected/partial/no-machine sets are exact, partial rows state machine subset + external remainder, and semantic subset adequacy remains independently reviewed | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R049 |
+| `P3D-021` | the S2 evidence-binding registry is structurally closed: complete-machine/scope-rejected/partial/no-machine sets are exact, partial rows state machine subset + external remainder, and semantic subset adequacy remains independently validated | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R049 |
 | `P3D-022` | the global no-implementation-invention invariant is proven against one exact aggregate semantic-freeze rule set, not a hand-picked subset | `MACHINE` | R050 |
 | `P3D-023` | `numeric(p,s)` precision/scale and `varchar(n)` length parameters use exact canonical decimal-token languages plus frozen value bounds | `MACHINE` | R051 |
 | `P3D-024` | accepted CHECK constraints use one exact complete `ALTER TABLE ... ADD CONSTRAINT ... CHECK (...) NOT VALID ;` token production | `MACHINE` | R052 |
 | `P3D-025` | every supported DOWN inverse class has one exact literal token production; effect identity alone never broadens accepted syntax | `MACHINE` | R053 |
 | `P3D-026` | validator SQL-file discovery covers every migration-directory `.sql` subject and therefore strictly dominates the frozen CI `*.up.sql` execution set; malformed SQL filenames reject rather than disappear | `MACHINE` | R054 |
-| `P3D-027` | the P3D evidence-binding registry is structurally closed: exact dispositions/rule mappings and broad-vs-leaf scope declarations are frozen, while semantic proof-subset adequacy remains independently reviewed | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R055 |
+| `P3D-027` | the P3D evidence-binding registry is structurally closed: exact dispositions/rule mappings and broad-vs-leaf scope declarations are frozen, while semantic proof-subset adequacy remains independently validated | `STRUCTURE_PLUS_HUMAN_ADEQUACY` | R055 |
 
 ### 23.2a Exact aggregate semantic-freeze proof surface — closes PLAN-16
 
@@ -3261,7 +3261,7 @@ R039,R040,R041,R042,R043,R044,R046,R047,R048,R051,R052,R053,R054
 3. `SEMANTIC_FREEZE_RULE_SET` is exactly the complement of `SEMANTIC_META_RULE_SET`;
 4. R033 is necessarily in the semantic-owner set because it owns FOREIGN KEY grammar/cardinality;
 5. adding any future R-rule requires an explicit Stage 3.54 classification before the aggregate proof can pass;
-6. removing any semantic owner or relabeling it meta/proof-only without reviewed rationale fails.
+6. removing any semantic owner or relabeling it meta/proof-only without validated rationale fails.
 
 The mutation suite must independently demonstrate failure for at least:
 
@@ -3279,15 +3279,15 @@ The mutation suite must independently demonstrate failure for at least:
 - DOWN literal grammar;
 - validator-discovery/CI execution-subject grammar.
 
-Thus no already-registered semantic owner can sit outside the aggregate simply because the Builder forgot to
-name its family. `P3D-008 = MACHINE | R050` means the complete reviewed non-meta rule surface is frozen.
+Thus no already-registered semantic owner can sit outside the aggregate simply because the implementation forgot to
+name its family. `P3D-008 = MACHINE | R050` means the complete validated non-meta rule surface is frozen.
 
 ### 23.2b P3D evidence-scope registry — closes PLAN-16 derived-binding overclaim
 
 P3D evidence uses the same conservative rule as S2 evidence: a valid R-rule ID is not by itself proof of every English word in a derived control. Exactly two P3D evidence modes exist in the current candidate:
 
 1. **complete machine proof** — the entire P3D Requirement is inside the named rule(s)' mechanically observable/frozen property;
-2. **structure plus human semantic adequacy** — machine rules freeze the structural subset, while independent review owns semantic provenance/subset/equality that cannot be established merely by ID/count/text matching.
+2. **structure plus human semantic adequacy** — machine rules freeze the structural subset, while independent validation owns semantic provenance/subset/equality that cannot be established merely by ID/count/text matching.
 
 The exact P3D structure-plus-human set is:
 
@@ -3299,7 +3299,7 @@ P3D_STRUCTURE_PLUS_HUMAN_SET = {
 
 The remaining **22/27** P3D rows are `MACHINE`. No P3D row is allowed to hide a human semantic remainder while declaring complete machine proof.
 
-| P3D ID | Machine-proven subset only | Independent reviewer-owned semantic remainder |
+| P3D ID | Machine-proven subset only | Independent validator-owned semantic remainder |
 | --- | --- | --- |
 | `P3D-002` | R038 proves exact S2/P3D registry separation, ID sets and source/derived structural mapping | whether an S2 wording is genuinely source-faithful without P3-08 strengthening, and whether a P3D item is genuinely derived rather than canonical |
 | `P3D-016` | R018 proves declared dependency graph validity | whether all real semantic dependencies were actually declared |
@@ -3315,13 +3315,13 @@ For the remaining machine-complete P3D rows:
 - P3D-023 exclusively owns the separate R051 `numeric(p,s)` / `varchar(n)` parameter grammar and bounds;
 - changing only an R051 type-parameter bound MUST NOT be represented as a failure of P3D-003; it MUST fail P3D-023 and the aggregate P3D-008/P3D-022 surface.
 
-`R055` mechanically freezes the exact P3D evidence-mode partition, P3D ID→rule mapping and scope declarations. It MUST fail if any of P3D-002/016/018/021/027 is promoted to complete `MACHINE` without eliminating its reviewer-owned semantic remainder. The independent reviewer still owns the semantic-subset/source-classification judgment; this boundary is intentional and normative.
+`R055` mechanically freezes the exact P3D evidence-mode partition, P3D ID→rule mapping and scope declarations. It MUST fail if any of P3D-002/016/018/021/027 is promoted to complete `MACHINE` without eliminating its validator-owned semantic remainder. The independent validator still owns the semantic-subset/source-classification judgment; this boundary is intentional and normative.
 
 ### 23.2c Preventive Guard registries — v20 TC-atomic / global-occurrence / package-accountability surfaces
 
 #### GUARD-01 universal machine-observer closure — disposition-derived, no semantic sibling allowlist
 
-v13 proved that a hand-written semantic sibling set can self-validate an omission. v20 retains the v19 removal of any hand-authored migration-subject list from the approval proof. The authoritative observer universe is derived directly from the canonical `S2-001…S2-168` table and its primary evidence disposition, not from English keyword matching.
+v13 proved that a hand-written semantic sibling set can self-validate an omission. v20 retains the v19 removal of any hand-authored migration-subject list from the acceptance proof. The authoritative observer universe is derived directly from the canonical `S2-001…S2-168` table and its primary evidence disposition, not from English keyword matching.
 
 The exact derived partition is:
 
@@ -3339,17 +3339,17 @@ OBSERVER_BEARING_S2_SET =
   = 89
 ```
 
-This is the complete machine-observer domain because every canonical S2 row is classified exactly once and no `S2_NO_MACHINE_SET` row may carry an R-rule reference. Every one of the **36** partial rows is already represented in the §23.1a partial-evidence registry with an explicit machine-proven subset plus external/reviewer remainder. Every one of the **46** scope-rejected rows proves only rejection/exclusion on paired-SQL v1, never fulfillment of the external lifecycle requirement. Every one of the **7** complete-machine rows must have its complete Requirement inside the machine-observable surface.
+This is the complete machine-observer domain because every canonical S2 row is classified exactly once and no `S2_NO_MACHINE_SET` row may carry an R-rule reference. Every one of the **36** partial rows is already represented in the §23.1a partial-evidence registry with an explicit machine-proven subset plus external/validator remainder. Every one of the **46** scope-rejected rows proves only rejection/exclusion on paired-SQL v1, never fulfillment of the external lifecycle requirement. Every one of the **7** complete-machine rows must have its complete Requirement inside the machine-observable surface.
 
-Consequently any current or future row that actually carries partial machine evidence is automatically inside the universal observer closure regardless of wording. `S2-011` is a current example. `S2-010` is intentionally **not** observer-bearing in the current candidate because a monitoring declaration is only a prerequisite for the behavioral requirement "Every migration is observable"; it is reviewer/Operations-owned with no machine R edge.
+Consequently any current or future row that actually carries partial machine evidence is automatically inside the universal observer closure regardless of wording. `S2-011` is a current example. `S2-010` is intentionally **not** observer-bearing in the current candidate because a monitoring declaration is only a prerequisite for the behavioral requirement "Every migration is observable"; it is validator/Operations-owned with no machine R edge.
 
-A lexical/semantic migration-subject scan may still be used as a **diagnostic adversarial cross-check**, but it is not an authority for completeness and its expected count is never an approval condition. R056/R063 instead prove equality between the canonical evidence dispositions, the machine-rule-bearing rows, and the complete/scope-rejected/partial/no-machine registries.
+A lexical/semantic migration-subject scan may still be used as a **diagnostic adversarial cross-check**, but it is not an authority for completeness and its expected count is never an acceptance condition. R056/R063 instead prove equality between the canonical evidence dispositions, the machine-rule-bearing rows, and the complete/scope-rejected/partial/no-machine registries.
 
 Candidate-injection mutation: add a synthetic S2 row with `STRUCTURE_PLUS_HUMAN_ADEQUACY` plus an R-rule but omit it from the partial evidence-scope registry; universal observer closure MUST fail without relying on any word such as `migration`, `every`, `never`, or a hand-maintained expected sibling count. Removing `S2-011` or any other canonical partial-machine row from the partial evidence registry while leaving its canonical S2 row unchanged MUST fail for the same reason. TC-559/560 exercise these failures; TC-561 proves exact `89 observer-bearing + 79 no-machine = 168` closure.
 
 #### GUARD-02 finite-boundary registry — discovered bounded fields plus exact witnesses
 
-`BOUNDARY_ATOM_REGISTRY` contains only frozen **quantitative** machine bounds: numeric ranges, byte-length ranges, bounded integer fields and explicitly numeric list-size ranges. It does **not** own structural exact-one/non-empty/at-most-one/set-relation/bijection semantics. Those semantics belong to the canonical TC↔MPROP machine-property authority below. This split is authoritative and single-source. v20 retains v19 field-name-free discovery. Builder parses **every** formal-manifest field whose JSON type is `integer`; each discovered integer field must resolve exactly once either to a singleton finite-domain authority (`schema_version → FD-001`) or to one row in the authoritative `BOUND_SPEC_REGISTRY` below. Field names are data, never code constants in the discovery function. Expected counts are diagnostic only.
+`BOUNDARY_ATOM_REGISTRY` contains only frozen **quantitative** machine bounds: numeric ranges, byte-length ranges, bounded integer fields and explicitly numeric list-size ranges. It does **not** own structural exact-one/non-empty/at-most-one/set-relation/bijection semantics. Those semantics belong to the canonical TC↔MPROP machine-property authority below. This split is authoritative and single-source. v20 retains v19 field-name-free discovery. implementation parses **every** formal-manifest field whose JSON type is `integer`; each discovered integer field must resolve exactly once either to a singleton finite-domain authority (`schema_version → FD-001`) or to one row in the authoritative `BOUND_SPEC_REGISTRY` below. Field names are data, never code constants in the discovery function. Expected counts are diagnostic only.
 
 | Boundary atom | Frozen bound | Valid boundary proof | Invalid boundary proof | Owner |
 | --- | --- | --- | --- | --- |
@@ -3384,7 +3384,7 @@ BOUND-SPEC|field=disk_impact_bytes_estimate|lower=0|upper=9223372036854775807|bn
 BOUND-SPEC|field=wal_impact_bytes_estimate|lower=0|upper=9223372036854775807|bnd=BND-19
 ```
 
-Every numeric prose/table witness outside this block is derived evidence and MUST equal these values. No second `BOUND-SPEC|...` production is permitted anywhere in the candidate. Builder performs a global occurrence scan before parsing the registry and checks exact location, physical multiplicity, field uniqueness and BND ownership. Builder proof compares exact lower/upper values, not only field membership. A new integer field in §7.11 with no FD singleton and no BOUND-SPEC fails. Removing or changing only a BOUND-SPEC lower/upper value while keeping BND IDs/counts unchanged also fails the frozen mutation suite.
+Every numeric prose/table witness outside this block is derived evidence and MUST equal these values. No second `BOUND-SPEC|...` production is permitted anywhere in the candidate. implementation performs a global occurrence scan before parsing the registry and checks exact location, physical multiplicity, field uniqueness and BND ownership. implementation proof compares exact lower/upper values, not only field membership. A new integer field in §7.11 with no FD singleton and no BOUND-SPEC fails. Removing or changing only a BOUND-SPEC lower/upper value while keeping BND IDs/counts unchanged also fails the frozen mutation suite.
 
 
 Formal-manifest integer discovery is generic: the current document happens to yield seven integer fields, of which `schema_version` resolves to FD-001 and the other six resolve from BOUND-SPEC rows. No field name is embedded in discovery code. TC-552/563 inject a new integer field without a bound/domain authority and MUST fail; TC-562 mutates only an existing frozen upper bound and MUST fail exact value binding; TC-564 proves full generic integer-field closure.
@@ -3404,14 +3404,14 @@ ColId-disallowed union members = 101 / sha256 3a9027604ec759856e3f9fdbaadaccc458
 witnesses = TC-523,TC-524,TC-525,TC-526,TC-554…TC-558
 ```
 
-`SEMANTIC_ATOM_OWNERSHIP` requires every normative enum/bound/grammar/normalization/lexical-intersection/evidence-scope acceptance property to name exactly one semantic owner R-rule or explicit reviewer-only evidence class. R059 owns this meta-registry. **Authority extraction is not semantic proof by itself**: R062 additionally requires the upstream parser production and category mapping to compose to the exact project property claimed.
+`SEMANTIC_ATOM_OWNERSHIP` requires every normative enum/bound/grammar/normalization/lexical-intersection/evidence-scope acceptance property to name exactly one semantic owner R-rule or explicit validator-only evidence class. R059 owns this meta-registry. **Authority extraction is not semantic proof by itself**: R062 additionally requires the upstream parser production and category mapping to compose to the exact project property claimed.
 
 ##### v20 owner-level semantic R index (retained; not machine-property completeness authority)
 
 The plan no longer treats “all registered R rules are classified” as proof that no normative candidate was added elsewhere. Two independent mechanisms are mandatory:
 
 1. `SEMANTIC_OWNER_ATOM_REGISTRY` is a bijection over semantic-owner R rules; each owner-index digest is SHA-256 of the exact authoritative R semantic body plus LF. This registry proves owner-level integrity only. SEM/CARD manifests prove byte-accountability only; TC↔MPROP is the canonical machine-property authority.
-2. `NORMATIVE_LINE_ACCOUNTABILITY` is an external frozen evidence file generated from a deterministic semantic-candidate lexical predicate over the exact plan bytes. Builder validates it but does not regenerate it. Adding/changing a normative candidate line such as a new SQL `MUST` rule therefore fails even when R/TC/ATOM counts remain unchanged. Semantic adequacy of prose→R ownership remains an explicit independent Reviewer judgment; machine proof does not pretend to understand arbitrary English.
+2. `NORMATIVE_LINE_ACCOUNTABILITY` is an external frozen evidence file generated from a deterministic semantic-candidate lexical predicate over the exact plan bytes. implementation validates it but does not regenerate it. Adding/changing a normative candidate line such as a new SQL `MUST` rule therefore fails even when R/TC/ATOM counts remain unchanged. Semantic adequacy of prose→R ownership remains an explicit independent validator judgment; machine proof does not pretend to understand arbitrary English.
 
 | Semantic atom | Exact owner | Body SHA-256 | Authority |
 | --- | --- | --- | --- |
@@ -3477,7 +3477,7 @@ The canonical validator acceptance/rejection contract is instead one-to-one with
 
 v20 retains v19 **truth binding beyond TC↔MPROP mirroring**: every numeric S2 partition fact embedded in a canonical TC/MPROP condition is checked against an independent derivation from the canonical `S2-001…S2-168` rows and the exact partial-edge registry. A TC and MPROP that are edited consistently with each other but disagree with that derived source fact MUST fail. This closes the v18 stale-mirror failure without introducing a second handwritten partition authority.
 
-No prose sentence, R title, SEM-PROP/CARD-PROP record, BND row, FD row or legacy `PROP-SPEC` may independently introduce or change validator acceptance behavior. They may explain, group or constrain already-authorized properties. A new machine behavior is authorized only by adding/changing/removing a canonical TC together with its exactly-one MPROP; an unknown machine child property without TC+MPROP is outside the reviewed Stage 3.54 contract and fails closed/re-enters planning review. If explanatory prose conflicts with TC↔MPROP, the candidate is review-invalid, but Stage 3.55 MUST implement the TC↔MPROP authority and MUST NOT infer a different acceptance behavior from prose.
+No prose sentence, R title, SEM-PROP/CARD-PROP record, BND row, FD row or legacy `PROP-SPEC` may independently introduce or change validator acceptance behavior. They may explain, group or constrain already-permitted properties. A new machine behavior is permitted only by adding/changing/removing a canonical TC together with its exactly-one MPROP; an unknown machine child property without TC+MPROP is outside the validated Stage 3.54 contract and fails closed/re-enters technical reassessment. If explanatory prose conflicts with TC↔MPROP, the candidate is validation-invalid, but Stage 3.55 MUST implement the TC↔MPROP authority and MUST NOT infer a different acceptance behavior from prose.
 
 Current accepted-language sibling closure is represented directly by `TC/MPROP-627…631`: typed authority identity accepts same-path/different-kind, SQL keyword terminals are ASCII-case-insensitive, terminated line comments between tokens are accepted, terminated nested block comments between tokens are accepted, and forbidden words confined to inert comments do not become executable syntax. Removing or weakening any of these five direct positive witnesses is a semantic-freeze failure.
 
@@ -3495,7 +3495,7 @@ TAXONOMY-AUTHORITY|id=TA-01|BND=quantitative_numeric_byte_and_explicit_numeric_l
 
 `GUARD-02` is therefore split without overlap: BND owns quantitative bounds; structural cardinality/relation acceptance is represented by TC↔MPROP and, where an additional compact numeric/set relation is useful, the existing `PROP-SPEC` mirror. SEM/CARD manifests remain conservative physical-accountability surfaces only.
 
-Mutation obligations are derived from the MPROP registry itself. For every MPROP the proof suite must exercise at least: TC-condition drift with frozen MPROP, polarity drift, owner-set drift, TC-without-MPROP injection and MPROP-without-TC injection. Builder is not allowed to hand-select a smaller sibling list.
+Mutation obligations are derived from the MPROP registry itself. For every MPROP the proof suite must exercise at least: TC-condition drift with frozen MPROP, polarity drift, owner-set drift, TC-without-MPROP injection and MPROP-without-TC injection. implementation is not allowed to hand-select a smaller sibling list.
 
 The following high-risk cardinality/acceptance properties additionally have canonical machine-readable `PROP-SPEC` values. These are not examples; they are direct authorities for the exact child semantics that v16 allowed to drift:
 
@@ -3527,7 +3527,7 @@ A carried residual is closed only when the named fixture **and** the discovered 
 - drop `TYPE_FUNC_NAME_KEYWORD` from the authority projection while keeping the exact 78-member reserved set/hash → R062/R060 fail;
 - remove `S2-011` or any other canonical partial-machine row from the partial evidence-scope registry while its canonical observer-bearing row remains → R063/R061 fail.
 
-`REMEDIATION_SIBLING_SCAN` records derived universes rather than fixed semantic expected sets. v20 retains the complete MPROP set as the mutation source: every property generates mandatory condition/polarity/owner/orphan obligations; no hand-picked subset is an approval authority.
+`REMEDIATION_SIBLING_SCAN` records derived universes rather than fixed semantic expected sets. v20 retains the complete MPROP set as the mutation source: every property generates mandatory condition/polarity/owner/orphan obligations; no hand-picked subset is an acceptance authority.
 
 `REMEDIATION_SIBLING_SCAN` records derived universes rather than fixed semantic expected sets. v20 requires three executable layers from the frozen package: `builder_v20_property_mutation_runner.py` generated from every MPROP, `builder_v20_extra_red_team_runner.py` for independent cross-family attacks including the v17 sibling failures, and `builder_v20_independent_crosscheck.py` which does not import the main meta-audit. Exact totals are package-derived and must reproduce after clean unzip; no earlier headline is exhaustive authority.
 
@@ -3536,7 +3536,7 @@ A carried residual is closed only when the named fixture **and** the discovered 
 The namespace contract is semantic, not merely numeric:
 
 - every `S2-*` Requirement preserves the canonical source subject, qualifiers, conjunctions and scope without adding P3-08-derived strengthening;
-- every `S2-*` appears in exactly one byte-bound `SA-*` row; source line/range/hash mapping is normative provenance, not a Builder note;
+- every `S2-*` appears in exactly one byte-bound `SA-*` row; source line/range/hash mapping is normative provenance, not a implementation note;
 - every P3-08-specific strengthening is declared under `P3D-*`;
 - stable `S2-*` IDs are never renumbered to hide a later extraction omission; a newly discovered atomic source control appends the next ID;
 - source completeness is judged against exact `SA-001…SA-082` anchors recomputed from the canonical Stage 2 blob, not against internal continuity alone.
@@ -3571,11 +3571,11 @@ For derived hardening:
 
 Evidence boundary:
 
-- R021 can prove the **approved frozen S2 registry set** after publication, but cannot machine-prove that
+- R021 can prove the **accepted frozen S2 registry set** after publication, but cannot machine-prove that
   the initial human extraction from prose was semantically exhaustive;
-- Stage 3.54 designated review owns the source→S2 extraction-completeness judgment before publication;
+- Stage 3.54 designated validation owns the source→S2 extraction-completeness judgment before publication;
 - Stage 3.55 may not add/drop/reword an S2 or P3D control, change disposition, or move a control between
-  namespaces without returning to reviewed planning scope.
+  namespaces without returning to validated planning scope.
 
 ## 24. Self-contained adversarial + acceptance contract — closes P3-08-PLAN-05 and PLAN-07
 
@@ -3845,7 +3845,7 @@ the exact permanent IDs and semantics.
 | `TC-248` | `POS` | positive-acceptance | valid medium-risk Expand with staged rollout/ref/metrics → pass | R016,R025 |
 | `TC-249` | `POS` | positive-acceptance | valid high-risk Expand with staged rollout + ADR/security/golden/restore refs → pass structural validation | R015,R016,R025 |
 | `TC-250` | `POS` | positive-acceptance | valid schema_only classification on appropriate structural change → pass | R017 |
-| `TC-251` | `POS` | positive-acceptance | valid financial classification with applicable review structure → pass | R017 |
+| `TC-251` | `POS` | positive-acceptance | valid financial classification with applicable validation structure → pass | R017 |
 | `TC-252` | `POS` | positive-acceptance | valid identity_personal classification + security/privacy ref → pass | R017,R015 |
 | `TC-253` | `POS` | positive-acceptance | valid sensitive classification + security/privacy ref → pass | R017,R015 |
 | `TC-254` | `POS` | positive-acceptance | valid mixed classification + security/privacy ref → pass | R017,R015 |
@@ -3853,7 +3853,7 @@ the exact permanent IDs and semantics.
 | `TC-256` | `POS` | positive-acceptance | valid measured observability object → pass | R014 |
 | `TC-257` | `POS` | positive-acceptance | valid rows_or_batches N/A with category-specific reason → pass | R014 |
 | `TC-258` | `POS` | positive-acceptance | valid validation_mismatches N/A with category-specific reason → pass | R014 |
-| `TC-259` | `POS` | positive-acceptance | valid migration with no declared dependency where reviewer confirms none required → pass graph validation | R018 |
+| `TC-259` | `POS` | positive-acceptance | valid migration with no declared dependency where validator confirms none required → pass graph validation | R018 |
 | `TC-260` | `POS` | positive-acceptance | valid dependency on frozen legacy ID → pass | R018 |
 | `TC-261` | `POS` | positive-acceptance | valid dependency on earlier enforced non-immediate ID → pass | R018 |
 | `TC-262` | `POS` | positive-acceptance | valid monotonic migration ID gap → pass | R002 |
@@ -4011,7 +4011,7 @@ the exact permanent IDs and semantics.
 
 | `TC-412` | `NEG` | policy-source-extraction | S2-137 drops either `metrics` or `logs` from canonical sensitive-content prohibition → source-registry gate fails | R021,R038 |
 | `TC-413` | `NEG` | ddl-subgrammar/risk-floor | CREATE TABLE contains column-level `NOT NULL` → reject; paired-SQL v1 low empty-table form is nullable only | R008,R033,R034,R042 |
-| `TC-414` | `NEG` | ddl-subgrammar/risk-floor | ADD COLUMN contains `NOT NULL` with or without literal default → reject; future NOT NULL support requires reviewed scope expansion | R008,R033,R034,R042 |
+| `TC-414` | `NEG` | ddl-subgrammar/risk-floor | ADD COLUMN contains `NOT NULL` with or without literal default → reject; future NOT NULL support requires validated scope expansion | R008,R033,R034,R042 |
 | `TC-415` | `POS` | positive-acceptance | parameterized scanner-derived `statement_class` acceptance covers exactly all 13 frozen values in their valid UP/DOWN forms | R013,R042 |
 | `TC-416` | `NEG` | finite-domain/ddl-impact | manifest statement_class differs from scanner-derived exact class → reject | R013,R042 |
 | `TC-417` | `NEG` | finite-domain/ddl-impact | statement_class uses unlisted alias/case/broader/narrower value → reject | R013,R042 |
@@ -4066,10 +4066,10 @@ the exact permanent IDs and semantics.
 | `TC-466` | `POS` | positive-acceptance | ADD COLUMN with canonical optional `NULL DEFAULT safe_literal` order matches exact production → pass | R048 |
 | `TC-467` | `NEG` | ddl-token-grammar | ADD COLUMN omits mandatory `COLUMN`, adds multiple comma-separated columns, or reverses optional clause order → reject | R048 |
 | `TC-468` | `NEG` | ddl-token-grammar | ADD COLUMN contains trailing/unrecognized clause/token outside exact production → reject | R048 |
-| `TC-469` | `NEG` | evidence-binding | `S2-021` carries any machine R edge or loses reviewer-only Compatibility ownership → semantic evidence gate fails | R049 |
-| `TC-470` | `NEG` | evidence-binding | `S2-093` cites R018 or any machine rule as proof of approved ongoing Populate responsibility → reject binding as unrelated evidence | R049 |
+| `TC-469` | `NEG` | evidence-binding | `S2-021` carries any machine R edge or loses validator-only Compatibility ownership → semantic evidence gate fails | R049 |
+| `TC-470` | `NEG` | evidence-binding | `S2-093` cites R018 or any machine rule as proof of accepted ongoing Populate responsibility → reject binding as unrelated evidence | R049 |
 | `TC-471` | `NEG` | evidence-binding | any S2 row outside complete-machine/scope-rejected sets carries machine rules but lacks an exact partial machine-subset + non-machine-remainder registry entry → meta-gate fail | R049 |
-| `TC-472` | `POS` | positive-acceptance | exact current frozen four-way S2 evidence taxonomy plus 36-row partial-evidence binding registry is complete; the exact conservative prerequisite-only reviewer/external-evidence set is machine-edge-free, paired-SQL scope rejection and no-machine approval binding are accepted → pass | R049 |
+| `TC-472` | `POS` | positive-acceptance | exact current frozen four-way S2 evidence taxonomy plus 36-row partial-evidence binding registry is complete; the exact conservative prerequisite-only validator/external-evidence set is machine-edge-free, paired-SQL scope rejection and no-machine acceptance binding are accepted → pass | R049 |
 | `TC-473` | `NEG` | semantic-meta-mutation | remove semantic owner R042 from derived `SEMANTIC_FREEZE_RULE_SET` or relabel it meta/proof-only → aggregate P3D-008 proof fails | R050 |
 | `TC-474` | `NEG` | semantic-meta-mutation | remove semantic owner R046 or R047 from complement-derived aggregate set → fail | R050 |
 | `TC-475` | `NEG` | semantic-meta-mutation | remove semantic owner R048, R041 or R033 from aggregate set → fail | R050 |
@@ -4098,14 +4098,14 @@ the exact permanent IDs and semantics.
 | `TC-498` | `NEG` | ci-discovery-domain | migration directory contains `evil.up.sql` or `notes.down.sql`; exact `.sql` discovery sees it and canonical filename validation rejects instead of ignoring → fail | R054 |
 | `TC-499` | `NEG` | ci-discovery-domain | migration directory contains `000008-bad-name.up.sql` or `123_bad.up.sql`; `.sql` discovery includes it but canonical filename grammar rejects → fail | R054 |
 | `TC-500` | `NEG` | ci-discovery-domain | proposed validator discovery predicate is narrower than every direct migration-directory `.sql` basename or silently ignores malformed `.up.sql/.down.sql` → meta-gate fail | R054 |
-| `TC-501` | `POS` | positive-acceptance | every canonical paired `.up.sql/.down.sql` member is discovered, validated and current frozen CI `*.up.sql` execution subjects are a subset of validator-approved files → pass | R054 |
-| `TC-502` | `NEG` | ci-discovery-domain | frozen CI selector/inventory contains an executable `*.up.sql` subject that can exist outside validator discovery/approval or execute before exact-SHA validation → fail | R054 |
+| `TC-501` | `POS` | positive-acceptance | every canonical paired `.up.sql/.down.sql` member is discovered, validated and current frozen CI `*.up.sql` execution subjects are a subset of validator-accepted files → pass | R054 |
+| `TC-502` | `NEG` | ci-discovery-domain | frozen CI selector/inventory contains an executable `*.up.sql` subject that can exist outside validator discovery/acceptance or execute before exact-SHA validation → fail | R054 |
 | `TC-503` | `NEG` | source-authority-binding | canonical source changes/removes only `mandatory` in line 17 while lifecycle sequence line 20 stays byte-identical → SA/source-authority proof for S2-001 must fail | R045 |
 | `TC-504` | `NEG` | evidence-binding | S2-109 is classified complete-machine from clean governed SQL/disposable DOWN while external production rollback tooling can still delete financial facts → fail evidence-scope gate | R049 |
 | `TC-505` | `NEG` | evidence-binding | S2-118 is classified complete-machine from clean governed SQL while separate snapshot rebuild/runtime tooling can mutate historical transaction rows → fail evidence-scope gate | R049 |
 | `TC-506` | `NEG` | semantic-meta-mutation | R033 is removed from semantic-owner set, relabeled meta/proof-only, or any new R-rule is left unclassified → aggregate semantic-freeze proof fails | R050 |
 | `TC-507` | `NEG` | derived-evidence-binding | P3D-003 is broadened to claim all SQL type bounds while citing only R040, or a frozen P3D disposition/rule mapping is structurally rebroadended beyond its declared scope registry → fail | R055 |
-| `TC-508` | `POS` | positive-acceptance | exact P3D evidence-mode registry is structurally scope-closed; P3D-003 owns only R040 scalar-data/CHECK-predicate semantics, P3D-023 owns R051 type-parameter semantics, aggregate claims bind R050, and reviewer-owned semantic remainders remain explicit → pass | R055 |
+| `TC-508` | `POS` | positive-acceptance | exact P3D evidence-mode registry is structurally scope-closed; P3D-003 owns only R040 scalar-data/CHECK-predicate semantics, P3D-023 owns R051 type-parameter semantics, aggregate claims bind R050, and validator-owned semantic remainders remain explicit → pass | R055 |
 | `TC-509` | `NEG` | fk-cardinality | ADD FOREIGN KEY has two local columns but one referenced column → reject before PostgreSQL execution | R033 |
 | `TC-510` | `NEG` | fk-cardinality | ADD FOREIGN KEY has one local column but two referenced columns → reject before PostgreSQL execution | R033 |
 | `TC-511` | `POS` | positive-acceptance | ADD FOREIGN KEY with two distinct local columns and two distinct referenced columns satisfies exact non-zero equal-cardinality rule → pass | R033 |
@@ -4116,8 +4116,8 @@ the exact permanent IDs and semantics.
 | `TC-516` | `NEG` | fk-list-grammar | ADD FOREIGN KEY contains an empty local or referenced column list → reject before PostgreSQL | R033 |
 | `TC-517` | `NEG` | evidence-binding | a `REJECTED_BY_PAIRED_SQL_V1` S2 row is counted as complete machine proof of its external lifecycle/operational requirement merely because paired SQL v1 rejects that operation → fail evidence-scope gate | R049 |
 | `TC-518` | `POS` | positive-acceptance | exact four-way S2 evidence taxonomy is 7 complete-machine + 46 paired-SQL-scope-rejected + 36 partial + 79 no-machine = 168, with scope rejection never represented as external-requirement proof → pass | R049 |
-| `TC-519` | `NEG` | evidence-binding | any of P3D-002/P3D-016/P3D-018/P3D-021/P3D-027 is promoted to complete MACHINE while its source-classification/semantic-subset reviewer remainder still exists → fail P3D evidence-scope gate | R055 |
-| `TC-520` | `POS` | positive-acceptance | exact P3D evidence taxonomy is 22 complete-machine + 5 structure-plus-human rows with explicit machine subset and reviewer-owned semantic remainder → pass | R055 |
+| `TC-519` | `NEG` | evidence-binding | any of P3D-002/P3D-016/P3D-018/P3D-021/P3D-027 is promoted to complete MACHINE while its source-classification/semantic-subset validator remainder still exists → fail P3D evidence-scope gate | R055 |
+| `TC-520` | `POS` | positive-acceptance | exact P3D evidence taxonomy is 22 complete-machine + 5 structure-plus-human rows with explicit machine subset and validator-owned semantic remainder → pass | R055 |
 | `TC-521` | `POS` | positive-acceptance | CREATE TABLE contains exactly 64 pairwise-distinct otherwise-valid column definitions → pass exact project max boundary | R048,R057 |
 | `TC-522` | `NEG` | ddl-boundary | CREATE TABLE contains 65 pairwise-distinct otherwise-valid column definitions → reject before PostgreSQL execution | R048,R057 |
 | `TC-523` | `NEG` | lexical-overlap | identifier position uses an exact PostgreSQL 18.6 reserved member, including `table`, `select` or `user` → reject before PostgreSQL | R058 |
@@ -4125,7 +4125,7 @@ the exact permanent IDs and semantics.
 | `TC-525` | `POS` | positive-acceptance | ordinary non-keyword identifier `portfolio` matches project identifier grammar → pass | R058 |
 | `TC-526` | `NEG` | lexical-overlap | reserved member/count/hash/upstream tag-or-blob identity drifts, runtime keyword discovery is substituted, or precedence differs from §15.3a → fail lexical-freeze gate | R058,R060 |
 | `TC-527` | `NEG` | evidence-binding | any globally quantified all/every/never/no-migration S2 requirement is `MACHINE_COMPLETE` while a separately governed migration mechanism lies outside its observer universe → fail | R049,R056 |
-| `TC-528` | `POS` | positive-acceptance | exact S2 evidence partition is 7 complete + 46 paired-SQL-scope-rejected + 36 partial + 79 none and every global migration/versioning sibling is explicitly classified: observer-bearing rows have a machine subset/remainder and no-machine rows name reviewer/external ownership → pass | R049,R056 |
+| `TC-528` | `POS` | positive-acceptance | exact S2 evidence partition is 7 complete + 46 paired-SQL-scope-rejected + 36 partial + 79 none and every global migration/versioning sibling is explicitly classified: observer-bearing rows have a machine subset/remainder and no-machine rows name validator/external ownership → pass | R049,R056 |
 | `TC-529` | `NEG` | boundary-proof | a finite normative min/max/cardinality/length/range exists without required exact boundary witness and adjacent-invalid rejection → fail global bound inventory | R057 |
 | `TC-530` | `POS` | positive-acceptance | every finite normative bound in the semantic-atom inventory has boundary witnesses or explicit mathematical non-applicability rationale → pass | R057 |
 | `TC-531` | `NEG` | lexical-overlap | any non-empty lexical token-class intersection lacks exact precedence/context/exclusion owner and deterministic witness pair → fail | R058,R059 |
@@ -4169,7 +4169,7 @@ the exact permanent IDs and semantics.
 | `TC-569` | `NEG` | semantic-atom-integrity | change an ATOM owner or body digest while R/TC counts remain unchanged → exact ATOM↔R bijection/digest proof fails | R059,R060,R064 |
 | `TC-570` | `POS` | positive-acceptance | ATOM-001…050 exactly equals the 50-rule semantic-owner complement and every atom digest equals its authoritative R semantic body → pass | R050,R059,R064 |
 | `TC-571` | `NEG` | evidence-binding | reintroduce `S2-101 → R018` as machine evidence for independent deployability → explicit unrelated-edge regression fails even though R018 exists and dependency tests pass | R049,R060,R067 |
-| `TC-572` | `POS` | positive-acceptance | S2-101 is reviewer/Architecture-owned with no machine R edge; R018 remains attached only to dependency-structure controls where relevant → pass | R049,R067 |
+| `TC-572` | `POS` | positive-acceptance | S2-101 is validator/Architecture-owned with no machine R edge; R018 remains attached only to dependency-structure controls where relevant → pass | R049,R067 |
 | `TC-573` | `NEG` | atom-universe-growth | add a new semantic R-rule without a corresponding ATOM or add an ATOM without exactly one semantic R owner → atom-universe equality fails | R050,R060,R064 |
 | `TC-574` | `NEG` | normative-accountability-drift | change/delete one frozen semantic-candidate plan line while all IDs/counts remain intact → packaged NORMATIVE_LINE_ACCOUNTABILITY mismatch fails | R059,R064,R065 |
 | `TC-575` | `POS` | positive-acceptance | historical v15 packaged mutation audit killed its eight registered bypass mutations; the current contract does not treat that closed set as exhaustive → pass | R060,R061,R063,R064,R065,R066,R067 |
@@ -4190,22 +4190,22 @@ the exact permanent IDs and semantics.
 | `TC-590` | `POS` | positive-acceptance | exactly 50 physical ATOM declarations exist; IDs 001…050 and semantic owners are each exact-once and every occurrence digest matches its R body → pass | R050,R064,R069 |
 | `TC-591` | `NEG` | partition-summary-consistency | any active evidence-partition numeric summary differs from the canonical-row-derived `7/46/36/79` authority while registries stay unchanged → fail | R049,R070 |
 | `TC-592` | `POS` | positive-acceptance | canonical S2 rows derive exactly `7 complete + 46 scope-rejected + 36 partial + 79 none`; the sole partition authority and every active numeric summary agree → pass | R049,R070 |
-| `TC-593` | `NEG` | evidence-binding | reattach R008 to reviewer-only S2-019 old-version ignore behavior → fail as prerequisite-not-logical-subset | R049,R070 |
-| `TC-594` | `NEG` | evidence-binding | reattach R008/R029 to reviewer-only S2-021 old-version ignore behavior → fail | R049,R070 |
-| `TC-595` | `NEG` | evidence-binding | reattach R008 to reviewer-only S2-022 reader-tolerance timing behavior → fail | R049,R070 |
-| `TC-596` | `NEG` | evidence-binding | reattach R021 to reviewer-only S2-141 tool-nonweakening behavior → fail | R049,R070 |
-| `TC-597` | `POS` | positive-acceptance | exact 36-row remaining partial registry is structurally complete under the current frozen strict semantic pass; every confirmed/proactively identified prerequisite-only row is reviewer/external-evidence owned and no such edge remains → pass | R049,R070 |
+| `TC-593` | `NEG` | evidence-binding | reattach R008 to validator-only S2-019 old-version ignore behavior → fail as prerequisite-not-logical-subset | R049,R070 |
+| `TC-594` | `NEG` | evidence-binding | reattach R008/R029 to validator-only S2-021 old-version ignore behavior → fail | R049,R070 |
+| `TC-595` | `NEG` | evidence-binding | reattach R008 to validator-only S2-022 reader-tolerance timing behavior → fail | R049,R070 |
+| `TC-596` | `NEG` | evidence-binding | reattach R021 to validator-only S2-141 tool-nonweakening behavior → fail | R049,R070 |
+| `TC-597` | `POS` | positive-acceptance | exact 36-row remaining partial registry is structurally complete under the current frozen strict semantic pass; every confirmed/proactively identified prerequisite-only row is validator/external-evidence owned and no such edge remains → pass | R049,R070 |
 | `TC-598` | `POS` | positive-acceptance | parameterized four-field direction-independence: for each field independently, an otherwise valid migration holds the other execution metadata at valid compatible values and accepts `expected_duration_seconds: UP=10 DOWN=20`, `lock_risk: UP=low DOWN=high`, `lock_timeout_ms: UP=1000 DOWN=3000`, and `statement_timeout_ms: UP=2000 DOWN=4000`; every one-field UP≠DOWN witness → pass | R012,R071 |
 | `TC-599` | `NEG` | positive-universe-regression | for each field in `{expected_duration_seconds,lock_risk,lock_timeout_ms,statement_timeout_ms}`, introduce a normative or implementation requirement `UP[field] == DOWN[field]` → the corresponding parameterized TC-598 acceptance witness fails; all four equality-coupling mutants must be killed independently | R012,R071 |
-| `TC-600` | `POS` | positive-acceptance | packaged current mutation and extra red-team suites kill all mandatory v15 reviewer survivors plus adjacent global-duplicate, occurrence, partition, evidence-edge and UP/DOWN-coupling attacks → pass | R060,R061,R068,R069,R070,R071 |
-| `TC-601` | `NEG` | evidence-binding | reattach R007 to reviewer-only S2-001 mandatory lifecycle sequencing → fail because lifecycle vocabulary is prerequisite, not a logical subset of mandatory ordering | R070 |
-| `TC-602` | `NEG` | evidence-binding | reattach R014 to reviewer-only S2-010 production observability → fail because declaration profile is prerequisite, not runtime observability evidence | R070 |
-| `TC-603` | `NEG` | evidence-binding | reattach R008/R013 to reviewer-only S2-017 backward compatibility → fail because additive grammar/impact metadata do not prove old/new app compatibility | R070 |
-| `TC-604` | `NEG` | evidence-binding | reattach R026 to reviewer-only S2-106 rollback preference → fail because strategy declaration does not prove operational preference/execution | R070 |
-| `TC-605` | `NEG` | evidence-binding | reattach R014 to any reviewer-only S2-128…S2-136 production-reporting row → fail because observability schema declaration does not prove runtime report emission | R070 |
-| `TC-606` | `NEG` | evidence-binding | reattach R034/R016/R017 to reviewer-only S2-149/S2-150/S2-155/S2-156 exact risk-classification examples/anchors → fail because floors/gates do not prove exact semantic classification | R070 |
-| `TC-607` | `NEG` | evidence-binding | reattach R021 to reviewer-only S2-162 priority policy → fail because registry presence does not prove operational conflict resolution by that priority | R070 |
-| `TC-608` | `POS` | positive-acceptance | exact conservative reviewer-only non-subset set is machine-edge-free; the remaining 36 partial bindings are the only rows for which a direct observer-scoped logical subset is claimed after the full semantic pass → pass | R070 |
+| `TC-600` | `POS` | positive-acceptance | packaged current mutation and extra red-team suites kill all mandatory v15 validator survivors plus adjacent global-duplicate, occurrence, partition, evidence-edge and UP/DOWN-coupling attacks → pass | R060,R061,R068,R069,R070,R071 |
+| `TC-601` | `NEG` | evidence-binding | reattach R007 to validator-only S2-001 mandatory lifecycle sequencing → fail because lifecycle vocabulary is prerequisite, not a logical subset of mandatory ordering | R070 |
+| `TC-602` | `NEG` | evidence-binding | reattach R014 to validator-only S2-010 production observability → fail because declaration profile is prerequisite, not runtime observability evidence | R070 |
+| `TC-603` | `NEG` | evidence-binding | reattach R008/R013 to validator-only S2-017 backward compatibility → fail because additive grammar/impact metadata do not prove old/new app compatibility | R070 |
+| `TC-604` | `NEG` | evidence-binding | reattach R026 to validator-only S2-106 rollback preference → fail because strategy declaration does not prove operational preference/execution | R070 |
+| `TC-605` | `NEG` | evidence-binding | reattach R014 to any validator-only S2-128…S2-136 production-reporting row → fail because observability schema declaration does not prove runtime report emission | R070 |
+| `TC-606` | `NEG` | evidence-binding | reattach R034/R016/R017 to validator-only S2-149/S2-150/S2-155/S2-156 exact risk-classification examples/anchors → fail because floors/gates do not prove exact semantic classification | R070 |
+| `TC-607` | `NEG` | evidence-binding | reattach R021 to validator-only S2-162 priority policy → fail because registry presence does not prove operational conflict resolution by that priority | R070 |
+| `TC-608` | `POS` | positive-acceptance | exact conservative validator-only non-subset set is machine-edge-free; the remaining 36 partial bindings are the only rows for which a direct observer-scoped logical subset is claimed after the full semantic pass → pass | R070 |
 
 
 
@@ -4223,7 +4223,7 @@ the exact permanent IDs and semantics.
 | `TC-620` | `NEG` | semantic-property-manifest | regenerate semantic-property evidence after child mutation but leave frozen plan manifest digest/count unchanged → digest/count binding rejects | R072,R074 |
 | `TC-621` | `NEG` | property-spec | change NULL/DEFAULT max1, CHECK exact1, owner equality, concurrency required, or inverse exact1 while preserving coarse R body → PROP-SPEC/value binding rejects | R074 |
 | `TC-622` | `NEG` | cardinality-discovery | add/change an active structural cardinality line with regenerated NLA but without matching cardinality manifest/property authority → fail | R073,R074 |
-| `TC-623` | `NEG` | evidence-binding | reattach any machine rule to reviewer-only `S2-107` → semantic evidence gate fails | R049,R075 |
+| `TC-623` | `NEG` | evidence-binding | reattach any machine rule to validator-only `S2-107` → semantic evidence gate fails | R049,R075 |
 | `TC-624` | `POS` | positive-acceptance | exact current evidence partition is 7 complete + 46 scope-rejected + 36 partial + 79 no-machine; S2-107 has no machine edge | R049,R075 |
 | `TC-625` | `POS` | positive-acceptance | SEM/CARD manifests exactly byte-account every active normative line, remain explicitly non-semantic, and the single TA-01 taxonomy assigns machine acceptance/rejection only to exact TC↔MPROP properties while BND remains quantitative-only | R072,R073,R074 |
 | `TC-626` | `NEG` | semantic-property-manifest | add a new normative property and regenerate NLA + SEM/CARD manifests + plan manifest bindings while checker frozen surface digest remains unchanged → reject | R072,R074 |
@@ -4301,16 +4301,16 @@ edge sets and requires equality in both directions; hand-maintained divergence i
 | `R058` | GUARD-03 exact single-source ColId lexical ownership; anchored COLID_POLICY_SPEC binds PostgreSQL REL_18_6 category projection, contextual acceptance and deterministic witnesses | `TC-523,TC-526,TC-531,TC-554,TC-555,TC-556,TC-557,TC-565,TC-581,TC-582,TC-583` | `TC-524,TC-525,TC-532,TC-534,TC-558,TC-566,TC-584` |
 | `R059` | GUARD-04 semantic-atom ownership plus frozen normative-line candidate accountability; no latent ownerless/multiply authoritative semantic R and no silent normative-candidate insertion | `TC-531,TC-533,TC-567,TC-569,TC-574` | `TC-532,TC-534,TC-568,TC-570` |
 | `R060` | GUARD-05 mutation-kill sufficiency for frozen semantic atoms plus new-unregistered-candidate injections in bounds, authority projections and discovered sibling universes | `TC-526,TC-533,TC-552,TC-557,TC-560,TC-562,TC-563,TC-565,TC-567,TC-569,TC-571,TC-573` | `TC-534,TC-575,TC-600` |
-| `R061` | GUARD-06 remediation generalization: Reviewer finding → generic predicate + deterministic discovery rule + derived sibling domain + permanent regression, never named-fixture/expected-set-only closure | `TC-533,TC-559` | `TC-534,TC-575,TC-600` |
+| `R061` | GUARD-06 remediation generalization: validator finding → generic predicate + deterministic discovery rule + derived sibling domain + permanent regression, never named-fixture/expected-set-only closure | `TC-533,TC-559` | `TC-534,TC-575,TC-600` |
 | `R062` | GUARD-03/04 external-authority projection: exact PostgreSQL REL_18_6 kwlist category sets + gram.y ColId production compose to the project ColId-disallowed semantic set; exact bytes/hash alone cannot prove a different property | `TC-554,TC-555,TC-556,TC-557` | `TC-558,TC-566` |
 | `R063` | anti-circular completeness: S2 observer-bearing universe is disposition-derived and bounded-integer candidates are schema-derived; both must exactly equal their proof registries, while hand-authored semantic sibling counts are never authority | `TC-552,TC-559,TC-560` | `TC-553,TC-561,TC-575` |
 | `R064` | exact ATOM-001…050 ↔ semantic-owner-R bijection and exact R-body digest binding; new/missing/duplicate/mutated atom fails | `TC-567,TC-569,TC-573,TC-574,TC-585,TC-586,TC-587,TC-588,TC-589` | `TC-568,TC-570,TC-575,TC-590` |
-| `R065` | frozen normative-line accountability: deterministic semantic-candidate line extraction must exactly equal packaged evidence; Builder validates but never regenerates evidence | `TC-562,TC-563,TC-567,TC-574` | `TC-564,TC-568,TC-575` |
+| `R065` | frozen normative-line accountability: deterministic semantic-candidate line extraction must exactly equal packaged evidence; implementation validates but never regenerates evidence | `TC-562,TC-563,TC-567,TC-574` | `TC-564,TC-568,TC-575` |
 | `R066` | single-source ColId authority: anchored §15.3a COLID_POLICY_SPEC exact digest must equal packaged PostgreSQL projection evidence; no duplicate production may satisfy proof | `TC-565,TC-581,TC-582,TC-583` | `TC-566,TC-575,TC-584` |
-| `R067` | S2 evidence-edge honesty regression: S2-101 has no machine subset and therefore carries no R018 edge; semantic subset adequacy for remaining partial edges is Reviewer-owned | `TC-571` | `TC-572,TC-575` |
+| `R067` | S2 evidence-edge honesty regression: S2-101 has no machine subset and therefore carries no R018 edge; semantic subset adequacy for remaining partial edges is validator-owned | `TC-571` | `TC-572,TC-575` |
 | `R068` | global physical single-source authority: all `BOUND-SPEC|` and `COLID_POLICY|` occurrences are inventoried over the entire candidate and may exist only in their one anchored authority block; duplicate identical/conflicting/relocated copies fail | `TC-576,TC-577,TC-578,TC-579,TC-581,TC-582,TC-583` | `TC-580,TC-584,TC-600` |
 | `R069` | occurrence-level ATOM bijection: physical declaration count, ATOM-ID multiplicity, semantic-owner multiplicity and per-occurrence R-body digest are checked before map construction | `TC-585,TC-586,TC-587,TC-588,TC-589` | `TC-590,TC-600` |
-| `R070` | derived S2 partition-summary and evidence-edge closure: canonical rows derive the sole active partition counts; every confirmed or proactively identified prerequisite-not-logical-subset S2 row is reviewer/external-evidence only and the exact remaining partial set is frozen for semantic review | `TC-591,TC-593,TC-594,TC-595,TC-596,TC-601,TC-602,TC-603,TC-604,TC-605,TC-606,TC-607` | `TC-592,TC-597,TC-600,TC-608` |
+| `R070` | derived S2 partition-summary and evidence-edge closure: canonical rows derive the sole active partition counts; every confirmed or proactively identified prerequisite-not-logical-subset S2 row is validator/external-evidence only and the exact remaining partial set is frozen for semantic validation | `TC-591,TC-593,TC-594,TC-595,TC-596,TC-601,TC-602,TC-603,TC-604,TC-605,TC-606,TC-607` | `TC-592,TC-597,TC-600,TC-608` |
 | `R071` | positive acceptance for all four direction-independent execution metadata fields: valid UP and DOWN `expected_duration_seconds`, `lock_risk`, `lock_timeout_ms`, and `statement_timeout_ms` values may differ independently; equality coupling for any field is forbidden | `TC-599` | `TC-598,TC-600` |
 
 | `R072` | SEM/CARD active-line byte-accountability: every active physical line is exact-accounted; these manifests are explicitly non-semantic and cannot authorize machine behavior | `TC-619,TC-620,TC-626` | `TC-625` |
@@ -4496,7 +4496,7 @@ ATOM owner set == SEMANTIC_FREEZE_RULE_SET exactly, with exact R-body digests
 NORMATIVE_LINE_ACCOUNTABILITY candidate-line identity == current planning candidate exactly
 every formal-manifest integer field resolves exactly once to FD-001 singleton or BOUND_SPEC_REGISTRY; every BOUND_SPEC value == its BND authority
 COLID_POLICY_SPEC occurs exactly once in its anchored normative block and equals packaged REL_18_6 authority projection
-S2-101 has no machine R edge; independent deployability remains Architecture/reviewer-owned
+S2-101 has no machine R edge; independent deployability remains Architecture/validator-owned
 P3D machine-binding scope registry = EXACT
 FOREIGN KEY list proof = MISMATCH_BOTH_DIRECTIONS + EMPTY + DUPLICATE_LOCAL + DUPLICATE_REF + 33_REJECT + 32_PASS
 finite-domain field set and every domain-member set = EXACT
@@ -4517,23 +4517,23 @@ Headline counts are diagnostic only. Exact sets, exact semantic edges and litera
 
 ### 24.4a Preventive Guard proof obligations — v20 TC-atomic machine-property level
 
-These obligations strengthen pre-review prevention without renumbering historical `PO-01…20`:
+These obligations strengthen pre-validation prevention without renumbering historical `PO-01…20`:
 
 | Guard proof | Required result |
 | --- | --- |
 | `GP-01 OBSERVER_UNIVERSE_CLOSURE` | migration-subject candidates are discovered from all S2 rows; declared registry equals discovery; every observer-bearing candidate has explicit subject/observer subset + remainder; no hand-typed expected set may be completeness authority |
 | `GP-02 FINITE_BOUNDARY_PAIRS` | all formal integer fields are discovered without name allowlists and resolve to FD singleton or exact BOUND-SPEC; numeric values, BND witnesses and mutation tests must agree |
 | `GP-03 LEXICAL_INTERSECTION_CLOSURE` | one anchored COLID_POLICY_SPEC is the sole normative lexical authority; its digest and upstream projection evidence must agree and duplicate prose cannot satisfy proof |
-| `GP-04 SEMANTIC_ATOM_OWNERSHIP` | owner-level ATOM index remains exact; SEM-PROP is byte-accountability/index evidence binding active physical lines to exact digest/owner attribution only; machine acceptance/rejection completeness is owned by exact TC↔MPROP; one R may own many MPROPs; semantic adequacy remains independently reviewed |
+| `GP-04 SEMANTIC_ATOM_OWNERSHIP` | owner-level ATOM index remains exact; SEM-PROP is byte-accountability/index evidence binding active physical lines to exact digest/owner attribution only; machine acceptance/rejection completeness is owned by exact TC↔MPROP; one R may own many MPROPs; semantic adequacy remains independently validated |
 | `GP-05 MUTATION_KILL` | the packaged executable mutation suite kills all required existing-value, new-candidate, authority, atom and evidence-edge mutations with frozen checker/evidence |
 | `GP-06 REMEDIATION_GENERALIZATION` | each residual remediation records generic predicate + discovery rule + resulting sibling domain; registry equality is checked against discovery, so named fixture or expected count alone cannot close it |
 
 `BUILDER_PROOF_OBLIGATIONS_PASS` requires exact PASS of `PO-01…20` **and** `GP-01…06`.
 
-### 24.5 Builder proof obligations — v20 TC-atomic / single-taxonomy proof architecture
+### 24.5 implementation proof obligations — v20 TC-atomic / single-taxonomy proof architecture
 
-The Builder gate is no longer satisfied by registry continuity/counts alone. Before packaging any later
-Stage 3.54 candidate, the Builder must evaluate these permanent proof obligations against the exact
+The implementation gate is no longer satisfied by registry continuity/counts alone. Before packaging any later
+Stage 3.54 candidate, the implementation must evaluate these permanent proof obligations against the exact
 candidate and exact canonical evidence. A `PASS` is scoped to what can actually be mechanically or
 documentarily established; human/operational adequacy remains outside machine proof.
 
@@ -4544,32 +4544,32 @@ documentarily established; human/operational adequacy remains outside machine pr
 | `PO-03 MANIFEST COMPLETENESS` | every manifest field is defined by a normative section with exact type/requiredness/open-vs-closed semantics |
 | `PO-04 DOMAIN COMPLETENESS` | every finite field is present in `FD-*` with exact exhaustive members and supported subset |
 | `PO-05 CROSS-FIELD COMPLETENESS` | every documented field relationship/cardinality is an explicit invariant/rule, including rollout↔authority binding |
-| `PO-06 SQL CLOSED-WORLD` | every accepted SQL form belongs to the exact reviewed grammar; everything else rejects/rescopes |
+| `PO-06 SQL CLOSED-WORLD` | every accepted SQL form belongs to the exact validated grammar; everything else rejects/rescopes |
 | `PO-07 RISK MONOTONICITY` | no supported syntax can lower effective risk below the canonical/derived floor |
 | `PO-08 EXECUTION BINDING` | declared timeout/transaction semantics equal the actual validated PostgreSQL execution controls |
 | `PO-09 DOWN INVERSE SAFETY` | every allowed destructive DOWN effect is the exact safe inverse of a corresponding UP effect |
 | `PO-10 COVERAGE SINGLE-SOURCE` | duplicate normative representations of the same semantic identity are forbidden or generated from one canonical declaration |
 | `PO-11 POSITIVE COMPLETENESS` | every intentionally allowed branch has positive acceptance evidence |
-| `PO-12 NEGATIVE COMPLETENESS` | every reviewed invariant violation has deterministic negative regression evidence, including both directions of any list-cardinality/equality boundary plus zero/duplicate/max-boundary cases such as FOREIGN KEY local↔referenced column lists |
-| `PO-13 CI VALIDATION DOMINANCE` | no repository CI migration SQL execution precedes exact-SHA validator success **and every executed SQL file belongs to the exact validator discovery/approval subject set** |
+| `PO-12 NEGATIVE COMPLETENESS` | every validated invariant violation has deterministic negative regression evidence, including both directions of any list-cardinality/equality boundary plus zero/duplicate/max-boundary cases such as FOREIGN KEY local↔referenced column lists |
+| `PO-13 CI VALIDATION DOMINANCE` | no repository CI migration SQL execution precedes exact-SHA validator success **and every executed SQL file belongs to the exact validator discovery/acceptance subject set** |
 | `PO-14 HISTORICAL IMMUTABILITY` | protected historical migration path+bytes cannot be changed/replaced/reclassified |
 | `PO-15 EVIDENCE-BOUNDARY HONESTY` | every S2→R and P3D→R machine binding proves only a property within the English requirement; external/runtime/operational remainder is explicit, broad claims bind complete owners, and unrelated/narrow rules cannot masquerade as full proof |
 | `PO-16 NO IMPLEMENTATION-DEFINED SEMANTICS` | Stage 3.55 cannot invent enum values, aliases, bounds, grammar, defaults, reference identity or interpretation; every non-meta machine rule is classified into the aggregate semantic-owner complement and no semantic owner is omitted |
 | `PO-17 REGISTRY CONSISTENCY` | exact IDs/ranges/references/polarity/projections are internally consistent |
 | `PO-18 LEGACY BOUNDARY` | `000001…000007` exemptions remain identity-frozen and cannot expand to future migrations |
 | `PO-19 FAILURE CLOSED-WORLD` | unknown, malformed, ambiguous or unsupported input rejects rather than guessing |
-| `PO-20 YAGNI / IMPLEMENTABILITY` | the approved design remains implementable with the intended narrow Go/std-lib approach and does not silently require a full PostgreSQL parser/framework |
+| `PO-20 YAGNI / IMPLEMENTABILITY` | the accepted design remains implementable with the intended narrow Go/std-lib approach and does not silently require a full PostgreSQL parser/framework |
 
-Builder success marker:
+implementation success marker:
 
 ```text
 BUILDER_PROOF_OBLIGATIONS_PASS
 ```
 
 means only that the above obligations pass for the exact packaged candidate under the inspected evidence.
-It is **not** reviewer approval and is **not** a claim that no undiscovered defect can exist.
+It is **not** validator acceptance and is **not** a claim that no undiscovered defect can exist.
 
-New-review classification rule:
+New-validation classification rule:
 
 1. identify the failed/missing `PO-*` first;
 2. determine whether the defect is a residual/regression of `P3-08-PLAN-01…18`;
@@ -4616,15 +4616,15 @@ Constraints:
 
 ### Complexity stop rules
 
-Stop and rescope before Internal review if:
+Stop and rescope before internal validation if:
 
 - safe classification requires general PostgreSQL semantic parsing;
 - dynamic/procedural SQL support would be needed;
 - unsupported DDL forms are being added merely to make synthetic tests pass;
 - production rollback semantics start depending on disposable down files;
 - policy registry cannot remain deterministic;
-- production validator logic exceeds the canonical hand-written business-logic review budget without a
-  pre-review Principal Architect exception.
+- production validator logic exceeds the canonical hand-written business-logic validation budget without a
+  pre-validation Principal Architect exception.
 
 The preferred solution to unsupported syntax is fail-closed rejection, not parser expansion.
 
@@ -4645,7 +4645,7 @@ P3-08 MUST NOT include:
 - financial arithmetic changes;
 - auth/session behavior changes;
 - P3-07 reopening;
-- Stage 3.25 Security Review implementation;
+- Stage 3.25 Security validation implementation;
 - new dependency/lockfile;
 - reduction of the protected ten-check CI inventory.
 
@@ -4653,7 +4653,7 @@ Any requirement for these surfaces is a fail-closed scope-expansion event.
 
 ## 27. Local implementation gates
 
-Before Internal review, Stage 3.55 must run at least:
+Before internal validation, Stage 3.55 must run at least:
 
 ```text
 cd backend-go && go test ./cmd/validate-migrations
@@ -4680,12 +4680,12 @@ equivalence gate where Docker is available.
 
 The published head must pass all ten required GitHub CI checks.
 
-## 28. Review-size / complexity stop rules
+## 28. validation-size / complexity stop rules
 
 Canonical limits remain:
 
 - <= 25 changed files;
-- <= 800 changed lines of hand-written business logic unless a documented pre-review exception exists.
+- <= 800 changed lines of hand-written business logic unless a documented pre-validation exception exists.
 
 Additional P3-08 stop rules:
 
@@ -4696,27 +4696,27 @@ Additional P3-08 stop rules:
 - if schema fingerprinting is formatting-brittle, use catalog invariants instead of adding fragile
   textual equality.
 
-## 29. Development review lifecycle
+## 29. Development validation lifecycle
 
 Stage 3.55 changes validator code and CI, so REVIEW_WORKFLOW v1.4.0 development path is mandatory:
 
-1. approved/merged Stage 3.54 plan;
+1. accepted/merged Stage 3.54 plan;
 2. feature branch;
 3. implementation/tests/record;
 4. local gates;
-5. complete read-only Internal review;
-6. Builder-only fixes + rerun;
-7. separate human commit/push authorization;
+5. complete read-only internal validation;
+6. implementation-only fixes + rerun;
+7. separate human commit/push permission;
 8. Draft PR;
 9. exact-head ten-check CI;
-10. fresh same-chat External published-head review independent of Internal verdict;
+10. fresh single-context External published-head validation independent of Internal result;
 11. fixes/CI rerun if needed;
-12. External verdict;
-13. required Internal evidence publication only after External verdict;
+12. External result;
+13. required Internal evidence publication only after External result;
 14. CI on evidence-only head where required;
 15. exact publication verification;
-16. separate human Ready authorization;
-17. separate human squash-merge authorization;
+16. separate human Ready permission;
+17. separate merge gate;
 18. implementation merge;
 19. separately governed closure before P3-08 changes state.
 
@@ -4731,30 +4731,30 @@ Closure must verify at minimum:
 - strict manifest and base-relative immutability active;
 - exact seven legacy pairs pass without retroactive metadata claims;
 - fourteen historical SQL files byte-immutable;
-- `P3-08-PLAN-01…18` all reviewer-confirmed remediated;
+- `P3-08-PLAN-01…18` all evidence-confirmed remediated;
 - exact H-register `P3-08-H01…H269` retained/dispositioned;
 - exact `SA-001…SA-082` source-anchor ranges/hashes/accountability recompute against the canonical Stage 2 blob;
-- exact canonical Stage 2 source control-ID set `S2-001…S2-168` plus derived set `P3D-001…P3D-027` implemented with reviewed dispositions;
+- exact canonical Stage 2 source control-ID set `S2-001…S2-168` plus derived set `P3D-001…P3D-027` implemented with validated dispositions;
 - exact finite-domain set `FD-001…FD-019` and member sets implemented;
 - exact machine-rule set `R001…R075` implemented, including R055 P3D evidence-scope enforcement;
 - exact self-contained test set `TC-001…TC-631` executed with no missing/duplicate IDs and FK cardinality/list boundary rejects (2→1,1→2,empty,duplicate,33) plus 2→2 and 32→32 passes;
 - exact one-to-one `MPROP-001…MPROP-631` machine-property registry equals the canonical TC set and binds exact condition/outcome/owners/direct witness polarity;
-- registry-derived mutation obligations cover every MPROP with no Builder-selected omission;
+- registry-derived mutation obligations cover every MPROP with no implementation-selected omission;
 - exactly one TAXONOMY-AUTHORITY defines BND/structural-cardinality/MPROP/ATOM/SEM-CARD/NLA scope;
 - every active observer-bearing numeric summary derives to 89 from 7+46+36 and closes with 79 no-machine to 168;
 - exact allowed-branch registry has zero unmapped positive branches;
-- paired-SQL v1 supports only the reviewed Expand surface;
+- paired-SQL v1 supports only the validated Expand surface;
 - hidden Populate/Switch/Validate/Contract cannot masquerade as supported paired SQL;
 - procedural/dynamic/psql execution surfaces fail closed;
 - direction-specific timeout values are actually applied to PostgreSQL SQL bytes;
 - direction-specific DDL impact is complete;
-- disposable down inverses are exact scoped effects and are not represented as production rollback approval;
+- disposable down inverses are exact scoped effects and are not represented as production rollback acceptance;
 - canonical observability mapping is exact;
 - risk/classification/rollout/authority structural gates are active without human-evidence overclaim;
-- exact S2 evidence-binding partition is `7 complete-machine + 46 paired-SQL-scope-rejected + 36 partial-machine + 79 no-machine`, with S2-109/S2-118 partial and the conservative reviewer/external-evidence no-machine set covering lifecycle-sequencing, compatibility, runtime-reporting, exact-risk-classification and priority-policy rows where machine rules would prove only prerequisites;
+- exact S2 evidence-binding partition is `7 complete-machine + 46 paired-SQL-scope-rejected + 36 partial-machine + 79 no-machine`, with S2-109/S2-118 partial and the conservative validator/external-evidence no-machine set covering lifecycle-sequencing, compatibility, runtime-reporting, exact-risk-classification and priority-policy rows where machine rules would prove only prerequisites;
 - P3D-008 aggregate semantic-freeze partition covers `R001…R075` exactly once, with exact meta/proof-only exclusions and a derived 50-rule semantic-owner complement including R033 and R058;
 - scalar type-parameter, FOREIGN KEY exact list grammar/cardinality, CHECK-envelope and every supported DOWN token language are recursively literal/closed with deterministic positive+negative proof;
-- validator `.sql` discovery/approval set covers every frozen CI `*.up.sql` execution subject;
+- validator `.sql` discovery/acceptance set covers every frozen CI `*.up.sql` execution subject;
 - disposable PostgreSQL apply→down→baseline→reapply evidence is green;
 - ten required CI checks are green;
 - no runtime/schema/data/API/frontend/dependency change was smuggled into P3-08;
@@ -4766,35 +4766,35 @@ Only then may original audit arithmetic become:
 32/32 = 100%
 ```
 
-## 31. Planning publication lifecycle and review-subject binding
+## 31. Planning publication lifecycle and validation-subject binding
 
 Stage 3.54 remains exactly one documentation change.
 
-Two review stages are intentionally distinct and approval is **not transferable** between them.
+Two validation stages are intentionally distinct and acceptance is **not transferable** between them.
 
 ### 31.1 `PRE_PUBLICATION_PACKAGE`
 
-Before any commit/push/PR authorization, the independent planning review subject is byte-bound by:
+Before any commit/push/PR permission, the independent technical reassessment subject is byte-bound by:
 
 - exact repository identity;
 - exact protected base commit/tree;
-- exact previous reviewed candidate blob;
+- exact previous validated candidate blob;
 - exact current candidate Git blob + SHA-256;
 - exact changed-path set (`EXACT 1 DOC`);
 - exact canonical/evidence blobs and package checksums.
 
 The branch label is an intended local worktree label, **not a required remote ref** at this stage. Because this workflow
-explicitly forbids commit/push before local approval, absence of the remote branch/PR is expected and is
+explicitly forbids commit/push before local acceptance, absence of the remote branch/PR is expected and is
 `NOT_APPLICABLE`, not `NOT_VERIFIED`.
 
-A pre-publication reviewer MUST still return `REQUEST CHANGES` if candidate bytes, base identity, scope, authority
-or supplied approval-critical evidence cannot be verified. The reviewer may not silently bind to `develop` or any
+A pre-publication validator MUST still return `CHANGES REQUIRED` if candidate bytes, base identity, scope, authority
+or supplied acceptance-critical evidence cannot be verified. The validator may not silently bind to `develop` or any
 mutable remote branch.
 
 ### 31.2 `PUBLISHED_EXACT_HEAD`
 
-Only after a clean pre-publication `APPROVED` verdict **and separate explicit human authorization** for commit/push
-may the planning candidate be published. The fresh published-head review then requires:
+Only after a clean pre-publication `accepted` result **and separate explicit merge gate** for commit/push
+may the planning candidate be published. The fresh published-head validation then requires:
 
 - exact remote branch/ref;
 - exact published HEAD commit/tree;
@@ -4804,23 +4804,23 @@ may the planning candidate be published. The fresh published-head review then re
 
 Failure to resolve those published identities is then a `VERIFICATION BLOCKER`.
 
-The pre-publication verdict does not authorize publication and does not substitute for the later exact published-head
-review. The later review starts from the published subject independently.
+The pre-publication result does not authorize publication and does not substitute for the later exact published-head
+validation. The later validation starts from the published subject independently.
 
 This planning artifact:
 
-- contains no self-authored approval;
+- contains no self-authored acceptance;
 - predicts no future PR/CI/head/merge identity;
 - grants no implementation/commit/push/Ready/merge authority;
 - keeps P3-08 OPEN;
 - keeps audit 31/32 = 96.875%;
 - follows the documentation-only planning publication path.
 
-## 32. Review output quality requirement
+## 32. validation output quality requirement
 
-A future strict review verdict is exactly `APPROVED` or `REQUEST CHANGES`. If approval-critical evidence cannot be established, the reviewer records a `VERIFICATION BLOCKER` / `NOT_VERIFIED` basis and returns `REQUEST CHANGES`; that result must not consist only of PASS/FAIL labels.
+A future strict validation result is exactly `accepted` or `CHANGES REQUIRED`. If acceptance-critical evidence cannot be established, the validator records a `VERIFICATION BLOCKER` / `NOT_VERIFIED` basis and returns `CHANGES REQUIRED`; that result must not consist only of PASS/FAIL labels.
 
-For every FAIL, the reviewer should provide a numbered finding with:
+For every FAIL, the validator should provide a numbered finding with:
 
 - affected section;
 - violated requirement or loophole;
@@ -4828,15 +4828,15 @@ For every FAIL, the reviewer should provide a numbered finding with:
 - impact;
 - minimal remediation.
 
-This is an evidence-quality requirement for efficient remediation, not authority for the reviewer to
+This is an evidence-quality requirement for efficient remediation, not authority for the validator to
 mutate files.
 
 ## 33. Planning decision
 
 Proceed to Stage 3.55 only after this **v20 TC-atomic machine-property / single-taxonomy semantic-freeze plan** receives a clean independent
-`APPROVED` review and Stage 3.54 itself is published/merged under the required governance gates.
+`accepted` validation and Stage 3.54 itself is published/merged under the required governance gates.
 
-The intended closure design after the retained Stage 3.54 review/remediation history through v18 plus the v20 Builder TC-atomic machine-property / single-taxonomy / registry-derived-mutation proof audit is:
+The intended closure design after the retained Stage 3.54 validation/remediation history through v18 plus the v20 implementation TC-atomic machine-property / single-taxonomy / registry-derived-mutation proof audit is:
 
 ```text
 immutable historical SQL
@@ -4864,7 +4864,7 @@ immutable historical SQL
 + exact S2 machine-evidence scope partition and partial-binding registry
 + aggregate semantic-freeze rule-set equality/mutation coverage
 + validator-discovery / CI-execution subject dominance
-+ stage-correct PRE_PUBLICATION_PACKAGE versus PUBLISHED_EXACT_HEAD review binding
++ stage-correct PRE_PUBLICATION_PACKAGE versus PUBLISHED_EXACT_HEAD validation binding
 + declared dependency graph validity without semantic-completeness overclaim
 + PR-base Git immutability
 + byte-bound canonical source-anchor registry `SA-001…SA-082`
@@ -4876,14 +4876,14 @@ immutable historical SQL
 + frozen normative-line accountability over the exact v20 planning candidate
 + single-source `BOUND_SPEC_REGISTRY` with generic formal-integer discovery and exact bound-value binding
 + single-source PostgreSQL REL_18_6 `COLID_POLICY_SPEC` anchored to the normative grammar block
-+ `S2-101` independent-deployability evidence explicitly reviewer/Architecture-owned with no unrelated R018 edge
++ `S2-101` independent-deployability evidence explicitly validator/Architecture-owned with no unrelated R018 edge
 + self-contained 631-case adversarial/acceptance contract (`TC-001…TC-631`)
 + exact one-to-one 631-property machine contract (`MPROP-001…MPROP-631`) generated from TC rows
 + registry-derived property mutation obligations rather than exemplar-selected mutations
 + single authoritative BND/structural-cardinality/MPROP taxonomy
 + prompt↔package executable contract verified after clean unzip
 + exact 89-branch positive acceptance registry with every one of 155 POS tests mapped exactly once
-+ permanent `PO-01…PO-20` Builder proof obligations and residual-vs-new finding classification
++ permanent `PO-01…PO-20` implementation proof obligations and residual-vs-new finding classification
 + stable typed errors
 + preserved and strengthened disposable PostgreSQL rehearsal
 + explicit machine-vs-human/operational evidence boundary

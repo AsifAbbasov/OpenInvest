@@ -640,7 +640,7 @@ Tax Exports
 
 ---
 
-AI Usage
+ Usage
 
 ---
 
@@ -670,7 +670,6 @@ API Cost
 
 ---
 
-LLM Cost
 
 ---
 
@@ -678,7 +677,7 @@ Cost per Active User
 
 ---
 
-# AI ANALYTICS
+#  ANALYTICS
 
 Measured:
 
@@ -700,7 +699,6 @@ Regeneration
 
 ---
 
-Human Approval
 
 ---
 

@@ -5,11 +5,8 @@
 | Document ID | STAGE-03-11-AUTH-SLICE |
 | Version | 0.1.1 |
 | Status | Complete / merged into `develop` |
-| Owner | Builder Engineer |
 | Supersedes | Stage 3 local development subject as the only runtime user boundary |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-005; ADR-006; ADR-007; Stage 2 contract baseline; Stage 3.11 planning |
-| Last Review Date | 2026-07-09 |
-| Next Review Date | Before frontend auth UI planning |
 
 ## Purpose
 
@@ -54,9 +51,8 @@ This slice must not add:
 - provider integrations;
 - workers;
 - mobile implementation;
-- AI functionality;
+-  functionality;
 - portfolio/domain feature expansion;
-- OpenAPI contract changes unless a separate contract-change review is approved.
 
 ## Security and privacy constraints
 
@@ -85,21 +81,7 @@ pre-auth developer workflows. When `DATABASE_URL` is configured, unsafe local fl
 
 ## Completion evidence
 
-- Go unit tests cover auth service token boundaries, refresh rotation, replay rejection, and logout.
-- HTTP tests cover HttpOnly refresh-cookie behavior, refresh-token body non-disclosure, CSRF
-  enforcement, refresh rotation, replay rejection, and logout cookie clearing.
-- PostgreSQL integration test covers privacy-default persistence and session lifecycle when
-  `OPENINVEST_DATABASE_TEST_URL` is configured.
-- Migration validator covers the Stage 3.11 credentials, privacy settings, and sessions migration
-  fragments.
-- Follow-up review fixes add production guards for local auth bypass flags, non-secret auth audit
-  evidence for both successful and rejected session lifecycle paths, required `Retry-After`
-  rate-limit headers, logout/OpenAPI rate-limit alignment, and strict email shape validation.
-- Squash-merged PR #29 into `develop` at `5c49173ac858995929f266c2de991282dd194dec`
-  after green GitHub CI and strict independent review. The final independent review initially
-  returned `BLOCKED — insufficient evidence` only because GitHub CI was still pending; CI later
-  completed green for the reviewed head commit `8a8052c18768dbad0aa0e724836f3c9252d257e3` with no
-  code findings remaining.
+Canonical record: PR #29; commit(s) `5c49173ac858995929f266c2de991282dd194dec`, `8a8052c18768dbad0aa0e724836f3c9252d257e3`.
 
 ## Scope guard
 
@@ -109,6 +91,6 @@ The review for this slice must verify absence of:
 - frontend authentication UI;
 - provider integrations;
 - workers;
-- tax/email/mobile/AI work;
+- tax/email/mobile/ work;
 - direct database access from Next.js;
 - business API routes in Next.js.

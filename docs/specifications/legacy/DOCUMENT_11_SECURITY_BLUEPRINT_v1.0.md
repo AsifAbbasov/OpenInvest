@@ -70,7 +70,7 @@ User owns data.
 
 Не разработчик.
 
-Не AI.
+Не .
 
 Не сервер.
 
@@ -500,7 +500,7 @@ RequestID
 
 ---
 
-# 19. AI TRANSPARENCY
+# 19.  TRANSPARENCY
 
 ИИ никогда не изменяет:
 
@@ -516,7 +516,7 @@ RequestID
 
 ---
 
-Каждый AI вывод сопровождается:
+Каждый  вывод сопровождается:
 
 Источник
 
@@ -798,7 +798,6 @@ GPL без необходимости
 
 # 36. USER AGREEMENT REQUIREMENTS
 
-Codex обязан создать:
 
 User Agreement
 
@@ -810,7 +809,7 @@ Data Processing Policy
 
 Disclaimer
 
-AI Disclaimer
+ Disclaimer
 
 Investment Disclaimer
 

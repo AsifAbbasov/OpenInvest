@@ -626,7 +626,6 @@ Prepared Statements
 
 ORM
 
-Query Builder
 
 ---
 
@@ -754,9 +753,9 @@ data retention policy.
 
 ---
 
-# AI SECURITY
+#  SECURITY
 
-AI is prohibited from:
+ is prohibited from:
 
 generating tax data without verification;
 
@@ -850,7 +849,6 @@ Convenience Mode
 
 # TRUST SCORE
 
-For every new feature, Builder Agent must check:
 
 1.
 

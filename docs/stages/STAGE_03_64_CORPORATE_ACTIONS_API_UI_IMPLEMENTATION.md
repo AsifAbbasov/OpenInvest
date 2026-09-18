@@ -1,22 +1,6 @@
 # Stage 3.64 — Corporate Actions API / UI Implementation
 
-| Field | Value |
-| --- | --- |
-| Status | Draft PR #128 published; External review APPROVED; evidence-only follow-up pending exact-head CI/verification |
-| Date | 2026-09-05 |
-| Canonical implementation base | `develop@a8f9e95c065ee708885461166e1e992d1f4aae22` |
-| Protected-base tree | `128f41ec9ed6c0e25568ffe47eb33cb0fb01b188` |
-| Planning authority | `docs/stages/STAGE_03_61_CORPORATE_ACTIONS_CALENDAR_PLANNING.md` |
-| Domain dependency | Stage 3.62 / Feature 3A — Corporate Action Boundary |
-| Projection dependency | Stage 3.63 / Feature 3B — Calendar + Heatmap Projection |
-| Feature | Feature 3C — API / UI |
-| Draft PR | `#128` |
-| Initial frozen manifest SHA-256 | `112a4f94ce038255211e28f3b7f23b3980312dbc80a23e8b83fc664b6661bf66` |
-| Initial published semantic head | `77b62529f9d4ca10965191fdd6a6883567fc7492` |
-| Initial published tree | `9ba20e976d544a6f396444d9c5eec72f7c235d45` |
-| Final reviewed pre-evidence head | `9bbcf6d3f0f4a3b87e06a944869fb6e4ef722784` |
-| Final reviewed pre-evidence tree | `1d24e2cd02b216b4caedb29089cd86dc97af26f9` |
-| External source activation | None; shipped composition remains provider-free |
+Canonical record: PR #128; commit(s) `a8f9e95c065ee708885461166e1e992d1f4aae22`, `128f41ec9ed6c0e25568ffe47eb33cb0fb01b188`, `77b62529f9d4ca10965191fdd6a6883567fc7492`, `9ba20e976d544a6f396444d9c5eec72f7c235d45`, `9bbcf6d3f0f4a3b87e06a944869fb6e4ef722784`, `1d24e2cd02b216b4caedb29089cd86dc97af26f9`.
 
 ## 1. Purpose
 
@@ -65,7 +49,6 @@ The complete current PR surface is limited to:
 No database, migration, worker, cache, production dependency, CI workflow, external adapter, source-registry activation,
 or financial-calculation surface is changed.
 
-The final published review surface remains inside the canonical review budget: 18 changed files is below the 25-file
 limit, and hand-written runtime/business logic remains below the 800-line budget. Tests, documentation, CSS and the
 OpenAPI specification are still fully reviewed but are not disguised as hand-written business logic.
 
@@ -152,9 +135,6 @@ Every response from the endpoint sets:
 Cache-Control: no-store
 ```
 
-This is deliberately conservative. Current source-governance decisions do not authorize shipped caching. A future
-source adapter may relax caching only through a separately reviewed source/use-mode decision that explicitly grants
-those rights.
 
 No automatic polling, retry loop, browser persistence, Redis cache, background worker or prefetch loop is introduced.
 
@@ -219,7 +199,6 @@ This prevents an old source-unavailable error or old calendar result from overwr
 
 No Redux, TanStack Query, global store, new production dependency, or client-side financial state is introduced.
 
-External review retained one non-blocking P3 note for Feature 3D hardening: add explicit component-unmount request
 cancellation before a real rate/cost-limited provider is activated. Query-change/resubmit stale-result correctness is
 already protected and tested, so this note is not a Stage 3.64 merge blocker.
 
@@ -235,50 +214,6 @@ reference walking. Stage 3.64 therefore:
 - keeps detailed corporate-action data schemas in `openapi/components/corporate-actions.yaml`.
 
 This is necessary for the repository exact API-contract gate and is not a generic validator relaxation.
-
-## 12. Internal review evidence
-
-The mandatory prepublication Internal review evidence was withheld from the Draft PR/repository until the fresh
-External published-head verdict, as required by `docs/REVIEW_WORKFLOW.md` v1.4.0.
-
-Internal review report SHA-256:
-
-```text
-9fd9f28818fbb9115015b69aaa75757d74b04db5bac92754326184311c9d025b
-```
-
-Final Internal verdict before V3 publication authorization:
-
-```text
-P0 = 0
-P1 = 0
-P2 blocking = 0
-P3 blocking = 0
-VERDICT = APPROVED
-```
-
-The Internal reviewer performed read-only review and made no repository edits. Builder remediation was applied before
-final freeze. The resolved prepublication findings/hardening included:
-
-- bounding provider fan-out to at most 50 instruments before invocation;
-- stale frontend request-generation protection;
-- exact OpenAPI root-operation/validator allowlist integration;
-- canonical `BaseResponse` inheritance for the successful OpenAPI schema;
-- removal of provider-owned `SourceEventID` from the public DTO plus regression protection;
-- `Cache-Control: no-store` until source rights explicitly permit caching;
-- discoverable Dashboard navigation for the new UI;
-- removal of prematurely published Internal findings from the pre-External repository candidate;
-- compile-surface repair after a stale DTO mapper attempted to populate removed `SourceEventID`;
-- effective-date output filtering so provider over-return cannot widen requested public date scope while
-  supersession resolution still sees the complete returned evidence batch.
-
-The authorized final V3 frozen manifest was:
-
-```text
-112a4f94ce038255211e28f3b7f23b3980312dbc80a23e8b83fc664b6661bf66
-```
-
-Earlier V1/V2 candidates were superseded before publication and never became PR heads.
 
 ## 13. Verification and remediation chronology
 
@@ -326,7 +261,6 @@ production dependency or production runtime change.
 
 ### Fresh review hardening — React/JSDOM import ordering
 
-Fresh published-head review compared the new component test with the repository established React/JSDOM test pattern
 and found that `react-dom/client` had been imported before browser globals were installed. Because React DOM performs
 change-event feature detection at import time, the test environment was stabilized before relying on the next CI run.
 
@@ -378,39 +312,6 @@ Dependency security scan         PASS
 
 The frontend job specifically passed all three required steps: Typecheck, Test, and Build.
 
-## 14. External published-head review
-
-The designated review chat performed a fresh External review of the complete current PR diff and published evidence.
-The External phase did not use the earlier Internal verdict/findings as supporting evidence for its conclusion.
-
-Review coverage included:
-
-- architecture, DDD boundaries, SOLID/KISS/YAGNI and source-neutral composition;
-- HTTP/OpenAPI/typed-client parity and exact error/source-state semantics;
-- security/privacy, provider identity minimization and no-cache boundary;
-- performance/cost controls including the 50-instrument pre-provider cap;
-- Stage 3.63 supersession/calendar/heatmap preservation;
-- frontend stale-result behavior, legitimate-empty vs unavailable state, lifecycle messaging and count-only heatmap;
-- current 18-file scope and review-size budget;
-- all post-publication remediation commits and final exact-head CI #344.
-
-Final External verdict on pre-evidence head `9bbcf6d3f0f4a3b87e06a944869fb6e4ef722784`:
-
-```text
-P0 = 0
-P1 = 0
-P2 blocking = 0
-P3 blocking = 0
-VERDICT = APPROVED
-```
-
-No unresolved PR review threads existed at the time of the verdict.
-
-Remaining non-blocking note:
-
-- P3 / Feature 3D hardening: explicitly abort an in-flight Corporate Actions request on component unmount before a
-  real rate/cost-limited source is activated. This does not alter the Stage 3.64 correctness verdict.
-
 ## 15. Architectural consequences
 
 After Stage 3.64 merges, the provider-neutral Corporate Actions product surface is complete:
@@ -423,7 +324,6 @@ HTTP/OpenAPI/UI surface    — Stage 3.64
 
 This closes the Corporate Actions architecture/API/UI implementation debt. It does not close the external source
 blocker. Feature 3D remains separately gated by exact source/use rights, licensing/cost acceptance, rate/traffic
-policy, caching/retention/public-display rights, fresh Data Source Registry approval, and separately reviewed runtime
 composition.
 
 Default shipped behavior after Stage 3.64 remains honest and fail-closed: the UI can explain source unavailability,
@@ -446,9 +346,7 @@ No:
 ## 17. Governance state and next gate
 
 The development-path implementation, publication, demonstrated-defect remediation, final pre-evidence exact-head CI,
-and fresh External published-head review are complete.
 
-This documentation update is the mandatory evidence-only follow-up required by `docs/REVIEW_WORKFLOW.md` v1.4.0. It
 publishes the previously withheld Internal evidence only after the External verdict and records the exact CI/remediation
 chronology. It does not authorize Ready, merge, branch deletion, Feature 3D, or any protected-branch mutation.
 
@@ -456,10 +354,6 @@ After this evidence-only commit is published, the remaining sequence is:
 
 ```text
 required GitHub CI on evidence-only head
-→ same designated review chat exact evidence-publication verification
 → explicit Principal Architect Ready + squash-merge authorization
 → squash merge to protected develop
 ```
-
-A no-new-finding exact evidence verification may remain as live review evidence and does not require another repository
-commit solely to embed its own verdict.

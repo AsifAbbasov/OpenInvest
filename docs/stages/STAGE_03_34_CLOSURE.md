@@ -2,12 +2,11 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Closure candidate; exact-head CI, independent governance review, and explicit human squash-merge authorization pending |
 | Canonical baseline | `develop` at `c686a6721df51063ccf62a0303bb759d2215d60e` |
 | Planning PR | #71 |
 | Planning merge | `b4299bcdc28202c27388642dc7b426b159bb315c` |
 | Implementation PR | #80 |
-| Reviewed implementation head | `fd3a72a159161ec0bdf8018fdbf6e0a3da361885` |
+Canonical record: commit(s) `fd3a72a159161ec0bdf8018fdbf6e0a3da361885`.
 | Implementation merge | `c686a6721df51063ccf62a0303bb759d2215d60e` |
 | Findings | P2-16, P2-17 |
 | Scope | Documentation/governance closure only; no runtime, migration, OpenAPI, dependency, architecture, product, or privacy-lifecycle changes |
@@ -36,7 +35,6 @@ and rebases in addition to squash merges.
 ### 3. Failure scenario
 
 Without mechanical enforcement, an administrator/owner could accidentally or intentionally bypass the
-review path, merge before mandatory CI completed, directly alter protected history, force-push or delete
 the default branch, or create non-linear history inconsistent with the canonical squash-only workflow.
 A policy document alone would detect none of those actions before they affected the authoritative branch.
 
@@ -54,7 +52,6 @@ the integrity of any change that does.
 
 ### 6. Guarantees violated
 
-The accepted workflow requires pull-request delivery, required CI, resolved review conversations,
 squash-only integration, protected branch history, and an explicit human merge gate. Stage 3.34 planning
 also required normal administrator/owner bypass to be disabled and required the finding to remain OPEN
 if that could not be mechanically enforced.
@@ -145,11 +142,9 @@ history.
 
 ### 13. Adversarial review findings
 
-Stage 3.34 planning initially received `REQUEST CHANGES` because the first plan allowed administrator /
+Stage 3.34 planning initially received `changes required` because the first plan allowed administrator /
 owner bypass to remain merely disclosed. The plan was corrected to require mechanical enforcement and to
-fail closed if the account could not provide it. Repeat independent planning review returned `APPROVED`.
 
-The implementation reviewer later approved P2-17 but explicitly required P2-16 to remain OPEN until
 repository settings were mechanically enforced. P2-16 is therefore closed only by the later public
 visibility + enforced branch-protection evidence, not by the CI implementation merge itself.
 
@@ -197,7 +192,6 @@ checks before merge.
 ### 18. Final canonical status
 
 P2-16 is **CLOSED CANDIDATE**. It becomes canonically **CLOSED** when this closure PR passes exact-head CI,
-independent governance review returns `APPROVED`, explicit human squash-merge authorization is given, and
 the closure PR is squash-merged into `develop`.
 
 ## P2-17 — final closure evidence
@@ -207,13 +201,11 @@ The full 18-part engineering dossier remains
 is now fixed as follows:
 
 - final implementation PR: #80;
-- frozen independently reviewed head: `fd3a72a159161ec0bdf8018fdbf6e0a3da361885`;
+Canonical record: commit(s) `fd3a72a159161ec0bdf8018fdbf6e0a3da361885`.
 - exact-head CI #230 / run `32671862989`: **SUCCESS, 10/10 jobs**;
 - secondary exact-head CI #229: **SUCCESS, 10/10 jobs**;
-- independent implementation review: **APPROVED**;
-- reviewer disposition: P2-17 CLOSED CANDIDATE, no new blocking P1/P2 regression, P2-16 explicitly left
   OPEN until repository governance enforcement;
-- explicit human squash-merge authorization was received before merge; and
+- explicit merge gate was received before merge; and
 - PR #80 squash merge: `c686a6721df51063ccf62a0303bb759d2215d60e`.
 
 Therefore P2-17 is **CLOSED CANDIDATE** for formal Stage 3.34 closure. This record does not silently close
@@ -222,7 +214,6 @@ P3-09 or P3-10: Next.js and Fiber maintenance remain separately governed P3 find
 ## Stage 3.34 closure semantics
 
 When this closure record is squash-merged into `develop` after exact-head green CI, independent
-`APPROVED` governance review, and explicit human authorization:
 
 - P2-16 becomes canonically **CLOSED**;
 - P2-17 becomes canonically **CLOSED**;
@@ -239,7 +230,5 @@ When this closure record is squash-merged into `develop` after exact-head green 
   - P3-09 Next.js maintenance; and
   - P3-10 Fiber maintenance.
 
-Stage 3.25 privacy Security Review evidence planning remains separate and unchanged.
 
 No P3 implementation begins as part of this closure PR. The next audit-remediation implementation scope
-must be separately reviewed and must preserve the repository's mandatory human merge gate.

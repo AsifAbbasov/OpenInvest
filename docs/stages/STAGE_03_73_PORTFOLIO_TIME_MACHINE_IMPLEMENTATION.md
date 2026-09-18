@@ -265,7 +265,7 @@ Stage 3.73 does not add or authorize:
 - tax basis/tax lots;
 - bond NKD/YTM/duration;
 - notifications;
-- AI;
+- ;
 - Redis/Kafka/workers/new servers/new SaaS.
 
 ## 14. Expected user-visible result
@@ -289,9 +289,9 @@ No later feature is authorized by Stage 3.73.
 
 ## Post-merge lifecycle closure
 
-Stage 3.73 passed final implementation review and exact-head CI #424 / run `34109389368` with all 10 required jobs SUCCESS on `a74fd85a46843ccdfe8192f2ac8687169a5a2ac7`. After explicit human authorization, PR #148 was squash-merged into protected `develop` at `683f9c4647f888bb3dbdfb9dd365b84b95137b46` on 2026-09-07.
+Canonical record: PR #148; commit(s) `a74fd85a46843ccdfe8192f2ac8687169a5a2ac7`, `683f9c4647f888bb3dbdfb9dd365b84b95137b46`.
 
-The protected merge makes this implementation canonical. The delivered capability is intentionally limited to historical position reconstruction over the existing Stage 3.72 `asOfDate` contract and Stage 3.71 accounting engine. It does not activate a market provider, historical market value, P/L/returns, a second financial engine, a new API/schema/table, tax basis, imported SELL expansion, privacy lifecycle, infrastructure expansion, notifications or AI.
+The protected merge makes this implementation canonical. The delivered capability is intentionally limited to historical position reconstruction over the existing Stage 3.72 `asOfDate` contract and Stage 3.71 accounting engine. It does not activate a market provider, historical market value, P/L/returns, a second financial engine, a new API/schema/table, tax basis, imported SELL expansion, privacy lifecycle, infrastructure expansion, notifications or .
 
 Expected product result: a user can switch Current ↔ Historical, select an exact BusinessDate, and see the canonical open positions that existed on that date with authoritative quantity, WAC, acquisition basis and acquisition-basis weight. Closed-now positions can reappear historically when ledger truth requires it; market valuation remains explicitly unavailable.
 

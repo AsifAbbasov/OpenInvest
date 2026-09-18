@@ -50,7 +50,7 @@ Not the server.
 
 Not an internal service.
 
-Not AI.
+Not .
 
 Not an administrator.
 
@@ -440,7 +440,7 @@ Append Only.
 
 # 17. HUMAN IN THE LOOP
 
-AI has no right to:
+ has no right to:
 
 ---
 
@@ -464,13 +464,13 @@ The final action is always confirmed by the user.
 
 ---
 
-# 18. AI SANDBOX
+# 18.  SANDBOX
 
-AI works only with a copy of the data.
+ works only with a copy of the data.
 
 ---
 
-AI never receives:
+ never receives:
 
 password;
 
@@ -682,7 +682,6 @@ License Review
 
 ---
 
-Security Review
 
 ---
 

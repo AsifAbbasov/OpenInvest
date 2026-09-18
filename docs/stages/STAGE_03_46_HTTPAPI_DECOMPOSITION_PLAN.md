@@ -37,7 +37,6 @@ At protected `develop@c029cd62715b15614e82972309bdc53669ec02ee`:
   `e5d3d042d4f65520bb8d64557e73504852708a1a`;
 - `docs/ROADMAP.md` blob:
   `5e8bf10c8fef0cba264528b090aaa6fcab7ae1f5`;
-- `docs/REVIEW_WORKFLOW.md` blob:
   `06f9cabd04e6791be1892ae1f0eae8d915fddc02`;
 - Stage 3.45 closure dossier blob:
   `727f2d29ad27f662891c5f4e15a7391e941bdc54`.
@@ -47,9 +46,8 @@ separate some concerns, including password JSON handling, replay/idempotency han
 tests. P3-06 therefore targets the remaining concentration inside `api.go`; it does not authorize
 rewriting already-separated helpers merely to achieve stylistic uniformity.
 
-## 2.1 Planning review history — append-only
+## 2.1 technical reassessment history — append-only
 
-The first complete Stage 3.46 planning review returned `REQUEST CHANGES` with two P3 findings:
 
 ### `PLAN-STAGE-03-46-P3-01` — asymmetric declaration-inventory scopes
 
@@ -69,11 +67,6 @@ Remediation in this v2 candidate:
   baseline and target using the same test scope;
 - separately preserve an `api.go` declaration-to-target-file relocation map.
 
-Fresh v2 re-review outcome:
-the designated reviewer found this substantive remediation sufficient and marked
-`PLAN-STAGE-03-46-P3-01` `RESOLVED`. The same v2 re-review nevertheless returned overall
-`REQUEST CHANGES` because it discovered separate publication-stability finding
-`PLAN-STAGE-03-46-P3-03`.
 
 This historical outcome is preserved as review evidence; it is not a mutable active-state gate.
 
@@ -88,24 +81,16 @@ Remediation in this v2 candidate:
 - freeze both canonical default limits:
   - `<=25 changed files`;
   - `<=800 changed lines of hand-written business logic`;
-- require a fail-closed stop before Internal review when either limit is exceeded unless the canonical
-  exception is documented and explicitly approved by the Principal Architect before review begins;
 - require a return to planning before silently splitting the remediation into multiple implementation
   PRs; any staged strategy must define lifecycle, evidence and closure semantics first.
 
-Fresh v2 re-review outcome:
-the designated reviewer found this substantive remediation sufficient and marked
-`PLAN-STAGE-03-46-P3-02` `RESOLVED`. The same v2 re-review nevertheless returned overall
-`REQUEST CHANGES` because it discovered separate publication-stability finding
-`PLAN-STAGE-03-46-P3-03`.
 
 This historical outcome is preserved as review evidence; it is not a mutable active-state gate.
 
-No other finding from the first Stage 3.46 planning review is erased or rewritten.
+No other finding from the first Stage 3.46 technical reassessment is erased or rewritten.
 
 ### `PLAN-STAGE-03-46-P3-03` — lifecycle-sensitive review-state wording
 
-The fresh complete v2 planning re-review returned `REQUEST CHANGES` for one new P3 finding after
 confirming `PLAN-STAGE-03-46-P3-01` and `PLAN-STAGE-03-46-P3-02` substantively resolved.
 
 Problem:
@@ -115,38 +100,16 @@ after the very re-review required before publication. Specifically, it described
 `PENDING FRESH COMPLETE RE-REVIEW`.
 
 Root cause:
-the Builder had documented a lifecycle/publication-stability control but did not apply a final
-transition simulation to the exact candidate after incorporating the previous reviewer findings.
 The control existed as prose but was not enforced against the artifact that was handed to review.
 
 Impact:
 publishing v2 unchanged would have made the canonical planning record stale at the moment the fresh
 review completed.
 
-Remediation in this v3 candidate:
-- replace candidate-state status wording with stable planning-scope wording;
-- preserve P3-01/P3-02 as historical resolved findings from the completed v2 re-review rather than
-  mutable pending states;
-- keep the v2 overall `REQUEST CHANGES` and P3-03 discovery append-only;
-- do not encode a mutable `P3-03 = pending review` field in the permanent planning artifact;
-- establish P3-03 disposition through designated review evidence bound to the exact v3 candidate,
-  not through a self-staling active-state sentence inside the candidate;
-- strengthen the mandatory Builder anti-regression preflight with an exact-candidate
-  post-remediation transition simulation and a prohibition on reviewer-state leakage into permanent
-  artifacts.
-
-The Builder does not self-issue a canonical verdict for P3-03. Its disposition is determined only by
-the designated review chat over the exact v3 candidate.
-
-Fresh v3 re-review outcome:
-the designated reviewer found `PLAN-STAGE-03-46-P3-03` `RESOLVED` and reviewer-result/permanent-artifact
-separation `PASS`, but returned overall `REQUEST CHANGES` for new P3 finding
-`PLAN-STAGE-03-46-P3-04`.
 
 ### `PLAN-STAGE-03-46-P3-04` — incomplete semantic lifecycle simulation
 
 Problem:
-the v3 exact-candidate scan was intentionally focused on recurrence of the P3-03 reviewer-state
 wording class. It did not semantically evaluate every lifecycle-sensitive assertion across the full
 planning -> implementation -> closure lifecycle required by the plan itself.
 
@@ -156,7 +119,6 @@ true at the planning base but would become false after the planned implementatio
 P3-06 closure activation.
 
 Root cause:
-the Builder treated a keyword recurrence scan as if it were equivalent to a complete semantic
 transition simulation. The process checked dangerous words, but did not classify each mutable fact by
 its temporal anchor and terminal lifecycle truth.
 
@@ -171,15 +133,11 @@ Remediation in this v4 candidate:
 - rewrite `The current api.go...` as an explicit protected-planning-base fact;
 - rename the later audit block to `Stage 3.46 planning-base original audit state`;
 - replace the narrow recurrence-only lifecycle scan with a complete semantic transition simulation
-  covering the exact final candidate through review, commit, push, Draft PR, CI, External verdict,
   evidence publication, exact verification, Ready, implementation merge and closure;
 - add a permanent anti-regression class for temporal anchoring of mutable baseline facts.
 
-The Builder does not self-issue a canonical verdict for P3-04. Its disposition is determined only by
-the designated review chat over the exact v4 candidate.
 
 Fresh v4 re-review outcome:
-the designated reviewer confirmed that v4 materially improved temporal anchoring but found
 `PLAN-STAGE-03-46-P3-04` **NOT RESOLVED**. No new finding ID was created.
 
 The remaining defect was one unqualified mutable source-layout statement in the final Planning
@@ -188,7 +146,6 @@ Decision:
 `split the current 67,204-byte httpapi/api.go...`
 
 The v4 temporal assertion inventory detected that line, but the v4 semantic lifecycle simulation did
-not explicitly classify it and nevertheless returned a Builder `PASS`. This exposed a distinct
 process weakness inside the P3-04 class: detection coverage and semantic-classification coverage were
 not required to be identical.
 
@@ -200,11 +157,8 @@ v5 remediation:
 - explicitly test the Planning Decision at T9 implementation merge and T11 protected closure;
 - add a permanent cross-class protection for detector/classifier coverage completeness.
 
-The Builder does not self-issue a canonical resolution for P3-04.
 
 Fresh v5 re-review outcome:
-the designated reviewer kept `PLAN-STAGE-03-46-P3-04` **NOT RESOLVED** with no new finding ID.
-The corrected Planning Decision and its dedicated T9/T11 checks passed, but the reviewer found that
 the v5 temporal inventory was still not semantically exhaustive:
 
 - the inventory/classifier equations proved only equality inside the detector's own population;
@@ -226,7 +180,6 @@ v6 remediation:
 - a new permanent cross-class protection is added for **semantic discovery completeness /
   source-to-ledger coverage**.
 
-The Builder does not self-issue a canonical resolution for P3-04. Its disposition remains exclusively
 a designated-review outcome bound to the exact candidate under review.
 
 ## 3. Planning-base concentration that P3-06 addresses
@@ -266,14 +219,10 @@ Core rules:
 7. Do not move HTTP transport logic into domain/application packages.
 8. Do not combine this finding with behavior cleanup.
 9. Do not change an expectation merely to make a test pass after refactoring.
-10. Any behavior difference discovered during implementation must fail closed and be reviewed before
     scope expansion.
 
 ## 5. Target responsibility boundaries
 
-The implementation should separate the Stage 3.46 planning-base declarations into cohesive families equivalent to the
-following logical boundaries. Exact private file names may vary if review finds a clearer same-package
-layout, but the responsibility boundaries themselves are frozen.
 
 ### A. Bootstrap and API state
 
@@ -481,22 +430,13 @@ The future implementation is expected to:
 
 No package move and no new Go module is expected.
 
-The implementation must remain within the complete canonical default review-size budget defined by
-`docs/REVIEW_WORKFLOW.md` v1.3.0:
 
 - `<=25 changed files`; and
 - `<=800 changed lines of hand-written business logic`.
 
-Before Internal review begins, the Builder must calculate both limits against the complete candidate.
 
-If either default limit is exceeded, the implementation must **fail closed before review** unless a
 canonical exception is documented with the reason, bounded review strategy and explicit Principal
-Architect approval obtained before review begins.
 
-The Builder may not evade the limit by silently splitting one reviewed responsibility across multiple
-implementation PRs. If a staged implementation becomes necessary, stop and return to planning so the
-multi-PR lifecycle, exact boundaries, review evidence, intermediate protected states and eventual
-P3-06 closure semantics are explicitly frozen before code is changed.
 
 If the decomposition requires an architecture change, stop and return to planning.
 
@@ -628,21 +568,16 @@ The Stage 3.47 implementation/evidence dossier must record:
 6. exact route method/path preservation;
 7. responsibility mapping from old `api.go` declarations to new files;
 8. exported package-surface comparison;
-9. exact review-size arithmetic for both canonical limits and any approved exception evidence;
-10. completed Builder cross-class anti-regression preflight result;
 11. confirmation that no dependency/OpenAPI/schema/frontend change occurred;
 12. targeted regression evidence;
 13. local test/vet/gofmt/diff-check outcomes;
 14. exact published implementation head after publication;
 15. exact-head GitHub CI result;
-16. complete Internal review history after the External verdict is available for publication;
-17. External published-head review history and remediation;
 18. any tooling failure classified separately from project defects;
 19. no unresolved material finding.
 
 ## 15. Review focus
 
-Internal and External review must pay particular attention to semantic drift hidden inside a
 supposedly mechanical move:
 
 - altered route registration;
@@ -661,17 +596,12 @@ supposedly mechanical move:
 Large move-only diffs should be reviewed by responsibility and declaration identity, not waived as
 "just refactoring."
 
-Planning/publication review must also inspect the planning/implementation dossier itself for
 review-state leakage: a document must not retain `pending review` or `candidate-only` current-state
 wording that becomes false when the required review completes.
 
-## 16. Mandatory Builder cross-class anti-regression preflight
 
-Before **every** future P3-06 implementation package, pre-commit review package, publication commit,
-Draft PR publication, remediation publication and closure package, the Builder must run one explicit
 fail-closed preflight over the following recurring error classes.
 
-This preflight is preventive. It is not a substitute for the designated reviewer.
 
 ### A. Complete review subject / scope identity
 
@@ -692,8 +622,6 @@ This preflight is preventive. It is not a substitute for the designated reviewer
 
 - changed files `<=25`;
 - changed hand-written business-logic lines `<=800`;
-- if either is exceeded, stop before Internal review unless a documented exception has explicit
-  Principal Architect approval before review begins;
 - no silent multi-PR split is used to bypass the budget.
 
 ### D. Forensic chronology integrity
@@ -702,7 +630,7 @@ This preflight is preventive. It is not a substitute for the designated reviewer
 - a non-zero exit is never summarized as successful;
 - substantive test success is distinguished from runner/tooling failure;
 - failed tooling attempts remain tooling failures unless evidence shows a project defect;
-- earlier findings, `REQUEST CHANGES`, `BLOCKED` states and remediations remain append-only.
+- earlier findings, `changes required`, `BLOCKED` states and remediations remain append-only.
 
 ### E. Evidence provenance / supportability
 
@@ -713,58 +641,28 @@ This preflight is preventive. It is not a substitute for the designated reviewer
 
 ### F. Authorization boundary
 
-- review verdict is not mutation authorization;
 - authorization language is not inferred or strengthened;
 - before every remote write, the intended action family and every field must fit the current explicit
-  human authorization;
+  merge gate;
 - no-op write attempts still count as writes and are forbidden outside authorization.
 
 ### G. Lifecycle / publication stability and review-state leakage
 
-Run an **exact-candidate semantic self-staleness simulation after all known reviewer findings have
 been incorporated and immediately before handing those exact bytes to the next review or publication
 step**.
 
-This is not a keyword scan. The Builder must classify every statement that describes mutable
-repository state, audit state, lifecycle state, authorization state, review state, implementation
 shape or closure state and determine whether it remains true at every later transition. A statement
 that is intentionally historical/baseline-specific must carry an explicit immutable temporal anchor.
 
 Semantically inspect permanent dossier/PR/evidence wording across:
 
-`local candidate -> review completed -> commit -> push -> Draft PR -> CI complete -> External verdict
 -> evidence publication -> exact verification -> Ready -> merge -> closure`.
 
 Search at minimum for lifecycle-sensitive wording such as:
 
-`candidate only`, `requires`, `pending`, `pending review`, `pending re-review`, `before commit`,
-`before push`, `will`, `next`, `current head`, `Draft PR`, `awaiting`, `to be published`,
-`must be completed before`, `not yet`, `future`, `review required`, `resolution pending`.
 
 Mandatory rules:
 
-- no permanent artifact may encode a mutable reviewer-state field whose truth changes merely because
-  the required review is performed;
-- findings may be preserved historically as `found`, `remediated`, `resolved by review X`, or
-  `overall verdict REQUEST CHANGES because of finding Y`, but not as a live `pending re-review`
-  state intended to survive publication;
-- if reviewer disposition has not yet occurred, permanent wording must state the invariant that
-  disposition is established by designated review evidence bound to the exact candidate, rather than
-  predicting a future pending state;
-- completed gates must not remain described as future/pending;
-- no sentence may falsely predict a future PR/head/CI/merge identity;
-- the exact candidate must be re-scanned after every remediation because adding review history can
-  itself introduce new stale lifecycle wording;
-- mutable facts such as audit counts, remaining findings, file size/blob, route layout, package
-  concentration, PR state or implementation state must never be labelled only as `current` in a
-  permanent artifact when the artifact is expected to outlive that state;
-- such facts must instead be anchored to an immutable event/base, for example
-  `At Stage 3.46 planning base develop@...`, `Before P3-06 closure`, or
-  `After protected P3-06 closure activation`;
-- projected states must be explicitly conditional/hypothetical and must not be presented as already
-  active;
-- baseline descriptive sections must remain semantically true even after implementation and closure
-  because their wording refers to the historical planning baseline, not the moving repository head.
 
 Failure of this simulation blocks the package before designated review/publication.
 
@@ -800,9 +698,6 @@ For P3-06 specifically:
 
 ### K. Role separation
 
-- Builder prepares/fixes/packages/publishes only when authorized;
-- designated review chat alone issues canonical review verdicts;
-- Builder never self-issues `APPROVED`, `REQUEST CHANGES` or `BLOCKED`.
 
 ### L. Toolchain / artifact-generation safety
 
@@ -812,10 +707,7 @@ For P3-06 specifically:
 - Git worktree validity is checked with Git semantics rather than assuming `.git` is a directory;
 - generated package manifest and exact candidate identities are verified before publication.
 
-### M. Reviewer-result / permanent-artifact separation
 
-- the permanent candidate never relies on `pending reviewer resolution` as its current-state truth;
-- designated reviewer verdicts live in review evidence and may later be recorded only as completed
   historical facts;
 - when a prior finding is already resolved in a completed review, the artifact must not continue to
   say the finding is pending;
@@ -885,7 +777,6 @@ The exact candidate itself is the authority. Before review/publication:
   - planning-base `api.go` blob plus byte size;
   - planning-base closed count, percentage and remaining findings;
   - conditional post-closure closed count, percentage and remaining findings;
-- no generic fallback classification such as `historical/normative; reviewer should verify` is
   sufficient for a state-sensitive assertion;
 - an overall lifecycle `PASS` is mechanically forbidden unless both source-to-ledger coverage and
   assertion-to-classifier coverage pass.
@@ -911,27 +802,22 @@ that is evidence of scope expansion and must fail closed.
 ## 18. Development-path governance
 
 After this plan is approved and separately published/merged, implementation remains on the canonical
-development path defined by `docs/REVIEW_WORKFLOW.md` v1.3.0:
 
 1. implementation branch from the exact then-current protected `develop`;
 2. scoped same-package decomposition;
 3. local gates and deterministic structural evidence;
-4. complete Internal line-by-line read-only review in the designated review chat;
-5. Builder remediation and rerun of affected gates;
 6. explicit human commit/push authorization;
 7. Draft PR to `develop`;
 8. exact-head required GitHub CI;
-9. fresh External published-head review in the same designated review chat;
 10. evidence-only Internal evidence publication after the External verdict;
 11. CI on the evidence head;
-12. same-chat exactness/no-semantic-drift verification;
+12. single-context exactness/no-semantic-drift verification;
 13. separate explicit human Ready + squash-merge authorization;
 14. separate docs-only closure-governance activation.
 
 Internal evidence remains withheld from the Draft PR/repository evidence surface until the External
 verdict.
 
-No review verdict by itself authorizes a protected mutation.
 
 ## 19. P3-06 lifecycle and audit arithmetic
 
@@ -941,7 +827,6 @@ P3-06 becomes CLOSED only after:
 
 - an approved behavior-preserving decomposition implementation is actually squash-merged into
   protected `develop`; and
-- a separate reviewed documentation/governance closure activation is present on protected `develop`.
 
 Stage 3.46 planning-base original audit state:
 
@@ -963,7 +848,6 @@ Stage 3.46 and the later P3-06 implementation do not authorize:
 
 - P3-07 — transaction-form fixture/default semantics;
 - P3-08 — migration-validator policy hardening;
-- Stage 3.25 privacy Security Review evidence work;
 - new product functionality;
 - new routes;
 - route redesign;

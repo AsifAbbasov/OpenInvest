@@ -5,11 +5,8 @@
 | Document ID | STAGE-03-11-AUTH-PLANNING |
 | Version | 0.1.0 |
 | Status | Complete / merged into `develop` |
-| Owner | Builder Engineer |
 | Supersedes | Local development subject as an acceptable long-term user boundary |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-005; ADR-006; ADR-007; Stage 2 contract baseline; Stage 3.10 |
-| Last Review Date | 2026-07-09 |
-| Next Review Date | Superseded by `STAGE_03_11_AUTH_PRIVACY_SLICE.md` |
 
 ## Purpose
 
@@ -51,7 +48,6 @@ This planning stage defines:
 - password policy and Argon2id acceptance criteria;
 - rate-limit and replay-protection expectations;
 - local development subject sunset path;
-- verification and review gates for the future implementation PR.
 
 ## Allowed
 
@@ -81,7 +77,7 @@ This planning PR must not add:
 - workers;
 - tax logic;
 - mobile implementation;
-- AI functionality;
+-  functionality;
 - Stage 3.11 implementation code.
 
 ## Frozen contract boundaries
@@ -94,7 +90,6 @@ Stage 3.11 planning must preserve the Stage 2 OpenAPI contract:
 - `POST /api/v1/auth/logout`
 
 If implementation later discovers that the contract is insufficient, work must stop and a separate
-contract-change proposal must be reviewed before code changes.
 
 ## Security and privacy decisions to preserve
 
@@ -136,4 +131,3 @@ Implementation details that may require a future decision:
 - whether email verification is deferred or required before public MVP.
 
 Any answer that changes the frozen contract, privacy model, or database ownership must be handled by
-ADR or contract-change review before implementation.

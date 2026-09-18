@@ -71,7 +71,6 @@ The exact reviewed blobs were:
 GitHub Actions CI #306 / run `33499393962` completed SUCCESS on that exact head with all ten required
 jobs successful.
 
-Technical published-head review returned APPROVED. The implementation was squash-merged at
 `915d42f614121959fface9846a07cc1b412febe2` and the reviewed tree was preserved.
 
 ## 4. Historical governance deviation
@@ -84,7 +83,7 @@ The exact historical defect is P2-GOV-01:
 - Internal approval was disclosed in the Draft PR before the External verdict;
 - no later evidence-only head was created;
 - no CI existed on such an evidence-only head;
-- no same-chat no-semantic-drift verification could occur on a head that never existed.
+- no single-context no-semantic-drift verification could occur on a head that never existed.
 
 Stage 3.53 did not rewrite those facts. Under canonical REVIEW_WORKFLOW v1.4.0, PR #112 protected-merged
 the disposition record at `ea1f204eab47bf16566096722d6390557b8141af` after exact-head verification, explicit residual-governance-risk
@@ -98,7 +97,7 @@ That disposition resolves only the blocking governance effect. It does not itsel
 
 ## 5. Closure activation outcome
 
-Stage 3.51 / PR #113 completed the separately governed closure lifecycle on exact published head `1868749965fa1c113875592668afaa8f1f1ca35e`. CI #309 / run `33540615693` completed 10/10 SUCCESS, same designated reviewer exact-published-head verification returned APPROVED, separate Ready and squash-merge authorizations were given, and protected squash merge `072350205b2746bdcd83f20718eb59efcd0478ef` activated closure.
+Canonical record: PR #113; commit(s) `1868749965fa1c113875592668afaa8f1f1ca35e`, `072350205b2746bdcd83f20718eb59efcd0478ef`.
 
 Current result:
 

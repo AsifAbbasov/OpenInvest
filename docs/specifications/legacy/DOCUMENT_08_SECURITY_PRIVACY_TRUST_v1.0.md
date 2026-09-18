@@ -5,11 +5,8 @@
 | Document ID | 08 |
 | Version | 1.0.0 |
 | Status | Approved legacy; consolidated edition |
-| Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | Document 00; amended by Documents 30, 42, and 43 |
-| Last Review Date | 2026-06-19 |
-| Next Review Date | 2026-12-19 |
 
 ## Core rule
 
@@ -33,4 +30,4 @@ Users can inspect and terminate sessions, export data, and request deletion with
 
 ## Trust
 
-Every portfolio number is explainable, every tax calculation traceable, and every dividend source-linked. AI cannot transact or modify a portfolio; final decisions belong to the user. Legal policies and third-party/open-source notices are required before production.
+Every portfolio number is explainable, every tax calculation traceable, and every dividend source-linked.  cannot transact or modify a portfolio; final decisions belong to the user. Legal policies and third-party/open-source notices are required before production.

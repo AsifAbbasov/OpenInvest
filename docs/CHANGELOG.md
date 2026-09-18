@@ -5,11 +5,8 @@
 | Document ID | REG-CHG-001 |
 | Version | 1.2.4 |
 | Status | Active |
-| Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
-| Last Review Date | 2026-09-12 |
-| Next Review Date | Before any Stage 3.78+ runtime/product scope, Feature 3D runtime activation or broader T-Invest source/use rights, or another architecture-changing provider, privacy, valuation, tax-basis, import, or infrastructure decision |
 
 > **Document role — dated change history**
 >
@@ -19,36 +16,19 @@
 
 ## 2026-09-10 — Historical forensic reconciliation canonicalized after protected merge
 
-- PR #167 was squash-merged into protected `develop` at
-  `5da679f0d15f8742239659ff9cebc451a213894d`.
-- Reviewed PR tree
-  `e742d1084fdcc5751acf896738ba9065a4b0f741`
-  exactly matches the merged tree.
-- `CONTENT_DRIFT=NONE`.
-- Historical Feature Forensic Documentation Reconciliation for
-  Stages 3.57–3.77 is now canonical / closed.
-- This post-merge closure changes no Go runtime, frontend runtime,
-  OpenAPI, SQL/migrations, dependencies, provider/source-use state,
-  provider activation or financial semantics.
-- Stage 3.78 remains NOT STARTED and is not authorized by this closure.
+Canonical record: PR #167; commit(s) `5da679f0d15f8742239659ff9cebc451a213894d`, `e742d1084fdcc5751acf896738ba9065a4b0f741`.
 
 ## 2026-09-10 — Historical feature forensic documentation reconciliation
 
-- Reconciled the contemporary engineering-review history for Stages 3.57–3.77 into one cross-stage forensic governance addendum, using Feature 3D only as the formatting/reference standard and without rewriting historical stage dossiers.
 - The candidate records 47 material forensic records: 33 with full forensic coverage and 14 partial records, with 60 unsupported historical forensic fields explicitly marked `NOT RECORDED IN CONTEMPORANEOUS EVIDENCE` rather than reconstructed.
-- Preserved known evidence limits non-retroactively, including the unavailable original Stage 3.75 prepublication Internal Review record and the separately dispositioned Stage 3.71/3.72 governance deviations.
 - The reconciliation changes no Go runtime, SQL/migrations, OpenAPI behavior, frontend runtime, dependency, provider/source-use decision, provider activation state or Stage 3.78 authorization.
-- This documentation reconciliation is non-canonical until this exact candidate completes the required review, exact-head CI, explicit human authorization and protected squash merge.
 
 ## 2026-09-09 — Feature 3D constrained T-Invest Corporate Actions implementation merged; documentation closure synchronized
 
 - PR #164 was squash-merged into protected `develop` at `247081a95a7daf33c0077c88c5f41cb2e8161865` from final evidence head `ddc5b5be36f0b5ae127c6ee430918a9dba1b453e`; merged tree `ec7bc9152210913b1a6ef742bddd599abee50bc7` matches the final evidence tree.
 - Exact implementation-head CI #499 / run `34353668492` and final evidence-head CI #501 / run `34356672643` both completed all 10 protected jobs successfully.
-- Final Internal review and fresh External published-head review were `APPROVED`; evidence publication and no-semantic-drift verification completed with no blocking findings.
 - Feature 3D implements only registry mode `TINVEST_CORPORATE_ACTIONS_CONSTRAINED`: `GetDividends` -> `DIVIDEND` and `GetBondCoupons` -> `COUPON`, with static approved instruments, exact Decimal normalization, bounded REST transport, fail-fast concurrency, no retry/polling/persistence, and provider-neutral public contracts.
-- Source/use rights remain `CONDITIONAL-GO` for that exact mode only. Runtime activation remains `NO`; no live T-Invest token was used in implementation/review and no production provider traffic is claimed by Feature 3D. Provider events remain external reference truth and do not auto-mutate ledger/realized-income/tax truth.
 - GitHub event history records `AsifAbbasov` as the actor for the Ready transition and the squash merge; the assistant performed no merge mutation. A later chat message saying `разрешаю` occurred after the merge and is not treated as retroactive pre-merge evidence.
-- Added a post-merge closure dossier preserving the full problem/root-cause/failure-scenario/review/remediation/regression/evidence/residual-limitation history without rewriting historical implementation/review evidence.
 - This documentation closure starts no Stage 3.78 work and grants no broader T-Invest rights or operational activation.
 
 ## 2026-09-07 — Stage 3.74 transaction correction/reversal canonical and documentation synchronized
@@ -61,12 +41,7 @@
 
 ## 2026-09-07 — Stage 3.73 Portfolio Time Machine lifecycle closure
 
-- Stage 3.73 runtime/product implementation is COMPLETE / CANONICAL through PR #148 squash merge `683f9c4647f888bb3dbdfb9dd365b84b95137b46` from exact final head `a74fd85a46843ccdfe8192f2ac8687169a5a2ac7`.
-- CI #424 / run `34109389368` completed all 10 required jobs successfully before protected merge.
-- The Time Machine reuses the Stage 3.72 endpoint-local `asOfDate` projection and canonical Stage 3.71 ledger/WAC engine; no second financial engine, new API endpoint, database table, provider, cache or paid service was added.
-- Historical mode exposes exact BusinessDate holdings, WAC, acquisition basis and acquisition-basis weights while keeping market-derived valuation unavailable and hiding current-only summary metrics.
-- Post-merge documentation synchronization updates README, Source of Truth, Roadmap, Document Index, Implementation Log, Changelog, Version Matrix, Open Questions, the governance reconciliation history and the Stage 3.73 implementation dossier.
-- Next product/runtime work begins at a separately reviewed Stage 3.75+ gate.
+Canonical record: PR #148; commit(s) `683f9c4647f888bb3dbdfb9dd365b84b95137b46`, `a74fd85a46843ccdfe8192f2ac8687169a5a2ac7`.
 
 ## 2026-09-07 — Repository documentation reconciliation through Stage 3.72
 
@@ -87,7 +62,6 @@
 - Corrected privacy terminology from pseudonymization to anonymization when re-identification is impossible.
 - Froze MVP scope, asset scope, financial precision, retention, SLO boundaries, data schemas, and document precedence.
 - Consolidated source documents into the repository and activated Documentation Freeze.
-- Established mandatory Builder/CI/Review Agent/Human separation, Draft PR review gates, PR size budgets, ADR triggers, branch conventions, and squash-merge policy.
 
 ## 2026-06-21 — Stage 2 governance hardening
 
@@ -106,14 +80,12 @@
   all-zero parent IDs.
 - Documented repository OpenAPI validator limitations and added focused mutation guards instead of
   claiming complete JSON Schema 2020-12 compliance.
-- Recorded auditable Principal Architect approval for the Stage 2 26-file review-size exception.
 - Documented that the initial repository validator was a temporary tooling risk to be removed from
   the approved stack.
 
 ## 2026-06-25 — Stage 2 closure and ADR-006 acceptance
 
 - Squash-merged PR #2 into `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12`.
-- Accepted ADR-006 after external review, green CI, and human approval.
 - Marked Stage 2 Contract and Canonical Model Freeze as closed.
 - Declared `develop` at the Stage 2 merge commit as the canonical Stage 2 baseline.
 
@@ -129,17 +101,14 @@
 ## 2026-06-26 — Next.js Web presentation amendment closure
 
 - Squash-merged PR #4 into `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973`.
-- Closed the Next.js Web Presentation Amendment after internal review approval, green CI, and
-  explicit human approval.
 - Declared Next.js App Router + TypeScript + pnpm as the current Web presentation baseline.
 - Confirmed Stage 3 remains not started; the next approved work item is Stage 3 planning.
 
 ## 2026-06-26 — Stage 3 first vertical slice planning started
 
 - Added the Stage 3 planning document for the first portfolio/transaction/snapshot/API/Web slice.
-- Kept Stage 3 implementation explicitly unauthorized until planning review and human approval.
 - Defined small implementation PR boundaries to avoid scope creep.
-- Reconfirmed that AI, tax export, mobile, external providers, broker import, and Stage 3 business
+- Reconfirmed that, tax export, mobile, external providers, broker import, and Stage 3 business
   expansion beyond the first slice remain out of scope.
 
 ## 2026-06-27 — Stage 3.1 database foundation started
@@ -164,15 +133,13 @@
 ## 2026-06-27 — Stage 3.2 closed and MVP product-risk refinement added
 
 - Squash-merged PR #8 into `develop` at `8971918c8046fb9a2d6bf9f97897432cf08fbde1`.
-- Closed Stage 3.2 Go API Vertical-Slice Backend after internal review approval, green CI, and
-  explicit human approval.
 - Added `product/MVP_PRODUCT_RISK_REFINEMENT.md` to convert PRD criticism into controlled MVP
   risk governance.
 - Sharpened the initial ICP toward long-term, dividend, FIRE, and multi-account investors with
   real portfolio-accounting pain.
 - Moved broker file import and reconciliation into near-term public-MVP readiness consideration
   while keeping direct broker API synchronization and credential scraping out of current scope.
-- Clarified that Tax AI cannot be a calculation source; any future tax core must be deterministic
+- Clarified that Tax  cannot be a calculation source; any future tax core must be deterministic
   and test-vector driven.
 - Repositioned Purchasing Power as a secondary explanatory insight below capital, real return,
   dividends/coupons, and inflation-adjusted performance.
@@ -180,8 +147,6 @@
 ## 2026-06-27 — Product-risk refinement closed and Stage 3.3 started
 
 - Squash-merged PR #9 into `develop` at `65bdf6537b44ed57e1c00bf68d2dacd70aa09702`.
-- Closed the MVP product-risk refinement after internal review approval, green CI, independent
-  review approval, and human merge approval.
 - Started Stage 3.3 Next.js Presentation Slice.
 - Added the first Web presentation path for portfolio list/detail, add-transaction form, summary,
   and transaction history using only the Go API.
@@ -198,7 +163,6 @@
 ## 2026-07-01 — Stage 3.3 closed and Stage 3.4 selected as next work
 
 - Squash-merged PR #10 into `develop` at `11805cc298bba13f09f7f7af8b1e1178dc351209`.
-- Closed the Next.js Presentation Slice after independent review approval, green CI, and human
   merge approval.
 - Added the first Web path for portfolio list/detail, create portfolio, add transaction, summary,
   and transaction history through the Go API boundary.
@@ -219,37 +183,19 @@
 ## 2026-07-01 — Stage 3.4 closed
 
 - Squash-merged PR #13 into `develop` at `86582efaa420b2c38465a5d0da041814149392c7`.
-- Closed Stage 3.4 after green CI, controlled local smoke evidence, and independent review approval.
 - Added root verification commands and a controlled local smoke path for PostgreSQL, Go API,
   immutable transaction append, snapshot rebuild, and summary response.
 
 ## 2026-07-02 — Stage 3.5 broker-file import design started
 
-- Started the design-only broker-file import and reconciliation stage.
-- Kept parser implementation, SQL migrations, upload UI, workers, direct broker APIs, credential
-  collection, and provider integrations out of scope.
-- Defined the import principle as parse → normalize → match → duplicate/conflict detection → user
-  review → append only.
 
 ## 2026-07-02 — Stage 3.5 closed and Stage 3.6 started
 
-- Squash-merged PR #14 into `develop` at `072d38d94b529221d6467502f82f03a674a7d805`.
-- Closed the Stage 3.5 broker-file import and reconciliation design after independent review and
-  human merge approval.
-- Started Stage 3.6 as an internal CSV parser/review/append-plan slice.
-- Kept public import endpoints, frontend upload UI, SQL import-session tables, workers, broker APIs,
-  credential scraping, XLSX/PDF parsing, and automatic ledger append out of Stage 3.6 scope.
+Canonical record: PR #14; commit(s) `072d38d94b529221d6467502f82f03a674a7d805`.
 
 ## 2026-07-02 — Stage 3.6 broker-file import reconciliation slice closed
 
-- Squash-merged PR #15 into `develop` at `e2b05650a4422b97d4bd924254367106b6a4686b`.
-- Added the internal user-supplied CSV import parser, normalized review model, duplicate/conflict
-  detection, spreadsheet-safe review fields, and explicit append-plan generation.
-- Resolved independent review findings for gross amount mismatch handling, same-file near
-  duplicates, broker-operation-id neutralization, duplicate decisions, and fixture coverage.
-- Kept Stage 3.7 atomic import append, public import API, upload UI, SQL import-session persistence,
-  broker/provider integrations, workers, XLSX/PDF parsing, mobile, and automatic ledger append out
-  of scope.
+Canonical record: PR #15; commit(s) `e2b05650a4422b97d4bd924254367106b6a4686b`.
 
 ## 2026-07-02 — Stage 3.7 import append planning started
 
@@ -257,14 +203,13 @@
 - Defined the proposed append path as explicit approved import decisions → atomic database append →
   immutable ledger entries → snapshot rebuild → audit evidence.
 - Kept implementation, public import endpoints, frontend upload UI, broker/provider integrations,
-  workers, tax logic, mobile, and AI out of scope until a separate reviewed implementation PR.
 
 ## 2026-07-02 — Stage 3.7 import append slice started
 
 - Added the active implementation report for the internal atomic import append slice.
 - Scoped the implementation to Go service/store internals and PostgreSQL transaction behavior only.
 - Kept public import API, upload UI, SQL import-session persistence, workers, broker/provider
-  integrations, tax logic, mobile, and AI out of scope.
+  integrations, tax logic, mobile, and  out of scope.
 
 ## 2026-07-02 — Stage 3.7 import append slice closed
 
@@ -273,7 +218,7 @@
   revalidation, minimal audit evidence, and deterministic snapshot rebuilds.
 - Added live PostgreSQL coverage for concurrent duplicate-batch serialization.
 - Kept public import API, upload UI, SQL import-session persistence, workers, provider
-  integrations, tax, mobile, AI, and Stage 3.8 implementation out of scope.
+  integrations, tax, mobile, and Stage 3.8 implementation out of scope.
 
 ## 2026-07-03 — Stage 3.8 import review append flow planning started
 
@@ -281,7 +226,7 @@
 - Defined the proposed orchestration as broker CSV bytes → parse/normalize → review candidates →
   explicit accepted decisions → atomic append → snapshot rebuild → deterministic result.
 - Kept public import API, OpenAPI changes, upload UI, SQL import-session persistence, raw file
-  persistence, workers, broker/provider integrations, tax, mobile, AI, and implementation out of
+  persistence, workers, broker/provider integrations, tax, mobile, and implementation out of
   scope.
 
 ## 2026-07-03 — Stage 3.8 import review append flow slice started
@@ -289,25 +234,18 @@
 - Added the active implementation report for the internal import review → append flow slice.
 - Scoped implementation to an internal Go orchestration package and tests only.
 - Kept public import API, OpenAPI changes, upload UI, SQL import-session persistence, raw file
-  persistence, workers, provider integrations, tax, mobile, AI, and Stage 3.9 out of scope.
+  persistence, workers, provider integrations, tax, mobile, and Stage 3.9 out of scope.
 
 ## 2026-07-03 — Stage 3.8 import review append flow slice closed
 
 - Squash-merged PR #21 into `develop` at `1a1d08249e252c5a3ab3f275b5fae848d5bc0e79`.
 - Added internal import review → append orchestration with explicit approved decisions and
   non-sensitive result metadata.
-- Fixed independent review privacy finding by removing full review rows from the append result.
 - Kept public import API, OpenAPI changes, upload UI, SQL import-session persistence, raw file
-  persistence, workers, provider integrations, tax, mobile, AI, and Stage 3.9 out of scope.
+  persistence, workers, provider integrations, tax, mobile, and Stage 3.9 out of scope.
 
 ## 2026-07-08 — Stage 3.9 import API boundary planning started
 
-- Added a documentation-only planning scope for the future public Go API boundary for user-supplied
-  broker-file import.
-- Defined review/append lifecycle questions, retention decisions, idempotency boundaries, and
-  privacy constraints that must be resolved before implementation.
-- Kept OpenAPI changes, Go handlers, upload UI, SQL import-session persistence, raw file
-  persistence, workers, provider integrations, tax, mobile, AI, and Stage 3.10 out of scope.
 
 ## 2026-07-08 — Stage 3.9 import API boundary planning closed and implementation started
 
@@ -316,7 +254,7 @@
 - Added a stateless API-boundary decision: review results are transient, append receives the same
   CSV payload plus explicit row decisions, and append reruns review before atomic store mutation.
 - Kept raw CSV persistence, import-session tables, frontend upload UI, direct broker APIs, workers,
-  tax, mobile, AI, and Stage 3.10 outside the implementation scope.
+  tax, mobile, and Stage 3.10 outside the implementation scope.
 
 ## 2026-07-08 — Stage 3.9 import API boundary slice closed
 
@@ -324,37 +262,29 @@
 - Added public Go API endpoints for transient user-supplied CSV import review and explicit append.
 - Preserved the stateless boundary: no review IDs, no import-session table, no raw CSV persistence,
   and append reruns review before atomic store mutation.
-- Resolved independent review findings for stale ledger revalidation, deterministic idempotent
   replay, full import append request hashing, and append-payload example validation.
 - Kept frontend upload UI, SQL import-session persistence, workers, broker/provider integrations,
-  tax, mobile, AI, and Stage 3.10 implementation out of scope.
+  tax, mobile, and Stage 3.10 implementation out of scope.
 
 ## 2026-07-08 — Stage 3.10 import upload/review UI planning started
 
-- Squash-merged Stage 3.9 closure governance into `develop` at
-  `682ffd856395a6e3e988817551a512898fda2d38`.
-- Started documentation-only planning for a future Next.js import upload/review UI over the existing
-  Stage 3.9 Go API boundary.
-- Kept Next.js implementation, business logic, OpenAPI changes, backend changes, SQL migrations,
-  import-session persistence, workers, provider integrations, tax, mobile, and AI out of scope.
+Canonical record: commit(s) `682ffd856395a6e3e988817551a512898fda2d38`.
 
 ## 2026-07-09 — Stage 3.10 import upload/review UI slice started
 
 - Squash-merged Stage 3.10 planning into `develop` at
   `27480d6ff22e2929e33aeac352aef8a1b01bb448`.
-- Added the active implementation scope for a Next.js presentation-only import upload/review panel.
 - Preserved the Go API as the only business authority; no backend contract, SQL, provider, worker,
-  tax, mobile, or AI scope entered the slice.
+  tax, mobile, or  scope entered the slice.
 
 ## 2026-07-09 — Stage 3.10 closed and Stage 3.11 planning started
 
 - Squash-merged PR #27 into `develop` at `e19a1a0ea4b0b183687bd89daabdfbc973daea71`.
-- Closed the Stage 3.10 import upload/review UI slice after green CI and independent review
   approval.
 - Started Stage 3.11 as documentation-only planning for the future authentication, session, CSRF,
   and privacy-default boundary.
 - Kept auth implementation, schema migrations, password hashing, token issuance, frontend session
-  code, business logic, workers, tax, mobile, AI, and provider integrations out of scope.
+  code, business logic, workers, tax, mobile, and provider integrations out of scope.
 
 ## 2026-07-09 — Stage 3.11 authentication and privacy-boundary slice started
 
@@ -364,15 +294,7 @@
 - Scoped implementation to Go API auth handlers, Argon2id password hashing, rotating refresh
   sessions, CSRF enforcement, privacy-default persistence, additive PostgreSQL migration, and tests.
 - Kept frontend auth UI, business logic in Next.js, email verification, OAuth/passkeys/2FA, workers,
-  provider integrations, tax, mobile, AI, and Stage 3.12 out of scope.
-
-## 2026-07-09 — Stage 3.11 independent review fixes applied
-
-- Resolved strict independent review findings for unsafe development auth bypass production guard,
-  missing auth/session audit evidence, rate-limit `Retry-After`/logout contract alignment, and
-  strict email shape validation.
-- Kept the fixes inside the Stage 3.11 Go API auth/privacy boundary; no frontend auth UI, provider,
-  worker, tax, mobile, AI, or Stage 3.12 scope was added.
+  provider integrations, tax, mobile, and Stage 3.12 out of scope.
 
 ## 2026-07-09 — Stage 3.11 authentication and privacy-boundary slice closed
 
@@ -380,7 +302,7 @@
 - Marked Stage 3.11 implementation as complete in the roadmap, Source of Truth, document index,
   version matrix, implementation log, and stage report.
 - Confirmed the closed slice remains Go API/auth persistence only and does not authorize frontend
-  auth UI, provider integrations, workers, tax, mobile, AI, or Stage 3.12 implementation.
+  auth UI, provider integrations, workers, tax, mobile, or Stage 3.12 implementation.
 
 ## 2026-07-09 — Stage 3.12 Web authentication UI planning started
 
@@ -388,7 +310,7 @@
 - Registered Stage 3.12 planning in the roadmap, Source of Truth, document index, version matrix,
   implementation log, and Stage 3 plan.
 - Kept implementation, backend changes, OpenAPI changes, SQL migrations, token-storage changes,
-  provider integrations, workers, tax, mobile, AI, and Stage 3.13 out of scope.
+  provider integrations, workers, tax, mobile, and Stage 3.13 out of scope.
 
 ## 2026-07-11 — Stage 3.12 Web authentication UI slice started
 
@@ -400,32 +322,15 @@
   support for the HttpOnly refresh cookie.
 - Kept business logic in Next.js, Route Handlers, Server Actions, OpenAPI contract changes, SQL
   migrations, refresh-token JavaScript storage, email verification, OAuth/passkeys/2FA, provider
-  integrations, workers, tax, mobile, AI, and Stage 3.13 out of scope.
-
-## 2026-07-11 — Stage 3.12 independent review findings fixed
-
-- Resolved strict independent review findings for refresh/logout operation races, live default
-  registration credentials, stale bearer-request overwrites after refresh, weak auth/session test
-  coverage, local CORS credentials negative coverage, and stale governance metadata.
-- Added session-operation generation guards, empty live credential fields, obsolete-load guards,
-  expanded frontend API/session tests, stronger CORS tests, and synchronized document versions and
-  review gates.
-- Added follow-up fixes for exact auth request body assertions, complete bearer coverage across
-  portfolio/detail/summary/transaction/import frontend API methods, shell-controller race coverage,
-  stale-token portfolio load guards, and consistent Stage 3.12 next-review gates.
-- Kept the fixes inside the Stage 3.12 presentation/auth boundary; no Route Handlers, Server
-  Actions, OpenAPI changes, SQL migrations, providers, workers, tax, mobile, AI, or Stage 3.13
-  scope was added.
+  integrations, workers, tax, mobile, and Stage 3.13 out of scope.
 
 ## 2026-07-11 — Stage 3.12 Web authentication UI slice closed
 
 - Squash-merged PR #32 into `develop` at `b4840b60346109e3cd54a07d9e1e131fc0cfad23`.
 - Closed the Stage 3.12 presentation-only Web authentication UI slice after green CI and strict
-  independent follow-up review approval.
 - Updated governance registries and the Source of Truth to mark Stage 3.12 complete and advance the
-  next review gate to Stage 3.13 planning approval.
 - Kept Route Handlers, Server Actions, OpenAPI changes, SQL migrations, provider integrations,
-  workers, tax, mobile, AI, and Stage 3.13 implementation out of scope.
+  workers, tax, mobile, and Stage 3.13 implementation out of scope.
 
 ## 2026-07-11 — Stage 3.13 instrument catalog planning started
 
@@ -436,40 +341,26 @@
 - Registered Stage 3.13 planning in the roadmap, Source of Truth, document index, version matrix,
   implementation log, and Stage 3 plan.
 - Kept implementation, provider integrations, workers, market-data ingestion, financial
-  calculations, tax, mobile, AI, and frontend business authority out of scope.
+  calculations, tax, mobile, and frontend business authority out of scope.
 
 ## 2026-07-12 — Stage 3.13 instrument catalog slice started
 
-- Closed Stage 3.13 planning after strict review approval and merged PR #34 into `develop` at
+Canonical record: PR #34.
   `ca16af9adba249fc8c32c9b246b5f92f7e290b92`.
 - Started the backend-only instrument catalog implementation on
   `feature/stage-03-13-instrument-catalog`.
 - Added an implementation report for approved local asset fixture resolution, unsupported ticker
   rejection, existing `investment.assets` usage, and stock/bond bucket preservation.
 - Kept OpenAPI changes, SQL migrations, Go handler changes, frontend work, provider integrations,
-  workers, market-data ingestion, stock/bond cards, dividend/coupon scope, tax, mobile, and AI out
+  workers, market-data ingestion, stock/bond cards, dividend/coupon scope, tax, mobile, and  out
   of scope.
 
 ## 2026-07-12 — Stage 3.13 implementation hardening updated
 
-- Enforced literal OpenAPI ticker validation, seed-only asset catalog writes, deterministic
-  import-batch asset preparation, approved fixture assertions, inactive-fixture rejection coverage,
-  and updated Stage 3.13 review-gate documentation.
-- Required existing active catalog rows to match approved canonical metadata while retaining legacy
-  internal UUID compatibility when all canonical metadata matches.
-- Required catalog-mutation integration tests to restore any temporary shared database state with
-  checked cleanup operations.
 
 ## 2026-07-13 — Stage 3.13 instrument catalog slice closed
 
-- Squash-merged PR #35 into `develop` at `b9c05fb14d0ee03e6de4dfc04ff67c16da33040b`.
-- Closed the backend-owned instrument catalog boundary after green CI and strict separate-window
-  review approval.
-- Updated governance registries and the Stage 3 plan to mark Stage 3.13 complete and advance the
-  next review gate to Stage 3.14 planning.
-- Kept OpenAPI changes, SQL migrations, Go handler changes, frontend work, provider integrations,
-  workers, market-data ingestion, stock/bond cards, dividend/coupon scope, tax, mobile, AI, and
-  Stage 3.14 implementation out of scope.
+Canonical record: PR #35; commit(s) `b9c05fb14d0ee03e6de4dfc04ff67c16da33040b`.
 
 ## 2026-07-13 — Stage 3.14 asset search/card API boundary planning started
 
@@ -478,19 +369,11 @@
 - Started documentation-only planning for a future Go API asset search/detail boundary over the
   Stage 3.13 backend-owned catalog.
 - Kept implementation, frontend stock/bond cards, OpenAPI changes, SQL migrations, external
-  provider integrations, workers, market-data ingestion, financial calculations, tax, mobile, and AI
+  provider integrations, workers, market-data ingestion, financial calculations, tax, mobile, and
   out of scope.
 
-## 2026-07-13 — Stage 3.14 planning review fixes
+## 2026-07-13 — Stage 3.14 technical reassessment fixes
 
-- Clarified that price placeholders are forbidden; `lastPrice` and `priceAsOf` remain `null` until
-  an approved market-data source exists.
-- Required runtime asset-detail `source` provenance to use only approved registry entries, never
-  reserved `EXAMPLE_*` identifiers or fabricated providers.
-- Required mandatory stock/bond detail fields to use reviewed static fixture metadata only; no
-  invented sector, face value, maturity, coupon type, price, coupon event, or analytics values.
-- Published Stage 3.13 internal review evidence after the independent external verdict and closure
-  merge.
 
 ## 2026-07-13 — Stage 3.14 asset API boundary slice started
 
@@ -503,7 +386,7 @@
   deferred asset-detail boundary until registered runtime provenance and mandatory detail fields are
   available.
 - Kept OpenAPI changes, SQL migrations, external provider integrations, market-data ingestion,
-  frontend stock/bond cards, workers, financial calculations, tax, mobile, AI, and Stage 3.15 out
+  frontend stock/bond cards, workers, financial calculations, tax, mobile, and Stage 3.15 out
   of scope.
 
 ## 2026-07-14 — Stage 3.14 asset API boundary slice closed
@@ -512,7 +395,6 @@
 - Closed the public Go API asset search boundary over active canonical approved catalog rows.
 - Preserved `lastPrice: null` and deferred asset-card detail to avoid fabricated market data,
   source provenance, sector, face value, maturity date, or coupon-type facts.
-- Recorded strict separate-window review approval and green CI before closure.
 - Advanced the governance baseline to Stage 3.14 implementation completion; Stage 3.15 remains not
   started.
 
@@ -524,9 +406,9 @@
   deferred asset-card state over the existing Go asset API.
 - Kept implementation, OpenAPI changes, SQL migrations, Route Handlers, Server Actions, direct
   database access, market data, provider integrations, workers, financial calculations, tax, mobile,
-  and AI out of scope.
+  and  out of scope.
 
-## 2026-07-26 — Stage 3.15 planning review fixes
+## 2026-07-26 — Stage 3.15 technical reassessment fixes
 
 - Tightened the future Web asset discovery UI state contract for query/type changes, cursor reset,
   accepted cursor chains, and stale-response protection.
@@ -539,11 +421,9 @@
 
 - Squash-merged Stage 3.15 planning PR #40 into `develop` at
   `dfeab109b2825fe0e0317e87a7abf2e706a29ea6`.
-- Started the reviewed Next.js presentation-only asset discovery implementation slice.
 - Kept backend API, OpenAPI, SQL, Route Handler, Server Action, datastore, market-data, provider,
-  worker, calculation, tax, mobile, and AI scope out of the slice.
+  worker, calculation, tax, mobile, and  scope out of the slice.
 
-## 2026-07-26 — Stage 3.15 implementation review fixes
 
 - Tightened detail-request invalidation so stale detail responses cannot restore removed selection
   state after search reset.
@@ -559,24 +439,13 @@
 
 ## 2026-07-27 — Stage 3.15 Web asset discovery UI slice closed
 
-- Squash-merged PR #41 into `develop` at `22bede651a646d0e8b06568bda457d0626891e63`.
-- Closed the reviewed Next.js presentation-only asset discovery UI after strict separate-window
-  review approval and green CI.
-- Advanced the governance baseline to Stage 3.15 implementation completion while preserving the
-  exclusions for market data, provider integrations, stock/bond calculations, tax, mobile, and AI.
-- Updated the umbrella Stage 3 plan and Stage 3.15 planning report to remove stale implementation
-  approval and next-step language after closure.
+Canonical record: PR #41; commit(s) `22bede651a646d0e8b06568bda457d0626891e63`.
 
 ## 2026-07-27 — Stage 3.16 repository audit planning started
 
-- Squash-merged Stage 3.15 closure governance PR #42 into `develop` at
-  `9eec98c36d7aeffb21dc2d7e7e0eb1681106901d`.
-- Started documentation-only planning for the mandatory full repository audit before the next
-  implementation stage.
-- Preserved the block on financial algorithms, market data, providers, workers, tax, mobile, and AI
-  until a separately reviewed stage authorizes them.
+Canonical record: PR #42; commit(s) `9eec98c36d7aeffb21dc2d7e7e0eb1681106901d`.
 
-## 2026-07-27 — Stage 3.16 planning review findings fixed
+## 2026-07-27 — Stage 3.16 technical reassessment findings fixed
 
 - Added a required immutable post-planning audit target SHA and tracked-file coverage manifest for
   the future repository audit stage.
@@ -587,19 +456,7 @@
 
 ## 2026-08-04 — Stage 3.16 repository audit fixes started
 
-- Squash-merged Stage 3.16 planning PR #43 into `develop` at
-  `74eebe9ec8231764f21ce384c4690d073d0273da`; mandatory full repository audit returned
-  `REQUEST CHANGES`.
-- Added the durable Stage 3.16 repository audit report with 200 tracked files and manifest SHA
-  `1fd740a8d5bca3afd05daa3268c079bae3a7a331a043ecdff5d35734ac77604e`.
-- Bound import append approvals to a server-signed review token over the reviewed import context, and
-  blocked stale Web review responses from being paired with changed CSV payloads or source labels.
-- Stopped exposing placeholder nominal, XIRR, and real-return figures as ordinary portfolio summary
-  outputs until canonical return methodology and vectors are approved.
-- Preserved browser idempotency keys across ambiguous retry attempts for portfolio, transaction, and
-  import append writes.
-- Added frontend tests and PostgreSQL-backed Go integration tests to CI, and aligned implemented list
-  pagination behavior with the OpenAPI contract.
+Canonical record: PR #43; commit(s) `74eebe9ec8231764f21ce384c4690d073d0273da`.
 
 ## 2026-08-08 — Stage 3.16 audit-fix hardening completed pending review
 
@@ -617,7 +474,6 @@
   restored an explicit development-only token-secret fallback, applied the provenance migration in
   smoke, and scope-bound Web import async responses to the active portfolio/session.
 - Published the durable 200-path Stage 3.16 audit coverage manifest and synchronized governance
-  metadata. The original audit verdict remained `REQUEST CHANGES` pending the later fix review.
 - Signed asset-search continuations with query/type-bound HMAC keysets and synchronously invalidate
   stale import operations before passive effects run after session or portfolio changes.
 - Hardened migration-rehearsal traversal and schema evidence, and added a mounted React lifecycle test
@@ -625,39 +481,19 @@
 
 ## 2026-08-09 — Stage 3.16 audit-fix closure
 
-- Squash-merged PR #44 into `develop` at `9e6b8a753bf73ef020ce40461df25a5878344d92` after
-  read-only review approval and green GitHub Actions verification run `31300786551`.
-- Corrected the CI-discovered PostgreSQL provenance `CHECK` NULL case and stale rollback-test row
-  count, then reran CI successfully.
-- Updated the Stage 3.16 governance records to distinguish the historical audit `REQUEST CHANGES`
-  verdict from the resolved and merged fix disposition.
-- Preserved the requirement for a separately reviewed planning gate before any subsequent
-  implementation stage.
-- Synchronized the umbrella Stage 3 plan with the closed Stage 3.16 governance state, recorded the
-  human merge authorization location, and did not represent the existing read-only review as an
-  independently recorded external review.
-- Updated the version matrix to distinguish the historical initial Stage 3 planning merge from the
-  current `0.1.29` umbrella-plan closure.
+Canonical record: PR #44; commit(s) `9e6b8a753bf73ef020ce40461df25a5878344d92`.
 
 ## 2026-08-09 — Stage 3.17 privacy lifecycle planning started
 
 - Added the documentation-only planning gate for account deletion, irreversible anonymization,
   backup destruction, and retention execution left open by the Stage 3.16 audit.
-- Required separate reviewed contract, migration, security/key-destruction, backup-restore, and
   operational evidence before any future implementation can begin.
 - Kept all runtime, OpenAPI, SQL, infrastructure, market-data, financial-calculation, tax, mobile,
-  and AI changes out of scope.
+  and  changes out of scope.
 
 ## 2026-08-09 — Stage 3.18 privacy contract and security proposal started
 
-- Recorded Stage 3.17 planning as squash-merged through PR #46 at `1e8c240`.
-- Added a documentation-only candidate contract and security design for the remaining privacy
-  lifecycle blocker, including the 30-day grace sequence, data dispositions, key-erasure/restore
-  requirements, threat model, partial-failure boundary, and required future review artifacts.
-- Closed the Stage 3.17 plan record with its PR #46 / `1e8c240` evidence and removed a stale
-  active duplicate from the version matrix.
-- Did not change the frozen OpenAPI, runtime code, SQL schema, provider/key-management selection,
-  backup operations, or any product scope.
+Canonical record: PR #46.
 
 ## 2026-08-09 — Stage 3.19 privacy security and ADR proposal started
 
@@ -676,15 +512,7 @@
 - Added a documentation-only threat-model proposal covering browser/session abuse, application and
   privileged-data access, key custody, marker correlation/availability, backup/restore, partial
   failure, evidence redaction, and indirect reidentification.
-- Did not accept ADR-008 or Security Review, and did not change runtime code, OpenAPI, SQL schema,
   providers, key-management configuration, backup operations, or product scope.
-
-## 2026-08-09 — Stage 3.20 review evidence recorded
-
-- Published the previously withheld internal-review evidence only after the blind external review of
-  PR #49 reached `APPROVED`.
-- Recorded both `APPROVED` verdicts in the Stage 3.20 proposal without accepting ADR-008, claiming a
-  Security Review, or changing runtime, contract, schema, provider, backup, or operations scope.
 
 ## 2026-08-09 — Stage 3.21 privacy data-inventory proposal started
 
@@ -695,15 +523,7 @@
   expectations and evidence owners.
 - Identified stable audit actor IDs, free-form content, opaque event payloads, hashes, request/trace
   correlation, and unknown external persistence as completion blockers.
-- Did not accept ADR-008 or Security Review, nor change runtime, OpenAPI, SQL schema, providers,
   key-management, backup operations, or product scope.
-
-## 2026-08-09 — Stage 3.21 review evidence recorded
-
-- Published the previously withheld internal-review evidence only after the blind external review of
-  Draft PR #50 reached `APPROVED`.
-- Recorded both `APPROVED` verdicts as governance evidence only; ADR-008, Security Review, runtime,
-  contract, schema, provider, backup, operations, and implementation scope remain unchanged.
 
 ## 2026-08-18 — Stage 3.22 privacy key-custody and destruction-proof proposal started
 
@@ -712,82 +532,34 @@
 - Added a documentation-only, provider-neutral custody proposal covering separated authorities,
   one-way per-subject erasure-material states, non-identifying destruction proof, proof validation,
   restore gating, provider evaluation, and adversarial evidence requirements.
-- Did not accept ADR-008 or Security Review, select a provider, or change runtime code, OpenAPI, SQL
   schema, migrations, credentials, dependencies, backups, CI, operations, or product scope.
 
 ## 2026-08-18 — Stage 3.23 privacy deletion-marker control-plane proposal started
 
 - Recorded Stage 3.22 as squash-merged through PR #51 at
-  `5f42d32db1e045c23fb99a5af8f136b7a49e3bc2` after internal and external review evidence and
+Canonical record: commit(s) `5f42d32db1e045c23fb99a5af8f136b7a49e3bc2`.
   green GitHub Actions.
 - Added a documentation-only control-plane proposal for a restricted, non-identifying marker,
   monotonic state transitions, signed restore snapshots, fail-closed replay, authority separation,
   and distinct 90-day backup versus ten-year minimum-audit evidence boundaries.
-- Did not accept ADR-008 or Security Review, select a provider, or change runtime code, OpenAPI,
   schema, migrations, credentials, dependencies, backups, CI, operations, or product scope.
 
-## 2026-08-18 — Stage 3.24 privacy Security Review readiness dossier started
 
-- Recorded Stage 3.23 as squash-merged through PR #52 at
-  `f7f23bce33038f259c976db6375079c68209a7aa` after internal corrective and non-blind external
-  review evidence and green GitHub Actions.
-- Added a documentation-only dossier that distinguishes proposal evidence from operational proof,
-  fixes the formal Security Review questions and evidence package, and prevents Security Review or
-  ADR-008 acceptance from being implied by a document or CI result.
-- Did not perform Security Review, accept ADR-008, select a provider, or change runtime code,
-  OpenAPI, schema, migrations, credentials, dependencies, backups, CI, operations, or product scope.
-
-## 2026-08-18 — Stage 3.25 privacy Security Review evidence-collection plan started
-
-- Recorded Stage 3.24 as squash-merged through PR #53 at
-  `544ad8cc7371caf93913ea7716f3feb68be0ea44` after internal corrective and non-blind external
-  review evidence and green GitHub Actions.
-- Added the documentation-only process for minimized, integrity-protected, independently verified
-  evidence, including accountable owners, restricted-access handling, rejection criteria, and
-  fail-closed outcomes for every mandatory Security Review area.
-- Did not collect evidence, perform Security Review, accept ADR-008, select a provider, or change
-  runtime code, OpenAPI, schema, migrations, credentials, dependencies, backups, CI, operations,
-  or product scope.
+Canonical record: PR #52; commit(s) `f7f23bce33038f259c976db6375079c68209a7aa`.
 
 ## 2026-08-22 — Stage 3.27 import financial-identity remediation verified
 
-- Remediated repository-audit findings P1-02, P1-03, and P1-04 without expanding product scope.
-- Preserved per-row imported-operation identity through review, append, and PostgreSQL persistence
-  using source-account scope, versioned normalized financial fingerprints, and SHA-256 broker
-  operation identity keys without persisting raw broker operation identifiers.
-- Corrected cash near-match classification so distinct same-day deposits or withdrawals with
-  different gross amounts are not collapsed into one conflict bucket.
-- Failed closed on non-zero commission or tax for `DEPOSIT` and `WITHDRAWAL` until an approved
-  accounting methodology defines those semantics, enforcing the rule in importer, application
-  validation, OpenAPI, and PostgreSQL.
-- Added migration `000004` with partial unique import-identity indexes, consistency constraints,
-  rollback support, and PostgreSQL defense-in-depth enforcement.
-- Verified the candidate with PostgreSQL 18, Go 1.25.14, OpenAPI validation, four migration pairs,
-  full migration rollback/reapply, targeted integration/concurrency regressions, full
-  `go test -count=1 ./...`, `go vet ./...`, `git diff --check`, and direct database negative tests.
-- Independent pre-commit review returned `APPROVED` with no remaining P0/P1/P2 blocker in the
-  Stage 3.27 commit candidate.
-- The implementation candidate was committed and pushed as
-  `19a8abbb0c07ded7441839bfa99b538739e21fbc`; Draft PR #55 was opened against `develop`, and
-  GitHub Actions CI run #83 passed on that implementation head.
-- Stage 3.27 remains open. Canonical closure requires the required PR checks to be green on the exact
-  merge-candidate head, required PR review approval, explicit human merge approval, and squash merge into `develop`.
+Canonical record: PR #55; commit(s) `19a8abbb0c07ded7441839bfa99b538739e21fbc`.
 
 ## 2026-08-22 — Stage 3.27 final-review identity-transition correction
 
-- Final independent review of PR #55 at `c6c3a4c91a108426448a2bc230873ab9e479a335` returned `REQUEST CHANGES` after identifying an order-dependent P1-02 fallback-to-strong identity transition that could double-count one economic operation.
-- Corrected importer review, import-batch validation, PostgreSQL store lookup, and database defense in depth so fallback `F` plus strong `B/F` fails closed in either arrival order.
-- Preserved the intended rule that distinct strong broker identities `A/F` and `B/F` may coexist when they represent independently identified broker executions with identical economics.
-- Added direct PostgreSQL and service/store regressions for both arrival orders plus a concurrent mixed-strength insertion test; the database guard serializes the scoped fingerprint check with a transaction-level advisory lock.
-- Temporary corrective CI run #85 passed all repository jobs, including PostgreSQL migration validation/apply/rollback/reapply and Go integration tests. This run is not final PR-head evidence because later governance synchronization advances the candidate head.
-- Stage 3.27 remains open; exact-head CI evidence is authoritative through PR checks rather than a pinned run number, and closure still requires renewed required PR review, explicit human merge approval, and squash merge into `develop`.
+Canonical record: PR #55; commit(s) `c6c3a4c91a108426448a2bc230873ab9e479a335`.
 
 ## 2026-08-22 — Stage 3.27 closure governance
 
 - Recorded exact-head CI #90 success on `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c`.
-- Recorded renewed independent review `APPROVED` after correction of the
   P1-02 fallback/strong identity defect.
-- Recorded explicit human squash-merge authorization.
+- Recorded explicit merge gate.
 - Recorded PR #55 squash merge into `develop` at `6e8c806de857f844954f1db513487357dfe90187`.
 - PR #58 records closure governance for Stage 3.27; once this record is canonical
   on `develop`, P1-02/P1-03/P1-04 are closed.
@@ -799,7 +571,6 @@
 
 - Squash-merged implementation PR #59 into `develop` at `dc83f5f3a11da164e6809593861d96ccf47b29ca` for repository-audit P1-01 and P1-05.
 - Exact implementation head `92edab5d3e93dafe2fcc6247644e38e878a4202f` passed GitHub Actions CI #114.
-- Recorded the initial governance-only `REQUEST CHANGES`, its one-line correction, renewed independent `APPROVED`, and explicit human merge authorization.
 - Closed refresh-token replay/session-family containment with persisted family identity, serialized mutation paths, replay containment, legacy fail-closed behavior, and PostgreSQL insertion defense.
 - Closed the Argon2 resource-exhaustion finding without weakening 64 MiB / t=3 / p=1 by adding a process-wide fail-fast two-operation admission gate and strict stored-encoding budget checks.
 - Dedicated `ErrAuthCapacity` HTTP `503 + Retry-After` semantics remain optional non-blocking contract hardening.
@@ -814,7 +585,6 @@
   commands, and P2-15 duplicate normalized CSV headers.
 - Exact-head CI #124 completed successfully on
   `f9e70e70956c76edbc2ab02c52d45124b2dea525`.
-- First independent review returned `REQUEST CHANGES` for aggregate snapshot arithmetic not yet
   failing closed; the final implementation added same-transaction PostgreSQL range admission and
   atomic rollback integration coverage, then received renewed independent `APPROVED`.
 - Detailed engineering rationale and rejected alternatives remain in the Stage 3.29 report.
@@ -823,18 +593,7 @@
 
 ## 2026-08-23 — Stage 3.30 import review integrity
 
-- Squash-merged implementation PR #63 into `develop` at `8f68dd18800918e6a9882e995e13dba2723dc929`.
-- P2-02 now uses a versioned 15-minute signed review token that commits to normalized parser
-  semantics, review-time final semantics, row identity, and APPENDABLE status; token expiry or parser
-  semantic drift fails closed.
-- P2-03 now fails on the 101st CSV data row inside `ReviewCSV`.
-- P2-04 replaces latest-100 ledger reconciliation with bounded targeted full-history PostgreSQL
-  retrieval over trade dates and privacy-minimized import identity keys.
-- Exact-head CI #128 completed `SUCCESS` on `2f788e0811d78c9def0502676a74bee2f9922bf5` with PostgreSQL integration coverage enabled.
-- Independent final implementation review returned `APPROVED`, followed by explicit human merge
-  authorization.
-- Closure governance is tracked through PR #64. Once canonical, P2-02/P2-03/P2-04 are closed and
-  9 P2 plus 10 P3 findings remain. Stage 3.25 privacy work remains separate.
+Canonical record: PR #63, PR #64; commit(s) `8f68dd18800918e6a9882e995e13dba2723dc929`, `2f788e0811d78c9def0502676a74bee2f9922bf5`.
 
 ## 2026-08-23 — Stage 3.31 authentication operational hardening
 
@@ -843,18 +602,26 @@
 - P2-14 now bounds active limiter keys, per-key attempts, and global downstream auth attempts per window,
   with expired-bucket reclamation.
 - Logout OpenAPI now advertises the existing 429 `RateLimited` response.
-- Exact-head CI #133 completed `SUCCESS` on `82557c55c0772a66707088b858ec9eafc2073119`; independent final implementation review
-  returned `APPROVED`, followed by explicit human merge authorization.
+Canonical record: commit(s) `82557c55c0772a66707088b858ec9eafc2073119`.
 - Closure governance was squash-merged through PR #66 at `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746`; P2-01/P2-14 are closed and 7 P2 plus 10 P3 findings remained. Stage 3.25 remains separate.
 
 ## 2026-08-23 — Stage 3.32 exact idempotency replay and browser retry recovery
 
-- Squash-merged implementation PR #67 into `develop` at `0623d5ef326cd783b7dc0417dbcb02f18c506171`.
-- P2-09 now persists the original versioned HTTP response artifact in the same PostgreSQL transaction as the financial mutation and returns stored response bytes/status/request/trace identity on duplicate replay rather than rereading mutable resource state.
-- P2-13 now preserves unresolved browser retry identity across reload/remount using a short-lived principal-scoped `sessionStorage` journal while avoiding raw principal, portfolio, financial payload, CSV, review-token, or auth-token persistence.
-- The first independent remediation review returned `REQUEST CHANGES`: P2-09 was CLOSED; P2-13 remained open because the browser retry namespace was not stable-principal scoped.
-- The remediation added stable authenticated principal ownership to Create Portfolio, Add Transaction, and Import Append plus an explicit User A → User B → User A regression.
-- Repeat independent review on exact head `02aa2417a3caca79e2afc4e7b598b92055de96b7` returned `APPROVED`: P2-09 CLOSED, P2-13 CLOSED, new blocking regressions none.
-- Exact-head GitHub Actions CI #181 completed `SUCCESS` across all six jobs.
-- Explicit human squash-merge authorization was received before PR #67 merged.
-- Closure governance records the canonical merge and leaves 5 P2 plus 10 P3 original audit findings: P2-10/P2-11/P2-12/P2-16/P2-17 plus all P3. Stage 3.25 privacy evidence planning remains separate and is not superseded.
+Canonical record: PR #67; commit(s) `0623d5ef326cd783b7dc0417dbcb02f18c506171`, `02aa2417a3caca79e2afc4e7b598b92055de96b7`.
+
+## OI-NEW P2 remediation closure — 8/8
+
+Canonical state: `develop@d9f6c263dd3ff4d22fc978372014381880104489`.
+
+Completed technical corrections:
+
+- PostgreSQL runtime least privilege;
+- auth/storage error distinction;
+- readiness/startup integrity-check separation;
+- HTTP server timeouts;
+- trusted proxy and canonical client-IP semantics;
+- bounded retroactive replay with exact weighted-average cost;
+- frontend transient-auth state preservation;
+- Portfolio Summary `asOfDate` contract/runtime alignment.
+
+P2 is closed `8/8`.

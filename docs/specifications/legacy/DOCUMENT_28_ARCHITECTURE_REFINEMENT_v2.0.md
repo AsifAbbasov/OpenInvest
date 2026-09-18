@@ -214,11 +214,9 @@ Technical Review
 
 ↓
 
-Security Review
 
 ↓
 
-Performance Review
 
 ↓
 
@@ -227,7 +225,6 @@ Approval
 
 ---
 
-Builder Agent запрещено подключать новые API самостоятельно.
 
 ---
 
@@ -637,7 +634,6 @@ Tax
 
 Catalog
 
-AI
 
 Notifications
 
@@ -689,7 +685,7 @@ Email отправка.
 
 ---
 
-AI анализ.
+ анализ.
 
 ---
 
@@ -833,7 +829,7 @@ Goal Planner;
 
 Retirement Planner;
 
-AI Portfolio Review;
+ Portfolio Review;
 
 Dividend Scenarios;
 
@@ -881,7 +877,6 @@ Portfolio Compare.
 
 # 20. ENGINEERING CHECKLIST
 
-Перед реализацией любой функции Builder Agent обязан ответить:
 
 ---
 

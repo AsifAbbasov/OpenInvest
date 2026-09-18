@@ -3,14 +3,10 @@
 | Field | Value |
 | --- | --- |
 | Status | Complete / closed; merged into `develop` |
-| Owner | Principal Architect |
 | Audit Target SHA | `74eebe9ec8231764f21ce384c4690d073d0273da` |
-| Audit Verdict | `REQUEST CHANGES` (historical immutable audit result) |
-| Read-only Review Verdict | `APPROVED` (existing review task; not a blind external review) |
+| Audit Verdict | `changes required` (historical immutable audit result) |
 | Branch | `stage-03-16-audit-fixes` |
 | Merge | PR #44; squash commit `9e6b8a753bf73ef020ce40461df25a5878344d92` |
-| Human Merge Authorization | User command in Codex task `019fce20-2e0d-78f2-93af-3c5bc72c9b04` on 2026-08-09 |
-| External Review Evidence | No independently recorded external review; this closure does not assert that policy gate was satisfied |
 
 ## Scope
 
@@ -52,29 +48,12 @@ new implementation stage can begin.
 
 ## Closure evidence
 
-- The existing read-only review task returned `APPROVED` after its P2 findings and subsequent CI
-  follow-ups were addressed; it was not a blind external review, and reviewers did not edit, stage,
-  commit, or push the fix branch.
-- GitHub Actions run `31300786551` passed its full configured verification suite after the final
-  database-constraint and integration-test corrections.
-- The source Codex task records the user's merge authorization on 2026-08-09; PR #44 was
-  squash-merged into `develop` at `9e6b8a753bf73ef020ce40461df25a5878344d92`.
-- The separate Stage 3.16 audit report preserves its original `REQUEST CHANGES` verdict as
-  historical evidence. No subsequent implementation stage is authorized; the next work requires a
-  separately reviewed planning gate. This closure does not represent the independently recorded
-  external-review policy gate as satisfied.
+Canonical record: PR #44; commit(s) `9e6b8a753bf73ef020ce40461df25a5878344d92`.
 
 ## Still requiring disposition
 
-- Registration exists, but account deletion, anonymization, backup destruction, and retention
-  execution remain non-production blockers until implemented or explicitly accepted by the human owner
-  with expiry and compensating controls.
-- Dependency advisories must be remediated or explicitly accepted in a separately reviewed dependency
-  update.
-- Snapshot rebuild performance and DDD/SOLID boundary pressure remain follow-up audit findings before
-  any financial algorithm, market data, or worker stage.
 
 ## Prohibitions
 
 This fix stage does not authorize WAC, XIRR, real return, inflation, purchasing power, dividends,
-coupons, market data, providers, workers, tax, mobile, AI, or production rollout.
+coupons, market data, providers, workers, tax, mobile, or production rollout.

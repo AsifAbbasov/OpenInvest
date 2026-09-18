@@ -35,9 +35,6 @@ This document defines:
 
 The document is mandatory for:
 
-Builder Agent
-
-Review Agent
 
 QA Agent
 
@@ -964,19 +961,3 @@ within 5 minutes,
 then the UX is considered correctly implemented.
 
 ---
-
-# 50. CODEX REQUIREMENT
-
-Codex must implement any new screen only after checking:
-
-1. Does it overload the user?
-
-2. Can half of the elements be removed?
-
-3. Can the information be shown more simply?
-
-4. Can the action be performed faster?
-
-5. Does the screen match the philosophy:
-
-**Maximum Information. Minimum Friction. Maximum Trust.**

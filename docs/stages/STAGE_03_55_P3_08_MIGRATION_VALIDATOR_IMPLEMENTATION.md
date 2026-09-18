@@ -2,12 +2,10 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementation candidate v5 / frozen Internal Review subject |
 | Date | 2026-09-03 |
 | Canonical implementation base | `develop@b79a9d3c43621e56e598901bdf472771e8b68ef8` |
 | Approved planning authority | `docs/stages/STAGE_03_54_P3_08_MIGRATION_VALIDATOR_PLAN.md` / Git blob `90fa563b9256b19055e2c14e52909596b392f221` / SHA-256 `c266d5b7c867d2e6847bbe169b0a890a997a81f886f1876117117e52c85aecba` |
 | Original audit state | `P3-08=OPEN`; `31/32 = 96.875%` |
-| Pre-review size exception | User/Principal-Architect authorization: up to ~1,850 production Go lines in `cmd/validate-migrations`, <=10 changed files, one P3-08 responsibility, stdlib-only; all semantic/review/CI/governance gates remain mandatory |
 | Commit / push / PR | Not authorized at this record state |
 | Runtime/schema/OpenAPI/frontend/dependency change | None authorized or introduced |
 
@@ -49,25 +47,7 @@ All fourteen historical SQL files (`000001`–`000007`, UP+DOWN) are copied byte
 
 Current production implementation consists of `main.go`, `policy.go`, `manifest.go`, `validator.go`, and `scanner.go`: exactly **1,847 physical Go source lines** after `gofmt`, within the separately authorized ~1,850-line production-Go exception. Candidate repository diff is exactly ten files and one responsibility: P3-08 migration validator hardening.
 
-## 5. Local evidence state before Internal Review
-
-Available sandbox evidence:
-
-- `gofmt` on validator package: PASS;
-- focused `go test -count=1 ./cmd/validate-migrations`: PASS in the sandbox harness;
-- focused `go test -race -count=1 ./cmd/validate-migrations`: PASS in the sandbox harness;
-- focused `go vet ./cmd/validate-migrations`: PASS in the sandbox harness;
-- `go run ./cmd/validate-migrations --mode=local`: PASS against seven legacy pairs;
-- canonical Stage 3.54 plan SHA binding and exact registry/edge/allowed-branch meta-tests: PASS;
-- executable canonical TC ledger: `TC-001…TC-631` = 631/631 executed Go subtests; exact TC↔R polarity/owner edges and POS↔ALLOWED mapping revalidated; `MISSING_REQUIRED_TESTS=0`, `DUPLICATE_REQUIRED_TESTS=0`;
-- frozen Stage 3.54 v20 proof replay: `V20_ALL_PROOFS=PASS`, property mutations `1895/1895`, extra red-team `31/31`;
-- historical SQL comparison against protected Stage 3.54 evidence: 14/14 exact.
-
-Environment limitations are not converted into false PASS claims: this sandbox does not contain the complete canonical repository worktree, its installed Go toolchain is `go1.23.2` rather than canonical `go 1.25.14`, and Docker/PostgreSQL are unavailable. Focused tests/race/vet therefore prove implementation logic under the available stdlib-compatible harness but do not substitute for repository-wide canonical-toolchain or PostgreSQL evidence. Repository-wide `go test ./...`, repository-wide `go vet ./...`, `docker compose config --quiet`, and disposable PostgreSQL apply/down/baseline/reapply remain mandatory exact-head GitHub CI evidence.
-
 ## 6. Governance state
-
-This implementation record does not authorize commit, push, PR, Ready, merge, or P3-08 closure. Stage 3.55 must complete read-only Internal Review, Builder-only fixes, rerun required gates, receive separate human publication authorization, pass Draft-PR exact-head ten-check CI, complete fresh External published-head review and publication evidence, and receive later Ready/merge authorization. P3-08 remains OPEN until separately governed Stage 3.56 closure after protected implementation evidence.
 
 
 ## 7. Stage 3.56 post-merge closure synchronization

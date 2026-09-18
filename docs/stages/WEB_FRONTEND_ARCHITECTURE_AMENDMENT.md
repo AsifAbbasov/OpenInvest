@@ -5,11 +5,8 @@
 | Document ID | WEB-ARCH-001 |
 | Version | 1.0.1 |
 | Status | Closed / Merged into `develop` |
-| Owner | Builder Engineer |
 | Supersedes | Current Web implementation target only; see ADR-007 |
 | Dependencies | Documents 42–43; ADR-003; ADR-005; accepted ADR-007 |
-| Last Review Date | 2026-06-26 |
-| Next Review Date | 2026-12-26 |
 
 ## Goal
 
@@ -20,7 +17,6 @@ without weakening the Go API, OpenAPI First, security, privacy, financial, or MV
 
 The human architecture request accepted the Next.js presentation-only decision and ADR-007 records
 the architecture boundary. The amendment was implemented on the dedicated
-`feature/nextjs-web-presentation` branch, reviewed, approved, and squash-merged into `develop`.
 
 - PR: <https://github.com/AsifAbbasov/OpenInvest/pull/4>
 - Merge commit / canonical Web baseline:
@@ -31,7 +27,6 @@ the architecture boundary. The amendment was implemented on the dedicated
 Stage 2 is merged into `develop`, ADR-006 is accepted, and PR #4 was based on the updated
 `develop` baseline. PR #4 targeted `develop` and was isolated to the Next.js Web Presentation
 Amendment. After rebasing onto the Stage 2 baseline, checks were rerun for the Web amendment
-scope before final review and human merge approval.
 
 ## Implemented scope
 
@@ -59,17 +54,8 @@ scope before final review and human merge approval.
 
 ## Review-size exception
 
-This amendment exceeds the default 25-file review count because one atomic, reversible Web-runtime
-replacement deletes eleven tracked Vite files, introduces the corresponding Next.js source/config
-and lockfile, and updates mandatory architecture registries. These are one responsibility and one
-rollback outcome; no business behavior is bundled. The lockfile and mechanical legacy deletions are
-reported separately from hand-written logic.
 
-The auditable Principal Architect / Human Reviewer approval evidence for the PR #4 34-file
-review-size exception is recorded as PR comment:
-<https://github.com/AsifAbbasov/OpenInvest/pull/4#issuecomment-4810564738>.
-This approval covers the review-size exception only. It is not merge approval, not Stage 3
-approval, and not approval for future PR-size exceptions.
+Canonical record: PR #4.
 
 The previously requested stage-handoff `AGENTS.md`/workflow change is intentionally excluded from
 this branch and must be restored in a separate governance change.
@@ -100,4 +86,3 @@ and user data are unaffected.
 ## Closure
 
 The amendment is closed. Stage 3 remains not started and requires its own planning document,
-review, and approval before implementation.

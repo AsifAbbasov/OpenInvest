@@ -5,11 +5,8 @@
 | Document ID | STAGE-03-12-AUTH-UI-PLAN |
 | Version | 0.1.2 |
 | Status | Complete / merged into `develop` |
-| Owner | Builder Engineer |
 | Supersedes | Informal next-step discussion after Stage 3.11 |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-007; Stage 2 contract baseline; Stage 3.11 auth/privacy slice |
-| Last Review Date | 2026-07-11 |
-| Next Review Date | Before Stage 3.12 merge approval |
 
 ## Purpose
 
@@ -24,7 +21,6 @@ This document is planning only. It does not authorize implementation by itself.
 
 ## Proposed implementation outcome
 
-After a separately reviewed implementation PR, a local developer should be able to demonstrate:
 
 ```text
 Open Web shell
@@ -71,7 +67,7 @@ Stage 3.12 must not add:
 - provider integrations;
 - workers;
 - mobile implementation;
-- AI functionality;
+-  functionality;
 - Stage 3.13 work.
 
 ## Security and privacy constraints
@@ -92,13 +88,6 @@ Stage 3.12 must not add:
 
 ## Planning decisions
 
-- Stage 3.12 should prefer a small auth shell over a broad account-management module.
-- Password reset, email verification, 2FA, device management, and profile deletion remain future
-  stages.
-- The implementation should not introduce a frontend state-management library unless a concrete
-  reviewed need appears.
-- Existing portfolio/import screens should continue to call the Go API; auth UI may only supply the
-  access-token boundary needed to reach those endpoints.
 
 ## Acceptance criteria for a future implementation PR
 
@@ -115,7 +104,6 @@ Stage 3.12 must not add:
 - Tests cover in-memory-only access-token handling, credentialed refresh/logout behavior, approved
   local CORS credentials, and bearer authorization for existing portfolio/import calls.
 - CI is green.
-- Independent review confirms no Next.js business authority was introduced.
 
 ## Review focus
 
@@ -130,6 +118,3 @@ Review must specifically verify:
 - no Stage 3.13 implementation.
 
 ## Recommended next step
-
-Open a separate Stage 3.12 implementation PR only after this planning document is reviewed,
-approved, merged into `develop`, and the human reviewer explicitly authorizes implementation.

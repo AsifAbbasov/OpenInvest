@@ -5,11 +5,8 @@
 | Document ID | API-STAGE-02 |
 | Version | 1.0.1 |
 | Status | Proposed / Awaiting Review |
-| Owner | Principal Architect |
 | Supersedes | Stage 1 operational OpenAPI skeleton |
 | Dependencies | Documents 42–43; ADR-003; ADR-006 |
-| Last Review Date | 2026-09-12 |
-| Next Review Date | At Stage 2 approval |
 
 > **Historical Stage 2 baseline**
 >
@@ -219,9 +216,8 @@ Breaking changes require an ADR and a new versioned contract boundary. Removing 
 financial meaning, changing date semantics, or weakening idempotency is breaking.
 
 Generated clients and server stubs remain out of Stage 2. Their future generation must use the
-reviewed contract and must fail CI on uncommitted contract drift.
 
 ## Explicitly out of scope
 
 No Stage 2 artifact implements services, repositories, SQL migrations, workers, collectors,
-frontend screens, mobile code, tax export, foreign securities, predictions, or AI behavior.
+frontend screens, mobile code, tax export, foreign securities, predictions, or  behavior.

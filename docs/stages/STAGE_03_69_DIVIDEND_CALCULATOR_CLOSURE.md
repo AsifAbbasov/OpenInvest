@@ -1,42 +1,6 @@
 # Stage 3.69 — Dividend Calculator Closure
 
-| Field | Value |
-| --- | --- |
-| Status | CANONICAL / PROTECTED-ACTIVATED — Stage 3.68 lifecycle/documentation closure COMPLETE |
-| Date | 2026-09-05 |
-| Closed implementation stage | Stage 3.68 — Dividend Calculator Implementation |
-| Detailed implementation/evidence record | `docs/stages/STAGE_03_68_DIVIDEND_CALCULATOR_IMPLEMENTATION.md` |
-| Implementation record blob on closure base | `29b4a6a29f3a6c609a3dba38e6904c973f19be67` |
-| Implementation PR | PR #133 — `feat: implement Stage 3.68 Dividend Calculator` |
-| Frozen candidate identity SHA-256 | `06619d5ce086812868cd5f2469d8c735d22dc1236a4e6e0a7a6844a3ab898a84` |
-| Frozen implementation manifest SHA-256 | `98bd9844ee3f3c135e167928225aaa88d756ac4ee9d760735974fd8b701cd0db` |
-| Frozen complete patch SHA-256 | `a796960cf124293f0f77acabb26e02d12ae2bbc8ba65b34536319c8b7f2d5f1e` |
-| Internal review report SHA-256 | `d35491b34e6948b42d89761193061fd6bc686cc4817d78a25be5f9d6d37ba347` |
-| External-reviewed semantic head | `c4a87bf8cf4eeefc3dbf3e130e1a9e21b623952c` |
-| External-reviewed semantic tree | `4eaf6be3616dae1bec593127b0115e1d6e7f39f3` |
-| Final evidence head | `014a594695b94b9af424b06a3e38590fbb5281ff` |
-| Final evidence tree | `be09503ceaafb8781cc82829f98e37cda5c6be6b` |
-| Implementation squash merge | `6fb395ffcef12840133dac27294f653276adcdf6` |
-| Protected post-merge tree | `be09503ceaafb8781cc82829f98e37cda5c6be6b` |
-| Implementation parent / prior protected `develop` | `393f782b72347f9e98026940ce31b11c7cfbfcc6` |
-| Semantic CI | CI #352 / run `33972964583` — 10/10 required jobs SUCCESS |
-| Evidence CI | CI #353 / run `33974141987` — 10/10 required jobs SUCCESS |
-| Internal review | APPROVED; P0=0 / P1=0 / P2 blocking=0 / P3 blocking=0 |
-| Fresh External review | APPROVED; P0=0 / P1=0 / P2 blocking=0 / P3 blocking=0 |
-| Exact evidence verification | APPROVED; runtime/product/API/database/math/security/dependency semantic drift NONE |
-| Closure base | protected `develop@6fb395ffcef12840133dac27294f653276adcdf6` |
-| Closure base tree | `be09503ceaafb8781cc82829f98e37cda5c6be6b` |
-| Closure PR | PR #134 — `docs: close Stage 3.68 Dividend Calculator lifecycle` |
-| Closure published head | `e98bad4b2431eb7f45a5bfff17c3601c49554b45` |
-| Closure CI | CI #354 / run `33983374426` — 10/10 required jobs SUCCESS |
-| Exact published-head closure verification | APPROVED; changed scope exactly three documentation files; runtime/product/API/database/math/security/dependency drift NONE |
-| Closure squash merge | `fee7de358f0919802e16a398b19c8947bc852645` |
-| Closure protected tree | `e7c9ddb96a5bf7add5204ccdf54aa20c190a0014` |
-| Closure parent | `6fb395ffcef12840133dac27294f653276adcdf6` |
-| Closure runtime scope | None — documentation/governance synchronization only |
-| Canonical closure surfaces | this record; `docs/ROADMAP.md`; `docs/SOURCE_OF_TRUTH.md`; Stage 3.68 implementation record now carries an explicit historical/current-status boundary |
-| Feature 3D | NOT STARTED by this closure; separate source/use planning gate required |
-| External source activation | None |
+Canonical record: PR #133, PR #134; commit(s) `29b4a6a29f3a6c609a3dba38e6904c973f19be67`, `c4a87bf8cf4eeefc3dbf3e130e1a9e21b623952c`, `4eaf6be3616dae1bec593127b0115e1d6e7f39f3`, `014a594695b94b9af424b06a3e38590fbb5281ff`, `be09503ceaafb8781cc82829f98e37cda5c6be6b`, `6fb395ffcef12840133dac27294f653276adcdf6`, `393f782b72347f9e98026940ce31b11c7cfbfcc6`, `e98bad4b2431eb7f45a5bfff17c3601c49554b45`, `fee7de358f0919802e16a398b19c8947bc852645`, `e7c9ddb96a5bf7add5204ccdf54aa20c190a0014`.
 
 ## 1. Closure basis
 
@@ -196,7 +160,7 @@ Fresh-command writable amplification is bounded per process by:
 The limiter is intentionally not represented as a distributed or edge DoS shield. A valid request still performs the
 read-only PostgreSQL replay lookup required by exact idempotency semantics.
 
-No paid API, Redis addition, worker, cron, new cache service, AI service, or new dependency was introduced.
+No paid API, Redis addition, worker, cron, new cache service,  service, or new dependency was introduced.
 
 ## 7. What Stage 3.68 did not do
 
@@ -209,67 +173,12 @@ Stage 3.68 did not:
 - add a database schema or migration;
 - add tax calculation/export;
 - mutate portfolio state;
-- add Redis, workers, cron, AI, or a new production dependency;
+- add Redis, workers, cron, or a new production dependency;
 - authorize mobile, notifications, broker synchronization, or another product scope.
 
 The calculator is therefore an exact user-supplied-input calculation surface, not a live dividend-data service.
 
-## 8. Verification and review evidence
-
-The frozen prepublication candidate identity is:
-
-```text
-candidate identity:
-06619d5ce086812868cd5f2469d8c735d22dc1236a4e6e0a7a6844a3ab898a84
-
-manifest:
-98bd9844ee3f3c135e167928225aaa88d756ac4ee9d760735974fd8b701cd0db
-
-complete patch:
-a796960cf124293f0f77acabb26e02d12ae2bbc8ba65b34536319c8b7f2d5f1e
-```
-
-Internal review covered all 21/21 changed files, was read-only, and concluded:
-
-```text
-P0 = 0
-P1 = 0
-P2 blocking = 0
-P3 blocking = 0
-VERDICT = APPROVED
-```
-
-The semantic publication was:
-
-```text
-head c4a87bf8cf4eeefc3dbf3e130e1a9e21b623952c
-tree 4eaf6be3616dae1bec593127b0115e1d6e7f39f3
-```
-
-CI #352 / run `33972964583` completed with all ten required jobs successful.
-
-Fresh External published-head review independently re-reviewed the published 21-file implementation and concluded:
-
-```text
-P0 = 0
-P1 = 0
-P2 blocking = 0
-P3 blocking = 0
-VERDICT = APPROVED
-```
-
-The evidence-only follow-up was:
-
-```text
-head 014a594695b94b9af424b06a3e38590fbb5281ff
-tree be09503ceaafb8781cc82829f98e37cda5c6be6b
-```
-
-CI #353 / run `33974141987` completed with all ten required jobs successful. Exact evidence-publication verification
-confirmed that the follow-up changed only the Stage 3.68 documentation record and introduced no runtime/product/API/
-database/math/security/dependency semantic drift.
-
-## 9. Human authorization and protected merge
+## 9. merge gate and protected merge
 
 The Principal Architect explicitly authorized publication of the implementation candidate, publication of the
 post-External evidence-only follow-up, synchronization of PR #133 metadata, and finally Ready + squash merge of exact
@@ -335,15 +244,11 @@ Stage 3.69 does not authorize:
 - caching/persistence rights for provider-derived data;
 - provider cost or rate policy.
 
-Those decisions still require an exact provider/use mode, Data Source Registry approval, legal/contractual production
-use, public-display rights, cost acceptance, traffic/failure policy, retention/caching rights, provenance/freshness
-obligations, and separately reviewed runtime composition.
 
 The user-supplied Dividend Calculator is complete independently of that unresolved source gate.
 
 ## 13. Governance path
 
-Stage 3.69 followed the `docs/REVIEW_WORKFLOW.md` v1.4.0 post-development governance/closure path as a
 documentation/governance-only closure.
 
 Completed activation sequence:
@@ -351,7 +256,6 @@ Completed activation sequence:
 ```text
 documentation candidate
 → deterministic documentation checks
-→ Governance / Closure review APPROVED
 → explicit human commit/push authorization
 → Draft PR #134 targeting develop
 → exact-head CI #354 / run 33983374426 — 10/10 SUCCESS
@@ -371,13 +275,3 @@ Protected activation occurred through PR #134, exact published head
 `e7c9ddb96a5bf7add5204ccdf54aa20c190a0014`.
 
 Therefore the canonical state is:
-
-```text
-Stage 3.68 implementation = COMPLETE / MERGED
-Stage 3.68 lifecycle/documentation closure = COMPLETE
-Stage 3.69 closure governance = COMPLETE / PROTECTED-ACTIVATED
-Dividend Calculator = canonical MVP functionality on develop
-Provider-derived live dividend data = NOT AUTHORIZED by this closure
-Feature 3D = separate source/use planning gate
-Next product work = separately reviewed and explicitly authorized
-```

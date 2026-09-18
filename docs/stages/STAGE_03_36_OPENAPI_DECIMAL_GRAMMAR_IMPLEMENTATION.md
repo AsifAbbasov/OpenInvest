@@ -73,6 +73,5 @@ included.
 
 The Stage 3.36 runtime implementation is canonical through PR #88 at
 `ebbc1c17b905e60d9e82337fc4a1ecd6cf9bccaa`. The runtime merge alone does not close the audit
-finding. P3-03 remains canonically **OPEN** until separately reviewed closure governance receives
 fresh independent `APPROVED`, exact-head green CI, explicit human closure-merge authorization, and
 is merged into `develop`.

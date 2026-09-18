@@ -36,9 +36,6 @@ but
 
 The document is mandatory for:
 
-Builder Agent
-
-Review Agent
 
 QA Agent
 
@@ -392,9 +389,9 @@ Cache JWT
 
 ---
 
-# 9. AI ANTI-PATTERNS
+# 9.  ANTI-PATTERNS
 
-AI is prohibited from
+ is prohibited from
 
 ---
 
@@ -524,7 +521,6 @@ Prohibited
 
 ---
 
-LLM for simple calculations
 
 ---
 
@@ -698,7 +694,7 @@ making Premium by cutting Free
 
 ---
 
-writing AI "for show"
+writing  "for show"
 
 ---
 
@@ -706,9 +702,6 @@ copying competitors' interfaces
 
 ---
 
-# 22. CODE REVIEW STOP LIST
-
-Review Agent must immediately reject Merge if the following is found:
 
 ---
 
@@ -742,7 +735,6 @@ dead code
 
 # 23. PRINCIPAL ENGINEERING QUESTIONS
 
-Before Merge, Builder Agent must ask themselves:
 
 ---
 
@@ -822,6 +814,5 @@ instead of a fashionable one.
 
 > **OpenInvest must resist architectural entropy.**
 
-> **Every Builder Agent, Review Agent, and engineer must leave the system simpler, clearer, faster, and cheaper than it was before their changes.**
 
 > **If the necessity of a new entity, new service, new library, or new abstraction layer cannot be proven, they must not appear in the project.**

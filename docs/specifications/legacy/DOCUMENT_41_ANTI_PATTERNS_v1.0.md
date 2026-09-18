@@ -28,9 +28,6 @@ Classification: ENGINEERING CONSTITUTION
 
 Документ обязателен для:
 
-Builder Agent
-
-Review Agent
 
 QA Agent
 
@@ -384,7 +381,7 @@ Cache JWT
 
 ---
 
-# 9. AI ANTI-PATTERNS
+# 9.  ANTI-PATTERNS
 
 ИИ запрещено
 
@@ -516,7 +513,6 @@ E2E только Happy Path
 
 ---
 
-LLM для простых вычислений
 
 ---
 
@@ -690,7 +686,7 @@ README устарел
 
 ---
 
-писать AI "для галочки"
+писать  "для галочки"
 
 ---
 
@@ -698,9 +694,6 @@ README устарел
 
 ---
 
-# 22. CODE REVIEW STOP LIST
-
-Review Agent обязан немедленно отклонить Merge если обнаружено:
 
 ---
 
@@ -734,7 +727,6 @@ TODO в Production
 
 # 23. PRINCIPAL ENGINEERING QUESTIONS
 
-Перед Merge Builder Agent обязан спросить себя:
 
 ---
 
@@ -814,6 +806,5 @@ TODO в Production
 
 > **OpenInvest должен сопротивляться архитектурной энтропии.**
 
-> **Каждый Builder Agent, Review Agent и инженер обязан оставить систему проще, понятнее, быстрее и дешевле, чем она была до его изменений.**
 
 > **Если невозможно доказать необходимость новой сущности, нового сервиса, новой библиотеки или нового уровня абстракции — они не должны появляться в проекте.**

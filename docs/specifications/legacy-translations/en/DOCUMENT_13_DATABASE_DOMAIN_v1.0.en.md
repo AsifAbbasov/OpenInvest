@@ -31,7 +31,6 @@ This document defines:
 * object lifecycle;
 * the mathematical model for storing an investment portfolio.
 
-This document is the primary source of truth for Backend, Frontend, Android, iOS, and AI Agents.
 
 ---
 
@@ -461,7 +460,6 @@ Price
 
 Tax
 
-AI
 
 Portfolio
 
@@ -472,7 +470,7 @@ News
 
 ---
 
-# 20. AI INSIGHTS
+# 20.  INSIGHTS
 
 Stored separately.
 
@@ -490,7 +488,7 @@ status
 
 ---
 
-AI never modifies the portfolio.
+ never modifies the portfolio.
 
 ---
 
@@ -788,7 +786,7 @@ unlimited
 
 multiple portfolios
 
-AI analytics
+ analytics
 
 tax assistant
 
@@ -857,21 +855,3 @@ After 5 years of development, the database should support:
 without changing the core data model.
 
 ---
-
-# 38. CODEX REQUIREMENT
-
-Codex must implement new functions only through the Domain Model.
-
-Prohibited:
-
-creating "quick hacks";
-
-duplicating data;
-
-storing business logic in Frontend;
-
-calculating mathematics in React;
-
-violating Single Source of Truth.
-
-This document is mandatory for Builder Agent, Review Agent, and QA Agent.

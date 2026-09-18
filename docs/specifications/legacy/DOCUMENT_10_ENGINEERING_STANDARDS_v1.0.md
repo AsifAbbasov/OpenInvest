@@ -14,11 +14,9 @@ Priority: CRITICAL
 
 This document defines how OpenInvest is developed.
 
-Every AI Agent.
 
 Every Developer.
 
-Every Reviewer.
 
 Every Commit.
 
@@ -150,99 +148,9 @@ review/*
 
 ---
 
-# 7. CODEX WORKFLOW
-
-Codex receives task
-
-↓
-
-Creates branch
-
-↓
-
-Implements feature
-
-↓
-
-Runs tests
-
-↓
-
-Self Review
-
-↓
-
-Stops
-
-↓
-
-Waits for confirmation
-
----
-
-Codex NEVER pushes automatically.
-
----
-
-# 8. HUMAN APPROVAL
-
-Every stage requires:
-
-Summary
-
-Files changed
-
-Architecture explanation
-
-Advantages
-
-Possible risks
-
-Recommendation
-
-Push?
-
-YES / NO
-
----
-
-# 9. REVIEW AGENT
-
-Independent AI Agent.
-
-Never writes code.
-
-Only reviews.
-
----
-
-Review checks:
-
-Architecture
-
-Naming
-
-Complexity
-
-SOLID
-
-DRY
-
-KISS
-
-Performance
-
-Security
-
-Tests
-
-Documentation
-
----
-
 # 10. QA AGENT
 
-Independent AI.
+Independent .
 
 Never changes code.
 
@@ -668,9 +576,9 @@ Status
 
 ---
 
-# 32. AI RULES
+# 32.  RULES
 
-AI never:
+ never:
 
 executes financial transactions
 
@@ -818,7 +726,6 @@ No production debug code
 
 # 39. NORTH STAR
 
-Every engineer and every AI Agent must be able to leave the project.
 
 Another engineer must understand everything without asking questions.
 
