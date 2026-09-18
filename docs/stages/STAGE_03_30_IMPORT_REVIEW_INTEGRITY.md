@@ -3,14 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Status | Complete / closed for P2-02/P2-03/P2-04 |
-| Owner | Principal Architect |
 | Baseline | `develop` at `0bfb3ea9f8e4cc7337a92caef5c7a73f9a8921bc` |
 | Branch | `fix/stage-03-30-import-review-integrity` |
 | Implementation PR | #63 |
 | Implementation merge | `8f68dd18800918e6a9882e995e13dba2723dc929` |
-| Reviewed exact head | `2f788e0811d78c9def0502676a74bee2f9922bf5` |
+Canonical record: commit(s) `2f788e0811d78c9def0502676a74bee2f9922bf5`.
 | Exact-head CI | GitHub Actions #128 — SUCCESS |
-| Independent final review | `APPROVED` |
 | Human implementation merge authorization | 2026-08-23 |
 | Closure PR | #64 |
 | Trigger | Repository-audit P2-02, P2-03, P2-04 |
@@ -79,9 +77,6 @@ The store still performs the final locked duplicate/identity check after idempot
 
 ### Trade-offs
 
-`ReviewParserVersion` must be bumped whenever code changes can alter normalized import semantics. A
-short token lifetime may require a fresh user review, which is preferable to applying stale financial
-approval.
 
 ## P2-03 — the 100-row limit was not a computational limit
 
@@ -115,9 +110,6 @@ The CSV parser is the earliest authoritative layer that knows how many semantic 
 
 ### Observed defect
 
-`/imports/review` loaded `ListTransactions(...Limit: 100)`. A duplicate/conflict older than that page
-could be shown as APPENDABLE. The locked store could later reject it, but only after misleading user
-approval.
 
 ### Root cause
 
@@ -156,31 +148,10 @@ The targeted-query dimensions must evolve together with reconciliation semantics
 
 ## Regression evidence
 
-- exactly 100 rows accepted; 101st fails during parse;
-- semantic digest changes with normalized candidate/status changes;
-- targeted filter contains only unique relevant dates and privacy-minimized identity keys;
-- review token expires and rejects parser semantic drift;
-- signed non-APPENDABLE rows cannot be approved;
-- HTTP review uses targeted history, not public transaction pagination;
-- over-limit review fails before any history query;
-- PostgreSQL integration proves an old row omitted from latest-100 remains visible to targeted
-  reconciliation;
-- Stage 3.29 duplicate-header fail-closed behavior remains intact and now fails before history lookup.
 
 ## Verification and implementation merge evidence
 
-- Local targeted importer/verticalslice/httpapi/postgres tests passed after correcting the stale-ledger
-  regression to model the actual race as `review → concurrent ledger mutation → append`.
-- `go vet ./...`, migration validation, OpenAPI validation, and full `go test ./...` passed locally.
-- Extending `verticalslice.Store` exposed the development-only `unavailableStore` interface gap;
-  it was completed with the same fail-closed `database url is not configured` behavior before commit.
-- Implementation PR #63 was squash-merged into `develop` at `8f68dd18800918e6a9882e995e13dba2723dc929`.
-- Final independently reviewed implementation head: `2f788e0811d78c9def0502676a74bee2f9922bf5`.
-- Exact-head GitHub Actions CI #128 completed `SUCCESS`; all six workflow jobs passed.
-- The Go CI job exported `OPENINVEST_DATABASE_TEST_URL`, so PostgreSQL integration tests executed
-  against the service container rather than taking the no-database skip path.
-- Independent final implementation review returned `APPROVED`.
-- Explicit human authorization was received before the implementation squash merge.
+Canonical record: PR #63; commit(s) `8f68dd18800918e6a9882e995e13dba2723dc929`, `2f788e0811d78c9def0502676a74bee2f9922bf5`.
 
 ## Residual boundaries
 
@@ -194,12 +165,10 @@ The targeted-query dimensions must evolve together with reconciliation semantics
 ## Canonical closure statement
 
 Closure governance PR #64 passed exact-head CI #132 on `7d97f5f967074f98311adcd4b8f7962e0584c719`, received independent
-closure `APPROVED` review and fresh explicit human squash-merge authorization, and was squash-merged
 into `develop` at `ae6497050692798795efb85678af64db97cc5f53`.
 
 Stage 3.30 is therefore CLOSED only for P2-02/P2-03/P2-04. At Stage 3.30 closure, the original audit
 backlog contained 9 P2 and 10 P3 findings. Later remediation does not broaden or retroactively change
-the Stage 3.30 closure scope. Stage 3.25 privacy Security Review evidence planning remains separate
 and is not superseded.
 
 ## Scope boundary

@@ -222,11 +222,10 @@ The README is the product entry point, not the complete engineering record.
 ### Engineering evidence
 
 - [Repository Audit Remediation Register](docs/audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md) — canonical index for the original repository audit and its remediation.
-- [Review Workflow](docs/REVIEW_WORKFLOW.md) — repository review and evidence process.
 
 ## Historical engineering evidence
 
-Detailed implementation chronology, rejected alternatives, remediation rationale, review findings, CI evidence, and source-rights research are intentionally preserved outside this README.
+Detailed implementation chronology, rejected alternatives, remediation rationale, CI evidence, and source-rights research are intentionally preserved outside this README.
 
 Use:
 

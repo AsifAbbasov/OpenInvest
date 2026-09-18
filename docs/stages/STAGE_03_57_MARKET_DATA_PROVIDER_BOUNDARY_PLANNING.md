@@ -5,10 +5,8 @@
 | Document ID | STAGE-03-57-MARKET-DATA-PROVIDER-BOUNDARY-PLAN |
 | Version | 0.3.0-candidate |
 | Status | Planning-only candidate; grants no runtime implementation, commit/push, PR, Ready, merge, provider-network, OpenAPI, registry-activation, or migration authorization |
-| Owner | Builder Engineer |
 | Canonical planning base | `develop@56172c451286010a35138212f5a62f33a50ed930` |
 | Protected-base tree | `05c3ca748c09380bbc91ca99decb68dd0dae7941` |
-| Dependencies | `docs/SOURCE_OF_TRUTH.md`; `docs/ROADMAP.md`; `docs/ARCHITECTURE_FREEZE_v1.2.md`; `docs/REVIEW_WORKFLOW.md` v1.4.0; `docs/registries/DATA_SOURCE_REGISTRY.md`; Stage 2 contract; Stage 3.13 instrument catalog; Stage 3.14 asset API boundary |
 | Date | 2026-09-04 |
 
 ## 1. Purpose
@@ -244,7 +242,6 @@ Stage 3.57 selects Variant A:
 
 This avoids a contract change before there is a user-visible need for provenance fields and avoids freezing per-search provider fan-out, caching, partial-failure, or N+1 lookup semantics before the real MOEX adapter is designed.
 
-A future public response such as `marketData.asOf/retrievedAt/provider/freshness` is a real OpenAPI contract change and requires its own explicit contract proposal/review before implementation.
 
 ## 13. Database decision
 
@@ -275,7 +272,6 @@ No network, retry, rate-limit, cache, worker, scheduler, parser, or provider cre
 
 ## 15. Planned first implementation flow
 
-The separately reviewed implementation proves this path only:
 
 ```text
 test fake QuoteProvider
@@ -305,7 +301,6 @@ A later Feature 1 implementation PR is expected to remain narrow:
 
 Default expectation: no OpenAPI, SQL, PostgreSQL store, frontend, dependency, CI/workflow, or `cmd/api` production-provider wiring changes.
 
-Implementation must stop for renewed planning/review if it discovers a need to change:
 
 - `openapi/` schemas/responses;
 - SQL migrations/database schema;
@@ -424,11 +419,10 @@ Feature 1 implementation may be accepted only when:
 - no real MOEX HTTP or production provider wiring is enabled;
 - no OpenAPI change or migration is introduced;
 - architecture remains a modular monolith;
-- implementation has passed the mandatory development-path review/CI/human gates.
 
 ## 22. Review focus
 
-Planning review must specifically challenge:
+technical reassessment must specifically challenge:
 
 - accidental self-authorization of runtime implementation;
 - fake/test provider accidentally becoming production wiring;
@@ -446,21 +440,17 @@ Planning review must specifically challenge:
 
 ## 23. Planning publication lifecycle
 
-Stage 3.57 planning should follow the established one-document planning precedent used by later Stage 3.x plans: the permanent planning PR should contain only this planning artifact unless a reviewer identifies a concrete canonical-registry inconsistency that must be repaired in the same planning scope.
 
 The planning artifact must remain publication-stable:
 
 - it predicts no future PR number, published head, CI run number, or squash SHA;
-- reviewer verdicts are evidence bound to exact candidate identities, not self-authored approval fields in the document;
 - mutable repository facts are anchored to the immutable planning base above;
 - Feature 1 runtime behavior remains unchanged throughout planning publication;
 - planning merge does not approve a production provider.
 
-Planning publication requires read-only planning review, explicit human commit/push authorization, Draft PR, exact-head CI, published-head planning verification, and separate human merge authorization under `docs/REVIEW_WORKFLOW.md` v1.4.0.
 
 ## 24. Next governed action
 
-Send this exact Stage 3.57 planning candidate to the designated review chat for complete read-only planning review.
 
 Only after `APPROVED` and separate human commit/push authorization may it be committed/pushed and opened as a Draft PR to protected `develop`.
 

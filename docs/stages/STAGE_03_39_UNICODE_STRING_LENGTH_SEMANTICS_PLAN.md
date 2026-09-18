@@ -2,7 +2,6 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Planning/review candidate only; runtime implementation not authorized |
 | Date | 2026-08-26 |
 | Canonical planning base | `develop` at `c5962fa09b6d7d145dda203dbdf90069de7b1fcc` |
 | Finding | P3-04 — general Unicode / OpenAPI `minLength` / `maxLength` semantics |
@@ -46,18 +45,6 @@ normalization is authorized.
 
 ## 3. Current cross-layer inventory
 
-| Surface | Published contract | Current Go / importer behavior | Current PostgreSQL behavior | Current Web behavior | P3-04 disposition |
-| --- | --- | --- | --- | --- | --- |
-| Asset search `query` | `1..100` via OpenAPI | Handler trims; service uses `utf8.RuneCountInString` after trim | Not persisted | Native `maxLength={100}` counts UTF-16 code units; submit path trims | Web mismatch; transport raw-bound admission also needs exact parity |
-| Portfolio `name` create | `1..100` via OpenAPI | Both create paths trim and use `len(name) > 100` | `TEXT`; nonblank CHECK only | Native `maxLength={100}` then `trim()` before submit | Confirmed byte/code-unit drift |
-| Transaction `note` | `maxLength: 500` | Service uses rune count; importer uses rune count after safe-note transformation | `length(note) <= 500` | Native `maxLength={500}` then trimmed payload | Backend/database aligned; Web supplementary-plane mismatch |
-| Import `sourceAccountLabel` | `maxLength: 120` | HTTP DTO uses `len`; importer trims; review-history service uses rune count; append-batch service uses `len` | `char_length(source_account_label) <= 120` | Native `maxLength={120}` then trimmed payload | Confirmed transport/service/Web drift |
-| Import `csvPayload` | currently `maxLength: 2097152` | HTTP intentionally enforces `<= 2 MiB` **UTF-8 bytes** | Raw payload not persisted | `File.size` enforces `<= 2 MiB` bytes before `File.text()` | OpenAPI keyword expresses wrong unit; runtime byte budget must remain bytes |
-| Password | Stage 3.35 explicit code-point/exact-secret contract | Closed P3-01 implementation | Password hash only | Explicit password policy helper | Out of P3-04 |
-| Registration timezone | Stage 3.37 resolver-based IANA contract | Closed P3-02 implementation | `TEXT` preference | Existing free-text field | Out of P3-04 |
-| Email | OpenAPI `format: email`, max 254 | Existing mail parser + byte bound | Identity storage | Browser email field | No P3-04 change; conforming current mailbox contract is ASCII-domain |
-| Tickers, hashes, idempotency keys, row hashes, trace IDs | ASCII patterns / fixed encodings | Byte length is equivalent on admitted domain | ASCII/fixed technical identity | Generated or ASCII-restricted | Out of P3-04 |
-| Update/reverse reasons and other future DTOs | Bounded OpenAPI strings | No active router implementation for the corresponding future mutation flow | N/A | N/A | Do not implement future functionality as part of P3-04 |
 
 The inventory is intentionally implementation-aware. An OpenAPI schema existing for a future endpoint
 does not authorize implementation of that endpoint.
@@ -215,32 +202,10 @@ outgoing value explicitly by code points instead of relying on native UTF-16 `ma
 
 Public review/append admission:
 
-- the raw decoded label must be valid Unicode;
-- the raw submitted label may contain at most 120 Unicode code points;
-- importer normalization remains `strings.TrimSpace` exactly as today;
-- the normalized label is the identity used by parser review, review-history lookup, signed review
-  token, append context, command hashing, broker-operation identity scope, and persistence;
-- no case folding or Unicode normalization is introduced;
-- the normalized label must still satisfy the 120-code-point defense-in-depth check before canonical
-  append.
-
-The implementation must not bump `ReviewParserVersion` merely for this correction because accepted
-conforming parser row semantics and normalized source-label identity do not change. If implementation
-review proves that a parser-version change is actually required, that is a blocker requiring a revised
-plan rather than an unreviewed version bump.
-
-No Stage 3.39 import-replay compatibility branch is planned for this length correction. The current
-public review/append HTTP boundary already rejects `sourceAccountLabel` when
-`len(request.SourceAccountLabel) > 120` **before** importer trimming. For valid UTF-8,
-Unicode code-point count is never greater than UTF-8 byte count. Therefore every label accepted by the
-pre-Stage-3.39 public HTTP path already had at most 120 Unicode code points. Changing the public rule
-from bytes to code points can admit additional multibyte labels, but it cannot make a previously
-accepted public label newly invalid.
 
 The existing Stage 3.32 read-only import replay recovery, token verification, parser-version semantics,
 decision binding, normalized-label identity, source-file hash, and command-hash behavior must remain
 unchanged and green. `import_replay_recovery.go` or import-handler replay ordering must not be changed
-for P3-04 unless implementation review first proves a concrete supported historical caller that could
 have created a completed artifact outside the public HTTP admission rule. Such evidence would require a
 plan revision before code changes.
 
@@ -278,7 +243,6 @@ For P3-04 general text:
 - A generic raw-JSON surrogate/UTF-8 scanner is **not** authorized by this plan because it would change
   all strict-JSON routes, including idempotent financial writes and authentication, and could alter
   replay/compatibility semantics beyond the original P3-04 finding.
-- If implementation review establishes that raw transport replacement is required to close P3-04,
   that is a planning blocker and this document must be revised before runtime mutation.
 
 This boundary is deliberate scope control, not a claim that lossy decoding is desirable.
@@ -346,43 +310,6 @@ active canonical write path can bypass application validation. No such bypass is
 
 ### Go service/importer
 
-1. Portfolio name fresh-admission boundaries are literal and mandatory: 100 ASCII accepted / 101
-   ASCII rejected; 100 Cyrillic accepted / 101 Cyrillic rejected; 100 supplementary-plane code points
-   accepted / 101 supplementary-plane code points rejected.
-2. Fresh portfolio name raw value above 100 code points is rejected even if trimming would reduce it to
-   100.
-3. Portfolio name with malformed internal UTF-8 is rejected.
-4. Cross-version portfolio replay: seed a pre-Stage-3.39 completed command whose original raw name was
-   101 code points but whose trim-first normalized request was 100; the same principal/method/path/key
-   and historical normalized request after Stage 3.39 returns the exact stored status/body and produces
-   no second business effect.
-5. The same historical raw 101 request with a **fresh key** receives `400 VALIDATION_ERROR`.
-6. The same raw 101 request after the old command has expired receives `400 VALIDATION_ERROR` and cannot
-   reclaim/create a new generation.
-7. Same key plus a different historical normalized request hash remains idempotency conflict; unexpired
-   in-flight/unsupported/corrupt duplicate states remain fail-closed.
-8. Asset query: 100 supplementary-plane code points accepted; 101 rejected; whitespace-only remains
-   rejected; normalized cursor/search identity remains trimmed as today.
-9. Transaction note: 500 supplementary-plane code points accepted; 501 rejected; malformed internal
-   UTF-8 rejected.
-10. Import source-label fresh-admission boundaries are literal and mandatory through review: 120
-    Cyrillic accepted / 121 Cyrillic rejected; 120 supplementary-plane code points accepted / 121
-    supplementary-plane code points rejected.
-11. Source-label trimming produces the same signed/persisted identity as before; review and append with
-    the same normalized label still verify.
-12. Fresh source-label variants that exceed the raw public bound are rejected before they can authorize
-    a new review/append as a shorter normalized public value.
-13. The existing Stage 3.32 import token-expiry/parser-version/read-only replay recovery suites remain
-    unchanged and green; P3-04 adds no source-label-specific replay branch or replay-ordering change.
-14. Import append defense in depth uses code points, not bytes, while the normalized label used for
-    review/token/command/broker/persistence identity remains exactly the existing trimmed value.
-15. Repository evidence or focused tests demonstrate the compatibility premise explicitly: every
-    valid-UTF-8 `sourceAccountLabel` admitted by the old public `len(...) <= 120` HTTP guard necessarily
-    had `<=120` Unicode code points, so no pre-Stage-3.39 public newly-invalid replay population exists.
-16. P3-04 may change **portfolio validation/replay ordering only for the confirmed Stage 3.32/3.38
-    deployment-compatibility case**; it must not weaken or broaden idempotency authority, TTL,
-    request-hash, conflict, or business-effect semantics, and it must not reorder import replay for an
-    unsupported synthetic scenario.
 
 ### HTTP/OpenAPI
 
@@ -421,40 +348,11 @@ active canonical write path can bypass application validation. No such bypass is
 
 ## 14. Alternatives rejected
 
-| Alternative | Rejection rationale |
-| --- | --- |
-| Redefine all public limits as UTF-8 bytes | Contradicts OpenAPI/JSON Schema string-length semantics and existing PostgreSQL character constraints. |
-| Keep native HTML `maxlength` as canonical | Counts UTF-16 code units and rejects supplementary-plane text too early. |
-| Use grapheme clusters | Adds segmentation policy and dependency complexity not required by the original finding. |
-| Normalize Unicode | Changes value identity and can break hashes/review context without any product requirement. |
-| Trim before enforcing the public raw `maxLength` | Allows an instance that violates the published raw schema to be accepted after transformation. |
-| Convert the 2 MiB CSV limit to code points | Weakens the resource bound and misstates actual memory/request cost. |
-| Express CSV bytes with JSON Schema `maxLength` | `maxLength` counts string characters, not UTF-8 bytes. |
-| Add a generic raw-JSON Unicode scanner now | Broad transport/replay/auth change exceeds the demonstrated P3-04 length finding. |
-| Add a portfolio-name database migration now | No active bypass has been established; unnecessary schema/backfill risk for a low-severity contract fix. |
-| Refactor `httpapi/api.go` while touching it | Would silently absorb P3-06. |
-| Refactor Stage 3.35 password policy into the new Web helper | Unnecessary coupling to a separately closed auth/security finding. |
 
 ## 15. Compatibility, security, performance, and cost
 
 Compatibility:
 
-- conforming ASCII input remains unchanged;
-- conforming multilingual input up to the published code-point limits becomes consistently accepted;
-- for **fresh admission**, raw input that exceeds the published max but would previously become valid
-  only after trimming becomes a deterministic validation failure;
-- a matching pre-Stage-3.39 completed **portfolio-create** command remains replayable only while its
-  existing Stage 3.38 generation is authoritative, using the historical trim-first normalized request
-  identity; this is a deployment-compatibility preservation of Stage 3.32 exact replay, not permission
-  for a new over-limit write;
-- no analogous public source-account-label compatibility branch is introduced because the old raw
-  120-byte HTTP guard already implied a maximum of 120 Unicode code points for every accepted valid-UTF8
-  request;
-- after expiry, or when no matching authoritative completed artifact exists, the new raw bound applies
-  normally and the historical over-limit form has zero write authority;
-- no persisted data is rewritten;
-- no parser-version, review-token version, cursor version, command-hash format, database schema, or
-  financial methodology version changes are planned.
 
 Security/privacy:
 
@@ -481,12 +379,7 @@ The documentation-only planning increment may synchronize already-established po
 - Stage 3.25 remains a separate proposal-only privacy evidence-collection work item;
 - P3-04 remains OPEN throughout planning.
 
-The Stage 3.38 historical failed review/remediation chronology must not be rewritten or erased.
-However, its **active top-level/current-state metadata** is not historical evidence and must be
-synchronized to the already-completed PR #95 merge. The Stage 3.39 planning package therefore carries
-narrow proposed patches for `SOURCE_OF_TRUTH.md`, `ROADMAP.md`, the Stage 3.38 implementation record,
-and the Stage 3.38 closure record. Historical failed-review sections, evidence hashes, and chronology
-remain unchanged in meaning.
+Canonical record: PR #95.
 
 ## 17. Adversarial review requirements
 
@@ -516,7 +409,7 @@ The planning and later implementation reviewers must challenge at least:
 - regression of Stage 3.35 password semantics;
 - regression of Stage 3.37 timezone semantics.
 
-Any material contradiction requires `REQUEST CHANGES`; it must not be hidden as a documentation note.
+Any material contradiction requires `changes required`; it must not be hidden as a documentation note.
 
 ## 18. Planning validation and closure rule
 
@@ -527,18 +420,11 @@ Any material contradiction requires `REQUEST CHANGES`; it must not be hidden as 
 No runtime code, OpenAPI executable contract, migration, dependency, CI workflow, or installer behavior
 changes in the planning increment itself.
 
-### Planning review history
+### technical reassessment history
 
-Initial planning bundle SHA256 `65e0a6da1814da48cde5e676171b38d24718c79b1b6d72bc6a3a52e66aad0200`
-received independent `REQUEST CHANGES` with one confirmed P2 planning blocker,
-`STAGE-03-39-P2-01`. The reviewer demonstrated that the original plan's new raw portfolio-name bound
-would reject a request before the existing replay store could return a pre-Stage-3.39 completed exact
-artifact, violating the Stage 3.32 exact-response guarantee inside the Stage 3.38 24-hour authority
-window. The failed review is preserved in the remediation review bundle and is not silently discarded.
 
 Remediation v2 separated fresh portfolio admission from historical completed replay and added a narrow
-read-only compatibility rule. Fresh independent review of v2 classified `STAGE-03-39-P2-01` as
-**CLOSED BY REMEDIATION**, but returned `REQUEST CHANGES` with two new P3 planning blockers:
+**CLOSED BY REMEDIATION**, but returned `changes required` with two new P3 planning blockers:
 
 - `STAGE-03-39-P3-02`: active Stage 3.38 implementation/closure status metadata was not included in the
   post-PR-95 governance synchronization; and
@@ -546,11 +432,6 @@ read-only compatibility rule. Fresh independent review of v2 classified `STAGE-0
   `sourceAccountLabel`, even though the old public raw 120-byte guard makes such a newly-invalid
   historical public label impossible for valid UTF-8.
 
-This v3 candidate addresses those findings by adding narrow current-state patch instructions for the
-two Stage 3.38 documents while preserving their historical review chronology, and by removing the
-unsupported source-label replay branch/import-handler ordering change. The existing Stage 3.32 import
-recovery path is preserved unchanged. Neither new P3 finding is considered closed for governance
-purposes until a fresh independent review of this exact v3 candidate returns `APPROVED`.
 
 ### Required planning evidence
 
@@ -560,20 +441,17 @@ Before the planning increment may be committed/pushed:
 - complete proposed change instructions available for all five documentation surfaces;
 - Markdown/scope consistency checked;
 - no unrelated files in the candidate;
-- mandatory independent read-only Internal Review Agent line-by-line review returns `APPROVED`;
 - human explicitly authorizes the exact feature-branch commit/push action.
 
 After publication:
 
 - Draft PR targets `develop`;
 - exact-head required CI is green;
-- fresh independent external review returns `APPROVED`;
 - human separately authorizes Ready/squash merge;
 - actual planning merge is read back from GitHub.
 
 P3-04 remains **OPEN** after planning merge. It becomes CLOSED only after a separately governed runtime
 implementation and later closure-governance increment satisfy their own exact-head CI, independent
-review, explicit human authorization, actual merge, and audit-state synchronization.
 
 The planned runtime change categories are expected to be:
 

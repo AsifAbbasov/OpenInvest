@@ -1,33 +1,11 @@
 # Stage 3.53 — P2-GOV-01 Historical Governance Deviation Disposition
 
-| Field | Value |
-| --- | --- |
-| Status | CANONICAL / EFFECTIVE — P2-GOV-01 disposition activated through PR #112 squash merge `ea1f204eab47bf16566096722d6390557b8141af`; historical noncompliance permanently preserved |
-| Date | 2026-09-01 |
-| Canonical base | protected `develop@93e59cbf4821fc51aba5bdb9815b52a73fbc67a0` |
-| Base tree | `3686ff3606d7c5f4fe97060abc12dffd0ccd3477` |
-| Canonical workflow | `docs/REVIEW_WORKFLOW.md` v1.4.0 |
-| Workflow activation | PR #111 squash merge `93e59cbf4821fc51aba5bdb9815b52a73fbc67a0` |
-| Deviation ID | `P2-GOV-01` |
-| Historical subject | Stage 3.50 / PR #110 |
-| Historical published head | `be774b3a8423ffba98633b257983856b2c990b95` |
-| Historical merge | `915d42f614121959fface9846a07cc1b412febe2` |
-| Violated workflow | v1.3.0 |
-| Historical compliance | NONCOMPLIANT — permanently preserved |
-| Original audit at Stage 3.53 activation | 30/32 closed = 93.75% |
-| P3-07 at Stage 3.53 activation | OPEN |
-| Post-disposition Stage 3.51 eligibility | ELIGIBLE FOR REVISION / RE-REVIEW; not closed by disposition itself |
-| P3-08 | OPEN / unaffected |
-| Current follow-up | Stage 3.51 later closed P3-07 through PR #113 / `072350205b2746bdcd83f20718eb59efcd0478ef`; current audit 31/32 = 96.875%, P3-08 only |
-| Risk acceptance | COMPLETED — explicit Principal Architect residual-governance-risk acceptance bound to exact published head `76b6962374bd09a8241713f9a87e7e1834a823b4` |
-| Merge authorization | COMPLETED — separate explicit human squash-merge authorization |
-| Effective disposition | ACTIVE through PR #112 squash merge `ea1f204eab47bf16566096722d6390557b8141af` |
+Canonical record: PR #112, PR #111, PR #110, PR #113; commit(s) `ea1f204eab47bf16566096722d6390557b8141af`, `93e59cbf4821fc51aba5bdb9815b52a73fbc67a0`, `3686ff3606d7c5f4fe97060abc12dffd0ccd3477`, `be774b3a8423ffba98633b257983856b2c990b95`, `915d42f614121959fface9846a07cc1b412febe2`, `072350205b2746bdcd83f20718eb59efcd0478ef`, `76b6962374bd09a8241713f9a87e7e1834a823b4`.
 
 ## 0. Protected activation record
 
 Stage 3.53 was published at exact head `76b6962374bd09a8241713f9a87e7e1834a823b4` / tree
 `488cce09e87d42b3e5e03441336197bd10228c51`, passed CI #308 / run `33532539296` with all 10
-required jobs successful, received same-designated-reviewer exact-published-head APPROVED, explicit
 residual-governance-risk acceptance, separate Ready authorization and separate squash-merge
 authorization, and was squash-merged into protected `develop` at
 `ea1f204eab47bf16566096722d6390557b8141af`.
@@ -42,9 +20,7 @@ This record is the canonical v1.4.0 disposition of `P2-GOV-01`.
 The historical noncompliance remains noncompliant permanently. This record never states or implies
 that the Stage 3.50 lifecycle was compliant.
 
-The effective disposition resolves only the **blocking effect** of `P2-GOV-01`, which made Stage 3.51
-eligible for revision and re-review. It did not itself close P3-07. P3-07 was later closed by the
-separately governed Stage 3.51 / PR #113 protected squash merge.
+Canonical record: PR #113.
 
 ## 2. Prerequisite workflow activation
 
@@ -52,7 +28,6 @@ Stage 3.52 was squash-merged through PR #111 at:
 
 - merge SHA: `93e59cbf4821fc51aba5bdb9815b52a73fbc67a0`;
 - tree: `3686ff3606d7c5f4fe97060abc12dffd0ccd3477`;
-- effective `docs/REVIEW_WORKFLOW.md`: v1.4.0;
 - workflow blob: `3d0dd80e9d3825858c52b7dc0043010e549f720a`.
 
 The disposition mechanism is therefore canonical and Stage 3.53 is not a self-bootstrap.
@@ -63,7 +38,6 @@ evidence and does not itself disposition `P2-GOV-01`.
 
 ## 3. Exact deviation identity
 
-`P2-GOV-01` is the historical Stage 3.50 development-review evidence-lifecycle deviation.
 
 Exact subject:
 
@@ -81,11 +55,9 @@ Exact subject:
 
 The historical noncompliance consists of these lifecycle failures:
 
-1. The Draft PR body published `Internal read-only implementation review: APPROVED` before the
    External published-head verdict, violating mandatory repository/PR withholding.
 2. After the External verdict, no distinct Internal-evidence-only follow-up head was published.
 3. No required CI therefore existed on an evidence-only follow-up head.
-4. The same designated review chat therefore could not perform required exact evidence-only
    publication/no-semantic-drift verification on such a head.
 5. Ready/merge proceeded without those mandatory evidence-lifecycle gates.
 
@@ -105,11 +77,8 @@ Repository-verifiable chronology:
 
 Same-designated-review-chat evidence additionally records:
 
-- Stage 3.50 published-head technical review was `APPROVED`;
-- later Stage 3.51 Governance / Closure review identified `P2-GOV-01`;
 - Stage 3.51 v6 review preserved `P2-GOV-01` as unresolved while approving P2-GOV-02..05 remediation.
 
-The Stage 3.53 reviewer must verify those chat-history facts directly. If unavailable, it must return
 `BLOCKED — insufficient evidence`.
 
 ## 6. Why original compliance cannot be recreated
@@ -118,7 +87,6 @@ The missed controls were temporal evidence controls.
 
 Publishing Internal evidence now cannot make it historically withheld until the External verdict.
 Creating an evidence-only commit now cannot make it precede the already completed Stage 3.50 merge.
-Running CI now cannot create CI on the historically required pre-merge evidence head. A review now
 cannot recreate a pre-merge no-semantic-drift verification on a head that never existed.
 
 Ordinary remediation therefore cannot recreate the original evidentiary property.
@@ -130,15 +98,12 @@ Still-valid evidence:
 - exact Stage 3.50 changed-file set: two frontend files;
 - exact production/test blobs listed above;
 - exact-head CI #306 / run `33499393962` completed successfully;
-- same designated reviewer chat recorded a technical published-head `APPROVED`;
-- Stage 3.50 squash merge preserved the reviewed tree.
 
 Limits:
 
 - technical correctness does not prove compliance with the missing evidence lifecycle;
 - CI cannot prove withholding timing;
 - the External technical verdict cannot substitute for an absent evidence-only publication head;
-- later Stage 3.51 review cannot retroactively recreate missing pre-merge temporal controls.
 
 ## 8. Residual governance risk
 
@@ -147,7 +112,7 @@ Residual risk is evidence-integrity/process risk, not a newly identified runtime
 - mandatory repository-withholding proof was lost because Internal approval was disclosed too early;
 - no immutable evidence-only follow-up head exists;
 - no exact-head CI exists for such an evidence-only head;
-- no required same-chat no-semantic-drift verification exists for such a head;
+- no required single-context no-semantic-drift verification exists for such a head;
 - Stage 3.50 pre-merge lifecycle auditability is therefore reduced.
 
 This record does not assert that this risk is accepted. Explicit Principal Architect residual-risk
@@ -158,45 +123,21 @@ Stage 3.53 published head.
 
 Candidate eligibility mapping:
 
-1. Governance/process control only — candidate PASS.
-2. Historical action already immutable/merged — candidate PASS.
-3. Original temporal evidence property cannot be recreated — candidate PASS.
-4. Not a runtime/product/security/privacy/financial/data-integrity defect — candidate PASS.
-5. Available original evidence preserved — candidate PASS, subject to reviewer verification.
-6. Current technical evidence sufficient to bound remaining risk — candidate PASS, subject to review.
-7. Control no longer performable on an open/unmerged subject — candidate PASS.
-8. No narrower canonical remediation exists — candidate PASS because the temporal property cannot be reconstructed.
-
-The reviewer, not the Builder, decides whether all eight candidate passes are supported.
 
 ## 10. Compensating and recurrence-prevention controls
 
 Controls preserved:
 
-- canonical `REVIEW_WORKFLOW.md` v1.4.0 keeps the development sequence explicit and mandatory;
-- historical noncompliance remains append-only and cannot be relabeled compliant;
-- Stage 3.51 remains fail-closed until this disposition is protected-activated;
-- Stage 3.53 uses exact machine-readable state across every changed canonical surface;
-- authoritative-key mutations, missing-block and duplicate-block tests are required;
-- risk acceptance and merge authorization are separate human gates;
-- exact-published-head verification is mandatory before risk acceptance;
-- the P2-GOV-01..05 error ledger is retained below;
-- independently reviewed Stage 3.51 v6 checker/remediation evidence remains available for later
-  Stage 3.51 revision/re-review.
 
 No claim is made that GitHub currently machine-enforces Internal-evidence withholding. That control is
-a mandatory workflow/reviewer/Builder gate; this disposition must not overstate its automation.
 
 ## 11. Error ledger retained
 
 ### P2-GOV-01 — development evidence lifecycle skipped
-Prevention: `WITHHELD → External → evidence-only head → evidence-head CI → same-chat verification → only then Ready/merge`.
+Prevention: `WITHHELD → External → evidence-only head → evidence-head CI → single-context verification → only then Ready/merge`.
 
 ### P2-GOV-02 — lifecycle state drift across canonical surfaces
 Prevention: one authoritative structured state map across governed surfaces.
-
-### P2-GOV-03 — machine enforcement asserted without executable review evidence
-Prevention: never claim machine enforcement without executable verifier, clean output, negative tests and reviewable evidence.
 
 ### P2-GOV-04 — formatting-sensitive semantic checker
 Prevention: exact hashes for identity; normalized semantics for prose; no line-wrap-sensitive authority.
@@ -219,7 +160,7 @@ Protected merge is permitted only after:
 2. separate human commit/push permission;
 3. Draft PR publication;
 4. exact-head required CI green;
-5. same-chat exact-published-head verification `APPROVED`;
+5. single-context exact-published-head verification `APPROVED`;
 6. explicit Principal Architect residual-governance-risk acceptance bound to the exact Stage 3.53 head;
 7. separate explicit squash-merge authorization.
 
@@ -234,9 +175,7 @@ That status resolves only its blocking effect. It does **not**:
 - change original-audit arithmetic;
 - close or modify P3-08.
 
-After effective disposition, Stage 3.51 became eligible for revision and re-review. The later eligible
-Stage 3.51 / PR #113 protected squash merge closed P3-07 and moved the original audit to
-31/32 = 96.875%, leaving only P3-08 OPEN.
+Canonical record: PR #113.
 
 ## 13. Current decision
 

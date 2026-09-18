@@ -21,7 +21,7 @@ Classification: API CONSTITUTION
 * Web
 * iOS
 * Android
-* AI Assistant
+*  Assistant
 * Future Public API
 * Future Partner API
 
@@ -42,7 +42,6 @@ Domain Model
         ↓
 OpenAPI Contract
         ↓
-Architecture Review
         ↓
 SDK Generation
         ↓
@@ -602,6 +601,6 @@ OpenInvest Developer API
 
 > **OpenAPI является конституцией взаимодействия компонентов OpenInvest.**
 
-> **Frontend, Backend, Mobile, AI Assistant и будущие внешние интеграции должны разрабатываться не относительно реализации, а относительно утвержденного контракта.**
+> **Frontend, Backend, Mobile,  Assistant и будущие внешние интеграции должны разрабатываться не относительно реализации, а относительно утвержденного контракта.**
 
 > **Любое изменение API без обновления OpenAPI-документации считается архитектурной ошибкой и блокирует Merge независимо от качества кода.**

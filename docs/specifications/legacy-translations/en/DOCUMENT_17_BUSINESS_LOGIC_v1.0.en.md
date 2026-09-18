@@ -24,7 +24,6 @@ Priority: Critical
 
 This document describes not technologies, but OpenInvest business logic.
 
-This document explains to Codex:
 
 * how the product should work;
 * which calculations are performed;
@@ -517,7 +516,7 @@ The user corrects values manually.
 Before export, a verification window always appears.
 
 ```
-AI prepared the document.
+ prepared the document.
 
 Please,
 
@@ -722,9 +721,9 @@ Custom
 
 ---
 
-# AI ASSISTANT
+#  ASSISTANT
 
-AI never gives investment recommendations.
+ never gives investment recommendations.
 
 ---
 
@@ -811,25 +810,3 @@ Very fast interface.
 Backend takes on all heavy mathematics.
 
 ---
-
-# CODEX REQUIREMENTS
-
-Before implementing any new functionality, Builder Agent must answer:
-
-1. Does the function improve the investor's life?
-
-2. Does it provide new value?
-
-3. Does it duplicate an existing function?
-
-4. Does it complicate the interface?
-
-5. Can this function be explained to the user in 10 seconds?
-
-6. Does it work the same way in Web, iOS, and Android?
-
-7. Does it comply with the philosophy:
-
-**"Minimum user actions — maximum automation and transparency."**
-
-If at least one answer is negative, the function must not enter the product without a separate architectural discussion.

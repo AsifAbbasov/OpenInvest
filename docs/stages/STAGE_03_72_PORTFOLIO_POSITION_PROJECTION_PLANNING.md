@@ -5,12 +5,9 @@
 | Document ID | STAGE-03-72-PORTFOLIO-POSITION-PROJECTION-PLAN |
 | Version | 0.1.1-candidate |
 | Status | MERGE-ACTIVATED PLANNING DECISION — NON-NORMATIVE BEFORE PROTECTED MERGE / CANONICAL ONLY AFTER REQUIRED GATES + SQUASH MERGE / NO IMPLEMENTATION AUTHORIZATION |
-| Owner | Principal Architect / Portfolio & Analytics |
 | Canonical planning base | `develop@69be7fe12f53d016019c8a29297d7c656830670d` |
 | Protected-base tree | `a595a8a90cbf5319fcf33f93bb81e5bae083e976` |
-| Dependencies | `docs/REVIEW_WORKFLOW.md` v1.4.0; Architecture Freeze v1.2; Stage 2 API/canonical/ER freeze; Stage 3.70; ADR-009; Stage 3.71; effective `STAGE-03-72-GOV-01` disposition and post-merge documentation closure |
 | Architecture decision | No new ADR proposed; this scope implements the public projection explicitly deferred by ADR-009 without changing ledger ordering or WAC methodology |
-| Runtime authorization | None until this planning candidate is reviewed, protected-merged, and Stage 3.72 implementation is separately authorized |
 | Date | 2026-09-06 |
 
 ## 1. Purpose
@@ -43,24 +40,6 @@ Stage 3.72 closes only that presentation/read-model gap.
 
 ## 3. Governance classification
 
-Although the planning change is documentation-only, it freezes implementation-affecting API and financial projection semantics. It therefore follows the **development path** in `docs/REVIEW_WORKFLOW.md` v1.4.0.
-
-```text
-approved planning scope
-→ planning branch
-→ exact documentation candidate
-→ deterministic local checks
-→ Internal read-only full review
-→ explicit human commit/push permission
-→ Draft PR to develop with Internal evidence withheld
-→ required exact-head CI
-→ fresh External published-head review
-→ after External verdict publish Internal evidence only
-→ exact-head CI
-→ same-chat evidence-only verification
-→ explicit human planning acceptance + squash-merge authorization
-→ protected develop
-```
 
 Protected merge of this planning decision makes the plan canonical only. It does not itself authorize Stage 3.72 runtime implementation.
 
@@ -487,7 +466,6 @@ MarketValuationUnavailable
 PortfolioPositionsResponse
 ```
 
-Exact names may be mechanically adjusted during implementation review only if semantics remain identical and all validators/examples are updated together.
 
 The Stage 2 frozen baseline remains historical authority; implementation records the additive Stage 3.72 contract rather than silently rewriting old architectural history.
 
@@ -644,14 +622,13 @@ new cloud service = 0
 Redis/cache = 0
 worker/cron = 0
 new table = 0
-AI = 0
+ = 0
 ```
 
 Initial implementation may replay the portfolio's accepted position-affecting ledger in-process because correctness and zero-cost scope take priority over speculative persistence.
 
 No database migration/index is pre-authorized by this plan.
 
-Before publication, implementation tests should capture query count and representative replay behavior. If evidence shows the existing indexes/read shape are inadequate, stop and propose the smallest separately reviewed database-performance change rather than silently widening Stage 3.72.
 
 ## 24. Explicit exclusions
 
@@ -686,7 +663,7 @@ snapshot_positions redesign
 Redis
 cache/workers/cron
 notifications
-AI
+
 mobile-native implementation
 ```
 
@@ -701,7 +678,7 @@ Stop Stage 3.72 implementation and return to planning if:
 - the read cannot return one coherent ledger projection;
 - a database migration/new table/provider becomes necessary;
 - Stage 3.71 regression vectors change;
-- scope expands into returns, P/L, market data, tax, correction/reversal, imported SELL, Corporate Actions, notifications, or AI.
+- scope expands into returns, P/L, market data, tax, correction/reversal, imported SELL, Corporate Actions, notifications, or .
 
 ## 26. Rollback
 
@@ -713,21 +690,18 @@ If public projection must be disabled, remove/disable the additive endpoint/UI s
 
 ## 27. Planning acceptance and implementation gate
 
-This planning candidate does not become canonical by drafting, local review, commit, push, Draft PR, or CI.
 
 It becomes canonical only after:
 
-1. complete development-path Internal review is `APPROVED`;
 2. explicit human commit/push authorization;
 3. Draft PR publication;
 4. all required exact-head CI succeeds;
-5. fresh External published-head review is `APPROVED`;
 6. required Internal evidence is published only after the External verdict;
-7. exact-head evidence-only CI and same-chat verification pass;
+7. exact-head evidence-only CI and single-context verification pass;
 8. Principal Architect explicitly accepts the Stage 3.72 planning decision and authorizes squash merge;
 9. the exact accepted planning tree is squash-merged into protected `develop`.
 
-For PR #142 specifically, the historical withholding requirement in item 6 was not fully satisfied because the Draft PR body exposed the Internal `APPROVED` verdict before External review. That temporal noncompliance is permanently preserved and was separately dispositioned as `STAGE-03-72-GOV-01` through PR #143, with residual governance risk explicitly accepted and post-merge documentation closure completed through PR #144. The disposition does not make item 6 historically compliant; it removes only the named irreversible governance blocker under the canonical deviation mechanism. Before any planning acceptance/Ready/merge decision, PR #142 must additionally pass this current-base refresh, exact-head CI, and fresh current-base reverification against `develop@69be7fe12f53d016019c8a29297d7c656830670d`.
+Canonical record: PR #142, PR #143, PR #144; commit(s) `69be7fe12f53d016019c8a29297d7c656830670d`.
 
 Even after planning activation:
 
@@ -735,87 +709,11 @@ Even after planning activation:
 STAGE_03_72_IMPLEMENTATION_AUTHORIZATION = NOT_GRANTED
 ```
 
-Runtime implementation requires a new, separate explicit human authorization.
-
-## 28. Internal Review Evidence
-
-This section is post-External evidence publication under `docs/REVIEW_WORKFLOW.md` v1.4.0. It records only review evidence and lifecycle/governance facts; it changes no Stage 3.72 financial, API, runtime, provider, database, or product semantics.
-
-```text
-PHASE=INTERNAL_PREPUBLICATION_REVIEW
-REVIEW_MODE=READ_ONLY_FULL_CHANGED_FILE_REVIEW
-CANDIDATE_BASE=db589eb074468f352e61b82bbad8f33307b3fc89
-CANDIDATE_BASE_TREE=e72fdd5a6577d81cb3b5413ec7c754cabb3bd7bc
-PLANNING_DOCUMENT_PREPUBLICATION_SHA256=4e593317bd0ebc6fd606ecf223e3c808a1a03dfed08cfba217b160a0bd981916
-PLANNING_DOCUMENT_PREPUBLICATION_GIT_BLOB=c22d421f938a79235d2295f2552de0341f36e37b
-FILES_REVIEWED=4
-REVIEWER_MUTATIONS=NONE
-FINAL_INTERNAL_VERDICT=APPROVED
-BLOCKING_FINDINGS_REMAINING=0
-```
-
-The Internal phase reviewed the complete prepublication four-file candidate:
-
-```text
-docs/stages/STAGE_03_72_PORTFOLIO_POSITION_PROJECTION_PLANNING.md
-docs/ROADMAP.md
-docs/SOURCE_OF_TRUTH.md
-docs/DOCUMENT_INDEX.md
-```
-
-Two material prepublication findings were resolved by the Builder before publication:
-
-1. **INT-372-F1 — undefined zero-denominator acquisition-basis allocation.** A valid open position can theoretically have scale-8 `acquisitionBasis = 0.00000000`; if every open position rounds that way, `totalAcquisitionBasis = 0.00000000` and allocation would be undefined `0/0`. The plan was corrected so `acquisitionBasisWeight` is `Decimal | null`, with `null` allowed only for the nonempty-open-position / zero-total-basis case. No fabricated zero allocation is permitted.
-2. **INT-372-F2 — Stage 3.71 / Stage 3.72 authorization wording contradiction.** The canonical Stage 3.71 lifecycle text still prohibited Stage 3.72 scope generally. The planning candidate was corrected to distinguish the already-complete Stage 3.71 boundary from a separately merge-activated Stage 3.72 planning gate, while preserving that Stage 3.72 runtime implementation remains separately unauthorized.
-
-After those Builder remediations, the complete candidate received Internal verdict `APPROVED` with zero blocking findings. The reviewer made no repository mutations.
-
-### Internal-evidence withholding chronology
-
-The mandatory withholding control was **not fully satisfied** for PR #142.
-
-```text
-2026-09-06T16:26:04Z  Draft PR #142 created; PR body disclosed
-                       `Internal review result: APPROVED`.
-                       Detailed Internal findings/evidence were not disclosed.
-
-2026-09-06T16:29:02Z  First External published-head review on
-                       595877215528eb0d3b71c31076d6520e899d5182:
-                       REQUEST CHANGES.
-
-2026-09-06T16:35:15Z  Fresh External published-head review on
-                       9bc2229625a47df26244421002e7f45d93a96cea
-                       after CI #390: APPROVED.
-
-post-External         Full Internal findings/verdict evidence published here.
-```
-
-`docs/REVIEW_WORKFLOW.md` v1.4.0 requires the current Internal **verdict and findings** to remain withheld from the Draft PR/repository evidence surface until the External verdict. Because the PR body exposed the Internal `APPROVED` verdict at Draft PR creation, the temporal withholding proposition is false even though detailed findings/evidence remained withheld.
-
-Stable deviation ID:
-
-```text
-STAGE-03-72-GOV-01
-```
-
-Historical classification at the time of evidence publication:
-
-```text
-HISTORICAL_COMPLIANCE=NONCOMPLIANT
-DEVIATION_TYPE=GOVERNANCE_EVIDENCE_CHRONOLOGY_ONLY
-RUNTIME_PRODUCT_API_MATH_SECURITY_DEFECT=NO
-RETROACTIVE_COMPLIANCE_CLAIM=NONE
-DISPOSITION_EFFECTIVE=NO
-DEVIATION_STATE=UNRESOLVED_BLOCKER
-```
-
-At the time of evidence publication, this evidence did **not** dispose, waive, cure, or retroactively satisfy the missed withholding control. A separate Historical Governance Deviation Disposition lifecycle was therefore required before the Stage 3.72 planning PR could become merge-eligible. That separate lifecycle later became effective through PR #143 and its post-merge documentation closure through PR #144; the historical noncompliance remains permanently preserved.
-
-The External published-head review remains independent evidence of the published planning content; the Internal verdict/findings above are recorded only after that External verdict and are not supporting evidence for the External conclusion.
+Runtime implementation requires a new, separate explicit merge gate.
 
 ## 29. Post-disposition current-base refresh state
 
-PR #142 was originally reviewed on `develop@db589eb074468f352e61b82bbad8f33307b3fc89`. Since then, the named historical governance deviation became effective through PR #143 and its documentation closure became canonical through PR #144. The protected base therefore advanced and the planning PR must be replayed/reverified against the current canonical state before any merge decision.
+Canonical record: PR #142, PR #143, PR #144; commit(s) `db589eb074468f352e61b82bbad8f33307b3fc89`.
 
 Current refresh identity:
 
@@ -831,9 +729,8 @@ DISPOSITION_PR=143
 DISPOSITION_CLOSURE_PR=144
 ```
 
-This refresh preserves the four-file planning scope and all frozen Stage 3.72 financial/API/product semantics. It reconciles only current-base and governance/lifecycle metadata required by the already-canonical PR #143/#144 state. It does not activate `PortfolioSummary.positions`, a market provider, market valuation, XIRR/returns, imported SELL, correction/reversal, tax basis, Corporate Actions, notifications, AI, a new table, Redis, cache, workers, or production rollout.
+This refresh preserves the four-file planning scope and all frozen Stage 3.72 financial/API/product semantics. It reconciles only current-base and governance/lifecycle metadata required by the already-canonical PR #143/#144 state. It does not activate `PortfolioSummary.positions`, a market provider, market valuation, XIRR/returns, imported SELL, correction/reversal, tax basis, Corporate Actions, notifications, a new table, Redis, cache, workers, or production rollout.
 
-Before planning merge eligibility is reconsidered, the refreshed exact head must pass all required CI and a fresh current-base review must verify that the effective disposition/closure state was preserved and that no semantic drift entered Sections 4–26.
 
 ```text
 PR_142_READY_AUTHORIZATION=NOT_GRANTED

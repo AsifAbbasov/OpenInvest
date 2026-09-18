@@ -4,7 +4,6 @@
 | --- | --- |
 | Status | COMPLETE / CANONICAL — P3-07 CLOSED through PR #113 squash merge `072350205b2746bdcd83f20718eb59efcd0478ef` |
 | Date | 2026-09-01 |
-| Canonical workflow | `docs/REVIEW_WORKFLOW.md` v1.4.0 |
 | Stage 3.49 plan | PR #109 squash merge `cfcc384a97327cc8b74aa05567b9629abf40a5fb` / plan blob `20921a00c6669fb0c39523e783c7015a7d016f80` |
 | Stage 3.50 implementation | PR #110 / head `be774b3a8423ffba98633b257983856b2c990b95` / squash merge `915d42f614121959fface9846a07cc1b412febe2` |
 | Stage 3.50 exact CI | #306 / run `33499393962` — 10/10 SUCCESS |
@@ -12,7 +11,6 @@
 | Stage 3.51 published head | `1868749965fa1c113875592668afaa8f1f1ca35e` |
 | Stage 3.51 published tree | `c83120dcfdf1cab281fea10818860827eb699b64` |
 | Stage 3.51 exact CI | #309 / run `33540615693` — 10/10 SUCCESS |
-| Stage 3.51 exact-published-head review | APPROVED |
 | Stage 3.51 squash merge | `072350205b2746bdcd83f20718eb59efcd0478ef` |
 | Final original audit | 31/32 = 96.875%; only P3-08 remains OPEN |
 | Runtime change in this post-merge synchronization | None |
@@ -67,9 +65,7 @@ The following alternative defaults were explicitly rejected because they still i
 - asset-search-derived values;
 - automatically calculated or looked-up prices/amounts.
 
-This was a design rejection, not a claim that a technical reviewer first approved and then rejected a
 different runtime implementation. The runtime implementation itself was narrow and later passed its
-technical published-head review.
 
 ## 4. Final technical design
 
@@ -120,7 +116,6 @@ The governed regression design required evidence that:
 9. Unicode note validation remains intact.
 
 A particularly important adversarial scenario was transaction-type switching. A value may remain in
-React state after its field becomes hidden; the payload builder must still gate/null that field so stale
 hidden state cannot leak into an inapplicable transaction payload.
 
 Focused component-test blob:
@@ -148,13 +143,11 @@ Stage 3.50 was published as PR #110.
 - exact published head: `be774b3a8423ffba98633b257983856b2c990b95`;
 - exact published tree: `f3a77245ea06b1fddc25e80c83e50aeda2551447`;
 - exact CI: #306 / run `33499393962` — 10/10 SUCCESS;
-- technical published-head review: APPROVED;
 - squash merge: `915d42f614121959fface9846a07cc1b412febe2`.
 
 The technical behavior was therefore accepted and merged. The later difficulty was a governance
 evidence-lifecycle problem, not a newly discovered runtime P3-07 defect.
 
-## 8. Governance failure and review history
 
 The governance history is intentionally separated from the technical remediation history. Nothing in
 this section rewrites Stage 3.50 into historical compliance.
@@ -166,7 +159,7 @@ merged without an evidence-only follow-up head, the required temporal sequence c
 
 - no later evidence-only head existed;
 - no CI existed on such a head;
-- no same-chat no-semantic-drift verification could occur on a head that never existed.
+- no single-context no-semantic-drift verification could occur on a head that never existed.
 
 Threat to governance: a later reader could otherwise confuse technical correctness with proof that the
 mandatory evidence chronology was followed.
@@ -249,12 +242,10 @@ Resolution in v8:
 - four stale-authority mutations independently rejected;
 - previous structured-state controls retained.
 
-Repeat prepublication review returned APPROVED with no new material finding.
 
 ### 8.7 P2-GOV-07 — residual stale-current-authority after first post-merge forensic synchronization
 
 The first post-merge forensic synchronization candidate passed its local structural checker, including
-byte-identical post-merge state and 7/7 negative mutations, but independent prepublication review found
 one additional material governance failure mode.
 
 The candidate still allowed contradictory or ambiguously scoped legacy authority to survive outside the
@@ -303,13 +294,11 @@ The approved post-P2-GOV-06 candidate was published without semantic drift:
 - published blobs equaled the approved prepublication blobs;
 - semantic drift: NONE;
 - CI #309 / run `33540615693`: 10/10 SUCCESS on the exact published head;
-- same designated reviewer exact-published-head verification: APPROVED;
 - separate human Ready authorization: completed;
 - separate exact-head squash-merge authorization: completed;
 - protected squash merge: `072350205b2746bdcd83f20718eb59efcd0478ef`;
 - protected `develop` tree after merge: `c83120dcfdf1cab281fea10818860827eb699b64`.
 
-The prepublication reviewer ZIP SHA256 was
 `9993ab6bdf5e869307ef27402952d2c9fa1c8fe487858319a6b48badec70c642`.
 
 The exact-published-head verification ZIP SHA256 was
@@ -327,7 +316,6 @@ Technically:
 - no replacement inferred business facts were introduced;
 - field applicability prevents hidden stale-value leakage;
 - existing validation/idempotency/Unicode/backend authority remains intact;
-- exact implementation CI and review evidence is preserved.
 
 Governance-wise:
 

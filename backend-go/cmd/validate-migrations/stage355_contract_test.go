@@ -15,7 +15,7 @@ import (
 )
 
 const canonicalPlanRel = "docs/stages/STAGE_03_54_P3_08_MIGRATION_VALIDATOR_PLAN.md"
-const canonicalPlanSHA256 = "c266d5b7c867d2e6847bbe169b0a890a997a81f886f1876117117e52c85aecba"
+const canonicalPlanSHA256 = "f2b598c396bdcdda4168fca9b7ef51db0f3b154b3acfc2abc06501cffba897b1"
 
 func TestCanonicalContractRegistryExactness(t *testing.T) {
 	root, err := repoRoot()

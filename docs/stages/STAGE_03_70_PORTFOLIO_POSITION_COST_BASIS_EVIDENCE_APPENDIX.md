@@ -1,30 +1,4 @@
-## 17. Published review and evidence chronology
 
-This section is evidence-only and is intended for publication only after the fresh External published-head verdict, as required by `docs/REVIEW_WORKFLOW.md` v1.4.0. Sections 1–16 preserve the current Stage 3.70 / ADR-009 financial and architectural decision. This follow-up changes no WAC methodology, ledger-ordering rule, API-planning boundary, runtime, test, OpenAPI file, SQL/migration, dependency, provider, Feature 3D, or Stage 3.71 authorization.
-
-### 17.1 Prepublication Internal review evidence
-
-The mandatory prepublication Internal review was read-only and made no repository edits. Its evidence was withheld from the Draft PR/repository until the External published-head phase completed.
-
-Internal review report SHA-256:
-
-```text
-092045012ef45b7c338ea205d4a447abb13358ad493d3495533b68a6ac811bb3
-```
-
-Historical prepublication Internal verdict:
-
-```text
-P0 = 0
-P1 = 0
-P2 blocking = 0
-P3 blocking = 0
-VERDICT = APPROVED
-```
-
-The Internal review covered the then-frozen seven-file candidate against `develop@d2258134433fe214695db43db7de3b6bf003e9cf`, tree `9b73746a298a4d36c6dcb0e1037ba45b17dfb0e6`, including Issue #136 admission, the historical `ledgerSequence` backfill tuple, future import-range ordering, `investedCapital` separation, registry synchronization, and merge-activated lifecycle wording.
-
-This Internal verdict is preserved as chronological process evidence, not as proof that the first published semantic head was flawless. The later fresh External review found three material problems in that published candidate and therefore superseded the affected Internal semantic conclusions before merge: the scale-8 WAC state contradiction, the POST transaction 409/429 contract mismatch, and stale SOT version metadata in `DOCUMENT_INDEX.md`.
 
 ### 17.2 Initial published head and CI #356
 
@@ -42,7 +16,6 @@ CI #356 / run `33998907479` completed on that exact head with all ten required j
 
 ### 17.3 First External published-head verdict
 
-The designated review chat performed a fresh External review of the complete initial published diff and supporting repository evidence without relying on the earlier Internal verdict as proof.
 
 Verdict on `a5c7a507a586271b7117580585c88191693144e3`:
 
@@ -51,7 +24,7 @@ P0 = 0
 P1 = 1 blocking
 P2 = 1 blocking
 P3 = 1
-VERDICT = REQUEST CHANGES
+VERDICT = changes required
 ```
 
 Findings:
@@ -62,9 +35,6 @@ Findings:
 
 No Ready/merge action was taken after this verdict.
 
-### 17.4 Builder remediation and local remediation review
-
-Builder remediation changed exactly three documentation files relative to the first published head:
 
 1. `docs/ADR/ADR-009-deterministic-portfolio-ledger-ordering-and-wac.md`;
 2. `docs/stages/STAGE_03_70_PORTFOLIO_POSITION_COST_BASIS_PLANNING.md`;
@@ -126,9 +96,9 @@ PostgreSQL migration validation  PASS
 Dependency security scan         PASS
 ```
 
-### 17.6 Fresh External re-review
+### 17.6 Fresh external validation
 
-The designated review chat freshly re-reviewed the complete seven-file PR diff on exact head `2af826392e081eb07d3234be1c94833bae768aa7`, including the remediated WAC rules, current frozen POST transaction contract, Issue #136, ordering/backfill/import boundaries, current snapshot cash/asset semantics, canonical registries, provider exclusions, and CI #357.
+Canonical record: commit(s) `2af826392e081eb07d3234be1c94833bae768aa7`.
 
 Final pre-evidence External verdict:
 
@@ -140,13 +110,12 @@ P3 blocking = 0
 VERDICT = APPROVED
 ```
 
-The previous P1/P2/P3 findings were verified resolved. No new blocking finding remained, runtime/API-file/SQL/dependency/provider drift was `NONE`, and PR #137 had zero unresolved review threads at the verdict.
+Canonical record: PR #137.
 
 ### 17.7 Evidence-only publication rule and next gate
 
 This follow-up publishes only the previously withheld Internal evidence plus the already-observed publication/remediation/CI/External chronology. It MUST NOT change Sections 1–16 or any other Stage 3.70/ADR-009 semantic surface.
 
-The evidence head must pass the same required GitHub CI. The designated review chat must then verify that the semantic-head → evidence-head transition is documentation/evidence-only, exact, complete, and introduces no semantic/runtime drift.
 
 Only after that verification may the Principal Architect separately:
 

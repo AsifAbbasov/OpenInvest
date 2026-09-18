@@ -1,13 +1,6 @@
 # Stage 3.36 - P3-03 OpenAPI Decimal Grammar Plan
 
-| Field | Value |
-| --- | --- |
-| Status | Planning/review gate only |
-| Date | 2026-08-24 |
-| Canonical base | `develop` at `876ce64c3992fa579174766b97301f6eb0a193d6` |
-| Finding | P3-03 |
-| Scope | Contract-to-parser lexical parity for the public Decimal value only |
-| Runtime implementation authorized here | No |
+Canonical record: commit(s) `876ce64c3992fa579174766b97301f6eb0a193d6`.
 
 ## 1. Finding / symptom
 
@@ -93,41 +86,6 @@ empty fractions, scientific notation, or excess digits.
 
 ## 5. Future implementation boundary
 
-After this plan receives the required review and approval, the implementation may be limited to:
-
-- `backend-go/internal/decimal/decimal.go` and focused unit tests, using a bounded whole-string
-  lexical check before allocation or fixed-scale conversion;
-- `backend-go/internal/httpapi` focused tests proving invalid Decimal spellings map to the existing
-  deterministic HTTP 400 validation path and do not call storage;
-- `backend-go/internal/importer` focused tests proving prohibited CSV Decimal spellings produce
-  review errors and cannot reach append. Because this changes normalized candidate/status semantics,
-  the implementation must bump `importer.ReviewParserVersion` and preserve the signed review-token
-  invalidation contract;
-- the narrow completed-command replay boundary in
-  `backend-go/internal/httpapi/idempotent_import_handler.go`,
-  `backend-go/internal/httpapi/import_replay_recovery.go`, and the existing replay
-  lookup/request-identity code, only as needed to preserve exact read-only replay of a command that
-  completed before the parser-version change. Parser-version invalidation must continue to reject
-  every new financial write authorized by an old review token. It must not make an already-completed
-  command return a current parser or token-validation failure merely because its original request
-  can no longer be parsed under the new semantics. If the current canonical command hash cannot be
-  reconstructed after the semantic change, the implementation may introduce the smallest stable,
-  completed-replay identity mechanism that is bound to the same principal, path, idempotency key,
-  and original request. It must perform a read-only exact-artifact lookup and must never use an old
-  parser-version token to authorize a new append. Before that lookup can return an artifact, it must
-  preserve the existing signed review-token proof under the token's historical parser semantics:
-  HMAC/signature, token structure and version family, lifetime shape, subject/portfolio/source
-  context, source-file hash, row identities, appendable rows, submitted decisions, and semantic
-  digests must remain authentic and consistent. Only the current parser-version mismatch may be
-  handled specially for a completed immutable replay; it must not become a generic old-token replay
-  bypass;
-- `backend-go/internal/postgres` focused disposable-PostgreSQL integration tests proving canonical
-  persisted Decimal text remains readable through the affected transaction and summary paths;
-- `backend-go/cmd/validate-openapi` contract-parity validation and tests, if needed to prevent future
-  drift between the literal schema pattern and the Go acceptance corpus;
-- `openapi/components/schemas.yaml` only if a clarification is necessary. The grammar itself should
-  remain unchanged unless the implementation proves a standards-level ambiguity in its use; and
-- the required Stage 3.36 implementation and closure-governance evidence.
 
 The parser must not use a regular expression as the only protection against excessively long input if
 the implementation would still allocate or scan an unbounded string first. It must impose a small,
@@ -171,7 +129,6 @@ make a migration, change snapshots, or split unrelated HTTP code.
    no approved append decision, and cannot affect the ledger or snapshots. A field-edge-whitespace
    vector must instead prove the established CSV behavior: it normalizes to the valid scalar `1.25`
    before Decimal admission and is not treated as a raw-JSON grammar violation.
-9. Valid CSV Decimal values continue through parse, review, explicit approval, and append under the
    existing financial-identity and reconciliation rules.
 10. A token/review issued with the prior `ReviewParserVersion` cannot authorize append after the
     semantic change and requires a fresh review. A newly issued token under the bumped version still
@@ -206,20 +163,9 @@ make a migration, change snapshots, or split unrelated HTTP code.
 
 ## 7. Alternatives rejected
 
-| Alternative | Rejection rationale |
-| --- | --- |
-| Broaden OpenAPI to allow all current parser spellings | Weakens the published API and preserves an unbounded leading-zero admission path. |
-| Normalize trim/plus/leading-zero forms before parsing | Hides client mistakes, changes signed lexical identity, and keeps contract drift. |
-| Require exactly eight fractional digits for inputs | Breaks already conforming forms such as `1` and `1.2` without a correctness benefit. |
-| Let PostgreSQL reject malformed or oversized values | Validation would occur too late and may become a generic persistence error. |
-| Permit JSON numeric values | Reintroduces binary floating-point ambiguity and violates the frozen Decimal contract. |
-| Accept a prior parser-version token after deployment | Would let a stale review authorize a new financial write. Exact replay must instead be limited to a completed immutable artifact. |
-| Change Decimal arithmetic while fixing lexical admission | Expands a narrow P3 remediation into unreviewed financial-calculation work. |
-| Add a permissive CSV exception | Creates another client/runtime contract mismatch at the ledger boundary. |
 
 ## 8. Adversarial review requirements
 
-The implementation review must challenge:
 
 - a regex or validator that matches a valid substring rather than the complete string;
 - divergence between JSON Schema/OpenAPI regex behavior and Go validation, especially anchors and
@@ -241,18 +187,14 @@ external data retrieval is planned. No production data is opened or modified by 
 
 The remediation narrows non-conforming request admission and bounds parser work. It does not claim a
 privacy-lifecycle outcome, change retention, or close any finding other than P3-03 after a separately
-reviewed implementation and closure process.
 
 ## 10. Exact evidence and closure rule
 
 This document authorizes no runtime change. P3-03 remains OPEN until all of the following occur:
 
-1. this planning gate is independently reviewed and canonically merged;
 2. a separately scoped implementation passes its parser, HTTP, importer, OpenAPI, PostgreSQL, and
    full exact-head CI evidence;
-3. a fresh independent review reaches `APPROVED` after every implementation change;
 4. the user explicitly authorizes the canonical merge; and
-5. separately reviewed closure governance records the exact head, CI, review, merge, and remaining
    audit state.
 
 Until then the original audit state remains P0=0, P1=0, P2=0, P3=9. Stage 3.25 privacy evidence
@@ -264,6 +206,6 @@ No implementation begins under this planning document. This stage does not autho
 financial arithmetic, rounding, database schemas, migrations, stored ledger/history, snapshots,
 session cleanup, account deletion/anonymization, audit retention, OpenAPI endpoints, frontend
 product behavior, global Unicode/maxLength policy, HTTP decomposition, dependencies, infrastructure,
-tax, AI, mobile, broker integrations, or any P3 finding other than P3-03. The sole idempotency or
+tax, mobile, broker integrations, or any P3 finding other than P3-03. The sole idempotency or
 import-identity exception is the narrow completed-command replay preservation explicitly defined in
 Section 5 and its required regressions; it must not change fresh-write authorization.

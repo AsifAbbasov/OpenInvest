@@ -5,12 +5,10 @@
 | Document ID | REG-AUDIT-REMEDIATION-001 |
 | Version | 1.0.0 |
 | Status | MERGE-ACTIVATED — CANONICAL ONLY AFTER PROTECTED MERGE |
-| Owner | Principal Architect |
 | Source audit | Stage 3.16 repository audit |
 | Original findings | P0=0, P1=5, P2=17, P3=10, total=32 |
 | Current findings | P0=0, P1=0, P2=0, P3=0, total open=0 |
 | Closure | Stage 3.56 / PR #117 squash merge `983104267221706c3c2ebd8d9be358e3921334b5` |
-| Last Review Date | 2026-09-07 |
 
 This register is the canonical cross-finding index. Detailed root cause, design alternatives, remediation reasoning, regression evidence and review history remain in the corresponding stage dossiers; this file does not replace those forensic records.
 
@@ -66,5 +64,3 @@ The original repository audit is **32/32 CLOSED (100%)**. No original P1, P2 or 
 | P3-10 | Stages 3.43–3.45 Fiber maintenance | CLOSED |
 
 ## Governance boundary
-
-This register records closure of the **original Stage 3.16 audit only**. It does not claim that future defects cannot exist, does not waive future review, and does not authorize Stage 3.25 privacy implementation, provider activation, production rollout, tax-basis expansion, imported SELL expansion, market valuation or later product scope.

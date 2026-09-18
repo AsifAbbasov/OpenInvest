@@ -846,7 +846,7 @@ Multi Country
 
 Multi Tax System
 
-AI Advisor
+ Advisor
 
 Broker Import
 

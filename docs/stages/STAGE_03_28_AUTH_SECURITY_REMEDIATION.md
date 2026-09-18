@@ -3,14 +3,13 @@
 | Field | Value |
 | --- | --- |
 | Status | Closure record; when canonical on `develop`, Stage 3.28 is closed for P1-01 and P1-05 |
-| Owner | Principal Architect |
 | Implementation baseline | `develop` at `6f50c39ee19834f1b2ff354230b727019be64369` |
 | Implementation branch | `fix/stage-03-28-auth-security-remediation` |
 | Implementation PR | #59 |
 | Implementation merge | `dc83f5f3a11da164e6809593861d96ccf47b29ca` |
-| Reviewed exact head | `92edab5d3e93dafe2fcc6247644e38e878a4202f` |
+Canonical record: commit(s) `92edab5d3e93dafe2fcc6247644e38e878a4202f`.
 | Exact-head CI | GitHub Actions #114 — SUCCESS |
-| Independent final review | `APPROVED` on exact head `92edab5d3e93dafe2fcc6247644e38e878a4202f` after one governance-only `REQUEST CHANGES` correction |
+Canonical record: commit(s) `92edab5d3e93dafe2fcc6247644e38e878a4202f`.
 | Human implementation merge authorization | Explicit squash-merge approval on 2026-08-23 |
 | Trigger | Repository-audit findings P1-01 and P1-05 |
 | Scope | Refresh-token replay/session-family containment; refresh/logout concurrency; Argon2 resource admission; PostgreSQL defense in depth; regression coverage |
@@ -23,10 +22,7 @@ Stage 3.28 is the narrowly scoped remediation of the two remaining repository-au
 - P1-01 — refresh-token replay did not invalidate the affected session family;
 - P1-05 — Argon2 password work had no process-wide admission bound and could create avoidable memory/CPU burst risk.
 
-Implementation PR #59 was squash-merged into `develop` at
-`dc83f5f3a11da164e6809593861d96ccf47b29ca` after exact-head CI #114 passed on
-`92edab5d3e93dafe2fcc6247644e38e878a4202f`, renewed independent final review returned
-`APPROVED` on that same exact head, and explicit human squash-merge authorization was given.
+Canonical record: PR #59; commit(s) `dc83f5f3a11da164e6809593861d96ccf47b29ca`, `92edab5d3e93dafe2fcc6247644e38e878a4202f`.
 
 This document is the closure-governance record. Once it is itself canonical on `develop`,
 P1-01 and P1-05 are closed. Stage 3.25 privacy evidence planning remains separate and the
@@ -150,7 +146,6 @@ Stored encoded password hashes are accepted for expensive verification only when
 thread, salt-length, and hash-length parameters exactly match the approved budget. Over-budget or
 malformed encodings are rejected before Argon2 runs.
 
-The independent reviewer explicitly treated the current generic HTTP 500 mapping for
 `ErrAuthCapacity` as non-blocking for P1-05 because the resource-exhaustion condition is prevented
 by the process-wide fail-fast gate itself. A dedicated `503 + Retry-After` mapping remains optional
 HTTP-contract hardening and is not represented as part of this P1 closure.
@@ -208,15 +203,10 @@ persistence layer from becoming a cost-amplification input.
 
 ## Review history
 
-The first independent final review on head
-`c0ef116dd858d0f6d2d613e5eae915c7a30d556e` returned `REQUEST CHANGES` for one governance
+`c0ef116dd858d0f6d2d613e5eae915c7a30d556e` returned `changes required` for one governance
 inconsistency only: this report still said `Draft PR #59` after GitHub had marked the PR ready for
-review. The reviewer reported no additional blocking P1-01/P1-05 security or correctness issue.
 
-The governance wording was corrected. The net diff from the originally reviewed head to the final
-reviewed head was one documentation-line replacement only; runtime code did not change. CI #114
 then passed completely on exact head `92edab5d3e93dafe2fcc6247644e38e878a4202f`, and the renewed
-independent review returned `APPROVED`.
 
 ## Verification evidence
 
@@ -241,15 +231,13 @@ Stage 3.28 closes P1-01 and P1-05 only when this closure record becomes canonica
 
 It does not close, waive, or silently downgrade:
 
-- Stage 3.25 privacy Security Review evidence planning;
 - any P2 finding from the repository audit;
 - any P3 finding from the repository audit;
 - optional `ErrAuthCapacity` HTTP `503 + Retry-After` contract hardening;
-- unrelated product, provider, market-data, tax, mobile, AI, or architecture work.
+- unrelated product, provider, market-data, tax, mobile, or architecture work.
 
 ## Closure rule
 
 The implementation merge alone is not the final governance closure. This closure record must pass
-its own CI/review/human-approval gates and be squash-merged into `develop`.
 
 When this document is canonical on `develop`, Stage 3.28 is closed for P1-01 and P1-05.

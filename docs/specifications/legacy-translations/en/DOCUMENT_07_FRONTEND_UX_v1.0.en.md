@@ -950,7 +950,7 @@ This is much broader, more scalable, and allows the following to be added later 
 
 * family portfolios;
 * joint investing;
-* an AI advisor;
+* an  advisor;
 * import from all brokers;
 * multicurrency portfolios;
 * retirement planning;
@@ -959,5 +959,3 @@ This is much broader, more scalable, and allows the following to be added later 
 * international markets.
 
 **My assessment of the current project state: 9.7/10.**
-
-The remaining 0.3 consists of documents on **Security by Design**, **Testing Strategy**, **DevOps**, **Legal & Compliance**, and **AI Agent Architecture**. Those are what will turn this Blueprint into an engineering specification for a product that can evolve for many years without architectural debt.

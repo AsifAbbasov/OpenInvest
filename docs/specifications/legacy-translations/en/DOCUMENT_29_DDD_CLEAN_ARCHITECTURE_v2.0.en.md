@@ -108,7 +108,7 @@ Knows nothing about taxes.
 
 ---
 
-Knows nothing about AI.
+Knows nothing about .
 
 ---
 
@@ -276,7 +276,7 @@ Tax Alert.
 
 ---
 
-# 9. AI Domain
+# 9.  Domain
 
 Responsible for:
 
@@ -298,7 +298,7 @@ visualization.
 
 ---
 
-AI cannot modify data.
+ cannot modify data.
 
 ---
 
@@ -460,7 +460,7 @@ Every feature can be completely disabled.
 Example:
 
 ```
-AI OFF
+ OFF
 
 ↓
 
@@ -775,11 +775,9 @@ Removal
 
 # 26. CODE OWNERSHIP
 
-Builder Agent
 
 ↓
 
-Review Agent
 
 ↓
 
@@ -884,5 +882,3 @@ Clean Architecture.
 > **OpenInvest is not a monolithic website.**
 
 > **OpenInvest is a set of independent financial domains united by a common mathematical model, a single API contract, and an event-driven architecture.**
-
-> **Adding a new feature must not result in changing the already working core. Any violation of this rule is considered an architectural defect and must be rejected by Review Agent before the code reaches the main branch.**

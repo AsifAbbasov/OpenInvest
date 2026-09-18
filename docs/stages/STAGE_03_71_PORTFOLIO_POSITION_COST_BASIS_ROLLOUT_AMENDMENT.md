@@ -1,6 +1,5 @@
 # Stage 3.71 — Portfolio Position & Cost Basis Engine rollout amendment
 
-Status: required activation amendment discovered during final adversarial rollout review. This amendment is additive to the frozen Stage 3.71 implementation authority and does not change ADR-009 financial semantics, migration SQL, WAC arithmetic, or ledger ordering.
 
 Canonical base: protected `develop@b772e52221fbb694b3116bd1b579db99d4e56302`.
 
@@ -98,5 +97,3 @@ This amendment closes an operational activation gap only. It does not authorize 
 - public position DTO availability;
 - market-data behavior;
 - later-stage scope.
-
-Stage 3.71 remains Draft until the current exact PR head is green and review/governance gates complete.

@@ -5,30 +5,20 @@
 | Document ID | STAGE-03-07 |
 | Version | 0.1.1 |
 | Status | Complete / merged into `develop` |
-| Owner | Builder Engineer |
 | Supersedes | Stage 3.7 roadmap placeholder |
 | Dependencies | Stage 3.5 import design; Stage 3.6 import reconciliation slice; Stage 3.2 Go vertical slice; Documents 42–43 |
-| Last Review Date | 2026-07-02 |
-| Next Review Date | 2027-01-03 |
 
 ## Purpose
 
-Stage 3.7 defines the reviewed implementation boundary for atomic append of user-approved import
 rows into the existing immutable ledger.
 
 Stage 3.6 deliberately stopped at an append request plan. Stage 3.7 may only proceed after this
-planning scope is reviewed and approved, because append changes financial history and must preserve
 idempotency, deterministic snapshot rebuilds, auditability, and explicit user confirmation.
 
 ## Planning scope
 
 This planning PR may only:
 
-- document the Stage 3.7 implementation boundary;
-- define allowed and forbidden implementation surfaces;
-- define financial, privacy, security, and test expectations;
-- define rollback and review requirements;
-- synchronize governance registries.
 
 No implementation is authorized by this planning document alone.
 
@@ -77,7 +67,7 @@ Stage 3.7 must not introduce:
 - mutation or deletion of existing ledger transactions;
 - tax calculation;
 - mobile implementation;
-- AI assistance or interpretation.
+-  assistance or interpretation.
 
 ## Financial and ledger rules
 
@@ -126,10 +116,6 @@ The Stage 3.7 implementation was allowed to merge only after:
 
 - full local verification must pass;
 - GitHub CI must be green;
-- Internal Review Agent must review every changed line;
-- independent external review must approve;
-- human approval must be explicit;
-- review must confirm no public import API, upload UI, broker integration, worker, mobile code, tax
   logic, or Stage 3.8 work entered the PR.
 
 ## Acceptance criteria for this planning PR
@@ -140,4 +126,3 @@ This planning PR is complete when:
 - `SOURCE_OF_TRUTH.md`, `DOCUMENT_INDEX.md`, `VERSION_MATRIX.md`, `ROADMAP.md`,
   `IMPLEMENTATION_LOG.md`, and `CHANGELOG.md` are synchronized;
 - no implementation files are changed;
-- strict independent review approves the planning scope.

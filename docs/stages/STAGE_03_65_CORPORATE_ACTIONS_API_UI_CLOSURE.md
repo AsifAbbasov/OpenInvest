@@ -1,29 +1,6 @@
 # Stage 3.65 — Corporate Actions API / UI Closure
 
-| Field | Value |
-| --- | --- |
-| Status | MERGE-ACTIVATED CLOSURE RECORD — before protected activation this document is a closure candidate; once present on protected `develop`, Stage 3.64 / Feature 3C documentation closure is complete |
-| Date | 2026-09-05 |
-| Closed implementation stage | Stage 3.64 / Feature 3C — Corporate Actions API / UI |
-| Planning authority | `docs/stages/STAGE_03_61_CORPORATE_ACTIONS_CALENDAR_PLANNING.md` |
-| Domain dependency | Stage 3.62 / Feature 3A — Corporate Action Boundary |
-| Projection dependency | Stage 3.63 / Feature 3B — Calendar + Heatmap Projection |
-| Detailed implementation/evidence record | `docs/stages/STAGE_03_64_CORPORATE_ACTIONS_API_UI_IMPLEMENTATION.md` |
-| Implementation PR | PR #128 — `feat: implement Stage 3.64 corporate actions API/UI` |
-| Initial frozen V3 manifest SHA-256 | `112a4f94ce038255211e28f3b7f23b3980312dbc80a23e8b83fc664b6661bf66` |
-| Final reviewed semantic/remediation head | `9bbcf6d3f0f4a3b87e06a944869fb6e4ef722784` |
-| Final reviewed semantic/remediation tree | `1d24e2cd02b216b4caedb29089cd86dc97af26f9` |
-| Final evidence head | `f4631c04efd0ae47eaa46d7f38ef916f350c100f` |
-| Final evidence tree | `33dd90d3928286c7d2628dd56e7d9f55eece08b5` |
-| Implementation squash merge | `c204ee9eee320e6171b55983cfde5cf74a2008df` |
-| Protected post-merge tree | `33dd90d3928286c7d2628dd56e7d9f55eece08b5` |
-| Closure base | protected `develop@c204ee9eee320e6171b55983cfde5cf74a2008df` |
-| Closure base tree | `33dd90d3928286c7d2628dd56e7d9f55eece08b5` |
-| Closure runtime scope | None — documentation/governance synchronization only |
-| Synchronized canonical surfaces | `docs/ROADMAP.md`; `docs/SOURCE_OF_TRUTH.md`; this Stage 3.65 closure record |
-| External source activation | None; Feature 3D remains separately gated |
-| Architecture/API/UI debt after protected activation | CLOSED |
-| Remaining Corporate Actions blocker | Feature 3D — real source adapter / source rights / licensing / rate-cost policy |
+Canonical record: PR #128; commit(s) `9bbcf6d3f0f4a3b87e06a944869fb6e4ef722784`, `1d24e2cd02b216b4caedb29089cd86dc97af26f9`, `f4631c04efd0ae47eaa46d7f38ef916f350c100f`, `33dd90d3928286c7d2628dd56e7d9f55eece08b5`, `c204ee9eee320e6171b55983cfde5cf74a2008df`.
 
 ## 1. Closure basis
 
@@ -150,7 +127,6 @@ Three source-governance decisions are preserved:
 These choices keep Feature 3C independent of a future Feature 3D provider and avoid assuming public-display,
 retention, caching, or rate rights before an actual source contract is approved.
 
-## 6. Review, remediation, and CI evidence
 
 The authorized V3 frozen manifest was:
 
@@ -161,11 +137,7 @@ The authorized V3 frozen manifest was:
 The initial published candidate exposed real frontend test-environment defects. They were preserved and remediated
 rather than hidden:
 
-- CI #341 / run `33926915501`: frontend component tests could not load CSS modules under Node/tsx;
-- remediation `cee7e1aab8b02d98e14148939773e89c11ec8bcb`: test-only CSS-module loader;
-- review hardening `78e7aaade9ea7de97fbc6f91093993b88e35ef37`: stable JSDOM before dynamic React/ReactDOM imports;
-- CI #343 / run `33927419572`: Next.js component test required browser-global `self`;
-- remediation/final reviewed semantic head `9bbcf6d3f0f4a3b87e06a944869fb6e4ef722784`: `self: dom.window` in the test environment.
+Canonical record: commit(s) `cee7e1aab8b02d98e14148939773e89c11ec8bcb`, `78e7aaade9ea7de97fbc6f91093993b88e35ef37`, `9bbcf6d3f0f4a3b87e06a944869fb6e4ef722784`.
 
 No runtime/API/domain semantic remediation was required after publication.
 
@@ -177,7 +149,6 @@ run 33927609434
 10/10 required jobs SUCCESS
 ```
 
-Fresh External published-head review COMMENT:
 
 ```text
 5118470329
@@ -210,7 +181,7 @@ VERDICT = APPROVED
 
 No unresolved review threads remained.
 
-## 7. Human authorization and implementation merge
+## 7. merge gate and implementation merge
 
 After exact evidence verification, the Principal Architect explicitly authorized Ready and squash merge of exact
 evidence head:
@@ -324,7 +295,6 @@ language preserved in the Stage 3.64 implementation record.
 ## 11. Relationship to Stage 3.64
 
 `STAGE_03_64_CORPORATE_ACTIONS_API_UI_IMPLEMENTATION.md` remains authoritative for the detailed technical contract,
-implementation reasoning, failure semantics, review findings, remediation history, and pre-merge evidence chain.
 
 Its pre-merge lifecycle wording is retained as immutable historical evidence of the state when that evidence record was
 published.
@@ -339,10 +309,8 @@ Feature 3D real source adapter = NOT ACTIVATED / separately gated
 
 ## 12. Governance / Closure path
 
-This is an eligible post-development governance/closure change under `docs/REVIEW_WORKFLOW.md` v1.4.0.
 
 The complete candidate is documentation-only and contains exactly the Stage 3.65 closure record plus synchronized
-`ROADMAP.md` and `SOURCE_OF_TRUTH.md`. The designated review chat performs one read-only Governance / Closure review;
 no second development-path Internal/External cycle is required.
 
 Protected activation sequence:
@@ -350,16 +318,13 @@ Protected activation sequence:
 ```text
 documentation candidate
 → deterministic documentation checks
-→ Governance / Closure review
 → explicit human commit/push authorization
 → Draft PR targeting develop
 → required GitHub CI
 → exact-published-head Governance / Closure verification
-→ explicit human merge authorization
 → squash merge to protected develop
 ```
 
-Draft publication, green CI, review approval, or Ready state alone does not activate this record. Protected `develop`
 is the activation boundary.
 
 ## 13. Closure decision

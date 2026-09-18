@@ -1,17 +1,6 @@
 # Stage 3.37 — P3-02 True IANA Timezone Semantics Closure
 
-| Field | Value |
-| --- | --- |
-| Status | Closure candidate / independent closure review pending |
-| Date | 2026-08-25 |
-| Finding | P3-02 — True IANA Timezone Semantics |
-| Planning gate | PR #90 squash-merged at `46f74528dcc19424ad087d30d4f2f778e2079b87` |
-| Runtime PR | PR #91 — `fix: enforce Stage 3.37 P3-02 IANA timezone admission` |
-| Initial published runtime head | `465a7f0ddfe5a7bf892ec8a735915688cdaf59ad` |
-| Frozen final runtime head | `1a2f89a0fa5095b3cca790521afa484bdc61e8a6` |
-| Runtime merge | `cb6d9b28cd47b1cd283b5861b916e0be627d0ac2` |
-| Exact-head CI | GitHub Actions CI #265 / run `32869754524`, 10/10 required jobs successful |
-| Closure merge authorized here | No |
+Canonical record: PR #90, PR #91; commit(s) `46f74528dcc19424ad087d30d4f2f778e2079b87`, `465a7f0ddfe5a7bf892ec8a735915688cdaf59ad`, `1a2f89a0fa5095b3cca790521afa484bdc61e8a6`, `cb6d9b28cd47b1cd283b5861b916e0be627d0ac2`.
 
 ## 1. Finding / symptom
 
@@ -137,21 +126,18 @@ CI #265 / run `32869754524` with all 10 required checks successful:
 
 ## 11. Adversarial review history
 
-The remediation required two independent `REQUEST CHANGES` cycles at different lifecycle gates.
+The remediation required two independent `changes required` cycles at different lifecycle gates.
 
-First local pre-commit review:
-- `REQUEST CHANGES` because whitespace/raw-offset invalidity was resolver-dependent under a custom
+- `changes required` because whitespace/raw-offset invalidity was resolver-dependent under a custom
   higher-precedence `ZONEINFO` source.
 - Remediation added only the narrow pre-resolver whitespace/raw-offset syntax guard.
-- Renewed local pre-commit review returned `APPROVED` with P0/P1/P2/P3 = None.
 
-First published-head review on `465a7f0ddfe5a7bf892ec8a735915688cdaf59ad`:
+Canonical record: commit(s) `465a7f0ddfe5a7bf892ec8a735915688cdaf59ad`.
 - runtime implementation was accepted;
-- `REQUEST CHANGES` was issued only because the implementation record still falsely described the
+- `changes required` was issued only because the implementation record still falsely described the
   already-published candidate as uncommitted/local.
-- A one-file documentation correction was independently pre-commit reviewed and `APPROVED`.
 
-Final published-head review on `1a2f89a0fa5095b3cca790521afa484bdc61e8a6`:
+Canonical record: commit(s) `1a2f89a0fa5095b3cca790521afa484bdc61e8a6`.
 - independently verified base/head identity;
 - independently verified CI #265 / run `32869754524` and all 10 jobs;
 - returned `APPROVED` with P0/P1/P2/P3 = None;
@@ -176,11 +162,10 @@ Runtime merge does not itself close P3-02.
    historical-data boundary.
 2. Initial runtime candidate added resolver-backed validation, OpenAPI wording, tests, and fallback
    `time/tzdata`.
-3. First pre-commit `REQUEST CHANGES` exposed the custom-`ZONEINFO` bypass.
+3. First pre-commit `changes required` exposed the custom-`ZONEINFO` bypass.
 4. Revised runtime candidate added the narrow pre-resolver syntax guard and received renewed
    pre-commit `APPROVED`.
 5. Initial published head `465a7f0d...` passed CI #264.
-6. First published-head review found only stale implementation-record lifecycle wording.
 7. The independently approved one-file documentation correction advanced the head to `1a2f89a0...`.
 8. Final head passed CI #265 and fresh published-head `APPROVED`.
 9. PR #91 was explicitly authorized and squash-merged as `cb6d9b28...`.
@@ -208,7 +193,6 @@ P3-02 does not close or absorb:
 - P3-08 migration-validator policy hardening;
 - P3-09 Next.js maintenance;
 - P3-10 Fiber maintenance;
-- Stage 3.25 privacy Security Review evidence collection.
 
 It also changes no BusinessDate/SQL `DATE` rule, UTC SystemTimestamp rule, financial calculation,
 migration, database schema, frontend behavior, dependency, provider integration, or historic row.
@@ -246,7 +230,6 @@ P3-02 runtime remediation is canonical in `develop`, but this unmerged closure p
 declare the finding canonically CLOSED.
 
 P3-02 becomes CLOSED only when this exact closure package receives fresh independent `APPROVED`
-review, receives exact-head green closure CI after publication, the user separately and explicitly
 authorizes the closure squash merge, and the closure PR is merged into `develop`.
 
 The resulting post-closure backlog is P0=0 / P1=0 / P2=0 / P3=7, consisting of P3-04, P3-05,

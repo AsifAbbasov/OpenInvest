@@ -29,7 +29,7 @@ This document defines the single source of truth for interaction among all OpenI
 * Web
 * iOS
 * Android
-* AI Assistant
+*  Assistant
 * Future Public API
 * Future Partner API
 
@@ -50,7 +50,6 @@ Domain Model
         ↓
 OpenAPI Contract
         ↓
-Architecture Review
         ↓
 SDK Generation
         ↓
@@ -610,6 +609,6 @@ without changing internal services.
 
 > **OpenAPI is the constitution governing interaction among OpenInvest components.**
 
-> **Frontend, Backend, Mobile, AI Assistant, and future external integrations must be developed against the approved contract, not against the implementation.**
+> **Frontend, Backend, Mobile,  Assistant, and future external integrations must be developed against the approved contract, not against the implementation.**
 
 > **Any API change without updating the OpenAPI documentation is considered an architectural error and blocks Merge regardless of code quality.**

@@ -1,19 +1,6 @@
 # Stage 3.72 — Portfolio Position Projection / Cost Basis View implementation closure
 
-| Field | Value |
-| --- | --- |
-| Document ID | STAGE-03-72-PORTFOLIO-POSITION-PROJECTION-CLOSURE |
-| Version | 1.0.0 |
-| Status | MERGE-ACTIVATED LIFECYCLE CLOSURE — CANONICAL ONLY AFTER PROTECTED MERGE |
-| Owner | Principal Architect |
-| Planning merge | `2144c52f4dc5ba9e917947d396ced1f3c572fe51` |
-| Runtime PR | `#145` |
-| Runtime exact head | `b6cd7766a6a584440dfdd7d00c35c34c8553a9ff` |
-| Runtime squash merge | `e935f19b68624f0b8be6ca293ead8f4395cf555e` |
-| Runtime protected tree | `3775b533867c2fb6de473da84a105cf3367cf848` |
-| Exact-head CI | `#413` / run `34091588982` / 10 of 10 required contexts SUCCESS |
-| Review state | Stage 3.72 runtime review declared complete by the Principal Architect before this documentation closure publication |
-| Date | 2026-09-07 |
+Canonical record: commit(s) `2144c52f4dc5ba9e917947d396ced1f3c572fe51`, `b6cd7766a6a584440dfdd7d00c35c34c8553a9ff`, `e935f19b68624f0b8be6ca293ead8f4395cf555e`, `3775b533867c2fb6de473da84a105cf3367cf848`.
 
 ## 1. Why Stage 3.72 exists
 
@@ -148,47 +135,8 @@ The implementation never re-derives WAC as `basis / quantity`.
 
 The Stage 3.72 projection is deliberately additive rather than a rewrite of Stage 3.71. This preserves four important boundaries:
 
-1. **one financial engine** — WAC/acquisition basis remain owned by Stage 3.71 `position.Apply`;
-2. **honest data semantics** — missing approved market data is represented as unavailable, not approximated;
-3. **API compatibility** — the older `PortfolioSummary.positions` contract remains untouched;
-4. **future extensibility** — a later separately reviewed market-data stage can replace the unavailable market projection without changing ledger-derived cost basis.
 
 A provider was not activated merely to make the screen look richer because that would combine source-rights, provenance, freshness, outage, currency and valuation-methodology decisions with a stage whose approved responsibility is ledger-derived position projection.
-
-## 5. Verification and review evidence
-
-Runtime PR `#145` was published from exact head:
-
-```text
-b6cd7766a6a584440dfdd7d00c35c34c8553a9ff
-```
-
-GitHub Actions CI `#413` / run `34091588982` completed with all 10 required protected contexts successful:
-
-- PostgreSQL migration validation;
-- Go tests, including PostgreSQL-backed Stage 3.72 integration/regression coverage;
-- Go race tests;
-- Go vet;
-- Go vulnerability scan;
-- dependency security scan;
-- frontend typecheck, tests and production build;
-- OpenAPI contract/example validation;
-- Python tests;
-- Docker Compose validation.
-
-The runtime PR was squash-merged into protected `develop` as:
-
-```text
-e935f19b68624f0b8be6ca293ead8f4395cf555e
-```
-
-The resulting protected tree is:
-
-```text
-3775b533867c2fb6de473da84a105cf3367cf848
-```
-
-The Principal Architect subsequently declared the Stage 3.72 runtime review complete and authorized canonical documentation synchronization.
 
 ## 6. Preserved boundaries and non-goals
 
@@ -203,7 +151,7 @@ Stage 3.72 does **not** authorize or implement:
 - FIFO/tax lots or tax basis;
 - bond accrued interest/NKD;
 - Corporate Actions Feature 3D source activation;
-- notifications or AI;
+- notifications or ;
 - Redis, worker or microservice expansion;
 - production provider rollout.
 
@@ -211,7 +159,6 @@ Stage 3.72 does **not** authorize or implement:
 
 ## 7. Residual risk and next decision boundary
 
-The main visible limitation is intentional: market valuation remains unavailable until an approved source/use/provenance/freshness design is separately reviewed and authorized.
 
 That limitation is preferable to fabricated or weakly sourced market data. Stage 3.72 is complete when users can reliably inspect their ledger-derived open positions and acquisition basis while the system explicitly states that market valuation is unavailable.
 
@@ -220,5 +167,3 @@ Any later step that introduces a market provider, valuation, unrealized P/L, mar
 ## 8. Closure statement
 
 Stage 3.72 runtime implementation is complete and canonical through PR #145 squash merge `e935f19b68624f0b8be6ca293ead8f4395cf555e`. The implementation delivers the intended Portfolio Position Projection / Cost Basis View over the canonical Stage 3.71 engine, with deterministic replay, endpoint-local as-of behavior, acquisition-basis allocation, ownership isolation, Web presentation, OpenAPI contract and explicit honest market-unavailable semantics.
-
-This documentation-only closure changes no runtime, financial calculation, API behavior, schema, migration, provider configuration or production deployment. It becomes the canonical Stage 3.72 lifecycle record only after this exact documentation synchronization is reviewed, passes required CI, and is protected-merged into `develop`.

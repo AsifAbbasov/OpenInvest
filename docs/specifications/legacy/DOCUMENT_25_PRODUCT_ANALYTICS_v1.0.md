@@ -444,7 +444,6 @@ Email
 
 Monitoring
 
-AI
 
 Total
 ```
@@ -455,7 +454,6 @@ Total
 
 Если расходы превышают лимит,
 
-Builder Agent получает задачу:
 
 > уменьшить стоимость без ухудшения UX.
 
@@ -545,7 +543,6 @@ Tax Module
 
 Charts
 
-AI
 
 PDF
 
@@ -635,7 +632,7 @@ Freeze
 
 ---
 
-# AI ANALYTICS
+#  ANALYTICS
 
 ИИ анализирует:
 
@@ -676,7 +673,6 @@ Evidence
 
 ↓
 
-Architecture Review
 
 ↓
 

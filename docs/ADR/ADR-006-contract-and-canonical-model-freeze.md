@@ -5,11 +5,8 @@
 | Document ID | ADR-006 |
 | Version | 1.0.0 |
 | Status | Accepted |
-| Owner | Principal Architect |
 | Supersedes | Conflicting API/DTO/ER details in Documents 1–41 |
 | Dependencies | Documents 42–43; ADR-002; ADR-003; ADR-004; ADR-005 |
-| Last Review Date | 2026-06-25 |
-| Next Review Date | 2026-12-25 |
 
 ## Context
 
@@ -99,7 +96,6 @@ tooling require a separate infrastructure review and executable database tests.
 
 ### Costs and constraints
 
-- Contract changes require review before implementation.
 - DTOs may intentionally differ from persistence and domain entities, requiring mapping code.
 - Cookie/CSRF web auth needs explicit browser integration and security testing.
 - Append-only correction/reversal is more complex than mutable CRUD.
@@ -116,7 +112,6 @@ No database rollback is involved because Stage 2 creates no tables or data.
 
 - Reduces secret exposure through HttpOnly refresh cookie and bounded error DTOs.
 - Prevents direct identity fields in investment/analytics schemas.
-- Requires a reviewed cryptographic-erasure/restore design before deletion implementation.
 - Prohibits secrets, identity documents, and raw financial documents in logs/audit payloads.
 - Introduces no collection of personal or financial data by itself.
 
@@ -128,6 +123,6 @@ caching, materialization, and infrastructure cost remain later-stage responsibil
 
 ## Approval outcome
 
-Accepted after Stage 2 external review, human approval, green CI, and squash merge of PR #2 into
+Canonical record: PR #2.
 `develop`. The `develop` branch at merge commit `bfde623552ebea6eac7bdaabf0d1a2263883de12` is the
 canonical Stage 2 baseline. Business implementation remains forbidden until the next approved stage.

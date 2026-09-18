@@ -336,7 +336,7 @@ instead of percentages.
 
 ---
 
-# 16. AI ASSISTANT
+# 16.  ASSISTANT
 
 Does NOT make decisions.
 
@@ -344,11 +344,11 @@ Does NOT trade.
 
 Does NOT send orders.
 
-AI only explains.
+ only explains.
 
-AI only analyzes.
+ only analyzes.
 
-AI only predicts scenarios.
+ only predicts scenarios.
 
 ---
 

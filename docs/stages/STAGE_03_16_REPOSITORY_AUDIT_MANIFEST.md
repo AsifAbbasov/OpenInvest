@@ -62,7 +62,6 @@ Each path below is classified against the immutable audit target. `Excluded` is 
 | `docs/DOCUMENT_INDEX.md` | Audited | E-DOC |
 | `docs/IMPLEMENTATION_LOG.md` | Audited | E-DOC |
 | `docs/OPEN_QUESTIONS.md` | Audited | E-DOC |
-| `docs/REVIEW_WORKFLOW.md` | Audited | E-DOC |
 | `docs/ROADMAP.md` | Audited | E-DOC |
 | `docs/SOURCE_OF_TRUTH.md` | Audited | E-DOC |
 | `docs/VERSION_MATRIX.md` | Audited | E-DOC |
@@ -99,7 +98,6 @@ Each path below is classified against the immutable audit target. `Excluded` is 
 | `docs/specifications/legacy/DOCUMENT_21_SECURITY_PRIVACY_v1.0.md` | Excluded | E-ARCHIVE |
 | `docs/specifications/legacy/DOCUMENT_22_LEGAL_ARCHITECTURE_v1.0.md` | Excluded | E-ARCHIVE |
 | `docs/specifications/legacy/DOCUMENT_23_MOBILE_ARCHITECTURE_v1.0.md` | Excluded | E-ARCHIVE |
-| `docs/specifications/legacy/DOCUMENT_24_AI_AGENTS_v1.0.md` | Excluded | E-ARCHIVE |
 | `docs/specifications/legacy/DOCUMENT_25_PRODUCT_ANALYTICS_v1.0.md` | Excluded | E-ARCHIVE |
 | `docs/specifications/legacy/DOCUMENT_26_DEVOPS_INFRASTRUCTURE_v1.0.md` | Excluded | E-ARCHIVE |
 | `docs/specifications/legacy/DOCUMENT_27_FINAL_PRODUCT_BLUEPRINT_v1.0.md` | Excluded | E-ARCHIVE |
@@ -111,11 +109,9 @@ Each path below is classified against the immutable audit target. `Excluded` is 
 | `docs/specifications/legacy/DOCUMENT_33_DESIGN_SYSTEM_v2.0.md` | Excluded | E-ARCHIVE |
 | `docs/specifications/legacy/DOCUMENT_34_TESTING_CONSTITUTION_v2.0.md` | Excluded | E-ARCHIVE |
 | `docs/specifications/legacy/DOCUMENT_35_MOBILE_BIBLE_v2.0.md` | Excluded | E-ARCHIVE |
-| `docs/specifications/legacy/DOCUMENT_36_AI_ARCHITECTURE_v2.0.md` | Excluded | E-ARCHIVE |
 | `docs/specifications/legacy/DOCUMENT_37_DEVOPS_WORKFLOW_v2.0.md` | Excluded | E-ARCHIVE |
 | `docs/specifications/legacy/DOCUMENT_38_PRODUCT_ANALYTICS_v2.0.md` | Excluded | E-ARCHIVE |
 | `docs/specifications/legacy/DOCUMENT_39_SCALING_DR_v2.0.md` | Excluded | E-ARCHIVE |
-| `docs/specifications/legacy/DOCUMENT_40_CODEX_EXECUTION_v3.0.md` | Excluded | E-ARCHIVE |
 | `docs/specifications/legacy/DOCUMENT_41_ANTI_PATTERNS_v1.0.md` | Excluded | E-ARCHIVE |
 | `docs/stages/STAGE_00_FOUNDATION.md` | Audited | E-DOC |
 | `docs/stages/STAGE_01_DOCUMENTATION_CONSOLIDATION.md` | Audited | E-DOC |
@@ -214,16 +210,9 @@ Each path below is classified against the immutable audit target. `Excluded` is 
 
 ## Evidence Key
 
-| Code | Review evidence |
 | --- | --- |
-| E-SOURCE | Manual review of active implementation, interfaces, dependency direction, and runtime behavior; checked with the repository verification suite. |
 | E-TEST | Manual review of test intent and boundary coverage; executed by the applicable Go, Node, Python, or end-to-end verification command. |
-| E-MIGRATION | SQL safety and rollback-pair review; checked by `go run ./cmd/validate-migrations` and the PostgreSQL CI job. |
-| E-CONFIG | Manual review of CI, Docker, package, and runtime configuration; checked by configuration and build validation. |
 | E-LOCK | Structured lockfile review and frozen-install consistency check. |
-| E-DOC | Manual review for Source of Truth, roadmap, architecture, API, privacy/security, test, dependency, cost, and ADR consistency. |
 | E-ARCHIVE | Excluded: archival legacy material retained for traceability and not active runtime/control authority under SOT-001. |
 
 ## Audit Boundary
-
-This manifest records audit coverage only. The associated audit report retains the `REQUEST CHANGES` verdict until every blocking item is independently re-reviewed and approved.

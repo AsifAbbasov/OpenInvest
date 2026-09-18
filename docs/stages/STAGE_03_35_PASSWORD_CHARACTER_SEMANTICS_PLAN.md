@@ -1,13 +1,6 @@
 # Stage 3.35 — P3-01 Password Character Semantics Plan
 
-| Field | Value |
-| --- | --- |
-| Status | Planning/review gate only |
-| Date | 2026-08-24 |
-| Canonical base | `develop` at `ae5a152114cc163867a363953f8a3202396b1f6c` |
-| Finding | P3-01 |
-| Scope | Password length, exact-secret admission, and auth HTTP decoding semantics only |
-| Runtime implementation authorized here | No |
+Canonical record: commit(s) `ae5a152114cc163867a363953f8a3202396b1f6c`.
 
 ## 1. Finding / symptom
 
@@ -90,7 +83,6 @@ Expected implementation primitives:
 
 - Go registration service: `unicode/utf8.ValidString` + `utf8.RuneCountInString`.
 - Go login service admission: `utf8.ValidString`, exact empty-string check, and `utf8.RuneCountInString <= 256`; no `strings.TrimSpace` password check.
-- Auth HTTP boundary: a narrow lossless password-decoding guard/DTO path that rejects malformed raw UTF-8 and invalid surrogate escape sequences before they can be replaced with `U+FFFD`. Do not broaden global `decodeStrictJSON` behavior across unrelated endpoints unless implementation review separately proves that change safe and in-scope.
 - Web: reject ill-formed JavaScript UTF-16 strings containing unpaired surrogates, then use explicit code-point counting such as `Array.from(password).length`; do not rely on HTML `minLength` as the canonical rule. A built-in `String.prototype.isWellFormed()` check may be used only if supported by the project's configured TypeScript/browser target; otherwise use a small local surrogate-pair validator.
 - OpenAPI RegisterRequest: retain `minLength: 12`, `maxLength: 256`, document code-point/no-normalization semantics.
 - OpenAPI LoginRequest: `minLength: 1`, `maxLength: 256`, document legacy-compatible exact-secret authentication semantics.
@@ -163,7 +155,6 @@ Web:
 
 ## 13. Adversarial review requirements
 
-Reviewer must challenge cross-layer counting parity, malformed-UTF-8 handling, invalid-surrogate handling on both Web and HTTP boundaries, accidental UTF-16 dependence, transport-time `U+FFFD` replacement, normalization/trimming, whitespace-only credential handling, legacy lockout, generic login-failure semantics, unintended weakening of registration policy, P3-04 scope creep, and any unauthorized Argon2 changes.
 
 ## 14. Remediation iterations
 
@@ -173,11 +164,10 @@ First, inspection found that the existing login `strings.TrimSpace` emptiness gu
 
 Second, the login service boundary was tightened to valid UTF-8 plus a 256-code-point maximum so the service and OpenAPI share the same Unicode-string model without affecting historically conforming public credentials.
 
-Third, independent adversarial planning review found that service-level `utf8.ValidString` is insufficient for HTTP auth input because Go `encoding/json` can replace malformed raw UTF-8 and invalid surrogate escapes with `U+FFFD` before the service sees the password. The plan therefore added a narrow fail-closed auth HTTP decoding requirement, transport regression vectors, corrected the historical-compatibility claim to cover conforming public credentials only, and explicitly separated malformed HTTP validation failure from generic service-level credential failure.
+Third, independent adversarial technical reassessment found that service-level `utf8.ValidString` is insufficient for HTTP auth input because Go `encoding/json` can replace malformed raw UTF-8 and invalid surrogate escapes with `U+FFFD` before the service sees the password. The plan therefore added a narrow fail-closed auth HTTP decoding requirement, transport regression vectors, corrected the historical-compatibility claim to cover conforming public credentials only, and explicitly separated malformed HTTP validation failure from generic service-level credential failure.
 
 Fourth, local adversarial review of the revised candidate found that `Array.from(password).length` alone still accepts a JavaScript string containing an unpaired surrogate even though strict backend decoding must reject the serialized surrogate escape. The plan therefore added Web well-formed-Unicode validation and regression coverage so the client and backend share the same admissible character domain.
 
-Any later implementation-review blocker must be preserved in the Stage 3.35 dossier. Every changed implementation head requires fresh exact-head CI and fresh independent review.
 
 ## 15. Residual risk / limitations
 
@@ -193,13 +183,11 @@ The auth HTTP path gains strict malformed-Unicode rejection before service/Argon
 
 ## 17. Exact evidence required for closure
 
-Closure must record planning PR/head/CI/review/human authorization/merge; implementation PR/final head/10-check CI/review/remediation iterations/human authorization/merge; and closure-governance PR/head/CI/review/human authorization/merge plus audit-state synchronization.
 
 Implementation evidence for the third planning-remediation iteration must include focused auth HTTP tests proving rejection of malformed raw UTF-8 and invalid surrogate escapes without `U+FFFD` substitution, plus service-level proof for malformed internal strings and the existing cross-layer code-point vectors.
 
 ## 18. Final canonical status rule
 
-P3-01 remains **OPEN** during planning and during any unmerged implementation candidate. It becomes **CLOSED** only after approved planning, separately reviewed implementation, exact-head 10/10 CI, independent `APPROVED`, explicit human squash-merge authorization, canonical implementation merge, and separately approved closure governance.
 
 Until then the original-audit state remains P0=0 / P1=0 / P2=0 / P3=10.
 

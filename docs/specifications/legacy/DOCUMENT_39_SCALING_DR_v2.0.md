@@ -378,7 +378,7 @@ Notification Queue
 
 ---
 
-AI Queue
+ Queue
 
 ---
 
@@ -412,7 +412,7 @@ Analytics Worker
 
 ---
 
-AI Worker
+ Worker
 
 ---
 
@@ -552,7 +552,6 @@ Archive
 
 ---
 
-Builder Agent обязан ответить:
 
 ---
 
@@ -820,7 +819,7 @@ Response Time
 
 # FAILURE ISOLATION
 
-Если AI перестал работать
+Если  перестал работать
 
 ↓
 
@@ -920,11 +919,10 @@ Public API
 
 ---
 
-AI Copilot
+ Copilot
 
 ---
 
-# ARCHITECTURE REVIEW QUESTIONS
 
 Перед Merge Architecture Agent обязан ответить:
 

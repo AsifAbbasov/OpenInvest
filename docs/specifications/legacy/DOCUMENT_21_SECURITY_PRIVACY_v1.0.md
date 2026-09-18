@@ -618,7 +618,6 @@ Prepared Statements
 
 ORM
 
-Query Builder
 
 ---
 
@@ -746,7 +745,7 @@ GDPR;
 
 ---
 
-# AI SECURITY
+#  SECURITY
 
 ИИ запрещено:
 
@@ -842,7 +841,6 @@ Convenience Mode
 
 # TRUST SCORE
 
-Каждый новый функционал Builder Agent обязан проверить:
 
 1.
 

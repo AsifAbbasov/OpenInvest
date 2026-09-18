@@ -5,11 +5,8 @@
 | Document ID | STAGE-03-04 |
 | Version | 0.1.1 |
 | Status | Complete / closed |
-| Owner | Builder Engineer |
 | Supersedes | Stage 3.4 roadmap placeholder |
 | Dependencies | Stage 3.1; Stage 3.2; Stage 3.3; ADR-006; ADR-007 |
-| Last Review Date | 2026-07-02 |
-| Next Review Date | 2027-01-02 |
 
 ## Purpose
 
@@ -126,8 +123,6 @@ Stage 3.4 does not change the Next.js implementation. Next.js remains a presenta
 - `pnpm run verify` — passed.
 - `POSTGRES_PORT=55432 pnpm run verify:e2e` — passed.
 - forbidden-boundary scan — passed.
-- Internal Review Agent review — approved after REQUEST CHANGES fixes.
-- Draft PR review — approved.
 
 ## Closure evidence
 

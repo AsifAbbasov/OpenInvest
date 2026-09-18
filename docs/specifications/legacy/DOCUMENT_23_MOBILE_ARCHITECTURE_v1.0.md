@@ -20,9 +20,6 @@ Classification: MOBILE FOUNDATION
 
 Документ обязателен для:
 
-* Codex
-* Builder Agent
-* Review Agent
 * QA Agent
 * Mobile Team
 
@@ -788,7 +785,7 @@ Layout
 
 ---
 
-# AI ASSISTANT
+#  ASSISTANT
 
 Работает
 
@@ -798,7 +795,6 @@ Layout
 
 ---
 
-Никаких LLM
 
 в мобильном приложении.
 
@@ -936,7 +932,6 @@ Trading212
 
 # MOBILE DESIGN CHECKLIST
 
-Перед созданием любого экрана Builder Agent обязан ответить:
 
 1.
 

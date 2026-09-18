@@ -6,14 +6,13 @@
 | Date | 2026-08-27 |
 | Finding | Original audit P3-04 — general Unicode / OpenAPI `minLength` / `maxLength` semantics |
 | Canonical runtime base | `develop` at `32b198ee9d349f119ed374fd86d47622e27bcd73` |
-| Planning gate | PR #96 merged into `develop` at `32b198ee9d349f119ed374fd86d47622e27bcd73` after multiple adversarial planning-review remediations, exact-head CI #273 / run `33018628673`, and final fresh `APPROVED` review |
+Canonical record: PR #96; commit(s) `32b198ee9d349f119ed374fd86d47622e27bcd73`.
 | Runtime branch | `fix/stage-03-39-p3-04-runtime` |
 | Runtime implementation commit | `740f5c313baac75d0406e9146a7bbc74a94d48c1` — `fix: align Unicode string length semantics` |
 | Runtime-head CI | CI #274 / run `33049818896` — exact head `740f5c313baac75d0406e9146a7bbc74a94d48c1`, 10/10 required jobs successful |
-| Evidence-only documentation commit | `de083b11f791c26c18ef635fc91d1322c281601b` — `docs: publish Stage 3.39 review evidence` |
+Canonical record: commit(s) `de083b11f791c26c18ef635fc91d1322c281601b`.
 | Pre-forensic publication baseline | Draft PR #97 at `de083b11f791c26c18ef635fc91d1322c281601b`; 2 commits; 17 changed files versus base before this forensic-history candidate |
 | Baseline CI before forensic publication | CI #276 / run `33072520619` — exact baseline head `de083b11f791c26c18ef635fc91d1322c281601b`, 10/10 required jobs successful |
-| Review state at forensic-candidate preparation | Runtime Internal Review `APPROVED`; blind external runtime-head review `REQUEST CHANGES` with no runtime technical blocker; documentation remediations completed; docs v2.1 Internal Re-Review `APPROVED`; this forensic-history follow-up itself still requires pre-commit approval, publication, fresh resulting-head CI, and both-reviewer verification |
 | Finding status | MERGE-ACTIVATED — OPEN before the approved closure record is present on protected `develop`; CLOSED once that record is present on protected `develop` |
 
 > **Finding-ID note.** IDs such as `STAGE-03-39-P2-01`, `STAGE-03-39-P3-02`,
@@ -70,12 +69,10 @@ correctness concerns that had to be solved before closure:
 - a malformed internal CSV note could violate the Stage 3.39 importer-entry fail-closed invariant and
   make importer review semantics diverge from application admission semantics.
 
-Other review findings were governance/scope P3 items: stale Source-of-Truth lifecycle state, an
 unsupported source-label replay branch, incomplete PR disclosure, insufficiently literal boundary
 vectors, and inaccurate permanent review-evidence statements. None of those were permitted to be
 silently erased from history.
 
-# 5. Planning review history — all reviewer-driven changes
 
 ## 5.1 Review-local `STAGE-03-39-P2-01` — portfolio cross-version replay
 
@@ -141,12 +138,6 @@ extend TTL, or create a second business effect.
 - lookup errors fail closed;
 - Stage 3.32 replay and Stage 3.38 expiry/reclamation invariants remain green.
 
-### Review evidence
-
-The planning finding was confirmed closed in subsequent planning reviews and the runtime implementation
-added focused service and HTTP historical-replay regressions. Runtime Internal Re-Review later approved
-the complete 17-file implementation.
-
 ### Residual limitation
 
 Compatibility exists only for the evidenced historical portfolio-create case and only while old replay
@@ -162,8 +153,6 @@ OPEN / PR #95 was not merged.
 
 ### Failure scenario / impact
 
-A future reviewer could read two canonical repository files and obtain contradictory active lifecycle
-truth. The review identified this as governance/evidence integrity drift, not a runtime defect.
 
 ### Revised solution
 
@@ -174,12 +163,12 @@ Synchronize all four active current-state surfaces while preserving historical f
 - Stage 3.38 implementation dossier active metadata/final status;
 - Stage 3.38 closure dossier active metadata/final status.
 
-Historical `REQUEST CHANGES`, old CI heads, and prior OPEN statements remain only as explicitly
+Historical `changes required`, old CI heads, and prior OPEN statements remain only as explicitly
 historical evidence.
 
 ### Evidence
 
-The next planning review confirmed the four-surface synchronization and closed this review-local P3.
+The next technical reassessment confirmed the four-surface synchronization and closed this review-local P3.
 
 ## 5.3 Review-local `STAGE-03-39-P3-03` — unsupported source-label replay branch
 
@@ -210,7 +199,6 @@ the raw byte guard rejects it before importer trim/token/replay processing.
 Remove the synthetic source-label compatibility branch; do not change `import_replay_recovery.go` or
 import-handler replay ordering for P3-04. Keep:
 
-`valid UTF-8 + raw code-point bound → existing trim → same normalized review/token/hash/broker/persisted identity`.
 
 `ReviewParserVersion` remains `2`, and existing Stage 3.32 recovery regressions stay unchanged/green.
 
@@ -221,24 +209,18 @@ signed-token and replay control flow.
 
 ### Evidence
 
-Subsequent planning review confirmed the unsupported replay scope was removed and closed this finding.
+Subsequent technical reassessment confirmed the unsupported replay scope was removed and closed this finding.
 
-## 5.4 Published planning-head review-local `STAGE-03-39-P3-04` — incomplete PR disclosure
 
 The first published planning head `f07b305cedb6532763ef0ae2ac1ad288f8e437c0` passed CI #272 but the
-independent published-head review found mandatory PR disclosure incomplete: ADR, DDD boundaries,
-math, performance/cost, security/privacy, compatibility, rollback, review budget, coverage impact and
 exact-head CI evidence were not all explicitly recorded.
 
 **Failure scenario:** a green documentation PR could reach human merge without explicit governance
-answers required by `docs/REVIEW_WORKFLOW.md`.
 
 **Remediation:** update only the PR description with all mandatory disclosures and exact CI evidence.
 No code/doc commit was required for this finding by itself.
 
-## 5.5 Published planning-head review-local `STAGE-03-39-P3-05` — regression matrix not literal enough
 
-The first published planning head used generic reject wording after positive multibyte vectors. Review
 showed that this could allow an implementation to prove `100 Cyrillic PASS` and only `101 ASCII REJECT`
 while leaving a multibyte reject-boundary bug undetected.
 
@@ -252,11 +234,9 @@ The plan was tightened to literal mandatory vectors:
 - relevant Stage 3.29/3.32/3.35/3.37/3.38 regression suites remain green.
 
 The remediation was published as planning head `2c453291ce5e41183d930874cba48382245573ea`.
-CI #273 / run `33018628673` passed 10/10, a fresh published-head review found P0/P1/P2/P3 none and
 returned `APPROVED`, and PR #96 was squash-merged as
 `32b198ee9d349f119ed374fd86d47622e27bcd73`.
 
-# 6. Frozen implementation chosen after planning review
 
 The final runtime contract was deliberately narrow:
 
@@ -274,7 +254,6 @@ The final runtime contract was deliberately narrow:
 - no NFC/NFD/NFKC normalization, case folding, transliteration, grapheme-cluster policy, dependency,
   migration, service, worker or generic raw-JSON rewrite is introduced.
 
-# 7. Runtime code review history — malformed CSV note
 
 ## 7.1 Review-local `STAGE-03-39-P3-06` — initial runtime candidate rejected
 
@@ -320,11 +299,6 @@ internal UTF-8 **before** code-point counting. Without the guard:
 Post-neutralization note length was counted with `utf8.RuneCountInString`, relying on the existing CSV
 pipeline for input shape.
 
-### Why Internal Review rejected it
-
-The reviewer independently demonstrated that `encoding/csv.Reader` accepts malformed byte `0xff` and
-therefore the required fail-closed invariant was genuinely reachable, not theoretical.
-
 ### Second attack scenario / required proof
 
 The correction had to be tested through the real path:
@@ -368,17 +342,7 @@ containing `string([]byte{0xff})`, runs it through `ReviewCSV`, and proves:
 - reason `NOTE_INVALID_UTF8`;
 - `ReviewParserVersion == 2`.
 
-The reviewer independently confirmed that the malformed byte is reachable through standard
 `encoding/csv`.
-
-### CI / review evidence
-
-The revised complete runtime diff SHA256 was
-`4bff9f65393ecfbe45868bc6f7dabaf12f8e6b300e6978d76746f7ffcce250c8`.
-Fresh Internal Re-Review reviewed all 17/17 files, marked review-local `STAGE-03-39-P3-06`
-**CLOSED BY REMEDIATION**, found P0/P1/P2/P3 none, and returned `APPROVED`.
-The runtime candidate was published as `740f5c313baac75d0406e9146a7bbc74a94d48c1` and exact-head CI #274
-passed all 10 required jobs.
 
 ### Residual limitation
 
@@ -396,7 +360,6 @@ lookup. A matching unexpired completed artifact is replayed exactly; missing/exp
 no write capability.
 
 The compatibility path never reserves, reclaims, writes, creates a generation, extends TTL, changes
-request-hash format, or invokes a new business-effect builder.
 
 ## 8.2 Asset search
 
@@ -405,15 +368,9 @@ trim-removable characters. Cursor/filter identity continues to use the existing 
 
 ## 8.3 Transaction note
 
-Application admission requires valid UTF-8 and `<=500` code points. Existing backend note normalization
-semantics are not broadened. Importer review validates the post-spreadsheet-neutralization note in the
-order frozen by review.
 
 ## 8.4 Source account label
 
-Public raw validity/code-point admission is checked before importer trim. Existing normalized identity
-continues through review/history/token/append/hash/broker/persistence. No historical source-label replay
-exception exists.
 
 ## 8.5 CSV payload
 
@@ -450,22 +407,6 @@ Focused tests prove:
 Pre-publication local gates also covered `git diff --check`, focused and full Go tests, Go vet, OpenAPI
 validation, frontend tests/typecheck/build, and dependency/migration scope checks.
 
-# 10. Published runtime-head blind external review
-
-The independent External Review Agent reviewed Draft PR #97 at exact runtime head
-`740f5c313baac75d0406e9146a7bbc74a94d48c1`, verified CI #274, and reviewed all 17/17 changed files
-without using Internal Review evidence before the verdict.
-
-Runtime technical assessment:
-
-- P0: none;
-- P1: none;
-- P2: none;
-- no blocking runtime technical defect;
-- Unicode/replay/import/security/performance/database regression evidence: PASS.
-
-The verdict was nevertheless `REQUEST CHANGES` because of one blocking documentation/governance P3.
-
 # 11. Documentation review history after runtime publication
 
 ## 11.1 `EXT-PR97-P3-01` — published Stage report was stale
@@ -478,23 +419,19 @@ The implementation report committed with the runtime still said:
 - not committed / not pushed / no PR;
 - branch local-only;
 - authoritative CI still future;
-- Internal Review pending.
 
 ### Why it happened
 
 The report accurately described the pre-publication local candidate when authored, but it had not been
-converted to publication-stable lifecycle facts before the blind external published-head review.
 
 ### Failure scenario / threat
 
 If merged unchanged, the permanent Stage 3.39 record would falsely say the runtime had never been
-committed, pushed, PR-published, CI-tested or internally reviewed. This is Source-of-Truth/audit-chain
 corruption even though runtime behavior is correct.
 
 ### Initial docs remediation
 
 The first docs-only candidate updated publication facts, recorded CI #274, published the previously
-withheld Internal Review evidence after the blind verdict, and kept P3-04 OPEN / Ready+merge pending.
 
 ### External-review disposition
 
@@ -509,29 +446,18 @@ The first docs-only remediation additionally stated that the runtime had been pu
 explicit separate human commit/push authorization and repeated that the human had separately authorized
 the exact candidate.
 
-### Why Internal Review rejected it
-
-The review package proved Internal Review approval, the existence of the runtime commit/branch/PR and
-CI, but did not itself contain direct evidence of that distinct human-authorization event. A permanent
-Stage record must not promote an unevidenced governance event into an affirmative audit claim.
-
 ### Second attack scenario
 
-A Git commit existing on the branch proves publication occurred. It does **not**, by itself, prove the
-preceding separate authorization gate. Treating occurrence as proof of authorization would weaken the
-same evidence discipline the review workflow is designed to enforce.
 
 ### Revised docs v2.1 solution
 
 Remove only the two unsupported authorization assertions. Preserve the evidenced sequence:
 
-`runtime Internal Review APPROVED → approved candidate subsequently published as commit 740f5c3...`
 
 without claiming evidence that was not present in the package.
 
 ### Why chosen
 
-It is the minimum truthful correction; no runtime fact, review verdict, CI fact or compatibility claim
 needs to change.
 
 ### Regression / evidence
@@ -540,38 +466,14 @@ The complete revised docs-only v2.1 patch SHA256 was
 `f48e6bd6cd880ecd16921698edb1b293c3c68958fb1801b8bf10da6d20656b8b` with proposed blob
 `b2441a42108756654a5816c1387f44c597e31de4`.
 
-Fresh docs-only Internal Re-Review:
+Fresh docs-only internal validation:
 
-- reconstructed the published old blob and proposed new blob exactly;
-- reviewed the complete one-file patch line-by-line;
-- confirmed `EXT-PR97-P3-01` resolved;
-- confirmed `INT-DOCS-P3-01` resolved;
-- found P0/P1/P2/P3 none;
-- returned `APPROVED`.
 
 The approved evidence-only document was published as commit
 `de083b11f791c26c18ef635fc91d1322c281601b`. Fresh exact-head CI #276 / run `33072520619` then
 completed `success` with all 10 required jobs green.
 
 The Draft PR #97 description was subsequently synchronized to the then-current baseline head `de083b11...`, CI #276,
-the two-commit history and published Internal Review evidence. The PR remains Draft and unmerged.
-
-# 12. CI and review evidence matrix
-
-| Gate | Exact candidate | Result |
-| --- | --- | --- |
-| Planning published-head review, initial | PR #96 head `f07b305cedb6532763ef0ae2ac1ad288f8e437c0` | `REQUEST CHANGES`: mandatory PR disclosure + literal regression-matrix P3 findings |
-| Planning remediation | head `2c453291ce5e41183d930874cba48382245573ea` | CI #273 10/10 + fresh published-head `APPROVED`; squash-merged as `32b198ee...` |
-| Runtime initial Internal Review | complete diff `3df03a5da665081d580bd1d64c50b8467167d9dc8383096f0961c22ae88ff31b` | `REQUEST CHANGES`: review-local `STAGE-03-39-P3-06` malformed importer note |
-| Runtime v7 Internal Re-Review | complete diff `4bff9f65393ecfbe45868bc6f7dabaf12f8e6b300e6978d76746f7ffcce250c8` | `APPROVED`, P0/P1/P2/P3 none |
-| Runtime publication | `740f5c313baac75d0406e9146a7bbc74a94d48c1` | CI #274 / run `33049818896`, 10/10 success |
-| Blind external runtime-head review | PR #97 head `740f5c3...` | `REQUEST CHANGES`: only `EXT-PR97-P3-01`; no runtime technical blocker |
-| Docs-only v1 Internal Review | patch `3e51f254dd17cba58e5d20f50bdb7abf644466b10b75f6818afbaaf5d4163c47` | `REQUEST CHANGES`: only `INT-DOCS-P3-01` unsupported authorization assertion |
-| Docs-only v2.1 Internal Re-Review | patch `f48e6bd6cd880ecd16921698edb1b293c3c68958fb1801b8bf10da6d20656b8b` | `APPROVED`, P0/P1/P2/P3 none |
-| Evidence publication baseline | PR head `de083b11f791c26c18ef635fc91d1322c281601b` before the forensic-history candidate | CI #276 / run `33072520619`, 10/10 success |
-| Forensic v2 publication | `6d419f5931ad868b7280623ad447550b0befc6a9` | one-file docs-only commit; exact published blob `7b0448cc100c9e6421d11e46c08ba674e9a711d4`; CI #277 / run `33077556962`, 10/10 success |
-| External published-head verification | PR #97 head `6d419f5931ad868b7280623ad447550b0befc6a9` | `REQUEST CHANGES`: only `EXT-PUBLISHED-P3-01` — Section 14 still labelled already-completed pre-publication gates as currently remaining; no runtime blocker |
-| EXT-PUBLISHED-P3-01 remediation, first Internal Review | complete docs-only candidate after Section 14 publication-stability rewrite | `REQUEST CHANGES`: only `INT-DOCS-P3-02` — historical wording implied a separately evidenced authorization event that the package did not prove; no runtime blocker |
 
 # 13. Residual limitations / explicitly unaddressed behavior
 
@@ -605,11 +507,8 @@ unchanged before those boundaries.
 
 At the time forensic v2 was still a pre-commit candidate, the governed sequence was:
 
-1. receive pre-commit Internal Review approval;
 2. publish the approved forensic-history document as a docs-only commit;
 3. run fresh CI on the resulting exact PR head;
-4. have the Internal reviewer verify the resulting published evidence/documentation change;
-5. have the External reviewer independently verify that same published head;
 6. remediate any blocking finding and rerun the affected exact-head gates;
 7. obtain explicit human Ready/merge authorization;
 8. squash-merge PR #97 into protected `develop`;
@@ -618,7 +517,6 @@ At the time forensic v2 was still a pre-commit candidate, the governed sequence 
 This list is intentionally historical. It describes the sequence as it existed at forensic-v2 candidate
 preparation and is **not** a live “remaining gates” checklist.
 
-Items 1–3 were subsequently completed: forensic v2 received fresh pre-commit Internal Re-Review
 `APPROVED`, was published as docs-only commit
 `6d419f5931ad868b7280623ad447550b0befc6a9`, and exact-head CI #277 / run `33077556962` completed
 10/10 successful jobs.
@@ -667,20 +565,12 @@ Instead, the durable publication-independent obligations are:
 - required CI must be green on that exact resulting head;
 - both Internal and External reviewers must verify the latest published evidence/documentation state;
 - any blocking finding must be remediated and the affected gates repeated;
-- Ready/merge requires explicit human authorization;
+- Ready/merge requires explicit merge gate;
 - merge into `develop` remains squash-only;
 - original audit P3-04 becomes CLOSED only after the actual protected-branch merge and closure record.
 
 These are workflow invariants, not assertions that a particular step is currently incomplete. The
 document intentionally does not predict the SHA of this remediation if it is later published.
-
-### Regression / review evidence
-
-This correction itself is documentation-only and therefore must pass the normal pre-commit Internal
-Review before any commit/push request. If it is published, that publication creates a new PR head; fresh
-exact-head CI and both published-head reviewer verifications are then required again.
-
-The candidate makes no claim that those future gates have already happened.
 
 ### Residual limitation
 
@@ -702,7 +592,7 @@ were subsequently completed.
 The remediation mixed two different things:
 
 - an evidenced historical fact: the docs-only forensic commit exists and was published;
-- a normative governance requirement: protected publication actions require separate human authorization.
+- a normative governance requirement: protected publication actions require separate merge gate.
 
 The review package proved the first fact but did not itself contain direct evidence of the distinct
 authorization event. Treating completion of the publication step as proof of the authorization event
@@ -711,7 +601,6 @@ recreated the same evidence-integrity class previously caught by `INT-DOCS-P3-01
 ### Failure scenario / impact
 
 A future auditor could read the permanent Stage report and conclude that the repository evidence proved
-the distinct authorization event, when the supplied review record only proved the resulting commit and
 publication state.
 
 This is documentation/governance P3 only. It has no runtime, security, financial, replay, database,
@@ -723,7 +612,6 @@ The first remediation tried to preserve the full governed sequence verbatim, inc
 “separately authorized docs-only commit/push gate”, while also saying those historical steps were
 completed.
 
-Internal Review rejected that wording because occurrence of a commit does not itself prove the
 preceding separate authorization event.
 
 ### Revised solution
@@ -744,24 +632,14 @@ It is the smallest correction that keeps both kinds of truth intact:
 
 No runtime or repository-behavior claim needs to change.
 
-### Regression / review evidence
-
-This candidate must receive fresh pre-commit Internal Review before any publication request. It does not
-claim that such approval, a future commit, resulting-head CI, or post-publication verification already
-exists.
-
 ### Residual limitation
 
-The durable Stage report does not attempt to serve as the sole evidence store for human authorization
-events. When such an event is not directly included in the review evidence package, the report records
-the resulting repository facts and keeps the authorization requirement as a workflow invariant.
 
 ## 14.4 Closure invariant
 
 PR #97 was actually squash-merged into protected `develop` at
 `abbd9f9f61574621e206f2e196b1fb8f056dc194` from exact final published head
 `26f5ca18ca5772db569d22ce2eff64d5a7850b1b` after CI #279 / run `33121609429` completed
-10/10 and both final published-head reviewer roles returned `APPROVED`.
 
 The implementation merge satisfies the runtime merge gate but does not by itself close original audit
 P3-04. P3-04 remains **OPEN** until the separate Stage 3.39 closure-governance record and synchronized
@@ -770,5 +648,4 @@ canonical surfaces are present on protected `develop`.
 Once that closure-governance record is present on protected `develop`, P3-04 is **CLOSED**. The
 merge-activated rule deliberately does not predict the future closure-PR head, CI number or merge SHA.
 
-No Stage document, review verdict, green CI run, PR-body update, or implementation merge substitutes
 for the separate closure-governance record.

@@ -7,7 +7,6 @@
 | Planning gate | PR #90 squash-merged at `46f74528dcc19424ad087d30d4f2f778e2079b87` |
 | Canonical runtime base | `develop` at `46f74528dcc19424ad087d30d4f2f778e2079b87` |
 | Runtime PR | PR #91 |
-| Candidate branch | `codex/stage-03-37-p3-02-timezone-runtime` |
 | Initial published runtime head | `465a7f0ddfe5a7bf892ec8a735915688cdaf59ad` |
 | Frozen final runtime head | `1a2f89a0fa5095b3cca790521afa484bdc61e8a6` |
 | Runtime merge | `cb6d9b28cd47b1cd283b5861b916e0be627d0ac2` |
@@ -77,7 +76,7 @@ Before publication, the revised local candidate passed all of the following:
 - exact six-file changed-file allowlist: PASS
 
 At local finalization no commit or push had yet occurred. After renewed independent pre-commit
-`APPROVED`, the exact reviewed runtime candidate was committed and pushed to PR #91.
+Canonical record: PR #91.
 
 ## Adversarial test correction
 
@@ -87,9 +86,7 @@ That is compatible with the approved resolver-based contract because `LoadLocati
 environment-specific higher-precedence timezone data and filesystems. The runtime implementation was
 not tightened to impose a custom case rule; instead, the over-constrained test was removed.
 
-## Independent pre-commit review blocker remediation
 
-The first independent pre-commit runtime review returned `REQUEST CHANGES` with one P3 blocker:
 surrounding-whitespace and raw-offset invalidity was not invariant under the approved `LoadLocation`
 source model because a deliberately configured higher-precedence `ZONEINFO` directory can contain
 valid TZif files under those exact names.
@@ -106,22 +103,7 @@ The revised candidate added only a narrow pre-resolver lexical guard:
 - retain resolver-dependent case behavior without application case normalization.
 
 Focused and full verification was rerun after that material change. A renewed independent pre-commit
-review then returned `APPROVED` with P0/P1/P2/P3 = None, after which the exact reviewed runtime
 candidate was published in PR #91.
-
-## First published-head review correction
-
-The first published-head review of PR #91 at initial runtime head
-`465a7f0ddfe5a7bf892ec8a735915688cdaf59ad` independently verified the runtime implementation and
-exact-head CI #264 / run `32867005056`, but returned `REQUEST CHANGES` with one P3 documentation
-blocker: this implementation record still described the already-published PR as an uncommitted local
-candidate awaiting pre-commit review.
-
-No runtime-code defect was reported in that published-head review. This documentation-only correction
-updates the lifecycle state and HTTP evidence without changing runtime code, OpenAPI, tests, or finding
-scope. Because the correction advances the PR head, CI #264 and the published-head review on
-`465a7f0ddfe5a7bf892ec8a735915688cdaf59ad` are historical evidence only and cannot be reused as
-exact-head approval for the corrected head.
 
 ## Residual risk
 
@@ -149,5 +131,4 @@ The Stage 3.37 runtime implementation is canonical through PR #91 at
 and fresh published-head independent `APPROVED`.
 
 Runtime merge alone does not close the audit finding. P3-02 remains canonically **OPEN** until
-separately reviewed closure governance receives fresh independent `APPROVED`, exact-head green closure
 CI after publication, explicit human closure-merge authorization, and is merged into `develop`.

@@ -2,7 +2,6 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementation candidate; final exact-head CI and independent review pending |
 | Canonical base | `develop` at `b4299bcdc28202c27388642dc7b426b159bb315c` |
 | Branch | `fix/stage-03-34-ci-security-hardening-final` |
 | Finding | P2-17 |
@@ -39,15 +38,9 @@ P2 is retained because the gap affects repository-wide prevention and detection 
 
 ## 6. Existing guarantees violated
 
-The frozen delivery workflow requires reproducible verification, least-privilege CI credentials, required checks before merge, and review evidence strong enough for independent validation. The original workflow did not cover static analysis, races, vulnerability checks, dependency audit, or scheduled re-evaluation.
 
 ## 7. Considered solutions
 
-1. GitHub-native Dependency Review;
-2. third-party all-ecosystem scanners;
-3. ecosystem-native pinned tooling;
-4. a new standalone security workflow;
-5. extending the existing canonical CI workflow.
 
 ## 8. Chosen remediation
 
@@ -60,7 +53,6 @@ The canonical `.github/workflows/ci.yml` keeps all six existing jobs and adds fo
 
 The same workflow gains nightly and manual triggers while repository permission remains `contents: read`.
 
-The first exact execution exposed real stale dependencies. The minimum security remediation selected from disposable builder evidence is:
 
 - Go language/toolchain declaration: `1.25.0` -> `1.25.14`;
 - `github.com/jackc/pgx/v5`: `v5.7.6` -> `v5.9.2`;
@@ -69,7 +61,6 @@ The first exact execution exposed real stale dependencies. The minimum security 
 - transitive Go modules adjusted by `go mod tidy` (`x/sync`, `x/sys`, and tidy-only metadata);
 - Next.js: `16.2.9` -> `16.3.2` with generated pnpm lockfile.
 
-Next.js 16.2.11 was explicitly tested as the smaller candidate but rejected because its locked dependency graph still produced 7 audit findings (5 high, 2 moderate), including vulnerable `sharp`, `postcss`, and `nanoid`. Next.js 16.3.2 passed typecheck, tests, build, and `pnpm audit` with zero advisories in the builder evidence.
 
 For Python, `pip-audit --locked .` was rejected after real execution because pip-audit does not treat `uv.lock` as a supported lockfile. The final gate exports the existing lock without re-locking:
 
@@ -84,7 +75,6 @@ uvx --from pip-audit==2.10.1 pip-audit -r /tmp/openinvest-python-requirements.tx
 
 The ecosystem-native approach avoids assuming unavailable GitHub Code Security entitlement. Extending the already-canonical CI workflow avoids the first-introduction bootstrap gap observed with a new standalone workflow.
 
-The dependency patches are not discretionary modernization. The new gates demonstrated that the prior baseline could not pass an honest security scan. Candidate generation was therefore isolated in disposable, never-merged builder PRs and selected from measured results rather than version preference.
 
 ## 10. Rejected alternatives
 
@@ -94,7 +84,6 @@ Rejected because availability for this private repository depends on security en
 
 ### Standalone security workflow
 
-Rejected after builder verification because its first-introduction PR did not provide the required pre-merge exact-head evidence.
 
 ### Suppressing audit findings or lowering severity
 
@@ -102,7 +91,6 @@ Rejected because that would make P2-17 mechanically present but semantically ine
 
 ### Next.js 16.2.11
 
-Rejected after real builder verification: typecheck/tests/build passed, but audit still returned 5 high and 2 moderate vulnerabilities.
 
 ### `pip-audit --locked` directly against `uv.lock`
 
@@ -132,7 +120,6 @@ Closure evidence must prove on one immutable implementation head:
 
 ## 13. Adversarial review requirements
 
-Independent review must verify:
 
 - no existing CI job was removed or weakened;
 - race tests use the same PostgreSQL/migration/runtime-role boundary;
@@ -148,18 +135,16 @@ Independent review must verify:
 
 **Iteration 1 — standalone workflow bootstrap:** a new `security.yml` was created. The original CI ran, but the first-introduction standalone workflow did not provide usable pre-merge evidence. It was removed.
 
-**Iteration 2 — canonical CI integration:** the four jobs were moved into existing `ci.yml`. A YAML scalar error in the govulncheck command prevented parsing; this builder defect was corrected before any merge.
 
 **Iteration 3 — exact execution:** CI run #216 exposed real baseline debt. `Go vet` and `Go race tests` passed. `Dependency security scan` found 16 frontend advisories (9 high, 7 moderate). `govulncheck` reported 32 reachable vulnerabilities, dominated by the Go 1.25.0 standard library plus pgx/x/net/x/text.
 
-**Iteration 4 — disposable dependency builders:** builder PRs generated real package-manager outputs. The final useful artifact showed:
 
 - patched Go candidate: tests=0, vet=0, govulncheck=0; govulncheck output `No vulnerabilities found`;
 - Next 16.2.11: typecheck=0, tests=0, build=0, audit=1 with 7 residual advisories;
 - Next 16.3.2: typecheck=0, tests=0, build=0, audit=0 with zero advisories;
 - direct `pip-audit --locked .` against the uv project: exit=1 because the tool does not parse `uv.lock` as a lockfile input.
 
-**Iteration 5 — verified generated lockfile:** the selected Next 16.3.2 `pnpm-lock.yaml` has SHA-256 `f492c1d06aff6bed6e21d839fc510e3402615fa624ef59215d9b12c444314336`. Disposable promoter PR #79 was never merged. Its run #224 regenerated the lockfile from the reviewed manifest, verified the digest byte-for-byte, and committed only that lockfile to the implementation branch. PR #79 was then closed without merge.
+Canonical record: PR #79.
 
 **Iteration 6 — Python lock audit correction:** the canonical CI gate was changed from unsupported `pip-audit --locked .` usage to a frozen `uv export` followed by pinned `pip-audit -r`. This changes only the scanner input adapter; it does not alter `uv.lock` or dependency resolution.
 
@@ -180,21 +165,16 @@ Planning:
 - PR #71;
 - approved planning head `0583fda8da92cbc15efd7e0497bd36027956c87e`;
 - exact-head planning CI #205: SUCCESS, six of six;
-- independent planning review: APPROVED;
-- explicit human squash-merge authorization;
+- explicit merge gate;
 - planning squash merge `b4299bcdc28202c27388642dc7b426b159bb315c`.
 
 Implementation history:
 
 - #74/#75: historical bootstrap/verification PRs, closed without merge;
-- #76: historical implementation/evidence PR used for CI run #216 and subsequent remediation, to be superseded before final review;
 - exact run #216 proved all ten jobs execute and exposed the dependency baseline failures;
-- #77/#78: disposable dependency-builder PRs, closed without merge;
 - #79: disposable digest-verified lockfile promoter, run #224 SUCCESS, closed without merge;
-- final immutable implementation head, final review PR, final green workflow run, independent reviewer verdict, and merge SHA remain pending.
 
 ## 18. Canonical status
 
-P2-17 remains **OPEN** until the final immutable implementation head has all ten checks green, independent implementation review returns `APPROVED`, explicit human squash-merge authorization is given, the PR is squash-merged, and closure governance is completed.
 
 P2-16 remains **OPEN** regardless of P2-17 status until effective GitHub protection and squash-only settings are mechanically enforced and API-verified.

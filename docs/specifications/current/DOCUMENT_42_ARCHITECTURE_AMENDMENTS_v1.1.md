@@ -5,11 +5,8 @@
 | Document ID | 42 |
 | Version | 1.1.0 |
 | Status | Approved |
-| Owner | Principal Architect |
 | Supersedes | Conflicting provisions in Documents 1–41 |
 | Dependencies | Documents 1–41 |
-| Last Review Date | 2026-06-19 |
-| Next Review Date | 2026-12-19 |
 | Priority | Absolute; subordinate only to Document 43 |
 
 ## Purpose
@@ -24,7 +21,7 @@ The repository must contain `DOCUMENT_INDEX.md`, `SOURCE_OF_TRUTH.md`, `VERSION_
 
 The first public release contains registration, portfolio, transactions, stock and bond cards, dividend calculator and calendar, snapshots, weighted-average cost, XIRR, real return, inflation-adjusted return, purchasing-power card, and dashboard.
 
-The MVP excludes AI Assistant, scenario analysis, premium analytics, Tax XML export, email automation, forecasting, family accounts, and the public API.
+The MVP excludes  Assistant, scenario analysis, premium analytics, Tax XML export, email automation, forecasting, family accounts, and the public API.
 
 ## Financial calculation standard
 
@@ -79,5 +76,3 @@ Use separate PostgreSQL schemas: `identity`, `investment`, `analytics`, `tax`, a
 OpenInvest is a Personal Capital Operating System. Decision order is correctness, security, privacy, maintainability, performance, cost, then features. A feature may not degrade any of the first five priorities.
 
 ## Open questions
-
-Open questions are governed in `OPEN_QUESTIONS.md`; production TODOs are forbidden. A new unresolved architecture matter follows issue, ADR, review, approval, and architecture update.

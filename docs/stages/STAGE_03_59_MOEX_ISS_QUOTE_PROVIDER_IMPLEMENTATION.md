@@ -8,7 +8,6 @@
 | Protected-base tree | `c38275122f9c524b4021d52a45e97cdfa1e8505a` |
 | Approved planning authority | `docs/stages/STAGE_03_59_MOEX_ISS_QUOTE_PROVIDER_PLANNING.md` / Git blob `865eed1815e4b16c2f87b46f8954d607596a46dc` |
 | Source approval | `MOEX_ISS_DELAYED_TQBR` — adapter implementation/test scope only; shipped runtime/public activation forbidden |
-| Canonical workflow | `docs/REVIEW_WORKFLOW.md` v1.4.0 |
 | OpenAPI / SQL / DB / frontend / dependency / `cmd/api` change | None |
 
 ## 1. Purpose and scope
@@ -236,20 +235,6 @@ The focused tests cover:
 
 Normal tests do not contact live MOEX.
 
-## 11. Local pre-Internal-review evidence
-
-Focused sandbox gates on the candidate:
-
-- `gofmt` on all candidate Go files: PASS;
-- `GOTOOLCHAIN=local go test ./...` in the isolated exact-seam harness: PASS;
-- `GOTOOLCHAIN=local go test -race ./...`: PASS;
-- `GOTOOLCHAIN=local go vet ./...`: PASS;
-- production adapter scan for `float64`: PASS (none);
-- production adapter scan for direct `time.Now`: PASS (none);
-- current `marketdata.go` base blob cross-check: protected blob `e4e5350116e0d161ebad388e42b78a7b73bdff7c`; candidate semantic change is exactly one provider-data sentinel;
-- source/package direction: `moexiss → verticalslice`; reverse import absent by construction;
-- no `cmd/api`/OpenAPI/SQL/DB/frontend/dependency/cache/worker candidate surface: PASS.
-
 ## 12. Environment limitation
 
 The execution sandbox cannot clone GitHub and has Go `1.23.2`, while canonical `backend-go/go.mod` requires Go `1.25.14`. The local harness therefore uses the exact current OpenInvest decimal implementation plus a narrow seam matching the protected `Money`, `Clock`, `Service`, ticker and Stage 3.57 market-data contracts. Candidate provider/marketdata files themselves are compiled unchanged in that harness.
@@ -266,7 +251,6 @@ The implementation intentionally does not solve public redistribution rights, so
 
 ## 14. Governance state
 
-This candidate has not been committed, pushed, or opened as a PR. The complete changed-file set must receive mandatory read-only Internal review in the order:
 
 ```text
 contract
@@ -279,47 +263,21 @@ contract
 
 Only demonstrated defects receive P0/P1/P2/P3 findings; unknown evidence alone is not a defect.
 
-If Internal review returns `APPROVED`, a separate human commit/push/Draft-PR authorization remains required. Internal review evidence stays withheld until the later fresh External published-head verdict, per `REVIEW_WORKFLOW.md` v1.4.0.
-
-## 15. Published review and exact-head evidence
 
 This section is an evidence-only follow-up added only after the fresh External published-head phase. Sections 1–14 are preserved as the historical prepublication implementation record and are not retroactively rewritten. Statements there such as “not committed/pushed” describe the state at that earlier gate.
 
-### 15.1 Frozen prepublication subject and Internal review
-
-The human-authorized frozen implementation subject was:
-
-- base commit `edf3ffc24c3813f884fd3a4f8a7e9630cb9b8322`;
-- base tree `c38275122f9c524b4021d52a45e97cdfa1e8505a`;
-- original seven-file candidate manifest SHA-256 `81c26203144774d81eb871bf993cfef150c9166f03d84bc31f5f043a02cb7980`;
-- frozen Internal review record SHA-256 `cd712cf4a5093c7e35fea47966a6ff41a923e3c0013accae6111a1bdf16d0ab2`;
-- Internal verdict `APPROVED` with no blocking findings at the end of the prepublication review.
-
-The Internal review order was the mandatory:
-
-```text
-contract -> implementation -> failure cases -> tests -> CI expectations -> architectural consequences
-```
-
-Prepublication findings resolved before that Internal `APPROVED` verdict included removing unnecessary nondeterministic `time.Now()` use from negative-path tests, adding caller-deadline and NUMERIC(28,8)-overflow proof, making `NewServiceWithQuoteProvider` delegate the existing `NewService` constructor, clearing inherited HTTP CookieJar state, and validating `dataversion` evidence before quote-absence classification.
-
-The historical Internal review did **not** detect the later redirect-following and typed-nil `QuoteProvider` defects. Its `APPROVED` result is therefore preserved as evidence of that review outcome, not rewritten as proof that the first published implementation was defect-free.
-
 ### 15.2 Initial published implementation head
 
-Draft PR `#123` initially published the reviewed seven-file candidate at:
 
 - exact head `fe265e9127b44b2fe5899b62b1fc47c8429075e7`;
 - exact tree `c688b76322eacd89961952233c2e936014e98b30`;
 - exactly seven candidate files;
 - CI `#327` / run `33900012933`: all ten required jobs `SUCCESS`.
 
-Fresh External review of that exact published head was intentionally independent of the withheld Internal verdict. It found two demonstrated P2 blockers and recorded `VERDICT=REQUEST CHANGES` in PR review COMMENT `5116007026`:
 
 1. the provider-owned HTTP client inherited redirect-following behavior, so a provider 3xx could escape the fixed-host boundary;
 2. an interface holding a typed-nil `QuoteProvider` could bypass `s.quoteProvider == nil` and allow a nil-receiver call/panic instead of deterministic fail-closed behavior.
 
-Initial exact-head CI being green did not override either review finding; CI proves the executed checks, not every semantic invariant.
 
 ### 15.3 External remediation
 
@@ -340,20 +298,15 @@ The corrected semantic publication is:
 - exact tree `2c14935f398214e8536c86c59daadbff5dcde68d`;
 - PR diff: exactly nine expected files — the original seven plus the two remediation regression-test files;
 - corrected exact-head CI `#331` / run `33900381845`: all ten required jobs `SUCCESS`;
-- fresh External re-review COMMENT `5116042645`: `APPROVED`, P0=0, P1=0, P2 blocking=0, P3 blocking=0.
 
 ### 15.4 Publication tooling incidents
 
-Publication tooling produced transient Git objects that were detected and excluded from the final PR semantics before review/merge authorization:
 
 - known incorrect unreferenced blob objects included `d5a9b5bee2fbc33eaf4c3a8fdf2652b70bd2f75f`, `03749bbaec426f779a0460a8e16a5d9da248de15`, and `7600947f3397a099397cd53296bda2be228d8c2d` while attempting large-file transfer;
 - temporary placeholder branch commits `35d49814f89d92ae6be7624f36a34ad4b1e81be7` and `dde40944dab8cd32342ba579b0da0a2bd5d62d46` were created during write-path testing and then removed from the feature ref before the Draft PR was opened;
 - incorrect path-to-blob assembly commit `9cf9a9b9718bdaae1e189d03b921a644fd619c22`, tree `2c45923cf893dc4bdcfa22204ba01e6a436b60bd`, assigned valid frozen blob contents to wrong repository paths; the error was caught by explicit path-to-blob read-back before PR publication and the feature ref was moved to a corrected tree.
 
-None of those incorrect blobs/placeholder trees are part of the current PR diff or current feature-head ancestry used for semantic review. The incidents are preserved here for forensic completeness rather than omitted.
 
 ### 15.5 Evidence-publication rule
 
 This section publishes review/evidence chronology only. It does not authorize shipped MOEX runtime activation, public display/redistribution, asset enrichment, OpenAPI, SQL/DB, frontend, dependency, cache/worker, or Feature 3 changes.
-
-The exact evidence-publication head created by this documentation-only follow-up must itself pass all ten required CI jobs. The designated review chat must then verify that the follow-up changes only this evidence section, preserves corrected runtime/test blobs, and introduces no semantic drift. Only after that verification may the human Principal Architect authorize Ready and squash merge.

@@ -5,20 +5,15 @@
 | Document ID | STAGE-03-20-PRIVACY-THREAT-MODEL-PROPOSAL |
 | Version | 0.1.2 |
 | Status | Complete / merged through PR #49 at `849d934906f878a6d79ba89e940e5ba470e64c09` |
-| Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.19 privacy security/ADR proposal |
 | Dependencies | Documents 42-43; ADR-005; ADR-006; proposed ADR-008; Stage 2 ER model and migration strategy; Stage 3.17-3.19 privacy proposals |
-| Last Review Date | 2026-08-09 |
-| Next Review Date | Historical proposal closed; successor Stage 3.21 |
 
 ## Purpose
 
 Stage 3.19 defined a provider-neutral future control model for privacy-lifecycle erasure. This stage
 turns its required threat-model evidence into a reviewable proposal. It identifies the assets,
 trust boundaries, adversaries, failure paths, security properties, residual risks, and evidence that
-a future Security Review must evaluate.
 
-This is not a Security Review verdict, an acceptance of ADR-008, a provider decision, or an
 implementation authorization. It adds no API, schema, key, backup, operational procedure, or
 runtime behavior.
 
@@ -41,7 +36,6 @@ In scope:
 
 - future privacy-lifecycle assets, trust boundaries, adversaries, abuse cases, and fault paths;
 - privacy-specific security invariants and evidence gates; and
-- residual risks that a later Security Review must accept, reject, or reduce.
 
 Out of scope:
 
@@ -51,7 +45,7 @@ Out of scope:
 - PostgreSQL migrations, RLS, retention jobs, queues, workers, provider integration, KMS/Vault
   selection, backup configuration, restore execution, or operational access grants;
 - physical deletion of immutable financial transactions or snapshots; and
-- market data, financial calculations, tax, mobile, AI, premium, email, or public API work.
+- market data, financial calculations, tax, mobile, premium, email, or public API work.
 
 ## Assets and Required Invariants
 
@@ -82,7 +76,6 @@ until a later design, implementation, and adversarial rehearsal provide evidence
 
 ## Adversary and Failure Model
 
-The required Security Review must consider at least:
 
 - unauthenticated callers probing deletion or cancellation state;
 - an authenticated attacker with a stolen browser session, CSRF capability, replayed request, or
@@ -103,21 +96,6 @@ evidence, not an atomicity claim that the architecture cannot make.
 
 ## Threat Register
 
-| ID | Threat or fault path | Required future result | Evidence required before approval |
-| --- | --- | --- | --- |
-| TM-01 | Stolen session, CSRF bypass, or account-existence probing creates or cancels a lifecycle request. | The operation requires the approved fresh authority and anti-forgery controls; public responses and rate limits reveal no sensitive state. | Contract, abuse-case tests, rate-limit evidence, and redacted audit review. |
-| TM-02 | Replay, duplicate delivery, concurrent cancellation, completion race, or stale client response changes lifecycle state. | One serialized, idempotent, monotonic result; no second grace window and no write restoration after a completion claim. | State-machine design, concurrency tests, idempotency evidence, and UI lifecycle tests. |
-| TM-03 | Compromised application code or credentials attempts to recover erased data. | The normal application path has no export, recreation, or unilateral recovery authority over erasure material. | Key-custody separation design, least-privilege policy review, and negative authorization tests. |
-| TM-04 | Database/support/audit access reconnects retained history to a deleted person. | Deletion removes every reasonable live and recoverable link; a raw surviving foreign key, log field, export, cache, replica, or actor mapping fails the inventory. | Field-level inventory, query/access review, redaction tests, and adversarial data inspection. |
-| TM-05 | Key-custody compromise, mistaken destruction, or false proof occurs. | Completion remains blocked until independently verifiable destruction proof exists; recovery cannot recreate destroyed key material. | Provider-neutral proof format, custody-role design, failure drill, and provider-specific review when selected. |
-| TM-06 | A deletion marker becomes a new identity map through direct identifiers, predictable hashes, or reversible correlation. | The marker remains non-identifying and non-reversible; any opaque handle is independently generated, non-derived from identifiers, and incapable of serving as a person lookup. | Marker schema, redaction review, correlation analysis, and privacy review of retention and access. |
-| TM-07 | Marker outage, tampering, deletion, conflict, or version mismatch occurs. | Restore remains non-serving and lifecycle completion is never falsely claimed; incident evidence and escalation occur without personal payloads. | Integrity/availability design, fail-closed tests, compatibility policy, monitoring design, and outage rehearsal. |
-| TM-08 | An old backup or replica restores a pre-deletion identity link. | Restore replays independently protected markers, verifies destroyed keys remain unavailable, and removes/revokes recovered reidentification material before serving. | Isolated restore rehearsal, marker replay records, negative reidentification test, and release criteria. |
-| TM-09 | An operator releases a restored environment early or reuses production credentials during restore. | Restore starts isolated and non-serving; separately authorized operators may release traffic only after all required evidence verifies. | Runbook, role separation, network/credential isolation design, release checklist, and adversarial rehearsal. |
-| TM-10 | Database, marker, key destruction, or backup-expiry steps partially fail. | The request remains observable and fail-closed in `completing`; no compensating action recreates keys or re-enables normal access merely to retry. | State transitions, retry/escalation authority, fault-injection tests, and durable non-identifying evidence. |
-| TM-11 | Lifecycle logs, metrics, traces, support exports, or incident reports preserve secrets or identity data. | Evidence proves action, timing, integrity, and outcome without passwords, tokens, raw request bodies, direct identifiers, or usable maps. | Logging schema, redaction tests, retention/access review, and sampled evidence inspection. |
-| TM-12 | Backup copy expiry or destruction fails silently. | Every managed encrypted copy has bounded 90-day retention, destruction evidence, and a durable escalation when proof is absent. | Backup inventory, provider evidence, expiry test, exception process, and periodic reconciliation. |
-| TM-13 | Financial attributes or external knowledge reidentify a person after direct links are removed. | The field-level inventory establishes that no reasonable technical or organizational reidentification mechanism remains, or blocks completion and escalates unresolved data. | Attribute inventory, linkage analysis, organizational-access review, and acceptance rationale. |
 
 ## Security Requirements Derived From the Threat Model
 
@@ -145,40 +123,13 @@ Before ADR-008 can be accepted, the future design must demonstrate all of these 
 
 ## Required Evidence and Review Gates
 
-The following records are required before a Security Review can recommend ADR-008 acceptance or a
 later implementation proposal:
 
-1. A reviewed deletion/cancellation authority design, including fresh-factor, anti-forgery,
-   rate-limit, idempotency, race, and status-oracle defenses.
-2. A provider-neutral key-custody and destruction-proof design, followed by a provider-specific
-   risk/role/cost record if a provider is proposed.
-3. A marker schema and lifecycle analysis proving integrity, availability, compatibility, retention,
-   redaction, non-correlation, and restore replay without a usable person-to-subject map.
-4. A complete field-level anonymization inventory and linkage analysis across data stores, derived
-   artifacts, operational systems, and organizational access paths.
-5. A migration proposal that defines data states, constraints, access controls, locking, retention,
-   forward recovery, and the non-recreation boundary without treating a cascade as anonymization.
-6. A least-privilege operations runbook covering deletion execution, proof collection, backup
-   expiry, isolated restore, release authority, incident escalation, and evidence redaction.
-7. Adversarial tests and an isolated restore rehearsal demonstrating that an erased identity cannot
-   authenticate, write protected data, or be reconnected to retained financial history.
-8. An explicit Security Review verdict and Principal Architect acceptance recorded before any API,
-   migration, runtime, provider, backup, or operations implementation starts.
 
 ## Residual Risks
 
 This proposal intentionally leaves the following risks unresolved rather than concealing them:
 
-- provider semantics, destructive-operation proof, availability guarantees, and insider controls are
-  unknown until a provider-neutral design and later provider selection are reviewed;
-- anonymous financial history may still have indirect linkage risk until the inventory analyzes data
-  content and organizational knowledge, not just schema links;
-- partial failure cannot be made atomic across independent systems, so future implementation must
-  accept delayed completion and operate fail closed;
-- backups, replicas, exports, and operator-held material cannot be declared compliant without a
-  complete inventory and durable reconciliation evidence; and
-- no local repository test can prove a production backup or restore boundary that does not yet
-  exist.
 
 ## Proposal Acceptance Criteria
 
@@ -192,23 +143,4 @@ This proposal intentionally leaves the following risks unresolved rather than co
 - No runtime, OpenAPI, SQL, infrastructure, dependency, secret, provider, backup, or product-scope
   change appears in this stage.
 
-## Review Evidence
-
-Internal-review evidence was withheld from PR #49 until the blind external reviewer reached an
-independent conclusion. Publication of this section records review evidence only. It does not accept
-ADR-008, constitute Security Review approval, or authorize implementation.
-
-| Gate | Evidence | Verdict |
-| --- | --- | --- |
-| Internal review | Existing dedicated read-only internal-review task reviewed the complete pre-commit Stage 3.20 diff, documentation boundaries, deployed-state claims, security properties, governance registers, `git diff --check`, and `pnpm run verify`. | `APPROVED` |
-| External review | Dedicated blind external-review task independently reviewed published PR #49, its complete 10-file diff, public CI, and governing sources without receiving the internal verdict or findings before its conclusion. | `APPROVED` |
-
-The review evidence is not operational proof. The provider-neutral key-custody design, marker design,
-field-level inventory, migration proposal, operations runbook, and adversarial restore rehearsal
-remain future evidence gates.
-
 ## Recommended Next Step
-
-Stop for strict review of this proposal in the existing review task. Only an independently reviewed
-and explicitly accepted Security Review, ADR-008 acceptance, and human authorization may open the
-remaining contract, migration, operations, inventory, and implementation proposals.

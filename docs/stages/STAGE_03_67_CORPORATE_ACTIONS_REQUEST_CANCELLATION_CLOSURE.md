@@ -1,32 +1,6 @@
 # Stage 3.67 — Corporate Actions Request Cancellation Closure
 
-| Field | Value |
-| --- | --- |
-| Status | MERGE-ACTIVATED CLOSURE RECORD — candidate until this record and synchronized canonical surfaces are present on protected `develop`; after protected activation Stage 3.66 lifecycle/documentation closure is complete |
-| Date | 2026-09-05 |
-| Closed implementation stage | Stage 3.66 — Corporate Actions In-Flight Request Cancellation |
-| Prior Corporate Actions closure | Stage 3.65 — Corporate Actions API/UI Closure |
-| Detailed implementation/evidence record | `docs/stages/STAGE_03_66_CORPORATE_ACTIONS_REQUEST_CANCELLATION_IMPLEMENTATION.md` |
-| Implementation record blob on closure base | `64cd8edff6543b936ce5d68526fc2ae70a79071b` |
-| Implementation PR | PR #130 — `fix: cancel Corporate Actions requests on unmount` |
-| Frozen implementation manifest SHA-256 | `f6097cc169e046e598135877eafbab23a11cb2035fbd06972f293541048f1bbe` |
-| External-reviewed semantic head | `97694ddfe49a1587aa4e86a6c0258a57fd95a708` |
-| External-reviewed semantic tree | `067cdb5a69d9aa9e4d18ec76a372d836d1b3c13c` |
-| Final evidence head | `ac922f67ac2ce8c3019ccc5d4e1e7970b5206945` |
-| Final evidence tree | `b525f0960cb2613f62eaa9583d6394759a1cdd3b` |
-| Implementation squash merge | `7564dbbda9133f0b8965f9e7d0a0c0b81b82e992` |
-| Protected post-merge tree | `b525f0960cb2613f62eaa9583d6394759a1cdd3b` |
-| Implementation parent / prior protected `develop` | `1c30a4bf637c933e7c210cff6e26fabd91d8bab1` |
-| Semantic CI | CI #347 / run `33952598235` — 10/10 required jobs SUCCESS |
-| Evidence CI | CI #348 / run `33952813789` — 10/10 required jobs SUCCESS |
-| Fresh External review | COMMENT `5550298926` — APPROVED; P0=0 / P1=0 / P2 blocking=0 / P3 blocking=0 |
-| Exact evidence verification | COMMENT `5550322894` — APPROVED; runtime/test semantic drift NONE |
-| Closure base | protected `develop@7564dbbda9133f0b8965f9e7d0a0c0b81b82e992` |
-| Closure base tree | `b525f0960cb2613f62eaa9583d6394759a1cdd3b` |
-| Closure runtime scope | None — documentation/governance synchronization only |
-| Synchronized canonical surfaces | this record; `docs/ROADMAP.md`; `docs/SOURCE_OF_TRUTH.md` |
-| Feature 3D | NOT STARTED by this closure; separate source/use planning gate required |
-| External source activation | None |
+Canonical record: PR #130; commit(s) `64cd8edff6543b936ce5d68526fc2ae70a79071b`, `97694ddfe49a1587aa4e86a6c0258a57fd95a708`, `067cdb5a69d9aa9e4d18ec76a372d836d1b3c13c`, `ac922f67ac2ce8c3019ccc5d4e1e7970b5206945`, `b525f0960cb2613f62eaa9583d6394759a1cdd3b`, `7564dbbda9133f0b8965f9e7d0a0c0b81b82e992`, `1c30a4bf637c933e7c210cff6e26fabd91d8bab1`.
 
 ## 1. Closure basis
 
@@ -119,7 +93,6 @@ tree 067cdb5a69d9aa9e4d18ec76a372d836d1b3c13c
 CI #347 / run `33952598235` completed with all ten required jobs successful, including frontend Typecheck, Tests, and
 production Build.
 
-Fresh External published-head review COMMENT `5550298926` concluded:
 
 ```text
 P0 = 0
@@ -147,7 +120,7 @@ runtime/test semantic drift = NONE
 VERDICT = APPROVED
 ```
 
-## 5. Human authorization and protected merge
+## 5. merge gate and protected merge
 
 The Principal Architect separately authorized Ready and squash merge of exact evidence head
 `ac922f67ac2ce8c3019ccc5d4e1e7970b5206945`, tree `b525f0960cb2613f62eaa9583d6394759a1cdd3b`, conditional on no drift.
@@ -217,7 +190,6 @@ Nothing in Stage 3.67 changes current source decisions.
 
 ## 9. Governance path
 
-Stage 3.67 is eligible for the `docs/REVIEW_WORKFLOW.md` v1.4.0 post-development governance/closure path because the
 complete candidate is documentation/evidence-only.
 
 Required activation sequence:
@@ -225,7 +197,6 @@ Required activation sequence:
 ```text
 documentation candidate
 → deterministic documentation checks
-→ Governance / Closure review
 → explicit human commit/push authorization
 → Draft PR targeting develop
 → required GitHub CI

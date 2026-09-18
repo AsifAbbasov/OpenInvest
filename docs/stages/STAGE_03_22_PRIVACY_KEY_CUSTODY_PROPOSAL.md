@@ -5,11 +5,8 @@
 | Document ID | STAGE-03-22-PRIVACY-KEY-CUSTODY-PROPOSAL |
 | Version | 0.1.2 |
 | Status | Complete / merged through PR #51 at `5f42d32db1e045c23fb99a5af8f136b7a49e3bc2` |
-| Owner | Principal Architect |
 | Supersedes | None; follows the merged Stage 3.21 privacy data-inventory proposal |
 | Dependencies | Documents 42-43; ADR-005; ADR-006; proposed ADR-008; Stage 2 ER model and migration strategy; Stage 3.17-3.21 privacy proposals |
-| Last Review Date | 2026-08-18 |
-| Next Review Date | Historical proposal closed; successor Stage 3.23 deletion-marker control-plane proposal |
 
 ## Purpose
 
@@ -27,7 +24,6 @@ The proposal has four outcomes:
    before any migration, API, provider, backup, or runtime work can be authorized.
 
 This is not a provider selection, KMS/HSM/Vault configuration, cryptographic implementation,
-database schema, account-deletion API, operational runbook, or Security Review verdict. It does not
 accept ADR-008, establish a legal retention policy, or prove production backup or restore behavior.
 
 ## Authoritative Boundary
@@ -80,7 +76,6 @@ credential, or service account must not hold a combination that defeats the stat
 | Restore-release authority | Independently authorize network/credential release only after recorded evidence verifies. | Modify or manufacture custody/marker evidence to satisfy its own release decision. |
 | Audit/evidence authority | Verify signed evidence and retain the minimum non-identifying audit record. | Access raw key material or reconstruct a person-to-financial map for convenience. |
 
-The exact human, provider, service-account, and break-glass design remains a Security Review and
 operations decision. Emergency access cannot include a recovery path for already destroyed erasure
 material. A break-glass procedure may escalate an incomplete deletion, but it cannot mark it complete
 or restore normal access without the same independent evidence.
@@ -205,33 +200,9 @@ the Stage 3.21 inventory, encryption, 90-day destruction evidence, and reconcili
 destruction does not excuse a missing backup inventory or remove residual reidentification risk in
 unencrypted or independently copied material.
 
-## Required Evidence Before Security Review or Implementation
 
-Before a Security Review can recommend ADR-008 acceptance or a later implementation proposal can
 begin, the accountable owners must provide at least:
 
-1. a field-level mapping design showing how erasure material protects every live and recoverable
-   person-to-financial bridge without retaining a raw fallback mapping;
-2. a provider-neutral capability matrix covering non-exportability, versioning, irreversible
-   deletion, recovery/admin paths, attestation, deletion semantics, availability, regional copies,
-   audit privacy, retention, cost, and exit;
-3. a provider-specific threat, access, cost, residency, support, incident, and procurement record
-   after a provider is proposed, with no provider accepted merely by this document;
-4. an exact custody policy and separation-of-duties design, including identity/credential lifecycle,
-   approval quorum, break-glass limits, administrative recovery limits, and access reviews;
-5. a canonical destruction-proof schema and verifier design with redaction review, replay/idempotency
-   behavior, key/attestation rotation, compatibility rules, evidence retention, and failure codes;
-6. a non-identifying marker/control-plane design that proves restore targeting without forming a
-   usable person-to-subject map;
-7. a migration and data-state proposal for identity, links, credentials, sessions, audit actors,
-   free-form fields, import artifacts, derived data, queues, logs, and backup copies;
-8. an operations runbook for authorization, destruction, proof collection, outage/escalation,
-   audit access, isolated restore, marker replay, backup expiry, evidence retention, and release;
-9. adversarial tests for unauthorized export/destruction/recreation, duplicate intent, race,
-   partial failure, false proof, stale verifier, provider outage, stale restore, backup expiry, and
-   early traffic release; and
-10. an isolated restore rehearsal proving a completed identity cannot authenticate, write protected
-    data, or be reconnected to retained financial history.
 
 No missing item may be replaced with a database cascade, a soft-delete state, a successful HTTP
 response, a mutable provider console, an unverified log, or a verbal operational assurance.
@@ -256,7 +227,7 @@ Redis, migrations, test fixtures, CI, infrastructure, providers, credentials, ba
 operational access. It does not authorize deletion, anonymization, encryption, key provisioning,
 key destruction, a provider trial, a production discovery, a restore, or an implementation stage.
 
-This proposal was strictly reviewed and squash-merged through PR #51 at
+Canonical record: PR #51.
 `5f42d32db1e045c23fb99a5af8f136b7a49e3bc2`. Its successor, Stage 3.23, designs only the
 non-identifying deletion-marker control plane and restore gate. No field-level migration or runtime
 implementation is authorized by this historical closure.

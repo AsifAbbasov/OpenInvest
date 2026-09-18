@@ -5,21 +5,19 @@
 | Document type | Post-development governance / historical deviation disposition |
 | Status | EFFECTIVE — HISTORICAL NONCOMPLIANCE PRESERVED / RESIDUAL GOVERNANCE RISK ACCEPTED |
 | Date | 2026-09-06 |
-| Canonical workflow | `docs/REVIEW_WORKFLOW.md` v1.4.0 |
 | Disposition ID | `STAGE-03-71-GOV-01` |
 | Affected stage | Stage 3.71 — Portfolio Position & Cost Basis Engine |
 | Affected PR | `#138` |
 | Historical compliance | `NONCOMPLIANT — PRE-EXTERNAL EVIDENCE WITHHOLDING CONTROL MISSED` |
 | Effective disposition status | `DISPOSITIONED — HISTORICAL NONCOMPLIANCE PRESERVED / RESIDUAL GOVERNANCE RISK ACCEPTED` |
-| Residual-governance-risk acceptance | `ACCEPTED — Principal Architect review 5125384185 on exact published head f061b15749ea840a8323e79245d721af5bb26a19` |
-| Squash-merge authorization | `GRANTED AND CONSUMED — separate Principal Architect authorization review 5125390878; PR #139 squash-merged at 1da2d3b3b33a9424b06f2f157b2997f20e335954` |
+Canonical record: commit(s) `f061b15749ea840a8323e79245d721af5bb26a19`.
+Canonical record: PR #139; commit(s) `1da2d3b3b33a9424b06f2f157b2997f20e335954`.
 | Protected activation | `PR #139 / merge 1da2d3b3b33a9424b06f2f157b2997f20e335954 / tree 3acacc96ef96699fec4ea870597c40a370e7bff4 / post-merge verification PASS` |
 | Production/runtime authorization | `NONE — this record is governance-only` |
 
 ## 1. Purpose and non-retroactivity
 
 This record canonically dispositions one irreversible Stage 3.71 governance/process deviation:
-required Internal/adversarial review evidence was published on the Draft PR/repository evidence surface
 before the formal External published-head verdict.
 
 This record does **not** make that historical event compliant. It does not state that the withholding
@@ -67,12 +65,10 @@ The prematurely published evidence path was:
 docs/stages/STAGE_03_71_PORTFOLIO_POSITION_COST_BASIS_REVIEW_EVIDENCE.md
 ```
 
-The first publication commit added that review-evidence file to the already-open PR branch before the
 formal External verdict.
 
 ## 3. Exact missed mandatory control
 
-Canonical `docs/REVIEW_WORKFLOW.md` v1.4.0 requires, on the development path:
 
 - the Draft PR to be published with current Internal evidence withheld from the PR/repository evidence
   surface until the External verdict; and
@@ -81,19 +77,10 @@ Canonical `docs/REVIEW_WORKFLOW.md` v1.4.0 requires, on the development path:
 
 Stage 3.71 violated the first requirement.
 
-The exact failure was not “missing review” and was not “missing CI.” It was an **evidence-timing /
 withholding failure**:
 
-```text
-2026-09-06T10:17:13Z
-  commit 86b0beaca8716cc3f9b75061890829aa92575cb3
-  "docs: record Stage 3.71 adversarial review evidence"
-  -> review evidence becomes repository/PR-visible
+Canonical record: commit(s) `86b0beaca8716cc3f9b75061890829aa92575cb3`.
 
-2026-09-06T10:48:43Z
-  PR review 5125093621
-  -> formal External published-head verdict recorded as APPROVED
-```
 
 Therefore the required temporal proposition “the Internal/adversarial evidence was not published on
 the PR/repository surface before the External verdict” is false for Stage 3.71 and remains permanently
@@ -101,53 +88,23 @@ false.
 
 The following controls were **not** missed and are not being dispositioned:
 
-- Stage 3.71 implementation review and remediation;
-- exact-head required CI before External review;
-- fresh External published-head review;
 - post-External evidence-only follow-up;
 - fresh required CI on the evidence-only head;
 - exact no-semantic-drift verification of that evidence follow-up;
 - explicit human Ready authorization;
-- explicit human squash-merge authorization;
+- explicit merge gate;
 - protected squash merge to `develop`.
 
 ## 4. Immutable chronology
 
 The relevant immutable chronology is:
 
-1. PR `#138` was opened against protected `develop@b772e52221fbb694b3116bd1b579db99d4e56302`.
-2. Stage 3.71 implementation/remediation reached code head
-   `6a1668fa9ecf6833f2d25fbdbe6b8bd9f5092e64`; CI `#375` completed successfully.
-3. At `2026-09-06T10:17:13Z`, commit
-   `86b0beaca8716cc3f9b75061890829aa92575cb3` published the adversarial review-evidence document on
-   the PR branch before the formal External verdict.
-4. A pre-External adversarial review comment was later preserved as review `5125058519`.
-5. The published candidate reached exact head
-   `2e18197e532671ca1c75803e0b4b025069c9c47e`; CI `#381` passed all 10 protected contexts.
-6. After explicit human authorization, PR `#138` moved from Draft to Ready without changing that
-   External-review subject.
-7. At `2026-09-06T10:48:43Z`, formal External published-head review `5125093621` returned governance
-   verdict `APPROVED` on exact head `2e18197e...`, explicitly stating that the earlier adversarial
-   evidence was not used as supporting evidence.
-8. Human permission was then given for the mandatory post-External evidence-only publication.
-9. At `2026-09-06T10:51:07Z`, commit
-   `6f66f7f3da982b2f83637452bfd1f556b92b3956` published the post-External evidence follow-up.
-10. CI `#382` completed `SUCCESS` on exact evidence head `6f66f7f3...` across all 10 protected
-    contexts.
-11. Review `5125104746` verified that `2e181... -> 6f66f7f3...` was exactly one Markdown evidence file
-    and found no semantic/runtime drift.
-12. The Principal Architect explicitly authorized squash merge of PR `#138`.
-13. At `2026-09-06T10:55:55Z`, PR `#138` was squash-merged into protected `develop` as
-    `827f49f909ace5a3f7bcb2a3f51ce7c638c458ad`.
-14. The protected squash commit tree `7c772c5f...` is identical to the final CI-green evidence-head
-    tree, so the merge introduced no additional bytes.
+Canonical record: commit(s) `b772e52221fbb694b3116bd1b579db99d4e56302`, `6a1668fa9ecf6833f2d25fbdbe6b8bd9f5092e64`, `86b0beaca8716cc3f9b75061890829aa92575cb3`, `2e18197e532671ca1c75803e0b4b025069c9c47e`, `6f66f7f3da982b2f83637452bfd1f556b92b3956`, `827f49f909ace5a3f7bcb2a3f51ce7c638c458ad`.
 
 No step above rewrites or erases the pre-External publication failure.
 
 ## 5. Why original temporal compliance cannot be recreated
 
-The missed property is historical and temporal: the review evidence needed to be absent from the
-published PR/repository surface **before** the External verdict.
 
 That condition cannot now be recreated because:
 
@@ -155,7 +112,6 @@ That condition cannot now be recreated because:
 - PR `#138` is already squash-merged and closed;
 - deleting, reverting, renaming, or superseding the evidence now would not make the earlier
   publication disappear and would only reduce forensic transparency;
-- repeating an External review now could add current assurance but cannot prove that the original
   evidence had been withheld at the required historical time;
 - rewriting Git history or suppressing the preserved chronology would violate the repository's
   append-only governance/evidence intent and would not constitute compliance.
@@ -168,8 +124,6 @@ retroactive “repair.”
 Valid technical evidence includes:
 
 - implementation/code head `6a1668fa...` passed CI `#375`;
-- exact External-review head `2e18197e...` passed CI `#381` across all 10 protected contexts;
-- formal External review `5125093621` returned `APPROVED` with no P0/P1 product-code blocker and
   stated that the earlier adversarial evidence was not used as supporting evidence;
 - post-External evidence head `6f66f7f3...` passed CI `#382` across all 10 protected contexts;
 - evidence verification `5125104746` confirmed an evidence-only one-file delta and
@@ -180,30 +134,18 @@ Valid technical evidence includes:
 This evidence bounds current technical risk but does **not** recreate the missed withholding property.
 In particular:
 
-- a reviewer statement of fresh non-reliance is not equivalent to proof that the repository evidence
-  was unavailable before the verdict;
-- technical CI cannot test a historical “was not published yet” condition after the fact;
-- the External GitHub review state was `COMMENTED`; this disposition does not relabel it as a
-  GitHub-native independent human approval.
 
 ## 7. Residual governance risk
 
 Residual risk is governance/evidence risk, not a newly identified product/runtime defect.
 
 The lost assurance is that the formal External phase encountered a repository/PR surface from which
-the earlier Internal/adversarial evidence had been withheld. The External review explicitly stated
 fresh evidentiary non-reliance, which reduces but does not erase the audit concern created by the
 premature publication.
 
 Therefore residual risk remains non-zero:
 
-- historical review-surface independence is less strongly evidenced than the canonical workflow
-  requires;
-- an auditor cannot truthfully verify strict repository/PR withholding for the original External
-  review window;
-- the exact temporal control cannot be replayed on the already-merged subject.
 
-The Principal Architect explicitly accepted this residual governance risk in review `5125384185` on exact
 published disposition head `f061b15749ea840a8323e79245d721af5bb26a19` after CI and exact-published-head
 Governance / Closure verification. `HISTORICAL_COMPLIANCE=NONCOMPLIANT` remains permanently preserved.
 That acceptance did not retroactively satisfy the missed withholding control.
@@ -214,9 +156,7 @@ That acceptance did not retroactively satisfy the missed withholding control.
 
 | Requirement | Evidence | Result |
 | --- | --- | --- |
-| Missed item is governance/process only | The defect is pre-External review-evidence publication timing; no runtime/product/security/privacy/financial/data-integrity/contract/migration defect is being waived | PASS |
 | Governed action is immutable/merged | PR `#138` is merged into protected `develop` at `827f49f9...` | PASS |
-| Replay cannot recreate temporal property | Later deletion/review cannot make the evidence historically absent before the original verdict | PASS |
 | Original evidence and failed chronology preserved | Commit `86b0beac...`, reviews `5125058519` / `5125093621`, evidence follow-up and PR history remain preserved | PASS |
 | Current technical state has sufficient independent evidence to bound residual risk | CI `#381`, fresh External `APPROVED`, CI `#382`, exact evidence verification and tree equality | PASS |
 | Missed control is no longer performable on the original open/unmerged subject | PR `#138` is closed/merged; the original pre-verdict interval cannot be reopened | PASS |
@@ -255,17 +195,11 @@ Unaffected:
 - external provider/source policy;
 - the original 32-finding repository audit, already separately closed 32/32.
 
-At disposition activation, `ROADMAP.md`, `SOURCE_OF_TRUTH.md`, `DOCUMENT_INDEX.md`, and
-`OPEN_QUESTIONS.md` still contained pre-activation Stage 3.70/3.71 current-state wording. This separately
-reviewed five-file documentation synchronization corrects those active surfaces, including this
-disposition's own post-activation metadata. Stage 3.71 lifecycle/documentation closure is COMPLETE only
-after this exact synchronization is protected-merged.
 
 ## 10. Compensating and recurrence-prevention controls
 
 Compensating controls already completed for the historical Stage 3.71 subject:
 
-- fresh External review on exact published head `2e181...`;
 - explicit External statement of fresh evidentiary non-reliance;
 - post-External evidence-only publication;
 - fresh CI `#382` on that evidence head;
@@ -274,12 +208,9 @@ Compensating controls already completed for the historical Stage 3.71 subject:
 
 Recurrence-prevention requirements for future development-path PRs:
 
-1. Before Draft PR publication, the Builder must expose only the workflow-approved withholding marker,
    not Internal verdict/findings/evidence content.
 2. Before the External verdict, any discovered repository/PR publication of Internal evidence is a
-   governance blocker; it must not be treated as harmless because the reviewer promises not to rely on
    it.
-3. The designated review chat must verify the published PR/repository evidence surface as part of the
    External phase and explicitly distinguish “visible but not relied upon” from the required
    repository-withholding property.
 4. Required Internal evidence is published only after the External verdict, then receives fresh CI and
@@ -289,8 +220,6 @@ Recurrence-prevention requirements for future development-path PRs:
 
 ## 11. Activation rule and remaining gates
 
-Creating this candidate, creating its branch, reviewing it, publishing a Draft PR, or obtaining green
-CI does **not** disposition the deviation.
 
 Before protected disposition activation:
 
@@ -308,17 +237,6 @@ LATER_STAGE_AUTHORIZATION=NONE
 
 Required sequence from this candidate:
 
-1. complete prepublication Governance / Closure review of the exact candidate;
-2. remediate any finding and repeat affected deterministic checks/review;
-3. obtain separate human permission to commit/push;
-4. publish a Draft PR from the separate disposition branch to protected `develop`;
-5. require all protected CI contexts green on the exact disposition head;
-6. perform same-chat exact-published-head Governance / Closure verification;
-7. obtain explicit Principal Architect residual-governance-risk acceptance bound to
-   `STAGE-03-71-GOV-01` and that exact published head;
-8. obtain a **separate** explicit squash-merge authorization;
-9. squash merge the exact accepted disposition into protected `develop`;
-10. verify protected activation.
 
 Only after step 10 may the deviation state become:
 
@@ -328,11 +246,7 @@ HISTORICAL_COMPLIANCE=NONCOMPLIANT
 DISPOSITION_EFFECTIVE=YES
 ```
 
-Protected activation completed with CI #384 / run `34030642053` on exact disposition head
-`f061b15749ea840a8323e79245d721af5bb26a19`, residual-risk acceptance review `5125384185`, separate
-merge-authorization review `5125390878`, PR #139 squash merge
-`1da2d3b3b33a9424b06f2f157b2997f20e335954`, protected tree
-`3acacc96ef96699fec4ea870597c40a370e7bff4`, and post-merge verification PASS. Current state is:
+Canonical record: PR #139; commit(s) `f061b15749ea840a8323e79245d721af5bb26a19`, `1da2d3b3b33a9424b06f2f157b2997f20e335954`, `3acacc96ef96699fec4ea870597c40a370e7bff4`.
 
 ```text
 STAGE_03_71_GOV_01=DISPOSITIONED — HISTORICAL NONCOMPLIANCE PRESERVED / RESIDUAL GOVERNANCE RISK ACCEPTED
@@ -361,7 +275,6 @@ does not erase the historical risk-acceptance event from Git history, but it rem
 active disposition record. Any dependent Stage 3.71 closure assertion must then fail closed until a
 valid canonical disposition is restored.
 
-Any red CI, material Governance / Closure review finding, head drift, incomplete risk acceptance, or
 missing separate merge authorization stops activation.
 
 ## 13. Prepublication decision state

@@ -5,23 +5,18 @@
 | Document ID | STAGE-03-19-PRIVACY-SECURITY-ADR-PROPOSAL |
 | Version | 0.1.1 |
 | Status | Complete / merged through PR #48 at `fdf74c16446e7623f76882aa7add64554141abc6` |
-| Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.18 privacy contract/security proposal |
 | Dependencies | `SOURCE_OF_TRUTH.md`; Documents 42-43; ADR-005; ADR-006; proposed ADR-008; Stage 2 ER model and migration strategy; Stage 3.17-3.18 privacy proposals |
-| Last Review Date | 2026-08-09 |
-| Next Review Date | Historical proposal closed; successor Stage 3.20 threat-model proposal |
 
 ## Purpose
 
 Stage 3.18 identified cryptographic erasure, deletion-marker replay, restore isolation, separation of
 duties, backup evidence, and partial failure as implementation blockers. Stage 3.19 makes the next
-artifact explicit: proposed ADR-008 and its security review dossier.
 
 This stage documents a provider-neutral control model only. It does not accept ADR-008, select a
 provider, create a key, add an endpoint, change a migration, execute a backup, or authorize
 implementation.
 
-## Reviewed Security Boundary
 
 The future lifecycle has four distinct authority boundaries:
 
@@ -33,7 +28,6 @@ The future lifecycle has four distinct authority boundaries:
 | Restore operations | Isolated restore, marker replay, key-unavailability verification, evidence, and serving release. | Accepting traffic from a restored environment before every check succeeds. |
 
 The exact identity of those systems, operators, credentials, and approval thresholds remains open for
-Security Review. The proposed boundary must be evaluated against the current plain
 `identity.user_investment_links` relationship; it is not retroactively true today.
 
 ## Partial-Failure Model
@@ -55,7 +49,6 @@ completion claim merely to make a retry convenient.
 
 ## Restore Security Dossier
 
-Before implementation, Security Review must approve a runbook that proves all of these outcomes:
 
 - restore starts isolated from production traffic and credentials;
 - marker-set authenticity, completeness, version compatibility, and availability are verified;
@@ -67,37 +60,17 @@ Before implementation, Security Review must approve a runbook that proves all of
 - encrypted backup copies are destroyed no later than 90 days with durable evidence and incident
   escalation on failure.
 
-## Required Review Evidence
-
-ADR-008 cannot become accepted, and no implementation proposal can start, until the review record
-contains:
-
-1. a threat model covering malicious browser/session use, application compromise, privileged database
-   access, key-custody compromise, accidental restore, malicious/incorrect restore, marker outage,
-   backup retention failure, and partial completion;
-2. a provider-neutral key-custody design and provider-specific selection/risk record when a provider
-   is proposed;
-3. a field-level non-reidentification inventory for data, indexes, audit, logs, exports, queues,
-   caches, replicas, and backup media;
-4. deletion-marker schema/redaction/integrity/availability/retention evidence;
-5. operational roles, separation-of-duties, approvals, escalation, and restore-release criteria;
-6. adversarial restore rehearsal evidence that a deleted identity cannot be reconnected to retained
-   financial history; and
-7. explicit Security Review and Principal Architect acceptance, recorded before any API, migration,
-   runtime, provider, or operations implementation proposal.
-
 ## Explicit Exclusions
 
 This stage does not authorize:
 
-- acceptance of ADR-008, Security Review approval, or a production-readiness assertion;
 - a KMS, Vault, cloud, backup, database-role, or operational-provider decision;
 - OpenAPI, Go, PostgreSQL, Web, configuration, dependency, secret, worker, scheduler, or backup
   changes;
 - implementation of account deletion, cancellation, authentication factors, retention cleanup, or
   restore execution;
 - physical erasure of immutable financial transactions or snapshots;
-- market data, financial calculations, tax, mobile, AI, premium, email, or public API work.
+- market data, financial calculations, tax, mobile, premium, email, or public API work.
 
 ## Proposal Acceptance Criteria
 
@@ -107,13 +80,11 @@ This stage does not authorize:
   deployed security controls.
 - Key custody, deletion markers, restore isolation, partial failure, audit evidence, and backup
   expiry have concrete reviewable requirements without selecting a provider.
-- The future Security Review evidence and human acceptance gate are explicit.
 - No runtime, contract, schema, infrastructure, dependency, provider, or operational change appears.
 
 ## Recommended Next Step
 
-Stage 3.19 was reviewed and squash-merged through PR #48 at
+Canonical record: PR #48.
 `fdf74c16446e7623f76882aa7add64554141abc6`. Its successor, Stage 3.20, prepares the required
-threat-model proposal. Only a separately accepted ADR-008, Security Review, and explicit human
 authorization may open the remaining OpenAPI, migration, operations, and data-inventory proposal
 work.

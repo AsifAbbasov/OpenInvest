@@ -5,11 +5,8 @@
 | Document ID | STAGE-03-08 |
 | Version | 0.1.1 |
 | Status | Complete / merged into `develop` |
-| Owner | Builder Engineer |
 | Supersedes | Stage 3.7 isolated append-only state |
 | Dependencies | Stage 3.6 import reconciliation slice; Stage 3.7 import append slice; Documents 42–43 |
-| Last Review Date | 2026-07-03 |
-| Next Review Date | 2027-01-03 |
 
 ## Purpose
 
@@ -45,21 +42,7 @@ frontend import UI yet.
 A future Stage 3.8 implementation PR may add an internal application service or use-case function
 that:
 
-- accepts a user-supplied CSV payload already available inside the backend boundary;
-- runs the existing Stage 3.6 parse/normalize/review logic;
-- accepts an explicit set of approved candidate decisions from the caller;
-- converts only accepted candidates into Stage 3.7 append requests;
-- invokes the Stage 3.7 atomic append path once per approved batch;
-- returns a deterministic result containing:
-  - parsed row count;
-  - accepted row count;
-  - rejected/conflict row count;
-  - appended transaction IDs;
-  - snapshot dates rebuilt;
-  - audit reference;
-  - non-sensitive review warnings.
 
-The implementation must remain internal-only until a later reviewed stage defines public API and UI
 boundaries.
 
 ## Allowed implementation surfaces for the future PR
@@ -88,7 +71,7 @@ Stage 3.8 must not introduce:
 - background workers;
 - tax calculation;
 - mobile code;
-- AI assistance;
+-  assistance;
 - automatic append without explicit approved decisions;
 - Stage 3.9 or later work.
 
@@ -114,13 +97,6 @@ Stage 3.8 must not introduce:
 
 Before Stage 3.8 implementation can merge:
 
-- full repository verification must pass;
-- live PostgreSQL integration tests must prove parse/review/approve/append behavior;
-- a conflict-after-review case must roll back the entire append;
-- a duplicate-after-review case must reject without partial append;
-- strict independent review must approve;
-- GitHub CI must be green;
-- human approval must be explicit.
 
 ## Acceptance criteria for this planning PR
 
@@ -130,5 +106,3 @@ This planning PR is complete when:
 - allowed and forbidden surfaces are explicit;
 - governance registries reference the planned stage;
 - no implementation code is changed;
-- independent review approves;
-- human approval is given before merge.

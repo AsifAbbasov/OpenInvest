@@ -5,7 +5,6 @@
 | Document ID | ADR-009 |
 | Version | 0.1.1-candidate |
 | Status | Merge-activated decision — PROPOSED/non-normative before required gates; ACCEPTED only after explicit Principal Architect acceptance and squash merge of this exact decision to protected `develop` |
-| Owner | Principal Architect |
 | Supersedes | Implicit same-BusinessDate ordering and incomplete Stage 3.02 local-cost position semantics |
 | Dependencies | Documents 42–43; ADR-006; Stage 2 canonical/API/ER freeze; Stage 3.02; Stage 3.33; Stage 3.70 |
 | GitHub issue | #136 — `https://github.com/AsifAbbasov/OpenInvest/issues/136` |
@@ -256,10 +255,8 @@ After Stage 3.71, rollback must never delete/rewrite accepted ledger rows. New s
 
 ## Acceptance condition
 
-ADR-009 is not accepted by drafting, local review, commit or push. It becomes canonical only after:
 
 1. the required GitHub architecture issue exists and is referenced here;
-2. development-path review/CI/evidence gates pass;
 3. the Principal Architect explicitly accepts this exact decision and authorizes Ready/squash merge;
 4. the accepted text is squash-merged into protected `develop`.
 

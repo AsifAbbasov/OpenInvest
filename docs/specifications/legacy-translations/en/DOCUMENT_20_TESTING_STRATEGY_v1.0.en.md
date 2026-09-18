@@ -2,7 +2,6 @@
 
 # DOCUMENT 20
 
-# TESTING STRATEGY, QA SYSTEM, REVIEW AGENTS, CI/CD, RELEASE MANAGEMENT & QUALITY GATES
 
 Version: 1.0
 
@@ -34,7 +33,6 @@ Every commit must pass automated and manual checks.
 
 # DEVELOPMENT PHILOSOPHY
 
-Builder Agent
 
 is never
 
@@ -43,11 +41,9 @@ the final authority.
 After every change, the code must pass:
 
 ```
-Builder Agent
 
 ↓
 
-Review Agent
 
 ↓
 
@@ -67,7 +63,6 @@ Security Tests
 
 ↓
 
-Human Approval
 
 ↓
 
@@ -102,35 +97,8 @@ hotfix/*
 
 ---
 
-# BUILDER AGENT
-
-Builder Agent is responsible only for creating code.
-
-Builder Agent is prohibited from:
-
-independently considering the code perfect;
-
-pushing changes independently;
-
-ignoring Review Agent findings.
-
----
-
-# REVIEW AGENT
-
-Review Agent is an independent AI.
-
-Its task is:
-
-to find the maximum number of errors.
-
-Review must be as strict as possible.
-
----
-
 # REVIEW CHECKLIST
 
-Review Agent must check:
 
 ---
 
@@ -648,9 +616,9 @@ Tax declaration
 
 ---
 
-# AI TESTS
+#  TESTS
 
-AI Assistant must:
+ Assistant must:
 
 not provide investment recommendations;
 
@@ -759,7 +727,6 @@ E2E Tests
 
 ↓
 
-Review Agent
 
 ↓
 
@@ -771,7 +738,6 @@ Security Scan
 
 ↓
 
-Human Approval
 
 ↓
 
@@ -786,7 +752,6 @@ Deploy
 
 # DEPLOYMENT RULES
 
-Builder Agent
 
 never
 
@@ -798,7 +763,6 @@ Production Deploy
 
 is possible only after:
 
-Review Agent
 
 *
 
@@ -806,71 +770,6 @@ QA Agent
 
 *
 
-Human Approval.
-
----
-
-# CODEX WORKFLOW
-
-After each completed stage, Codex must:
-
-1.
-
-Explain
-
-why this architecture was chosen.
-
----
-
-2.
-
-Explain
-
-which alternatives were considered.
-
----
-
-3.
-
-Explain
-
-why they are worse.
-
----
-
-4.
-
-Show the impact on:
-
-RAM
-
-CPU
-
-Network
-
-Battery
-
-Scalability
-
----
-
-5.
-
-Request confirmation:
-
-```
-The stage has been implemented.
-
-Review Agent found no issues.
-
-QA Agent successfully passed the tests.
-
-Push changes to Git?
-
-[Yes]
-
-[No]
-```
 
 ---
 

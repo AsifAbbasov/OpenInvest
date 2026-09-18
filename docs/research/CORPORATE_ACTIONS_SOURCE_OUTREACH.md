@@ -5,7 +5,6 @@
 | Status | Active source-rights / provider evidence log |
 | Last evidence update | 2026-09-09 |
 | Canonical repository base at reconciliation | `develop@1f2fe1cc9c4c6ab282f56506d64a9754b62eef58` |
-| Governance authority | `docs/REVIEW_WORKFLOW.md` v1.4.0; `docs/registries/DATA_SOURCE_REGISTRY.md` |
 | Product boundary | Existing provider-neutral Corporate Actions Calendar / Heatmap; canonical kinds `DIVIDEND` and `COUPON` only |
 | Runtime activation | No provider is activated by this research document |
 | Project external-data budget | `0 RUB` unless the owner explicitly changes the project constraint |
@@ -99,26 +98,6 @@ Repository:
 
 ## 4. Current provider register
 
-| Organization | Category | Current evidence status | Zero-budget production state |
-| --- | --- | --- | --- |
-| T-Invest | Broker / API | Exact OpenInvest normalized public-display + derived-analytics scenario confirmed by support; constrained registry row merged; published FAQ conflict preserved | `CONDITIONAL-GO` for exact registry scope only; runtime separately gated |
-| Interfax / e-disclosure | Professional disclosure/API vendor | Public normalized use / derived analytics / retention confirmed for described contracted use; minimum contract 3 months; archive option +50%; fresh exact quote requested | `NO-GO` while price is above `0 RUB`; no spending authorized |
-| Financial Data API / fdnpy | Data API vendor candidate | Broad coverage claimed; exact MOEX/Russian coverage and source-rights clarification sent | NOT ESTABLISHED |
-| Cbonds / InvestFunds | Professional data vendor | Trial available; retransmission/public-display/retention/pricing clarification sent | NOT ESTABLISHED / likely commercial |
-| NSD / НРД | Market infrastructure | Relevant services exist; provider response requires legal-entity contracting for current route | `NO-GO` under current project status |
-| Finam | Broker / API | Routed to Trade API team | AWAITING SUBSTANTIVE RESPONSE |
-| VTB | Broker / bank | Formal paper request route required | ELECTRONIC ROUTE BLOCKED |
-| MOEX | Exchange | Outreach sent; separate reviewed market-data source-rights NO-GO remains authoritative | AWAITING RESPONSE; no rights inferred from silence |
-| Alfa Investments | Broker / bank | Outreach sent | AWAITING RESPONSE |
-| BCS | Broker | Outreach sent | AWAITING RESPONSE |
-| Gazprombank | Broker / bank | Outreach sent | AWAITING RESPONSE |
-| Sber | Broker / bank | Outreach sent | AWAITING RESPONSE |
-| SPB Exchange | Exchange | Outreach sent | AWAITING RESPONSE |
-| Finmarket | Financial information | Outreach sent | AWAITING RESPONSE |
-| Smart-Lab | Investment community | Research contact | AWAITING RESPONSE |
-| Banki.ru | Financial platform | Research contact | AWAITING RESPONSE |
-| RBC Investments | Financial media | Research contact | AWAITING RESPONSE |
-| Bank of Russia / CBR | Regulator | Formal online-reception route identified; not contacted by email for this wave | NO APPROVED FEED ESTABLISHED |
 
 Functional contact routes may be recorded where useful, but Gmail message identifiers, internal headers, tracking metadata and unnecessary private correspondence must not be copied into this public repository.
 
@@ -215,10 +194,8 @@ Exact normalized public display:      YES — support confirmed exact scenario
 Derived analytics:                    YES — support confirmed exact scenario
 Raw redistribution:                   FORBIDDEN by OpenInvest constrained mode
 Caching / persistence:                NO-STORE constrained mode
-Cost for approved API use:            FREE per reviewed public API documentation
 Published FAQ consistency:            CONFLICTING
 Registry status:                       CONDITIONAL-GO — exact constrained scope
-Runtime activation:                    SEPARATE IMPLEMENTATION / REVIEW REQUIRED
 ```
 
 This replaces the older pre-PR #161 state that said registry approval was not yet granted.
@@ -463,7 +440,6 @@ Consequences:
 - free trial access may be used only for separately authorized evaluation and does not itself authorize production;
 - paid archival options are not activated;
 - no contract/subscription may be entered into merely because source rights are otherwise acceptable;
-- any future change to this budget must be an explicit owner decision, not an inference by a builder/reviewer.
 
 This budget constraint is an internal project decision, not a statement that paid providers are unsuitable in general.
 
@@ -493,12 +469,6 @@ The `Data Source Registry` remains the authority for runtime-eligible external s
 
 Current relevant states:
 
-- `TINVEST_CORPORATE_ACTIONS_CONSTRAINED` = `CONDITIONAL-GO` for the exact bounded DIVIDEND/COUPON scenario;
-- `INTERFAX_EDISCLOSURE_API` = `NO-GO` under the current zero-budget constraint;
-- `NSD_CORPORATE_ACTIONS_API` = `NO-GO` under current organizational/contractual constraints;
-- MOEX reviewed market-data source/use modes remain separately governed by their existing registry rows;
-- Financial Data API has no registry row and no runtime authorization;
-- Cbonds/InvestFunds has no new approved row from this outreach.
 
 This research log does not broaden any registry permission.
 
@@ -541,7 +511,6 @@ Canonical constrained source decision:
 TINVEST_CORPORATE_ACTIONS_CONSTRAINED = CONDITIONAL-GO
 
 Runtime T-Invest adapter:
-SEPARATE IMPLEMENTATION / REVIEW REQUIRED
 
 Interfax rights:
 PUBLIC NORMALIZED USE + DERIVED ANALYTICS + RETENTION CONFIRMED FOR DESCRIBED CONTRACTED USE

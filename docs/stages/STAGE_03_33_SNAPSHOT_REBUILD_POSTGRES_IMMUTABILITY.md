@@ -2,14 +2,11 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implementation candidate; repeat independent review and human merge authorization pending |
-| Owner | Principal Architect |
 | Baseline | `develop` at `a73b7f8c008d2f903e22e9b8a85b7c6248d6d3be` |
 | Branch | `fix/stage-03-33-snapshot-immutability` |
 | Implementation PR | #69 |
 | Trigger | Repository-audit P2-10, P2-11, and P2-12 |
 | Scope | Exact import snapshot rebuild reporting, one-pass affected-snapshot rebuild planning, authenticated PostgreSQL runtime append-only privilege enforcement, startup credential-graph validation, regression/CI evidence |
-| Out of scope | P2-16/P2-17, all P3 findings, Stage 3.25 privacy Security Review evidence work, provider credential provisioning, product-scope expansion, snapshot methodology redesign |
 
 ## Purpose
 
@@ -45,7 +42,6 @@ The PostgreSQL regression creates baseline snapshots on 10, 20, and 30 June, the
 - 25 June is version 1;
 - 30 June advances to version 2.
 
-Both independent Stage 3.33 reviews to date marked P2-11 CLOSED. The first review noted the old direct non-replay PostgreSQL compatibility method still contains the historical cascading implementation, but confirmed that method is not the canonical production HTTP/importflow path. Removal/deprecation remains a non-blocking maintainability cleanup.
 
 ## P2-12 — PostgreSQL runtime append-only boundary
 
@@ -61,14 +57,6 @@ The protected append-only tables are runtime read/append only:
 Outside explicit `development`/`local` mode, `cmd/api` opens PostgreSQL through `postgres.OpenRuntime`. Local/development may use the owner connection only as an explicit development convenience.
 
 CI provisions a separate runtime LOGIN and proves normal portfolio/transaction writes succeed while direct ledger UPDATE and DELETE fail with PostgreSQL permission denial and TRUNCATE capability is absent. Migration validation independently checks the ACL shape after migration rollback/reapply.
-
-### First independent review finding — masked authenticated principal
-
-The first independent Stage 3.33 review marked P2-12 NOT CLOSED because the startup validator inspected only `current_user`.
-
-PostgreSQL distinguishes the authenticated `session_user` from the effective `current_user`. An overprivileged authenticated session can execute or start with `SET ROLE openinvest_runtime`, making `current_user` appear least-privileged while `session_user` remains privileged and can later recover its original authority. The same problem exists for a clean-looking LOGIN that can `SET ROLE` into a non-inherited role carrying ledger-mutation privileges.
-
-This was a valid P2 blocker because it meant the startup check could prove only the currently selected effective role, not that the authenticated runtime credentials themselves were incapable of escaping the append-only boundary.
 
 ### First post-review remediation
 
@@ -92,12 +80,6 @@ Two adversarial PostgreSQL regressions were added:
 **Latent SET-role escalation:** a NOLOGIN role receives schema USAGE plus UPDATE on `investment.transaction_entries`, is granted to the clean runtime LOGIN with `INHERIT FALSE, SET TRUE`, and the fixture proves UPDATE is not directly inherited while SET capability exists. `OpenRuntime` rejects the LOGIN.
 
 The code-only remediation head `64190a2cc42dfc50f747e63b508a23aa0d6a79da` passed CI #190 with all six jobs successful. Evidence-only follow-up head `35960c7821e8fce9577bd674ee5f2c7e06be2f61` passed CI #191 with all six jobs successful.
-
-### Second independent review finding — latent ADMIN OPTION escalation
-
-The repeat independent review reconfirmed P2-10 and P2-11 CLOSED and confirmed the previous P2-12 blocker was fixed, but correctly kept P2-12 OPEN because the credential graph still considered only roles already reachable through `SET ROLE`.
-
-PostgreSQL role membership has a separate `ADMIN OPTION`. A runtime LOGIN can hold membership in a ledger-mutating role with `ADMIN TRUE, INHERIT FALSE, SET FALSE`. That role is neither directly inherited nor currently SET-reachable, so the first credential-graph validator could accept the LOGIN. However, ADMIN OPTION allows the runtime principal to administer membership in that role and manufacture a later SET/INHERIT path for itself. The API has no legitimate need to administer PostgreSQL roles, so any such capability is incompatible with the fail-closed runtime boundary.
 
 ### ADMIN OPTION remediation
 
@@ -149,22 +131,9 @@ A provider setup that cannot establish these grants has not satisfied P2-12. Pro
 
 ## Review and verification history
 
-- Initial implementation CI #186 failed only because the new snapshot regression used a fabricated import `SourceFingerprint`; existing Stage 3.27 validation correctly rejected it.
-- The fixture was changed to derive the production `NormalizedTransactionFingerprint`; no runtime validation was weakened.
-- CI #187 passed all six jobs.
-- Evidence-only update produced CI #188, also 6/6.
-- First independent review: P2-10 CLOSED, P2-11 CLOSED, P2-12 NOT CLOSED; REQUEST CHANGES because `current_user` validation did not prove authenticated/session principal safety or latent SET-role safety.
-- First post-review remediation added `session_user` validation, same-connection identity checks, runtime-schema CREATE checks, protected-table owner/mutation checks, SET-reachable role enumeration, and two PostgreSQL attack regressions.
-- CI #190 and evidence-head CI #191 passed all six jobs.
-- Second independent review: P2-10 CLOSED, P2-11 CLOSED, P2-12 NOT CLOSED; REQUEST CHANGES because a role membership with ADMIN TRUE / INHERIT FALSE / SET FALSE could manufacture its own later escalation path.
-- Second post-review remediation rejects all ADMIN OPTION memberships held by the authenticated principal or any SET-reachable role and adds a PostgreSQL ADMIN-option attack regression.
-- Exact head `477e346e7569ab1281534655cf4bb0f8fa73024e` passed CI #194 with all six jobs successful.
-- Repeat independent review on that exact immutable head remains required before merge.
+Canonical record: commit(s) `477e346e7569ab1281534655cf4bb0f8fa73024e`.
 
 ## Scope boundary and next gate
 
-Stage 3.33 does not close P2-16 or P2-17. The CI changes here are only the evidence required for this PostgreSQL boundary. General branch protection, race/vet/vulnerability/dependency-review hardening remain separate work.
 
-Stage 3.25 privacy Security Review evidence planning also remains separate.
-
-P2-10, P2-11, and P2-12 are not canonically closed until the final immutable PR head passes exact-head CI, repeat independent review returns APPROVED with all three findings closed and no blocking regression, explicit human squash-merge authorization is received, PR #69 is squash-merged into `develop`, and separate closure governance becomes canonical.
+Canonical record: PR #69.

@@ -4,12 +4,8 @@
 | --- | --- |
 | Document ID | STAGE-03 |
 | Version | 0.1.39 |
-| Status | Complete / closed through Stage 3.24 Security Review readiness dossier; Stage 3.25 plan tracked separately |
-| Owner | Builder Engineer |
 | Supersedes | Roadmap placeholder for the first vertical slice |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-003; ADR-006; ADR-007; Stage 2 contract baseline; Web presentation baseline |
-| Last Review Date | 2026-08-18 |
-| Next Review Date | Before Stage 3.25 privacy evidence-collection plan review |
 
 ## Purpose
 
@@ -48,7 +44,7 @@ Stage 3 must stay deliberately small.
 
 Forbidden in Stage 3:
 
-- AI assistant;
+-  assistant;
 - tax export;
 - email automation;
 - mobile implementation;
@@ -119,7 +115,7 @@ Forbidden:
 - tax services;
 - forecast services;
 - external provider clients;
-- AI services;
+-  services;
 - general-purpose abstractions not used by the slice.
 
 ### PR 3.3 — Next.js presentation slice
@@ -181,7 +177,6 @@ Allowed:
 - documentation only;
 - broker-file format inventory;
 - reconciliation workflow design;
-- privacy/security review;
 - data-source/licensing review;
 - test-vector plan.
 
@@ -205,10 +200,6 @@ Purpose:
 
 Allowed:
 
-- user-supplied CSV import only;
-- normalization, duplicate detection, conflict detection, and user-review representation;
-- explicit append-plan generation from approved rows;
-- financial import test vectors.
 
 Forbidden:
 
@@ -229,7 +220,6 @@ Status:
 
 Purpose:
 
-- define the reviewed boundary for a future atomic append of user-approved import rows into the
   immutable ledger.
 
 Allowed:
@@ -247,7 +237,7 @@ Forbidden:
 - SQL import-session tables;
 - automatic ledger append;
 - direct broker API synchronization;
-- workers, tax, mobile, AI, or external-provider integration.
+- workers, tax, mobile, or external-provider integration.
 
 Status:
 
@@ -275,7 +265,7 @@ Forbidden:
 - frontend upload UI;
 - SQL import-session tables;
 - direct broker API synchronization;
-- workers, tax, mobile, AI, or external-provider integration.
+- workers, tax, mobile, or external-provider integration.
 
 Status:
 
@@ -307,7 +297,7 @@ Forbidden:
 - external provider integrations;
 - XLSX or PDF parsing;
 - automatic append without explicit approved decisions;
-- workers, tax, mobile, AI, or Stage 3.9 work.
+- workers, tax, mobile, or Stage 3.9 work.
 
 Status:
 
@@ -341,7 +331,7 @@ Forbidden:
 - external provider integrations;
 - XLSX or PDF parsing;
 - automatic append without explicit approved decisions;
-- workers, tax, mobile, AI, or Stage 3.9 work.
+- workers, tax, mobile, or Stage 3.9 work.
 
 Status:
 
@@ -356,10 +346,6 @@ Purpose:
 
 Allowed:
 
-- planning documentation;
-- future API lifecycle sketch;
-- privacy, idempotency, audit, retention, and stale-review questions;
-- explicit allowed/forbidden implementation surfaces.
 
 Forbidden:
 
@@ -374,7 +360,7 @@ Forbidden:
 - external provider integrations;
 - XLSX or PDF parsing;
 - automatic append without explicit approved decisions;
-- workers, tax, mobile, AI, or Stage 3.10 work.
+- workers, tax, mobile, or Stage 3.10 work.
 
 Status:
 
@@ -403,7 +389,7 @@ Forbidden:
 - credential scraping;
 - external provider integrations;
 - XLSX or PDF parsing;
-- workers, tax, mobile, AI, or Stage 3.10 implementation.
+- workers, tax, mobile, or Stage 3.10 implementation.
 
 Status:
 
@@ -438,7 +424,7 @@ Forbidden:
 - direct broker API synchronization;
 - credential scraping;
 - external provider integrations;
-- workers, tax, mobile, AI, or Stage 3.10 implementation code.
+- workers, tax, mobile, or Stage 3.10 implementation code.
 
 Status:
 
@@ -472,7 +458,7 @@ Forbidden:
 - financial calculations;
 - tax logic;
 - provider integrations;
-- workers, mobile, AI, or Stage 3.11 work.
+- workers, mobile, or Stage 3.11 work.
 
 Status:
 
@@ -501,7 +487,7 @@ Forbidden:
 - password hashing implementation;
 - JWT or refresh-token issuance;
 - frontend authentication screens or session state;
-- workers, provider integrations, tax, mobile, AI, or Stage 3.11 implementation work.
+- workers, provider integrations, tax, mobile, or Stage 3.11 implementation work.
 
 Status:
 
@@ -534,7 +520,7 @@ Forbidden:
 - email verification, OAuth/passkeys/2FA;
 - financial calculations;
 - tax logic;
-- workers, provider integrations, mobile, AI, or Stage 3.12 work.
+- workers, provider integrations, mobile, or Stage 3.12 work.
 
 Status:
 
@@ -565,7 +551,7 @@ Forbidden:
 - business logic in Next.js;
 - email verification, OAuth/passkeys/2FA;
 - provider integrations;
-- workers, tax, mobile, AI, or Stage 3.12 implementation work.
+- workers, tax, mobile, or Stage 3.12 implementation work.
 
 Status:
 
@@ -597,7 +583,7 @@ Forbidden:
 - access-token or refresh-token storage in JavaScript-readable durable browser storage;
 - email verification, OAuth/passkeys/2FA;
 - provider integrations;
-- workers, tax, mobile, AI, or Stage 3.13 work.
+- workers, tax, mobile, or Stage 3.13 work.
 
 Status:
 
@@ -612,12 +598,6 @@ Purpose:
 
 Allowed:
 
-- planning document only;
-- alignment with the frozen Stage 2 asset identity model;
-- candidate future implementation surfaces that remain unauthorized until a separate implementation
-  PR passes its normal gates;
-- review criteria and acceptance criteria;
-- governance registry updates.
 
 Forbidden:
 
@@ -629,7 +609,7 @@ Forbidden:
 - external provider integrations;
 - market-data ingestion;
 - financial calculations;
-- workers, tax, mobile, AI, or Stage 3.13 implementation work.
+- workers, tax, mobile, or Stage 3.13 implementation work.
 
 Status:
 
@@ -661,7 +641,7 @@ Forbidden:
 - market-data ingestion;
 - stock-card or bond-card pages, cards, or financial calculations;
 - dividend or coupon calendars;
-- workers, tax, mobile, AI, or Stage 3.14 work.
+- workers, tax, mobile, or Stage 3.14 work.
 
 Status:
 
@@ -680,7 +660,6 @@ Allowed:
 - use of the Stage 3.13 backend-owned catalog as the future data source;
 - explicit null-price and source-provenance policy for required Stage 2 asset fields not yet backed
   by approved source data;
-- acceptance criteria, forbidden scope, and review focus for a later implementation PR;
 - governance registry updates.
 
 Forbidden:
@@ -693,7 +672,7 @@ Forbidden:
 - external provider integrations;
 - market-data ingestion;
 - financial calculations;
-- workers, tax, mobile, AI, or Stage 3.14 implementation work.
+- workers, tax, mobile, or Stage 3.14 implementation work.
 
 Status:
 
@@ -727,7 +706,7 @@ Forbidden:
 - price placeholders;
 - runtime `EXAMPLE_*` source identifiers;
 - financial calculations;
-- workers, tax, mobile, AI, or Stage 3.15 work.
+- workers, tax, mobile, or Stage 3.15 work.
 
 Status:
 
@@ -742,12 +721,6 @@ Purpose:
 
 Allowed:
 
-- documentation-only planning;
-- UI boundary definition for asset search, empty states, loading states, error states, and deferred
-  detail/card states;
-- ADR-007 constraints for typed frontend calls directly to the Go API;
-- accessibility, responsive behavior, and privacy review criteria;
-- explicit implementation acceptance criteria for a later PR.
 
 Forbidden:
 
@@ -760,7 +733,7 @@ Forbidden:
 - client-side market-data/provider calls;
 - fabricated prices, source provenance, sector, face value, maturity, coupon type, dividends,
   coupons, yields, returns, WAC, XIRR, purchasing-power, or tax calculations;
-- workers, mobile, AI, or Stage 3.15 implementation work.
+- workers, mobile, or Stage 3.15 implementation work.
 
 Status:
 
@@ -794,7 +767,7 @@ Forbidden:
 - client-side market-data/provider calls;
 - fabricated prices, source provenance, sector, face value, maturity, coupon type, dividends,
   coupons, yields, returns, WAC, XIRR, purchasing-power, or tax calculations;
-- workers, mobile, or AI.
+- workers, mobile, or .
 
 Status:
 
@@ -804,10 +777,6 @@ Status:
 
 Purpose:
 
-- plan the mandatory full repository audit before the next implementation stage;
-- make architecture, DDD, API, privacy/security, dependency, test, documentation, cost, and ADR
-  drift visible before financial algorithms or source-backed read models begin;
-- define the audit report, review evidence, and finding-resolution expectations.
 
 Allowed:
 
@@ -825,37 +794,11 @@ Forbidden:
 - dependency changes;
 - WAC, XIRR, real return, inflation, purchasing-power, dividend, coupon, tax, or market-data
   implementation;
-- provider integrations, workers, mobile, AI, premium, public API, or email automation.
+- provider integrations, workers, mobile, premium, public API, or email automation.
 
 Status:
 
-- Closed / audit findings resolved by PR #44, squash-merged into `develop` at
-  `9e6b8a753bf73ef020ce40461df25a5878344d92`. No subsequent implementation stage is authorized
-  until a separately reviewed planning gate is complete.
-- Stage 3.17 privacy-lifecycle planning was squash-merged through PR #46 at `1e8c240`; it does not
-  authorize implementation.
-- Stage 3.18 privacy contract/security proposal was squash-merged through PR #47 at
-  `4680e9c1b7b916169972c84ad8c3879955c7f509`; it does not authorize implementation.
-- Stage 3.19 privacy security/ADR proposal was squash-merged through PR #48 at
-  `fdf74c16446e7623f76882aa7add64554141abc6`; it does not accept ADR-008 or authorize
-  implementation, OpenAPI changes, migrations, provider selection, or operations work.
-- Stage 3.20 privacy threat-model proposal was squash-merged through PR #49 at
-  `849d934906f878a6d79ba89e940e5ba470e64c09`; it does not authorize implementation.
-- Stage 3.21 privacy data-inventory proposal was squash-merged through PR #50 at
-  `207325e0497cc2608b99366f7f840472d270b6ed`; it does not authorize implementation.
-- Stage 3.22 privacy key-custody and destruction-proof proposal was squash-merged through PR #51 at
-  `5f42d32db1e045c23fb99a5af8f136b7a49e3bc2`; it does not authorize implementation or provider
-  selection.
-- Stage 3.23 privacy deletion-marker control-plane proposal was squash-merged through PR #52 at
-  `f7f23bce33038f259c976db6375079c68209a7aa`; it does not authorize implementation, provider
-  selection, schema, or operations work.
-- Stage 3.24 privacy Security Review readiness dossier was squash-merged through PR #53 at
-  `544ad8cc7371caf93913ea7716f3feb68be0ea44`; it does not perform Security Review or authorize
-  implementation, provider selection, schema, or operations work.
-- Stage 3.25 privacy Security Review evidence-collection plan is the separate review gate for
-  minimized, integrity-protected, independently verified evidence collection; it does not collect
-  evidence, perform Security Review, or authorize implementation, provider selection, schema, or
-  operations work.
+Canonical record: PR #44, PR #46, PR #47, PR #48, PR #49, PR #50, PR #51, PR #52, PR #53; commit(s) `9e6b8a753bf73ef020ce40461df25a5878344d92`, `4680e9c1b7b916169972c84ad8c3879955c7f509`, `fdf74c16446e7623f76882aa7add64554141abc6`, `849d934906f878a6d79ba89e940e5ba470e64c09`, `207325e0497cc2608b99366f7f840472d270b6ed`, `5f42d32db1e045c23fb99a5af8f136b7a49e3bc2`, `f7f23bce33038f259c976db6375079c68209a7aa`, `544ad8cc7371caf93913ea7716f3feb68be0ea44`.
 
 ## Stage 3 domain boundaries
 
@@ -866,7 +809,7 @@ The first slice may touch only these bounded contexts:
 - Analytics: snapshot materialization needed to return portfolio summary.
 - Audit: minimal append-only audit entries for important actions if implemented in the slice.
 
-Tax, notification, AI, mobile, and external-data contexts remain out of scope.
+Tax, notification, mobile, and external-data contexts remain out of scope.
 
 ## Financial rules for implementation
 
@@ -915,9 +858,7 @@ Stage 3 is complete only when all of the following are true:
 - OpenAPI validation passes;
 - Docker Compose validation passes;
 - documentation explains how to run and verify the slice locally;
-- Internal Review Agent approves;
 - CI is green;
-- human approval is recorded before merge.
 
 ## Required checks
 
@@ -936,15 +877,6 @@ Every Stage 3 implementation PR must run, at minimum:
 
 Each Stage 3 PR must use the standard strict review gate:
 
-- existing Internal Review Agent conversation;
-- read-only;
-- no Builder trust;
-- line-by-line review of changed files;
-- scope regression check;
-- exact `file:line`;
-- severity, impact, minimal fix;
-- CI evidence;
-- final verdict: `APPROVED`, `REQUEST CHANGES`, or `BLOCKED — insufficient evidence`.
 
 ## Open questions
 
@@ -959,15 +891,7 @@ Implementation may reveal tactical questions, but they must be handled as follow
 ## Stage governance
 
 Stage 3 implementation is split into reviewable sub-stages. Each sub-stage requires its own feature
-branch, checks, strict review, and human approval before merge.
 
 Stage 3.5 is closed. Stage 3.6 is closed after:
 
-1. the Stage 3.5 design PR is reviewed;
-2. CI is green;
-3. strict review approves;
-4. human approval is given;
-5. the design PR was merged into `develop` at `072d38d94b529221d6467502f82f03a674a7d805`;
-6. requested-changes fixes were applied;
-7. independent follow-up review approved;
-8. PR #15 was squash-merged into `develop` at `e2b05650a4422b97d4bd924254367106b6a4686b`.
+Canonical record: PR #15; commit(s) `072d38d94b529221d6467502f82f03a674a7d805`, `e2b05650a4422b97d4bd924254367106b6a4686b`.

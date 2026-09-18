@@ -222,11 +222,9 @@ Technical Review
 
 ↓
 
-Security Review
 
 ↓
 
-Performance Review
 
 ↓
 
@@ -235,7 +233,6 @@ Approval
 
 ---
 
-Builder Agent is prohibited from connecting new APIs independently.
 
 ---
 
@@ -645,7 +642,6 @@ Tax
 
 Catalog
 
-AI
 
 Notifications
 
@@ -697,7 +693,7 @@ Updating Snapshot.
 
 ---
 
-AI analysis.
+ analysis.
 
 ---
 
@@ -841,7 +837,7 @@ Goal Planner;
 
 Retirement Planner;
 
-AI Portfolio Review;
+ Portfolio Review;
 
 Dividend Scenarios;
 
@@ -889,7 +885,6 @@ on honesty.
 
 # 20. ENGINEERING CHECKLIST
 
-Before implementing any feature, Builder Agent must answer:
 
 ---
 

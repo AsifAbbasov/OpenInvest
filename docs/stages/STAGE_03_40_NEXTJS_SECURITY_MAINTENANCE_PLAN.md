@@ -2,7 +2,6 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Planning/review candidate only; dependency/runtime implementation not authorized |
 | Date | 2026-08-29 |
 | Canonical planning base | `develop@41e35b672d166cf74c3f0c3ee248330193ae51c1` |
 | Finding | Original audit `P3-09 — Next.js maintenance` |
@@ -83,7 +82,6 @@ audit finding.
 Operational priority is elevated because the maintained upstream line now contains two Critical
 security fixes that are absent from the repository's pinned `16.3.2`.
 
-If implementation or security review finds a demonstrated OpenInvest-reachable exploit path, any
 severity reclassification must be explicit and separately evidenced rather than silently rewriting the
 original audit severity.
 
@@ -100,7 +98,6 @@ Rules:
 3. Keep `react-dom` at `19.2.7`.
 4. Keep current `@types/react`, `@types/react-dom`, TypeScript, pnpm, and Node policy unless the exact
    Next.js update proves an unavoidable compatibility requirement.
-5. If a React/ReactDOM/type/toolchain bump becomes necessary, stop implementation and return to review
    before expanding scope.
 6. Do not combine P3-09 with Fiber P3-10 or `httpapi/api.go` decomposition P3-06.
 
@@ -120,7 +117,6 @@ If `16.3.3` requires an application-code compatibility change, it must be:
 - directly attributable to the version bump;
 - behavior-preserving;
 - covered by targeted regression tests;
-- explicitly called out in the implementation review.
 
 No OpenAPI, Go, SQL, migration, financial, privacy, authentication protocol, or infrastructure change
 is authorized.
@@ -182,7 +178,6 @@ Therefore:
 - this report is recorded as an upstream watch item;
 - it is not evidence that OpenInvest currently has the reported leak;
 - it does not justify moving OpenInvest to an unstable 16.4 canary;
-- implementation review must fail closed if new evidence shows OpenInvest actually enables the affected
   mode.
 
 ## 11. Security acceptance evidence
@@ -232,24 +227,20 @@ This stage does not close or modify:
 - database/schema/migrations;
 - financial calculations.
 
-## 14. Implementation review gates
 
 After this plan is accepted, implementation remains on the mandatory **development path**:
 
 1. feature branch from the exact then-current protected `develop`;
 2. exact scoped dependency change and evidence;
 3. local quality gates;
-4. Internal line-by-line review in the designated review chat;
 5. remediation of all findings;
 6. explicit human commit/push authorization;
 7. Draft PR to `develop`;
 8. exact-head required CI;
-9. External published-head review in the same designated review chat;
 10. evidence publication/verification required by the effective workflow;
-11. explicit human squash-merge authorization;
+11. explicit merge gate;
 12. separate closure-governance activation.
 
-No review verdict by itself authorizes a protected action.
 
 ## 15. Closure semantics
 

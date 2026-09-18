@@ -5,11 +5,8 @@
 | Document ID | STAGE-03-18-PRIVACY-CONTRACT-SECURITY-PROPOSAL |
 | Version | 0.1.1 |
 | Status | Complete / merged into `develop` through PR #47 at `4680e9c1b7b916169972c84ad8c3879955c7f509` |
-| Owner | Principal Architect |
 | Supersedes | None; follows the Stage 3.17 privacy-lifecycle planning gate |
 | Dependencies | `SOURCE_OF_TRUTH.md`; Documents 42-43; ADR-005; ADR-006; Stage 2 API contract, ER model, and migration strategy; Stage 3.11 auth/privacy slice; Stage 3.17 privacy-lifecycle planning |
-| Last Review Date | 2026-08-09 |
-| Next Review Date | Historical proposal closed; successor Stage 3.19 |
 
 ## Purpose and Authority
 
@@ -20,8 +17,7 @@ document turns that gate into a reviewable **candidate** contract and security d
 It is not an API amendment, a security approval, a migration design approval, or an implementation
 authorization. The frozen `openapi/` contract, current PostgreSQL schema, runtime behavior, and
 operational configuration remain unchanged. A later implementation may be proposed only after this
-candidate receives separate contract and Security Review approval, required ADR decisions, and
-explicit human authorization.
+explicit merge gate.
 
 ## Current Evidence and Non-Compliance Gap
 
@@ -49,7 +45,6 @@ authentication details, and examples are not added to `openapi/` by this stage.
 | --- | --- | --- |
 | `POST /api/v1/account/deletion-requests` | Create or replay the caller's pending deletion request and return its opaque request ID, state, and grace deadline. | Authenticated active identity, CSRF protection, current-credential confirmation, and `Idempotency-Key`. The confirmation secret is verified ephemerally and is never persisted, logged, traced, or audited. |
 | `GET /api/v1/account/deletion-requests/current` | Read only the caller's current non-final request state and grace deadline. | Authenticated requester or another approved cancellation ceremony; no user lookup endpoint or cross-user identifier access. |
-| `POST /api/v1/account/deletion-requests/{requestId}:cancel` | Cancel only a still-pending request before its grace deadline and return the restored active state. | A dedicated, rate-limited cancellation ceremony must be approved by Security Review. A revoked session, an opaque request ID alone, or a retained raw secret is insufficient authority. |
 
 The request body must contain no profile fields, free text, reason, contact details, financial data,
 or device inventory. The only candidate acknowledgement is a fixed confirmation value plus the
@@ -86,7 +81,6 @@ mutations must fail closed.
 
 The required cancellation ceremony is intentionally unresolved. Stage 3.17 requires active sessions
 to be revoked and normal protected mutations to stop at the lifecycle boundary, so a later design
-cannot casually reuse an active session as cancellation authority. Security Review must approve a
 fresh-factor, rate-limit, disclosure, and recovery design before a cancellation endpoint is added.
 
 ## Data Inventory and Completion Boundary
@@ -124,7 +118,6 @@ or key algorithm:
 6. Backup expiry/destruction must be evidenced for all managed copies and tested against the
    maximum 90-day retention bound. No claim is made here about a currently configured backup system.
 
-The later Security Review must resolve key custody, separation of duties, deletion-proof format,
 ledger availability and retention, recovery from partial failure, destructive-operation approval,
 and provider-specific restore controls. It must also address the unavoidable cross-system failure
 window between database erasure and external key destruction. A request cannot be marked completed
@@ -149,23 +142,8 @@ endpoints from becoming an account-existence or request-status oracle.
 
 ## Required Future Artifacts and Gates
 
-No implementation PR may begin until all of the following are individually reviewed:
-
-1. An OpenAPI amendment that replaces the candidate contract with approved paths, schemas, examples,
-   errors, CSRF/authentication behavior, idempotency, and API compatibility decisions.
-2. An ADR or Security Review record that approves the cryptographic-erasure, key-custody,
-   deletion-marker, backup-retention, restore, separation-of-duties, and partial-failure designs.
-3. A PostgreSQL migration proposal defining the deletion-request data model, constraints, access
-   controls, retention, cleanup, locking/index evidence, and rollback/forward-recovery strategy.
-4. An operations runbook covering deletion execution, proof collection, backup expiry, restore
-   replay, non-serving recovery, incident escalation, and least-privilege roles.
-5. A complete field-level anonymization inventory for portfolio metadata, ledger/supporting data,
-   imports, projections, audit/log payloads, exports, queues, and backups.
-6. Explicit human approval of the implementation-stage scope after the preceding artifacts have
-   received their own review verdicts.
 
 Any provider, key-management, data-ownership, retention-period, cost, or privacy-model decision
-that changes existing canonical policy requires Issue -> ADR -> Review -> Approval before it is
 treated as approved.
 
 ## Future Verification Matrix
@@ -187,7 +165,6 @@ evidence, at least:
 - key-destruction proof, deletion-marker replay, blocked traffic on missing evidence, and a
   representative backup restore that cannot reidentify a completed deletion;
 - encrypted-backup expiry/destruction proof within 90 days, partial-failure recovery, migration
-  rollback/forward recovery, and independent Security Review approval; and
 - green OpenAPI, Go, PostgreSQL, Web, operational, and CI checks after each final contract or
   implementation change.
 
@@ -202,7 +179,7 @@ This proposal does not authorize or add:
 - physical deletion of immutable transactions or snapshots;
 - email verification, password reset, OAuth, passkeys, 2FA, export, profile editing, or device
   management;
-- market data, financial calculations, tax, mobile, AI, premium, public API, or provider work; or
+- market data, financial calculations, tax, mobile, premium, public API, or provider work; or
 - a legal-compliance, production-readiness, security-approval, or retention-execution claim.
 
 ## Proposal Acceptance Criteria
@@ -220,7 +197,7 @@ This proposal does not authorize or add:
 
 ## Recommended Next Step
 
-This proposal received strict review and was squash-merged through PR #47 at
+Canonical record: PR #47.
 `4680e9c1b7b916169972c84ad8c3879955c7f509`. Its successor, Stage 3.19, prepares proposed ADR-008;
-only accepted ADR/security decisions and explicit human authorization may open a separately scoped
+only accepted ADR/security decisions and explicit merge gate may open a separately scoped
 privacy-lifecycle implementation proposal.

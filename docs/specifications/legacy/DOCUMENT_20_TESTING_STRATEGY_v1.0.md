@@ -2,7 +2,6 @@
 
 # DOCUMENT 20
 
-# TESTING STRATEGY, QA SYSTEM, REVIEW AGENTS, CI/CD, RELEASE MANAGEMENT & QUALITY GATES
 
 Version: 1.0
 
@@ -26,7 +25,6 @@ Priority: Critical
 
 # DEVELOPMENT PHILOSOPHY
 
-Builder Agent
 
 никогда
 
@@ -35,11 +33,9 @@ Builder Agent
 После каждого изменения код должен пройти:
 
 ```
-Builder Agent
 
 ↓
 
-Review Agent
 
 ↓
 
@@ -59,7 +55,6 @@ Security Tests
 
 ↓
 
-Human Approval
 
 ↓
 
@@ -94,35 +89,8 @@ hotfix/*
 
 ---
 
-# BUILDER AGENT
-
-Builder Agent отвечает только за создание кода.
-
-Builder Agent запрещено:
-
-самостоятельно считать код идеальным;
-
-самостоятельно пушить изменения;
-
-игнорировать замечания Review Agent.
-
----
-
-# REVIEW AGENT
-
-Review Agent — независимый ИИ.
-
-Его задача:
-
-найти максимальное количество ошибок.
-
-Review должен быть максимально жестким.
-
----
-
 # REVIEW CHECKLIST
 
-Review Agent обязан проверить:
 
 ---
 
@@ -640,9 +608,9 @@ Portfolio F
 
 ---
 
-# AI TESTS
+#  TESTS
 
-AI Assistant обязан:
+ Assistant обязан:
 
 не давать инвестиционных рекомендаций;
 
@@ -751,7 +719,6 @@ E2E Tests
 
 ↓
 
-Review Agent
 
 ↓
 
@@ -763,7 +730,6 @@ Security Scan
 
 ↓
 
-Human Approval
 
 ↓
 
@@ -778,7 +744,6 @@ Deploy
 
 # DEPLOYMENT RULES
 
-Builder Agent
 
 никогда
 
@@ -790,7 +755,6 @@ Production Deploy
 
 возможен только после:
 
-Review Agent
 
 *
 
@@ -798,71 +762,6 @@ QA Agent
 
 *
 
-Human Approval.
-
----
-
-# CODEX WORKFLOW
-
-После каждого завершенного этапа Codex обязан:
-
-1.
-
-Объяснить,
-
-почему выбрана именно эта архитектура.
-
----
-
-2.
-
-Объяснить,
-
-какие альтернативы рассматривались.
-
----
-
-3.
-
-Объяснить,
-
-почему они хуже.
-
----
-
-4.
-
-Показать влияние на:
-
-RAM
-
-CPU
-
-Network
-
-Battery
-
-Scalability
-
----
-
-5.
-
-Запросить подтверждение:
-
-```
-Этап реализован.
-
-Review Agent замечаний не обнаружил.
-
-QA Agent успешно прошел тесты.
-
-Пушить изменения в Git?
-
-[Да]
-
-[Нет]
-```
 
 ---
 

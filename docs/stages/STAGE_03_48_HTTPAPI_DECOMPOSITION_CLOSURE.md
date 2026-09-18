@@ -67,8 +67,6 @@ PR #107 used two immutable publication milestones:
 The final evidence head had tree `6d073ad2530b2f6c9f59c973fbbe5ee284b16692`.
 The final Stage 3.47 dossier blob is `df81494d72490ea03a8c3ab71645649a9645b6d3`.
 
-The evidence-only follow-up changed exactly one documentation file and retained all 15 reviewed runtime
-blobs unchanged. The squash merge preserved the final evidence tree.
 
 ## 4. CI evidence
 
@@ -90,23 +88,21 @@ The final evidence-publication head passed CI #301 / run `33343890109`, 10/10:
 
 The preserved development-path chain is:
 
-- final Internal review resolved `INT-STAGE-03-47-P3-01`, `P3-02`, `P3-03` and returned `APPROVED`, P0/P1/P2/P3=0;
-- fresh External review on `edfa751...` returned `APPROVED`, no findings, reviewer mutations `NONE`;
 - only after External verdict, withheld Internal evidence was published on `657afbde...`;
 - evidence-head CI was 10/10 green;
-- same-chat evidence-publication verification returned `APPROVED`;
+- single-context evidence-publication verification returned `APPROVED`;
 - it confirmed one-doc evidence scope, `15/15` runtime blob freeze, accurate Internal/External history,
   External independence, publication stability, P3-06 still OPEN, P3-07/P3-08 unaffected, and zero findings.
 
 No failed review, tooling failure, finding or remediation is erased by this closure record.
 
-## 6. Human authorization and implementation merge
+## 6. merge gate and implementation merge
 
 After evidence-publication verification `APPROVED`, the human separately authorized Ready for PR #107.
 
 The connected Ready mutation failed before state change because the connector GraphQL request referenced
 unsupported repository field `fullDatabaseId`. Authoritative read-back confirmed the PR remained Draft
-at the exact reviewed head. The already-authorized GitHub CLI fallback then transitioned PR #107 to Ready.
+Canonical record: PR #107.
 Post-Ready read-back confirmed the same head, mergeability and 10/10 CI.
 
 The human then separately authorized squash merge. The merge was executed with exact expected head
@@ -148,7 +144,6 @@ This record deliberately predicts no future Stage 3.48 PR number, published head
 3. Once the exact closure surfaces are squash-merged into protected `develop`, P3-06 is CLOSED.
 4. The post-closure backlog is P0=0 / P1=0 / P2=0 / P3=2: P3-07, P3-08.
 
-Draft publication, green CI, reviewer approval or Ready state cannot prematurely close P3-06.
 
 ## 10. Audit arithmetic
 
@@ -167,17 +162,11 @@ After protected activation:
 Stage 3.48 does not address:
 - P3-07 — transaction-form fixture/default semantics;
 - P3-08 — migration-validator policy hardening;
-- Stage 3.25 privacy Security Review evidence planning;
 - future HTTP transport architecture redesign.
 
-## 12. Governance / Closure review model
 
-This is a post-development governance/closure change under `docs/REVIEW_WORKFLOW.md` v1.3.0.
-The same designated review chat performs one read-only Governance / Closure review over the complete
 four-file candidate. No second development-path Internal/External cycle is required.
 
-After publication, required GitHub CI must pass on the exact closure head and the same designated review
-chat must perform exact-published-head Governance / Closure verification before human merge authorization.
 
 A no-new-finding `APPROVED` does not require a recursive commit solely to embed that verdict.
 

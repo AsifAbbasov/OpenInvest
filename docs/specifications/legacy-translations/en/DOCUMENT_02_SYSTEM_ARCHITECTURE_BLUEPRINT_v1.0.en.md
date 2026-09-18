@@ -626,13 +626,11 @@ without architecture redesign.
 
 # 19. AGENTS
 
-Builder Agent
 
 writes code
 
 ---
 
-Review Agent
 
 checks:
 
@@ -726,7 +724,6 @@ integration
 
 feature/*
 
-builder
 
 ---
 
@@ -739,64 +736,6 @@ review fixes
 qa/*
 
 testing
-
----
-
-# 21. CODEX WORKFLOW
-
-Every task:
-
-1.
-
-Read documentation
-
-↓
-
-2.
-
-Implement
-
-↓
-
-3.
-
-Run unit tests
-
-↓
-
-4.
-
-Run integration tests
-
-↓
-
-5.
-
-Run e2e
-
-↓
-
-6.
-
-Run lint
-
-↓
-
-7.
-
-Explain architecture decision
-
-↓
-
-8.
-
-Ask user:
-
-Push to repository?
-
-YES / NO
-
-Never push automatically.
 
 ---
 

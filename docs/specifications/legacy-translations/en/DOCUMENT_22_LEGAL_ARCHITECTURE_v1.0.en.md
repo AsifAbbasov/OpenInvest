@@ -131,9 +131,9 @@ Every analytics page displays:
 
 ---
 
-# AI DISCLAIMER
+#  DISCLAIMER
 
-AI must use the following behavior model:
+ must use the following behavior model:
 
 ---
 
@@ -181,7 +181,6 @@ the user must confirm:
 
 # USER AGREEMENT
 
-Codex must create:
 
 ---
 
@@ -201,7 +200,7 @@ Data Processing Policy
 
 ---
 
-AI Policy
+ Policy
 
 ---
 
@@ -503,7 +502,7 @@ advanced reports;
 
 ---
 
-AI features.
+ features.
 
 ---
 
@@ -513,9 +512,9 @@ artificially degrading the basic product.
 
 ---
 
-# AI ETHICS
+#  ETHICS
 
-AI must:
+ must:
 
 explain;
 
@@ -525,7 +524,7 @@ show uncertainty.
 
 ---
 
-AI is prohibited from:
+ is prohibited from:
 
 manipulating;
 
@@ -648,39 +647,3 @@ Private mode of operation.
 Ability to use the service completely anonymously (except for the email used for the account).
 
 ---
-
-# CODEX REQUIREMENTS
-
-Before creating any new feature, Builder Agent must answer:
-
-1.
-
-Does the feature require new personal data?
-
-2.
-
-Can it be implemented without storing this data?
-
-3.
-
-Does it violate the user agreement?
-
-4.
-
-Does it violate an external API license?
-
-5.
-
-Does it create legal liability for OpenInvest?
-
-6.
-
-Does it look like an investment recommendation?
-
-7.
-
-Does it violate the principle:
-
-> **OpenInvest is an analytical assistant, not a financial advisor.**
-
-If even one answer is negative, the feature is not permitted for implementation without a separate legal and architectural review.

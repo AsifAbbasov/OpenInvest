@@ -6,7 +6,6 @@
 | Last evidence update | 2026-09-10 |
 | Canonical repository base at candidate preparation | `develop@67752062bffd532c9768e14222810db7cb552797` |
 | Canonical repository tree | `33a9b0c973a79d0e580b9c314b88a277eccc887e` |
-| Governance authority | `docs/REVIEW_WORKFLOW.md` v1.4.0; `docs/registries/DATA_SOURCE_REGISTRY.md` |
 | Product boundary | Stage 3.78 — Real / Inflation-Adjusted Portfolio Return; future Stage 3.79 may reuse approved inflation/reference evidence but is not started by this document |
 | Runtime activation | No provider or inflation source is activated by this research document |
 | Data Source Registry transition | NONE |
@@ -555,7 +554,6 @@ Runtime/provider activation:
 NONE
 ```
 
-Stage 3.78 must remain fail-closed for production inflation input until the exact source/use mode is reviewed and approved through the repository's `Data Source Registry` process.
 
 ## 14. Evidence required before a Rosstat registry proposal
 

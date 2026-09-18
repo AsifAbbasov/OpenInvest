@@ -5,11 +5,8 @@
 | Document ID | STAGE-03-03 |
 | Version | 0.1.1 |
 | Status | Complete / closed |
-| Owner | Builder Engineer |
 | Supersedes | None |
 | Dependencies | ADR-007; Stage 3 plan; Stage 3.2 Go API vertical slice |
-| Last Review Date | 2026-07-01 |
-| Next Review Date | 2027-01-01 |
 
 ## Purpose
 
@@ -76,7 +73,6 @@ default local value is `http://localhost:8080`.
 - Merge method: squash merge
 - Merge commit: `11805cc298bba13f09f7f7af8b1e1178dc351209`
 - CI status before merge: green
-- Independent review: approved after CORS and unsupported-transaction-type findings were resolved
 - Scope result: Web presentation path only; no Next.js business logic, no provider integrations, no
   SQL migrations, no mobile code, and no Stage 3.4 implementation
 

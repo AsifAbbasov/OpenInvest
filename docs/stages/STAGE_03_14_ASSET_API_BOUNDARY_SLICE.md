@@ -5,11 +5,8 @@
 | Document ID | STAGE-03-14-ASSET-API-BOUNDARY-SLICE |
 | Version | 0.1.3 |
 | Status | Complete / closed |
-| Owner | Builder Engineer |
 | Supersedes | Stage 3.14 asset search/card API boundary planning |
 | Dependencies | `SOURCE_OF_TRUTH.md`; Stage 2 contract baseline; Stage 3.13 instrument catalog slice; Stage 3.14 planning |
-| Last Review Date | 2026-07-26 |
-| Next Review Date | Before Stage 3.15 planning approval |
 
 ## Purpose
 
@@ -66,7 +63,7 @@ This slice does not add:
 - financial calculations;
 - tax logic;
 - mobile implementation;
-- AI functionality;
+-  functionality;
 - Stage 3.15 scope.
 
 ## Detail endpoint decision
@@ -84,7 +81,6 @@ The Data Source Registry still has no approved production market-data or issuer-
 Runtime responses must never emit reserved `EXAMPLE_*` identifiers.
 
 Therefore, Stage 3.14 wires `GET /api/v1/assets/{ticker}` for API-boundary completeness but returns
-`404 NOT_FOUND` for valid tickers until a later reviewed source-governance, catalog-expansion, or
 contract-change stage can populate every mandatory field. This preserves the frozen API surface
 without fabricating asset-card facts.
 
@@ -101,34 +97,11 @@ Completed before PR #38 merge:
 - GitHub CI passed on PR #38:
   Go tests, Python tests, frontend build/typecheck, OpenAPI contract, PostgreSQL migration
   validation, and Docker Compose config.
-- Final reviewed feature-branch head:
   `fa8d4a8ce798948fee307fed15c8fe78cf3dc716`.
 - Squash merge into `develop`:
   `57a9404952cb65693614109dd4a14d41fa5c4295`.
 - Merge date:
   2026-07-14.
-
-## Internal Review Evidence
-
-- Review channel:
-  strict independent separate-window Codex review.
-- Reviewed scope:
-  Stage 3.14 Go API asset search/card boundary implementation diff and follow-up fixes.
-- Final implementation verdict:
-  `APPROVED`.
-- Blocking findings resolved before approval:
-  - canonical fixture predicates, including ISIN, must run before SQL `LIMIT`;
-  - ticker search must use prefix semantics while name search may use fragment semantics;
-  - invalid and supplied-empty `limit`, `assetType`, and `cursor` query parameters must be rejected;
-  - cursor validation must use the exact supplied token, enforce the 1–512 byte boundary before
-    Base64 decoding, and reject whitespace, padded, malformed, or oversized tokens;
-  - Source of Truth version references must remain synchronized.
-- Remaining non-blocking notes:
-  asset search still discovers only active canonical rows already present in `investment.assets`,
-  and asset detail remains deferred until approved source provenance and mandatory detail fields
-  exist.
-- Review Agent write authority:
-  read-only only; the Review Agent did not edit, stage, commit, push, merge, or create/update PRs.
 
 ## Known risks
 
@@ -142,4 +115,3 @@ Completed before PR #38 merge:
 
 Stage 3.14 implementation and closure governance are closed. Continue with Stage 3.15 Web asset
 discovery UI planning from `develop` at `f5289eb604b8ba31aa422d0d09950da02e0f48b3`, and preserve
-the same review gates before any implementation.

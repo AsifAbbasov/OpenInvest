@@ -28,7 +28,6 @@ Classification: DATABASE CONSTITUTION
 
 This document is the single source of truth for the entire OpenInvest database structure.
 
-Any database structure changes are allowed only after this document has been updated and approved by Architecture Review Agent.
 
 ---
 

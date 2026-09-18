@@ -5,11 +5,8 @@
 | Document ID | ADR-007 |
 | Version | 1.0.0 |
 | Status | Accepted |
-| Owner | Principal Architect |
 | Supersedes | Vite SPA and mandatory Redux Toolkit portions of the Web target in `ARCHITECTURE_FREEZE_v1.md`; conflicting legacy Web frontend specifications |
 | Dependencies | Documents 42–43; ADR-003; ADR-005 |
-| Last Review Date | 2026-06-20 |
-| Next Review Date | 2026-12-20 |
 
 ## Context
 
@@ -49,10 +46,6 @@ Next.js is strictly forbidden from:
 - storing business data in LocalStorage;
 - creating Route Handlers/API routes for business domains.
 
-Next.js Route Handlers are allowed only if a later approved need exists for frontend-only technical
-concerns, such as a presentation health endpoint or proxy-free static metadata. No Route Handler is
-created in the current scope. Any future Route Handler must remain outside business domains and be
-reviewed against this ADR.
 
 The architecture boundary is:
 

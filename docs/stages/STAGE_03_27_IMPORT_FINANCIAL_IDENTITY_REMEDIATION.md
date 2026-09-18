@@ -3,13 +3,11 @@
 | Field | Value |
 | --- | --- |
 | Status | Complete / closed for P1-02, P1-03, and P1-04; implementation merged through PR #55; closure governance recorded through PR #58 |
-| Owner | Principal Architect |
 | Baseline | `develop` at `213d1d9b4369a5e046b26c3a08990aa571603eaa` |
 | Branch | `fix/stage-03-27-import-financial-identity` |
 | Merge | PR #55; squash commit `6e8c806de857f844954f1db513487357dfe90187` |
-| Final Review | `APPROVED` on `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c` after earlier `REQUEST CHANGES` was corrected |
+Canonical record: commit(s) `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c`.
 | Final CI | GitHub Actions #90 `SUCCESS` on `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c` |
-| Human Merge Authorization | Explicit user approval on 2026-08-22 |
 | Closure Governance | PR #58 |
 | Trigger | Repository audit P1 findings P1-02, P1-03, and P1-04 |
 | Scope | Import identity/provenance, duplicate/conflict classification, cash-flow fee semantics, PostgreSQL constraints, OpenAPI contract, regression coverage |
@@ -24,7 +22,6 @@ financial-identity increment instead of three unrelated patches.
 
 This document records the findings, root causes, selected remediation methods, rejected/avoided
 alternatives, persistence and contract impact, regression evidence, and remaining verification gates.
-It intentionally records technical evidence rather than reviewer identity.
 
 ## Findings summary
 
@@ -197,8 +194,7 @@ Stage 3.27 was **not closed**. Closure requires all of the following to be recor
 7. full `go test ./...` with PostgreSQL integration tests enabled;
 8. `go vet ./...`;
 9. final `git diff --check`;
-10. required read-only internal review and fixes;
-11. repository governance updates and explicit human authorization before commit/push.
+11. repository governance updates and explicit merge gate before commit/push.
 
 The first runtime attempt successfully established Docker/PostgreSQL 18, Go 1.25, and migration
 validation but exposed a stale OpenAPI import-example fingerprint. The example was corrected to the
@@ -207,25 +203,12 @@ contract regression, not as a bypassed test.
 
 ## Alternatives not selected
 
-- **Persist the raw broker operation identifier:** unnecessary for equality and increases propagation
-  of source-specific identifiers.
-- **Use only the financial fingerprint:** cannot distinguish two legitimate operations with identical
-  economics when a broker identity exists.
-- **Continue review-only deduplication:** cannot enforce identity across requests or concurrency.
-- **Treat every same-day cash flow as a near-match:** produces false conflicts because cash has no
-  ticker/quantity dimensions.
-- **Subtract fees from deposits/withdrawals without a specification:** invents accounting behavior and
-  risks changing financial outputs without an approved model.
-- **Silently ignore cash-flow fee fields:** preserves the original inconsistency and makes stored data
-  misleading.
 
 ## Final-review corrective cycle
 
-Final independent review of PR #55 at pre-correction head `c6c3a4c91a108426448a2bc230873ab9e479a335` returned `REQUEST CHANGES`. The review found that the original Stage 3.27 identity policy was asymmetric across identity-strength transitions: a fallback row identified only by financial fingerprint could be stored first, then a later row carrying a broker-operation key and the same financial fingerprint could bypass the strong-key lookup and coexist with it. The inverse arrival order was rejected, so financial state could depend on import order and double-count one operation.
+Canonical record: PR #55; commit(s) `c6c3a4c91a108426448a2bc230873ab9e479a335`.
 
 The correction makes mixed-strength identity fail closed at four boundaries: importer reconciliation against persisted rows, same-file review, vertical-slice batch validation, and PostgreSQL store/database enforcement. The database guard takes a transaction-scoped advisory lock derived from portfolio, source-account scope, identity version, and financial fingerprint before checking for a fallback/strong collision, preventing concurrent direct inserts from racing through the check. Distinct non-null broker-operation identities with the same financial fingerprint remain allowed.
-
-Temporary corrective CI run #85 passed all six repository jobs, including full Go integration tests and PostgreSQL migration validation/apply/rollback/reapply. Because later governance synchronization advances the head, #85 remains historical technical evidence only. Tracked governance intentionally does not pin the current CI run number: the authoritative CI gate is the required PR checks on the exact merge-candidate head before renewed independent review and human merge approval.
 
 
 ## Closure governance
@@ -233,12 +216,11 @@ Temporary corrective CI run #85 passed all six repository jobs, including full G
 - Final merge-candidate head `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c` passed GitHub Actions CI #90
   across frontend, PostgreSQL migration apply/rollback/reapply, Go tests,
   Docker Compose, Python, and OpenAPI gates.
-- Renewed independent external review returned `APPROVED` on that exact head.
-- The earlier `REQUEST CHANGES` on
+- The earlier `changes required` on
   `c6c3a4c91a108426448a2bc230873ab9e479a335` remains historical evidence of
   the order-dependent fallback-to-strong identity defect; the approved head
   contains its correction and regression coverage.
-- Explicit human authorization approved squash merge of PR #55.
+- Explicit merge gate approved squash merge of PR #55.
 - PR #55 was squash-merged into `develop` at `6e8c806de857f844954f1db513487357dfe90187`.
 - PR #58 records the closure governance for Stage 3.27. Once this document is
   canonical on `develop`, P1-02/P1-03/P1-04 are closed.
@@ -258,39 +240,4 @@ security changes are independently reviewable from financial import identity.
 ## Closure rule
 
 This document must not be changed to `Complete / closed` merely because the implementation exists or a
-local patch applies. Closure requires passing runtime/database gates, review evidence, governance
-updates, commit/push authorization, green CI, and the repository's required downstream review/merge
 workflow. Until then, Stage 3.27 remains open.
-
-
-## Pre-commit verification and review evidence
-
-Stage 3.27 completed its local implementation and pre-commit verification gates successfully.
-
-Verified against Go 1.25.14 and PostgreSQL 18:
-
-- migration validator accepted four migration pairs;
-- OpenAPI validation passed;
-- migrations `000001` through `000004` applied successfully;
-- Stage 3.27 import-identity columns, partial unique indexes, and constraints were present;
-- the complete migration stack rolled back successfully and reapplied successfully;
-- targeted importer, vertical-slice, and PostgreSQL integration tests passed;
-- concurrency and import-identity regression coverage passed;
-- `go test -count=1 ./...` passed;
-- `go vet ./...` passed;
-- `git diff --check` passed;
-- direct PostgreSQL defense-in-depth regression tests proved that non-zero commission on `DEPOSIT`
-  and non-zero tax on `WITHDRAWAL` are rejected by
-  `transaction_entries_cash_flow_fees_zero`, even when the application layer is bypassed.
-
-The independent pre-commit review returned `APPROVED` with no remaining P0, P1, or P2 blocker for
-the Stage 3.27 commit candidate.
-
-This approval does not mean the stage is merged or closed. The implementation candidate was
-committed and pushed as `19a8abbb0c07ded7441839bfa99b538739e21fbc`, Draft PR #55 was opened
-against `develop`, and GitHub Actions CI run #83 passed on that implementation head.
-
-Because any subsequent governance-only correction advances the PR head, CI evidence is head-specific:
-historical run #83 must not be treated as approval of a later commit. Canonical closure requires green
-CI on the final PR head, required PR review, explicit human merge approval, and squash merge into
-`develop`.

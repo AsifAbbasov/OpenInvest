@@ -1,8 +1,6 @@
 # Stage 3.77 — Portfolio Money-Weighted Return / XIRR Implementation
 
-> **Historical Stage 3.77 implementation/review snapshot**
 >
-> This dossier preserves the Stage 3.77 implementation/review state that was current when it was written.
 > Draft-PR, authorization, CI/evidence-head and next-stage statements below are historical evidence; they do not define the current repository state.
 > Current product/runtime status: [`../SOURCE_OF_TRUTH.md`](../SOURCE_OF_TRUTH.md).
 > Current planning/status: [`../ROADMAP.md`](../ROADMAP.md).
@@ -10,13 +8,11 @@
 
 ## Status
 
-Stage 3.77 is published as Draft PR #157 against the immutable Stage 3.76 canonical base. Ready-for-review, merge, and Stage 3.78+ remain unauthorized. Full canonical closure is not claimed by this document.
+Canonical record: PR #157.
 
-Internal Review Evidence: **PUBLISHED — APPROVED**.
 
-External Published-Head Review: **APPROVED** for implementation/remediation head `3a976568567c478a20ed51e85fb35da020132328`, tree `aa7be937517cdd96a2cb1c3689b80e6cf531b258`, after protected exact-head CI completed 10/10 GREEN.
+Canonical record: commit(s) `3a976568567c478a20ed51e85fb35da020132328`, `aa7be937517cdd96a2cb1c3689b80e6cf531b258`.
 
-This document update is the required **evidence-only follow-up**. It changes review/governance evidence only. It must receive its own protected exact-head CI pass and no-drift verification before a separate Ready-for-review authorization may be requested.
 
 ## Canonical base
 
@@ -25,49 +21,6 @@ This document update is the required **evidence-only follow-up**. It changes rev
 - base commit: `12b41d2bb03999e3adefacf1ebb408fb30d732b8`
 - base tree: `8e8c183912cf87fe0e68f3d73c1032aec158a409`
 - base state: Stage 3.76 fully closed/canonical before Stage 3.77 work
-
-## Published review evidence
-
-### Pre-publication Internal review
-
-The original 22-file Stage 3.77 implementation candidate received a complete read-only Internal review with verdict **APPROVED** before publication authorization.
-
-- approved candidate tree: `2ba4bc559fd8d9417128f69a38b69bf94d7c3c5b`
-- first implementation commit: `1d236c878499707ce76cd4f9ee27b6f815a386cb`
-
-The Internal cycle found and remediated numerical, precision, performance, PostgreSQL integration, Replay-route, and frontend stale-response issues before the first publication.
-
-### CI-remediation review
-
-The first published CI run exposed two non-financial blockers: a Stage 3.77 HTTP test fixture with non-canonical zero Decimal fields and dependency advisories in the existing frontend dependency graph. A narrow remediation review approved the four product/dependency files changed to resolve those blockers.
-
-- remediation commit: `88b7e08592f694d5f56c9ba275a34474f7cb677f`
-- remediation tree: `a2bdc857f2a3ffa6e407614845e811f816a42577`
-- protected CI on that published head: **10/10 GREEN**
-
-### External published-head review
-
-Fresh External review was performed on the exact published `88b7e085...` bytes across all 25 changed files, with no sampling. It returned **REQUEST CHANGES** for two concrete findings:
-
-1. repeated `asOfDate` query parameters were collapsed by the shared `QueryArgs.Peek` behavior instead of being rejected as ambiguous Stage 3.77 input;
-2. this implementation dossier still described the pre-publication 22-file state instead of the actual 25-file Draft PR.
-
-Both findings were remediated without adding a 26th changed path.
-
-External remediation changed only:
-
-- `backend-go/internal/httpapi/returns.go`;
-- `backend-go/internal/httpapi/stage_03_77_returns_test.go`;
-- `docs/stages/STAGE_03_77_PORTFOLIO_XIRR_IMPLEMENTATION.md`.
-
-The final remediation implementation head before this evidence-only follow-up was:
-
-- commit: `3a976568567c478a20ed51e85fb35da020132328`
-- tree: `aa7be937517cdd96a2cb1c3689b80e6cf531b258`
-- protected CI run: `34303636331`
-- protected CI result: **10/10 GREEN**
-
-A compare from `88b7e085...` to `3a976568...` showed only those three remediation paths changed. Therefore the other 22 already-reviewed published files were byte-identical; the three changed files were reread in full. With the duplicate-query finding fixed, the regression passing in the full Go suite and race suite, and no remaining review findings, the External verdict became **APPROVED**.
 
 ## Scope
 
@@ -216,7 +169,7 @@ The remediation produced `pnpm audit: No known vulnerabilities`, frontend typech
 
 ## Out of scope / NO-GO
 
-Stage 3.77 does not add or activate TWR, nominal-return methodology, real return/inflation, FX, live/provider/MOEX prices, broker sync, price history, workers/cron, Redis/Kafka, notifications, tax, AI/mobile, or Stage 3.78+.
+Stage 3.77 does not add or activate TWR, nominal-return methodology, real return/inflation, FX, live/provider/MOEX prices, broker sync, price history, workers/cron, Redis/Kafka, notifications, tax, mobile, or Stage 3.78+.
 
 The seven canonical closure registries (`README.md`, `docs/SOURCE_OF_TRUTH.md`, `docs/ROADMAP.md`, `docs/DOCUMENT_INDEX.md`, `docs/IMPLEMENTATION_LOG.md`, `docs/VERSION_MATRIX.md`, `docs/OPEN_QUESTIONS.md`) remain outside the implementation PR and belong only to the separate post-merge closure workflow.
 
@@ -251,7 +204,3 @@ Draft PR #157 remains exactly at the **25-file governance ceiling**. The evidenc
 25. `openapi/openapi.yaml`
 
 ## Governance stop condition
-
-Implementation/remediation External review is **APPROVED**. This evidence-only follow-up must now pass exact-head protected CI and prove no code/contract/dependency drift relative to `3a976568...`.
-
-Only after that verification may a separate explicit human authorization be requested for the Ready-for-review transition. Ready is not merge authorization. Squash merge requires another explicit authorization. After implementation merge, a separate docs-only closure PR is mandatory before Stage 3.77 may be called **FULLY CLOSED / CANONICAL**.

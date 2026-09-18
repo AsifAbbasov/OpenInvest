@@ -943,23 +943,3 @@ anonymizes investment events.
 without architecture changes.
 
 ---
-
-# CODEX REQUIREMENTS
-
-Before creating any new table, check:
-
-1. Does it duplicate existing data?
-
-2. Can a directory be used?
-
-3. Can a materialized view be used?
-
-4. Can a snapshot be used instead of recalculation?
-
-5. Does the structure comply with Third Normal Form?
-
-6. Does it violate Privacy by Design?
-
-7. Does it store personal data without explicit user consent?
-
-Only after passing these checks is the database structure considered approved.

@@ -1,13 +1,6 @@
 # Stage 3.37 - P3-02 True IANA Timezone Semantics Plan
 
-| Field | Value |
-| --- | --- |
-| Status | Planning/review gate only |
-| Date | 2026-08-25 |
-| Canonical base | `develop` at `9c83b68e28bbb8bc971620d3e00be5e177ce0820` |
-| Finding | P3-02 |
-| Scope | Registration-timezone admission parity with the canonical IANA timezone contract |
-| Runtime implementation authorized here | No |
+Canonical record: commit(s) `9c83b68e28bbb8bc971620d3e00be5e177ce0820`.
 
 ## 1. Finding / symptom
 
@@ -119,7 +112,6 @@ creating a second timezone contract.
 
 ## 7. Future implementation boundary
 
-After this planning gate is independently reviewed, explicitly authorized, and canonically merged, the
 runtime remediation may be limited to:
 
 - `backend-go/internal/auth/service.go` or a narrowly extracted auth-timezone helper implementing the
@@ -133,10 +125,6 @@ runtime remediation may be limited to:
   semantics; and
 - Stage 3.37 implementation and later closure-governance evidence.
 
-Frontend changes are not required merely because the existing registration UI uses a free-text timezone
-field. The Go API remains the authoritative write boundary. A frontend change may enter the runtime PR
-only if implementation evidence finds an actual contract defect that cannot be fixed at the API boundary;
-that would require renewed review before mutation.
 
 ## 8. Required regression proof
 
@@ -203,7 +191,6 @@ remediation or change the status/scope of any other finding.
 
 ## 12. Adversarial review requirements
 
-The implementation reviewer must challenge:
 
 - accidental acceptance of `Local` through the Go special case;
 - trimming or normalization before resolver admission;
@@ -227,30 +214,20 @@ must be treated as governed deployment configuration.
 
 No existing persisted preference is rewritten by the plan or runtime remediation.
 
-## 14. Exact planning-review history
+## 14. Exact technical reassessment history
 
-The first independent planning review returned `REQUEST CHANGES` because the proposed authority model
 incorrectly described embedded `time/tzdata` as exclusive and used wording that could prohibit valid
 loadable `Etc/GMT*` identifiers.
 
 The revised plan corrected both points: `time.LoadLocation` semantics are authoritative, `time/tzdata`
 is fallback availability, `Local` is explicitly rejected, raw offset spellings are distinguished from
 loadable timezone identifiers, and valid `Etc/GMT*` names remain admissible. The repeat independent
-planning review returned `APPROVED` with no P0/P1/P2/P3 planning findings.
 
 ## 15. Closure rule
 
 This document authorizes no runtime change by itself. P3-02 remains OPEN until all of the following
 occur:
 
-1. this planning candidate passes exact-head CI and independent review evidence;
-2. the user explicitly authorizes its squash merge and the planning PR is canonically merged;
-3. a separately authorized runtime implementation is created from that canonical planning baseline;
-4. the runtime candidate passes focused tests, full exact-head CI, and fresh independent implementation
-   review after every material change;
-5. the user separately authorizes the runtime squash merge; and
-6. separately reviewed closure governance records the exact runtime head, CI, review, merge, and
-   remaining audit state.
 
 Until then P3-02 remains OPEN. Stage 3.25 privacy evidence planning and every other remaining P3 finding
 remain separate.

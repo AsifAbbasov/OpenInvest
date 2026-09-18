@@ -862,29 +862,3 @@ Compared with most brokers:
 ✅ Fully scalable API-First architecture.
 
 ---
-
-# CODEX REQUIREMENTS
-
-Before integrating any new external API, Builder Agent must verify:
-
-1. Is the source official?
-
-2. Is the source free?
-
-3. Does it allow mass use?
-
-4. Is documentation available?
-
-5. Are there licensing restrictions?
-
-6. Are there Rate Limit restrictions?
-
-7. Can responses be fully cached?
-
-8. Can a queue be used instead of direct requests?
-
-9. Can thousands of requests be replaced by one aggregated request?
-
-10. Could the integration create legal risks or cause the project to be blocked?
-
-If even one item is not satisfied, the integration is prohibited until a separate architectural review.

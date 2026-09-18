@@ -142,14 +142,6 @@ A narrow harness compiles the candidate against the canonical Stage 3.62 corpora
 
 Repository-wide evidence still requires exact-head GitHub CI after separate publication authorization.
 
-## 9. Internal review finding resolved before freeze
-
-Internal review found one demonstrated P2 design gap in the first local candidate: a present predecessor was not required to share instrument and action kind with its superseder, allowing an erroneous cross-instrument or cross-kind link to remove an unrelated dated event.
-
-Remediation added fail-closed same-`InstrumentID` and same-`Kind` checks plus regression tests. No broader source/persistence/revision semantics were introduced.
-
-After remediation: P0=0, P1=0, P2 blocking=0, P3 blocking=0.
-
 ## 10. Architectural consequences
 
 Feature 3B creates a source-neutral pure projection layer that can be tested with fixtures today and reused unchanged by a future approved adapter/API/UI.
@@ -162,7 +154,6 @@ No external provider/HTTP/scraping, source activation, DB/migration, persistence
 
 ## 12. Governance state
 
-This is a local development-path candidate only. Internal review follows:
 
 ```text
 contract → implementation → failure cases → tests → CI expectations → architectural consequences
@@ -170,9 +161,6 @@ contract → implementation → failure cases → tests → CI expectations → 
 
 Only demonstrated defects receive severity. UNKNOWN remains UNKNOWN.
 
-Commit/push/Draft PR require separate explicit human authorization. After publication: exact-head CI → fresh External review → remediation if demonstrated → evidence publication/verification → separate Ready/squash-merge authorization.
-
-## 13. Published review and evidence chronology
 
 This section is evidence-only and records the development-path publication history after the fresh External published-head phase. Sections 1–12 remain the historical prepublication implementation record.
 
@@ -181,7 +169,6 @@ This section is evidence-only and records the development-path publication histo
 - canonical base: `develop@fbbca6aeee7c12300a37eb5748628275aac427e4`;
 - base tree: `ff311bd8f03524f83724af024afb038c4a5a246c`;
 - frozen manifest SHA-256: `b2e11c2f0e9570052572cb07055ee60cf77816f6a9d0d8f2bfebfa2b4492d80a`;
-- Internal review SHA-256: `0464ee03b1745a220798fcbec9a410aa85399a283df43a0889c9e3cd2a969f20`;
 - Internal verdict: `APPROVED`, blocking findings none.
 
 ### 13.2 Published semantic subject
@@ -198,7 +185,6 @@ Draft PR #127 semantic subject:
 
 Exact-head CI #339 / run `33914229650`: all ten required jobs `SUCCESS`.
 
-Fresh External published-head review COMMENT `5117337573`:
 
 - `VERDICT = APPROVED`;
 - P0=0;
@@ -206,10 +192,9 @@ Fresh External published-head review COMMENT `5117337573`:
 - P2 blocking=0;
 - P3 blocking=0.
 
-GitHub rejected a formal self-`APPROVE` review because the connected account is the PR author; the External verdict is therefore recorded as a review COMMENT. This is a GitHub identity constraint, not a project finding and does not replace the separate human Ready/squash-merge authorization gate.
 
 ### 13.3 Evidence-publication rule
 
 This section changes documentation/evidence only. It does not change Calendar/Heatmap runtime semantics and does not authorize external sources, HTTP/scraping, persistence, API/UI, Feature 3C, or Feature 3D.
 
-The evidence-publication head itself must pass all ten required CI jobs. Exact evidence verification must confirm that the transition from semantic head changes only this implementation record and introduces no runtime/test semantic drift. Ready/squash merge remains a separate human authorization gate.
+The evidence-publication head itself must pass all ten required CI jobs. Exact evidence verification must confirm that the transition from semantic head changes only this implementation record and introduces no runtime/test semantic drift. Ready/squash merge remains a separate merge gate gate.

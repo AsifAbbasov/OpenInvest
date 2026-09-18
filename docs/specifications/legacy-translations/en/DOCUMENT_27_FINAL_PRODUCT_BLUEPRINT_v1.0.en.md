@@ -32,7 +32,7 @@ Not a trading terminal.
 
 Not a news portal.
 
-Not an AI advisor.
+Not an  advisor.
 
 ---
 
@@ -248,7 +248,7 @@ Family investor
 
 ---
 
-## AI Assistant
+##  Assistant
 
 ---
 
@@ -486,9 +486,9 @@ is mandatory.
 
 ---
 
-# 12. AI
+# 12.
 
-AI:
+:
 
 explains;
 
@@ -500,7 +500,7 @@ visualizes.
 
 ---
 
-AI is prohibited from:
+ is prohibited from:
 
 advising to buy;
 
@@ -684,7 +684,7 @@ Inflation
 
 ## Premium
 
-AI analytics
+ analytics
 
 Scenarios
 
@@ -754,11 +754,9 @@ Documentation
 
 ↓
 
-Architecture Review
 
 ↓
 
-Builder
 
 ↓
 
@@ -778,7 +776,6 @@ Performance
 
 ↓
 
-Human Approval
 
 ↓
 
@@ -899,37 +896,6 @@ scalable;
 ---
 
 architecturally clean.
-
----
-
-# 24. FINAL ENGINEERING COMMAND FOR CODEX
-
-Codex must consider this document the project's primary constitution.
-
-In any conflict:
-
-```
-Code
-↓
-
-Documentation
-
-↓
-
-Architecture
-
-↓
-
-Principles
-
-↓
-
-Project Constitution
-```
-
-the priority always belongs to:
-
-**Project Constitution (Document 27).**
 
 ---
 

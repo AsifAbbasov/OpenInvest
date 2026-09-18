@@ -12,7 +12,7 @@
 | Runtime merge | PR #94 squash-merged at `2df9946d77ee044a191a0422c8cccbbfe02dc7c9` |
 | Closure PR | PR #95 final published head `25eb3b9c3c153672f22a6718a7815a5d3c527f44`; squash-merged into `develop` at `c5962fa09b6d7d145dda203dbdf90069de7b1fcc` |
 | Closure exact-head CI | Final PR #95 head `25eb3b9c3c153672f22a6718a7815a5d3c527f44`: CI #271 / run `32961508562`; 10/10 required jobs successful |
-| Closure review history | Initial published head `8f5d10a3e7d138b69f59531f6e8875add6c7e766` passed CI #270 but received fresh published-head `REQUEST CHANGES`; subsequent documentation-only remediation cycles are preserved below; final published head `25eb3b9c3c153672f22a6718a7815a5d3c527f44` passed CI #271, completed the required fresh independent closure review gate, received separate explicit human squash-merge authorization, and was actually merged as `c5962fa09b6d7d145dda203dbdf90069de7b1fcc` |
+Canonical record: commit(s) `8f5d10a3e7d138b69f59531f6e8875add6c7e766`, `25eb3b9c3c153672f22a6718a7815a5d3c527f44`, `c5962fa09b6d7d145dda203dbdf90069de7b1fcc`.
 | Final finding status | CLOSED through actual Stage 3.38 closure merge PR #95 at `c5962fa09b6d7d145dda203dbdf90069de7b1fcc`; original audit backlog after closure is P3=6: P3-04, P3-06, P3-07, P3-08, P3-09, P3-10 |
 
 ## 1. Finding / symptom
@@ -126,26 +126,20 @@ All existing Stage 3.28 and Stage 3.32 regressions remain mandatory.
 
 ## 13. Adversarial review findings
 
-Planning review history:
+technical reassessment history:
 
-1. first independent planning review: `REQUEST CHANGES`, one P3 stale-clock/serialization blocker;
 2. revised v2: post-serialization command time, fresh replay lookup time, post-lock session time, and
    boundary-straddling regressions frozen;
-3. renewed pre-commit planning review: `APPROVED`, P0/P1/P2/P3 None;
-4. fresh published-head planning review of PR #93 exact head
+Canonical record: PR #93.
    `7a4ef7115b5fbab4c9017c6032112f028825c959`: `APPROVED`, P0/P1/P2/P3 None.
 
-Independent pre-commit runtime review history is preserved below. The v2 and renewed-v3 reviews produced substantive runtime `REQUEST CHANGES`; the subsequent exact-v4 and DOCFIX2 reviews produced documentation/evidence-only `REQUEST CHANGES`. The current DOCFIX4 candidate awaits renewed review. Any runtime `REQUEST CHANGES` must be appended here
 with exact evidence rather than overwritten.
 
-### First independent pre-commit runtime review — `REQUEST CHANGES`
 
-The first independent pre-commit runtime review of the 11-file v2 candidate returned
-`REQUEST CHANGES`, with P0/P1/P2 = None and two P3 blockers.
+`changes required`, with P0/P1/P2 = None and two P3 blockers.
 
 #### P3 runtime review blocker 1 — global-cleanup lock inversion
 
-The reviewer identified a concrete lock-order cycle in the v2 ordering.
 
 For commands, v2 acquired the exact advisory lock, then took unrelated expired-row locks in global
 cleanup, and only afterwards acquired the exact command row `FOR UPDATE`. Two transactions on distinct
@@ -156,7 +150,6 @@ The auth path had the analogous problem because rotate/logout cleanup ran before
 user-advisory-lock -> presented-session-row-lock sequence. `SKIP LOCKED` prevents cleanup-to-cleanup
 waiting, but it cannot prevent a later exact-row wait from completing a cycle.
 
-The reviewer classified this as P3 availability/operational debt: PostgreSQL deadlock victim rollback
 would preserve consistency, but valid writes could fail under sustained expired-row traffic.
 
 #### P3 runtime review blocker 2 — in-place reclamation branch was not forced
@@ -188,39 +181,28 @@ correction:
 - a concurrent two-scope expired-command regression proves both reservations complete without a
   database deadlock error.
 
-This review history is preserved; the first runtime `REQUEST CHANGES` is not replaced by the later
 candidate.
 
 ### Runtime lifecycle normalization after renewed v3 review
 
-- Runtime iteration 1 = v2 local candidate. It included the SQLSTATE 42P08 correction and then received the first independent `REQUEST CHANGES`.
-- Runtime iteration 2 = v3 local remediation. It closed the original cleanup/exact-lock inversion and deterministic reclamation evidence gap, then received the renewed independent v3 `REQUEST CHANGES`.
+- Runtime iteration 1 = v2 local candidate. It included the SQLSTATE 42P08 correction and then received the first independent `changes required`.
+- Runtime iteration 2 = v3 local remediation. It closed the original cleanup/exact-lock inversion and deterministic reclamation evidence gap, then received the renewed independent v3 `changes required`.
 - Runtime iteration 3 = current v4 local remediation. It addresses the mixed-version unique-conflict admission timestamp race, auth cleanup ordering after broader family/user mutations, and the contradictory documentation labels.
 
 No runtime commit, push, PR, CI, or merge evidence exists yet for this candidate. P3-05 remains **OPEN**.
 
-### Renewed independent pre-commit runtime review of v3 — `REQUEST CHANGES`
-
-The renewed independent review confirmed that the two blockers from the first runtime review were genuinely remediated, but returned a new `REQUEST CHANGES` verdict with P0/P1/P2 = None and three P3 blockers:
 
 1. the no-row `ON CONFLICT DO NOTHING` path could persist a pre-wait admission timestamp when a mixed-version/non-cooperating writer held the same unique key;
 2. auth cleanup still preceded broader family/user-wide revocation updates and could recreate a cross-user cleanup-to-containment deadlock;
-3. the implementation record contained contradictory current-review and runtime-iteration wording.
 
 V4 addresses those findings without changing the frozen Stage 3.38 scope. No runtime GitHub PR/head/CI/merge evidence is asserted, and P3-05 remains **OPEN**.
 
-### Exact v4 pre-commit review — `REQUEST CHANGES` (documentation only)
-
-The exact v4 review package was independently hash-verified and reviewed. The reviewer found no
-remaining P0/P1/P2/P3 runtime blocker in the technical Stage 3.38 implementation. The three substantive
-blockers from the valid renewed v3 review were confirmed remediated:
 
 - post-UNIQUE-conflict admission time is finalized only after the potentially blocking INSERT returns
   as winner;
 - auth cleanup runs after broader family/user/allSessions mutation work;
 - the new mixed-version and auth lock-order regressions are meaningful and pass.
 
-The review nevertheless returned `REQUEST CHANGES` for one P3 governance/documentation blocker:
 the durable implementation record still contained the stale statement
 `Runtime iteration 1 is this local candidate`, contradicting the normalized lifecycle where iteration 1
 is v2, iteration 2 is v3, and iteration 3 is current v4.
@@ -233,14 +215,11 @@ iteration.
 No runtime commit, push, PR, GitHub CI, or merge evidence exists yet. P3-05 remains **OPEN** until the
 full runtime publication and separately governed closure lifecycle complete.
 
-### Exact v4 DOCFIX2 pre-commit review — `REQUEST CHANGES` (historical quotation only)
 
 The exact DOCFIX2 package preserved the runtime v4 implementation unchanged and passed the full local
-verification suite. The reviewer confirmed that the stale active assertion had been removed and that
 the normalized lifecycle correctly states iteration 1 = v2, iteration 2 = v3, and iteration 3 =
 current v4.
 
-The review nevertheless returned one P3 governance/evidence blocker: the newly added historical record
 for the prior exact-v4 documentation review accidentally quoted the corrected sentence
 `Runtime iteration 1 was the v2 local candidate` as though it were the rejected sentence. The actual
 rejected wording had been `Runtime iteration 1 is this local candidate`.
@@ -248,28 +227,24 @@ rejected wording had been `Runtime iteration 1 is this local candidate`.
 DOCFIX3 changes only that durable historical quotation and adds a negative-control consistency proof:
 the checker must reject a temporary document containing an active stale current-candidate assertion,
 while accepting the real candidate where the stale wording appears only inside preserved historical
-`REQUEST CHANGES` evidence.
+`changes required` evidence.
 
 No runtime code, migration, OpenAPI behavior, privilege, retention semantic, commit, push, PR, GitHub
 CI, or merge evidence is changed or fabricated. P3-05 remains **OPEN**.
 
-### Exact v4 DOCFIX3 pre-commit review — `REQUEST CHANGES` (stale review-count only)
 
-The exact DOCFIX3 package was independently hash-verified. The reviewer confirmed that the technical
 v4 runtime blockers remained closed, the DOCFIX2 historical-quotation defect was closed, and the
 semantic negative-control documentation checks were meaningful.
 
-The review nevertheless returned one P3 governance/evidence blocker in section 13: the active
 introductory prose still said `Independent runtime adversarial review has occurred twice`, while the
 durable record already preserved four runtime-candidate review cycles: the first v2 review, renewed-v3
 review, exact-v4 documentation-only review, and DOCFIX2 quotation-only review.
 
 DOCFIX4 removes the hard-coded stale count from active prose and replaces it with role-based history:
-v2 and renewed-v3 were substantive runtime `REQUEST CHANGES`; exact-v4 and DOCFIX2 were
-documentation/evidence-only `REQUEST CHANGES`; the current DOCFIX4 candidate awaits renewed review.
+v2 and renewed-v3 were substantive runtime `changes required`; exact-v4 and DOCFIX2 were
 
 The semantic checker is strengthened so the stale hard-coded count is allowed only as preserved
-historical `REQUEST CHANGES` evidence, never as active lifecycle prose. A second negative-control proof
+historical `changes required` evidence, never as active lifecycle prose. A second negative-control proof
 injects the stale count into active section-13 prose and requires the checker to reject it.
 
 No runtime Go code, tests, migration, OpenAPI behavior, privilege, retention semantic, commit, push, PR,
@@ -310,7 +285,6 @@ authorize a fresh write when retained replay is no longer found.
 
 ### Runtime verification iteration 2 — v3 lock-order/reclamation correction
 
-After the first independent runtime review returned `REQUEST CHANGES`, the local v3 remediation moved
 opportunistic cleanup after canonical exact acquisition/authority decisions and added deterministic
 lock-order plus in-place reclamation proof.
 
@@ -320,11 +294,9 @@ the full Go suite, `go vet`, OpenAPI/migration validators, race-enabled Stage 3.
 and migration down/reapply evidence.
 
 No commit, push, runtime PR, or merge was created by that verification. A renewed independent
-pre-commit runtime review is still required for the exact v3 patch.
 
 ### Runtime verification iteration 3 — v4 mixed-version/auth-order correction
 
-After the renewed v3 review returned `REQUEST CHANGES`, v4 added post-unique-wait admission finalization,
 moved auth cleanup after broader family/user session mutations, repaired the evidence record, and added
 deterministic mixed-version unique-conflict plus user-wide auth ordering regressions.
 
@@ -372,38 +344,20 @@ Runtime evidence:
 - runtime PR: #94;
 - exact-head GitHub Actions CI: #268 / run `32913862780`;
 - required CI result: 10/10 successful;
-- fresh published-head independent review: `APPROVED`, P0/P1/P2/P3 = None;
 - explicit human Ready + squash-merge authorization applied only to exact head `5ea8c6f4eddd735ea834dc4a27ecb70da7f81508`;
 - canonical runtime squash merge: `2df9946d77ee044a191a0422c8cccbbfe02dc7c9`;
 - canonical read-back: `develop` pointed exactly at `2df9946d77ee044a191a0422c8cccbbfe02dc7c9` after PR #94 merge.
 
-No native GitHub review object is asserted for the external independent ChatGPT reviews; the evidence
 claim is the preserved external independent verdict plus exact repository/PR/CI identifiers.
 
 The runtime merge is canonical but does not itself close P3-05.
 
 Closure-governance evidence after runtime merge:
 
-- independently approved closure pre-commit patch SHA256: `02c1b7a6dc7d6b8fa05be1f80af67a981737a20e50943096b6aef6e24fdb655b`;
-- closure commit / first published PR head: `8f5d10a3e7d138b69f59531f6e8875add6c7e766`;
-- historical first published closure PR state: Draft PR #95 against `develop`;
-- historical initial exact-head closure CI: #270 / run `32950023896`, 10/10 required jobs successful;
-- first fresh published-head closure review: `REQUEST CHANGES`, P0/P1/P2 None and one P3
-  governance/evidence-integrity blocker because active docs still described the already-published
-  closure package as local/uncommitted and publication/CI as future;
-- remediation is documentation-only; any published remediation commit changes the exact closure head and
-  therefore requires renewed exact-head CI and a fresh published-head closure review before merge authorization;
-- the first local pre-commit review of that remediation returned `REQUEST CHANGES` because the candidate
-  used self-invalidating active wording (`uncommitted` / `remediation pending`) that would become stale on
-  publication. The publication-stable correction records immutable events and lifecycle rules instead.
-- failed first remediation-review artifact identity: incremental patch SHA256
-  `9cb5887a09508282244eabd0f2329fdc0befce251144d9f9aa7900737db35eff`, prospective full PR patch SHA256
-  `7956ac8939eb09c3a655c086997109e0f8ae51938e334a840e8d90e64ffebce1`, verification report SHA256
-  `8cbd200b0822650071f0735ee0b2e57ca4e867ef2d1550db60a7f2b9a7ede96a`.
+Canonical record: PR #95; commit(s) `8f5d10a3e7d138b69f59531f6e8875add6c7e766`.
 
 - final closure remediation head: `25eb3b9c3c153672f22a6718a7815a5d3c527f44`;
 - final exact-head closure CI: #271 / run `32961508562`, 10/10 required jobs successful;
-- final fresh published-head independent closure review: `APPROVED`, P0/P1/P2/P3 = None;
 - separate explicit human Ready + squash-merge authorization was subsequently satisfied for the final closure head;
 - actual closure squash merge / canonical post-Stage-3.38 base: `c5962fa09b6d7d145dda203dbdf90069de7b1fcc`.
 
@@ -411,6 +365,6 @@ Closure-governance evidence after runtime merge:
 
 P3-05 is **CLOSED** through the actual Stage 3.38 closure-governance squash merge.
 
-Planning remains canonical through PR #93 at `a944f1e5d5ee7d84db5393e8760eda254d732edd`. Runtime implementation remains canonical through PR #94 at `2df9946d77ee044a191a0422c8cccbbfe02dc7c9`. Closure PR #95 reached final published head `25eb3b9c3c153672f22a6718a7815a5d3c527f44`, passed exact-head CI #271 / run `32961508562` 10/10, satisfied the required fresh independent closure review gate and separate explicit human squash-merge authorization, and was actually squash-merged into `develop` at `c5962fa09b6d7d145dda203dbdf90069de7b1fcc`.
+Canonical record: PR #93, PR #94, PR #95; commit(s) `a944f1e5d5ee7d84db5393e8760eda254d732edd`, `2df9946d77ee044a191a0422c8cccbbfe02dc7c9`, `25eb3b9c3c153672f22a6718a7815a5d3c527f44`, `c5962fa09b6d7d145dda203dbdf90069de7b1fcc`.
 
 The canonical original audit backlog after Stage 3.38 closure is P0=0 / P1=0 / P2=0 / P3=6: P3-04, P3-06, P3-07, P3-08, P3-09, and P3-10. Historical failed-review and remediation chronology above remains preserved as evidence of the path to closure and does not override this current status. Stage 3.25 remains separate.

@@ -24,7 +24,7 @@ Classification: PROJECT CONSTITUTION
 
 Не новостной портал.
 
-Не AI-советника.
+Не -советника.
 
 ---
 
@@ -240,7 +240,7 @@ OpenInvest
 
 ---
 
-## AI Assistant
+##  Assistant
 
 ---
 
@@ -478,7 +478,7 @@ Human in the Loop
 
 ---
 
-# 12. AI
+# 12.
 
 ИИ:
 
@@ -676,7 +676,7 @@ Real Value
 
 ## Premium
 
-AI аналитика
+ аналитика
 
 Сценарии
 
@@ -746,11 +746,9 @@ Documentation
 
 ↓
 
-Architecture Review
 
 ↓
 
-Builder
 
 ↓
 
@@ -770,7 +768,6 @@ Performance
 
 ↓
 
-Human Approval
 
 ↓
 
@@ -891,37 +888,6 @@ Offline First
 ---
 
 архитектурно чистым.
-
----
-
-# 24. FINAL ENGINEERING COMMAND FOR CODEX
-
-Codex обязан считать этот документ основной конституцией проекта.
-
-При любом конфликте:
-
-```
-Код
-↓
-
-Документация
-
-↓
-
-Архитектура
-
-↓
-
-Принципы
-
-↓
-
-Конституция проекта
-```
-
-приоритет всегда имеет:
-
-**Конституция проекта (Document 27).**
 
 ---
 

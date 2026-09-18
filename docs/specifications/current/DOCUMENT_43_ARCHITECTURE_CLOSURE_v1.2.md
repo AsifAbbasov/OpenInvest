@@ -5,11 +5,8 @@
 | Document ID | 43 |
 | Version | 1.2.0 |
 | Status | Final / Approved |
-| Owner | Principal Architect |
 | Supersedes | Remaining conflicts in Documents 1–42 |
 | Dependencies | Document 42 and ADR registry |
-| Last Review Date | 2026-06-19 |
-| Next Review Date | 2026-12-19 |
 | Priority | Absolute / highest |
 
 ## Purpose
@@ -76,7 +73,6 @@ Governed documents use semantic versions and record owner, status, last review, 
 
 ## Open questions
 
-The register is empty at freeze activation. New architecture questions follow: issue, ADR, review, approval, architecture update.
 
 ## Product position
 

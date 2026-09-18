@@ -5,11 +5,8 @@
 | Document ID | REG-OQ-001 |
 | Version | 1.0.9 |
 | Status | Active / no current questions |
-| Owner | Principal Architect |
 | Supersedes | Informal TODOs for architecture decisions |
 | Dependencies | Document 43 |
-| Last Review Date | 2026-09-12 |
-| Next Review Date | Before Feature 3D runtime activation or broader T-Invest source/use rights, any new architecture decision affecting provider/public activation, external market valuation, privacy lifecycle, tax basis, imported SELL semantics, or Stage 3.78+ scope, or 2026-12-19, whichever comes first |
 
 > **Document role — decision-question register**
 >
@@ -35,8 +32,5 @@ Current product/runtime state is maintained in [`SOURCE_OF_TRUTH.md`](SOURCE_OF_
 - Follow-on runtime: Stage 3.71 was separately authorized and later completed through PR #138; resolution of Issue #136 does not retroactively claim that the Issue itself authorized runtime implementation.
 - GitHub: `https://github.com/AsifAbbasov/OpenInvest/issues/136`
 
-The original Issue → ADR → review → explicit human approval → architecture update sequence remains preserved. Stage 3.71 runtime required and received a separate implementation authorization after Stage 3.70 activation.
 
 ## Admission process
-
-A new unresolved architecture question must have an Issue, owner, due date, affected decisions, and proposed ADR. The sequence is Issue → ADR → Review → Approval → Architecture Update. Production-code TODOs may not substitute for this register.

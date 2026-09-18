@@ -386,7 +386,7 @@ Notification Queue
 
 ---
 
-AI Queue
+ Queue
 
 ---
 
@@ -420,7 +420,7 @@ Analytics Worker
 
 ---
 
-AI Worker
+ Worker
 
 ---
 
@@ -560,7 +560,6 @@ Every new feature undergoes Cost Review.
 
 ---
 
-Builder Agent must answer:
 
 ---
 
@@ -828,7 +827,7 @@ Response Time
 
 # FAILURE ISOLATION
 
-If AI stops working
+If  stops working
 
 ↓
 
@@ -928,11 +927,10 @@ Public API
 
 ---
 
-AI Copilot
+ Copilot
 
 ---
 
-# ARCHITECTURE REVIEW QUESTIONS
 
 Before Merge, Architecture Agent must answer:
 

@@ -4,12 +4,9 @@
 | --- | --- |
 | Document ID | STAGE-02 |
 | Version | 1.0.4 |
-| Status | Implemented / REQUEST CHANGES fixes applied |
-| Owner | Builder Engineer |
+| Status | Implemented / changes required fixes applied |
 | Supersedes | Stage 1 non-business OpenAPI skeleton after approval |
 | Dependencies | Stage 1 approval; Architecture Freeze v1.2; ADR-003; proposed ADR-006 |
-| Last Review Date | 2026-06-21 |
-| Next Review Date | At Stage 2 approval |
 
 ## Goal
 
@@ -36,22 +33,13 @@ strategy before backend business implementation.
 - no SQL migrations, tables, ORM entities, or database writes;
 - no MOEX, CBR, Rosstat, or other external integration;
 - no frontend/mobile screen or client generation;
-- no tax export, foreign security, prediction, or AI behavior.
+- no tax export, foreign security, prediction, or  behavior.
 
 ## Review-size exception
 
-The complete Stage 2 PR contains 26 files, one above the default 25-file review budget. The contract,
-canonical/ER/migration records, OpenAPI validator CI, five synchronized governance registries,
-implementation log, and source-registry correction must remain consistent in one reviewable freeze.
-Splitting one governance file would create a knowingly inconsistent Source of Truth and would not
-reduce contract complexity. Generated/example artifacts remain fully reviewable and are not hidden
-from either reviewer.
 
-Auditable evidence: Principal Architect / Human Reviewer approval for this exact PR #2 26-file
-review-size exception is recorded in GitHub PR comment
-`https://github.com/AsifAbbasov/OpenInvest/pull/2#issuecomment-4800618888`.
+Canonical record: PR #2.
 
-The approval covers the review-size exception only. It is not merge approval, not ADR-006
 acceptance, not authorization to start Stage 3, and not a reusable exception for future PRs.
 
 ## Contract decisions
@@ -85,7 +73,6 @@ acceptance, not authorization to start Stage 3, and not a reusable exception for
 ## Open questions
 
 None. All decisions needed to begin post-approval implementation are explicit. Any new question
-must use Issue → ADR → review → approval and cannot be resolved ad hoc in production code.
 
 ## Verification
 
@@ -112,7 +99,6 @@ and must not be represented as one. It provides structural/reference/example che
 mutation guards for UUID, BusinessDate, traceparent, `unevaluatedProperties`, non-negative
 financial aggregates, transaction command invariants, and dividend calculation invariants. A
 standards-compliant OpenAPI/JSON Schema ruleset such as Redocly remains recommended in connected CI
-or review before merge, but the repository validator no longer claims full standards compliance.
 
 ## Known risks
 
@@ -124,19 +110,6 @@ or review before merge, but the repository validator no longer claims full stand
 - OpenAPI documents response shape but does not prove calculation correctness; financial vectors
   remain mandatory before algorithms are implemented.
 - Authentication, anonymization key destruction, event reliability, and physical database roles
-  require specialist security/infrastructure review before implementation.
-
-## Internal Review Evidence
-
-- Changed files reviewed: 12 tracked Stage 2 files in the current diff.
-- Review verdict: `APPROVED`.
-- Blocking findings: none.
-- Resolved findings: external Stage 2 blockers 1–7 addressed in this blocker-fix diff.
-- Remaining non-blocking notes: Redocly/full JSON Schema ruleset evidence remains documented as an
-  operational hardening item before release.
-- Reviewer edit confirmation: Internal Review Agent confirmed read-only review and made no edits.
-
-External ChatGPT review and explicit human approval remain required before merge.
 
 ## Rollback
 

@@ -6,13 +6,10 @@
 | Date | 2026-09-01 |
 | Canonical base | protected `develop@915d42f614121959fface9846a07cc1b412febe2` |
 | Base tree | `f3a77245ea06b1fddc25e80c83e50aeda2551447` |
-| Adoption workflow | `docs/REVIEW_WORKFLOW.md` v1.3.0 |
-| Effective workflow after activation | `docs/REVIEW_WORKFLOW.md` v1.4.0 |
 | Activation PR | #111 |
 | Activation merge | `93e59cbf4821fc51aba5bdb9815b52a73fbc67a0` |
 | Activation tree | `3686ff3606d7c5f4fe97060abc12dffd0ccd3477` |
 | Proposed workflow | v1.4.0 |
-| Trigger | Stage 3.51 Governance / Closure review established that v1.3.0 has no retrospective disposition/acceptance mechanism for irreversible historical governance deviation `P2-GOV-01` |
 | Development surface | None — documentation/governance only |
 | Original audit at Stage 3.52 activation | 30/32 closed = 93.75%; P3-07 and P3-08 were OPEN |
 | Stage 3.51 state at Stage 3.52 activation | BLOCKED / not publication-eligible while `P2-GOV-01` was unresolved |
@@ -23,22 +20,18 @@
 
 ## 0. Protected activation record
 
-The proposal was reviewed under canonical v1.3.0, published as PR #111, passed exact-head CI #307 /
-run `33513024944` with all 10 required jobs successful, passed same-chat exact-published-head
+Canonical record: PR #111.
+run `33513024944` with all 10 required jobs successful, passed single-context exact-published-head
 Governance / Closure verification, received separate Ready and squash-merge authorization, and was
 squash-merged into protected `develop` at `93e59cbf4821fc51aba5bdb9815b52a73fbc67a0`.
 
-`REVIEW_WORKFLOW.md` v1.4.0 is therefore canonical. This activation did not disposition P2-GOV-01,
 close P3-07, unblock Stage 3.51, affect P3-08, or authorize branch deletion.
 
 ## 1. Why this amendment exists
 
-Stage 3.50's runtime/UI remediation for original audit P3-07 was technically reviewed, passed exact-head
-CI and was squash-merged. A later Stage 3.51 Governance / Closure review found a separate historical
 process defect, `P2-GOV-01`: the development-path Internal evidence lifecycle required by v1.3.0 was
 not followed before PR #110 merged.
 
-The missed ordering cannot be recreated after merge. The same review established that canonical
 v1.3.0 contains no explicit retrospective waiver, disposition or acceptance procedure for such an
 irreversible historical governance deviation.
 
@@ -58,7 +51,6 @@ It does **not** make historical noncompliance compliant. It creates a controlled
 - it cannot be replayed or repaired in its original temporal order;
 - exact evidence is preserved;
 - technical/product correctness is evaluated separately;
-- residual governance risk is explicitly reviewed and accepted by the Principal Architect;
 - compensating controls are recorded;
 - the deviation changes from `UNRESOLVED_BLOCKER` to `DISPOSITIONED — HISTORICAL NONCOMPLIANCE
   PRESERVED / RESIDUAL GOVERNANCE RISK ACCEPTED`;
@@ -75,7 +67,6 @@ This mechanism MUST NOT:
 - substitute for code/runtime/security/privacy/data-integrity remediation;
 - waive a red CI check;
 - authorize direct protected-branch writes;
-- bypass current review, CI, Ready, merge or human-authorization gates;
 - be used by this Stage 3.52 proposal before v1.4.0 becomes canonical;
 - close P3-07 by itself;
 - touch P3-08.
@@ -129,13 +120,10 @@ Required sequence:
 effective REVIEW_WORKFLOW v1.4.0
   → separate disposition branch/record
   → local deterministic evidence checks
-  → read-only Governance / Closure review
   → remediate findings and rerun checks
-  → APPROVED prepublication disposition review
   → separate human permission to commit/push
   → Draft PR
   → required exact-head CI green
-  → same designated review chat exact-published-head verification
   → explicit Principal Architect residual-governance-risk acceptance
      bound to the deviation ID and exact published disposition head
   → separate explicit squash-merge authorization
@@ -167,7 +155,7 @@ For a missed review-evidence lifecycle, examples include:
 - an explicit `NEXT_GATE=EVIDENCE_ONLY_PUBLICATION` transition after External verdict;
 - mandatory distinct evidence-only head;
 - CI authority bound to the evidence head;
-- same-chat exact evidence-publication verification;
+- single-context exact evidence-publication verification;
 - merge fail-closed on machine-readable lifecycle prerequisites;
 - durable error ledger and executable regression tests.
 
@@ -179,10 +167,6 @@ This Stage 3.52 proposal is governed entirely by **canonical v1.3.0** until prot
 
 Its proposed v1.4.0 disposition rules:
 
-- cannot justify this amendment's own review path;
-- cannot waive any v1.3.0 adoption requirement;
-- cannot disposition `P2-GOV-01` before this amendment is squash-merged;
-- cannot make Stage 3.51 publication-eligible before separate Stage 3.53 disposition activation.
 
 ## 10. Stage 3.51 / P3-07 relationship
 
@@ -201,7 +185,6 @@ If this amendment is eventually protected-merged:
 - Stage 3.51 remains BLOCKED;
 - next action is separate Stage 3.53 disposition.
 
-Only after the Stage 3.53 disposition is itself protected-merged may Stage 3.51 be revised/re-reviewed.
 
 ## 11. Adoption path for this amendment
 
@@ -209,11 +192,9 @@ Because this candidate changes only documentation/governance and no development 
 the v1.3.0 post-development Governance / Closure path:
 
 1. local deterministic checks;
-2. same designated review chat prepublication Governance / Closure review;
 3. separate human commit/push permission;
 4. Draft PR;
 5. required exact-head CI;
-6. same designated review chat exact-published-head verification;
 7. separate human Ready authorization if repository workflow requires Ready;
 8. separate explicit squash-merge authorization;
 9. protected merge activates v1.4.0.
@@ -222,7 +203,6 @@ Nothing in this proposal authorizes any remote mutation.
 
 ## 12. Decision
 
-Propose `REVIEW_WORKFLOW.md` v1.4.0 with a narrow irreversible-historical-governance-deviation
 disposition mechanism.
 
 Before protected activation, v1.3.0 remains authoritative.

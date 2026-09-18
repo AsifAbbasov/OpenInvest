@@ -76,7 +76,6 @@ Manually changing Production is prohibited.
 
 # PROJECT INITIALIZATION
 
-Codex must perform the following actions.
 
 ```text
 ~/Documents
@@ -141,7 +140,6 @@ Issue
 
 ↓
 
-Architecture Review
 
 ↓
 
@@ -149,11 +147,9 @@ feature branch
 
 ↓
 
-Builder Agent
 
 ↓
 
-Review Agent
 
 ↓
 
@@ -169,7 +165,6 @@ Performance Agent
 
 ↓
 
-Human Approval
 
 ↓
 
@@ -202,13 +197,11 @@ docs(api): update openapi contract
 
 # PUSH POLICY
 
-Codex is prohibited from performing Push automatically.
 
 ---
 
 After completion of every stage:
 
-Codex must report:
 
 ---
 
@@ -282,9 +275,6 @@ Documentation Updated
 
 ---
 
-# CODE REVIEW
-
-Review Agent must check:
 
 ---
 
@@ -342,7 +332,6 @@ OpenAPI Compatibility
 
 # REVIEW RESULT
 
-Review Agent may return only:
 
 ---
 
@@ -718,7 +707,6 @@ Tax
 
 ---
 
-AI
 
 ---
 
@@ -732,7 +720,6 @@ License Review
 
 ---
 
-Security Review
 
 ---
 
@@ -826,7 +813,7 @@ Bundle Analysis
 
 ---
 
-AI UX Review
+ UX Review
 
 ---
 
@@ -862,7 +849,6 @@ Every month:
 
 ---
 
-Architecture Review
 
 ---
 
@@ -916,7 +902,6 @@ API Cost
 
 ---
 
-LLM Cost
 
 ---
 
@@ -928,11 +913,9 @@ an automatic report is created.
 
 # AUTOMATED AGENTS
 
-Builder Agent
 
 ↓
 
-Review Agent
 
 ↓
 
@@ -996,7 +979,6 @@ are changed only through ADR.
 
 # ENGINEERING RULE
 
-After completion of every stage, Codex must explain:
 
 ---
 
@@ -1024,6 +1006,5 @@ how the decision affects performance, security, and operating costs.
 
 > **OpenInvest must be developed so that any release can be reproduced, verified, rolled back, and explained.**
 
-> **Not a single byte of code should reach Production without passing Builder Agent, Review Agent, QA Agent, Security Agent, Performance Agent, and explicit confirmation by the project owner.**
 
 > **The main task of DevOps is not to deliver code faster, but to ensure that five years from now the project can be evolved safely without fear of breaking the working system.**
