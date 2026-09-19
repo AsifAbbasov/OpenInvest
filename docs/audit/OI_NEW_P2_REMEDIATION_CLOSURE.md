@@ -214,9 +214,10 @@ This record permanently captures the completed OI-NEW P2 remediation set as tech
 
 ## 14. Current canonical state
 
-- `develop@d9f6c263dd3ff4d22fc978372014381880104489`
-- tree `1c93cc51a25da3fdc8207da8e94aa1c0d1ab0d7a`
+- `develop@8bcb2d1bba3454de1262ddc4e045fddf299a9564`
+- tree `9fc1ceb40e1b67d90d18b51602f4d3864fc94305`
 - OI-NEW P2 remediation is closed `8/8`.
+- documentation closure is canonical through PR #190 / squash merge `8bcb2d1bba3454de1262ddc4e045fddf299a9564` from exact head `b5bbfa9ea9cbb5eb9d758e573419e1d376e4fb21` after CI #548 / run `35334163751` with 10/10 required jobs successful.
 - no P2 finding remains open.
 
 ## 15. Residual non-P2 scope
@@ -233,7 +234,7 @@ P2_REMAINING=0
 P2_PHASE_CLOSED=YES
 ```
 
-The OI-NEW P2 technical remediation set is complete at `develop@d9f6c263dd3ff4d22fc978372014381880104489`.
+The OI-NEW P2 technical remediation set was complete at `develop@d9f6c263dd3ff4d22fc978372014381880104489`. Its documentation closure is canonical at `develop@8bcb2d1bba3454de1262ddc4e045fddf299a9564` through PR #190.
 
 ## Migration-validator documentation binding reconciliation
 

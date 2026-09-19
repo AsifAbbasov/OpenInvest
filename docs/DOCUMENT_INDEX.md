@@ -186,4 +186,4 @@ Stages 3.74–3.76 are complete/canonical through protected PRs #150, #153 and #
 
 ## OI-NEW P2 technical closure
 
-- [`audit/OI_NEW_P2_REMEDIATION_CLOSURE.md`](audit/OI_NEW_P2_REMEDIATION_CLOSURE.md) — canonical technical closure record for OI-NEW-01 through OI-NEW-08.
+- [`audit/OI_NEW_P2_REMEDIATION_CLOSURE.md`](audit/OI_NEW_P2_REMEDIATION_CLOSURE.md) — canonical technical closure record for OI-NEW-01 through OI-NEW-08; documentation closure canonical through PR #190 / squash merge `8bcb2d1bba3454de1262ddc4e045fddf299a9564`.

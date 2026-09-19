@@ -862,6 +862,8 @@ The completed set establishes PostgreSQL runtime least privilege, truthful auth/
 
 Technical closure details: [`audit/OI_NEW_P2_REMEDIATION_CLOSURE.md`](audit/OI_NEW_P2_REMEDIATION_CLOSURE.md).
 
+Documentation closure is canonical through PR #190 / squash merge `8bcb2d1bba3454de1262ddc4e045fddf299a9564` from exact head `b5bbfa9ea9cbb5eb9d758e573419e1d376e4fb21` after CI #548 / run `35334163751` with 10/10 required jobs successful.
+
 This closure does not authorize P3, Stage 3.78+, provider activation, or other runtime scope.
 
 ## Migration-validator documentation contract identity
