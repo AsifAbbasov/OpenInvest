@@ -5,8 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net"
 	"os"
+	"os/signal"
 	"strings"
+	"sync"
+	"syscall"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -21,41 +25,104 @@ import (
 const (
 	developmentImportReviewTokenSecret = "openinvest-development-import-review-token-secret"
 	runtimeIntegrityStartupTimeout     = 30 * time.Second
+	gracefulShutdownTimeout            = 10 * time.Second
+	forcedRequestDrainTimeout          = 2 * time.Second
+	apiListenAddress                   = ":8080"
 )
 
-func newApp() *fiber.App {
+var errRuntimeResourcesStillInUse = errors.New(
+	"runtime resources still owned by active request work",
+)
+
+type applicationRuntime struct {
+	app      *fiber.App
+	requests *httpapi.RequestLifecycle
+	close    func() error
+}
+
+func (runtime *applicationRuntime) Close() error {
+	if runtime == nil {
+		return nil
+	}
+
+	if runtime.requests != nil {
+		runtime.requests.ForceCancel()
+
+		// Never enter the underlying resource closer while request-owned work
+		// is still active. database/sql Close may wait indefinitely for
+		// already-started queries.
+		if !runtime.requests.Idle() {
+			return errRuntimeResourcesStillInUse
+		}
+	}
+
+	if runtime.close == nil {
+		return nil
+	}
+
+	return runtime.close()
+}
+
+func newRuntime() (runtime *applicationRuntime, err error) {
 	databaseURL := strings.TrimSpace(os.Getenv("DATABASE_URL"))
 	if err := validateRuntimeSafety(databaseURL); err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("validate runtime safety: %w", err)
 	}
+
 	httpNetworkConfig, err := configuredHTTPNetworkConfig()
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("configure HTTP network boundary: %w", err)
 	}
+
 	corporateActionProvider, err := configuredTInvestCorporateActionProvider()
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("configure corporate action provider: %w", err)
 	}
+
+	requestLifecycle := httpapi.NewRequestLifecycle()
+
 	if databaseURL == "" {
 		store := unavailableStore{}
-		return httpapi.NewDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig(
-			verticalslice.NewService(store, verticalslice.SystemClock{}),
-			corporateActionProvider,
-			httpNetworkConfig,
-		)
+		return &applicationRuntime{
+			app: httpapi.NewDevelopmentReplayRuntime(
+				verticalslice.NewService(store, verticalslice.SystemClock{}),
+				corporateActionProvider,
+				httpNetworkConfig,
+				requestLifecycle,
+			),
+			requests: requestLifecycle,
+		}, nil
 	}
-	runtimeCapability, err := postgres.ParseRuntimeCapabilityProfile(os.Getenv("OPENINVEST_RUNTIME_CAPABILITY_PROFILE"))
+
+	runtimeCapability, err := postgres.ParseRuntimeCapabilityProfile(
+		os.Getenv("OPENINVEST_RUNTIME_CAPABILITY_PROFILE"),
+	)
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("parse runtime capability profile: %w", err)
 	}
+
 	store, err := openPostgresStore(databaseURL, runtimeCapability)
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("open postgres store: %w", err)
 	}
+
+	defer func() {
+		if err == nil {
+			return
+		}
+		if closeErr := store.Close(); closeErr != nil {
+			err = errors.Join(
+				err,
+				fmt.Errorf("close postgres store after initialization failure: %w", closeErr),
+			)
+		}
+	}()
+
 	service, err := newValidatedRuntimeService(store)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
+
 	authService, err := auth.NewService(store, verticalslice.SystemClock{}, auth.Config{
 		AccessTokenSecret:               []byte(os.Getenv("OPENINVEST_ACCESS_TOKEN_SECRET")),
 		RefreshCookieSecure:             !envBool("OPENINVEST_REFRESH_COOKIE_INSECURE"),
@@ -63,19 +130,263 @@ func newApp() *fiber.App {
 		AllowEphemeralAccessTokenSecret: envBool("OPENINVEST_ALLOW_EPHEMERAL_ACCESS_TOKEN_SECRET") || envBool("OPENINVEST_DEV_AUTH_BYPASS"),
 	})
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("initialize auth service: %w", err)
 	}
-	app, err := httpapi.NewReplayWithCorporateActionProviderAndHTTPNetworkConfig(
+
+	app, err := httpapi.NewReplayRuntime(
 		service,
 		authService,
 		configuredImportReviewTokenSecret(),
 		corporateActionProvider,
 		httpNetworkConfig,
+		requestLifecycle,
 	)
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("initialize HTTP application: %w", err)
 	}
-	return app
+
+	return &applicationRuntime{
+		app:      app,
+		requests: requestLifecycle,
+		close:    store.Close,
+	}, nil
+}
+
+type shutdownServer interface {
+	ShutdownWithContext(context.Context) error
+}
+
+type httpLifecycle interface {
+	shutdownServer
+	Listener(net.Listener, ...fiber.ListenConfig) error
+}
+
+type readinessListener struct {
+	net.Listener
+	once  sync.Once
+	ready chan struct{}
+}
+
+func (listener *readinessListener) Accept() (net.Conn, error) {
+	listener.once.Do(func() {
+		close(listener.ready)
+	})
+	return listener.Listener.Accept()
+}
+
+func shutdownHTTP(server shutdownServer, timeout time.Duration) error {
+	if timeout <= 0 {
+		return errors.New("shutdown timeout must be positive")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	if err := server.ShutdownWithContext(ctx); err != nil {
+		return fmt.Errorf("shutdown HTTP server: %w", err)
+	}
+	return nil
+}
+
+func serveHTTP(
+	ctx context.Context,
+	server httpLifecycle,
+	requests *httpapi.RequestLifecycle,
+	listener net.Listener,
+	shutdownTimeout time.Duration,
+	forcedDrainTimeout time.Duration,
+) error {
+	if listener == nil {
+		return errors.New("HTTP listener is required")
+	}
+	if shutdownTimeout <= 0 {
+		_ = listener.Close()
+		return errors.New("shutdown timeout must be positive")
+	}
+	if forcedDrainTimeout <= 0 {
+		_ = listener.Close()
+		return errors.New("forced request drain timeout must be positive")
+	}
+	if ctx.Err() != nil {
+		if err := listener.Close(); err != nil {
+			return fmt.Errorf("close listener before serve: %w", err)
+		}
+		return nil
+	}
+
+	ready := make(chan struct{})
+	readyListener := &readinessListener{
+		Listener: listener,
+		ready:    ready,
+	}
+	serveErrCh := make(chan error, 1)
+
+	go func() {
+		serveErrCh <- server.Listener(readyListener)
+	}()
+
+	select {
+	case err := <-serveErrCh:
+		_ = listener.Close()
+		if err != nil {
+			return fmt.Errorf("serve HTTP: %w", err)
+		}
+		return nil
+	case <-ready:
+	}
+
+	select {
+	case serveErr := <-serveErrCh:
+		// Once the server has entered the accept loop, an unexpected Listener
+		// termination must obey the same resource-ownership invariant as the
+		// forced shutdown path. Busy request work may still exist even though
+		// Listener has returned.
+		_ = listener.Close()
+		requests.ForceCancel()
+
+		forcedCtx, cancelForced := context.WithTimeout(
+			context.Background(),
+			forcedDrainTimeout,
+		)
+		defer cancelForced()
+
+		if err := requests.WaitContext(forcedCtx); err != nil {
+			baseErr := errors.New("HTTP server stopped while request work remained active")
+			if serveErr != nil {
+				baseErr = fmt.Errorf("serve HTTP: %w", serveErr)
+			}
+			return errors.Join(
+				baseErr,
+				errRuntimeResourcesStillInUse,
+				fmt.Errorf("wait for requests after HTTP server exit: %w", err),
+			)
+		}
+
+		if serveErr != nil {
+			return fmt.Errorf("serve HTTP: %w", serveErr)
+		}
+		return nil
+
+	case <-ctx.Done():
+	}
+
+	shutdownErr := shutdownHTTP(server, shutdownTimeout)
+	if shutdownErr != nil {
+		// Fiber/fasthttp may return on deadline while a busy worker is still
+		// executing. Seal admission, cancel request-owned contexts and allow a
+		// second bounded window for cancellation-aware operations to unwind.
+		requests.ForceCancel()
+		_ = listener.Close()
+
+		forcedCtx, cancelForced := context.WithTimeout(
+			context.Background(),
+			forcedDrainTimeout,
+		)
+		defer cancelForced()
+
+		if err := requests.WaitContext(forcedCtx); err != nil {
+			// Forced cancellation did not quiesce tracked request work within
+			// the second lifecycle budget. Fail closed: report the ownership
+			// violation rather than entering Store.Close while request-owned
+			// database work may still be executing. This is not a successful
+			// clean-shutdown path.
+			return errors.Join(
+				shutdownErr,
+				errRuntimeResourcesStillInUse,
+				fmt.Errorf("wait for forced request drain: %w", err),
+			)
+		}
+
+		select {
+		case serveErr := <-serveErrCh:
+			if serveErr != nil {
+				return errors.Join(
+					shutdownErr,
+					fmt.Errorf("serve HTTP after forced shutdown: %w", serveErr),
+				)
+			}
+			return shutdownErr
+
+		case <-forcedCtx.Done():
+			return errors.Join(
+				shutdownErr,
+				errRuntimeResourcesStillInUse,
+				fmt.Errorf(
+					"wait for HTTP listener after forced shutdown: %w",
+					forcedCtx.Err(),
+				),
+			)
+		}
+	}
+
+	// ShutdownWithContext returned successfully, so Fiber/fasthttp has observed
+	// all active connections drain. The request tracker must therefore also be
+	// quiescent before resources are released.
+	requests.Wait()
+
+	serveErr := <-serveErrCh
+	if serveErr != nil {
+		return fmt.Errorf("serve HTTP after shutdown: %w", serveErr)
+	}
+	return nil
+}
+
+func serveAPI(ctx context.Context, runtime *applicationRuntime) error {
+	if ctx.Err() != nil {
+		return nil
+	}
+
+	listener, err := net.Listen("tcp4", apiListenAddress)
+	if err != nil {
+		return fmt.Errorf("listen on %s: %w", apiListenAddress, err)
+	}
+
+	return serveHTTP(
+		ctx,
+		runtime.app,
+		runtime.requests,
+		listener,
+		gracefulShutdownTimeout,
+		forcedRequestDrainTimeout,
+	)
+}
+
+type runtimeBuilder func() (*applicationRuntime, error)
+type runtimeServer func(context.Context, *applicationRuntime) error
+
+func runApplication(
+	ctx context.Context,
+	build runtimeBuilder,
+	serve runtimeServer,
+) (err error) {
+	runtime, err := build()
+	if err != nil {
+		return fmt.Errorf("initialize runtime: %w", err)
+	}
+	if runtime == nil {
+		return errors.New("initialize runtime: nil runtime")
+	}
+
+	defer func() {
+		if closeErr := runtime.Close(); closeErr != nil {
+			err = errors.Join(
+				err,
+				fmt.Errorf("close runtime resources: %w", closeErr),
+			)
+		}
+	}()
+
+	if runtime.app == nil {
+		return errors.New("initialize runtime: nil application")
+	}
+	if runtime.requests == nil {
+		return errors.New("initialize runtime: nil request lifecycle")
+	}
+
+	if err := serve(ctx, runtime); err != nil {
+		return fmt.Errorf("run HTTP server: %w", err)
+	}
+	return nil
 }
 
 func openPostgresStore(databaseURL string, runtimeCapability postgres.RuntimeCapabilityProfile) (*postgres.Store, error) {
@@ -158,8 +469,19 @@ func strictEnvBool(name string) (bool, error) {
 	}
 }
 
+func runMain() error {
+	ctx, stop := signal.NotifyContext(
+		context.Background(),
+		syscall.SIGINT,
+		syscall.SIGTERM,
+	)
+	defer stop()
+
+	return runApplication(ctx, newRuntime, serveAPI)
+}
+
 func main() {
-	if err := newApp().Listen(":8080"); err != nil {
+	if err := runMain(); err != nil {
 		log.Fatal(err)
 	}
 }

@@ -18,6 +18,7 @@ type API struct {
 	paginationCursorSecret  []byte
 	now                     func() time.Time
 	httpNetworkConfig       HTTPNetworkConfig
+	requestLifecycle        *RequestLifecycle
 }
 
 func New(service *verticalslice.Service, authService *auth.Service, importReviewTokenSecret []byte) (*fiber.App, error) {
