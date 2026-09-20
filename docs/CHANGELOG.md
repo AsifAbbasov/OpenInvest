@@ -611,7 +611,7 @@ Canonical record: PR #67; commit(s) `0623d5ef326cd783b7dc0417dbcb02f18c506171`, 
 
 ## OI-NEW P2 remediation closure — 8/8
 
-Technical remediation base: `develop@d9f6c263dd3ff4d22fc978372014381880104489`. Documentation closure canonical state: `develop@8bcb2d1bba3454de1262ddc4e045fddf299a9564` through PR #190 / squash merge `8bcb2d1bba3454de1262ddc4e045fddf299a9564`.
+Technical remediation baseline: `develop@d9f6c263dd3ff4d22fc978372014381880104489` through PR #188. Documentation-cleanup baseline: PR #190 / squash merge `8bcb2d1bba3454de1262ddc4e045fddf299a9564`. The changelog does not treat either baseline as the mutable current `develop` tip.
 
 Completed technical corrections:
 
