@@ -2,17 +2,21 @@
 
 ## Status
 
-OI-NEW-09 remediation candidate implemented.
+OI-NEW-09 is CLOSED.
 
-Independent review identified follow-up blocker:
+The R1 remediation was independently reviewed, pushed as exact reviewed head
+`78858f6e5bbf57b2d50fed1cf4abb5fd3e89088a`, passed fresh protected GitHub CI
+run #555 with all 10 required jobs successful, and was squash-merged through
+PR #193 into `develop`.
 
-`OI-NEW-09-R1 — shutdown timeout does not guarantee bounded process termination`
+Merged develop SHA:
 
-The R1 remediation is now implemented and locally verified.
+`221da392750a34aead59e5fba90d4082c31a6521`
 
-Awaiting fresh GitHub CI and independent re-review.
-
-This document does not declare OI-NEW-09 CLOSED.
+The merged commit tree
+`236698794cd8a783616027dd3ecc27c46d826151` exactly matches the synthetic PR
+merge tree exercised by CI #555, so the bytes merged to `develop` are the
+bytes that passed the protected test suite.
 
 ## Finding
 
@@ -24,6 +28,10 @@ This document does not declare OI-NEW-09 CLOSED.
 - Baseline SHA: `cf58624d4b58ed54e4eb4867570f95091752cf56`
 - Branch: `fix/oi-new-09-graceful-shutdown`
 - Pull request: `#193`
+- Reviewed head SHA: `78858f6e5bbf57b2d50fed1cf4abb5fd3e89088a`
+- Fresh CI: `#555` — 10/10 required jobs successful
+- Merged develop SHA: `221da392750a34aead59e5fba90d4082c31a6521`
+- Tested/merged tree SHA: `236698794cd8a783616027dd3ecc27c46d826151`
 
 ## Original root cause
 
@@ -215,10 +223,16 @@ in pre-existing `internal/httpapi` authentication tests.
 The same timeout class was previously reproduced against the untouched
 baseline, while all OI-NEW-09 focused race suites pass repeatedly.
 
-Fresh GitHub CI for the new R1 head remains authoritative.
+Fresh GitHub CI run #555 completed successfully for the final reviewed R1 head.
 
-The previous 10/10-success CI run belonged to the pre-R1 reviewed candidate and
-must not be treated as fresh evidence for this final remediation.
+All 10 protected checks passed, including `Go tests`, `Go race tests`,
+PostgreSQL migration validation, vulnerability/security scans, frontend,
+Python, OpenAPI, and Docker Compose validation.
+
+PR #193 was then squash-merged to `develop` as
+`221da392750a34aead59e5fba90d4082c31a6521`. The resulting commit tree
+`236698794cd8a783616027dd3ecc27c46d826151` is identical to the synthetic
+PR merge tree tested by CI #555.
 
 ## Regression boundaries
 
@@ -257,6 +271,17 @@ Reviewed for:
 - goroutine leakage;
 - scope creep.
 
-## Candidate state
+## Closure state
 
-`OI_NEW_09_STATUS=AWAITING_INDEPENDENT_REVIEW`
+`OI_NEW_09_STATUS=CLOSED`
+
+Closure evidence:
+
+- independent R1 review: PASS;
+- exact pushed diff review: PASS;
+- post-review drift: NONE;
+- fresh protected CI #555: 10/10 SUCCESS;
+- protected `Go race tests`: PASS;
+- PR #193: MERGED;
+- merged `develop` SHA: `221da392750a34aead59e5fba90d4082c31a6521`;
+- tested tree equals merged tree: YES.
