@@ -26,18 +26,40 @@ const (
 	developmentImportReviewTokenSecret = "openinvest-development-import-review-token-secret"
 	runtimeIntegrityStartupTimeout     = 30 * time.Second
 	gracefulShutdownTimeout            = 10 * time.Second
+	forcedRequestDrainTimeout          = 2 * time.Second
 	apiListenAddress                   = ":8080"
 )
 
+var errRuntimeResourcesStillInUse = errors.New(
+	"runtime resources still owned by active request work",
+)
+
 type applicationRuntime struct {
-	app   *fiber.App
-	close func() error
+	app      *fiber.App
+	requests *httpapi.RequestLifecycle
+	close    func() error
 }
 
 func (runtime *applicationRuntime) Close() error {
-	if runtime == nil || runtime.close == nil {
+	if runtime == nil {
 		return nil
 	}
+
+	if runtime.requests != nil {
+		runtime.requests.ForceCancel()
+
+		// Never enter the underlying resource closer while request-owned work
+		// is still active. database/sql Close may wait indefinitely for
+		// already-started queries.
+		if !runtime.requests.Idle() {
+			return errRuntimeResourcesStillInUse
+		}
+	}
+
+	if runtime.close == nil {
+		return nil
+	}
+
 	return runtime.close()
 }
 
@@ -57,14 +79,18 @@ func newRuntime() (runtime *applicationRuntime, err error) {
 		return nil, fmt.Errorf("configure corporate action provider: %w", err)
 	}
 
+	requestLifecycle := httpapi.NewRequestLifecycle()
+
 	if databaseURL == "" {
 		store := unavailableStore{}
 		return &applicationRuntime{
-			app: httpapi.NewDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig(
+			app: httpapi.NewDevelopmentReplayRuntime(
 				verticalslice.NewService(store, verticalslice.SystemClock{}),
 				corporateActionProvider,
 				httpNetworkConfig,
+				requestLifecycle,
 			),
+			requests: requestLifecycle,
 		}, nil
 	}
 
@@ -107,20 +133,22 @@ func newRuntime() (runtime *applicationRuntime, err error) {
 		return nil, fmt.Errorf("initialize auth service: %w", err)
 	}
 
-	app, err := httpapi.NewReplayWithCorporateActionProviderAndHTTPNetworkConfig(
+	app, err := httpapi.NewReplayRuntime(
 		service,
 		authService,
 		configuredImportReviewTokenSecret(),
 		corporateActionProvider,
 		httpNetworkConfig,
+		requestLifecycle,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("initialize HTTP application: %w", err)
 	}
 
 	return &applicationRuntime{
-		app:   app,
-		close: store.Close,
+		app:      app,
+		requests: requestLifecycle,
+		close:    store.Close,
 	}, nil
 }
 
@@ -163,8 +191,10 @@ func shutdownHTTP(server shutdownServer, timeout time.Duration) error {
 func serveHTTP(
 	ctx context.Context,
 	server httpLifecycle,
+	requests *httpapi.RequestLifecycle,
 	listener net.Listener,
 	shutdownTimeout time.Duration,
+	forcedDrainTimeout time.Duration,
 ) error {
 	if listener == nil {
 		return errors.New("HTTP listener is required")
@@ -172,6 +202,10 @@ func serveHTTP(
 	if shutdownTimeout <= 0 {
 		_ = listener.Close()
 		return errors.New("shutdown timeout must be positive")
+	}
+	if forcedDrainTimeout <= 0 {
+		_ = listener.Close()
+		return errors.New("forced request drain timeout must be positive")
 	}
 	if ctx.Err() != nil {
 		if err := listener.Close(); err != nil {
@@ -202,28 +236,93 @@ func serveHTTP(
 	}
 
 	select {
-	case err := <-serveErrCh:
-		if err != nil {
-			return fmt.Errorf("serve HTTP: %w", err)
+	case serveErr := <-serveErrCh:
+		// Once the server has entered the accept loop, an unexpected Listener
+		// termination must obey the same resource-ownership invariant as the
+		// forced shutdown path. Busy request work may still exist even though
+		// Listener has returned.
+		_ = listener.Close()
+		requests.ForceCancel()
+
+		forcedCtx, cancelForced := context.WithTimeout(
+			context.Background(),
+			forcedDrainTimeout,
+		)
+		defer cancelForced()
+
+		if err := requests.WaitContext(forcedCtx); err != nil {
+			baseErr := errors.New("HTTP server stopped while request work remained active")
+			if serveErr != nil {
+				baseErr = fmt.Errorf("serve HTTP: %w", serveErr)
+			}
+			return errors.Join(
+				baseErr,
+				errRuntimeResourcesStillInUse,
+				fmt.Errorf("wait for requests after HTTP server exit: %w", err),
+			)
+		}
+
+		if serveErr != nil {
+			return fmt.Errorf("serve HTTP: %w", serveErr)
 		}
 		return nil
+
 	case <-ctx.Done():
 	}
 
 	shutdownErr := shutdownHTTP(server, shutdownTimeout)
 	if shutdownErr != nil {
+		// Fiber/fasthttp may return on deadline while a busy worker is still
+		// executing. Seal admission, cancel request-owned contexts and allow a
+		// second bounded window for cancellation-aware operations to unwind.
+		requests.ForceCancel()
+		_ = listener.Close()
+
+		forcedCtx, cancelForced := context.WithTimeout(
+			context.Background(),
+			forcedDrainTimeout,
+		)
+		defer cancelForced()
+
+		if err := requests.WaitContext(forcedCtx); err != nil {
+			// Forced cancellation did not quiesce tracked request work within
+			// the second lifecycle budget. Fail closed: report the ownership
+			// violation rather than entering Store.Close while request-owned
+			// database work may still be executing. This is not a successful
+			// clean-shutdown path.
+			return errors.Join(
+				shutdownErr,
+				errRuntimeResourcesStillInUse,
+				fmt.Errorf("wait for forced request drain: %w", err),
+			)
+		}
+
 		select {
 		case serveErr := <-serveErrCh:
 			if serveErr != nil {
 				return errors.Join(
 					shutdownErr,
-					fmt.Errorf("serve HTTP after shutdown: %w", serveErr),
+					fmt.Errorf("serve HTTP after forced shutdown: %w", serveErr),
 				)
 			}
-		default:
+			return shutdownErr
+
+		case <-forcedCtx.Done():
+			return errors.Join(
+				shutdownErr,
+				errRuntimeResourcesStillInUse,
+				fmt.Errorf(
+					"wait for HTTP listener after forced shutdown: %w",
+					forcedCtx.Err(),
+				),
+			)
 		}
-		return shutdownErr
 	}
+
+	// ShutdownWithContext returned successfully, so Fiber/fasthttp has observed
+	// all active connections drain. The request tracker must therefore also be
+	// quiescent before resources are released.
+	requests.Wait()
 
 	serveErr := <-serveErrCh
 	if serveErr != nil {
@@ -232,7 +331,7 @@ func serveHTTP(
 	return nil
 }
 
-func serveAPI(ctx context.Context, app *fiber.App) error {
+func serveAPI(ctx context.Context, runtime *applicationRuntime) error {
 	if ctx.Err() != nil {
 		return nil
 	}
@@ -242,11 +341,18 @@ func serveAPI(ctx context.Context, app *fiber.App) error {
 		return fmt.Errorf("listen on %s: %w", apiListenAddress, err)
 	}
 
-	return serveHTTP(ctx, app, listener, gracefulShutdownTimeout)
+	return serveHTTP(
+		ctx,
+		runtime.app,
+		runtime.requests,
+		listener,
+		gracefulShutdownTimeout,
+		forcedRequestDrainTimeout,
+	)
 }
 
 type runtimeBuilder func() (*applicationRuntime, error)
-type runtimeServer func(context.Context, *fiber.App) error
+type runtimeServer func(context.Context, *applicationRuntime) error
 
 func runApplication(
 	ctx context.Context,
@@ -257,8 +363,8 @@ func runApplication(
 	if err != nil {
 		return fmt.Errorf("initialize runtime: %w", err)
 	}
-	if runtime == nil || runtime.app == nil {
-		return errors.New("initialize runtime: nil application")
+	if runtime == nil {
+		return errors.New("initialize runtime: nil runtime")
 	}
 
 	defer func() {
@@ -270,7 +376,14 @@ func runApplication(
 		}
 	}()
 
-	if err := serve(ctx, runtime.app); err != nil {
+	if runtime.app == nil {
+		return errors.New("initialize runtime: nil application")
+	}
+	if runtime.requests == nil {
+		return errors.New("initialize runtime: nil request lifecycle")
+	}
+
+	if err := serve(ctx, runtime); err != nil {
 		return fmt.Errorf("run HTTP server: %w", err)
 	}
 	return nil

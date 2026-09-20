@@ -4,114 +4,258 @@
 
 OI-NEW-09 remediation candidate implemented.
 
-Verification completed.
+Independent review identified follow-up blocker:
 
-Awaiting independent review / merge.
+`OI-NEW-09-R1 — shutdown timeout does not guarantee bounded process termination`
+
+The R1 remediation is now implemented and locally verified.
+
+Awaiting fresh GitHub CI and independent re-review.
 
 This document does not declare OI-NEW-09 CLOSED.
 
 ## Finding
 
 - Finding: `OI-NEW-09 — Graceful shutdown отсутствует`
-- Severity: `P3`
+- Original severity: `P3`
+- Independent-review blocker: `OI-NEW-09-R1`
+- R1 reviewer severity: `P2`
 - Target: `develop`
 - Baseline SHA: `cf58624d4b58ed54e4eb4867570f95091752cf56`
 - Branch: `fix/oi-new-09-graceful-shutdown`
+- Pull request: `#193`
 
-## Root cause
+## Original root cause
 
-The API composition root constructed the Fiber application and immediately called
-`Listen(":8080")`.
+The API composition root originally constructed the Fiber application and
+immediately called `Listen(":8080")`.
 
-The process had no explicit SIGINT/SIGTERM lifecycle, no bounded graceful-shutdown
-boundary, and no composition-root ownership that closed the PostgreSQL store after
-server termination.
+The process had no explicit SIGINT/SIGTERM lifecycle, no bounded graceful
+shutdown boundary, and no composition-root ownership that closed PostgreSQL
+resources after server termination.
 
-Initialization also used `log.Fatal` inside dependency construction, which was not
-compatible with resource cleanup once owned resources had been opened.
+Initialization also used process termination from dependency construction,
+which was incompatible with reliable resource ownership and cleanup.
 
-## Remediation
+## Independent review remediation — OI-NEW-09-R1
 
-The composition root now:
+The first OI-NEW-09 candidate bounded only the wait performed by
+`Fiber.ShutdownWithContext`.
 
-- owns the Fiber app and PostgreSQL close lifecycle explicitly;
-- returns initialization errors instead of terminating inside construction;
-- closes PostgreSQL when later initialization fails;
-- handles SIGINT and SIGTERM with `signal.NotifyContext`;
-- performs Fiber `ShutdownWithContext`;
-- bounds graceful shutdown to 10 seconds;
-- drains HTTP work before releasing owned runtime resources;
-- propagates startup, serving, shutdown, and cleanup errors.
+That was insufficient for the full application lifecycle.
 
-Startup integrity, `/health`, `/ready`, authentication, OI-NEW-05 HTTP timeouts,
-and OI-NEW-06 trusted-proxy behavior remain unchanged.
+Fiber v3 delegates shutdown to fasthttp. When the shutdown deadline expires,
+fasthttp may return `context.DeadlineExceeded` while a busy handler worker is
+still executing.
 
-No migrations, schema, financial semantics, auth semantics, OpenAPI, or frontend
-behavior were changed.
+A request can therefore still own application/database work after
+`ShutdownWithContext` has returned.
+
+OpenInvest handlers also propagate `fiber.Ctx.Context()` into service and
+PostgreSQL calls. Without an explicit context bridge, that context is not tied
+to the process shutdown lifecycle.
+
+The consequence was a possible sequence:
+
+SIGTERM ->
+graceful timeout ->
+HTTP shutdown returns ->
+runtime cleanup begins ->
+`sql.DB.Close()` waits for already-started database work ->
+process shutdown becomes unbounded.
+
+## Final lifecycle design
+
+The remediation introduces an explicit `RequestLifecycle` owned by the API
+composition root.
+
+The lifecycle middleware:
+
+- is installed before application routes;
+- tracks admitted request work;
+- preserves an already configured request context;
+- supplies a cancellable standard-library context to downstream handlers;
+- prevents new tracked work from being admitted after forced cancellation;
+- exposes bounded waiting through `WaitContext`;
+- exposes request ownership state through `Idle`.
+
+### Graceful phase
+
+On SIGINT or SIGTERM:
+
+1. Fiber graceful shutdown begins.
+2. Existing request contexts remain alive during the graceful phase.
+3. The graceful phase has a 10-second timeout.
+4. Requests are allowed to finish normally during that interval.
+5. Runtime resources are closed only after tracked request work is quiescent.
+
+Request contexts are deliberately not canceled merely because the process
+received SIGTERM.
+
+### Forced phase
+
+If graceful shutdown returns an error or reaches its deadline:
+
+1. request admission is sealed;
+2. tracked request contexts are canceled;
+3. the listener is defensively closed;
+4. tracked request work receives a bounded 2-second forced-drain window;
+5. the serving goroutine is joined within the forced lifecycle boundary.
+
+Cooperative PostgreSQL work receives cancellation through the propagated
+request context and can terminate before runtime resources are closed.
+
+### Defensive ownership guard
+
+The production timeout contract relies on request-owned operations honoring the
+propagated cancellation context.
+
+OpenInvest PostgreSQL request paths use cancellation-aware operations such as
+`QueryContext`, `ExecContext`, and `BeginTx`, so the forced phase can unwind
+database work before runtime cleanup.
+
+Arbitrary Go or third-party code that ignores context cancellation indefinitely
+cannot be forcibly terminated by the Go runtime while simultaneously
+guaranteeing clean in-process resource cleanup. This remediation does not claim
+otherwise.
+
+As a fail-closed ownership invariant, `applicationRuntime.Close()` refuses to
+enter the underlying resource closer while tracked request work still owns
+runtime resources and returns `errRuntimeResourcesStillInUse`.
+
+That condition is an ownership/lifecycle error, not a successful graceful
+shutdown.
+
+The production-equivalent timeout path verified by this remediation is:
+
+forced request cancellation ->
+cancellation-aware request/resource operation exits ->
+request lifecycle reaches idle ->
+HTTP serve goroutine exits ->
+underlying Store.Close runs exactly once ->
+runApplication returns with the shutdown error still discoverable.
+
+### Unexpected post-start Listener termination
+
+A Listener failure after the server has entered its accept loop follows the
+same ownership invariant.
+
+The listener is explicitly closed, the request lifecycle is force-canceled, and
+active request work is given the bounded forced-drain window before runtime
+resources may be closed.
+
+This prevents an unexpected serving failure from leaving the listener owned by
+the abandoned serve path or releasing PostgreSQL/runtime resources while
+request-owned work is still active.
+
+## Runtime resource ownership invariant
+
+The required invariant is:
+
+`runtime resources must not be closed while tracked request work still owns them`
+
+`applicationRuntime.Close()` therefore:
+
+1. force-cancels the request lifecycle;
+2. checks `RequestLifecycle.Idle()`;
+3. returns `errRuntimeResourcesStillInUse` while ownership remains active;
+4. calls the underlying runtime closer only after request ownership reaches
+   zero.
+
+The underlying resource closer is not started speculatively in another
+goroutine.
+
+Normal cleanup therefore remains synchronous and explicit.
+
+## Error propagation
+
+Lifecycle errors remain discoverable through `errors.Is`.
+
+The implementation preserves joined errors for combinations such as:
+
+- HTTP shutdown failure + serving failure;
+- HTTP shutdown failure + forced-drain timeout;
+- serving failure + active request ownership;
+- serving/shutdown failure + runtime cleanup failure.
+
+Startup failures continue to propagate without starting the HTTP lifecycle.
+
+Runtime cleanup is performed exactly once on safe cleanup paths.
 
 ## Verification
 
-Focused lifecycle verification:
+Final focused lifecycle verification:
 
+- direct active-resource ownership guard, `count=20` — PASS
+- forced-cancellation request/resource drain regression, `count=20` — PASS
+- post-start Listener failure ordering regression, `count=20` — PASS
 - `go test ./cmd/api -run 'TestOINew09' -count=1` — PASS
 - `go test -race ./cmd/api -run 'TestOINew09' -count=20` — PASS
-- `go test ./cmd/api -count=1` — PASS
+- `go test -race ./internal/httpapi -run 'TestRequestLifecycle' -count=20` — PASS
 - `go test ./...` — PASS
 - `go vet ./...` — PASS
+- `go run ./cmd/validate-openapi` — PASS
 - `pnpm run verify` — PASS
-- `pnpm audit` — PASS
-- `pip-audit==2.10.1` — PASS
-- `govulncheck@v1.7.0` with `GOTOOLCHAIN=go1.25.14` — PASS
+- `git diff --check` — PASS
 
-Local `go test -race ./...` fails in pre-existing `internal/httpapi`
-authentication tests due to request timeouts.
+`pnpm run verify` includes:
 
-The same failure was reproduced on an untouched detached `origin/develop`
-worktree at baseline SHA `cf58624d4b58ed54e4eb4867570f95091752cf56`.
+- Go repository tests;
+- Python dependency sync and tests;
+- frontend typecheck;
+- frontend tests;
+- production frontend build;
+- OpenAPI validation;
+- migration validation;
+- Docker Compose configuration validation.
 
-Focused OI-NEW-09 race tests pass repeatedly.
+Local full `go test -race ./...` has previously hit one-second timeout failures
+in pre-existing `internal/httpapi` authentication tests.
 
-The workstation-default Go toolchain is Go 1.26.2. Under that toolchain,
-govulncheck reports standard-library vulnerabilities on both baseline and
-candidate. Under repository/CI Go 1.25.14, govulncheck passes on both.
+The same timeout class was previously reproduced against the untouched
+baseline, while all OI-NEW-09 focused race suites pass repeatedly.
 
-Required GitHub PR CI remains authoritative.
+Fresh GitHub CI for the new R1 head remains authoritative.
 
-## Runtime contract
+The previous 10/10-success CI run belonged to the pre-R1 reviewed candidate and
+must not be treated as fresh evidence for this final remediation.
 
-Runtime lifecycle:
+## Regression boundaries
 
-process start -> dependency initialization -> startup integrity validation ->
-HTTP serving -> SIGINT/SIGTERM -> bounded graceful shutdown ->
-in-flight request drain -> PostgreSQL cleanup -> clean return or propagated error.
+The remediation does not intentionally change:
 
-Signals handled:
-
-- SIGINT
-- SIGTERM
-
-Shutdown timeout:
-
-- 10 seconds
+- PostgreSQL schema or migrations;
+- financial calculations;
+- ledger semantics;
+- authentication semantics;
+- OpenAPI contracts;
+- frontend behavior;
+- OI-NEW-03 behavior;
+- OI-NEW-05 HTTP timeout behavior;
+- OI-NEW-06 trusted-proxy behavior.
 
 ## Self-review
 
 Reviewed for:
 
-- goroutine leakage;
+- bounded whole-application shutdown;
+- request-context propagation;
+- preservation of existing request contexts;
+- graceful versus forced cancellation ordering;
+- database-operation cancellation;
+- resource ownership;
+- listener ownership;
+- serving-goroutine termination;
+- post-start Listener failure;
+- defensive active-request ownership guard;
+- cleanup exactly once;
+- startup failure;
+- shutdown error propagation;
+- joined-error discoverability;
+- nil/double close;
 - races;
-- shutdown deadlock;
-- double/nil close;
-- shutdown-before-start;
-- signal cleanup;
-- lifecycle error propagation;
-- test flakiness;
-- P2 regression;
-- scope creep;
-- resource ownership.
-
-An intermediate `os.Exit(realMain())` implementation was removed during
-self-review before publication.
+- goroutine leakage;
+- scope creep.
 
 ## Candidate state
 

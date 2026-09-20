@@ -26,7 +26,7 @@ func NewReplayWithCorporateActionProvider(
 ) (*fiber.App, error) {
 	return newReplayWithCorporateActionProviderAndHTTPNetworkConfig(
 		service, authService, importReviewTokenSecret, corporateActionProvider, HTTPNetworkConfig{},
-		newDividendCalculatorRateLimiter(),
+		newDividendCalculatorRateLimiter(), nil,
 	)
 }
 
@@ -42,7 +42,23 @@ func NewReplayWithCorporateActionProviderAndHTTPNetworkConfig(
 ) (*fiber.App, error) {
 	return newReplayWithCorporateActionProviderAndHTTPNetworkConfig(
 		service, authService, importReviewTokenSecret, corporateActionProvider, httpNetworkConfig,
-		newDividendCalculatorRateLimiter(),
+		newDividendCalculatorRateLimiter(), nil,
+	)
+}
+
+// NewReplayRuntime is the composition-root variant that installs the request
+// lifecycle used for graceful-then-forced shutdown.
+func NewReplayRuntime(
+	service *verticalslice.Service,
+	authService *auth.Service,
+	importReviewTokenSecret []byte,
+	corporateActionProvider verticalslice.CorporateActionProvider,
+	httpNetworkConfig HTTPNetworkConfig,
+	requestLifecycle *RequestLifecycle,
+) (*fiber.App, error) {
+	return newReplayWithCorporateActionProviderAndHTTPNetworkConfig(
+		service, authService, importReviewTokenSecret, corporateActionProvider, httpNetworkConfig,
+		newDividendCalculatorRateLimiter(), requestLifecycle,
 	)
 }
 
@@ -53,6 +69,7 @@ func newReplayWithCorporateActionProviderAndHTTPNetworkConfig(
 	corporateActionProvider verticalslice.CorporateActionProvider,
 	httpNetworkConfig HTTPNetworkConfig,
 	dividendLimiter *authRateLimiter,
+	requestLifecycle *RequestLifecycle,
 ) (*fiber.App, error) {
 	secret, err := normalizedImportReviewSecret(importReviewTokenSecret)
 	if err != nil {
@@ -67,6 +84,7 @@ func newReplayWithCorporateActionProviderAndHTTPNetworkConfig(
 		importReviewSecret:      secret,
 		paginationCursorSecret:  derivePaginationCursorSecret(secret),
 		httpNetworkConfig:       httpNetworkConfig,
+		requestLifecycle:        requestLifecycle,
 	}), nil
 }
 
@@ -83,7 +101,7 @@ func NewDevelopmentReplayWithCorporateActionProvider(
 	corporateActionProvider verticalslice.CorporateActionProvider,
 ) *fiber.App {
 	return newDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig(
-		service, corporateActionProvider, HTTPNetworkConfig{}, newDividendCalculatorRateLimiter(),
+		service, corporateActionProvider, HTTPNetworkConfig{}, newDividendCalculatorRateLimiter(), nil,
 	)
 }
 
@@ -95,7 +113,20 @@ func NewDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig(
 	httpNetworkConfig HTTPNetworkConfig,
 ) *fiber.App {
 	return newDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig(
-		service, corporateActionProvider, httpNetworkConfig, newDividendCalculatorRateLimiter(),
+		service, corporateActionProvider, httpNetworkConfig, newDividendCalculatorRateLimiter(), nil,
+	)
+}
+
+// NewDevelopmentReplayRuntime mirrors production request-lifecycle plumbing
+// while preserving the explicit development subject bypass.
+func NewDevelopmentReplayRuntime(
+	service *verticalslice.Service,
+	corporateActionProvider verticalslice.CorporateActionProvider,
+	httpNetworkConfig HTTPNetworkConfig,
+	requestLifecycle *RequestLifecycle,
+) *fiber.App {
+	return newDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig(
+		service, corporateActionProvider, httpNetworkConfig, newDividendCalculatorRateLimiter(), requestLifecycle,
 	)
 }
 
@@ -104,6 +135,7 @@ func newDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig(
 	corporateActionProvider verticalslice.CorporateActionProvider,
 	httpNetworkConfig HTTPNetworkConfig,
 	dividendLimiter *authRateLimiter,
+	requestLifecycle *RequestLifecycle,
 ) *fiber.App {
 	secret, err := normalizedImportReviewSecret([]byte("openinvest-development-import-review-token-secret"))
 	if err != nil {
@@ -118,12 +150,16 @@ func newDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig(
 		importReviewSecret:      secret,
 		paginationCursorSecret:  derivePaginationCursorSecret(secret),
 		httpNetworkConfig:       httpNetworkConfig,
+		requestLifecycle:        requestLifecycle,
 	})
 }
 
 func newReplayApp(api *API) *fiber.App {
 	app := newFiberApp(api.httpNetworkConfig)
 
+	if api.requestLifecycle != nil {
+		app.Use(api.requestLifecycle.Middleware)
+	}
 	app.Use(localDevelopmentCORS)
 
 	app.Get("/api/v1/health", api.health)
