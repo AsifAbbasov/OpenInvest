@@ -212,11 +212,12 @@ This record permanently captures the completed OI-NEW P2 remediation set as tech
 | #187 | OI-NEW-04 | `eeb0554fe1a16d4668acdb5db37df8002e8434e0` | 10/10 PASS |
 | #188 | OI-NEW-08 | `d9f6c263dd3ff4d22fc978372014381880104489` | 10/10 PASS |
 
-## 14. Current canonical state
+## 14. Canonical closure baselines
 
-- `develop@d9f6c263dd3ff4d22fc978372014381880104489`
-- tree `1c93cc51a25da3fdc8207da8e94aa1c0d1ab0d7a`
+- technical remediation baseline: `develop@d9f6c263dd3ff4d22fc978372014381880104489` through PR #188.
+- documentation-cleanup baseline: PR #190 / squash merge `8bcb2d1bba3454de1262ddc4e045fddf299a9564`, tree `9fc1ceb40e1b67d90d18b51602f4d3864fc94305`, exact head `b5bbfa9ea9cbb5eb9d758e573419e1d376e4fb21`, after CI #548 / run `35334163751` with 10/10 required jobs successful.
 - OI-NEW P2 remediation is closed `8/8`.
+- this record does not pin the mutable `develop` tip; later canonical commits may advance the branch without reopening P2.
 - no P2 finding remains open.
 
 ## 15. Residual non-P2 scope
@@ -233,7 +234,7 @@ P2_REMAINING=0
 P2_PHASE_CLOSED=YES
 ```
 
-The OI-NEW P2 technical remediation set is complete at `develop@d9f6c263dd3ff4d22fc978372014381880104489`.
+The OI-NEW P2 technical remediation set closed at `develop@d9f6c263dd3ff4d22fc978372014381880104489` through PR #188. PR #190 / squash merge `8bcb2d1bba3454de1262ddc4e045fddf299a9564` is the immutable documentation-cleanup baseline. This record intentionally does not pin the mutable `develop` tip or its own containing commit SHA.
 
 ## Migration-validator documentation binding reconciliation
 

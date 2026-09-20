@@ -373,4 +373,6 @@ BRANCH_DELETION_AUTHORIZED=NO
 
 See [`audit/OI_NEW_P2_REMEDIATION_CLOSURE.md`](audit/OI_NEW_P2_REMEDIATION_CLOSURE.md).
 
+Documentation-cleanup baseline: PR #190 / squash merge `8bcb2d1bba3454de1262ddc4e045fddf299a9564` after CI #548 / run `35334163751` with 10/10 required jobs successful. The roadmap intentionally does not pin the mutable `develop` tip.
+
 P3 and Stage 3.78+ remain separate future scope.

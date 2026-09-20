@@ -547,4 +547,6 @@ Canonical record: PR #67; commit(s) `0623d5ef326cd783b7dc0417dbcb02f18c506171`, 
 P2 remediation closed 8/8 at
 `develop@d9f6c263dd3ff4d22fc978372014381880104489`.
 
+Documentation cleanup was subsequently canonicalized through PR #190 / squash merge `8bcb2d1bba3454de1262ddc4e045fddf299a9564` from exact head `b5bbfa9ea9cbb5eb9d758e573419e1d376e4fb21` after CI #548 / run `35334163751` with 10/10 required jobs successful. Subsequent metadata finalization does not alter technical closure or pin the mutable `develop` tip.
+
 Technical details: [`audit/OI_NEW_P2_REMEDIATION_CLOSURE.md`](audit/OI_NEW_P2_REMEDIATION_CLOSURE.md).
