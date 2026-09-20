@@ -11,7 +11,7 @@ import (
 func TestHealth(t *testing.T) {
 	setExplicitDevelopmentEnvironment(t)
 	request := httptest.NewRequest(http.MethodGet, "/api/v1/health", nil)
-	response, err := newApp().Test(request)
+	response, err := testApp(t).Test(request)
 	if err != nil {
 		t.Fatalf("request health endpoint: %v", err)
 	}
@@ -25,7 +25,7 @@ func TestHealth(t *testing.T) {
 func TestReadyWithoutDatabase(t *testing.T) {
 	setExplicitDevelopmentEnvironment(t)
 	request := httptest.NewRequest(http.MethodGet, "/api/v1/ready", nil)
-	response, err := newApp().Test(request)
+	response, err := testApp(t).Test(request)
 	if err != nil {
 		t.Fatalf("request readiness endpoint: %v", err)
 	}
@@ -42,7 +42,7 @@ func TestHealthPropagatesRequestAndTraceHeaders(t *testing.T) {
 	request.Header.Set("X-Request-ID", "11111111-1111-4111-8111-111111111111")
 	request.Header.Set("traceparent", "00-11111111111111111111111111111111-2222222222222222-01")
 
-	response, err := newApp().Test(request)
+	response, err := testApp(t).Test(request)
 	if err != nil {
 		t.Fatalf("request health endpoint: %v", err)
 	}
@@ -65,7 +65,7 @@ func TestLocalDevelopmentCORSPreflight(t *testing.T) {
 			request.Header.Set("Access-Control-Request-Method", "POST")
 			request.Header.Set("Access-Control-Request-Headers", "Content-Type, Idempotency-Key")
 
-			response, err := newApp().Test(request)
+			response, err := testApp(t).Test(request)
 			if err != nil {
 				t.Fatalf("request preflight: %v", err)
 			}
@@ -92,7 +92,7 @@ func TestLocalDevelopmentCORSRejectsUnknownOrigin(t *testing.T) {
 	request := httptest.NewRequest(http.MethodOptions, "/api/v1/portfolios", nil)
 	request.Header.Set("Origin", "https://evil.example")
 
-	response, err := newApp().Test(request)
+	response, err := testApp(t).Test(request)
 	if err != nil {
 		t.Fatalf("request preflight: %v", err)
 	}
@@ -182,7 +182,7 @@ func TestAppendTransactionRequiresSettlementDateField(t *testing.T) {
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Idempotency-Key", "transaction-key-000001")
 
-	response, err := newApp().Test(request)
+	response, err := testApp(t).Test(request)
 	if err != nil {
 		t.Fatalf("request append transaction endpoint: %v", err)
 	}
@@ -195,7 +195,7 @@ func TestAppendTransactionRequiresSettlementDateField(t *testing.T) {
 func TestOINew0506MainDirectNetworkConfig(t *testing.T) {
 	setExplicitDevelopmentEnvironment(t)
 
-	app := newApp()
+	app := testApp(t)
 	config := app.Config()
 	if config.TrustProxy || config.ProxyHeader != "" || config.EnableIPValidation {
 		t.Fatalf("direct mode must ignore proxy headers: trust=%t header=%q validate=%t", config.TrustProxy, config.ProxyHeader, config.EnableIPValidation)
@@ -210,7 +210,7 @@ func TestOINew0506MainTrustedProxyConfig(t *testing.T) {
 	t.Setenv("OPENINVEST_TRUST_PROXY", "true")
 	t.Setenv("OPENINVEST_TRUSTED_PROXY_CIDRS", "127.0.0.1/32,10.10.1.0/24")
 
-	app := newApp()
+	app := testApp(t)
 	config := app.Config()
 	if !config.TrustProxy || config.ProxyHeader != "X-Forwarded-For" || !config.EnableIPValidation {
 		t.Fatalf("trusted mode was not applied to production bootstrap path: trust=%t header=%q validate=%t", config.TrustProxy, config.ProxyHeader, config.EnableIPValidation)
