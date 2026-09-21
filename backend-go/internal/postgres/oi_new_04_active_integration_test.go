@@ -113,6 +113,10 @@ func TestOINew04ActiveCPrimeIndependentReviewSuite(t *testing.T) {
 		t.Fatalf("R2 active startup integrity: %v", err)
 	}
 
+	// OI-NEW-04-AUD-02: exercise high distinct snapshot-date cardinality through the real ACTIVE-R2
+	// command path before continuing the historical H/B/replay review suite.
+	oiNew04RunSnapshotFanoutRegression(t, h, activeService, generationN.ActivationGeneration)
+
 	// H>=10000 + 4999 mutable suffix: first active append reaches exactly B=5000 without any H load.
 	firstBoundInstrumentation := &replayInstrumentation{}
 	firstBoundCtx := withReplayInstrumentation(h.ctx, firstBoundInstrumentation)
