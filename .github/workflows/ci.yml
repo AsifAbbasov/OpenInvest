@@ -77,6 +77,40 @@ jobs:
           OPENINVEST_DATABASE_RUNTIME_TEST_URL: postgres://openinvest_runtime_ci:openinvest-runtime-ci@127.0.0.1:5432/openinvest?sslmode=disable
         run: go test ./...
 
+      - name: Configure OI-NEW-04 active R2 runtime role
+        working-directory: .
+        run: |
+          docker exec -i "${{ job.services.postgres.id }}" \
+            psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 -v runtime_capability_profile=R2 \
+            < infrastructure/postgres/runtime/openinvest_runtime_role.sql
+      - name: Run OI-NEW-04 active R2 integration suite
+        env:
+          OPENINVEST_OI_NEW_04_ACTIVE_R2_TESTS: "1"
+          OPENINVEST_OI_NEW_04_ACTIVE_OWNER_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+          OPENINVEST_OI_NEW_04_ACTIVE_RUNTIME_URL: postgres://openinvest_runtime_ci:openinvest-runtime-ci@127.0.0.1:5432/openinvest?sslmode=disable
+        run: |
+          set -euo pipefail
+          output="$(mktemp)"
+          trap 'rm -f "$output"' EXIT
+          go test ./internal/postgres \
+            -run '^TestOINew04ActiveCPrimeIndependentReviewSuite$' \
+            -count=1 \
+            -v | tee "$output"
+          grep -F -- '--- PASS: TestOINew04ActiveCPrimeIndependentReviewSuite' "$output"
+          for marker in \
+            H_GE_10000_ACTIVE_BOUNDED=PASS \
+            BOUND_5001_FAIL_CLOSED=PASS \
+            FULL_COMMAND_ROLLBACK=PASS \
+            FULL_COMMAND_CANCELLATION=PASS \
+            ACTIVE_SAME_PORTFOLIO_CONCURRENCY=PASS \
+            FINALIZATION_FREEZE=PASS \
+            STALE_WRITER_DETECTION=PASS \
+            REPLAY_EPOCH_MISSING_NONEMPTY_ZERO_FULL_HISTORY=PASS \
+            PROVISIONAL_SUPERSEDED_BY_FINAL=PASS
+          do
+            grep -F -- "$marker" "$output"
+          done
+
   python:
     name: Python tests
     runs-on: ubuntu-latest
@@ -406,6 +440,40 @@ jobs:
           OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
           OPENINVEST_DATABASE_RUNTIME_TEST_URL: postgres://openinvest_runtime_ci:openinvest-runtime-ci@127.0.0.1:5432/openinvest?sslmode=disable
         run: go test -race ./...
+
+      - name: Configure OI-NEW-04 active R2 runtime role
+        working-directory: .
+        run: |
+          docker exec -i "${{ job.services.postgres.id }}" \
+            psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 -v runtime_capability_profile=R2 \
+            < infrastructure/postgres/runtime/openinvest_runtime_role.sql
+      - name: Run OI-NEW-04 active R2 race integration suite
+        env:
+          OPENINVEST_OI_NEW_04_ACTIVE_R2_TESTS: "1"
+          OPENINVEST_OI_NEW_04_ACTIVE_OWNER_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+          OPENINVEST_OI_NEW_04_ACTIVE_RUNTIME_URL: postgres://openinvest_runtime_ci:openinvest-runtime-ci@127.0.0.1:5432/openinvest?sslmode=disable
+        run: |
+          set -euo pipefail
+          output="$(mktemp)"
+          trap 'rm -f "$output"' EXIT
+          go test -race ./internal/postgres \
+            -run '^TestOINew04ActiveCPrimeIndependentReviewSuite$' \
+            -count=1 \
+            -v | tee "$output"
+          grep -F -- '--- PASS: TestOINew04ActiveCPrimeIndependentReviewSuite' "$output"
+          for marker in \
+            H_GE_10000_ACTIVE_BOUNDED=PASS \
+            BOUND_5001_FAIL_CLOSED=PASS \
+            FULL_COMMAND_ROLLBACK=PASS \
+            FULL_COMMAND_CANCELLATION=PASS \
+            ACTIVE_SAME_PORTFOLIO_CONCURRENCY=PASS \
+            FINALIZATION_FREEZE=PASS \
+            STALE_WRITER_DETECTION=PASS \
+            REPLAY_EPOCH_MISSING_NONEMPTY_ZERO_FULL_HISTORY=PASS \
+            PROVISIONAL_SUPERSEDED_BY_FINAL=PASS
+          do
+            grep -F -- "$marker" "$output"
+          done
 
   go-vulnerability:
     name: Go vulnerability scan
