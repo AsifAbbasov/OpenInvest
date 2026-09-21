@@ -16,6 +16,7 @@ type replayInstrumentation struct {
 	historyRowsExamined     atomic.Int64
 	ledgerRowsApplied       atomic.Int64
 	snapshotWrites          atomic.Int64
+	snapshotSQLStatements   atomic.Int64
 	epochWrites             atomic.Int64
 	boundedEngineExecutions atomic.Int64
 	legacyEngineExecutions  atomic.Int64
@@ -28,6 +29,7 @@ type replayInstrumentationSnapshot struct {
 	HistoryRowsExamined     int64
 	LedgerRowsApplied       int64
 	SnapshotWrites          int64
+	SnapshotSQLStatements   int64
 	EpochWrites             int64
 	BoundedEngineExecutions int64
 	LegacyEngineExecutions  int64
@@ -38,11 +40,12 @@ type replayInstrumentationContextKey struct{}
 type replayTestFaultContextKey struct{}
 
 type replayTestFault struct {
-	failAfterEpochWrites   int64
-	cancelAfterEpochWrites int64
-	cancel                 context.CancelFunc
-	err                    error
-	fired                  atomic.Bool
+	failAfterEpochWrites             int64
+	cancelAfterEpochWrites           int64
+	cancelAfterSnapshotSQLStatements int64
+	cancel                           context.CancelFunc
+	err                              error
+	fired                            atomic.Bool
 }
 
 func withReplayInstrumentation(ctx context.Context, instrumentation *replayInstrumentation) context.Context {
@@ -80,6 +83,7 @@ func replayInstrumentationSnapshotOf(instrumentation *replayInstrumentation) rep
 		HistoryRowsExamined:     instrumentation.historyRowsExamined.Load(),
 		LedgerRowsApplied:       instrumentation.ledgerRowsApplied.Load(),
 		SnapshotWrites:          instrumentation.snapshotWrites.Load(),
+		SnapshotSQLStatements:   instrumentation.snapshotSQLStatements.Load(),
 		EpochWrites:             instrumentation.epochWrites.Load(),
 		BoundedEngineExecutions: instrumentation.boundedEngineExecutions.Load(),
 		LegacyEngineExecutions:  instrumentation.legacyEngineExecutions.Load(),
@@ -117,8 +121,21 @@ func countReplayLedgerRowApplied(ctx context.Context) {
 }
 
 func countReplaySnapshotWrite(ctx context.Context) {
+	countReplaySnapshotWrites(ctx, 1)
+}
+
+func countReplaySnapshotWrites(ctx context.Context, writes int) {
+	if writes <= 0 {
+		return
+	}
 	if instrumentation := replayInstrumentationFromContext(ctx); instrumentation != nil {
-		instrumentation.snapshotWrites.Add(1)
+		instrumentation.snapshotWrites.Add(int64(writes))
+	}
+}
+
+func countReplaySnapshotSQLStatement(ctx context.Context) {
+	if instrumentation := replayInstrumentationFromContext(ctx); instrumentation != nil {
+		instrumentation.snapshotSQLStatements.Add(1)
 	}
 }
 
@@ -138,6 +155,31 @@ func countReplayLegacyEngineExecution(ctx context.Context) {
 	if instrumentation := replayInstrumentationFromContext(ctx); instrumentation != nil {
 		instrumentation.legacyEngineExecutions.Add(1)
 	}
+}
+
+func maybeReplayTestFaultAfterSnapshotSQL(ctx context.Context) error {
+	if ctx == nil {
+		return nil
+	}
+	fault, _ := ctx.Value(replayTestFaultContextKey{}).(*replayTestFault)
+	if fault == nil || fault.fired.Load() {
+		return nil
+	}
+	instrumentation := replayInstrumentationFromContext(ctx)
+	var statements int64
+	if instrumentation != nil {
+		statements = instrumentation.snapshotSQLStatements.Load()
+	}
+	if fault.cancelAfterSnapshotSQLStatements > 0 && statements >= fault.cancelAfterSnapshotSQLStatements && fault.fired.CompareAndSwap(false, true) {
+		if fault.cancel != nil {
+			fault.cancel()
+		}
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		return context.Canceled
+	}
+	return nil
 }
 
 func maybeReplayTestFaultAfterEpochWrite(ctx context.Context) error {
