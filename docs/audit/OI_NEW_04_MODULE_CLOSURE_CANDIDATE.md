@@ -124,7 +124,7 @@ and portfolio-lock duration remain O(N).
 This is non-blocking because clean, supported ACTIVE-R2 could not construct the
 high-N stale state; no financial corruption was demonstrated; and cancellation
 and rollback remained atomic. It remains a future hardening opportunity and is
-not marked fixed by this closure candidate.
+not marked fixed by this closure record.
 
 ## Race evidence qualification
 
@@ -157,5 +157,5 @@ OI-NEW-04 is `CLOSED`.
 
 ## Broader audit boundary
 
-OpenInvest repository-wide audit remains `ONGOING`. This candidate covers only
+OpenInvest repository-wide audit remains `ONGOING`. This closure record covers only
 OI-NEW-04 and neither closes nor weakens any unrelated audit area.
