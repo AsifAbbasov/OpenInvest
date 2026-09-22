@@ -1,4 +1,4 @@
-# OI-NEW-04-AUD-02 — Snapshot persistence fan-out closure candidate
+# OI-NEW-04-AUD-02 — Snapshot persistence fan-out closure record
 
 ## Status
 
@@ -7,12 +7,12 @@
 | Finding | `OI-NEW-04-AUD-02` |
 | Original severity | `P2` |
 | Original class | ACTIVE-R2 snapshot persistence SQL fan-out / transaction-duration amplification |
-| Current status | `CLOSURE CANDIDATE` |
-| Machine-readable status | `OI_NEW_04_AUD_02_STATUS=AWAITING_INDEPENDENT_CLOSURE_REVIEW` |
+| Current status | `CLOSED` |
+| Machine-readable status | `OI_NEW_04_AUD_02_STATUS=CLOSED` |
 | Closure runtime scope | None — documentation/governance only |
 | Repository-wide audit status | Ongoing; this record is finding-specific only |
 
-This document is a finding-specific closure candidate for `OI-NEW-04-AUD-02`.
+This document records the final finding-specific closure of `OI-NEW-04-AUD-02`.
 It does not rewrite the remediation candidate record in
 `OI_NEW_04_AUD_02_REMEDIATION.md`, and it does not claim that the broader
 OI-NEW-04 adversarial reassessment or repository-wide audit is complete.
@@ -23,13 +23,19 @@ historical OI-NEW-04 remediation
 → later independent adversarial audit
 → `OI-NEW-04-AUD-02`
 → bounded/set-based snapshot-persistence remediation
-→ independent pre-commit approval
-→ PR #198
-→ protected PR CI #561
-→ independent PR/CI merge approval
-→ squash merge
-→ independent post-merge verification
-→ this closure candidate.
+→ independent runtime pre-commit approval
+→ runtime PR #198
+→ protected runtime PR CI #561
+→ independent runtime PR/CI merge approval
+→ runtime squash merge
+→ independent runtime post-merge verification
+→ independent closure pre-commit approval
+→ closure PR #199
+→ protected closure PR CI #562
+→ independent closure PR/CI merge approval
+→ closure squash merge
+→ independent post-merge closure verification
+→ final `CLOSED` disposition.
 
 ## Concise closure summary
 
@@ -42,8 +48,10 @@ historical OI-NEW-04 remediation
 - **Financial semantics:** exact Decimal state calculation, WAC behavior, immutable ledger behavior, methodology versioning, input watermarking and append-only snapshot/version semantics are preserved.
 - **Security/capability boundary:** no R0/R1/R2 runtime privilege change, migration, auth/session change, provider change, frontend production change or OpenAPI change was introduced.
 - **Regression evidence:** canonical ACTIVE-R2 import with 100 distinct trade dates, D=5,000 affected snapshot dates, D=5,001 fail-closed rollback, cancellation rollback, same-portfolio concurrency, independent row/statement instrumentation, normal ACTIVE-R2 execution and race execution all passed.
+- **CI/review evidence:** runtime PR #198 / CI #561 and closure PR #199 / CI #562 both passed all 10 protected checks; raw normal/race ACTIVE-R2 evidence was independently reviewed before merge; runtime and closure merges were independently post-merge verified by exact identity checks.
 - **Residual limitation:** `detectStaleRowsAgainstEpoch` / `logicalFamilyFrozenTx` query amplification remains a separate hardening lead and is not closed by this finding.
 - **Broader scope:** the OpenInvest Independent Adversarial Repository Audit remains ongoing.
+- **Disposition:** `OI_NEW_04_AUD_02_STATUS=CLOSED`.
 
 ## Remediation source
 
@@ -72,7 +80,7 @@ docs/audit/OI_NEW_04_AUD_02_REMEDIATION.md
 
 No unrelated source file entered the reviewed source commit.
 
-## Protected PR CI evidence
+## Protected runtime PR CI evidence
 
 ```text
 PR_NUMBER=198
@@ -165,12 +173,17 @@ Protected GitHub race CI for PR #198 subsequently passed.
 ## Independent review chronology
 
 ```text
-PRE_COMMIT=APPROVE_FOR_COMMIT
-PR_CI=APPROVE_FOR_MERGE
-POST_MERGE=POST_MERGE_VERIFIED
+RUNTIME_PRE_COMMIT=APPROVE_FOR_COMMIT
+RUNTIME_PR_CI=APPROVE_FOR_MERGE
+RUNTIME_POST_MERGE=POST_MERGE_VERIFIED
+
+CLOSURE_PRE_COMMIT=APPROVE_FOR_CLOSURE_COMMIT
+CLOSURE_PR_CI=APPROVE_FOR_CLOSURE_MERGE
+CLOSURE_POST_MERGE=POST_MERGE_CLOSURE_VERIFIED
+READY_TO_RECORD_CLOSED=YES
 ```
 
-The independent PR/CI review additionally reported:
+The independent runtime PR/CI review additionally reported:
 
 ```text
 PR_HEAD_EXACT=PASS
@@ -189,7 +202,28 @@ NEW_P2_PLUS_BLOCKER=NO
 SAFE_TO_MERGE=YES
 ```
 
-## Merge and post-merge identity evidence
+The independent closure PR/CI review reported:
+
+```text
+PR_HEAD_EXACT=PASS
+BASE_EXACT=PASS
+ONE_COMMIT=PASS
+ONE_DOCS_FILE=PASS
+CLOSURE_SCOPE=PASS
+CI_10_OF_10=PASS
+ACTIVE_R2_NORMAL_RAW_LOG=PASS
+ACTIVE_R2_RACE_RAW_LOG=PASS
+NEW_MARKERS_NORMAL=8/8
+NEW_MARKERS_RACE=8/8
+EXISTING_MARKERS_NORMAL=9/9
+EXISTING_MARKERS_RACE=9/9
+DATA_RACE=NO
+POST_APPROVAL_DRIFT=NO
+NEW_P2_PLUS_BLOCKER=NO
+SAFE_TO_MERGE_CLOSURE=YES
+```
+
+## Runtime merge and post-merge identity evidence
 
 PR #198 was squash-merged only after the independent `APPROVE_FOR_MERGE`
 verdict.
@@ -205,7 +239,7 @@ FINAL_FILE_BLOB_IDENTITY=6/6
 POST_MERGE_DRIFT=NO
 ```
 
-The independent post-merge review returned:
+The independent runtime post-merge review returned:
 
 ```text
 POST_MERGE_VERIFIED
@@ -219,39 +253,85 @@ NEW_P2_PLUS_BLOCKER=NO
 READY_FOR_FINDING_CLOSURE=YES
 ```
 
-## Post-merge CI statement
+## Runtime post-merge CI statement
 
-No separate workflow run was present for the squash-merge SHA
+No separate workflow run was present for the runtime squash-merge SHA
 `1c9d33bc353bf1d34b52d6c9e7286e41175647fb`.
 
-This closure candidate therefore does **not** claim a post-merge CI success.
-Content identity is instead supported by exact source-tree/final-tree equality
-and 6/6 final file-blob equality, while the identical source tree had already
-passed the protected PR CI #561.
+This closure record therefore does **not** claim a runtime post-merge CI success.
+Runtime content identity is instead supported by exact source-tree/final-tree
+equality and 6/6 final file-blob equality, while the identical source tree had
+already passed protected PR CI #561.
 
 ## Scope boundary
 
-This closure candidate closes only the finding-specific question of
+This closure record closes only the finding-specific question of
 `OI-NEW-04-AUD-02` after independent review of the remediation, protected PR CI,
-raw ACTIVE-R2 evidence and post-merge content identity.
+raw ACTIVE-R2 evidence, runtime post-merge content identity, closure PR CI and
+closure post-merge identity.
 
 It does not assert that:
 
 - all possible OI-NEW-04 performance/query-amplification leads are closed;
+- `detectStaleRowsAgainstEpoch` / `logicalFamilyFrozenTx` is resolved;
 - the broader OI-NEW-04 adversarial reassessment is complete;
 - the repository-wide OpenInvest audit is complete.
 
-## Closure activation rule
-
-Until this exact closure candidate is independently reviewed and the approved
-documentation is merged through the governed documentation path, the finding
-must not be recorded as finally closed.
-
-Current candidate state:
+## Final closure evidence
 
 ```text
-OI_NEW_04_AUD_02_STATUS=AWAITING_INDEPENDENT_CLOSURE_REVIEW
+CLOSURE_PR=#199
+CLOSURE_SOURCE_SHA=7e442472cdd91edce77c14ba055d6c044261972a
+CLOSURE_SOURCE_PARENT_SHA=1c9d33bc353bf1d34b52d6c9e7286e41175647fb
+CLOSURE_SOURCE_TREE=12c947a5c3812b693d98cd194532138f07ebcb77
+CLOSURE_SOURCE_FILE_BLOB=f95b51e9ce371cefaa1703ccae29ca308c8b2694
+CLOSURE_SOURCE_FILE_SHA256=ab1847f70560d9c58a864ac5f2153e64a7efbb5754dffdc479bb124b38e9a390
+
+CLOSURE_CI_RUN_NUMBER=562
+CLOSURE_CI_RUN_ID=35668472191
+CLOSURE_CI_RESULT=10/10 SUCCESS
+ACTIVE_R2_NORMAL_RAW_LOG=PASS
+ACTIVE_R2_RACE_RAW_LOG=PASS
+NEW_MARKERS_NORMAL=8/8
+NEW_MARKERS_RACE=8/8
+EXISTING_MARKERS_NORMAL=9/9
+EXISTING_MARKERS_RACE=9/9
+DATA_RACE=NO
+
+FINAL_CLOSURE_DEVELOP_SHA=0bd516b897800391944ebaad451a4ee26e4fbeae
+FINAL_CLOSURE_PARENT_SHA=1c9d33bc353bf1d34b52d6c9e7286e41175647fb
+FINAL_CLOSURE_TREE=12c947a5c3812b693d98cd194532138f07ebcb77
+FINAL_CLOSURE_FILE_BLOB=f95b51e9ce371cefaa1703ccae29ca308c8b2694
+FINAL_CLOSURE_FILE_SHA256=ab1847f70560d9c58a864ac5f2153e64a7efbb5754dffdc479bb124b38e9a390
+
+SOURCE_PARENT_EQUALS_FINAL_PARENT=YES
+SOURCE_TREE_EQUALS_FINAL_CLOSURE_TREE=YES
+FILE_BLOB_IDENTITY=1/1
+POST_MERGE_DRIFT=NO
+FINAL_CLOSURE_POST_MERGE_WORKFLOW_RUNS=0
+NO_FALSE_POST_MERGE_CI_CLAIM=YES
+SCOPE_BOUNDARY=PASS
+NEW_P2_PLUS_BLOCKER=NO
+POST_MERGE_CLOSURE_VERIFIED=YES
+READY_TO_RECORD_CLOSED=YES
 ```
 
-This document intentionally does not declare `OI-NEW-04-AUD-02` finally
-`CLOSED` at pre-commit stage.
+No separate workflow run existed for final closure squash SHA
+`0bd516b897800391944ebaad451a4ee26e4fbeae`; this record does not claim one.
+The closure source and final merged commit have identical trees and the closure
+file has identical source/final blob identity.
+
+## Final disposition
+
+```text
+FINDING=OI-NEW-04-AUD-02
+DISPOSITION=CLOSED
+CLOSURE_BASIS=POST_MERGE_CLOSURE_VERIFIED
+OI_NEW_04_AUD_02_STATUS=CLOSED
+```
+
+This is a finding-specific closure only. The historical OI-NEW-04 remediation
+remains historical truth, the separate `detectStaleRowsAgainstEpoch` /
+`logicalFamilyFrozenTx` hardening lead remains open for independent assessment,
+the OI-NEW-04 deep adversarial reassessment continues, and the broader OpenInvest
+Independent Adversarial Repository Audit remains ongoing.
