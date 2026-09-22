@@ -1,18 +1,17 @@
-# OI-NEW-04 - Deep adversarial review closure candidate
+# OI-NEW-04 - Deep adversarial review closure record
 
 ## Status
 
 ```text
 MODULE=OI-NEW-04
-STATUS=AWAITING_INDEPENDENT_CLOSURE_REVIEW
+STATUS=CLOSED
 TECHNICAL_DISPOSITION=COMPLETE
 REPOSITORY_WIDE_AUDIT=ONGOING
 ```
 
-This is a concise module-level closure candidate, not a declaration that the
-OpenInvest repository-wide audit is complete. It records independent final
-consolidation evidence at the exact reviewed baseline and remains subject to a
-separate independent closure review.
+This is the verified module-level closure record for OI-NEW-04. It does not
+declare the OpenInvest repository-wide audit complete. Independent final
+consolidation and post-merge identity verification have completed.
 
 ## Problem / audit scope
 
@@ -98,6 +97,19 @@ GitHub PR CI #563, including successful `Go tests`, `Go race tests`, and the
 explicit ACTIVE-R2 normal and race suite steps. No separate workflow run exists
 for the final baseline squash SHA, and this document does not claim one.
 
+## Final closure evidence
+
+```text
+CLOSURE_PR=201
+CLOSURE_FINAL_DEVELOP_SHA=7eede7a36c9df05bd7486a3cc738462544bc60f7
+CLOSURE_PARENT_SHA=a48ffc140b7b43a2cbfcedcbfe6767396a58fa91
+SOURCE_TREE_EQUALS_FINAL_TREE=YES
+FILE_BLOB_IDENTITY=1/1
+POST_MERGE_DRIFT=NO
+FINAL_POST_MERGE_WORKFLOW_RUNS=0
+POST_MERGE_CI_CLAIM=NONE
+```
+
 ## Residual limitations
 
 ```text
@@ -112,7 +124,7 @@ and portfolio-lock duration remain O(N).
 This is non-blocking because clean, supported ACTIVE-R2 could not construct the
 high-N stale state; no financial corruption was demonstrated; and cancellation
 and rollback remained atomic. It remains a future hardening opportunity and is
-not marked fixed by this closure candidate.
+not marked fixed by this closure record.
 
 ## Race evidence qualification
 
@@ -135,15 +147,15 @@ BASELINE_DATA_RACE=NO
 OI_NEW_04_MODULE_DISPOSITION=COMPLETE
 TECHNICAL_DISPOSITION=COMPLETE
 NO_UNRESOLVED_P2_PLUS=YES
-READY_FOR_INDEPENDENT_CLOSURE_REVIEW=YES
-OI_NEW_04_STATUS=AWAITING_INDEPENDENT_CLOSURE_REVIEW
+POST_MERGE_CLOSURE_VERIFIED=YES
+OI_NEW_04_STATUS=CLOSED
 ```
 
-No new P2+ finding was demonstrated by the final consolidation. The technical
-module is ready for an independent closure review; it is not marked `CLOSED`
-by this candidate document.
+No new P2+ finding was demonstrated by the final consolidation. Independent
+post-merge verification completed with exact tree, blob, and SHA256 identity;
+OI-NEW-04 is `CLOSED`.
 
 ## Broader audit boundary
 
-OpenInvest repository-wide audit remains `ONGOING`. This candidate covers only
+OpenInvest repository-wide audit remains `ONGOING`. This closure record covers only
 OI-NEW-04 and neither closes nor weakens any unrelated audit area.
