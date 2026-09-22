@@ -112,6 +112,13 @@ GRANT SELECT (id) ON audit.actors TO openinvest_runtime;
 REVOKE UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON audit.events FROM PUBLIC, openinvest_runtime;
 GRANT SELECT, INSERT ON audit.events TO openinvest_runtime;
 
+-- AUTH-ADV-01 uses INSERT ... ON CONFLICT DO NOTHING as a database-enforced
+-- gate before appending known-session rejection evidence. PostgreSQL requires SELECT only on the
+-- conflict-target columns; no table-wide read or mutation capability is granted.
+REVOKE ALL PRIVILEGES ON audit.auth_security_event_deduplications FROM PUBLIC, openinvest_runtime;
+GRANT INSERT ON audit.auth_security_event_deduplications TO openinvest_runtime;
+GRANT SELECT (action_code, session_id) ON audit.auth_security_event_deduplications TO openinvest_runtime;
+
 -- Runtime identifiers are application-generated UUIDs; sequences are never a runtime capability.
 -- OI-NEW-04 replay state: R0 grants nothing, R1 is read-only, R2 adds INSERT only on derived state.
 DO $replay_profile$

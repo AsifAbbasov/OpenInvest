@@ -39,6 +39,7 @@ var runtimeRelationCapabilities = []runtimeRelationCapability{
 	{Schema: "analytics", Name: "inbox_messages"},
 	{Schema: "audit", Name: "actors", Insert: true},
 	{Schema: "audit", Name: "events", Select: true, Insert: true},
+	{Schema: "audit", Name: "auth_security_event_deduplications", Insert: true},
 }
 
 var runtimeSchemas = []string{"identity", "investment", "analytics", "audit"}
@@ -46,8 +47,9 @@ var runtimeSchemas = []string{"identity", "investment", "analytics", "audit"}
 // Some production INSERT ... ON CONFLICT statements need SELECT only on their conflict-target
 // column. These are deliberately column-scoped exceptions; they do not authorize table SELECT.
 var runtimeColumnSelectCapabilities = map[string]map[string]struct{}{
-	"investment.subjects": {"id": {}},
-	"audit.actors":        {"id": {}},
+	"investment.subjects":                      {"id": {}},
+	"audit.actors":                             {"id": {}},
+	"audit.auth_security_event_deduplications": {"action_code": {}, "session_id": {}},
 }
 
 // SELECT ... FOR UPDATE requires UPDATE privilege on at least one column. The API does not perform

@@ -114,15 +114,9 @@ func (s *Service) Login(ctx context.Context, request LoginRequest) (AuthResult, 
 
 func (s *Service) Refresh(ctx context.Context, refreshToken string, csrfToken string) (AuthResult, error) {
 	if strings.TrimSpace(refreshToken) == "" {
-		if err := s.recordRejectedAuthEvent(ctx, "AUTH_REFRESH_REJECTED"); err != nil {
-			return AuthResult{}, err
-		}
 		return AuthResult{}, ErrInvalidSession
 	}
 	if strings.TrimSpace(csrfToken) == "" {
-		if err := s.recordRejectedAuthEvent(ctx, "AUTH_REFRESH_REJECTED"); err != nil {
-			return AuthResult{}, err
-		}
 		return AuthResult{}, ErrInvalidCSRF
 	}
 	nextRefreshToken, nextCSRFToken, nextSession, err := s.newSessionRecord("")
@@ -141,15 +135,9 @@ func (s *Service) Refresh(ctx context.Context, refreshToken string, csrfToken st
 
 func (s *Service) Logout(ctx context.Context, refreshToken string, csrfToken string, allSessions bool) (bool, error) {
 	if strings.TrimSpace(refreshToken) == "" {
-		if err := s.recordRejectedAuthEvent(ctx, "AUTH_LOGOUT_REJECTED"); err != nil {
-			return false, err
-		}
 		return false, ErrInvalidSession
 	}
 	if strings.TrimSpace(csrfToken) == "" {
-		if err := s.recordRejectedAuthEvent(ctx, "AUTH_LOGOUT_REJECTED"); err != nil {
-			return false, err
-		}
 		return false, ErrInvalidCSRF
 	}
 	revoked, err := s.store.RevokeSession(ctx, tokenHash(refreshToken), tokenHash(csrfToken), allSessions, s.clock.Now())
@@ -218,15 +206,6 @@ func (s *Service) newSessionRecord(userID string) (string, string, SessionRecord
 		ExpiresAt:        now.Add(s.config.RefreshTokenTTL),
 		Now:              now,
 	}, nil
-}
-
-func (s *Service) recordRejectedAuthEvent(ctx context.Context, actionCode string) error {
-	return s.store.RecordAuthEvent(ctx, AuthAuditRecord{
-		ActionCode: actionCode,
-		TargetKind: "session",
-		Outcome:    "failure",
-		Now:        s.clock.Now(),
-	})
 }
 
 func validateRegistration(request RegistrationRequest) error {
