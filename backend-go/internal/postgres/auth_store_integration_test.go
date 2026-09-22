@@ -144,9 +144,7 @@ func TestStoreAuthPrivacySessionLifecycle(t *testing.T) {
 			'AUTH_LOGIN',
 			'AUTH_REFRESH',
 			'AUTH_REFRESH_REPLAY',
-			'AUTH_REFRESH_REJECTED',
-			'AUTH_LOGOUT',
-			'AUTH_LOGOUT_REJECTED'
+			'AUTH_LOGOUT'
 		)
 		GROUP BY action_code, outcome
 	`)
@@ -172,9 +170,7 @@ func TestStoreAuthPrivacySessionLifecycle(t *testing.T) {
 		"AUTH_LOGIN|success",
 		"AUTH_REFRESH|success",
 		"AUTH_REFRESH_REPLAY|failure",
-		"AUTH_REFRESH_REJECTED|failure",
 		"AUTH_LOGOUT|success",
-		"AUTH_LOGOUT_REJECTED|failure",
 	} {
 		if auditCounts[key] < 1 {
 			t.Fatalf("missing auth audit evidence %s in %#v", key, auditCounts)

@@ -58,6 +58,7 @@ func TestOINew01RuntimeCapabilityMatrix(t *testing.T) {
 		{relation: "analytics.inbox_messages"},
 		{relation: "audit.actors", insertOK: true},
 		{relation: "audit.events", selectOK: true, insertOK: true},
+		{relation: "audit.auth_security_event_deduplications", insertOK: true},
 	}
 
 	// The matrix is a maximum capability registry, not a complete schema-object inventory.
@@ -137,6 +138,21 @@ func TestOINew01RuntimeCapabilityMatrix(t *testing.T) {
 	if !actorIDSelect || actorKindSelect || actorIDGrant {
 		t.Fatalf("audit.actors column capability mismatch: id_select=%t actor_kind_select=%t id_grant=%t",
 			actorIDSelect, actorKindSelect, actorIDGrant)
+	}
+
+	var dedupActionCodeSelect, dedupSessionIDSelect, dedupCreatedAtSelect, dedupActionCodeGrant bool
+	if err := runtimeDB.QueryRowContext(ctx, `
+		SELECT
+			has_column_privilege(session_user, 'audit.auth_security_event_deduplications', 'action_code', 'SELECT'),
+			has_column_privilege(session_user, 'audit.auth_security_event_deduplications', 'session_id', 'SELECT'),
+			has_column_privilege(session_user, 'audit.auth_security_event_deduplications', 'created_at', 'SELECT'),
+			has_column_privilege(session_user, 'audit.auth_security_event_deduplications', 'action_code', 'SELECT WITH GRANT OPTION')
+	`).Scan(&dedupActionCodeSelect, &dedupSessionIDSelect, &dedupCreatedAtSelect, &dedupActionCodeGrant); err != nil {
+		t.Fatalf("inspect audit deduplication column privileges: %v", err)
+	}
+	if !dedupActionCodeSelect || !dedupSessionIDSelect || dedupCreatedAtSelect || dedupActionCodeGrant {
+		t.Fatalf("audit deduplication column capability mismatch: action_code_select=%t session_id_select=%t created_at_select=%t action_code_grant=%t",
+			dedupActionCodeSelect, dedupSessionIDSelect, dedupCreatedAtSelect, dedupActionCodeGrant)
 	}
 
 	var portfolioTableUpdate, stateUpdate, nameUpdate, subjectUpdate, removedAtUpdate, stateUpdateGrant bool
@@ -550,6 +566,7 @@ func TestOINew01CapabilityInventoryDescriptionStaysAuditable(t *testing.T) {
 		"OI_NEW_01_CAPABILITY analytics.inbox_messages SELECT=false INSERT=false UPDATE=false DELETE=false",
 		"OI_NEW_01_CAPABILITY audit.actors SELECT=false INSERT=true UPDATE=false DELETE=false COLUMN_SELECT=id",
 		"OI_NEW_01_CAPABILITY audit.events SELECT=true INSERT=true UPDATE=false DELETE=false",
+		"OI_NEW_01_CAPABILITY audit.auth_security_event_deduplications SELECT=false INSERT=true UPDATE=false DELETE=false COLUMN_SELECT=action_code,session_id",
 		"OI_NEW_01_UNKNOWN_RELATION zero_effective_capability=ALLOW any_effective_capability=REJECT",
 		"OI_NEW_01_UNKNOWN_SEQUENCE zero_effective_capability=ALLOW any_effective_capability=REJECT",
 	}

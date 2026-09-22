@@ -170,7 +170,7 @@ func TestAuthRateLimitedResponseIncludesRetryAfter(t *testing.T) {
 	}
 }
 
-func TestAuthLogoutRateLimitBoundsRejectedAuditWrites(t *testing.T) {
+func TestAuthLogoutRateLimitDoesNotCreateAnonymousDurableAuditWrites(t *testing.T) {
 	store := &httpAuthTestStore{}
 	authService := newHTTPAuthService(t, store)
 	app := newApp(&API{
@@ -185,8 +185,8 @@ func TestAuthLogoutRateLimitBoundsRejectedAuditWrites(t *testing.T) {
 	if first.StatusCode != http.StatusUnauthorized {
 		t.Fatalf("expected first invalid logout to return %d, got %d", http.StatusUnauthorized, first.StatusCode)
 	}
-	if len(store.authEvents) != 1 || store.authEvents[0].ActionCode != "AUTH_LOGOUT_REJECTED" {
-		t.Fatalf("expected one rejected logout audit event, got %+v", store.authEvents)
+	if store.revokeCalls != 0 {
+		t.Fatalf("missing refresh cookie must not reach the durable auth store, got %d calls", store.revokeCalls)
 	}
 
 	second := authRequest(t, app, http.MethodPost, "/api/v1/auth/logout", `{"allSessions":false}`, "", "")
@@ -197,8 +197,8 @@ func TestAuthLogoutRateLimitBoundsRejectedAuditWrites(t *testing.T) {
 	if got := second.Header.Get("Retry-After"); got != authRateLimitRetryAfterSeconds {
 		t.Fatalf("expected Retry-After %q, got %q", authRateLimitRetryAfterSeconds, got)
 	}
-	if len(store.authEvents) != 1 {
-		t.Fatalf("rate-limited logout must not create another audit write, got %d events", len(store.authEvents))
+	if store.revokeCalls != 0 {
+		t.Fatalf("rate-limited logout must not reach the auth store again, got %d calls", store.revokeCalls)
 	}
 }
 
@@ -457,12 +457,12 @@ type httpAuthTestStore struct {
 	user          auth.StoredUser
 	password      string
 	sessions      map[string]auth.SessionRecord
-	authEvents    []auth.AuthAuditRecord
 	registerCalls int
 	findCalls     int
 	findErr       error
 	rotateErr     error
 	revokeErr     error
+	revokeCalls   int
 }
 
 func (store *httpAuthTestStore) RegisterUser(_ context.Context, record auth.RegistrationRecord) (auth.StoredUser, error) {
@@ -516,6 +516,7 @@ func (store *httpAuthTestStore) RotateSession(_ context.Context, currentRefreshT
 }
 
 func (store *httpAuthTestStore) RevokeSession(_ context.Context, refreshTokenHash string, csrfTokenHash string, allSessions bool, _ time.Time) (bool, error) {
+	store.revokeCalls++
 	if store.revokeErr != nil {
 		return false, store.revokeErr
 	}
@@ -529,9 +530,4 @@ func (store *httpAuthTestStore) RevokeSession(_ context.Context, refreshTokenHas
 		delete(store.sessions, refreshTokenHash)
 	}
 	return true, nil
-}
-
-func (store *httpAuthTestStore) RecordAuthEvent(_ context.Context, record auth.AuthAuditRecord) error {
-	store.authEvents = append(store.authEvents, record)
-	return nil
 }

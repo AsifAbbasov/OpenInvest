@@ -34,7 +34,6 @@ type Store interface {
 	CreateSession(ctx context.Context, record SessionRecord) error
 	RotateSession(ctx context.Context, currentRefreshTokenHash string, currentCSRFTokenHash string, next SessionRecord, now time.Time) (StoredUser, error)
 	RevokeSession(ctx context.Context, refreshTokenHash string, csrfTokenHash string, allSessions bool, now time.Time) (bool, error)
-	RecordAuthEvent(ctx context.Context, record AuthAuditRecord) error
 }
 
 type RegistrationRequest struct {
@@ -69,15 +68,6 @@ type SessionRecord struct {
 	CSRFTokenHash    string
 	ExpiresAt        time.Time
 	Now              time.Time
-}
-
-type AuthAuditRecord struct {
-	ActorID    string
-	ActionCode string
-	TargetKind string
-	TargetID   string
-	Outcome    string
-	Now        time.Time
 }
 
 type StoredUser struct {
