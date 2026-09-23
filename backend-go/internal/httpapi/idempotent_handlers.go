@@ -42,6 +42,10 @@ func (api *API) appendTransactionReplay(c fiber.Ctx) error {
 	if err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
+	portfolioID, err := transactionRouteUUID(c, "portfolioId")
+	if err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
 	if !jsonFieldPresent(c.Request().Body(), "settlementDate") {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "settlementDate is required")
 	}
@@ -49,7 +53,7 @@ func (api *API) appendTransactionReplay(c fiber.Ctx) error {
 	if err := decodeStrictJSON(c.Request().Body(), &request); err != nil {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")
 	}
-	appRequest, err := request.toApp(c.Params("portfolioId"))
+	appRequest, err := request.toApp(portfolioID)
 	if err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}

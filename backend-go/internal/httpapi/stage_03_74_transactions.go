@@ -34,6 +34,14 @@ func (api *API) correctTransactionReplay(c fiber.Ctx) error {
 	if err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
+	portfolioID, err := transactionRouteUUID(c, "portfolioId")
+	if err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
+	transactionID, err := transactionRouteUUID(c, "transactionId")
+	if err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
 	var request correctTransactionRequestDTO
 	if err := decodeStrictJSON(c.Request().Body(), &request); err != nil {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")
@@ -41,13 +49,13 @@ func (api *API) correctTransactionReplay(c fiber.Ctx) error {
 	if !nestedJSONFieldPresent(c.Request().Body(), "corrected", "settlementDate") {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "corrected.settlementDate is required")
 	}
-	corrected, err := request.Corrected.toApp(c.Params("portfolioId"))
+	corrected, err := request.Corrected.toApp(portfolioID)
 	if err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
 	appRequest := verticalslice.CorrectTransactionRequest{
-		PortfolioID:      c.Params("portfolioId"),
-		TransactionID:    c.Params("transactionId"),
+		PortfolioID:      portfolioID,
+		TransactionID:    transactionID,
 		ExpectedRevision: request.ExpectedRevision,
 		Reason:           request.Reason,
 		Corrected:        corrected,
@@ -70,13 +78,21 @@ func (api *API) reverseTransactionReplay(c fiber.Ctx) error {
 	if err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
+	portfolioID, err := transactionRouteUUID(c, "portfolioId")
+	if err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
+	transactionID, err := transactionRouteUUID(c, "transactionId")
+	if err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
 	var request reverseTransactionRequestDTO
 	if err := decodeStrictJSON(c.Request().Body(), &request); err != nil {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")
 	}
 	appRequest := verticalslice.ReverseTransactionRequest{
-		PortfolioID:      c.Params("portfolioId"),
-		TransactionID:    c.Params("transactionId"),
+		PortfolioID:      portfolioID,
+		TransactionID:    transactionID,
 		ExpectedRevision: request.ExpectedRevision,
 		Reason:           request.Reason,
 		EffectiveDate:    request.EffectiveDate,

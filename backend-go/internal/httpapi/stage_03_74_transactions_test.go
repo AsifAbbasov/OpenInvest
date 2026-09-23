@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
@@ -13,6 +15,7 @@ import (
 
 type stage374HTTPStore struct {
 	importAPITestStore
+	appendCalls       int
 	correctionCalls   int
 	reversalCalls     int
 	correctionCommand verticalslice.CommandContext
@@ -21,6 +24,34 @@ type stage374HTTPStore struct {
 	reversalRequest   verticalslice.ReverseTransactionRequest
 	correctionErr     error
 	reversalErr       error
+}
+
+func (store *stage374HTTPStore) AppendTransaction(
+	_ context.Context,
+	command verticalslice.CommandContext,
+	request verticalslice.AppendTransactionRequest,
+) (verticalslice.Transaction, error) {
+	store.appendCalls++
+	gross, err := verticalslice.GrossFor(request)
+	if err != nil {
+		return verticalslice.Transaction{}, err
+	}
+	transaction := verticalslice.Transaction{
+		ID:              "00000000-0000-4000-8000-000000000073",
+		EntryID:         "00000000-0000-4000-8000-000000000074",
+		PortfolioID:     request.PortfolioID,
+		TransactionType: request.TransactionType,
+		Status:          "ACTIVE",
+		GrossAmount:     gross,
+		Commission:      request.Commission,
+		Tax:             request.Tax,
+		TradeDate:       request.TradeDate,
+		SettlementDate:  request.SettlementDate,
+		Revision:        1,
+		CreatedAt:       command.Now,
+		UpdatedAt:       command.Now,
+	}
+	return transaction, nil
 }
 
 func (store *stage374HTTPStore) CorrectTransactionWithReplayStage374(
@@ -234,5 +265,84 @@ func TestStage374HTTPMapsRevisionConflictAndRejectsMissingCorrectionSettlementFi
 	defer validationResponse.Body.Close()
 	if validationResponse.StatusCode != http.StatusBadRequest || validationStore.correctionCalls != 0 {
 		t.Fatalf("missing corrected.settlementDate must fail before store: status=%d calls=%d", validationResponse.StatusCode, validationStore.correctionCalls)
+	}
+}
+
+func TestTransactionRoutesRejectMalformedUUIDsBeforeStoreWork(t *testing.T) {
+	const validPortfolioID = "00000000-0000-4000-8000-000000000002"
+	const validTransactionID = "00000000-0000-4000-8000-000000000071"
+	appendBody := `{"transactionType":"DEPOSIT","ticker":null,"quantity":null,"unitPrice":null,"grossAmount":{"amount":"100.00000000","currency":"RUB"},"commission":{"amount":"0.00000000","currency":"RUB"},"tax":{"amount":"0.00000000","currency":"RUB"},"tradeDate":"2026-01-10","settlementDate":null,"note":null}`
+	correctionBody := `{"expectedRevision":1,"reason":"route validation","corrected":{"transactionType":"DEPOSIT","ticker":null,"quantity":null,"unitPrice":null,"grossAmount":{"amount":"100.00000000","currency":"RUB"},"commission":{"amount":"0.00000000","currency":"RUB"},"tax":{"amount":"0.00000000","currency":"RUB"},"tradeDate":"2026-01-10","settlementDate":null,"note":null}}`
+	reversalBody := `{"expectedRevision":1,"reason":"route validation","effectiveDate":"2026-01-10"}`
+
+	for _, testCase := range []struct {
+		name   string
+		method string
+		path   string
+		body   string
+	}{
+		{name: "GET malformed portfolioId", method: http.MethodGet, path: "/api/v1/portfolios/not-a-uuid/transactions"},
+		{name: "POST malformed portfolioId", method: http.MethodPost, path: "/api/v1/portfolios/not-a-uuid/transactions", body: appendBody},
+		{name: "PATCH malformed portfolioId", method: http.MethodPatch, path: "/api/v1/portfolios/not-a-uuid/transactions/" + validTransactionID, body: correctionBody},
+		{name: "PATCH malformed transactionId", method: http.MethodPatch, path: "/api/v1/portfolios/" + validPortfolioID + "/transactions/not-a-uuid", body: correctionBody},
+		{name: "DELETE malformed portfolioId", method: http.MethodDelete, path: "/api/v1/portfolios/not-a-uuid/transactions/" + validTransactionID, body: reversalBody},
+		{name: "DELETE malformed transactionId", method: http.MethodDelete, path: "/api/v1/portfolios/" + validPortfolioID + "/transactions/not-a-uuid", body: reversalBody},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			store := &stage374HTTPStore{}
+			app := NewDevelopmentReplay(verticalslice.NewService(store, fixedHTTPClock{}))
+			request := httptest.NewRequest(testCase.method, testCase.path, strings.NewReader(testCase.body))
+			request.Header.Set("Content-Type", "application/json")
+			request.Header.Set("Idempotency-Key", "malformed-route-uuid-test-key")
+
+			response, err := app.Test(request)
+			if err != nil {
+				t.Fatalf("request malformed route UUID: %v", err)
+			}
+			defer response.Body.Close()
+			body, err := io.ReadAll(response.Body)
+			if err != nil {
+				t.Fatalf("read malformed route UUID response: %v", err)
+			}
+			if response.StatusCode != http.StatusBadRequest {
+				t.Fatalf("status=%d want=%d body=%s", response.StatusCode, http.StatusBadRequest, body)
+			}
+			var payload struct {
+				Error errorBody `json:"error"`
+				Meta  metaDTO   `json:"meta"`
+			}
+			if err := json.Unmarshal(body, &payload); err != nil {
+				t.Fatalf("decode error envelope: %v", err)
+			}
+			if payload.Error.Code != "VALIDATION_ERROR" || payload.Error.Message == "" || payload.Meta.RequestID == "" || payload.Meta.TraceID == "" {
+				t.Fatalf("invalid sanitized validation envelope: %+v", payload)
+			}
+			lowerBody := strings.ToLower(string(body))
+			for _, forbidden := range []string{"postgres", "sql", "uuid", "schema", "transaction_entries"} {
+				if strings.Contains(lowerBody, forbidden) {
+					t.Fatalf("response leaked internal detail %q: %s", forbidden, body)
+				}
+			}
+			if store.listTransactionsCalls != 0 || store.appendCalls != 0 || store.correctionCalls != 0 || store.reversalCalls != 0 {
+				t.Fatalf("malformed route reached store work: list=%d append=%d correction=%d reversal=%d", store.listTransactionsCalls, store.appendCalls, store.correctionCalls, store.reversalCalls)
+			}
+		})
+	}
+}
+
+func TestTransactionRouteUUIDValidationAllowsValidPost(t *testing.T) {
+	store := &stage374HTTPStore{}
+	app := NewDevelopment(verticalslice.NewService(store, fixedHTTPClock{}))
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/portfolios/00000000-0000-4000-8000-000000000002/transactions", strings.NewReader(`{"transactionType":"DEPOSIT","ticker":null,"quantity":null,"unitPrice":null,"grossAmount":{"amount":"100.00000000","currency":"RUB"},"commission":{"amount":"0.00000000","currency":"RUB"},"tax":{"amount":"0.00000000","currency":"RUB"},"tradeDate":"2026-01-10","settlementDate":null,"note":null}`))
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Idempotency-Key", "valid-route-uuid-test-key")
+
+	response, err := app.Test(request)
+	if err != nil {
+		t.Fatalf("request valid transaction route UUID: %v", err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusCreated || store.appendCalls != 1 {
+		t.Fatalf("valid transaction route was rejected or not executed: status=%d append=%d", response.StatusCode, store.appendCalls)
 	}
 }
