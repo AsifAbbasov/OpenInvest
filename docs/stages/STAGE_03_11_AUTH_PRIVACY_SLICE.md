@@ -36,6 +36,12 @@ This slice may add only:
   rejection, and migration validation;
 - non-secret audit events for registration, login, refresh, logout, and all rejected
   refresh/logout attempts including missing cookie or CSRF input;
+  Historical Stage 3.11 requirement. AUTH-ADV-01 later superseded the
+  per-rejection durable-audit behavior: missing, anonymous, and fully unknown
+  refresh/logout rejection paths create zero durable audit rows, while
+  security-relevant known-session rejection/replay evidence is retained under
+  the PostgreSQL durable deduplication bound. See
+  `docs/audit/AUTH_ADV_01_DURABLE_AUDIT_BOUND_CLOSURE.md`.
 - documentation and governance updates for this stage.
 
 ## Explicit non-goals
