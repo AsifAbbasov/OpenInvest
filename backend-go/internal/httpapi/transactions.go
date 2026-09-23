@@ -14,11 +14,14 @@ func (api *API) listTransactions(c fiber.Ctx) error {
 	if err != nil {
 		return writeMappedError(c, err)
 	}
+	portfolioID, err := transactionRouteUUID(c, "portfolioId")
+	if err != nil {
+		return writeMappedError(c, err)
+	}
 	limit, err := queryLimitStrict(c, 50)
 	if err != nil {
 		return writeMappedError(c, err)
 	}
-	portfolioID := c.Params("portfolioId")
 	filter := verticalslice.TransactionFilter{
 		TransactionType: strings.TrimSpace(c.Query("transactionType")),
 		FromDate:        strings.TrimSpace(c.Query("fromDate")),
@@ -60,6 +63,10 @@ func (api *API) appendTransaction(c fiber.Ctx) error {
 	if err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
+	portfolioID, err := transactionRouteUUID(c, "portfolioId")
+	if err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
 	if !jsonFieldPresent(c.Request().Body(), "settlementDate") {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "settlementDate is required")
 	}
@@ -67,7 +74,7 @@ func (api *API) appendTransaction(c fiber.Ctx) error {
 	if err := decodeStrictJSON(c.Request().Body(), &request); err != nil {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")
 	}
-	appRequest, err := request.toApp(c.Params("portfolioId"))
+	appRequest, err := request.toApp(portfolioID)
 	if err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}

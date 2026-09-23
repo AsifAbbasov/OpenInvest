@@ -59,6 +59,14 @@ func optionalQueryValue(c fiber.Ctx, name string) (string, error) {
 	return raw, nil
 }
 
+func transactionRouteUUID(c fiber.Ctx, name string) (string, error) {
+	value := c.Params(name)
+	if _, err := uuid.Parse(value); err != nil {
+		return "", fmt.Errorf("%w: invalid transaction route parameter", verticalslice.ErrInvalidInput)
+	}
+	return value, nil
+}
+
 func queryValue(c fiber.Ctx, name string) (string, bool) {
 	args := c.Request().URI().QueryArgs()
 	if !args.Has(name) {
