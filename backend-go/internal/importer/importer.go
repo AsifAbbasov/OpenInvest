@@ -23,9 +23,13 @@ const (
 
 	// ReviewParserVersion is part of the signed review-token contract. Any change
 	// that can alter normalized candidate/status semantics must bump this version.
-	ReviewParserVersion         = 2
-	previousReviewParserVersion = 1
+	ReviewParserVersion         = 3
+	previousReviewParserVersion = 2
+	legacyReviewParserVersion   = 1
 	MaxReviewRows               = 100
+	MaxCSVHeaderColumns         = 12
+	MaxCSVHeaderFieldBytes      = 128
+	ExpectedCSVDataRowFields    = MaxCSVHeaderColumns
 
 	ReviewStatusAppendable = "APPENDABLE"
 	ReviewStatusDuplicate  = "DUPLICATE"
@@ -172,7 +176,7 @@ func ReviewSemanticDigest(review Review) (string, error) {
 // a supported historic parser version. It is used only to authenticate completed
 // command replay; fresh review and append paths always use ReviewParserVersion.
 func ReviewSemanticDigestForParserVersion(review Review, parserVersion int) (string, error) {
-	if parserVersion != ReviewParserVersion && parserVersion != previousReviewParserVersion {
+	if !supportedReviewParserVersion(parserVersion) {
 		return "", fmt.Errorf("%w: unsupported review parser version", ErrUnsafeAppend)
 	}
 	rows := make([]reviewSemanticRow, 0, len(review.Rows))
@@ -255,7 +259,7 @@ func sortedSet(values map[string]struct{}) []string {
 }
 
 func ReviewCSV(request ReviewRequest) (Review, error) {
-	return reviewCSV(request, decimal.FromString)
+	return reviewCSV(request, decimal.FromString, true)
 }
 
 // ReviewCSVForParserVersion reconstructs only a supported historical review for
@@ -264,9 +268,11 @@ func ReviewCSV(request ReviewRequest) (Review, error) {
 func ReviewCSVForParserVersion(request ReviewRequest, parserVersion int) (Review, error) {
 	switch parserVersion {
 	case ReviewParserVersion:
-		return reviewCSV(request, decimal.FromString)
+		return reviewCSV(request, decimal.FromString, true)
 	case previousReviewParserVersion:
-		return reviewCSV(request, decimal.FromLegacyStringForReplay)
+		return reviewCSV(request, decimal.FromString, false)
+	case legacyReviewParserVersion:
+		return reviewCSV(request, decimal.FromLegacyStringForReplay, false)
 	default:
 		return Review{}, fmt.Errorf("%w: unsupported review parser version", ErrUnsafeAppend)
 	}
@@ -274,7 +280,13 @@ func ReviewCSVForParserVersion(request ReviewRequest, parserVersion int) (Review
 
 type decimalParser func(string) (decimal.Decimal, error)
 
-func reviewCSV(request ReviewRequest, parseDecimal decimalParser) (Review, error) {
+func supportedReviewParserVersion(parserVersion int) bool {
+	return parserVersion == ReviewParserVersion ||
+		parserVersion == previousReviewParserVersion ||
+		parserVersion == legacyReviewParserVersion
+}
+
+func reviewCSV(request ReviewRequest, parseDecimal decimalParser, enforceStructuralBounds bool) (Review, error) {
 	if strings.TrimSpace(request.SubjectID) == "" {
 		return Review{}, fmt.Errorf("%w: subjectId is required", ErrInvalidImport)
 	}
@@ -302,6 +314,11 @@ func reviewCSV(request ReviewRequest, parseDecimal decimalParser) (Review, error
 	header, err := reader.Read()
 	if err != nil {
 		return Review{}, fmt.Errorf("%w: CSV header is required", ErrInvalidImport)
+	}
+	if enforceStructuralBounds {
+		if err := validateCSVHeaderShape(header); err != nil {
+			return Review{}, err
+		}
 	}
 	columns, err := mapColumns(header)
 	if err != nil {
@@ -339,6 +356,11 @@ func reviewCSV(request ReviewRequest, parseDecimal decimalParser) (Review, error
 		if err != nil {
 			review.Rows = append(review.Rows, invalidRow(rowNumber, nil, "MALFORMED_CSV_ROW"))
 			continue
+		}
+		if enforceStructuralBounds {
+			if err := validateCSVRecordShape(record); err != nil {
+				return Review{}, err
+			}
 		}
 		row := reviewRow(request.PortfolioID, columns, record, rowNumber, parseDecimal)
 		if row.Candidate != nil {
@@ -649,6 +671,25 @@ func mapColumns(header []string) (map[string]int, error) {
 		}
 	}
 	return columns, nil
+}
+
+func validateCSVHeaderShape(header []string) error {
+	if len(header) > MaxCSVHeaderColumns {
+		return fmt.Errorf("%w: CSV header is structurally invalid", ErrInvalidImport)
+	}
+	for _, value := range header {
+		if len(value) > MaxCSVHeaderFieldBytes {
+			return fmt.Errorf("%w: CSV header is structurally invalid", ErrInvalidImport)
+		}
+	}
+	return nil
+}
+
+func validateCSVRecordShape(record []string) error {
+	if len(record) != ExpectedCSVDataRowFields {
+		return fmt.Errorf("%w: CSV row is structurally invalid", ErrInvalidImport)
+	}
+	return nil
 }
 
 func value(record []string, columns map[string]int, column string) string {

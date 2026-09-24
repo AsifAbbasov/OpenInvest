@@ -3,6 +3,7 @@ package importer
 import (
 	"errors"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -40,7 +41,7 @@ func TestReviewCSVClassifiesAppendableRows(t *testing.T) {
 
 func TestReviewCSVAppliesStrictDecimalGrammarAfterFieldEdgeNormalization(t *testing.T) {
 	for _, amount := range []string{
-		"+1", "001.25", "1.", "1e2", "1,25", "\u0661", strings.Repeat("0", 31),
+		"+1", "001.25", "1.", "1e2", "\u0661", strings.Repeat("0", 31),
 	} {
 		t.Run(amount, func(t *testing.T) {
 			review := mustReview(t, csvHeader+
@@ -52,6 +53,12 @@ func TestReviewCSVAppliesStrictDecimalGrammarAfterFieldEdgeNormalization(t *test
 				t.Fatalf("expected %q to be unable to reach append, got %v", amount, err)
 			}
 		})
+	}
+	if _, err := ReviewCSV(ReviewRequest{
+		SubjectID: "subject-1", PortfolioID: "portfolio-1", SourceKind: SourceKindUserUploadedFile,
+		Reader: strings.NewReader(csvHeader + "DEPOSIT,,,,1,25,0.00000000,0.00000000,2026-06-19,,RUB,strict-1x25,invalid\n"),
+	}); !errors.Is(err, ErrInvalidImport) {
+		t.Fatalf("unquoted decimal comma must fail the active structural row contract, got %v", err)
 	}
 
 	review := mustReview(t, csvHeader+
@@ -73,7 +80,7 @@ func TestReviewCSVForParserVersionReconstructsOnlySupportedHistoricalGrammar(t *
 	legacyReview, err := ReviewCSVForParserVersion(ReviewRequest{
 		SubjectID: "subject-1", PortfolioID: "portfolio-1", SourceKind: SourceKindUserUploadedFile,
 		Reader: strings.NewReader(legacyPayload),
-	}, previousReviewParserVersion)
+	}, legacyReviewParserVersion)
 	if err != nil || legacyReview.Rows[0].Status != ReviewStatusAppendable {
 		t.Fatalf("historic parser replay must reconstruct prior semantics: review=%+v err=%v", legacyReview, err)
 	}
@@ -343,6 +350,180 @@ func TestReviewCSVRejectsMissingRequiredHeader(t *testing.T) {
 
 	if !errors.Is(err, ErrInvalidImport) {
 		t.Fatalf("expected invalid import, got %v", err)
+	}
+}
+
+func TestReviewCSVBoundsHeaderShapeBeforeColumnMapping(t *testing.T) {
+	validPayload := csvHeader +
+		"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,header-bound-valid,cash in\n"
+	if review := mustReview(t, validPayload, nil); len(review.Rows) != 1 {
+		t.Fatalf("expected canonical %d-column header to remain valid, got %+v", MaxCSVHeaderColumns, review.Summary)
+	}
+
+	if got := len(strings.Split(strings.TrimSuffix(csvHeader, "\n"), ",")); got != MaxCSVHeaderColumns {
+		t.Fatalf("canonical header width drifted: got %d want %d", got, MaxCSVHeaderColumns)
+	}
+	canonicalHeader := strings.Split(strings.TrimSuffix(csvHeader, "\n"), ",")
+	for _, testCase := range []struct {
+		name    string
+		header  []string
+		wantErr bool
+	}{
+		{name: "N-1", header: canonicalHeader[:MaxCSVHeaderColumns-1]},
+		{name: "N", header: canonicalHeader},
+		{name: "N+1", header: append(append([]string(nil), canonicalHeader...), "unexpected_extension"), wantErr: true},
+	} {
+		t.Run("structural column bound "+testCase.name, func(t *testing.T) {
+			err := validateCSVHeaderShape(testCase.header)
+			if testCase.wantErr && !errors.Is(err, ErrInvalidImport) {
+				t.Fatalf("expected structural rejection at %s, got %v", testCase.name, err)
+			}
+			if !testCase.wantErr && err != nil {
+				t.Fatalf("unexpected structural rejection at %s: %v", testCase.name, err)
+			}
+		})
+	}
+	for _, size := range []int{MaxCSVHeaderFieldBytes - 1, MaxCSVHeaderFieldBytes, MaxCSVHeaderFieldBytes + 1} {
+		t.Run("header field byte bound "+strconv.Itoa(size), func(t *testing.T) {
+			err := validateCSVHeaderShape([]string{strings.Repeat("h", size)})
+			if size > MaxCSVHeaderFieldBytes && !errors.Is(err, ErrInvalidImport) {
+				t.Fatalf("expected oversized field rejection at %d bytes, got %v", size, err)
+			}
+			if size <= MaxCSVHeaderFieldBytes && err != nil {
+				t.Fatalf("unexpected field rejection at %d bytes: %v", size, err)
+			}
+		})
+	}
+
+	missingRequiredHeader := strings.Join(canonicalHeader[:MaxCSVHeaderColumns-1], ",") + "\n"
+	if _, err := ReviewCSV(ReviewRequest{
+		SubjectID: "subject-1", PortfolioID: "portfolio-1", SourceKind: SourceKindUserUploadedFile,
+		Reader: strings.NewReader(missingRequiredHeader),
+	}); !errors.Is(err, ErrInvalidImport) {
+		t.Fatalf("expected missing required header to remain rejected, got %v", err)
+	}
+	duplicateNormalizedHeader := append([]string(nil), canonicalHeader...)
+	duplicateNormalizedHeader[MaxCSVHeaderColumns-1] = " TICKER "
+	if _, err := ReviewCSV(ReviewRequest{
+		SubjectID: "subject-1", PortfolioID: "portfolio-1", SourceKind: SourceKindUserUploadedFile,
+		Reader: strings.NewReader(strings.Join(duplicateNormalizedHeader, ",") + "\n"),
+	}); !errors.Is(err, ErrInvalidImport) {
+		t.Fatalf("expected duplicate normalized header to remain rejected, got %v", err)
+	}
+
+	overLimitHeader := strings.TrimSuffix(csvHeader, "\n") + ",unexpected_extension\n"
+	if _, err := ReviewCSV(ReviewRequest{
+		SubjectID: "subject-1", PortfolioID: "portfolio-1", SourceKind: SourceKindUserUploadedFile,
+		Reader: strings.NewReader(overLimitHeader),
+	}); !errors.Is(err, ErrInvalidImport) {
+		t.Fatalf("expected %d-column header to fail closed, got %v", MaxCSVHeaderColumns+1, err)
+	}
+
+	headerWithOversizedField := append([]string{strings.Repeat("h", MaxCSVHeaderFieldBytes+1)}, strings.Split(strings.TrimSuffix(csvHeader, "\n"), ",")[1:]...)
+	if _, err := ReviewCSV(ReviewRequest{
+		SubjectID: "subject-1", PortfolioID: "portfolio-1", SourceKind: SourceKindUserUploadedFile,
+		Reader: strings.NewReader(strings.Join(headerWithOversizedField, ",") + "\n"),
+	}); !errors.Is(err, ErrInvalidImport) {
+		t.Fatalf("expected oversized header field to fail closed, got %v", err)
+	}
+
+	extras := make([]string, 1024)
+	for index := range extras {
+		extras[index] = "audit_extra_" + strconv.Itoa(index)
+	}
+	auditStyleWideHeader := strings.TrimSuffix(csvHeader, "\n") + "," + strings.Join(extras, ",") + "\n"
+	if len(auditStyleWideHeader) >= 2*1024*1024 {
+		t.Fatalf("audit-style regression payload must remain below the HTTP payload bound: %d", len(auditStyleWideHeader))
+	}
+	if _, err := ReviewCSV(ReviewRequest{
+		SubjectID: "subject-1", PortfolioID: "portfolio-1", SourceKind: SourceKindUserUploadedFile,
+		Reader: strings.NewReader(auditStyleWideHeader),
+	}); !errors.Is(err, ErrInvalidImport) {
+		t.Fatalf("expected audit-style wide header to fail closed, got %v", err)
+	}
+}
+
+func TestReviewCSVForParserVersionPreservesV2HeaderSemanticsForReplay(t *testing.T) {
+	payload := strings.TrimSuffix(csvHeader, "\n") + ",legacy_extension\n" +
+		"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,legacy-v2-header,cash in,ignored\n"
+	request := ReviewRequest{SubjectID: "subject-1", PortfolioID: "portfolio-1", SourceKind: SourceKindUserUploadedFile, Reader: strings.NewReader(payload)}
+	if review, err := ReviewCSVForParserVersion(request, previousReviewParserVersion); err != nil || len(review.Rows) != 1 {
+		t.Fatalf("expected historical v2 replay parser to preserve its header semantics: review=%+v err=%v", review, err)
+	}
+	request.Reader = strings.NewReader(payload)
+	if _, err := ReviewCSV(request); !errors.Is(err, ErrInvalidImport) {
+		t.Fatalf("expected current parser to reject the historical extra-column payload, got %v", err)
+	}
+}
+
+func TestReviewCSVBoundsDataRowShapeBeforeReviewSemantics(t *testing.T) {
+	canonicalRow := "DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,row-bound-valid,cash in"
+	if review := mustReview(t, csvHeader+canonicalRow+"\n", nil); len(review.Rows) != 1 || review.Rows[0].Status != ReviewStatusAppendable {
+		t.Fatalf("expected canonical %d-field data row to remain appendable, got %+v", ExpectedCSVDataRowFields, review)
+	}
+
+	for _, testCase := range []struct {
+		name    string
+		record  []string
+		wantErr bool
+	}{
+		{name: "11 fields", record: strings.Split(canonicalRow, ",")[:ExpectedCSVDataRowFields-1], wantErr: true},
+		{name: "12 fields", record: strings.Split(canonicalRow, ",")},
+		{name: "13 fields", record: append(strings.Split(canonicalRow, ","), "unexpected_extension"), wantErr: true},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			err := validateCSVRecordShape(testCase.record)
+			if testCase.wantErr && !errors.Is(err, ErrInvalidImport) {
+				t.Fatalf("expected structural rejection at %s, got %v", testCase.name, err)
+			}
+			if !testCase.wantErr && err != nil {
+				t.Fatalf("unexpected structural rejection at %s: %v", testCase.name, err)
+			}
+		})
+	}
+	for _, testCase := range []struct {
+		name   string
+		record []string
+	}{
+		{name: "11 fields", record: strings.Split(canonicalRow, ",")[:ExpectedCSVDataRowFields-1]},
+		{name: "13 fields", record: append(strings.Split(canonicalRow, ","), "unexpected_extension")},
+	} {
+		t.Run("active parser rejects "+testCase.name, func(t *testing.T) {
+			if _, err := ReviewCSV(ReviewRequest{
+				SubjectID: "subject-1", PortfolioID: "portfolio-1", SourceKind: SourceKindUserUploadedFile,
+				Reader: strings.NewReader(csvHeader + strings.Join(testCase.record, ",") + "\n"),
+			}); !errors.Is(err, ErrInvalidImport) {
+				t.Fatalf("expected active parser to reject %s, got %v", testCase.name, err)
+			}
+		})
+	}
+
+	extras := make([]string, 1024)
+	for index := range extras {
+		extras[index] = "row_extra_" + strconv.Itoa(index)
+	}
+	auditStyleWideRow := csvHeader + canonicalRow + "," + strings.Join(extras, ",") + "\n"
+	if len(auditStyleWideRow) >= 2*1024*1024 {
+		t.Fatalf("audit-style row regression must remain below the HTTP payload bound: %d", len(auditStyleWideRow))
+	}
+	if _, err := ReviewCSV(ReviewRequest{
+		SubjectID: "subject-1", PortfolioID: "portfolio-1", SourceKind: SourceKindUserUploadedFile,
+		Reader: strings.NewReader(auditStyleWideRow),
+	}); !errors.Is(err, ErrInvalidImport) {
+		t.Fatalf("expected active parser to reject audit-style wide row, got %v", err)
+	}
+}
+
+func TestReviewCSVForParserVersionPreservesV2DataRowSemanticsForReplay(t *testing.T) {
+	payload := csvHeader +
+		"DEPOSIT,,,,1000.00000000,0.00000000,0.00000000,2026-06-19,,RUB,legacy-v2-row,cash in,ignored\n"
+	request := ReviewRequest{SubjectID: "subject-1", PortfolioID: "portfolio-1", SourceKind: SourceKindUserUploadedFile, Reader: strings.NewReader(payload)}
+	if review, err := ReviewCSVForParserVersion(request, previousReviewParserVersion); err != nil || len(review.Rows) != 1 || review.Rows[0].Status != ReviewStatusAppendable {
+		t.Fatalf("expected historical v2 replay parser to preserve its data-row semantics: review=%+v err=%v", review, err)
+	}
+	request.Reader = strings.NewReader(payload)
+	if _, err := ReviewCSV(request); !errors.Is(err, ErrInvalidImport) {
+		t.Fatalf("expected current parser to reject the historical extra-field row, got %v", err)
 	}
 }
 

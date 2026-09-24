@@ -46,8 +46,8 @@ func TestStage339ImporterRejectsMalformedSourceLabelWithoutParserVersionChange(t
 	if !errors.Is(err, ErrInvalidImport) {
 		t.Fatalf("expected malformed source label to fail closed, got %v", err)
 	}
-	if ReviewParserVersion != 2 {
-		t.Fatalf("P3-04 must not bump ReviewParserVersion, got %d", ReviewParserVersion)
+	if ReviewParserVersion != 3 {
+		t.Fatalf("unexpected active ReviewParserVersion, got %d", ReviewParserVersion)
 	}
 }
 
@@ -85,8 +85,8 @@ func TestStage339ImporterRejectsMalformedCSVNoteBeforeCodePointCounting(t *testi
 	if !found {
 		t.Fatalf("expected NOTE_INVALID_UTF8 reason, got %v", row.ReasonCodes)
 	}
-	if ReviewParserVersion != 2 {
-		t.Fatalf("malformed note guard must not bump ReviewParserVersion, got %d", ReviewParserVersion)
+	if ReviewParserVersion != 3 {
+		t.Fatalf("unexpected active ReviewParserVersion, got %d", ReviewParserVersion)
 	}
 }
 

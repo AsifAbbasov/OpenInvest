@@ -201,6 +201,10 @@ func newStage336ReplayApp(t *testing.T) (*stage32ImportReplayStore, *verticalsli
 }
 
 func stage336HistoricalAppendRequest(t *testing.T, api *API, csvPayload string) ([]byte, stage336HistoricalRequest) {
+	return stage336HistoricalAppendRequestForParserVersion(t, api, csvPayload, 1)
+}
+
+func stage336HistoricalAppendRequestForParserVersion(t *testing.T, api *API, csvPayload string, parserVersion int) ([]byte, stage336HistoricalRequest) {
 	t.Helper()
 	portfolioID := "00000000-0000-4000-8000-000000000002"
 	sourceAccountLabel := "Manual CSV"
@@ -212,7 +216,7 @@ func stage336HistoricalAppendRequest(t *testing.T, api *API, csvPayload string) 
 		SourceAccountLabel: sourceAccountLabel,
 		FileHash:           fileHash,
 		Reader:             bytes.NewBufferString(csvPayload),
-	}, 1)
+	}, parserVersion)
 	if err != nil || len(review.Rows) != 1 || review.Rows[0].Status != importer.ReviewStatusAppendable {
 		t.Fatalf("reconstruct legacy review: review=%+v err=%v", review, err)
 	}
@@ -221,7 +225,7 @@ func stage336HistoricalAppendRequest(t *testing.T, api *API, csvPayload string) 
 	if err != nil || len(appendRequests) != 1 {
 		t.Fatalf("build legacy append request: requests=%+v err=%v", appendRequests, err)
 	}
-	token := signStage336ParserV1Token(t, api, devSubjectID, review)
+	token := signStage336ParserToken(t, api, devSubjectID, review, parserVersion)
 	encoded, err := json.Marshal(map[string]any{
 		"sourceAccountLabel": sourceAccountLabel,
 		"sourceFileHash":     fileHash,
@@ -251,9 +255,9 @@ func stage336HistoricalAppendRequest(t *testing.T, api *API, csvPayload string) 
 	}
 }
 
-func signStage336ParserV1Token(t *testing.T, api *API, subjectID string, review importer.Review) string {
+func signStage336ParserToken(t *testing.T, api *API, subjectID string, review importer.Review, parserVersion int) string {
 	t.Helper()
-	digest, err := importer.ReviewSemanticDigestForParserVersion(review, 1)
+	digest, err := importer.ReviewSemanticDigestForParserVersion(review, parserVersion)
 	if err != nil {
 		t.Fatalf("legacy review digest: %v", err)
 	}
@@ -267,7 +271,7 @@ func signStage336ParserV1Token(t *testing.T, api *API, subjectID string, review 
 	}
 	issuedAt := api.nowUTC()
 	payload := importReviewTokenPayload{
-		Version: importReviewTokenVersion, ParserVersion: 1, IssuedAt: issuedAt.Unix(), ExpiresAt: issuedAt.Add(importReviewTokenTTL).Unix(),
+		Version: importReviewTokenVersion, ParserVersion: parserVersion, IssuedAt: issuedAt.Unix(), ExpiresAt: issuedAt.Add(importReviewTokenTTL).Unix(),
 		SubjectID: subjectID, PortfolioID: review.PortfolioID, SourceKind: review.SourceKind, SourceAccountLabel: review.SourceAccountLabel,
 		SourceFileHash: review.FileHash, ParserReviewDigest: digest, FinalReviewDigest: digest, AppendableRows: appendableRows, Rows: rows,
 	}
