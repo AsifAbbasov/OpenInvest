@@ -29,7 +29,7 @@ func TestImportAdmissionBoundsFreshWorkAndReclaimsExpiredSubjects(t *testing.T) 
 
 	if admission.executionRate.perSubject != 12 || admission.executionRate.globalLimit != 120 || admission.executionRate.maxSubjects != 2048 ||
 		admission.freshRate.perSubject != 6 || admission.freshRate.globalLimit != 60 || admission.freshRate.maxSubjects != 2048 || cap(admission.capacity) != 2 {
-		t.Fatalf("default import admission policy = execution=%+v fresh=%+v capacity=%d, want 12/120/2048 and 6/60/2048/2", admission.executionRate, admission.freshRate, cap(admission.capacity))
+		t.Fatalf("default import admission policy = execution=%d/%d/%d fresh=%d/%d/%d capacity=%d, want 12/120/2048 and 6/60/2048/2", admission.executionRate.perSubject, admission.executionRate.globalLimit, admission.executionRate.maxSubjects, admission.freshRate.perSubject, admission.freshRate.globalLimit, admission.freshRate.maxSubjects, cap(admission.capacity))
 	}
 	for index := 0; index < defaultImportFreshPerSubjectLimit; index++ {
 		if !admission.allowFresh("subject-a", now) {
