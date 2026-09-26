@@ -82,6 +82,28 @@
       }
     }
   },
+  "importCapacityExhausted": {
+    "summary": "Bounded import processing capacity is exhausted",
+    "value": {
+      "error": { "code": "IMPORT_CAPACITY_EXHAUSTED", "message": "Import processing capacity is temporarily exhausted", "details": [] },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5609",
+        "traceId": "7e4a3d2c1b0e4987a6f5e4d3c2b1a120",
+        "generatedAt": "2026-06-20T15:08:00Z"
+      }
+    }
+  },
+  "importAdmissionExhausted": {
+    "summary": "Bounded import execution admission is exhausted",
+    "value": {
+      "error": { "code": "IMPORT_ADMISSION_EXHAUSTED", "message": "Import admission is temporarily exhausted", "details": [] },
+      "meta": {
+        "requestId": "01977a31-6db7-7ba6-b5b4-65a183ba5610",
+        "traceId": "8e4a3d2c1b0e4987a6f5e4d3c2b1a121",
+        "generatedAt": "2026-06-20T15:09:00Z"
+      }
+    }
+  },
   "serviceUnavailableError": {
     "summary": "Required dependency is unavailable",
     "value": {

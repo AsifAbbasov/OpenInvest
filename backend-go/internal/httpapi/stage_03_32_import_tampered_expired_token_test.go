@@ -23,6 +23,7 @@ func TestStage0332ExpiredTamperedImportTokenCannotRecoverCompletedCommand(t *tes
 		service:                 service,
 		allowDevelopmentSubject: true,
 		authLimiter:             newAuthRateLimiter(20, time.Minute),
+		importAdmission:         newDefaultImportAdmission(),
 		importReviewSecret:      secret,
 		paginationCursorSecret:  derivePaginationCursorSecret(secret),
 		now:                     func() time.Time { return now },
@@ -43,7 +44,7 @@ func TestStage0332ExpiredTamperedImportTokenCannotRecoverCompletedCommand(t *tes
 	if firstResponse.StatusCode != http.StatusCreated {
 		t.Fatalf("first import status: got %d want %d", firstResponse.StatusCode, http.StatusCreated)
 	}
-	if store.appendReplayCalls != 1 || store.lookupCalls != 0 {
+	if store.appendReplayCalls != 1 || store.lookupCalls != 1 {
 		t.Fatalf("unexpected first-request calls: append=%d lookup=%d", store.appendReplayCalls, store.lookupCalls)
 	}
 
@@ -78,7 +79,7 @@ func TestStage0332ExpiredTamperedImportTokenCannotRecoverCompletedCommand(t *tes
 	if store.appendReplayCalls != 1 {
 		t.Fatalf("tampered expired token executed another financial append: %d", store.appendReplayCalls)
 	}
-	if store.lookupCalls != 0 {
-		t.Fatalf("tampered expired token reached replay lookup: %d", store.lookupCalls)
+	if store.lookupCalls != 1 {
+		t.Fatalf("tampered expired token reached an additional recovery lookup: %d", store.lookupCalls)
 	}
 }

@@ -422,6 +422,44 @@ responses:
               error: { code: REPLAY_EPOCH_MISSING, message: Portfolio replay state is temporarily unavailable, details: [] }
               meta: { requestId: "10000000-0000-4000-8000-000000000004", traceId: "10000000000000000000000000000004", generatedAt: "2026-09-16T00:00:00Z" }
 
+  ImportAdmissionUnavailable:
+    description: >-
+      Import processing capacity or bounded execution admission is temporarily exhausted before
+      JSON or CSV processing. Retry after the supplied bounded delay.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+      Retry-After: { $ref: "#/headers/RetryAfter" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/ErrorResponse" }
+        examples:
+          capacity: { $ref: "../examples/errors.json#/importCapacityExhausted" }
+          admission: { $ref: "../examples/errors.json#/importAdmissionExhausted" }
+
+  ImportAppendUnavailable:
+    description: >-
+      The append cannot safely continue because replay state is unavailable, bounded import
+      processing capacity is exhausted, or bounded execution admission is exhausted.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+      Retry-After: { $ref: "#/headers/RetryAfter" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/ErrorResponse" }
+        examples:
+          stale:
+            value:
+              error: { code: REPLAY_STATE_STALE, message: Portfolio replay state is temporarily unavailable, details: [] }
+              meta: { requestId: "10000000-0000-4000-8000-000000000003", traceId: "10000000000000000000000000000003", generatedAt: "2026-09-16T00:00:00Z" }
+          missingEpoch:
+            value:
+              error: { code: REPLAY_EPOCH_MISSING, message: Portfolio replay state is temporarily unavailable, details: [] }
+              meta: { requestId: "10000000-0000-4000-8000-000000000004", traceId: "10000000000000000000000000000004", generatedAt: "2026-09-16T00:00:00Z" }
+          capacity: { $ref: "../examples/errors.json#/importCapacityExhausted" }
+          admission: { $ref: "../examples/errors.json#/importAdmissionExhausted" }
+
   RateLimited:
     description: Rate limit exceeded.
     headers:

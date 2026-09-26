@@ -14,6 +14,7 @@ type API struct {
 	allowDevelopmentSubject bool
 	authLimiter             *authRateLimiter
 	dividendLimiter         *authRateLimiter
+	importAdmission         *importAdmission
 	importReviewSecret      []byte
 	paginationCursorSecret  []byte
 	now                     func() time.Time
@@ -31,6 +32,7 @@ func New(service *verticalslice.Service, authService *auth.Service, importReview
 		auth:                   authService,
 		authLimiter:            newAuthRateLimiter(20, time.Minute),
 		dividendLimiter:        newDividendCalculatorRateLimiter(),
+		importAdmission:        newDefaultImportAdmission(),
 		importReviewSecret:     secret,
 		paginationCursorSecret: derivePaginationCursorSecret(secret),
 	}), nil
@@ -46,6 +48,7 @@ func NewDevelopment(service *verticalslice.Service) *fiber.App {
 		allowDevelopmentSubject: true,
 		authLimiter:             newAuthRateLimiter(20, time.Minute),
 		dividendLimiter:         newDividendCalculatorRateLimiter(),
+		importAdmission:         newDefaultImportAdmission(),
 		importReviewSecret:      secret,
 		paginationCursorSecret:  derivePaginationCursorSecret(secret),
 	})

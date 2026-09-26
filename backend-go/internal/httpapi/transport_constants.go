@@ -12,6 +12,30 @@ const maxHTTPImportRows = 100
 
 const authRateLimitRetryAfterSeconds = "60"
 
+const importFreshRateRetryAfterSeconds = "60"
+
+const importExecutionRateRetryAfterSeconds = "60"
+
+const importCapacityRetryAfterSeconds = "1"
+
+const defaultImportExecutionPerSubjectLimit = 12
+
+const defaultImportExecutionGlobalLimit = 120
+
+const defaultImportExecutionMaxSubjects = 2048
+
+const defaultImportExecutionWindow = time.Minute
+
+const defaultImportFreshPerSubjectLimit = 6
+
+const defaultImportFreshGlobalLimit = 60
+
+const defaultImportFreshMaxSubjects = 2048
+
+const defaultImportFreshWindow = time.Minute
+
+const defaultImportActiveCapacity = 2
+
 const dividendCalculatorRateLimitRetryAfterSeconds = "60"
 
 const defaultDividendCalculatorPerKeyLimit = 20
