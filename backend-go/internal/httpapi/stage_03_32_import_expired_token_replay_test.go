@@ -25,6 +25,7 @@ func TestStage0332CompletedImportReplaysAfterReviewTokenExpires(t *testing.T) {
 		service:                 service,
 		allowDevelopmentSubject: true,
 		authLimiter:             newAuthRateLimiter(20, time.Minute),
+		importAdmission:         newDefaultImportAdmission(),
 		importReviewSecret:      secret,
 		paginationCursorSecret:  derivePaginationCursorSecret(secret),
 		now:                     func() time.Time { return now },
@@ -54,8 +55,8 @@ func TestStage0332CompletedImportReplaysAfterReviewTokenExpires(t *testing.T) {
 	if store.appendReplayCalls != 1 {
 		t.Fatalf("expected one financial append, got %d", store.appendReplayCalls)
 	}
-	if store.lookupCalls != 0 {
-		t.Fatalf("fresh valid import must not perform recovery lookup, got %d calls", store.lookupCalls)
+	if store.lookupCalls != 1 {
+		t.Fatalf("fresh valid import must perform the canonical pre-admission replay lookup once, got %d calls", store.lookupCalls)
 	}
 
 	// The signed review token has a 15-minute lifetime. Advance beyond it while keeping the
@@ -89,8 +90,8 @@ func TestStage0332CompletedImportReplaysAfterReviewTokenExpires(t *testing.T) {
 	if store.appendReplayCalls != 1 {
 		t.Fatalf("expired-token replay executed financial append again: calls=%d", store.appendReplayCalls)
 	}
-	if store.lookupCalls != 1 {
-		t.Fatalf("expected one recovery lookup only after proof expiry, got %d", store.lookupCalls)
+	if store.lookupCalls != 2 {
+		t.Fatalf("expected canonical fresh lookup plus one recovery lookup after proof expiry, got %d", store.lookupCalls)
 	}
 }
 

@@ -193,6 +193,7 @@ func newStage336ReplayApp(t *testing.T) (*stage32ImportReplayStore, *verticalsli
 		service:                 service,
 		allowDevelopmentSubject: true,
 		authLimiter:             newAuthRateLimiter(20, time.Minute),
+		importAdmission:         newDefaultImportAdmission(),
 		importReviewSecret:      secret,
 		paginationCursorSecret:  derivePaginationCursorSecret(secret),
 		now:                     func() time.Time { return now },

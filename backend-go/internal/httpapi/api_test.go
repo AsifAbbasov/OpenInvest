@@ -949,6 +949,27 @@ func (store *importAPITestStore) AppendImportedTransactions(_ context.Context, _
 	return []verticalslice.Transaction{transaction}, nil
 }
 
+func (store *importAPITestStore) LookupReplayArtifact(context.Context, verticalslice.CommandContext, string) (verticalslice.CommandReplayArtifact, bool, error) {
+	return verticalslice.CommandReplayArtifact{}, false, nil
+}
+
+func (store *importAPITestStore) AppendImportedTransactionsWithOutcomeReplay(
+	ctx context.Context,
+	command verticalslice.CommandContext,
+	request verticalslice.AppendImportBatchRequest,
+	build verticalslice.ImportedTransactionsOutcomeReplayBuilder,
+) ([]verticalslice.Transaction, verticalslice.CommandReplayArtifact, error) {
+	transactions, err := store.AppendImportedTransactions(ctx, command, request)
+	if err != nil {
+		return nil, verticalslice.CommandReplayArtifact{}, err
+	}
+	artifact, err := build(verticalslice.ImportAppendOutcome{Transactions: transactions})
+	if err != nil {
+		return nil, verticalslice.CommandReplayArtifact{}, err
+	}
+	return transactions, artifact, nil
+}
+
 func (store *importAPITestStore) GetPortfolioSummary(context.Context, string, string, string) (verticalslice.PortfolioSummary, error) {
 	return verticalslice.PortfolioSummary{}, nil
 }

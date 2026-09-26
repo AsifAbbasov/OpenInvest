@@ -17,6 +17,17 @@ func (api *API) reviewImport(c fiber.Ctx) error {
 	if err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
+	release, err := api.acquireImportCapacity()
+	if err != nil {
+		return writeImportAdmissionError(c, meta, err)
+	}
+	defer release()
+	if err := api.admitImportExecution(subjectID); err != nil {
+		return writeImportAdmissionError(c, meta, err)
+	}
+	if err := api.admitFreshImport(subjectID); err != nil {
+		return writeImportAdmissionError(c, meta, err)
+	}
 	var request importReviewRequestDTO
 	if err := decodeStrictJSON(c.Request().Body(), &request); err != nil {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")

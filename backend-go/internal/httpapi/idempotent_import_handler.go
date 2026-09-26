@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -24,6 +25,14 @@ func (api *API) appendImportReplaySafe(c fiber.Ctx) error {
 	if err := verticalslice.ValidateIdempotencyKey(c.Get("Idempotency-Key")); err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
+	release, err := api.acquireImportCapacity()
+	if err != nil {
+		return writeImportAdmissionError(c, meta, err)
+	}
+	defer release()
+	if err := api.admitImportExecution(subjectID); err != nil {
+		return writeImportAdmissionError(c, meta, err)
+	}
 	var request importAppendRequestDTO
 	if err := decodeStrictJSON(c.Request().Body(), &request); err != nil {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")
@@ -37,26 +46,27 @@ func (api *API) appendImportReplaySafe(c fiber.Ctx) error {
 	if request.SourceFileHash != fileHash {
 		return writeMappedErrorWithMeta(c, meta, fmt.Errorf("%w: sourceFileHash does not match import payload", importer.ErrUnsafeAppend))
 	}
-
 	decisions := request.toAppDecisions()
-	preflightReview, reviewErr := importer.ReviewCSV(importer.ReviewRequest{
+	prepared, prepareErr := importflow.PrepareReplay(importflow.Request{
+		RequestContext:     meta.toApp(),
 		SubjectID:          subjectID,
 		PortfolioID:        portfolioID,
 		SourceKind:         importer.SourceKindUserUploadedFile,
 		SourceAccountLabel: request.SourceAccountLabel,
-		FileHash:           fileHash,
+		SourceFileHash:     request.SourceFileHash,
 		Reader:             strings.NewReader(request.CSVPayload),
+		Decisions:          decisions,
 	})
-	if reviewErr != nil {
+	if prepareErr != nil {
 		if artifact, found := api.recoverCompletedImportReplay(
 			c.Context(), meta.toApp(), subjectID, portfolioID, c.Get("Idempotency-Key"), c.Path(),
 			request.SourceAccountLabel, fileHash, request.ReviewToken, request.CSVPayload, decisions,
 		); found {
 			return writeCommandReplayArtifact(c, artifact)
 		}
-		return writeMappedErrorWithMeta(c, meta, reviewErr)
+		return writeMappedErrorWithMeta(c, meta, prepareErr)
 	}
-	if err := validateImportRowCount(preflightReview.Summary.TotalRows); err != nil {
+	if err := validateImportRowCount(prepared.Review.Summary.TotalRows); err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
 
@@ -67,7 +77,7 @@ func (api *API) appendImportReplaySafe(c fiber.Ctx) error {
 		importer.SourceKindUserUploadedFile,
 		request.SourceAccountLabel,
 		fileHash,
-		preflightReview,
+		prepared.Review,
 		decisions,
 	)
 	if verifyErr != nil {
@@ -83,26 +93,43 @@ func (api *API) appendImportReplaySafe(c fiber.Ctx) error {
 		return writeMappedErrorWithMeta(c, meta, verifyErr)
 	}
 
-	if err := importer.VerifyDecisionIdentities(preflightReview, request.toAppDecisionIdentities()); err != nil {
+	if err := importer.VerifyDecisionIdentities(prepared.Review, request.toAppDecisionIdentities()); err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
 
-	_, artifact, err := importflow.ReviewAndAppendWithReplay(
+	artifact, found, err := api.service.LookupImportedTransactionsReplay(
+		c.Context(), meta.toApp(), subjectID, c.Get("Idempotency-Key"), c.Path(), prepared.AppendRequest,
+	)
+	if err != nil {
+		return writeReplayAwareError(c, meta, err)
+	}
+	if found {
+		return writeCommandReplayArtifact(c, artifact)
+	}
+
+	if err := api.admitFreshImport(subjectID); err != nil {
+		if errors.Is(err, errImportRateLimited) {
+			artifact, found, replayErr := api.service.LookupImportedTransactionsReplay(
+				c.Context(), meta.toApp(), subjectID, c.Get("Idempotency-Key"), c.Path(), prepared.AppendRequest,
+			)
+			if replayErr != nil {
+				return writeReplayAwareError(c, meta, replayErr)
+			}
+			if found {
+				return writeCommandReplayArtifact(c, artifact)
+			}
+		}
+		return writeImportAdmissionError(c, meta, err)
+	}
+
+	_, artifact, err = importflow.AppendPreparedWithReplay(
 		c.Context(),
 		api.service,
-		importflow.Request{
-			RequestContext:     meta.toApp(),
-			SubjectID:          subjectID,
-			PortfolioID:        portfolioID,
-			IdempotencyKey:     c.Get("Idempotency-Key"),
-			RequestPath:        c.Path(),
-			SourceKind:         importer.SourceKindUserUploadedFile,
-			SourceAccountLabel: request.SourceAccountLabel,
-			SourceFileHash:     fileHash,
-			Existing:           nil,
-			Reader:             strings.NewReader(request.CSVPayload),
-			Decisions:          decisions,
-		},
+		meta.toApp(),
+		subjectID,
+		c.Get("Idempotency-Key"),
+		c.Path(),
+		prepared,
 		func(result importflow.Result) (verticalslice.CommandReplayArtifact, error) {
 			return buildCommandReplayArtifact(
 				meta,

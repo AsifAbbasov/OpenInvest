@@ -759,6 +759,7 @@ paths:
         "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
         "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
         "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
+        "503": { $ref: "./components/responses.yaml#/responses/ImportAdmissionUnavailable" }
 
   /api/v1/portfolios/{portfolioId}/imports/append:
     parameters:
@@ -771,7 +772,9 @@ paths:
       description: >-
         Re-parses the submitted CSV payload, applies explicit row decisions, revalidates
         duplicates/conflicts at append time, and atomically appends approved rows to the
-        immutable financial ledger. No review session or raw CSV payload is stored.
+        immutable financial ledger. Execution admission bounds all authenticated import work;
+        fresh-command admission is bounded independently from completed idempotent replays. No
+        review session or raw CSV payload is stored.
       tags: [Imports]
       parameters:
         - $ref: "#/components/parameters/IdempotencyKey"
@@ -788,7 +791,7 @@ paths:
         "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
         "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
         "409": { $ref: "./components/responses.yaml#/responses/FinancialMutationConflict" }
-        "503": { $ref: "./components/responses.yaml#/responses/ReplayStateUnavailable" }
+        "503": { $ref: "./components/responses.yaml#/responses/ImportAppendUnavailable" }
         "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
 
   /api/v1/dividends/calendar:

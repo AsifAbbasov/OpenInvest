@@ -29,5 +29,5 @@ func registerRoutes(app *fiber.App, api *API) {
 	app.Patch("/api/v1/portfolios/:portfolioId/transactions/:transactionId", api.correctTransactionReplay)
 	app.Delete("/api/v1/portfolios/:portfolioId/transactions/:transactionId", api.reverseTransactionReplay)
 	app.Post("/api/v1/portfolios/:portfolioId/imports/review", api.reviewImport)
-	app.Post("/api/v1/portfolios/:portfolioId/imports/append", api.appendImport)
+	app.Post("/api/v1/portfolios/:portfolioId/imports/append", api.appendImportReplaySafe)
 }

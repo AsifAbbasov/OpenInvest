@@ -38,6 +38,7 @@ func TestStage0338ExpiredImportProofCannotAuthorizeFreshWriteAfterReplayRetentio
 		service:                 service,
 		allowDevelopmentSubject: true,
 		authLimiter:             newAuthRateLimiter(20, time.Minute),
+		importAdmission:         newDefaultImportAdmission(),
 		importReviewSecret:      secret,
 		paginationCursorSecret:  derivePaginationCursorSecret(secret),
 		now:                     func() time.Time { return now },
@@ -62,7 +63,7 @@ func TestStage0338ExpiredImportProofCannotAuthorizeFreshWriteAfterReplayRetentio
 	if firstResponse.StatusCode != http.StatusCreated {
 		t.Fatalf("first import status: got %d want %d body=%s", firstResponse.StatusCode, http.StatusCreated, firstBody)
 	}
-	if store.appendReplayCalls != 1 || store.lookupCalls != 0 {
+	if store.appendReplayCalls != 1 || store.lookupCalls != 1 {
 		t.Fatalf("unexpected first-write calls: append=%d lookup=%d", store.appendReplayCalls, store.lookupCalls)
 	}
 
@@ -84,8 +85,8 @@ func TestStage0338ExpiredImportProofCannotAuthorizeFreshWriteAfterReplayRetentio
 	if secondResponse.StatusCode == http.StatusCreated {
 		t.Fatalf("expired proof plus missing retained replay authorized a fresh write: body=%s", secondBody)
 	}
-	if store.lookupCalls != 1 {
-		t.Fatalf("expected one read-only recovery lookup, got %d", store.lookupCalls)
+	if store.lookupCalls != 2 {
+		t.Fatalf("expected canonical fresh lookup plus one read-only recovery lookup, got %d", store.lookupCalls)
 	}
 	if store.appendReplayCalls != 1 {
 		t.Fatalf("expired proof triggered a second financial append: calls=%d", store.appendReplayCalls)
