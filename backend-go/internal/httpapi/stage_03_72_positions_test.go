@@ -205,6 +205,103 @@ func TestStage372PositionsHTTPRejectsInvalidOrSuppliedEmptyAsOfDate(t *testing.T
 	}
 }
 
+func TestPWEL002MalformedPortfolioUUIDFailsBeforeDownstreamWork(t *testing.T) {
+	testCases := []struct {
+		name         string
+		method       string
+		path         string
+		body         string
+		contentType  string
+		calls        func(*pwel002HTTPStore) int
+	}{
+		{
+			name:   "GET positions",
+			method: http.MethodGet,
+			path:   "/api/v1/portfolios/not-a-uuid/positions",
+			calls:  func(store *pwel002HTTPStore) int { return store.positionsCalls },
+		},
+		{
+			name:        "PUT manual valuation",
+			method:      http.MethodPut,
+			path:        "/api/v1/portfolios/not-a-uuid/valuations/SBER",
+			body:        `{"marketPrice":{"amount":"318.50000000","currency":"RUB"},"asOfDate":"2026-09-08"}`,
+			contentType: "application/json",
+			calls:       func(store *pwel002HTTPStore) int { return store.upsertCalls },
+		},
+		{
+			name:   "DELETE manual valuation",
+			method: http.MethodDelete,
+			path:   "/api/v1/portfolios/not-a-uuid/valuations/SBER",
+			calls:  func(store *pwel002HTTPStore) int { return store.clearCalls },
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			store := &pwel002HTTPStore{}
+			app := NewDevelopment(verticalslice.NewService(store, fixedHTTPClock{}))
+			request := httptest.NewRequest(testCase.method, testCase.path, strings.NewReader(testCase.body))
+			if testCase.contentType != "" {
+				request.Header.Set("Content-Type", testCase.contentType)
+			}
+			response, err := app.Test(request)
+			if err != nil {
+				t.Fatalf("request malformed portfolio UUID: %v", err)
+			}
+			defer response.Body.Close()
+			if response.StatusCode != http.StatusBadRequest {
+				t.Fatalf("status = %d, want %d", response.StatusCode, http.StatusBadRequest)
+			}
+			var payload errorResponse
+			if err := json.NewDecoder(response.Body).Decode(&payload); err != nil {
+				t.Fatalf("decode validation error: %v", err)
+			}
+			if payload.Error.Code != "VALIDATION_ERROR" {
+				t.Fatalf("error code = %q, want VALIDATION_ERROR", payload.Error.Code)
+			}
+			if calls := testCase.calls(store); calls != 0 {
+				t.Fatalf("malformed UUID reached downstream service: calls=%d", calls)
+			}
+		})
+	}
+}
+
+type pwel002HTTPStore struct {
+	importAPITestStore
+	positionsCalls int
+	upsertCalls    int
+	clearCalls     int
+}
+
+func (store *pwel002HTTPStore) GetPortfolioPositions(
+	_ context.Context,
+	_ string,
+	_ string,
+	_ string,
+) (verticalslice.PortfolioPositionsProjection, error) {
+	store.positionsCalls++
+	return verticalslice.PortfolioPositionsProjection{}, nil
+}
+
+func (store *pwel002HTTPStore) UpsertManualValuation(
+	_ context.Context,
+	_ string,
+	_ verticalslice.ManualValuationRequest,
+) error {
+	store.upsertCalls++
+	return nil
+}
+
+func (store *pwel002HTTPStore) ClearManualValuation(
+	_ context.Context,
+	_ string,
+	_ string,
+	_ string,
+) error {
+	store.clearCalls++
+	return nil
+}
+
 func decimalPtrHTTP(value decimal.Decimal) *decimal.Decimal {
 	copy := value
 	return &copy

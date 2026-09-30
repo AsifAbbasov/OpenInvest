@@ -64,11 +64,15 @@ func (api *API) getPortfolioPositions(c fiber.Ctx) error {
 	if err != nil {
 		return writeMappedError(c, err)
 	}
+	portfolioID, err := transactionRouteUUID(c, "portfolioId")
+	if err != nil {
+		return writeMappedError(c, err)
+	}
 	asOfDate, err := optionalQueryValue(c, "asOfDate")
 	if err != nil {
 		return writeMappedError(c, err)
 	}
-	projection, err := api.service.GetPortfolioPositions(c.Context(), subjectID, c.Params("portfolioId"), asOfDate)
+	projection, err := api.service.GetPortfolioPositions(c.Context(), subjectID, portfolioID, asOfDate)
 	if err != nil {
 		return writeMappedError(c, err)
 	}
@@ -81,6 +85,10 @@ func (api *API) upsertManualValuation(c fiber.Ctx) error {
 	if err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
+	portfolioID, err := transactionRouteUUID(c, "portfolioId")
+	if err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
 	var request manualValuationRequestDTO
 	if err := decodeStrictJSON(c.Request().Body(), &request); err != nil {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")
@@ -90,7 +98,7 @@ func (api *API) upsertManualValuation(c fiber.Ctx) error {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
 	projection, err := api.service.UpsertManualValuation(c.Context(), subjectID, verticalslice.ManualValuationRequest{
-		PortfolioID: c.Params("portfolioId"),
+		PortfolioID: portfolioID,
 		Ticker:      c.Params("ticker"),
 		Price:       price,
 		AsOfDate:    request.AsOfDate,
@@ -107,10 +115,14 @@ func (api *API) clearManualValuation(c fiber.Ctx) error {
 	if err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
+	portfolioID, err := transactionRouteUUID(c, "portfolioId")
+	if err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
 	projection, err := api.service.ClearManualValuation(
 		c.Context(),
 		subjectID,
-		c.Params("portfolioId"),
+		portfolioID,
 		c.Params("ticker"),
 	)
 	if err != nil {
