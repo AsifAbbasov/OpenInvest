@@ -553,6 +553,7 @@ paths:
               schema: { $ref: "./components/stage_03_76.yaml#/PortfolioPositionsResponse" }
               examples:
                 default: { $ref: "./examples/manual-valuations.json#/clearResponse" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
         "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
         "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
 
