@@ -11,7 +11,11 @@ import (
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
-const stage371SnapshotMethodology = "stage-03-71-position-cost-snapshot-v1"
+const (
+	stage371LegacySnapshotMethodology = "stage-03-71-position-cost-snapshot-v1"
+	stage371SnapshotMethodology       = "stage-03-71-position-cost-snapshot-v2"
+	legacyReturnStatusUnavailable     = "UNAVAILABLE"
+)
 
 func rebuildSnapshotStage371(ctx context.Context, tx *sql.Tx, portfolioID string, snapshotDate string, now time.Time) error {
 	positionValues, err := portfolioAcquisitionValuesTx(ctx, tx, portfolioID, snapshotDate)
@@ -28,7 +32,7 @@ func rebuildSnapshotStage371(ctx context.Context, tx *sql.Tx, portfolioID string
         INSERT INTO analytics.portfolio_snapshots (
             id, portfolio_id, snapshot_date,
             total_value_amount, cash_value_amount, stock_value_amount, bond_value_amount,
-            invested_capital_amount, nominal_return_rate, real_return_rate,
+            invested_capital_amount, nominal_return_rate, real_return_rate, legacy_return_status,
             snapshot_version, methodology_version, input_watermark, calculated_at
         )
         WITH computed AS (
@@ -37,16 +41,12 @@ func rebuildSnapshotStage371(ctx context.Context, tx *sql.Tx, portfolioID string
                 $6::numeric AS stock_value,
                 $7::numeric AS bond_value,
                 $8::numeric AS invested_capital,
-                $5::numeric + $6::numeric + $7::numeric AS total_value,
-                CASE WHEN $8::numeric > 0
-                    THEN (($5::numeric + $6::numeric + $7::numeric) - $8::numeric) / $8::numeric
-                    ELSE 0
-                END AS nominal_return_rate
+                $5::numeric + $6::numeric + $7::numeric AS total_value
         )
         SELECT
             $1, $2, $3::date,
             total_value, cash_value, stock_value, bond_value,
-            invested_capital, nominal_return_rate, nominal_return_rate,
+            invested_capital, 0::numeric, 0::numeric, $11,
             COALESCE((
                 SELECT MAX(snapshot_version) + 1
                 FROM analytics.portfolio_snapshots
@@ -62,10 +62,9 @@ func rebuildSnapshotStage371(ctx context.Context, tx *sql.Tx, portfolioID string
             AND round(stock_value, 8) BETWEEN -99999999999999999999.99999999 AND 99999999999999999999.99999999
             AND round(bond_value, 8) BETWEEN -99999999999999999999.99999999 AND 99999999999999999999.99999999
             AND round(invested_capital, 8) BETWEEN -99999999999999999999.99999999 AND 99999999999999999999.99999999
-            AND round(nominal_return_rate, 8) BETWEEN -99999999999999999999.99999999 AND 99999999999999999999.99999999
-    `, snapshotID, portfolioID, snapshotDate, now,
+	`, snapshotID, portfolioID, snapshotDate, now,
 		cashValue.String(), positionValues.Stock.String(), positionValues.Bond.String(), investedCapital.String(),
-		stage371SnapshotMethodology, watermark)
+		stage371SnapshotMethodology, watermark, legacyReturnStatusUnavailable)
 	if err != nil {
 		return err
 	}

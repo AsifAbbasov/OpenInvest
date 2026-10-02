@@ -60,7 +60,9 @@ PortfolioReturnAvailable:
     terminalPortfolioValue:
       $ref: "./schemas.yaml#/PositiveMoney"
       description: >-
-        Exact-asOfDate RUB portfolio value from COMPLETE Stage 3.76 USER_SUPPLIED manual valuation coverage plus canonical cash.
+        Exact-asOfDate terminal market value for XIRR: canonical cash plus eligible USER_SUPPLIED manual
+        market valuation of every open position under COMPLETE Stage 3.76 coverage. This is intentionally
+        distinct from PortfolioSummary.totalValue, which is a local acquisition-cost snapshot.
     calculation:
       $ref: "#/PortfolioReturnCalculation"
 

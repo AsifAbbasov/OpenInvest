@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/openinvest/openinvest/backend-go/internal/decimal"
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
@@ -42,7 +41,6 @@ func (store *oiNew08SummaryHTTPStore) GetPortfolioSummary(
 		InvestedCapital:   zero,
 		DividendsReceived: zero,
 		CouponsReceived:   zero,
-		NominalReturnRate: decimal.Zero(),
 		PurchasingPower: verticalslice.PurchasingPower{
 			PortfolioValue: zero,
 			AsOfDate:       selected,
@@ -74,8 +72,10 @@ func TestOINew08SummaryHTTPOmittedAsOfDatePreservesOmittedMode(t *testing.T) {
 
 	var payload struct {
 		Data struct {
-			AsOfDate    string `json:"asOfDate"`
-			Calculation struct {
+			AsOfDate          string  `json:"asOfDate"`
+			NominalReturnRate *string `json:"nominalReturnRate"`
+			RealReturn        any     `json:"realReturn"`
+			Calculation       struct {
 				InputsAsOf string `json:"inputsAsOf"`
 			} `json:"calculation"`
 		} `json:"data"`
@@ -85,6 +85,9 @@ func TestOINew08SummaryHTTPOmittedAsOfDatePreservesOmittedMode(t *testing.T) {
 	}
 	if payload.Data.AsOfDate != "2099-01-01" || payload.Data.Calculation.InputsAsOf != "2099-01-01" {
 		t.Fatalf("selected future snapshot date must remain authoritative: %+v", payload.Data)
+	}
+	if payload.Data.NominalReturnRate != nil || payload.Data.RealReturn != nil {
+		t.Fatalf("summary HTTP must keep unavailable legacy returns null: %+v", payload.Data)
 	}
 }
 

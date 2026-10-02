@@ -712,7 +712,8 @@ func oiNew04SnapshotFingerprints(t *testing.T, db *sql.DB, portfolioID string) [
 		SELECT DISTINCT ON (snapshot_date)
 			snapshot_date::text, cash_value_amount::text, stock_value_amount::text, bond_value_amount::text,
 			invested_capital_amount::text, input_watermark, total_value_amount::text,
-			nominal_return_rate::text, real_return_rate::text, methodology_version, snapshot_version
+			nominal_return_rate::text, real_return_rate::text, legacy_return_status,
+			methodology_version, snapshot_version
 		FROM analytics.portfolio_snapshots
 		WHERE portfolio_id=$1::uuid
 		ORDER BY snapshot_date, snapshot_version DESC
@@ -723,12 +724,12 @@ func oiNew04SnapshotFingerprints(t *testing.T, db *sql.DB, portfolioID string) [
 	defer rows.Close()
 	var out []string
 	for rows.Next() {
-		var date, cash, stock, bond, invested, watermark, total, nominal, real, methodology string
+		var date, cash, stock, bond, invested, watermark, total, nominal, real, legacyStatus, methodology string
 		var version int64
-		if err := rows.Scan(&date, &cash, &stock, &bond, &invested, &watermark, &total, &nominal, &real, &methodology, &version); err != nil {
+		if err := rows.Scan(&date, &cash, &stock, &bond, &invested, &watermark, &total, &nominal, &real, &legacyStatus, &methodology, &version); err != nil {
 			t.Fatalf("scan snapshot fingerprint: %v", err)
 		}
-		out = append(out, strings.Join([]string{date, cash, stock, bond, invested, watermark, total, nominal, real, methodology, fmt.Sprint(version)}, "|"))
+		out = append(out, strings.Join([]string{date, cash, stock, bond, invested, watermark, total, nominal, real, legacyStatus, methodology, fmt.Sprint(version)}, "|"))
 	}
 	if err := rows.Err(); err != nil {
 		t.Fatalf("snapshot fingerprint rows: %v", err)

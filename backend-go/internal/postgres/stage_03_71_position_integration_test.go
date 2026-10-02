@@ -17,7 +17,7 @@ import (
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
-const stage371SnapshotMethodologyTest = "stage-03-71-position-cost-snapshot-v1"
+const stage371SnapshotMethodologyTest = "stage-03-71-position-cost-snapshot-v2"
 
 type stage371Harness struct {
 	ctx         context.Context

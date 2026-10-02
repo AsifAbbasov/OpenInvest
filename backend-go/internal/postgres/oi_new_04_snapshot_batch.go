@@ -114,10 +114,6 @@ func insertReplaySnapshotsBatchTx(
 				i.bond_value,
 				i.invested_capital,
 				i.cash_value + i.stock_value + i.bond_value AS total_value,
-				CASE WHEN i.invested_capital > 0
-					THEN ((i.cash_value + i.stock_value + i.bond_value) - i.invested_capital) / i.invested_capital
-					ELSE 0
-				END AS nominal_return_rate,
 				v.snapshot_version,
 				i.input_watermark
 			FROM input i
@@ -126,13 +122,13 @@ func insertReplaySnapshotsBatchTx(
 		INSERT INTO analytics.portfolio_snapshots (
 			id, portfolio_id, snapshot_date,
 			total_value_amount, cash_value_amount, stock_value_amount, bond_value_amount,
-			invested_capital_amount, nominal_return_rate, real_return_rate,
+			invested_capital_amount, nominal_return_rate, real_return_rate, legacy_return_status,
 			snapshot_version, methodology_version, input_watermark, calculated_at
 		)
 		SELECT
 			id, $1::uuid, snapshot_date,
 			total_value, cash_value, stock_value, bond_value,
-			invested_capital, nominal_return_rate, nominal_return_rate,
+			invested_capital, 0::numeric, 0::numeric, $5,
 			snapshot_version, $3, input_watermark, $4
 		FROM computed
 		WHERE
@@ -141,9 +137,8 @@ func insertReplaySnapshotsBatchTx(
 			AND round(stock_value, 8) BETWEEN -99999999999999999999.99999999 AND 99999999999999999999.99999999
 			AND round(bond_value, 8) BETWEEN -99999999999999999999.99999999 AND 99999999999999999999.99999999
 			AND round(invested_capital, 8) BETWEEN -99999999999999999999.99999999 AND 99999999999999999999.99999999
-			AND round(nominal_return_rate, 8) BETWEEN -99999999999999999999.99999999 AND 99999999999999999999.99999999
 		ORDER BY snapshot_date
-	`, portfolioID, string(payload), stage371SnapshotMethodology, now)
+	`, portfolioID, string(payload), stage371SnapshotMethodology, now, legacyReturnStatusUnavailable)
 	if err != nil {
 		return err
 	}

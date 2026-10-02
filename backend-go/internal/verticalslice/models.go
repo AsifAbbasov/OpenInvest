@@ -202,24 +202,11 @@ type PortfolioSummary struct {
 	InvestedCapital    Money
 	DividendsReceived  Money
 	CouponsReceived    Money
-	NominalReturnRate  decimal.Decimal
 	XIRR               *decimal.Decimal
-	RealReturn         RealReturn
 	PurchasingPower    PurchasingPower
 	Positions          []PortfolioPosition
 	MethodologyVersion string
 	CalculatedAt       time.Time
-}
-
-type RealReturn struct {
-	NominalReturnRate decimal.Decimal
-	InflationRate     decimal.Decimal
-	RealReturnRate    decimal.Decimal
-	NominalGain       Money
-	RealGain          Money
-	FromDate          string
-	ToDate            string
-	Methodology       string
 }
 
 type PurchasingPower struct {
