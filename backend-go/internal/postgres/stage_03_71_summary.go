@@ -59,7 +59,6 @@ func getPortfolioSummaryStage371(
 	var stockValue string
 	var bondValue string
 	var investedCapital string
-	var nominalReturn string
 	var calculatedAt time.Time
 	args := []any{portfolioID}
 	dateFilter := ""
@@ -71,7 +70,7 @@ func getPortfolioSummaryStage371(
 	err := db.QueryRowContext(ctx, `
 		SELECT portfolio_id, snapshot_date::text, total_value_amount::text, cash_value_amount::text,
 			stock_value_amount::text, bond_value_amount::text, invested_capital_amount::text,
-			nominal_return_rate::text, methodology_version, calculated_at
+			methodology_version, calculated_at
 		FROM analytics.portfolio_snapshots
 		WHERE portfolio_id = $1
 			AND snapshot_status = 'calculated'
@@ -79,6 +78,7 @@ func getPortfolioSummaryStage371(
 		ORDER BY
 			snapshot_date DESC,
 			CASE methodology_version
+				WHEN 'stage-03-71-position-cost-snapshot-v2' THEN 3
 				WHEN 'stage-03-71-position-cost-snapshot-v1' THEN 2
 				WHEN 'stage-03-02-local-cost-snapshot-v1' THEN 1
 				ELSE 0
@@ -95,7 +95,6 @@ func getPortfolioSummaryStage371(
 		&stockValue,
 		&bondValue,
 		&investedCapital,
-		&nominalReturn,
 		&summary.MethodologyVersion,
 		&calculatedAt,
 	)
@@ -113,17 +112,6 @@ func getPortfolioSummaryStage371(
 	summary.InvestedCapital = verticalslice.Money{Amount: decimal.Must(investedCapital), Currency: verticalslice.RUB}
 	summary.DividendsReceived = verticalslice.ZeroMoney()
 	summary.CouponsReceived = verticalslice.ZeroMoney()
-	summary.NominalReturnRate = decimal.Must(nominalReturn)
-	summary.RealReturn = verticalslice.RealReturn{
-		NominalReturnRate: summary.NominalReturnRate,
-		InflationRate:     decimal.Zero(),
-		RealReturnRate:    summary.NominalReturnRate,
-		NominalGain:       summary.TotalValue.Sub(summary.InvestedCapital),
-		RealGain:          summary.TotalValue.Sub(summary.InvestedCapital),
-		FromDate:          summary.AsOfDate,
-		ToDate:            summary.AsOfDate,
-		Methodology:       "stage-03-02-no-inflation-placeholder-v1",
-	}
 	summary.PurchasingPower = verticalslice.PurchasingPower{
 		PortfolioValue: summary.TotalValue,
 		AsOfDate:       summary.AsOfDate,

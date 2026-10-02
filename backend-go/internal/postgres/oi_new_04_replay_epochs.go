@@ -480,7 +480,7 @@ func loadLatestReplayEpochTx(ctx context.Context, tx *sql.Tx, portfolioID string
 	if epoch.PolicyVersion != policy.PolicyVersion ||
 		epoch.ActivationGeneration != policy.ActivationGeneration ||
 		epoch.PositionMethodology != replayPositionMethodology ||
-		epoch.SnapshotMethodology != replaySnapshotMethodology ||
+		!replaySnapshotMethodologySupported(epoch.SnapshotMethodology) ||
 		epoch.BoundaryLogicalSequence > epoch.BuildRawLedgerWatermark ||
 		epoch.EpochGeneration <= 0 || len(epoch.SourceStateSHA256) != 64 {
 		return replayEpoch{}, ErrReplayStateStale
@@ -1240,8 +1240,13 @@ func appendRuntimeReplayEpochTx(ctx context.Context, tx *sql.Tx, previous replay
 	epoch.ID = uuid.NewString()
 	epoch.EpochGeneration++
 	epoch.BuildRawLedgerWatermark = buildWatermark
+	epoch.SnapshotMethodology = replaySnapshotMethodology
 	epoch.SourceStateSHA256 = replaySourceStateDigest(epoch, finalState)
 	return insertReplayEpochTx(ctx, tx, epoch, now)
+}
+
+func replaySnapshotMethodologySupported(value string) bool {
+	return value == replaySnapshotMethodology || value == stage371LegacySnapshotMethodology
 }
 
 func insertReplayEpochTx(ctx context.Context, tx *sql.Tx, epoch replayEpoch, now time.Time) error {

@@ -167,10 +167,11 @@
             "stockValue": { "amount": "1900000.00000000", "currency": "RUB" },
             "bondValue": { "amount": "400000.00000000", "currency": "RUB" },
             "investedCapital": { "amount": "2100000.00000000", "currency": "RUB" },
-            "nominalReturnRate": "0.15714286",
-            "realReturnRate": "0.06452885",
+            "nominalReturnRate": null,
+            "realReturnRate": null,
+            "legacyReturnStatus": "UNAVAILABLE",
             "snapshotVersion": 1,
-            "methodologyVersion": "portfolio-snapshot-v1",
+            "methodologyVersion": "stage-03-71-position-cost-snapshot-v2",
             "calculatedAt": "2026-06-20T02:00:00Z"
           }
         ],

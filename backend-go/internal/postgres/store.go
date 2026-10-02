@@ -1166,7 +1166,7 @@ func rebuildSnapshot(ctx context.Context, tx *sql.Tx, portfolioID string, snapsh
 		INSERT INTO analytics.portfolio_snapshots (
 			id, portfolio_id, snapshot_date,
 			total_value_amount, cash_value_amount, stock_value_amount, bond_value_amount,
-			invested_capital_amount, nominal_return_rate, real_return_rate,
+			invested_capital_amount, nominal_return_rate, real_return_rate, legacy_return_status,
 			snapshot_version, methodology_version, input_watermark, calculated_at
 		)
 		WITH ledger AS (
@@ -1201,17 +1201,13 @@ func rebuildSnapshot(ctx context.Context, tx *sql.Tx, portfolioID string, snapsh
 				bond_value,
 				invested_capital,
 				cash_value + stock_value + bond_value AS total_value,
-				CASE WHEN invested_capital > 0
-					THEN ((cash_value + stock_value + bond_value) - invested_capital) / invested_capital
-					ELSE 0
-				END AS nominal_return_rate,
 				watermark
 			FROM ledger
 		)
 		SELECT
 			$1, $2, $3::date,
 			total_value, cash_value, stock_value, bond_value,
-			invested_capital, nominal_return_rate, nominal_return_rate,
+			invested_capital, 0::numeric, 0::numeric, 'UNAVAILABLE',
 				COALESCE((
 					SELECT MAX(snapshot_version) + 1
 					FROM analytics.portfolio_snapshots
@@ -1227,7 +1223,6 @@ func rebuildSnapshot(ctx context.Context, tx *sql.Tx, portfolioID string, snapsh
 			AND round(stock_value, 8) BETWEEN -99999999999999999999.99999999 AND 99999999999999999999.99999999
 			AND round(bond_value, 8) BETWEEN -99999999999999999999.99999999 AND 99999999999999999999.99999999
 			AND round(invested_capital, 8) BETWEEN -99999999999999999999.99999999 AND 99999999999999999999.99999999
-			AND round(nominal_return_rate, 8) BETWEEN -99999999999999999999.99999999 AND 99999999999999999999.99999999
 	`, snapshotID, portfolioID, snapshotDate, now)
 	if err != nil {
 		return err
@@ -1249,7 +1244,6 @@ func getPortfolioSummary(ctx context.Context, db *sql.DB, portfolioID string, as
 	var stockValue string
 	var bondValue string
 	var investedCapital string
-	var nominalReturn string
 	var calculatedAt time.Time
 	args := []any{portfolioID}
 	dateFilter := ""
@@ -1260,7 +1254,7 @@ func getPortfolioSummary(ctx context.Context, db *sql.DB, portfolioID string, as
 	err := db.QueryRowContext(ctx, `
 		SELECT portfolio_id, snapshot_date::text, total_value_amount::text, cash_value_amount::text,
 			stock_value_amount::text, bond_value_amount::text, invested_capital_amount::text,
-			nominal_return_rate::text, methodology_version, calculated_at
+			methodology_version, calculated_at
 		FROM analytics.portfolio_snapshots
 		WHERE portfolio_id = $1 AND snapshot_status = 'calculated'
 		`+dateFilter+`
@@ -1268,7 +1262,7 @@ func getPortfolioSummary(ctx context.Context, db *sql.DB, portfolioID string, as
 		LIMIT 1
 	`, args...).Scan(
 		&summary.PortfolioID, &summary.AsOfDate, &totalValue, &cashValue,
-		&stockValue, &bondValue, &investedCapital, &nominalReturn,
+		&stockValue, &bondValue, &investedCapital,
 		&summary.MethodologyVersion, &calculatedAt,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -1284,17 +1278,6 @@ func getPortfolioSummary(ctx context.Context, db *sql.DB, portfolioID string, as
 	summary.InvestedCapital = verticalslice.Money{Amount: decimal.Must(investedCapital), Currency: verticalslice.RUB}
 	summary.DividendsReceived = verticalslice.ZeroMoney()
 	summary.CouponsReceived = verticalslice.ZeroMoney()
-	summary.NominalReturnRate = decimal.Must(nominalReturn)
-	summary.RealReturn = verticalslice.RealReturn{
-		NominalReturnRate: summary.NominalReturnRate,
-		InflationRate:     decimal.Zero(),
-		RealReturnRate:    summary.NominalReturnRate,
-		NominalGain:       summary.TotalValue.Sub(summary.InvestedCapital),
-		RealGain:          summary.TotalValue.Sub(summary.InvestedCapital),
-		FromDate:          summary.AsOfDate,
-		ToDate:            summary.AsOfDate,
-		Methodology:       "stage-03-02-no-inflation-placeholder-v1",
-	}
 	summary.PurchasingPower = verticalslice.PurchasingPower{
 		PortfolioValue: summary.TotalValue,
 		AsOfDate:       summary.AsOfDate,

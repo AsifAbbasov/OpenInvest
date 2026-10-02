@@ -1313,14 +1313,22 @@ PortfolioSummary:
       $ref: "#/BusinessDate"
     totalValue:
       $ref: "#/Money"
+      description: >-
+        Local snapshot value: canonical cash plus the remaining local acquisition-cost basis of open
+        positions. It is not current market value, not terminal market value, and not a performance metric.
     cashValue:
       $ref: "#/Money"
     stockValue:
       $ref: "#/NonNegativeMoney"
+      description: Local remaining acquisition-cost basis for open stock positions, not market valuation.
     bondValue:
       $ref: "#/NonNegativeMoney"
+      description: Local remaining acquisition-cost basis for open bond positions, not market valuation.
     investedCapital:
       $ref: "#/NonNegativeMoney"
+      description: >-
+        Cumulative BUY acquisition outflow basis, not external investor contribution capital and not a
+        return denominator.
     dividendsReceived:
       $ref: "#/NonNegativeMoney"
       description: >-
@@ -1454,6 +1462,7 @@ PortfolioSnapshot:
     - investedCapital
     - nominalReturnRate
     - realReturnRate
+    - legacyReturnStatus
     - snapshotVersion
     - methodologyVersion
     - calculatedAt
@@ -1468,18 +1477,39 @@ PortfolioSnapshot:
       $ref: "#/BusinessDate"
     totalValue:
       $ref: "#/Money"
+      description: >-
+        Local snapshot value: canonical cash plus remaining acquisition-cost basis. It is not current
+        market value, not terminal market value, and not a performance metric.
     cashValue:
       $ref: "#/Money"
     stockValue:
       $ref: "#/NonNegativeMoney"
+      description: Local remaining acquisition-cost basis for open stock positions, not market valuation.
     bondValue:
       $ref: "#/NonNegativeMoney"
+      description: Local remaining acquisition-cost basis for open bond positions, not market valuation.
     investedCapital:
       $ref: "#/NonNegativeMoney"
+      description: Cumulative BUY acquisition outflow basis, not external investor contribution capital.
     nominalReturnRate:
-      $ref: "#/Decimal"
+      oneOf:
+        - $ref: "#/Decimal"
+        - type: "null"
+      description: >-
+        Null while legacy return status is UNAVAILABLE. Numeric database storage under that status is an
+        unavailable legacy placeholder, not a calculated nominal return.
     realReturnRate:
-      $ref: "#/Decimal"
+      oneOf:
+        - $ref: "#/Decimal"
+        - type: "null"
+      description: >-
+        Null while legacy return status is UNAVAILABLE. No real-return or inflation methodology is active.
+    legacyReturnStatus:
+      type: string
+      enum: [UNAVAILABLE]
+      description: >-
+        The persisted nominal and real return columns are not an approved return methodology and must not
+        be interpreted as calculated performance.
     snapshotVersion:
       type: integer
       minimum: 1

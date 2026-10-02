@@ -81,7 +81,7 @@ func TestStage371SummaryPrefersSerializedVersionOverCalculatedAt(t *testing.T) {
 		FROM analytics.portfolio_snapshots
 		WHERE portfolio_id = $1
 			AND snapshot_date = '2026-09-06'::date
-			AND methodology_version = 'stage-03-71-position-cost-snapshot-v1'
+			AND methodology_version = 'stage-03-71-position-cost-snapshot-v2'
 	`, portfolio.ID).Scan(&stage371Count, &maxVersion); err != nil {
 		t.Fatalf("query Stage 3.71 snapshot versions: %v", err)
 	}
@@ -98,7 +98,7 @@ func TestStage371SummaryPrefersSerializedVersionOverCalculatedAt(t *testing.T) {
 		END
 		WHERE portfolio_id = $1
 			AND snapshot_date = '2026-09-06'::date
-			AND methodology_version = 'stage-03-71-position-cost-snapshot-v1'
+			AND methodology_version = 'stage-03-71-position-cost-snapshot-v2'
 	`, portfolio.ID); err != nil {
 		t.Fatalf("invert Stage 3.71 calculated_at chronology: %v", err)
 	}
@@ -118,17 +118,37 @@ func TestStage371SummaryPrefersSerializedVersionOverCalculatedAt(t *testing.T) {
 		FROM analytics.portfolio_snapshots
 		WHERE portfolio_id = $1
 			AND snapshot_date = '2026-09-06'::date
-			AND methodology_version = 'stage-03-71-position-cost-snapshot-v1'
+			AND methodology_version = 'stage-03-71-position-cost-snapshot-v2'
 			AND snapshot_version = 2
 	`, portfolio.ID, uuid.NewString()); err != nil {
 		t.Fatalf("insert preserved Stage 3.02 competing snapshot: %v", err)
+	}
+	if _, err := db.ExecContext(ctx, `
+		INSERT INTO analytics.portfolio_snapshots (
+			id, portfolio_id, snapshot_date,
+			total_value_amount, cash_value_amount, stock_value_amount, bond_value_amount,
+			invested_capital_amount, nominal_return_rate, real_return_rate,
+			snapshot_version, methodology_version, input_watermark, calculated_at
+		)
+		SELECT
+			$2::uuid, portfolio_id, snapshot_date,
+			888.00000000, cash_value_amount, 888.00000000, bond_value_amount,
+			invested_capital_amount, nominal_return_rate, real_return_rate,
+			100, 'stage-03-71-position-cost-snapshot-v1', input_watermark, '2101-01-01T00:00:00Z'::timestamptz
+		FROM analytics.portfolio_snapshots
+		WHERE portfolio_id = $1
+			AND snapshot_date = '2026-09-06'::date
+			AND methodology_version = 'stage-03-71-position-cost-snapshot-v2'
+			AND snapshot_version = 2
+	`, portfolio.ID, uuid.NewString()); err != nil {
+		t.Fatalf("insert preserved Stage 3.71 v1 competing snapshot: %v", err)
 	}
 
 	summary, err := service.GetPortfolioSummary(ctx, subjectID, portfolio.ID, "2026-09-06")
 	if err != nil {
 		t.Fatalf("get deterministic Stage 3.71 summary: %v", err)
 	}
-	if summary.MethodologyVersion != "stage-03-71-position-cost-snapshot-v1" {
+	if summary.MethodologyVersion != "stage-03-71-position-cost-snapshot-v2" {
 		t.Fatalf("expected Stage 3.71 methodology to outrank preserved Stage 3.02 snapshot, got %s", summary.MethodologyVersion)
 	}
 	if got := summary.StockValue.Amount.String(); got != "300.00000000" {
