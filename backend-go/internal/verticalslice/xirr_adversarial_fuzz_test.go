@@ -20,14 +20,16 @@ func FuzzXIRRAdversarialSequence(f *testing.F) {
 		if count < 1 {
 			return
 		}
-		if spanDays == 0 {
-			spanDays = 1
+
+		span := int(spanDays)
+		if span == 0 {
+			span = 1
 		}
 
 		base, _ := time.Parse("2006-01-02", "2020-01-01")
 		flows := make([]PortfolioReturnCashFlow, 0, count)
 		for i := 0; i < count; i++ {
-			day := int(raw[2*i]) % int(spanDays+1)
+			day := int(raw[2*i]) % (span + 1)
 			magnitude := uint64(raw[2*i+1]) + 1
 			amountText := fuzzXIRRDecimal(magnitude)
 			if i%2 == 0 {
@@ -41,7 +43,7 @@ func FuzzXIRRAdversarialSequence(f *testing.F) {
 
 		terminalText := fuzzXIRRDecimal(terminalRaw%1000000 + 1)
 		terminal := Money{Amount: decimal.Must(terminalText), Currency: RUB}
-		asOf := base.AddDate(0, 0, int(spanDays)).Format("2006-01-02")
+		asOf := base.AddDate(0, 0, span).Format("2006-01-02")
 
 		first, err := BuildPortfolioReturnProjection("fuzz", asOf, flows, &terminal, true)
 		if err != nil {
