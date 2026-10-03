@@ -28,7 +28,10 @@ func rebuildPortfolioPositionsTx(
 	if err != nil {
 		return nil, nil, err
 	}
+	return rebuildPortfolioPositionsFromEffectiveRows(ledgerRows)
+}
 
+func rebuildPortfolioPositionsFromEffectiveRows(ledgerRows []effectiveLedgerRow) ([]rebuiltPortfolioPosition, *string, error) {
 	positions := make([]rebuiltPortfolioPosition, 0)
 	positionIndex := map[string]int{}
 	var latestIncludedTradeDate *string

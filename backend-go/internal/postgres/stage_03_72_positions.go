@@ -68,7 +68,11 @@ func portfolioPositionsProjectionTx(
 	portfolioID string,
 	asOfDate string,
 ) (verticalslice.PortfolioPositionsProjection, error) {
-	rebuilt, latestIncludedTradeDate, err := rebuildPortfolioPositionsTx(ctx, tx, portfolioID, asOfDate)
+	ledgerRows, err := effectiveLedgerRowsTx(ctx, tx, portfolioID, asOfDate)
+	if err != nil {
+		return verticalslice.PortfolioPositionsProjection{}, err
+	}
+	rebuilt, latestIncludedTradeDate, err := rebuildPortfolioPositionsFromEffectiveRows(ledgerRows)
 	if err != nil {
 		return verticalslice.PortfolioPositionsProjection{}, err
 	}
@@ -76,7 +80,7 @@ func portfolioPositionsProjectionTx(
 	if err != nil {
 		return verticalslice.PortfolioPositionsProjection{}, err
 	}
-	cashValue, err := effectiveProjectionCashTx(ctx, tx, portfolioID, asOfDate)
+	cashValue, err := effectiveProjectionCashFromEffectiveRows(ledgerRows)
 	if err != nil {
 		return verticalslice.PortfolioPositionsProjection{}, err
 	}
@@ -387,6 +391,10 @@ func effectiveProjectionCashTx(
 	if err != nil {
 		return decimal.Zero(), err
 	}
+	return effectiveProjectionCashFromEffectiveRows(rows)
+}
+
+func effectiveProjectionCashFromEffectiveRows(rows []effectiveLedgerRow) (decimal.Decimal, error) {
 	amounts := zeroCashFlowAmounts()
 	for _, row := range rows {
 		if err := amounts.apply(row); err != nil {
