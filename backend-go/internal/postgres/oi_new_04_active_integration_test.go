@@ -226,10 +226,15 @@ func TestOINew04ActiveCPrimeIndependentReviewSuite(t *testing.T) {
 	oiNew04AppendTradeReplay(t, h.ctx, activeService, wacSubject, wacPortfolio.ID, "BUY", "SBER", "10.00000000", "200.00000000", "2026-02-02", uuid.NewString())
 	oiNew04AppendTradeReplay(t, h.ctx, activeService, wacSubject, wacPortfolio.ID, "SELL", "SBER", "5.00000000", "999.00000000", "2026-02-03", uuid.NewString())
 	oiNew04ReverseReplay(t, h.ctx, activeService, wacSubject, wacPortfolio.ID, firstBuy, "2026-02-04", uuid.NewString())
-	projection, err := activeService.GetPortfolioPositions(h.ctx, wacSubject, wacPortfolio.ID, "2026-02-04")
+	projectionInstrumentation := &effectiveLedgerInstrumentation{}
+	projection, err := activeService.GetPortfolioPositions(withEffectiveLedgerInstrumentation(h.ctx, projectionInstrumentation), wacSubject, wacPortfolio.ID, "2026-02-04")
 	if err != nil {
 		t.Fatalf("non-invertible WAC projection: %v", err)
 	}
+	if got := projectionInstrumentation.materializations.Load(); got != 1 {
+		t.Fatalf("one canonical positions projection materialized the effective ledger %d times, want 1", got)
+	}
+	t.Log("ONE_EFFECTIVE_LEDGER_MATERIALIZATION_PER_PROJECTION=PASS")
 	if len(projection.Items) != 1 {
 		t.Fatalf("non-invertible WAC projection items=%d want1", len(projection.Items))
 	}

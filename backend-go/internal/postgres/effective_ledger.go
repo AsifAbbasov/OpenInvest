@@ -99,6 +99,7 @@ func effectiveLedgerRowsTx(ctx context.Context, tx *sql.Tx, portfolioID string, 
 	if err := validateEffectiveLedgerShapeTx(ctx, tx, portfolioID); err != nil {
 		return nil, err
 	}
+	countEffectiveLedgerMaterialization(ctx)
 	rows, err := tx.QueryContext(ctx, `
         WITH revisioned AS (
             SELECT
