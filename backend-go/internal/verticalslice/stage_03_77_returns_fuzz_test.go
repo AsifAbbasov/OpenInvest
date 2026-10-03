@@ -2,6 +2,8 @@ package verticalslice
 
 import (
 	"testing"
+
+	"github.com/openinvest/openinvest/backend-go/internal/decimal"
 )
 
 func FuzzParseBusinessDate(f *testing.F) {
@@ -35,11 +37,11 @@ func FuzzXIRRTwoFlowProjection(f *testing.F) {
 	f.Add("2026-01-01", "2025-01-01", "100.00000000", "110.00000000")
 
 	f.Fuzz(func(t *testing.T, firstDate, secondDate, contributionText, terminalText string) {
-		contribution, err := parseFuzzDecimal(contributionText)
+		contribution, err := decimal.FromString(contributionText)
 		if err != nil || !contribution.IsPositive() {
 			return
 		}
-		terminal, err := parseFuzzDecimal(terminalText)
+		terminal, err := decimal.FromString(terminalText)
 		if err != nil || terminal.IsNegative() {
 			return
 		}
@@ -51,7 +53,7 @@ func FuzzXIRRTwoFlowProjection(f *testing.F) {
 		}
 
 		flows := []PortfolioReturnCashFlow{
-			{Date: firstDate, Amount: contribution.Mul(decimalMinusOne)},
+			{Date: firstDate, Amount: contribution.Mul(decimal.Must("-1"))},
 			{Date: secondDate, Amount: terminal},
 		}
 		terms, err := xirrTerms(flows)
