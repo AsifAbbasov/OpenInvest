@@ -84,11 +84,9 @@ WHERE t.tgisinternal
 SQL
 }
 apply_migrations(){
-  local db="$1" migration
-  for migration in "${MIGRATIONS[@]}"; do
-    echo "Applying $(basename "$migration") to $db"
-    psql_db "$db" < "$migration" >/dev/null
-  done
+  local db="$1"
+  OPENINVEST_DATABASE_OWNER_URL="postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:${POSTGRES_PORT}/${db}?sslmode=disable" \
+    bash "$ROOT_DIR/scripts/apply-migrations.sh" >/dev/null
 }
 
 require_command docker

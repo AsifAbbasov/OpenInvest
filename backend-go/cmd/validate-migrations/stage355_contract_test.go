@@ -160,15 +160,19 @@ func TestCIMigrationValidationDominatesEverySQLExecutionPath(t *testing.T) {
 		}
 		blocks[text[m[2]:m[3]]] = text[m[0]:end]
 	}
-	var sqlJobs []string
+	var migrationApplicationJobs []string
 	for id, block := range blocks {
-		if strings.Contains(block, "infrastructure/postgres/migrations") && (strings.Contains(block, ".up.sql") || strings.Contains(block, ".down.sql") || strings.Contains(block, "psql")) {
-			sqlJobs = append(sqlJobs, id)
+		if strings.Contains(block, "bash scripts/apply-migrations.sh") ||
+			(strings.Contains(block, "infrastructure/postgres/migrations") && strings.Contains(block, ".down.sql")) {
+			migrationApplicationJobs = append(migrationApplicationJobs, id)
 		}
 	}
-	sort.Strings(sqlJobs)
-	if strings.Join(sqlJobs, ",") != "go,go-race,migrations" {
-		t.Fatalf("SQL job inventory=%v", sqlJobs)
+	sort.Strings(migrationApplicationJobs)
+	if strings.Join(migrationApplicationJobs, ",") != "go,go-race,migrations" {
+		t.Fatalf("migration application job inventory=%v", migrationApplicationJobs)
+	}
+	if strings.Contains(text, "000009_stage_03_71_ledger_sequence_unique.up.sql") || strings.Contains(text, "recover-ledger-sequence-index") {
+		t.Fatal("CI must delegate the Stage 3.71 special migration to the canonical migration runner")
 	}
 	m := blocks["migrations"]
 	for _, want := range []string{"outputs:\n      validated_sha: ${{ steps.validate_migrations.outputs.validated_sha }}", "fetch-depth: 0", "go-version-file: backend-go/go.mod", "id: validate_migrations", "go test -v ./cmd/validate-migrations", "--mode=pr --base-sha=\"${{ github.event.pull_request.base.sha }}\"", "--mode=repository", "echo \"validated_sha=$GITHUB_SHA\" >> \"$GITHUB_OUTPUT\""} {
@@ -184,8 +188,17 @@ func TestCIMigrationValidationDominatesEverySQLExecutionPath(t *testing.T) {
 			t.Fatalf("migrations rehearsal missing %q", want)
 		}
 	}
-	for _, id := range []string{"go", "go-race"} {
+	for _, id := range []string{"go", "go-race", "migrations"} {
 		b := blocks[id]
+		if !strings.Contains(b, "bash scripts/apply-migrations.sh") {
+			t.Fatalf("%s must invoke the canonical migration runner", id)
+		}
+		if !strings.Contains(b, "OPENINVEST_DATABASE_OWNER_URL=") {
+			t.Fatalf("%s must supply the owner-only migration database URL", id)
+		}
+		if id == "migrations" {
+			continue
+		}
 		for _, want := range []string{"needs: migrations", "VALIDATED_SHA: ${{ needs.migrations.outputs.validated_sha }}", "test \"$VALIDATED_SHA\" = \"$GITHUB_SHA\""} {
 			if !strings.Contains(b, want) {
 				t.Fatalf("%s missing %q", id, want)
