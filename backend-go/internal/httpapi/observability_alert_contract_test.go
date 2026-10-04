@@ -12,7 +12,7 @@ import (
 )
 
 func TestObservabilityErrorResponsesDoNotLeakInternalFailureDetails(t *testing.T) {
-	app := newFiberApp(defaultHTTPNetworkConfig())
+	app := fiber.New()
 	app.Get("/boom", func(c fiber.Ctx) error {
 		return writeMappedError(c, errors.New("postgres password=super-secret sql=SELECT * FROM identity.users"))
 	})
