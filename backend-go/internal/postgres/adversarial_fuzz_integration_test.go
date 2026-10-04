@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/openinvest/openinvest/backend-go/internal/decimal"
 	"github.com/openinvest/openinvest/backend-go/internal/postgres"
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
@@ -194,7 +195,7 @@ func FuzzBackdatedCorrectionReversalPositionGeneration(f *testing.F) {
 		_, err := h.service.UpsertManualValuation(h.ctx, h.subjectID, verticalslice.ManualValuationRequest{
 			PortfolioID: h.portfolioID,
 			Ticker:      "SBER",
-			Price:       verticalslice.Money{Amount: stage377Decimal("150.00000000"), Currency: verticalslice.RUB},
+			Price:       verticalslice.Money{Amount: decimal.Must("150.00000000"), Currency: verticalslice.RUB},
 			AsOfDate:    "2026-02-02",
 		})
 		if err != nil {
