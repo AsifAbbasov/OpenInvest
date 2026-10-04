@@ -1,0 +1,293 @@
+name: Adversarial Audit 24h
+
+on:
+  push:
+    branches:
+      - chore/native-go-fuzz-targets
+    paths:
+      - ".github/workflows/adversarial-audit-24h.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: adversarial-audit-24h-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  phase-1-core-numeric-input:
+    name: "Phase 1 - Decimal and CSV core fuzz"
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Baseline compile evidence
+        continue-on-error: true
+        run: go test ./internal/decimal ./internal/importer
+      - name: Fuzz Decimal parser
+        continue-on-error: true
+        run: go test ./internal/decimal -run='^$' -fuzz=FuzzFromString -fuzztime=80m -timeout=85m
+      - name: Fuzz Decimal arithmetic
+        continue-on-error: true
+        run: go test ./internal/decimal -run='^$' -fuzz=FuzzDecimalArithmetic -fuzztime=80m -timeout=85m
+      - name: Fuzz fixed-scale Decimal algebra
+        continue-on-error: true
+        run: go test ./internal/decimal -run='^$' -fuzz=FuzzDecimalFixedScaleAlgebra -fuzztime=80m -timeout=85m
+      - name: Fuzz arbitrary CSV review
+        continue-on-error: true
+        run: go test ./internal/importer -run='^$' -fuzz=FuzzReviewCSV -fuzztime=80m -timeout=85m
+      - name: Archive fuzz findings
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: adversarial-phase-1-fuzz-corpus
+          path: |
+            backend-go/internal/**/testdata/fuzz/**
+          if-no-files-found: ignore
+
+  phase-2-parser-transport:
+    name: "Phase 2 - CSV boundaries and HTTP transport fuzz"
+    needs: phase-1-core-numeric-input
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Baseline compile evidence
+        continue-on-error: true
+        run: go test ./internal/importer ./internal/httpapi
+      - name: Fuzz CSV header structure
+        continue-on-error: true
+        run: go test ./internal/importer -run='^$' -fuzz=FuzzValidateCSVHeaderShape -fuzztime=80m -timeout=85m
+      - name: Fuzz CSV structural resource bounds
+        continue-on-error: true
+        run: go test ./internal/importer -run='^$' -fuzz=FuzzReviewCSVStructuralBounds -fuzztime=80m -timeout=85m
+      - name: Fuzz strict JSON transport
+        continue-on-error: true
+        run: go test ./internal/httpapi -run='^$' -fuzz=FuzzDecodeStrictJSON -fuzztime=80m -timeout=85m
+      - name: Fuzz money transport
+        continue-on-error: true
+        run: go test ./internal/httpapi -run='^$' -fuzz=FuzzParseMoney -fuzztime=80m -timeout=85m
+      - name: Archive fuzz findings
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: adversarial-phase-2-fuzz-corpus
+          path: |
+            backend-go/internal/**/testdata/fuzz/**
+          if-no-files-found: ignore
+
+  phase-3-financial-state:
+    name: "Phase 3 - Stateful WAC and XIRR fuzz"
+    needs: phase-2-parser-transport
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Baseline compile evidence
+        continue-on-error: true
+        run: go test ./internal/position ./internal/verticalslice
+      - name: Fuzz stateful WAC ledger sequence
+        continue-on-error: true
+        run: go test ./internal/position -run='^$' -fuzz=FuzzStatefulWACLedgerSequence -fuzztime=80m -timeout=85m
+      - name: Fuzz business dates
+        continue-on-error: true
+        run: go test ./internal/verticalslice -run='^$' -fuzz=FuzzParseBusinessDate -fuzztime=80m -timeout=85m
+      - name: Fuzz basic return projection
+        continue-on-error: true
+        run: go test ./internal/verticalslice -run='^$' -fuzz=FuzzBuildPortfolioReturnProjection -fuzztime=80m -timeout=85m
+      - name: Fuzz adversarial multi-flow XIRR
+        continue-on-error: true
+        run: go test ./internal/verticalslice -run='^$' -fuzz=FuzzXIRRAdversarialSequence -fuzztime=80m -timeout=85m
+      - name: Archive fuzz findings
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: adversarial-phase-3-fuzz-corpus
+          path: |
+            backend-go/internal/**/testdata/fuzz/**
+          if-no-files-found: ignore
+
+  phase-4-domain-postgres:
+    name: "Phase 4 - Corporate actions, pagination and PostgreSQL concurrency"
+    needs: phase-3-financial-state
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: openinvest-audit
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Apply migrations to disposable PostgreSQL
+        working-directory: .
+        run: |
+          set -euo pipefail
+          for migration in infrastructure/postgres/migrations/*.up.sql; do
+            psql "postgres://openinvest:openinvest-audit@127.0.0.1:5432/openinvest?sslmode=disable" -v ON_ERROR_STOP=1 < "$migration"
+          done
+      - name: Baseline compile evidence
+        continue-on-error: true
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-audit@127.0.0.1:5432/openinvest?sslmode=disable
+        run: go test ./internal/httpapi ./internal/verticalslice ./internal/postgres
+      - name: Fuzz corporate-action projections
+        continue-on-error: true
+        run: go test ./internal/verticalslice -run='^$' -fuzz=FuzzCorporateActionProjectionIntegrity -fuzztime=80m -timeout=85m
+      - name: Fuzz signed pagination cursor isolation
+        continue-on-error: true
+        run: go test ./internal/httpapi -run='^$' -fuzz=FuzzPaginationCursorIsolationAndTamperResistance -fuzztime=80m -timeout=85m
+      - name: Fuzz PostgreSQL concurrent ledger and replay
+        continue-on-error: true
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-audit@127.0.0.1:5432/openinvest?sslmode=disable
+        run: go test ./internal/postgres -run='^$' -fuzz=FuzzPostgresConcurrentLedgerReplay -fuzztime=80m -timeout=85m -parallel=4
+      - name: Fuzz backdated correction reversal and generation isolation
+        continue-on-error: true
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-audit@127.0.0.1:5432/openinvest?sslmode=disable
+        run: go test ./internal/postgres -run='^$' -fuzz=FuzzBackdatedCorrectionReversalPositionGeneration -fuzztime=80m -timeout=85m -parallel=4
+      - name: Archive fuzz findings
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: adversarial-phase-4-fuzz-corpus
+          path: |
+            backend-go/internal/**/testdata/fuzz/**
+          if-no-files-found: ignore
+
+  phase-5-systemic-security-recovery:
+    name: "Phase 5 - Authorization, exhaustion, provider, CI, observability, backup and DR"
+    needs: phase-4-domain-postgres
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    services:
+      primary:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: primary-audit
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      recovery:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: recovery-audit
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Apply migrations to disposable primary
+        working-directory: .
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          for migration in infrastructure/postgres/migrations/*.up.sql; do
+            psql "postgres://openinvest:primary-audit@127.0.0.1:5432/openinvest?sslmode=disable" -v ON_ERROR_STOP=1 < "$migration"
+          done
+      - name: Authorization matrix
+        continue-on-error: true
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:primary-audit@127.0.0.1:5432/openinvest?sslmode=disable
+        run: go test ./internal/postgres -run='^TestAuthorizationMatrix' -count=20 -v
+      - name: Resource exhaustion guards
+        continue-on-error: true
+        run: go test ./internal/httpapi -run='^TestResourceExhaustion|^TestAuthRateLimiterRemainsMemoryBounded' -count=100 -v
+      - name: Provider fault simulation
+        continue-on-error: true
+        run: go test ./internal/verticalslice -run='^TestProviderFaultSimulation' -count=50 -v
+      - name: Observability contract
+        continue-on-error: true
+        run: go test ./internal/httpapi -run='^TestObservability' -count=50 -v
+      - name: CI and secret regression gate
+        continue-on-error: true
+        run: go test ./internal/securityci -count=1 -v
+      - name: Race detector on critical packages
+        continue-on-error: true
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:primary-audit@127.0.0.1:5432/openinvest?sslmode=disable
+        run: go test -race ./internal/position ./internal/httpapi ./internal/postgres
+      - name: Go vet evidence
+        continue-on-error: true
+        run: go vet ./...
+      - name: Vulnerability scan evidence
+        continue-on-error: true
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@v1.7.0
+          "$(go env GOPATH)/bin/govulncheck" ./...
+      - name: Backup restore rehearsal
+        working-directory: .
+        continue-on-error: true
+        env:
+          OPENINVEST_BACKUP_SOURCE_URL: postgres://openinvest:primary-audit@127.0.0.1:5432/openinvest?sslmode=disable
+          OPENINVEST_BACKUP_RESTORE_URL: postgres://openinvest:recovery-audit@127.0.0.1:5433/openinvest?sslmode=disable
+        run: bash scripts/security/backup_restore_rehearsal.sh
+      - name: Disaster recovery rehearsal
+        working-directory: .
+        continue-on-error: true
+        env:
+          OPENINVEST_DR_PRIMARY_URL: postgres://openinvest:primary-audit@127.0.0.1:5432/openinvest?sslmode=disable
+          OPENINVEST_DR_RECOVERY_URL: postgres://openinvest:recovery-audit@127.0.0.1:5433/openinvest?sslmode=disable
+        run: bash scripts/security/disaster_recovery_rehearsal.sh
