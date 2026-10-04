@@ -70,10 +70,14 @@ func Open(databaseURL string) (*Store, error) {
 	if err != nil {
 		return nil, err
 	}
+	return newStore(db), nil
+}
+
+func newStore(db *sql.DB) *Store {
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(30 * time.Minute)
-	return &Store{db: db, runtimeCapabilityProfile: RuntimeCapabilityR0}, nil
+	return &Store{db: db, runtimeCapabilityProfile: RuntimeCapabilityR0}
 }
 
 func (s *Store) Close() error {

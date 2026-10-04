@@ -7,9 +7,18 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/stdlib"
 )
 
 var ErrUnsafeRuntimeDatabaseRole = errors.New("unsafe PostgreSQL runtime role")
+
+const (
+	runtimeStatementTimeout         = "30s"
+	runtimeLockTimeout              = "5s"
+	runtimeIdleInTransactionTimeout = "30s"
+)
 
 type runtimeRelationCapability struct {
 	Schema string
@@ -74,10 +83,18 @@ func OpenRuntimeWithCapability(databaseURL string, profile RuntimeCapabilityProf
 	if !profile.valid() {
 		return nil, fmt.Errorf("%w: unknown expected runtime capability profile %q", ErrUnsafeRuntimeDatabaseRole, profile)
 	}
-	store, err := Open(databaseURL)
+	config, err := pgx.ParseConfig(databaseURL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: parse runtime database URL: %v", ErrUnsafeRuntimeDatabaseRole, err)
 	}
+	if config.RuntimeParams == nil {
+		config.RuntimeParams = map[string]string{}
+	}
+	config.RuntimeParams["statement_timeout"] = runtimeStatementTimeout
+	config.RuntimeParams["lock_timeout"] = runtimeLockTimeout
+	config.RuntimeParams["idle_in_transaction_session_timeout"] = runtimeIdleInTransactionTimeout
+
+	store := newStore(stdlib.OpenDB(*config))
 	store.runtimeCapabilityProfile = profile
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -533,11 +550,31 @@ func validateNoRuntimeDefaultPrivileges(ctx context.Context, conn *sql.Conn, rol
 
 func validateRuntimeSessionState(ctx context.Context, conn *sql.Conn) error {
 	var replicationRole string
-	if err := conn.QueryRowContext(ctx, `SELECT current_setting('session_replication_role')`).Scan(&replicationRole); err != nil {
-		return fmt.Errorf("%w: inspect session_replication_role: %v", ErrUnsafeRuntimeDatabaseRole, err)
+	var statementTimeout string
+	var lockTimeout string
+	var idleInTransactionTimeout string
+	if err := conn.QueryRowContext(ctx, `
+		SELECT
+			current_setting('session_replication_role'),
+			current_setting('statement_timeout'),
+			current_setting('lock_timeout'),
+			current_setting('idle_in_transaction_session_timeout')
+	`).Scan(&replicationRole, &statementTimeout, &lockTimeout, &idleInTransactionTimeout); err != nil {
+		return fmt.Errorf("%w: inspect runtime session settings: %v", ErrUnsafeRuntimeDatabaseRole, err)
 	}
 	if strings.TrimSpace(replicationRole) != "origin" {
 		return fmt.Errorf("%w: session_replication_role must be origin, got %q", ErrUnsafeRuntimeDatabaseRole, replicationRole)
+	}
+	if strings.TrimSpace(statementTimeout) != runtimeStatementTimeout ||
+		strings.TrimSpace(lockTimeout) != runtimeLockTimeout ||
+		strings.TrimSpace(idleInTransactionTimeout) != runtimeIdleInTransactionTimeout {
+		return fmt.Errorf(
+			"%w: runtime session timeout envelope mismatch (statement_timeout=%q lock_timeout=%q idle_in_transaction_session_timeout=%q)",
+			ErrUnsafeRuntimeDatabaseRole,
+			statementTimeout,
+			lockTimeout,
+			idleInTransactionTimeout,
+		)
 	}
 	return nil
 }
