@@ -65,7 +65,6 @@ jobs:
 
   network-partition-process-kill:
     name: "Chaos 2 - Network partition and process-kill transaction recovery"
-    needs: multi-instance-clock-soak
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 330
@@ -151,7 +150,6 @@ jobs:
 
   disk-pressure-recovery:
     name: "Chaos 3 - Isolated PostgreSQL disk exhaustion and recovery"
-    needs: network-partition-process-kill
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 330
@@ -206,7 +204,6 @@ jobs:
 
   replica-lag-recovery:
     name: "Chaos 4 - Logical replica lag, pause and catch-up"
-    needs: disk-pressure-recovery
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 330
@@ -266,7 +263,6 @@ jobs:
 
   migration-interruption-recovery:
     name: "Chaos 5 - Exact concurrent-index interruption and recovery"
-    needs: replica-lag-recovery
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 330
@@ -366,3 +362,93 @@ jobs:
                 AND c.relname='transaction_entries_portfolio_ledger_sequence_uidx';")"
             test "$state" = "true|true"
           done
+
+
+  combined-contention-soak:
+    name: "Chaos 6 - Combined same-database contention soak"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: chaos-audit
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Apply migrations
+        working-directory: .
+        run: |
+          set -euo pipefail
+          for migration in infrastructure/postgres/migrations/*.up.sql; do
+            psql "postgres://openinvest:chaos-audit@127.0.0.1:5432/openinvest?sslmode=disable" -v ON_ERROR_STOP=1 < "$migration"
+          done
+      - name: Five-hour combined contention load
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:chaos-audit@127.0.0.1:5432/openinvest?sslmode=disable
+        run: |
+          set -euo pipefail
+          end=$((SECONDS + 18000))
+          workers=8
+          pids=()
+
+          worker() {
+            id="$1"
+            while (( SECONDS < end )); do
+              echo "COMBINED_WORKER=$id SECONDS=$SECONDS"
+              case $((id % 4)) in
+                0)
+                  go test -race ./internal/postgres                     -run='^TestChaos(MultiInstanceSharedDatabaseSerializesMutations|MultiInstanceSharedIdempotencyAllowsOneMutation|ClockSkewDoesNotOverrideLedgerSequenceAuthority)$'                     -count=2
+                  ;;
+                1)
+                  go test -race ./internal/postgres                     -run='^(TestAuthorizationMatrix|TestSecurityAuthorizationMatrix)'                     -count=2
+                  ;;
+                2)
+                  go test -race ./internal/postgres                     -run='^TestResourceExhaustionPostgresPoolSaturationCancelsAndRecovers$'                     -count=2
+                  ;;
+                3)
+                  go test -race ./internal/postgres                     -run='^(TestStage371Concurrent|TestStage374Concurrent)'                     -count=2
+                  ;;
+              esac
+            done
+          }
+
+          for id in $(seq 1 "$workers"); do
+            worker "$id" >"combined-worker-$id.log" 2>&1 &
+            pids+=("$!")
+          done
+
+          failed=0
+          for pid in "${pids[@]}"; do
+            if ! wait "$pid"; then
+              failed=1
+            fi
+          done
+
+          for log in combined-worker-*.log; do
+            echo "===== $log ====="
+            tail -n 200 "$log" || true
+          done
+
+          test "$failed" -eq 0
+      - name: Verify database remains usable after combined pressure
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:chaos-audit@127.0.0.1:5432/openinvest?sslmode=disable
+        run: |
+          set -euo pipefail
+          go test ./internal/postgres             -run='^(TestAuthorizationMatrixRejectsCrossSubjectPortfolioAccess|TestStage371ConcurrentSellSerializesAndCommitsOnlyLegalQuantity)$'             -count=5 -v
