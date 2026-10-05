@@ -21,7 +21,8 @@ func FuzzDecimalFixedScaleAlgebra(f *testing.F) {
 			return
 		}
 
-		// Addition/subtraction are exact in the fixed scale representation.
+		// Addition/subtraction are exact in the fixed-scale representation even when
+		// the transient derived value grows beyond persistence precision.
 		if got := a.Add(b).Sub(b); !got.Equal(a) {
 			t.Fatalf("(a+b)-b != a: a=%s b=%s got=%s", a.String(), b.String(), got.String())
 		}
@@ -41,17 +42,27 @@ func FuzzDecimalFixedScaleAlgebra(f *testing.F) {
 		}
 
 		// Do not assert full distributivity/invertibility: each Mul/Div is intentionally
-		// quantized to scale 8. Instead assert determinism and canonical serialization.
+		// quantized to scale 8. Instead assert determinism plus the actual persistence
+		// contract: storage-fitting values must round-trip through canonical ingress,
+		// while derived values outside NUMERIC(28,8) must not be re-admitted as if they
+		// were persistence-safe.
 		left1 := a.Mul(b).Add(a.Mul(c))
 		left2 := a.Mul(b).Add(a.Mul(c))
 		if !left1.Equal(left2) {
 			t.Fatalf("fixed-scale arithmetic is nondeterministic")
 		}
+
 		for _, value := range []Decimal{a, b, c, a.Add(b), a.Sub(b), a.Mul(b), left1} {
 			text := value.String()
-			roundTrip, err := FromString(text)
-			if err != nil || !roundTrip.Equal(value) {
-				t.Fatalf("canonical arithmetic value failed round-trip: %s err=%v", text, err)
+			roundTrip, parseErr := FromString(text)
+			if value.FitsStorage() {
+				if parseErr != nil || !roundTrip.Equal(value) {
+					t.Fatalf("storage-fitting canonical arithmetic value failed round-trip: %s err=%v", text, parseErr)
+				}
+				continue
+			}
+			if parseErr == nil {
+				t.Fatalf("derived value outside NUMERIC(28,8) was re-admitted by canonical ingress: %s", text)
 			}
 		}
 
@@ -61,8 +72,19 @@ func FuzzDecimalFixedScaleAlgebra(f *testing.F) {
 			if (err1 == nil) != (err2 == nil) {
 				t.Fatalf("division error nondeterminism: %v vs %v", err1, err2)
 			}
-			if err1 == nil && !q1.Equal(q2) {
-				t.Fatalf("division result nondeterminism: %s vs %s", q1.String(), q2.String())
+			if err1 == nil {
+				if !q1.Equal(q2) {
+					t.Fatalf("division result nondeterminism: %s vs %s", q1.String(), q2.String())
+				}
+				text := q1.String()
+				roundTrip, parseErr := FromString(text)
+				if q1.FitsStorage() {
+					if parseErr != nil || !roundTrip.Equal(q1) {
+						t.Fatalf("storage-fitting division result failed canonical round-trip: %s err=%v", text, parseErr)
+					}
+				} else if parseErr == nil {
+					t.Fatalf("division result outside NUMERIC(28,8) was re-admitted by canonical ingress: %s", text)
+				}
 			}
 		}
 	})
