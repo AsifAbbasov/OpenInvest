@@ -1,9 +1,14 @@
 package httpapi
 
 import (
+	"bytes"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
 func TestAuthRateLimiterRemainsMemoryBoundedUnderHighCardinalityPressure(t *testing.T) {
@@ -44,5 +49,29 @@ func TestAuthRateLimiterRemainsMemoryBoundedUnderHighCardinalityPressure(t *test
 	}
 	if len(limiter.globalAttempts) > globalLimit {
 		t.Fatalf("post-expiry global history exceeded bound: %d", len(limiter.globalAttempts))
+	}
+}
+
+func TestResourceExhaustionGenericJSONBodyHasHardCeiling(t *testing.T) {
+	app := newApp(&API{
+		service:                 verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}),
+		allowDevelopmentSubject: true,
+	})
+
+	// Fiber's configured/default admission ceiling must reject a multi-megabyte
+	// generic JSON body before application JSON decoding allocates/processes it.
+	body := bytes.Repeat([]byte("x"), 5*1024*1024)
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/portfolios", bytes.NewReader(body))
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Idempotency-Key", "resource-bound-key-000001")
+
+	response, err := app.Test(request)
+	if err != nil {
+		t.Fatalf("oversized request transport failed unexpectedly: %v", err)
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusRequestEntityTooLarge {
+		t.Fatalf("generic oversized JSON body was not rejected at transport admission: status=%d", response.StatusCode)
 	}
 }
