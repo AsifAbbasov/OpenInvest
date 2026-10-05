@@ -141,6 +141,59 @@ func TestValidateRuntimeSafetyAllowsMissingDatabaseOnlyInExplicitDevelopment(t *
 	}
 }
 
+func TestConfiguredAPIListenAddressFailsClosedOutsideExplicitDevelopment(t *testing.T) {
+	for _, environment := range []string{"production", "staging", ""} {
+		t.Run(environment, func(t *testing.T) {
+			t.Setenv("OPENINVEST_ENV", environment)
+			t.Setenv(apiListenAddressEnv, "")
+			if _, err := configuredAPIListenAddress(); err == nil {
+				t.Fatalf("expected %s to be required outside explicit development", apiListenAddressEnv)
+			}
+		})
+	}
+}
+
+func TestConfiguredAPIListenAddressSupportsExplicitListenerOwnership(t *testing.T) {
+	tests := []struct {
+		name        string
+		environment string
+		configured  string
+		want        string
+		valid       bool
+	}{
+		{name: "development-default", environment: "development", want: developmentAPIListenAddress, valid: true},
+		{name: "explicit-loopback", environment: "production", configured: "127.0.0.1:8080", want: "127.0.0.1:8080", valid: true},
+		{name: "explicit-wildcard-ipv4", environment: "production", configured: "0.0.0.0:8080", want: "0.0.0.0:8080", valid: true},
+		{name: "explicit-wildcard-ipv6", environment: "production", configured: "[::]:8080", want: "[::]:8080", valid: true},
+		{name: "explicit-ipv6-loopback", environment: "production", configured: "[::1]:8080", want: "[::1]:8080", valid: true},
+		{name: "missing-port", environment: "production", configured: "127.0.0.1"},
+		{name: "zero-port", environment: "production", configured: "127.0.0.1:0"},
+		{name: "out-of-range-port", environment: "production", configured: "127.0.0.1:65536"},
+		{name: "invalid-host", environment: "production", configured: "bad host:8080"},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Setenv("OPENINVEST_ENV", test.environment)
+			t.Setenv(apiListenAddressEnv, test.configured)
+			got, err := configuredAPIListenAddress()
+			if !test.valid {
+				if err == nil {
+					t.Fatalf("expected invalid listener configuration %q to fail", test.configured)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("configure listener: %v", err)
+			}
+			if got != test.want {
+				t.Fatalf("listener = %q, want %q", got, test.want)
+			}
+		})
+	}
+}
+
 func TestConfiguredImportReviewTokenSecretUsesFallbackOnlyInExplicitDevelopment(t *testing.T) {
 	t.Setenv("OPENINVEST_IMPORT_REVIEW_TOKEN_SECRET", "")
 	t.Setenv("OPENINVEST_ENV", "development")
@@ -165,6 +218,7 @@ func setExplicitDevelopmentEnvironment(t *testing.T) {
 	t.Setenv("OPENINVEST_ENV", "development")
 	t.Setenv("OPENINVEST_TRUST_PROXY", "false")
 	t.Setenv("OPENINVEST_TRUSTED_PROXY_CIDRS", "")
+	t.Setenv(apiListenAddressEnv, "")
 }
 
 func TestAppendTransactionRequiresSettlementDateField(t *testing.T) {

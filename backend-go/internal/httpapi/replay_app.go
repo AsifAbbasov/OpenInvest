@@ -162,6 +162,7 @@ func newReplayApp(api *API) *fiber.App {
 	if api.requestLifecycle != nil {
 		app.Use(api.requestLifecycle.Middleware)
 	}
+	app.Use(sensitiveResponseCachePolicy)
 	app.Use(localDevelopmentCORS)
 
 	app.Get("/api/v1/health", api.health)

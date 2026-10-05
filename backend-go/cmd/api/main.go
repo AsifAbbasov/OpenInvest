@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -27,7 +28,8 @@ const (
 	runtimeIntegrityStartupTimeout     = 30 * time.Second
 	gracefulShutdownTimeout            = 10 * time.Second
 	forcedRequestDrainTimeout          = 2 * time.Second
-	apiListenAddress                   = ":8080"
+	apiListenAddressEnv                = "OPENINVEST_API_LISTEN_ADDRESS"
+	developmentAPIListenAddress        = "127.0.0.1:8080"
 )
 
 var errRuntimeResourcesStillInUse = errors.New(
@@ -35,9 +37,10 @@ var errRuntimeResourcesStillInUse = errors.New(
 )
 
 type applicationRuntime struct {
-	app      *fiber.App
-	requests *httpapi.RequestLifecycle
-	close    func() error
+	app           *fiber.App
+	requests      *httpapi.RequestLifecycle
+	listenAddress string
+	close         func() error
 }
 
 func (runtime *applicationRuntime) Close() error {
@@ -68,6 +71,10 @@ func newRuntime() (runtime *applicationRuntime, err error) {
 	if err := validateRuntimeSafety(databaseURL); err != nil {
 		return nil, fmt.Errorf("validate runtime safety: %w", err)
 	}
+	listenAddress, err := configuredAPIListenAddress()
+	if err != nil {
+		return nil, fmt.Errorf("configure API listener: %w", err)
+	}
 
 	httpNetworkConfig, err := configuredHTTPNetworkConfig()
 	if err != nil {
@@ -90,7 +97,8 @@ func newRuntime() (runtime *applicationRuntime, err error) {
 				httpNetworkConfig,
 				requestLifecycle,
 			),
-			requests: requestLifecycle,
+			requests:      requestLifecycle,
+			listenAddress: listenAddress,
 		}, nil
 	}
 
@@ -146,9 +154,10 @@ func newRuntime() (runtime *applicationRuntime, err error) {
 	}
 
 	return &applicationRuntime{
-		app:      app,
-		requests: requestLifecycle,
-		close:    store.Close,
+		app:           app,
+		requests:      requestLifecycle,
+		listenAddress: listenAddress,
+		close:         store.Close,
 	}, nil
 }
 
@@ -335,10 +344,13 @@ func serveAPI(ctx context.Context, runtime *applicationRuntime) error {
 	if ctx.Err() != nil {
 		return nil
 	}
+	if runtime == nil || runtime.listenAddress == "" {
+		return errors.New("validated API listener address is required")
+	}
 
-	listener, err := net.Listen("tcp4", apiListenAddress)
+	listener, err := net.Listen("tcp", runtime.listenAddress)
 	if err != nil {
-		return fmt.Errorf("listen on %s: %w", apiListenAddress, err)
+		return fmt.Errorf("listen on %s: %w", runtime.listenAddress, err)
 	}
 
 	return serveHTTP(
@@ -443,6 +455,29 @@ func isExplicitDevelopmentEnvironment() bool {
 	default:
 		return false
 	}
+}
+
+func configuredAPIListenAddress() (string, error) {
+	address := strings.TrimSpace(os.Getenv(apiListenAddressEnv))
+	if address == "" {
+		if isExplicitDevelopmentEnvironment() {
+			return developmentAPIListenAddress, nil
+		}
+		return "", fmt.Errorf("%s is required unless OPENINVEST_ENV=development or local", apiListenAddressEnv)
+	}
+
+	host, rawPort, err := net.SplitHostPort(address)
+	if err != nil {
+		return "", fmt.Errorf("%s must be a host:port address: %w", apiListenAddressEnv, err)
+	}
+	if strings.ContainsAny(host, " \t\r\n/") {
+		return "", fmt.Errorf("%s host is invalid", apiListenAddressEnv)
+	}
+	port, err := strconv.ParseUint(rawPort, 10, 16)
+	if err != nil || port == 0 {
+		return "", fmt.Errorf("%s port must be an integer from 1 to 65535", apiListenAddressEnv)
+	}
+	return net.JoinHostPort(host, strconv.FormatUint(port, 10)), nil
 }
 
 func configuredHTTPNetworkConfig() (httpapi.HTTPNetworkConfig, error) {

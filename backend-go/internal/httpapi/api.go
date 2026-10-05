@@ -64,6 +64,7 @@ func (api *API) nowUTC() time.Time {
 func newApp(api *API) *fiber.App {
 	app := newFiberApp(api.httpNetworkConfig)
 
+	app.Use(sensitiveResponseCachePolicy)
 	app.Use(localDevelopmentCORS)
 	registerRoutes(app, api)
 
