@@ -1,5 +1,5 @@
 name: Adversarial Audit 24h
-# launch-pair: primary + resilience-chaos
+# launch-pair: parallel-max-load-v2
 
 on:
   push:
