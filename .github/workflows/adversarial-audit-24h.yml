@@ -71,7 +71,6 @@ jobs:
 
   phase-2-parser-transport:
     name: "Phase 2 - CSV boundaries and HTTP transport fuzz"
-    needs: phase-1-core-numeric-input
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 350
@@ -125,7 +124,6 @@ jobs:
 
   phase-3-financial-state:
     name: "Phase 3 - Stateful WAC and XIRR fuzz"
-    needs: phase-2-parser-transport
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 350
@@ -179,7 +177,6 @@ jobs:
 
   phase-4-domain-postgres:
     name: "Phase 4 - Corporate actions, pagination and PostgreSQL concurrency"
-    needs: phase-3-financial-state
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 350
@@ -262,7 +259,6 @@ jobs:
 
   phase-5-systemic-security-recovery:
     name: "Phase 5 - Authorization, exhaustion, provider, CI, observability, backup and DR"
-    needs: phase-4-domain-postgres
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 180
