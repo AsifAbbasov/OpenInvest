@@ -1,0 +1,163 @@
+name: Auth Session Theft Audit 24h
+
+on:
+  push:
+    branches:
+      - chore/native-go-fuzz-targets
+    paths:
+      - ".github/workflows/auth-session-theft-audit-24h.yml"
+      - "backend-go/internal/httpapi/auth_theft_adversarial_test.go"
+      - "backend-go/internal/auth/auth_theft_adversarial_test.go"
+      - "backend-go/internal/postgres/auth_theft_adversarial_integration_test.go"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cookie-csrf-theft-soak:
+    name: "Auth Theft 1 - Cookie, CSRF, fixation and logout soak"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Five-hour stolen-cookie HTTP soak
+        run: |
+          set -euo pipefail
+          end=$((SECONDS + 18000))
+          iteration=0
+          while (( SECONDS < end )); do
+            iteration=$((iteration + 1))
+            echo "AUTH_COOKIE_THEFT_ITERATION=$iteration"
+            go test -race ./internal/httpapi               -run='^TestAuthTheft'               -count=100
+          done
+
+  postgres-session-theft-races:
+    name: "Auth Theft 2 - PostgreSQL stolen-session race containment"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: auth-theft-audit
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Apply migrations
+        working-directory: .
+        run: |
+          set -euo pipefail
+          for migration in infrastructure/postgres/migrations/*.up.sql; do
+            psql "postgres://openinvest:auth-theft-audit@127.0.0.1:5432/openinvest?sslmode=disable"               -v ON_ERROR_STOP=1 < "$migration"
+          done
+      - name: Five-hour stolen-session PostgreSQL race soak
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:auth-theft-audit@127.0.0.1:5432/openinvest?sslmode=disable
+        run: |
+          set -euo pipefail
+          end=$((SECONDS + 18000))
+          iteration=0
+          while (( SECONDS < end )); do
+            iteration=$((iteration + 1))
+            echo "AUTH_POSTGRES_THEFT_ITERATION=$iteration"
+            go test -race ./internal/postgres               -run='^TestAuthTheftPostgres'               -count=20
+          done
+
+  jwt-tamper-fuzz:
+    name: "Auth Theft 3 - JWT tamper and algorithm-confusion fuzz"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Deterministic bearer-token theft matrix
+        run: |
+          set -euo pipefail
+          go test -race ./internal/auth -run='^TestAuthTheft' -count=500
+      - name: Five-hour signed-bearer mutation fuzz
+        run: |
+          set -euo pipefail
+          go test ./internal/auth             -run='^$'             -fuzz='^FuzzAuthTheftMutatedSignedBearerNeverAuthenticates$'             -fuzztime=5h             -timeout=5h10m
+      - name: Archive auth fuzz corpus
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: auth-session-theft-fuzz-corpus
+          path: backend-go/internal/auth/testdata/fuzz/**
+          if-no-files-found: ignore
+
+  replay-family-regression-soak:
+    name: "Auth Theft 4 - Refresh replay, family revocation and logout regression"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: auth-family-audit
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Apply migrations
+        working-directory: .
+        run: |
+          set -euo pipefail
+          for migration in infrastructure/postgres/migrations/*.up.sql; do
+            psql "postgres://openinvest:auth-family-audit@127.0.0.1:5432/openinvest?sslmode=disable"               -v ON_ERROR_STOP=1 < "$migration"
+          done
+      - name: Five-hour existing family containment regression soak
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:auth-family-audit@127.0.0.1:5432/openinvest?sslmode=disable
+        run: |
+          set -euo pipefail
+          end=$((SECONDS + 18000))
+          iteration=0
+          while (( SECONDS < end )); do
+            iteration=$((iteration + 1))
+            echo "AUTH_FAMILY_REGRESSION_ITERATION=$iteration"
+            go test -race ./internal/postgres               -run='^(TestConcurrentRefreshReplayRevokesWinningSessionFamily|TestLogoutRacingRefreshCannotLeaveDescendantActive|TestReplayRacingDescendantRefreshLeavesNoActiveFamilyMember|TestLegacyRefreshReplayWithUnknownLineageFailsClosed|TestDatabaseRejectsNewSessionWithoutFamilyIdentity)$'               -count=20
+          done
