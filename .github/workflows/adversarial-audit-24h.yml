@@ -1,5 +1,5 @@
 name: Adversarial Audit 24h
-# launch-pair: parallel-max-load-v2
+# launch-pair: full-parallel-all-runs-v3
 
 on:
   push:
@@ -12,9 +12,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: adversarial-audit-24h-${{ github.ref }}
-  cancel-in-progress: false
 
 jobs:
   phase-1-core-numeric-input:
