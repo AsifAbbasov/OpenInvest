@@ -5,12 +5,13 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/openinvest/openinvest/backend-go/internal/decimal"
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
 func TestSecurityAuthorizationMatrixRejectsCrossPrincipalPortfolioAccess(t *testing.T) {
 	h := newStage371Harness(t, "security authorization matrix")
-	appendStage371Trade(t, h, stage371Trade(
+	original := appendStage371Trade(t, h, stage371Trade(
 		h.portfolioID,
 		"BUY",
 		"SBER",
@@ -118,7 +119,7 @@ func TestSecurityAuthorizationMatrixRejectsCrossPrincipalPortfolioAccess(t *test
 			PortfolioID: h.portfolioID,
 			Ticker:      "SBER",
 			Price: verticalslice.Money{
-				Amount:   stage377Decimal("123.00000000"),
+				Amount:   decimal.Must("123.00000000"),
 				Currency: verticalslice.RUB,
 			},
 			AsOfDate: "2026-01-02",
@@ -126,6 +127,64 @@ func TestSecurityAuthorizationMatrixRejectsCrossPrincipalPortfolioAccess(t *test
 	)
 	if err == nil {
 		t.Fatal("cross-principal manual valuation mutation unexpectedly succeeded")
+	}
+
+	_, err = h.service.ClearManualValuation(h.ctx, attackerSubject, h.portfolioID, "SBER")
+	if err == nil {
+		t.Fatal("cross-principal manual valuation clear unexpectedly succeeded")
+	}
+
+	corrected := stage371Trade(h.portfolioID, "BUY", "SBER", "10.00000000", "101.00000000", "2026-01-02")
+	_, _, err = h.service.CorrectTransactionWithReplay(
+		h.ctx,
+		verticalslice.RequestContext{RequestID: uuid.NewString()},
+		attackerSubject,
+		uuid.NewString(),
+		"/api/v1/portfolios/"+h.portfolioID+"/transactions/"+original.ID,
+		verticalslice.CorrectTransactionRequest{
+			PortfolioID:      h.portfolioID,
+			TransactionID:    original.ID,
+			ExpectedRevision: original.Revision,
+			Reason:           "authorization matrix",
+			Corrected:        corrected,
+		},
+		func(transaction verticalslice.Transaction) (verticalslice.CommandReplayArtifact, error) {
+			return verticalslice.CommandReplayArtifact{
+				StatusCode: 200,
+				Body:       []byte(transaction.ID),
+				RequestID:  uuid.NewString(),
+				TraceID:    "authorization-matrix",
+			}, nil
+		},
+	)
+	if err == nil {
+		t.Fatal("cross-principal correction unexpectedly succeeded")
+	}
+
+	_, _, err = h.service.ReverseTransactionWithReplay(
+		h.ctx,
+		verticalslice.RequestContext{RequestID: uuid.NewString()},
+		attackerSubject,
+		uuid.NewString(),
+		"/api/v1/portfolios/"+h.portfolioID+"/transactions/"+original.ID,
+		verticalslice.ReverseTransactionRequest{
+			PortfolioID:      h.portfolioID,
+			TransactionID:    original.ID,
+			ExpectedRevision: original.Revision,
+			Reason:           "authorization matrix",
+			EffectiveDate:    "2026-01-04",
+		},
+		func(result verticalslice.TransactionReversal) (verticalslice.CommandReplayArtifact, error) {
+			return verticalslice.CommandReplayArtifact{
+				StatusCode: 200,
+				Body:       []byte(result.ReversalTransactionID),
+				RequestID:  uuid.NewString(),
+				TraceID:    "authorization-matrix",
+			}, nil
+		},
+	)
+	if err == nil {
+		t.Fatal("cross-principal reversal unexpectedly succeeded")
 	}
 
 	var ledgerAfter int
