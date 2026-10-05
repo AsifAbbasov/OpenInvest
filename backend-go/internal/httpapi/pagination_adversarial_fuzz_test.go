@@ -5,23 +5,30 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
 func FuzzPaginationCursorIsolationAndTamperResistance(f *testing.F) {
-	f.Add("subject-a", "subject-b", "portfolio-a", "2026-01-01", "entry-1", uint8(0))
-	f.Add("subject-a", "subject-a", "portfolio-a", "2026-12-31", "entry-2", uint8(1))
+	f.Add([]byte("subject-a"), []byte("subject-b"), []byte("portfolio-a"), uint16(0), uint8(0))
+	f.Add([]byte("subject-a"), []byte("subject-a"), []byte("portfolio-a"), uint16(364), uint8(1))
 
-	f.Fuzz(func(t *testing.T, subject, otherSubject, portfolio, tradeDate, entryID string, mutation uint8) {
-		if len(subject) == 0 || len(subject) > 128 ||
-			len(otherSubject) == 0 || len(otherSubject) > 128 ||
-			len(portfolio) == 0 || len(portfolio) > 128 ||
-			len(tradeDate) > 32 || len(entryID) == 0 || len(entryID) > 128 {
+	f.Fuzz(func(t *testing.T, subjectSeed, otherSubjectSeed, portfolioSeed []byte, dayRaw uint16, mutation uint8) {
+		if len(subjectSeed) > 1024 || len(otherSubjectSeed) > 1024 || len(portfolioSeed) > 1024 {
 			return
 		}
-		if _, err := time.Parse("2006-01-02", tradeDate); err != nil {
-			return
-		}
+
+		// Production subjects, portfolios and transaction entry anchors are UUIDs.
+		// Derive canonical UUIDs from fuzz bytes so the fuzzer explores reachable
+		// cursor states instead of manufacturing server-signed cursors that the
+		// production application could never emit.
+		subject := uuid.NewSHA1(uuid.Nil, append([]byte("subject:"), subjectSeed...)).String()
+		otherSubject := uuid.NewSHA1(uuid.Nil, append([]byte("other-subject:"), otherSubjectSeed...)).String()
+		portfolio := uuid.NewSHA1(uuid.Nil, append([]byte("portfolio:"), portfolioSeed...)).String()
+		entryID := uuid.NewSHA1(uuid.Nil, append([]byte("entry:"), portfolioSeed...)).String()
+
+		base, _ := time.Parse("2006-01-02", "2026-01-01")
+		tradeDate := base.AddDate(0, 0, int(dayRaw%365)).Format("2006-01-02")
 
 		api := &API{paginationCursorSecret: []byte("pagination-adversarial-test-secret")}
 		filter := verticalslice.TransactionFilter{
@@ -44,12 +51,12 @@ func FuzzPaginationCursorIsolationAndTamperResistance(f *testing.F) {
 			t.Fatal(err)
 		}
 		if len(raw) > maxPaginationCursorBytes {
-			t.Fatalf("server generated a cursor larger than its own verification ceiling: %d", len(raw))
+			t.Fatalf("production-reachable server cursor exceeds verification ceiling: %d", len(raw))
 		}
 
 		applied := filter
 		if err := api.applyTransactionCursor(raw, subject, portfolio, &applied); err != nil {
-			t.Fatalf("valid signed cursor rejected: %v", err)
+			t.Fatalf("valid production-reachable signed cursor rejected: %v", err)
 		}
 		if applied.BeforeTradeDate != tradeDate || applied.BeforeEntryID != entryID {
 			t.Fatalf("cursor anchor drift: %+v", applied)
@@ -62,9 +69,16 @@ func FuzzPaginationCursorIsolationAndTamperResistance(f *testing.F) {
 			}
 		}
 
+		otherPortfolio := uuid.NewSHA1(uuid.Nil, append([]byte("other-portfolio:"), portfolioSeed...)).String()
 		crossPortfolio := filter
-		if err := api.applyTransactionCursor(raw, subject, portfolio+"-other", &crossPortfolio); err == nil {
+		if err := api.applyTransactionCursor(raw, subject, otherPortfolio, &crossPortfolio); err == nil {
 			t.Fatal("cursor replay across portfolios was accepted")
+		}
+
+		changedFilter := filter
+		changedFilter.TransactionType = "SELL"
+		if err := api.applyTransactionCursor(raw, subject, portfolio, &changedFilter); err == nil {
+			t.Fatal("cursor replay across changed filters was accepted")
 		}
 
 		tampered := []byte(raw)
