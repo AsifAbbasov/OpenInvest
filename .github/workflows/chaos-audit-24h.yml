@@ -6,14 +6,12 @@ on:
       - chore/native-go-fuzz-targets
     paths:
       - ".github/workflows/adversarial-audit-24h.yml"
+      - ".github/workflows/chaos-audit-24h.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: resilience-chaos-24h-${{ github.ref }}
-  cancel-in-progress: false
 
 jobs:
   multi-instance-clock-soak:
