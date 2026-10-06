@@ -49,8 +49,12 @@ jobs:
           set -euo pipefail
           node - <<'NODE'
           const fs = require('fs');
-          for (const pkg of ['postcss', 'css-tree']) {
-            const p = JSON.parse(fs.readFileSync('node_modules/' + pkg + '/package.json', 'utf8'));
+          const paths = [
+            ['postcss', 'node_modules/.pnpm/postcss@8.5.23/node_modules/postcss/package.json'],
+            ['css-tree', 'node_modules/.pnpm/css-tree@3.2.1/node_modules/css-tree/package.json'],
+          ];
+          for (const [pkg, path] of paths) {
+            const p = JSON.parse(fs.readFileSync(path, 'utf8'));
             console.log(pkg + '@' + p.version + ' source-map-js=' + JSON.stringify(p.dependencies?.['source-map-js']));
           }
           NODE
