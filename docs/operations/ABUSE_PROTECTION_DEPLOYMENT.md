@@ -30,11 +30,13 @@ repository process ceilings for the corresponding traffic classes:
 ```text
 auth aggregate attempts             <= 2000/min deployment-wide
 login/register emergency IP budget  <= 100/min per canonical client IP and route
+login/register expensive auth work  <= 2 concurrently deployment-wide
 refresh/logout IP budget            <= 20/min per canonical client IP and route
 import execution                    <= 120/min deployment-wide
 fresh import commands               <= 60/min deployment-wide
+heavy import work                   <= 2 concurrently deployment-wide
 anonymous fresh dividend commands   <= 1200/min deployment-wide
-expensive portfolio reads           <= 8 concurrently per API process plus an edge deployment cap
+expensive portfolio reads           <= 8 concurrently deployment-wide
 ```
 
 The Go layer additionally enforces a normalized-credential login/register bucket. The edge need not
@@ -50,8 +52,9 @@ OPENINVEST_TINVEST_GLOBAL_BUDGET_OWNER=verified-shared-provider-budget-v1
 ```
 
 That value may be set only when a shared control external to any single API process owns the
-provider-wide request budget across replicas. The provider's local 60 requests/minute and concurrency
-4 controls remain safety limits, not deployment-global claims.
+provider-wide request budget across replicas. The shared provider control must bound the aggregate
+deployment to at most 60 provider requests/minute and 4 concurrent provider requests. The provider's
+local 60 requests/minute and concurrency 4 controls remain safety limits, not deployment-global claims.
 
 Development/local mode does not require these deployment ownership acknowledgements because it is
 not a horizontally scaled production security boundary. Production fail-closed configuration tests
