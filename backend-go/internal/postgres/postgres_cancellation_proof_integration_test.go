@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"os"
+	"strconv"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -264,7 +264,7 @@ func activeSleepCount(t *testing.T, owner *sql.DB, pids []int) int {
 	placeholders := make([]string, len(pids))
 	args := make([]any, len(pids))
 	for i, pid := range pids {
-		placeholders[i] = "$" + string(rune('1'+i))
+		placeholders[i] = "$" + strconv.Itoa(i+1)
 		args[i] = pid
 	}
 	query := "SELECT count(*) FROM pg_stat_activity WHERE pid IN (" + strings.Join(placeholders, ",") + ") AND state='active' AND query LIKE '%pg_sleep(8)%'"
@@ -275,6 +275,3 @@ func activeSleepCount(t *testing.T, owner *sql.DB, pids []int) int {
 	return count
 }
 
-// Compile-time guard: the cancellation tests intentionally exercise concurrent
-// database/sql pool ownership.
-var _ sync.Locker
