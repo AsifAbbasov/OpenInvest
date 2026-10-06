@@ -59,31 +59,32 @@ jobs:
           }
           NODE
 
-      - name: Apply minimal compatible pnpm override
+      - name: Apply minimal compatible workspace override
         working-directory: frontend-next
         run: |
           set -euo pipefail
-          node - <<'NODE'
-          const fs = require('fs');
-          const path = 'package.json';
-          const p = JSON.parse(fs.readFileSync(path, 'utf8'));
-          p.pnpm = p.pnpm || {};
-          p.pnpm.overrides = p.pnpm.overrides || {};
-          p.pnpm.overrides['source-map-js'] = '1.2.2';
-          fs.writeFileSync(path, JSON.stringify(p, null, 2) + '\n');
-          NODE
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("pnpm-workspace.yaml")
+          s = p.read_text()
+          needle = "overrides:\n  baseline-browser-mapping: 2.11.21\n"
+          replacement = "overrides:\n  baseline-browser-mapping: 2.11.21\n  source-map-js: 1.2.2\n"
+          if needle not in s:
+              raise SystemExit("expected overrides block not found")
+          p.write_text(s.replace(needle, replacement, 1))
+          PY
           pnpm install --lockfile-only
           echo '=== DIFF NAME STATUS ==='
           git -C .. diff --name-status
           echo '=== DIFF NUMSTAT ==='
-          git -C .. diff --numstat -- frontend-next/package.json frontend-next/pnpm-lock.yaml
+          git -C .. diff --numstat -- frontend-next/pnpm-workspace.yaml frontend-next/pnpm-lock.yaml
           test "$(git -C .. diff --name-only | wc -l | tr -d ' ')" = "2"
-          git -C .. diff --name-only | grep -Fx 'frontend-next/package.json'
+          git -C .. diff --name-only | grep -Fx 'frontend-next/pnpm-workspace.yaml'
           git -C .. diff --name-only | grep -Fx 'frontend-next/pnpm-lock.yaml'
           grep -F 'source-map-js@1.2.2' pnpm-lock.yaml
           ! grep -F 'source-map-js@1.2.1' pnpm-lock.yaml
-          echo '=== PACKAGE DIFF ==='
-          git -C .. diff -- frontend-next/package.json
+          echo '=== WORKSPACE DIFF ==='
+          git -C .. diff -- frontend-next/pnpm-workspace.yaml
           echo '=== LOCK DIFF ==='
           git -C .. diff -- frontend-next/pnpm-lock.yaml
 
@@ -119,7 +120,7 @@ jobs:
         with:
           name: source-map-js-pr234-minimal-dependency-files
           path: |
-            frontend-next/package.json
+            frontend-next/pnpm-workspace.yaml
             frontend-next/pnpm-lock.yaml
           if-no-files-found: error
           retention-days: 1
