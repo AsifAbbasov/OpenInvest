@@ -75,6 +75,9 @@ func newRuntime() (runtime *applicationRuntime, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("configure API listener: %w", err)
 	}
+	if _, err := configuredDeploymentAbuseControl(); err != nil {
+		return nil, fmt.Errorf("configure deployment abuse control: %w", err)
+	}
 
 	httpNetworkConfig, err := configuredHTTPNetworkConfig()
 	if err != nil {
@@ -478,6 +481,26 @@ func configuredAPIListenAddress() (string, error) {
 		return "", fmt.Errorf("%s port must be an integer from 1 to 65535", apiListenAddressEnv)
 	}
 	return net.JoinHostPort(host, strconv.FormatUint(port, 10)), nil
+}
+
+const deploymentAbuseControlEnv = "OPENINVEST_DEPLOYMENT_ABUSE_CONTROL"
+const deploymentAbuseControlEdgeV1 = "edge-v1"
+
+func configuredDeploymentAbuseControl() (string, error) {
+	raw := strings.ToLower(strings.TrimSpace(os.Getenv(deploymentAbuseControlEnv)))
+	if isExplicitDevelopmentEnvironment() {
+		if raw == "" {
+			return "process-local-development", nil
+		}
+		if raw != deploymentAbuseControlEdgeV1 && raw != "process-local-development" {
+			return "", fmt.Errorf("%s must be edge-v1 or process-local-development in development/local", deploymentAbuseControlEnv)
+		}
+		return raw, nil
+	}
+	if raw != deploymentAbuseControlEdgeV1 {
+		return "", fmt.Errorf("%s=edge-v1 is required outside development/local", deploymentAbuseControlEnv)
+	}
+	return raw, nil
 }
 
 func configuredHTTPNetworkConfig() (httpapi.HTTPNetworkConfig, error) {
