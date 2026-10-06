@@ -37,6 +37,12 @@ fresh import commands               <= 60/min deployment-wide
 heavy import work                   <= 2 concurrently deployment-wide
 anonymous fresh dividend commands   <= 20/min per canonical client IP and <= 1200/min deployment-wide
 expensive portfolio reads           <= 8 concurrently deployment-wide
+
+The repository process-local expensive-read admission allows up to 5 concurrent reads for one
+subject because the current Portfolio detail UI has a verified automatic fan-out wave of five
+(summary + current positions + cash flow + historical positions + returns). The sixth concurrent
+same-subject expensive read fails fast locally. Repeated manual reload clicks are separate user
+actions and remain subject to the bounded admission policy.
 ```
 
 The Go layer additionally enforces a normalized-credential login/register bucket. The edge need not
