@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/openinvest/openinvest/backend-go/internal/auth"
+	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
 type theftSessionDTO struct {
