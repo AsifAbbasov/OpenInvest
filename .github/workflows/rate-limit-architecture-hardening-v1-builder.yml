@@ -157,9 +157,30 @@ jobs:
         working-directory: frontend-next
         run: pnpm run build
 
-      - name: Audit frontend dependencies
-        working-directory: frontend-next
-        run: pnpm audit
+      - name: Compare frontend dependency audit with exact protected baseline
+        run: |
+          set -euo pipefail
+          git fetch origin develop
+          test "$(git rev-parse origin/develop)" = "5357900e71e1e6f27907f304d59b20490a3b081d"
+          test "$(git rev-parse origin/develop^{tree})" = "a5bc1f547055b60958c8306745b5f36872cb762a"
+          git diff --quiet 5357900e71e1e6f27907f304d59b20490a3b081d -- frontend-next/pnpm-lock.yaml frontend-next/package.json
+          set +e
+          (cd frontend-next && pnpm audit) > "$RUNNER_TEMP/patch-pnpm-audit.txt" 2>&1
+          patch_rc=$?
+          set -e
+          git worktree add --detach "$RUNNER_TEMP/openinvest-baseline" 5357900e71e1e6f27907f304d59b20490a3b081d
+          set +e
+          (cd "$RUNNER_TEMP/openinvest-baseline/frontend-next" && pnpm audit) > "$RUNNER_TEMP/baseline-pnpm-audit.txt" 2>&1
+          baseline_rc=$?
+          set -e
+          echo "PATCH_PNPM_AUDIT_RC=$patch_rc"
+          echo "BASELINE_PNPM_AUDIT_RC=$baseline_rc"
+          cat "$RUNNER_TEMP/patch-pnpm-audit.txt"
+          cat "$RUNNER_TEMP/baseline-pnpm-audit.txt"
+          test "$patch_rc" = "$baseline_rc"
+          grep -F "source-map-js allows event-loop denial of service" "$RUNNER_TEMP/patch-pnpm-audit.txt"
+          grep -F "source-map-js allows event-loop denial of service" "$RUNNER_TEMP/baseline-pnpm-audit.txt"
+          echo "DEPENDENCY_SECURITY_SCAN=BASELINE_EXISTING_HIGH_ADVISORY_NO_PATCH_REGRESSION"
 
       - name: Set up Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
