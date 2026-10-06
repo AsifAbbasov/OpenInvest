@@ -51,6 +51,11 @@ func (api *API) getPortfolioCashFlow(c fiber.Ctx) error {
 	if err != nil {
 		return writeMappedError(c, err)
 	}
+	release, err := api.acquireExpensiveRead(subjectID)
+	if err != nil {
+		return writeExpensiveReadAdmissionError(c, err)
+	}
+	defer release()
 	projection, err := api.service.GetPortfolioCashFlow(c.Context(), subjectID, c.Params("portfolioId"), fromDate, toDate)
 	if err != nil {
 		return writeMappedError(c, err)
