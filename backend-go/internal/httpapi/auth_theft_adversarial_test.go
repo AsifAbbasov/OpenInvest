@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"encoding/json"
+	"time"
 	"net/http"
 	"testing"
 
@@ -139,10 +140,35 @@ func TestAuthTheftCrossSessionCookieCSRFMixingFailsClosed(t *testing.T) {
 }
 
 func TestAuthTheftRotatedAndLoggedOutCookiesCannotBeReused(t *testing.T) {
-	t.Run("rotation replay", func(t *testing.T) {
-		app := newHTTPAuthApp(t, newHTTPAuthService(t, &httpAuthTestStore{}))
-		cookie, session := registerTheftSession(t, app, "theft-rotation@example.com", "")
+	newControlledApp := func(t *testing.T) (*fiber.App, *time.Time) {
+		t.Helper()
+		now := time.Date(2026, 10, 6, 12, 0, 0, 0, time.UTC)
+		service := newHTTPAuthService(t, &httpAuthTestStore{})
+		api := &API{
+			service:     verticalslice.NewService(&importAPITestStore{}, fixedHTTPClock{}),
+			auth:        service,
+			authLimiter: newAuthRateLimiter(20, time.Minute),
+			now:         func() time.Time { return now },
+		}
+		app := newApp(api)
+		return app, &now
+	}
 
+	assertReplayBlocked := func(t *testing.T, app *fiber.App, refresh, csrf string) {
+		t.Helper()
+		for i := 0; i < 64; i++ {
+			replay := authRequest(t, app, http.MethodPost, "/api/v1/auth/refresh", "", refresh, csrf)
+			status := replay.StatusCode
+			replay.Body.Close()
+			if status != http.StatusUnauthorized && status != http.StatusTooManyRequests {
+				t.Fatalf("stolen pair replay %d reached an unsafe status=%d", i, status)
+			}
+		}
+	}
+
+	t.Run("rotation replay remains dead after limiter reset", func(t *testing.T) {
+		app, now := newControlledApp(t)
+		cookie, session := registerTheftSession(t, app, "theft-rotation@example.com", "")
 		rotated := authRequest(t, app, http.MethodPost, "/api/v1/auth/refresh", "", cookie.Value, session.CSRFToken)
 		if rotated.StatusCode != http.StatusOK {
 			rotated.Body.Close()
@@ -150,20 +176,18 @@ func TestAuthTheftRotatedAndLoggedOutCookiesCannotBeReused(t *testing.T) {
 		}
 		rotated.Body.Close()
 
-		for i := 0; i < 20; i++ {
-			replay := authRequest(t, app, http.MethodPost, "/api/v1/auth/refresh", "", cookie.Value, session.CSRFToken)
-			status := replay.StatusCode
-			replay.Body.Close()
-			if status != http.StatusUnauthorized {
-				t.Fatalf("stolen pre-rotation pair replay %d accepted: status=%d", i, status)
-			}
+		assertReplayBlocked(t, app, cookie.Value, session.CSRFToken)
+		*now = now.Add(2 * time.Minute)
+		afterReset := authRequest(t, app, http.MethodPost, "/api/v1/auth/refresh", "", cookie.Value, session.CSRFToken)
+		defer afterReset.Body.Close()
+		if afterReset.StatusCode != http.StatusUnauthorized {
+			t.Fatalf("stale pre-rotation pair became usable after limiter reset: status=%d", afterReset.StatusCode)
 		}
 	})
 
-	t.Run("logout replay", func(t *testing.T) {
-		app := newHTTPAuthApp(t, newHTTPAuthService(t, &httpAuthTestStore{}))
+	t.Run("logout replay remains dead after limiter reset", func(t *testing.T) {
+		app, now := newControlledApp(t)
 		cookie, session := registerTheftSession(t, app, "theft-logout@example.com", "")
-
 		logout := authRequest(t, app, http.MethodPost, "/api/v1/auth/logout", `{"allSessions":false}`, cookie.Value, session.CSRFToken)
 		if logout.StatusCode != http.StatusOK {
 			logout.Body.Close()
@@ -171,13 +195,12 @@ func TestAuthTheftRotatedAndLoggedOutCookiesCannotBeReused(t *testing.T) {
 		}
 		logout.Body.Close()
 
-		for i := 0; i < 20; i++ {
-			replay := authRequest(t, app, http.MethodPost, "/api/v1/auth/refresh", "", cookie.Value, session.CSRFToken)
-			status := replay.StatusCode
-			replay.Body.Close()
-			if status != http.StatusUnauthorized {
-				t.Fatalf("stolen logged-out pair replay %d accepted: status=%d", i, status)
-			}
+		assertReplayBlocked(t, app, cookie.Value, session.CSRFToken)
+		*now = now.Add(2 * time.Minute)
+		afterReset := authRequest(t, app, http.MethodPost, "/api/v1/auth/refresh", "", cookie.Value, session.CSRFToken)
+		defer afterReset.Body.Close()
+		if afterReset.StatusCode != http.StatusUnauthorized {
+			t.Fatalf("logged-out stolen pair became usable after limiter reset: status=%d", afterReset.StatusCode)
 		}
 	})
 }
