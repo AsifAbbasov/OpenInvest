@@ -15,6 +15,7 @@ type API struct {
 	authLimiter             *authRateLimiter
 	dividendLimiter         *authRateLimiter
 	importAdmission         *importAdmission
+	expensiveReads          *expensiveReadAdmission
 	importReviewSecret      []byte
 	paginationCursorSecret  []byte
 	now                     func() time.Time
@@ -33,6 +34,7 @@ func New(service *verticalslice.Service, authService *auth.Service, importReview
 		authLimiter:            newAuthRateLimiter(20, time.Minute),
 		dividendLimiter:        newDividendCalculatorRateLimiter(),
 		importAdmission:        newDefaultImportAdmission(),
+		expensiveReads:         newDefaultExpensiveReadAdmission(),
 		importReviewSecret:     secret,
 		paginationCursorSecret: derivePaginationCursorSecret(secret),
 	}), nil
