@@ -1,0 +1,75 @@
+name: Adversarial security campaign (hosted)
+
+on:
+  workflow_dispatch:
+    inputs:
+      duration_minutes:
+        description: "Campaign duration per parallel stream (1-345)"
+        required: true
+        default: "345"
+        type: string
+  schedule:
+    - cron: "23 1 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: adversarial-hosted-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  campaign:
+    name: "${{ matrix.suite }} attack stream"
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [auth, provider, financial, postgres, frontend, breaker]
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: openinvest-ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.22.2"
+      - name: Install frontend dependencies
+        working-directory: frontend-next
+        run: corepack enable && corepack prepare pnpm@11.8.0 --activate && pnpm install --frozen-lockfile
+      - name: Apply disposable database migrations
+        run: |
+          set -euo pipefail
+          for migration in infrastructure/postgres/migrations/*.up.sql; do
+            docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 < "$migration"
+          done
+      - name: Run bounded adversarial stream
+        env:
+          OPENINVEST_CAMPAIGN_MINUTES: ${{ inputs.duration_minutes || '345' }}
+          OPENINVEST_CAMPAIGN_MAX_MINUTES: "345"
+          OPENINVEST_CAMPAIGN_MODE: collect
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+        run: ./scripts/run-security-campaign.sh "${{ matrix.suite }}"
+      - name: Upload campaign evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: adversarial-hosted-${{ matrix.suite }}-${{ github.run_id }}
+          path: security-campaign-logs/**
+          if-no-files-found: warn
