@@ -13,9 +13,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  go-postgres-gate:
+  full-validation:
+    name: Architecture hardening full validation
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
     services:
       postgres:
         image: postgres:18
@@ -30,24 +33,33 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
+
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Check out temporary audit branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
-        with:
-          go-version-file: backend-go/go.mod
-          cache-dependency-path: backend-go/go.sum
-      - name: Verify exact baseline ancestry
+
+      - name: Verify exact protected baseline ancestry
         run: |
           set -euo pipefail
           git merge-base --is-ancestor 5357900e71e1e6f27907f304d59b20490a3b081d HEAD
           test "$(git rev-parse 5357900e71e1e6f27907f304d59b20490a3b081d^{tree})" = "a5bc1f547055b60958c8306745b5f36872cb762a"
-      - name: Apply migrations
+          echo "AUDIT_HEAD=$(git rev-parse HEAD)"
+          echo "AUDIT_TREE=$(git rev-parse HEAD^{tree})"
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+
+      - name: Apply canonical PostgreSQL migrations
         env:
           OPENINVEST_DATABASE_OWNER_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
         run: bash scripts/apply-migrations.sh
-      - name: Configure runtime role
+
+      - name: Configure canonical R0 runtime role
         run: |
           set -euo pipefail
           docker exec -i "${{ job.services.postgres.id }}"             psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 -v runtime_capability_profile=R0             < infrastructure/postgres/runtime/openinvest_runtime_role.sql
@@ -62,12 +74,129 @@ jobs:
           $$;
           GRANT openinvest_runtime TO openinvest_runtime_ci;
           SQL
-      - name: Go test
+
+      - name: Build patched API binary
+        working-directory: backend-go
+        run: go build -trimpath -o "${RUNNER_TEMP}/openinvest-api" ./cmd/api
+
+      - name: Run real PostgreSQL before-after load harness
+        env:
+          POSTGRES_CONTAINER_ID: ${{ job.services.postgres.id }}
+          OPENINVEST_P2_API_BIN: ${{ runner.temp }}/openinvest-api
+          OPENINVEST_P2_RUNTIME_URL: postgres://openinvest_runtime_ci:openinvest-runtime-ci@127.0.0.1:5432/openinvest?sslmode=disable
+          OPENINVEST_P2_OWNER_DB: openinvest
+          OPENINVEST_P2_RESULTS_DIR: ${{ runner.temp }}/openinvest-arch-hardening
+        run: |
+          set -euo pipefail
+          python3 scripts/audit-rate-limit-architecture-hardening-v1.py
+
+      - name: Run deterministic cancellation proof verbosely
+        working-directory: backend-go
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+          OPENINVEST_DATABASE_RUNTIME_TEST_URL: postgres://openinvest_runtime_ci:openinvest-runtime-ci@127.0.0.1:5432/openinvest?sslmode=disable
+        run: |
+          set -euo pipefail
+          go test ./internal/postgres -run '^TestArchitectureHardening(PostgresCancellationProof|CancellationConstants)$' -count=1 -v
+          go test ./internal/httpapi -run '^TestArchitectureHardeningHTTPForcedRequestContextCancelsPostgres$' -count=1 -v
+
+      - name: Run Go tests
         working-directory: backend-go
         env:
           OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
           OPENINVEST_DATABASE_RUNTIME_TEST_URL: postgres://openinvest_runtime_ci:openinvest-runtime-ci@127.0.0.1:5432/openinvest?sslmode=disable
         run: go test ./...
-      - name: Go vet
+
+      - name: Run Go race tests
+        working-directory: backend-go
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+          OPENINVEST_DATABASE_RUNTIME_TEST_URL: postgres://openinvest_runtime_ci:openinvest-runtime-ci@127.0.0.1:5432/openinvest?sslmode=disable
+        run: go test -race ./...
+
+      - name: Run go vet
         working-directory: backend-go
         run: go vet ./...
+
+      - name: Validate OpenAPI
+        working-directory: backend-go
+        run: go run ./cmd/validate-openapi
+
+      - name: Validate PostgreSQL migrations
+        working-directory: backend-go
+        run: go run ./cmd/validate-migrations --mode=repository
+
+      - name: Run Go vulnerability scan
+        working-directory: backend-go
+        run: |
+          set -euo pipefail
+          go install golang.org/x/vuln/cmd/govulncheck@v1.7.0
+          "$(go env GOPATH)/bin/govulncheck" ./...
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.22.2"
+
+      - name: Enable pinned pnpm
+        run: corepack enable && corepack prepare pnpm@11.8.0 --activate
+
+      - name: Install frontend dependencies
+        working-directory: frontend-next
+        run: pnpm install --frozen-lockfile
+
+      - name: Frontend typecheck
+        working-directory: frontend-next
+        run: pnpm run typecheck
+
+      - name: Frontend tests
+        working-directory: frontend-next
+        run: pnpm test
+
+      - name: Frontend build
+        working-directory: frontend-next
+        run: pnpm run build
+
+      - name: Audit frontend dependencies
+        working-directory: frontend-next
+        run: pnpm audit
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@d0d8abe699bfb85fec6de9f7adb5ae17292296ff
+        with:
+          version: "0.11.21"
+          enable-cache: true
+          cache-dependency-glob: microservice-python/uv.lock
+
+      - name: Python tests
+        working-directory: microservice-python
+        run: |
+          uv sync --extra dev --locked
+          uv run pytest
+
+      - name: Audit Python dependencies
+        working-directory: microservice-python
+        run: |
+          uv export --frozen --format requirements.txt --all-extras --no-emit-project --output-file /tmp/openinvest-python-requirements.txt
+          uvx --from pip-audit==2.10.1 pip-audit -r /tmp/openinvest-python-requirements.txt --strict --progress-spinner off
+
+      - name: Docker Compose config
+        env:
+          POSTGRES_PASSWORD: openinvest-ci-config-only
+        run: docker compose config --quiet
+
+      - name: Dump runtime evidence
+        if: always()
+        run: |
+          set +e
+          echo '=== RESULTS JSON ==='
+          cat "${RUNNER_TEMP}/openinvest-arch-hardening/results.json" 2>/dev/null || true
+          echo '=== API1 LOG ==='
+          cat "${RUNNER_TEMP}/openinvest-arch-hardening/oi-arch-hardening-api1.log" 2>/dev/null || true
+          echo '=== API2 LOG ==='
+          cat "${RUNNER_TEMP}/openinvest-arch-hardening/oi-arch-hardening-api2.log" 2>/dev/null || true
