@@ -11,13 +11,19 @@ import (
 )
 
 const (
-	tinvestCorporateActionsEnabledEnv = "OPENINVEST_TINVEST_CORPORATE_ACTIONS_ENABLED"
-	tinvestReadOnlyTokenEnv           = "OPENINVEST_TINVEST_READONLY_TOKEN"
+	tinvestCorporateActionsEnabledEnv     = "OPENINVEST_TINVEST_CORPORATE_ACTIONS_ENABLED"
+	tinvestReadOnlyTokenEnv                = "OPENINVEST_TINVEST_READONLY_TOKEN"
+	tinvestGlobalBudgetOwnerEnv            = "OPENINVEST_TINVEST_GLOBAL_BUDGET_OWNER"
+	verifiedTInvestGlobalBudgetOwner       = "verified-shared-provider-budget-v1"
 )
 
 func configuredTInvestCorporateActionProvider() (verticalslice.CorporateActionProvider, error) {
 	if !envBool(tinvestCorporateActionsEnabledEnv) {
 		return nil, nil
+	}
+
+	if strings.TrimSpace(os.Getenv(tinvestGlobalBudgetOwnerEnv)) != verifiedTInvestGlobalBudgetOwner {
+		return nil, errors.New("T-Invest Corporate Actions is enabled but deployment-global provider budget ownership is not verified")
 	}
 
 	token := os.Getenv(tinvestReadOnlyTokenEnv)
