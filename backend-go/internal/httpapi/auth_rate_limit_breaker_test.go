@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"github.com/gofiber/fiber/v3"
 	"errors"
 	"os"
 	"testing"
@@ -95,5 +96,90 @@ func TestSecurityBreakerAuthRateLimiterWindowBoundaryDoesNotDoubleSpend(t *testi
 	}
 	if !limiter.allow(key, start.Add(time.Minute+1*time.Nanosecond)) {
 		t.Fatal("expired request budget was not reclaimed after the window")
+	}
+}
+
+
+func TestSecurityBreakerAuthRateLimitAmplificationDoesNotScaleWithInstanceCount(t *testing.T) {
+	requireSecurityBreaker(t)
+
+	const (
+		perClientLimit = 2
+		instances      = 8
+		attempts       = 64
+	)
+	type instance struct {
+		api *API
+		app *fiber.App
+	}
+	apps := make([]instance, 0, instances)
+	for i := 0; i < instances; i++ {
+		api, app := newOINew0506RateLimitApp(perClientLimit, HTTPNetworkConfig{})
+		apps = append(apps, instance{api: api, app: app})
+	}
+
+	peer := "198.51.100.201"
+	admitted := 0
+	for i := 0; i < attempts; i++ {
+		target := apps[i%len(apps)]
+		_, err := oiNew0506RateLimitAttempt(target.app, target.api, peer, nil)
+		switch {
+		case err == nil:
+			admitted++
+		case errors.Is(err, errAuthRateLimited):
+		default:
+			t.Fatalf("unexpected limiter result on attempt %d: %v", i+1, err)
+		}
+	}
+	if admitted > perClientLimit {
+		t.Fatalf("distributed limiter budget amplified with instance count: admitted=%d secure_budget=%d instances=%d", admitted, perClientLimit, instances)
+	}
+}
+
+func TestSecurityBreakerAuthRateLimitConcurrentCrossInstanceBurstCannotMultiplyBudget(t *testing.T) {
+	requireSecurityBreaker(t)
+
+	const (
+		perClientLimit = 2
+		instances      = 4
+		contenders     = 64
+	)
+	type instance struct {
+		api *API
+		app *fiber.App
+	}
+	apps := make([]instance, 0, instances)
+	for i := 0; i < instances; i++ {
+		api, app := newOINew0506RateLimitApp(perClientLimit, HTTPNetworkConfig{})
+		apps = append(apps, instance{api: api, app: app})
+	}
+
+	peer := "198.51.100.202"
+	start := make(chan struct{})
+	results := make(chan error, contenders)
+	for i := 0; i < contenders; i++ {
+		i := i
+		go func() {
+			<-start
+			target := apps[i%len(apps)]
+			_, err := oiNew0506RateLimitAttempt(target.app, target.api, peer, nil)
+			results <- err
+		}()
+	}
+	close(start)
+
+	admitted := 0
+	for i := 0; i < contenders; i++ {
+		err := <-results
+		switch {
+		case err == nil:
+			admitted++
+		case errors.Is(err, errAuthRateLimited):
+		default:
+			t.Fatalf("unexpected concurrent limiter result: %v", err)
+		}
+	}
+	if admitted > perClientLimit {
+		t.Fatalf("concurrent distributed limiter bypass reproduced: admitted=%d secure_budget=%d instances=%d", admitted, perClientLimit, instances)
 	}
 }
