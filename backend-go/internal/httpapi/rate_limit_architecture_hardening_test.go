@@ -52,9 +52,59 @@ func TestArchitectureHardeningExpensiveReadAdmissionIsFailFastAndBounded(t *test
 	}
 }
 
+
+func TestArchitectureHardeningNormalPortfolioUIFanoutFitsAdmission(t *testing.T) {
+	const normalFrontendMaxExpensiveReadFanout = 5
+	if defaultExpensiveReadPerSubjectCapacity < normalFrontendMaxExpensiveReadFanout {
+		t.Fatalf("per-subject capacity=%d is below verified frontend fanout=%d", defaultExpensiveReadPerSubjectCapacity, normalFrontendMaxExpensiveReadFanout)
+	}
+	if defaultExpensiveReadPerSubjectCapacity > defaultExpensiveReadGlobalCapacity {
+		t.Fatalf("per-subject capacity=%d exceeds global capacity=%d", defaultExpensiveReadPerSubjectCapacity, defaultExpensiveReadGlobalCapacity)
+	}
+
+	admission := newDefaultExpensiveReadAdmission()
+	operations := []string{
+		"summary",
+		"current-positions",
+		"cash-flow",
+		"historical-positions",
+		"returns",
+	}
+	releases := make([]func(), 0, len(operations))
+	for _, operation := range operations {
+		release, err := admission.acquire("normal-portfolio-ui-subject")
+		if err != nil {
+			t.Fatalf("normal UI operation %s was rejected at verified fanout: %v", operation, err)
+		}
+		releases = append(releases, release)
+	}
+	if _, err := admission.acquire("normal-portfolio-ui-subject"); !errors.Is(err, errExpensiveReadSubjectLimited) {
+		t.Fatalf("sixth same-subject expensive read error=%v, want subject bound", err)
+	}
+
+	otherReleases := make([]func(), 0, defaultExpensiveReadGlobalCapacity-normalFrontendMaxExpensiveReadFanout)
+	for i := 0; i < cap(admission.capacity)-normalFrontendMaxExpensiveReadFanout; i++ {
+		release, err := admission.acquire(fmt.Sprintf("other-subject-%d", i))
+		if err != nil {
+			t.Fatalf("global spare slot %d rejected: %v", i, err)
+		}
+		otherReleases = append(otherReleases, release)
+	}
+	if _, err := admission.acquire("another-subject"); !errors.Is(err, errExpensiveReadCapacityExhausted) {
+		t.Fatalf("ninth process-wide expensive read error=%v, want global capacity exhaustion", err)
+	}
+
+	for _, release := range otherReleases {
+		release()
+	}
+	for _, release := range releases {
+		release()
+	}
+}
+
 func TestArchitectureHardeningExpensiveReadAdmissionConcurrentBound(t *testing.T) {
 	const global = 8
-	const perSubject = 2
+	const perSubject = 5
 	admission := newExpensiveReadAdmission(perSubject, global)
 
 	var active atomic.Int64
