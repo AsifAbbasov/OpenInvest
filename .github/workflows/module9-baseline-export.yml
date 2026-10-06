@@ -27,7 +27,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/export"
           git archive --format=tar.gz --prefix=OpenInvest-module9-hardening/             -o "$RUNNER_TEMP/export/OpenInvest-module9-baseline.tar.gz"             5357900e71e1e6f27907f304d59b20490a3b081d
           sha256sum "$RUNNER_TEMP/export/OpenInvest-module9-baseline.tar.gz"
-          git bundle create "$RUNNER_TEMP/export/OpenInvest-module9-baseline.bundle" 5357900e71e1e6f27907f304d59b20490a3b081d
+          git bundle create "$RUNNER_TEMP/export/OpenInvest-module9-baseline.bundle" 5357900e71e1e6f27907f304d59b20490a3b081d^..5357900e71e1e6f27907f304d59b20490a3b081d
           git bundle verify "$RUNNER_TEMP/export/OpenInvest-module9-baseline.bundle"
           sha256sum "$RUNNER_TEMP/export/OpenInvest-module9-baseline.bundle"
       - uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
