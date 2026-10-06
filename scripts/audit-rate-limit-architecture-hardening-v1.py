@@ -401,6 +401,26 @@ def materialization_probe(subject_id, portfolio_id):
             found[endpoint.strip()] = int(countpart.strip())
     return found, timeout_observed
 
+def normal_ui_fanout(base, token, portfolio_id, procs):
+    paths = [
+        endpoint_path("summary", portfolio_id),
+        endpoint_path("positions", portfolio_id),
+        endpoint_path("cash-flow", portfolio_id),
+        f"/api/v1/portfolios/{portfolio_id}/positions?asOfDate=2005-01-01",
+        endpoint_path("returns", portfolio_id),
+    ]
+    with Monitor(procs) as mon:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(paths)) as ex:
+            futures = [ex.submit(request, "GET", base + path, token, None, 35.0) for path in paths]
+            results = [future.result() for future in futures]
+    summary = summarize(results)
+    summary.update(mon.peaks())
+    summary["statuses"] = [r["status"] for r in results]
+    if summary["http_429"] != 0 or summary["http_503"] != 0 or summary["success"] != len(paths):
+        raise RuntimeError(f"normal portfolio UI fanout was rejected: {summary}")
+    log("NORMAL_UI_FANOUT|" + json.dumps(summary, sort_keys=True))
+    return summary
+
 def victim_series(base, token, victim_portfolio, count=40):
     out = []
     for i in range(count):
@@ -513,6 +533,7 @@ RESET ROLE;
         "environment": {"postgres_version": postgres_version, "postgres_max_connections": postgres_max_connections},
         "datasets": {},
         "materializations": {},
+        "normal_ui_fanout": {},
         "single_instance": [],
         "multi_instance": [],
         "cross_subject": {},
@@ -555,6 +576,11 @@ RESET ROLE;
         all_results["runtime_timeout_observed"] = runtime_timeout_observed
         log("MATERIALIZATIONS|" + json.dumps(mats, sort_keys=True))
         log("RUNTIME_TIMEOUT_OBSERVED|" + str(runtime_timeout_observed))
+
+        normal_ui = normal_ui_fanout(base1, attacker_token, portfolios[10000], procs)
+        all_results["normal_ui_fanout"] = normal_ui
+        ok, sample = recover([base1, base2], victim_token, procs)
+        all_results["recoveries"].append({"phase": "normal-ui-fanout", "ok": ok, "db": sample})
 
         # Single-instance matrix: api1 only. Escalation is stopped per dataset/endpoint
         # when timeouts, high 5xx rate, or p95 near the DB timeout indicates unsafe pressure.
