@@ -23,6 +23,15 @@ func TestP2RuntimeChallengerV3Materializations(t *testing.T) {
 	}
 	defer func() { _ = store.Close() }()
 
+	var statementTimeout, lockTimeout, idleTxTimeout string
+	if err := store.db.QueryRowContext(context.Background(), `SELECT current_setting('statement_timeout'), current_setting('lock_timeout'), current_setting('idle_in_transaction_session_timeout')`).Scan(&statementTimeout, &lockTimeout, &idleTxTimeout); err != nil {
+		t.Fatalf("read runtime timeout envelope: %v", err)
+	}
+	t.Logf("P2V3_TIMEOUTS statement=%s lock=%s idle_tx=%s", statementTimeout, lockTimeout, idleTxTimeout)
+	if statementTimeout != "30s" || lockTimeout != "5s" || idleTxTimeout != "30s" {
+		t.Fatalf("unexpected runtime timeout envelope statement=%s lock=%s idle_tx=%s", statementTimeout, lockTimeout, idleTxTimeout)
+	}
+
 	run := func(name string, want int64, fn func(context.Context) error) {
 		t.Helper()
 		instrumentation := &effectiveLedgerInstrumentation{}
