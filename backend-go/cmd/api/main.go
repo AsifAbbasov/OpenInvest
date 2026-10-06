@@ -28,8 +28,10 @@ const (
 	runtimeIntegrityStartupTimeout     = 30 * time.Second
 	gracefulShutdownTimeout            = 10 * time.Second
 	forcedRequestDrainTimeout          = 2 * time.Second
-	apiListenAddressEnv                = "OPENINVEST_API_LISTEN_ADDRESS"
-	developmentAPIListenAddress        = "127.0.0.1:8080"
+	apiListenAddressEnv                  = "OPENINVEST_API_LISTEN_ADDRESS"
+	developmentAPIListenAddress          = "127.0.0.1:8080"
+	deploymentGlobalAbuseControlEnv       = "OPENINVEST_DEPLOYMENT_GLOBAL_ABUSE_CONTROL"
+	verifiedDeploymentGlobalAbuseControl = "verified-edge-v1"
 )
 
 var errRuntimeResourcesStillInUse = errors.New(
@@ -427,6 +429,11 @@ func validateRuntimeSafety(databaseURL string) error {
 		}
 		return errors.New("DATABASE_URL is required unless OPENINVEST_ENV=development or local")
 	}
+	if !isExplicitDevelopmentEnvironment() {
+		if err := validateDeploymentGlobalAbuseControl(); err != nil {
+			return err
+		}
+	}
 	if !(envBool("OPENINVEST_DEV_AUTH_BYPASS") ||
 		envBool("OPENINVEST_REFRESH_COOKIE_INSECURE") ||
 		envBool("OPENINVEST_ALLOW_EPHEMERAL_ACCESS_TOKEN_SECRET")) {
@@ -436,6 +443,18 @@ func validateRuntimeSafety(databaseURL string) error {
 		return nil
 	}
 	return errors.New("unsafe development auth settings require OPENINVEST_ENV=development or local")
+}
+
+func validateDeploymentGlobalAbuseControl() error {
+	configured := strings.TrimSpace(os.Getenv(deploymentGlobalAbuseControlEnv))
+	if configured != verifiedDeploymentGlobalAbuseControl {
+		return fmt.Errorf(
+			"%s must be %q outside OPENINVEST_ENV=development/local to acknowledge verified deployment-global abuse control",
+			deploymentGlobalAbuseControlEnv,
+			verifiedDeploymentGlobalAbuseControl,
+		)
+	}
+	return nil
 }
 
 func configuredImportReviewTokenSecret() []byte {

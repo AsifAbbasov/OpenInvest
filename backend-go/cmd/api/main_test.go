@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"strings"
 	"testing"
 	"time"
 )
@@ -297,5 +299,53 @@ func TestOINew0506ConfiguredHTTPNetworkConfigRejectsInvalidValues(t *testing.T) 
 				t.Fatal("expected invalid HTTP network configuration to be rejected")
 			}
 		})
+	}
+}
+
+
+func TestArchitectureHardeningProductionRequiresVerifiedDeploymentGlobalAbuseControl(t *testing.T) {
+	t.Setenv("OPENINVEST_ENV", "production")
+	t.Setenv(deploymentGlobalAbuseControlEnv, "")
+	if err := validateRuntimeSafety("postgres://openinvest@example/openinvest"); err == nil {
+		t.Fatal("expected production startup to fail without deployment-global abuse-control ownership")
+	}
+	t.Setenv(deploymentGlobalAbuseControlEnv, "unverified")
+	if err := validateRuntimeSafety("postgres://openinvest@example/openinvest"); err == nil {
+		t.Fatal("expected noncanonical deployment-global abuse-control acknowledgement to fail")
+	}
+	t.Setenv(deploymentGlobalAbuseControlEnv, verifiedDeploymentGlobalAbuseControl)
+	if err := validateRuntimeSafety("postgres://openinvest@example/openinvest"); err != nil {
+		t.Fatalf("verified deployment-global abuse-control ownership rejected: %v", err)
+	}
+}
+
+func TestArchitectureHardeningDevelopmentDoesNotClaimDeploymentGlobalControl(t *testing.T) {
+	t.Setenv("OPENINVEST_ENV", "development")
+	t.Setenv(deploymentGlobalAbuseControlEnv, "")
+	if err := validateRuntimeSafety("postgres://openinvest@example/openinvest"); err != nil {
+		t.Fatalf("development should not require production deployment-global ownership: %v", err)
+	}
+}
+
+
+func TestArchitectureHardeningDeploymentOwnershipDocumentationContract(t *testing.T) {
+	content, err := os.ReadFile("../../../docs/operations/ABUSE_PROTECTION_DEPLOYMENT.md")
+	if err != nil {
+		t.Fatalf("read deployment abuse-control contract: %v", err)
+	}
+	text := string(content)
+	for _, required := range []string{
+		"Per-process safety limits",
+		"Deployment-global abuse limits",
+		"Provider-global budget",
+		"OPENINVEST_DEPLOYMENT_GLOBAL_ABUSE_CONTROL=verified-edge-v1",
+		"OPENINVEST_TINVEST_GLOBAL_BUDGET_OWNER=verified-shared-provider-budget-v1",
+		"process-local maps/channels",
+		"does NOT prove the external edge",
+		"Module #12",
+	} {
+		if !strings.Contains(text, required) {
+			t.Fatalf("deployment abuse-control contract missing %q", required)
+		}
 	}
 }

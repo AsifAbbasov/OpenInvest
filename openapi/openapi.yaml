@@ -456,6 +456,8 @@ paths:
         "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
         "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
         "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
+        "429": { $ref: "./components/responses.yaml#/responses/ExpensiveReadSubjectLimited" }
+        "503": { $ref: "./components/responses.yaml#/responses/ExpensiveReadCapacityUnavailable" }
 
   /api/v1/portfolios/{portfolioId}/positions:
     parameters:
@@ -500,6 +502,8 @@ paths:
         "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
         "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
         "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
+        "429": { $ref: "./components/responses.yaml#/responses/ExpensiveReadSubjectLimited" }
+        "503": { $ref: "./components/responses.yaml#/responses/ExpensiveReadCapacityUnavailable" }
 
   /api/v1/portfolios/{portfolioId}/valuations/{ticker}:
     parameters:
@@ -595,6 +599,8 @@ paths:
         "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
         "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
         "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
+        "429": { $ref: "./components/responses.yaml#/responses/ExpensiveReadSubjectLimited" }
+        "503": { $ref: "./components/responses.yaml#/responses/ExpensiveReadCapacityUnavailable" }
 
   /api/v1/portfolios/{portfolioId}/cash-flow:
     parameters:
@@ -618,6 +624,8 @@ paths:
         "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
         "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
         "404": { $ref: "./components/responses.yaml#/responses/NotFound" }
+        "429": { $ref: "./components/responses.yaml#/responses/ExpensiveReadSubjectLimited" }
+        "503": { $ref: "./components/responses.yaml#/responses/ExpensiveReadCapacityUnavailable" }
 
   /api/v1/portfolios/{portfolioId}/snapshots:
     parameters:

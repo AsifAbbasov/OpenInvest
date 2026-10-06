@@ -163,7 +163,17 @@ func portfolioCashFlowProjectionTx(
 	if err != nil {
 		return verticalslice.PortfolioCashFlowProjection{}, err
 	}
+	return portfolioCashFlowProjectionFromEffectiveRows(portfolioID, fromDate, toDate, rows)
+}
 
+// portfolioCashFlowProjectionFromEffectiveRows derives the canonical cash-flow projection from
+// a request-scoped immutable effective-ledger input without issuing another ledger query.
+func portfolioCashFlowProjectionFromEffectiveRows(
+	portfolioID string,
+	fromDate string,
+	toDate string,
+	rows []effectiveLedgerRow,
+) (verticalslice.PortfolioCashFlowProjection, error) {
 	totals := zeroCashFlowAmounts()
 	monthly := map[string]cashFlowAmounts{}
 	var latestIncludedTradeDate *string

@@ -13,8 +13,11 @@ type API struct {
 	corporateActionProvider verticalslice.CorporateActionProvider
 	allowDevelopmentSubject bool
 	authLimiter             *authRateLimiter
+	authLoginIPLimiter      *authRateLimiter
+	authCredentialLimiter   *authRateLimiter
 	dividendLimiter         *authRateLimiter
 	importAdmission         *importAdmission
+	expensiveReads          *expensiveReadAdmission
 	importReviewSecret      []byte
 	paginationCursorSecret  []byte
 	now                     func() time.Time
@@ -31,8 +34,11 @@ func New(service *verticalslice.Service, authService *auth.Service, importReview
 		service:                service,
 		auth:                   authService,
 		authLimiter:            newAuthRateLimiter(20, time.Minute),
+		authLoginIPLimiter:     newBoundedAuthRateLimiter(defaultAuthLoginIPLimit, defaultAuthRateLimiterGlobalLimit, defaultAuthRateLimiterMaxKeys, time.Minute),
+		authCredentialLimiter:  newBoundedAuthRateLimiter(defaultAuthCredentialLimit, defaultAuthRateLimiterGlobalLimit, defaultAuthCredentialMaxKeys, time.Minute),
 		dividendLimiter:        newDividendCalculatorRateLimiter(),
 		importAdmission:        newDefaultImportAdmission(),
+		expensiveReads:         newDefaultExpensiveReadAdmission(),
 		importReviewSecret:     secret,
 		paginationCursorSecret: derivePaginationCursorSecret(secret),
 	}), nil
@@ -47,8 +53,11 @@ func NewDevelopment(service *verticalslice.Service) *fiber.App {
 		service:                 service,
 		allowDevelopmentSubject: true,
 		authLimiter:             newAuthRateLimiter(20, time.Minute),
+		authLoginIPLimiter:      newBoundedAuthRateLimiter(defaultAuthLoginIPLimit, defaultAuthRateLimiterGlobalLimit, defaultAuthRateLimiterMaxKeys, time.Minute),
+		authCredentialLimiter:   newBoundedAuthRateLimiter(defaultAuthCredentialLimit, defaultAuthRateLimiterGlobalLimit, defaultAuthCredentialMaxKeys, time.Minute),
 		dividendLimiter:         newDividendCalculatorRateLimiter(),
 		importAdmission:         newDefaultImportAdmission(),
+		expensiveReads:          newDefaultExpensiveReadAdmission(),
 		importReviewSecret:      secret,
 		paginationCursorSecret:  derivePaginationCursorSecret(secret),
 	})
