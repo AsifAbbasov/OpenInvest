@@ -12,6 +12,10 @@ const maxHTTPImportRows = 100
 
 const authRateLimitRetryAfterSeconds = "60"
 
+const defaultAuthIPEmergencyLimit = 100
+
+const defaultAuthCredentialLimit = 20
+
 const importFreshRateRetryAfterSeconds = "60"
 
 const importExecutionRateRetryAfterSeconds = "60"
