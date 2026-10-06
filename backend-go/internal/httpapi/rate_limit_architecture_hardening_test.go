@@ -1,12 +1,17 @@
 package httpapi
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/gofiber/fiber/v3"
 )
 
 func TestArchitectureHardeningExpensiveReadAdmissionIsFailFastAndBounded(t *testing.T) {
@@ -149,6 +154,53 @@ func TestArchitectureHardeningExpensiveReadAdmissionConcurrentBound(t *testing.T
 	defer admission.mu.Unlock()
 	if len(admission.perSubjectActive) != 0 {
 		t.Fatalf("subject active map leaked %d entries", len(admission.perSubjectActive))
+	}
+}
+
+func TestArchitectureHardeningExpensiveReadHTTPErrorContract(t *testing.T) {
+	app := fiber.New()
+	app.Get("/subject", func(c fiber.Ctx) error {
+		return writeMappedError(c, errExpensiveReadSubjectLimited)
+	})
+	app.Get("/capacity", func(c fiber.Ctx) error {
+		return writeMappedError(c, errExpensiveReadCapacityExhausted)
+	})
+
+	tests := []struct {
+		path       string
+		wantStatus int
+		wantCode   string
+		wantRetry  string
+	}{
+		{path: "/subject", wantStatus: http.StatusTooManyRequests, wantCode: "RATE_LIMITED", wantRetry: expensiveReadSubjectRetryAfterSeconds},
+		{path: "/capacity", wantStatus: http.StatusServiceUnavailable, wantCode: "READ_CAPACITY_EXHAUSTED", wantRetry: expensiveReadCapacityRetryAfterSeconds},
+	}
+	for _, test := range tests {
+		response, err := app.Test(httptest.NewRequest(http.MethodGet, test.path, nil))
+		if err != nil {
+			t.Fatalf("%s request: %v", test.path, err)
+		}
+		if response.StatusCode != test.wantStatus {
+			_ = response.Body.Close()
+			t.Fatalf("%s status=%d want=%d", test.path, response.StatusCode, test.wantStatus)
+		}
+		if got := response.Header.Get("Retry-After"); got != test.wantRetry {
+			_ = response.Body.Close()
+			t.Fatalf("%s Retry-After=%q want=%q", test.path, got, test.wantRetry)
+		}
+		var payload struct {
+			Error struct {
+				Code string `json:"code"`
+			} `json:"error"`
+		}
+		if err := json.NewDecoder(response.Body).Decode(&payload); err != nil {
+			_ = response.Body.Close()
+			t.Fatalf("%s decode: %v", test.path, err)
+		}
+		_ = response.Body.Close()
+		if payload.Error.Code != test.wantCode {
+			t.Fatalf("%s code=%q want=%q", test.path, payload.Error.Code, test.wantCode)
+		}
 	}
 }
 
