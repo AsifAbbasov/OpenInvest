@@ -299,3 +299,28 @@ func TestOINew0506ConfiguredHTTPNetworkConfigRejectsInvalidValues(t *testing.T) 
 		})
 	}
 }
+
+
+func TestArchitectureHardeningProductionRequiresVerifiedDeploymentGlobalAbuseControl(t *testing.T) {
+	t.Setenv("OPENINVEST_ENV", "production")
+	t.Setenv(deploymentGlobalAbuseControlEnv, "")
+	if err := validateRuntimeSafety("postgres://openinvest@example/openinvest"); err == nil {
+		t.Fatal("expected production startup to fail without deployment-global abuse-control ownership")
+	}
+	t.Setenv(deploymentGlobalAbuseControlEnv, "unverified")
+	if err := validateRuntimeSafety("postgres://openinvest@example/openinvest"); err == nil {
+		t.Fatal("expected noncanonical deployment-global abuse-control acknowledgement to fail")
+	}
+	t.Setenv(deploymentGlobalAbuseControlEnv, verifiedDeploymentGlobalAbuseControl)
+	if err := validateRuntimeSafety("postgres://openinvest@example/openinvest"); err != nil {
+		t.Fatalf("verified deployment-global abuse-control ownership rejected: %v", err)
+	}
+}
+
+func TestArchitectureHardeningDevelopmentDoesNotClaimDeploymentGlobalControl(t *testing.T) {
+	t.Setenv("OPENINVEST_ENV", "development")
+	t.Setenv(deploymentGlobalAbuseControlEnv, "")
+	if err := validateRuntimeSafety("postgres://openinvest@example/openinvest"); err != nil {
+		t.Fatalf("development should not require production deployment-global ownership: %v", err)
+	}
+}
