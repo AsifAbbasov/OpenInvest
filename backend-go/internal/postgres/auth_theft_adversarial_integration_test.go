@@ -254,3 +254,104 @@ func TestAuthTheftPostgresAllSessionsLogoutRacingStolenRefreshLeavesNoSessionAct
 		t.Fatalf("logout/refresh race left %d active session(s)", active)
 	}
 }
+
+
+func TestAuthTheftPostgresMultiInstanceStolenPairCannotForkSessionFamily(t *testing.T) {
+	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
+	if databaseURL == "" {
+		t.Skip("OPENINVEST_DATABASE_TEST_URL is not set")
+	}
+	storeA, err := postgres.Open(databaseURL)
+	if err != nil {
+		t.Fatalf("open store A: %v", err)
+	}
+	defer storeA.Close()
+	storeB, err := postgres.Open(databaseURL)
+	if err != nil {
+		t.Fatalf("open store B: %v", err)
+	}
+	defer storeB.Close()
+
+	config := auth.Config{
+		AccessTokenSecret:   []byte("01234567890123456789012345678901"),
+		RefreshCookieSecure: true,
+	}
+	serviceA, err := auth.NewService(storeA, verticalslice.SystemClock{}, config)
+	if err != nil {
+		t.Fatalf("new auth service A: %v", err)
+	}
+	serviceB, err := auth.NewService(storeB, verticalslice.SystemClock{}, config)
+	if err != nil {
+		t.Fatalf("new auth service B: %v", err)
+	}
+
+	root := registerAuthTheftUser(t, serviceA, "auth-theft-multi-instance")
+
+	type outcome struct {
+		result auth.AuthResult
+		err    error
+	}
+	const contenders = 64
+	start := make(chan struct{})
+	results := make(chan outcome, contenders)
+	var ready sync.WaitGroup
+	ready.Add(contenders)
+	for i := 0; i < contenders; i++ {
+		i := i
+		go func() {
+			ready.Done()
+			<-start
+			service := serviceA
+			if i%2 == 1 {
+				service = serviceB
+			}
+			got, err := service.Refresh(context.Background(), root.RefreshToken, root.Session.CSRFToken)
+			results <- outcome{result: got, err: err}
+		}()
+	}
+	ready.Wait()
+	close(start)
+
+	successes := 0
+	var winner auth.AuthResult
+	for i := 0; i < contenders; i++ {
+		got := <-results
+		if got.err == nil {
+			successes++
+			winner = got.result
+			continue
+		}
+		if !errors.Is(got.err, auth.ErrInvalidSession) {
+			t.Fatalf("unexpected multi-instance stolen-pair outcome: %v", got.err)
+		}
+	}
+	if successes != 1 {
+		t.Fatalf("multi-instance refresh fork reproduced: successes=%d want exactly 1", successes)
+	}
+
+	// A replay through the other instance must contain the whole compromised family.
+	if _, err := serviceB.Refresh(context.Background(), root.RefreshToken, root.Session.CSRFToken); !errors.Is(err, auth.ErrInvalidSession) {
+		t.Fatalf("replayed ancestor unexpectedly accepted through second instance: %v", err)
+	}
+	if winner.RefreshToken != "" {
+		if _, err := serviceA.Refresh(context.Background(), winner.RefreshToken, winner.Session.CSRFToken); !errors.Is(err, auth.ErrInvalidSession) {
+			t.Fatalf("winner descendant survived cross-instance replay containment: %v", err)
+		}
+	}
+
+	db, err := sql.Open("pgx", databaseURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	var active int
+	if err := db.QueryRowContext(context.Background(),
+		"SELECT count(*) FROM identity.sessions WHERE user_id=$1 AND session_state='active'",
+		root.User.ID,
+	).Scan(&active); err != nil {
+		t.Fatal(err)
+	}
+	if active != 0 {
+		t.Fatalf("cross-instance replay containment left %d active session(s)", active)
+	}
+}
