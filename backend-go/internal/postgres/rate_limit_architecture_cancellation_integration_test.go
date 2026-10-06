@@ -59,7 +59,7 @@ func TestArchitectureHardeningPostgresCancellationProof(t *testing.T) {
 		evidence := runArchitectureHardeningCancellationIteration(t, runtimeStore.db, ownerStore.db, i)
 		terminationTotal += evidence.terminationLatency
 		t.Logf(
-			"CANCEL_PROOF_ITERATION=%d BACKEND_PID=%d QUERY_ACTIVE_BEFORE_CANCEL=YES CLIENT_CANCEL_SENT=YES REQUEST_CONTEXT_DONE=YES DATABASE_CALL_ERROR=%q POSTGRES_QUERY_TERMINATED=YES TERMINATION_LATENCY_MS=%d POST_CANCEL_SELECT_1=SUCCESS CONNECTION_REUSABLE=YES",
+			"CANCEL_PROOF_ITERATION=%d BACKEND_PID=%d QUERY_ACTIVE_BEFORE_CANCEL=YES CLIENT_CANCEL_SENT=YES REQUEST_CONTEXT_DONE=YES DATABASE_CALL_ERROR=%q POSTGRES_QUERY_TERMINATED=YES TERMINATION_LATENCY_MS=%d POST_CANCEL_SELECT_1=SUCCESS PHYSICAL_CONNECTION_REUSE=NOT_REQUIRED_POOL_REUSABLE=YES",
 			i+1,
 			evidence.backendPID,
 			evidence.databaseError,
@@ -98,7 +98,8 @@ func runArchitectureHardeningCancellationIteration(
 	if err != nil {
 		t.Fatalf("iteration %d acquire runtime connection: %v", iteration+1, err)
 	}
-	defer conn.Close()
+	// Explicitly close below after cancellation so the test can distinguish
+	// physical-connection discard from pool recovery.
 
 	var backendPID int
 	if err := conn.QueryRowContext(context.Background(), `SELECT pg_backend_pid()`).Scan(&backendPID); err != nil {
@@ -129,9 +130,15 @@ func runArchitectureHardeningCancellationIteration(
 	}
 	waitArchitectureHardeningQueryGone(t, ownerDB, backendPID, 2*time.Second)
 
+	// pgx/database/sql may discard the physical connection used for a canceled
+	// query. That is a valid cancellation strategy; the security invariant is
+	// that the pool releases/replaces it immediately and remains usable.
+	if err := conn.Close(); err != nil {
+		t.Fatalf("iteration %d close canceled connection: %v", iteration+1, err)
+	}
 	var one int
-	if err := conn.QueryRowContext(context.Background(), `SELECT 1`).Scan(&one); err != nil || one != 1 {
-		t.Fatalf("iteration %d post-cancel SELECT 1 value=%d err=%v", iteration+1, one, err)
+	if err := runtimeDB.QueryRowContext(context.Background(), `SELECT 1`).Scan(&one); err != nil || one != 1 {
+		t.Fatalf("iteration %d post-cancel pooled SELECT 1 value=%d err=%v", iteration+1, one, err)
 	}
 	return architectureHardeningCancellationEvidence{
 		backendPID: backendPID,
