@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -182,6 +183,38 @@ func TestCalculateDividendRouteMatchesCanonicalPublicContract(t *testing.T) {
 	}
 	if store.command.RequestPath != "/api/v1/dividends/calculate" {
 		t.Fatalf("request path = %s", store.command.RequestPath)
+	}
+}
+
+
+func TestArchitectureHardeningDividendFreshBudgetCannotBeBypassedByRotatingIdempotencyKeys(t *testing.T) {
+	store := &dividendHTTPTestStore{}
+	service := verticalslice.NewService(store, verticalslice.SystemClock{})
+	app := newApp(&API{
+		service:         service,
+		dividendLimiter: newBoundedAuthRateLimiter(2, 2, 8, defaultDividendCalculatorWindow),
+		now:             func() time.Time { return testTime() },
+	})
+	body := []byte(`{"ticker":"SBER","quantity":"1.00000000","dividendPerUnit":{"amount":"1.00000000","currency":"RUB"}}`)
+	for i := 0; i < 3; i++ {
+		request := httptest.NewRequest(http.MethodPost, "/api/v1/dividends/calculate", bytes.NewReader(body))
+		request.Header.Set("Content-Type", "application/json")
+		request.Header.Set("Idempotency-Key", fmt.Sprintf("architecture-hardening-dividend-%06d", i))
+		response, err := app.Test(request)
+		if err != nil {
+			t.Fatalf("request %d: %v", i+1, err)
+		}
+		status := response.StatusCode
+		_ = response.Body.Close()
+		if i < 2 && status != http.StatusOK {
+			t.Fatalf("fresh request %d status=%d, want 200", i+1, status)
+		}
+		if i == 2 && status != http.StatusTooManyRequests {
+			t.Fatalf("rotated-key request status=%d, want 429", status)
+		}
+	}
+	if store.writeCalls != 2 {
+		t.Fatalf("durable fresh-command calls=%d, want exactly 2 bounded writes", store.writeCalls)
 	}
 }
 
