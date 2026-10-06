@@ -59,22 +59,22 @@ jobs:
           }
           NODE
 
-      - name: Narrow transitive lockfile-only refresh
+      - name: Evaluate broad compatible transitive refresh
         working-directory: frontend-next
         run: |
           set -euo pipefail
           cp pnpm-lock.yaml "$RUNNER_TEMP/pnpm-lock.before.yaml"
-          pnpm update source-map-js@1.2.2 --lockfile-only --depth 100
+          pnpm update --lockfile-only --depth 100
           echo '=== DIFF NAME STATUS ==='
           git -C .. diff --name-status
-          echo '=== DIFF STAT ==='
-          git -C .. diff --stat
-          test "$(git -C .. diff --name-only | wc -l | tr -d ' ')" = "1"
-          test "$(git -C .. diff --name-only)" = "frontend-next/pnpm-lock.yaml"
-          grep -F 'source-map-js@1.2.2' pnpm-lock.yaml
-          ! grep -F 'source-map-js@1.2.1' pnpm-lock.yaml
+          echo '=== DIFF NUMSTAT ==='
+          git -C .. diff --numstat -- frontend-next/pnpm-lock.yaml
+          echo '=== SOURCE MAP AFTER BROAD REFRESH ==='
+          grep -F 'source-map-js@' pnpm-lock.yaml
           echo '=== LOCK DIFF ==='
           git -C .. diff -- frontend-next/pnpm-lock.yaml
+          grep -F 'source-map-js@1.2.2' pnpm-lock.yaml
+          ! grep -F 'source-map-js@1.2.1' pnpm-lock.yaml
 
       - name: Reinstall exact refreshed lock
         working-directory: frontend-next
