@@ -88,6 +88,11 @@ func (api *API) getPortfolioSummary(c fiber.Ctx) error {
 	if err != nil {
 		return writeMappedError(c, err)
 	}
+	release, err := api.acquireExpensiveRead(subjectID)
+	if err != nil {
+		return writeExpensiveReadAdmissionError(c, err)
+	}
+	defer release()
 	summary, err := api.service.GetPortfolioSummary(c.Context(), subjectID, c.Params("portfolioId"), asOfDate)
 	if err != nil {
 		return writeMappedError(c, err)
