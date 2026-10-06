@@ -72,6 +72,19 @@ func portfolioPositionsProjectionTx(
 	if err != nil {
 		return verticalslice.PortfolioPositionsProjection{}, err
 	}
+	return portfolioPositionsProjectionFromEffectiveRowsTx(ctx, tx, portfolioID, asOfDate, ledgerRows)
+}
+
+// portfolioPositionsProjectionFromEffectiveRowsTx is the request-scoped composition path used
+// by higher-level projections after a single authoritative effective-ledger materialization.
+// The supplied rows are immutable for the lifetime of the caller's repeatable-read transaction.
+func portfolioPositionsProjectionFromEffectiveRowsTx(
+	ctx context.Context,
+	tx *sql.Tx,
+	portfolioID string,
+	asOfDate string,
+	ledgerRows []effectiveLedgerRow,
+) (verticalslice.PortfolioPositionsProjection, error) {
 	rebuilt, latestIncludedTradeDate, err := rebuildPortfolioPositionsFromEffectiveRows(ledgerRows)
 	if err != nil {
 		return verticalslice.PortfolioPositionsProjection{}, err

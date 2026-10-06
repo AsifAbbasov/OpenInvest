@@ -16,6 +16,7 @@ func TestConfiguredTInvestCorporateActionProviderIsDisabledByDefault(t *testing.
 
 func TestConfiguredTInvestCorporateActionProviderRequiresTokenWhenEnabled(t *testing.T) {
 	t.Setenv(tinvestCorporateActionsEnabledEnv, "true")
+	t.Setenv(tinvestGlobalBudgetOwnerEnv, verifiedTInvestGlobalBudgetOwner)
 	for _, token := range []string{"", " ", " token", "token "} {
 		t.Run(token, func(t *testing.T) {
 			t.Setenv(tinvestReadOnlyTokenEnv, token)
@@ -32,6 +33,7 @@ func TestConfiguredTInvestCorporateActionProviderRequiresTokenWhenEnabled(t *tes
 
 func TestConfiguredTInvestCorporateActionProviderRequiresBothActivationInputs(t *testing.T) {
 	t.Setenv(tinvestCorporateActionsEnabledEnv, "true")
+	t.Setenv(tinvestGlobalBudgetOwnerEnv, verifiedTInvestGlobalBudgetOwner)
 	t.Setenv(tinvestReadOnlyTokenEnv, "test-readonly-token")
 	provider, err := configuredTInvestCorporateActionProvider()
 	if err != nil {
@@ -39,5 +41,23 @@ func TestConfiguredTInvestCorporateActionProviderRequiresBothActivationInputs(t 
 	}
 	if provider == nil {
 		t.Fatal("expected explicitly enabled provider")
+	}
+}
+
+
+func TestArchitectureHardeningTInvestRequiresVerifiedSharedBudgetOwner(t *testing.T) {
+	t.Setenv(tinvestCorporateActionsEnabledEnv, "true")
+	t.Setenv(tinvestReadOnlyTokenEnv, "test-readonly-token")
+	for _, owner := range []string{"", "local", "process-local"} {
+		t.Run(owner, func(t *testing.T) {
+			t.Setenv(tinvestGlobalBudgetOwnerEnv, owner)
+			provider, err := configuredTInvestCorporateActionProvider()
+			if err == nil {
+				t.Fatal("expected provider activation to fail without verified shared budget ownership")
+			}
+			if provider != nil {
+				t.Fatal("provider must remain disabled without verified shared budget ownership")
+			}
+		})
 	}
 }

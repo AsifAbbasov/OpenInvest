@@ -12,7 +12,7 @@ import (
 
 func (api *API) register(c fiber.Ctx) error {
 	meta := requestMeta(c)
-	if err := api.checkAuthRateLimit(c); err != nil {
+	if err := api.checkAuthLoginIPRateLimit(c); err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
 	if api.auth == nil {
@@ -21,6 +21,9 @@ func (api *API) register(c fiber.Ctx) error {
 	var request registerRequestDTO
 	if err := decodeStrictJSON(c.Request().Body(), &request); err != nil {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")
+	}
+	if err := api.checkAuthCredentialRateLimit(c.Path(), request.Email); err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
 	}
 	result, err := api.auth.Register(c.Context(), auth.RegistrationRequest{
 		Email:    request.Email,
@@ -38,7 +41,7 @@ func (api *API) register(c fiber.Ctx) error {
 
 func (api *API) login(c fiber.Ctx) error {
 	meta := requestMeta(c)
-	if err := api.checkAuthRateLimit(c); err != nil {
+	if err := api.checkAuthLoginIPRateLimit(c); err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
 	if api.auth == nil {
@@ -47,6 +50,9 @@ func (api *API) login(c fiber.Ctx) error {
 	var request loginRequestDTO
 	if err := decodeStrictJSON(c.Request().Body(), &request); err != nil {
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")
+	}
+	if err := api.checkAuthCredentialRateLimit(c.Path(), request.Email); err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
 	}
 	result, err := api.auth.Login(c.Context(), auth.LoginRequest{Email: request.Email, Password: string(request.Password)})
 	if err != nil {

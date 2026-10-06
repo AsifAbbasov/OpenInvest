@@ -59,6 +59,11 @@ func (api *API) calculateDividend(c fiber.Ctx) error {
 	if err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
+	clientIP, err := normalizedClientIP(c)
+	if err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
+	freshAdmissionKey := c.Path() + "|" + clientIP
 
 	_, artifact, err := api.service.CalculateDividendWithReplay(
 		c.Context(),
@@ -68,7 +73,11 @@ func (api *API) calculateDividend(c fiber.Ctx) error {
 		c.Path(),
 		appRequest,
 		func() error {
-			if api.dividendLimiter != nil && !api.dividendLimiter.allow(idempotencyKey, api.nowUTC()) {
+			// The callback is invoked only after exact replay resolution proved this is
+			// a genuinely fresh command. Key admission by canonical peer identity so
+			// random Idempotency-Key rotation cannot create one fresh durable row per key
+			// without consuming the bounded anonymous fresh-command budget.
+			if api.dividendLimiter != nil && !api.dividendLimiter.allow(freshAdmissionKey, api.nowUTC()) {
 				return errDividendCalculatorRateLimited
 			}
 			return nil
