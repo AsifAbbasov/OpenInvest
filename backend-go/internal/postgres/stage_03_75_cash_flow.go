@@ -163,7 +163,15 @@ func portfolioCashFlowProjectionTx(
 	if err != nil {
 		return verticalslice.PortfolioCashFlowProjection{}, err
 	}
+	return portfolioCashFlowProjectionFromEffectiveRows(portfolioID, fromDate, toDate, rows)
+}
 
+func portfolioCashFlowProjectionFromEffectiveRows(
+	portfolioID string,
+	fromDate string,
+	toDate string,
+	rows []effectiveLedgerRow,
+) (verticalslice.PortfolioCashFlowProjection, error) {
 	totals := zeroCashFlowAmounts()
 	monthly := map[string]cashFlowAmounts{}
 	var latestIncludedTradeDate *string
