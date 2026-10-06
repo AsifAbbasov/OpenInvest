@@ -53,8 +53,11 @@ func NewDevelopment(service *verticalslice.Service) *fiber.App {
 		service:                 service,
 		allowDevelopmentSubject: true,
 		authLimiter:             newAuthRateLimiter(20, time.Minute),
+		authLoginIPLimiter:      newBoundedAuthRateLimiter(defaultAuthLoginIPLimit, defaultAuthRateLimiterGlobalLimit, defaultAuthRateLimiterMaxKeys, time.Minute),
+		authCredentialLimiter:   newBoundedAuthRateLimiter(defaultAuthCredentialLimit, defaultAuthRateLimiterGlobalLimit, defaultAuthCredentialMaxKeys, time.Minute),
 		dividendLimiter:         newDividendCalculatorRateLimiter(),
 		importAdmission:         newDefaultImportAdmission(),
+		expensiveReads:          newDefaultExpensiveReadAdmission(),
 		importReviewSecret:      secret,
 		paginationCursorSecret:  derivePaginationCursorSecret(secret),
 	})
