@@ -50,6 +50,22 @@ const defaultAuthRateLimiterMaxKeys = 2048
 
 const defaultAuthRateLimiterGlobalLimit = 2000
 
+const expensiveReadRateRetryAfterSeconds = "60"
+
+const expensiveReadCapacityRetryAfterSeconds = "1"
+
+const defaultExpensiveReadPerSubjectLimit = 30
+
+const defaultExpensiveReadGlobalLimit = 120
+
+const defaultExpensiveReadMaxSubjects = 2048
+
+const defaultExpensiveReadWindow = time.Minute
+
+// Four expensive reads may execute concurrently in one API process, leaving
+// headroom in the canonical ten-connection SQL pool for unrelated traffic.
+const defaultExpensiveReadActiveCapacity = 4
+
 const minImportReviewTokenSecretBytes = 32
 
 const maxPaginationCursorBytes = 512
