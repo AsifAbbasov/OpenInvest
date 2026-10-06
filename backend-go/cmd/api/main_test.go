@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"strings"
 	"testing"
 	"time"
 )
@@ -322,5 +324,26 @@ func TestArchitectureHardeningDevelopmentDoesNotClaimDeploymentGlobalControl(t *
 	t.Setenv(deploymentGlobalAbuseControlEnv, "")
 	if err := validateRuntimeSafety("postgres://openinvest@example/openinvest"); err != nil {
 		t.Fatalf("development should not require production deployment-global ownership: %v", err)
+	}
+}
+
+
+func TestArchitectureHardeningDeploymentOwnershipDocumentationContract(t *testing.T) {
+	content, err := os.ReadFile("../../../docs/operations/ABUSE_PROTECTION_DEPLOYMENT.md")
+	if err != nil {
+		t.Fatalf("read deployment abuse-control contract: %v", err)
+	}
+	text := string(content)
+	for _, required := range []string{
+		"Per-process safety limits",
+		"Deployment-global abuse limits",
+		"Provider-global budget",
+		"OPENINVEST_DEPLOYMENT_GLOBAL_ABUSE_CONTROL=verified-edge-v1",
+		"OPENINVEST_TINVEST_GLOBAL_BUDGET_OWNER=verified-shared-provider-budget-v1",
+		"process-local maps/channels",
+	} {
+		if !strings.Contains(text, required) {
+			t.Fatalf("deployment abuse-control contract missing %q", required)
+		}
 	}
 }
