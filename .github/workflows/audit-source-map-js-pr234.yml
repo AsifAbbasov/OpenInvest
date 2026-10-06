@@ -1,0 +1,96 @@
+name: Audit source-map-js prerequisite PR234
+
+on:
+  push:
+    branches:
+      - audit/source-map-js-pr234
+
+permissions:
+  contents: read
+
+jobs:
+  source-map-js:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Check out exact PR head derivative
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Assert parent is PR234 reviewed head
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 688965b1f4f9c4a02ac16c38f965e6c928501fac HEAD
+          test "$(git rev-parse 688965b1f4f9c4a02ac16c38f965e6c928501fac)" = "688965b1f4f9c4a02ac16c38f965e6c928501fac"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22.22.2"
+
+      - name: Enable pinned pnpm
+        run: corepack enable && corepack prepare pnpm@11.8.0 --activate
+
+      - name: Install reviewed head and prove vulnerable graph
+        working-directory: frontend-next
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile
+          echo '=== WHY BEFORE ==='
+          pnpm why source-map-js
+          grep -F 'source-map-js@1.2.1' pnpm-lock.yaml
+
+      - name: Narrow lockfile-only refresh
+        working-directory: frontend-next
+        run: |
+          set -euo pipefail
+          cp pnpm-lock.yaml "$RUNNER_TEMP/pnpm-lock.before.yaml"
+          pnpm update source-map-js@1.2.2 --lockfile-only
+          echo '=== DIFF NAME STATUS ==='
+          git -C .. diff --name-status
+          echo '=== DIFF STAT ==='
+          git -C .. diff --stat
+          test "$(git -C .. diff --name-only | wc -l | tr -d ' ')" = "1"
+          test "$(git -C .. diff --name-only)" = "frontend-next/pnpm-lock.yaml"
+          grep -F 'source-map-js@1.2.2' pnpm-lock.yaml
+          ! grep -F 'source-map-js@1.2.1' pnpm-lock.yaml
+          echo '=== LOCK DIFF ==='
+          git -C .. diff -- frontend-next/pnpm-lock.yaml
+
+      - name: Reinstall exact refreshed lock
+        working-directory: frontend-next
+        run: |
+          set -euo pipefail
+          rm -rf node_modules
+          pnpm install --frozen-lockfile
+
+      - name: Prove patched graph and audit
+        working-directory: frontend-next
+        run: |
+          set -euo pipefail
+          echo '=== WHY AFTER ==='
+          pnpm why source-map-js
+          pnpm audit
+
+      - name: Frontend test
+        working-directory: frontend-next
+        run: pnpm test
+
+      - name: Frontend typecheck
+        working-directory: frontend-next
+        run: pnpm run typecheck
+
+      - name: Frontend build
+        working-directory: frontend-next
+        run: pnpm run build
+
+      - name: Upload refreshed lockfile
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: source-map-js-pr234-lockfile
+          path: frontend-next/pnpm-lock.yaml
+          if-no-files-found: error
+          retention-days: 1
