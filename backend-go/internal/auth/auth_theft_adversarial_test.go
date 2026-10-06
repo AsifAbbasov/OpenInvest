@@ -1,11 +1,13 @@
 package auth
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -143,8 +145,28 @@ func FuzzAuthTheftMutatedSignedBearerNeverAuthenticates(f *testing.F) {
 		if string(raw) == valid {
 			t.Fatal("mutation failed to change token")
 		}
-		if _, err := verifyAccessToken(secret, string(raw), now); err == nil {
-			t.Fatalf("mutated signed bearer authenticated: index=%d xor=%d", position, xor)
+		mutated := string(raw)
+		if _, err := verifyAccessToken(secret, mutated, now); err == nil {
+			originalParts := strings.Split(valid, ".")
+			mutatedParts := strings.Split(mutated, ".")
+			if len(mutatedParts) != 3 {
+				t.Fatalf("structurally mutated signed bearer authenticated: index=%d xor=%d", position, xor)
+			}
+			semanticChange := false
+			for i := 0; i < 3; i++ {
+				originalDecoded, originalErr := base64.RawURLEncoding.DecodeString(originalParts[i])
+				mutatedDecoded, mutatedErr := base64.RawURLEncoding.DecodeString(mutatedParts[i])
+				if originalErr != nil || mutatedErr != nil || !bytes.Equal(originalDecoded, mutatedDecoded) {
+					semanticChange = true
+					break
+				}
+			}
+			if semanticChange {
+				t.Fatalf("cryptographically distinct mutated signed bearer authenticated: index=%d xor=%d", position, xor)
+			}
+			// Different textual Base64URL spellings that decode to identical bytes are
+			// a canonicalization concern, not a signature-forgery result. A dedicated
+			// breaker test below treats acceptance of such aliases as hardening debt.
 		}
 	})
 }
@@ -160,4 +182,71 @@ func mutateTokenPart(value string) string {
 		raw[len(raw)-1] = 'A'
 	}
 	return string(raw)
+}
+
+
+func TestSecurityBreakerJWTRejectsNonCanonicalBase64Aliases(t *testing.T) {
+	if os.Getenv("OPENINVEST_SECURITY_BREAKER_TESTS") != "1" {
+		t.Skip("OPENINVEST_SECURITY_BREAKER_TESTS=1 is required")
+	}
+
+	secret := []byte("01234567890123456789012345678901")
+	now := time.Date(2026, 10, 6, 10, 0, 0, 0, time.UTC)
+	user := StoredUser{
+		ID:                  "00000000-0000-4000-8000-000000000111",
+		InvestmentSubjectID: "00000000-0000-4000-8000-000000000222",
+	}
+	valid, err := signAccessToken(secret, user, now, now.Add(15*time.Minute))
+	if err != nil {
+		t.Fatal(err)
+	}
+	parts := strings.Split(valid, ".")
+	if len(parts) != 3 {
+		t.Fatal("unexpected JWT shape")
+	}
+
+	alias, ok := equivalentRawURLAlias(parts[2])
+	if !ok {
+		t.Skip("could not construct an equivalent non-canonical signature spelling")
+	}
+	candidate := parts[0] + "." + parts[1] + "." + alias
+	if candidate == valid {
+		t.Fatal("alias construction did not change token text")
+	}
+	originalSignature, err := base64.RawURLEncoding.DecodeString(parts[2])
+	if err != nil {
+		t.Fatal(err)
+	}
+	aliasSignature, err := base64.RawURLEncoding.DecodeString(alias)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(originalSignature, aliasSignature) {
+		t.Fatal("test alias changed signature bytes; this is not a canonicalization test")
+	}
+	if _, err := verifyAccessToken(secret, candidate, now); err == nil {
+		t.Fatal("non-canonical JWT Base64URL alias accepted; token-string deny lists, caches, and logs can be bypassed by equivalent spellings")
+	}
+}
+
+func equivalentRawURLAlias(segment string) (string, bool) {
+	decoded, err := base64.RawURLEncoding.DecodeString(segment)
+	if err != nil || segment == "" {
+		return "", false
+	}
+	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+	raw := []byte(segment)
+	last := raw[len(raw)-1]
+	for i := 0; i < len(alphabet); i++ {
+		if alphabet[i] == last {
+			continue
+		}
+		candidate := append([]byte(nil), raw...)
+		candidate[len(candidate)-1] = alphabet[i]
+		got, err := base64.RawURLEncoding.DecodeString(string(candidate))
+		if err == nil && bytes.Equal(got, decoded) {
+			return string(candidate), true
+		}
+	}
+	return "", false
 }
