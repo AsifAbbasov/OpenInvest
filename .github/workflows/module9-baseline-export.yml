@@ -1,0 +1,35 @@
+name: Module 9 Baseline Export
+
+on:
+  push:
+    branches:
+      - audit/module9-baseline-export
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+      - name: Assert exact protected baseline
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse 5357900e71e1e6f27907f304d59b20490a3b081d)" = "5357900e71e1e6f27907f304d59b20490a3b081d"
+          test "$(git rev-parse 5357900e71e1e6f27907f304d59b20490a3b081d^{tree})" = "a5bc1f547055b60958c8306745b5f36872cb762a"
+      - name: Export exact baseline source
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/export"
+          git archive --format=tar.gz --prefix=OpenInvest-module9-hardening/             -o "$RUNNER_TEMP/export/OpenInvest-module9-baseline.tar.gz"             5357900e71e1e6f27907f304d59b20490a3b081d
+          sha256sum "$RUNNER_TEMP/export/OpenInvest-module9-baseline.tar.gz"
+      - uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+        with:
+          name: openinvest-module9-baseline
+          path: ${{ runner.temp }}/export/OpenInvest-module9-baseline.tar.gz
+          if-no-files-found: error
+          retention-days: 1
