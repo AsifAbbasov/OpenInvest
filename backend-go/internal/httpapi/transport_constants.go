@@ -36,6 +36,14 @@ const defaultImportFreshWindow = time.Minute
 
 const defaultImportActiveCapacity = 2
 
+const expensiveReadSubjectRetryAfterSeconds = "1"
+
+const expensiveReadCapacityRetryAfterSeconds = "1"
+
+const defaultExpensiveReadPerSubjectCapacity = 2
+
+const defaultExpensiveReadGlobalCapacity = 8
+
 const dividendCalculatorRateLimitRetryAfterSeconds = "60"
 
 const defaultDividendCalculatorPerKeyLimit = 20
