@@ -497,7 +497,7 @@ SET ROLE {RUNTIME_USER};
 SELECT current_setting('statement_timeout') || '|' || current_setting('lock_timeout') || '|' || current_setting('idle_in_transaction_session_timeout');
 RESET ROLE;
 """).splitlines()[-1]
-    log("DB_TIMEOUT_ROLE_BASELINE|" + runtime_settings)
+    log("DB_ROLE_DEFAULT_TIMEOUTS_NOT_DRIVER|" + runtime_settings)
 
     api1 = api2 = None
     all_results = {
