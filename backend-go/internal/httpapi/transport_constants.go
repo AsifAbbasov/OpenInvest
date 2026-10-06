@@ -46,7 +46,7 @@ const expensiveReadSubjectRetryAfterSeconds = "1"
 
 const expensiveReadCapacityRetryAfterSeconds = "1"
 
-const defaultExpensiveReadPerSubjectCapacity = 2
+const defaultExpensiveReadPerSubjectCapacity = 5
 
 const defaultExpensiveReadGlobalCapacity = 8
 
