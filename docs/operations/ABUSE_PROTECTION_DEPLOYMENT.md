@@ -35,7 +35,7 @@ refresh/logout IP budget            <= 20/min per canonical client IP and route
 import execution                    <= 120/min deployment-wide
 fresh import commands               <= 60/min deployment-wide
 heavy import work                   <= 2 concurrently deployment-wide
-anonymous fresh dividend commands   <= 1200/min deployment-wide
+anonymous fresh dividend commands   <= 20/min per canonical client IP and <= 1200/min deployment-wide
 expensive portfolio reads           <= 8 concurrently deployment-wide
 ```
 
