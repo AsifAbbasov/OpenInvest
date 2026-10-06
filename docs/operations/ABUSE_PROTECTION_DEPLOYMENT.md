@@ -45,6 +45,11 @@ same-subject expensive read fails fast locally. Repeated manual reload clicks ar
 actions and remain subject to the bounded admission policy.
 ```
 
+Repository enforcement stops at the startup contract: it proves that production/staging refuses
+to start without an explicit ownership acknowledgement, but it does NOT prove the external edge is
+actually deployed with shared state or with the documented policies. That external deployment
+verification is required separately and is carried forward to Module #12.
+
 The Go layer additionally enforces a normalized-credential login/register bucket. The edge need not
 parse passwords and must never log request bodies or credentials; repository tests prove the local
 credential layer remains independent of account existence and that IP emergency protection still
