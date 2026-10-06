@@ -1,0 +1,188 @@
+name: Security Breaker Audit 24h
+
+on:
+  push:
+    branches:
+      - chore/native-go-fuzz-targets
+    paths:
+      - ".github/workflows/security-breaker-audit-24h.yml"
+      - "backend-go/internal/httpapi/auth_rate_limit_breaker_test.go"
+      - "backend-go/internal/auth/auth_theft_adversarial_test.go"
+      - "backend-go/internal/postgres/auth_theft_adversarial_integration_test.go"
+      - "backend-go/internal/postgres/store_integration_test.go"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  distributed-auth-rate-limit-breaker:
+    name: "Breaker 1 - Distributed auth rate-limit bypass"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Cross-instance and header-spoof breaker matrix
+        id: breaker
+        continue-on-error: true
+        env:
+          OPENINVEST_SECURITY_BREAKER_TESTS: "1"
+        run: |
+          set -euo pipefail
+          go test -race ./internal/httpapi             -run='^TestSecurityBreakerAuthRate'             -count=100 -v
+      - name: Enforce breaker result
+        if: always()
+        run: test "${{ steps.breaker.outcome }}" = "success"
+
+  jwt-bearer-breaker:
+    name: "Breaker 2 - JWT canonicalization and semantic mutation"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Canonical JWT breaker
+        id: canonical
+        continue-on-error: true
+        env:
+          OPENINVEST_SECURITY_BREAKER_TESTS: "1"
+        run: |
+          set -euo pipefail
+          go test -race ./internal/auth             -run='^TestSecurityBreakerJWTRejectsNonCanonicalBase64Aliases$'             -count=100 -v
+      - name: Five-hour semantic JWT mutation fuzz
+        id: fuzz
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          go test ./internal/auth             -run='^$'             -fuzz='^FuzzAuthTheftMutatedSignedBearerNeverAuthenticates$'             -fuzztime=5h             -timeout=5h10m
+      - name: Archive JWT fuzz findings
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: security-breaker-jwt-fuzz-corpus
+          path: backend-go/internal/auth/testdata/fuzz/**
+          if-no-files-found: ignore
+      - name: Enforce JWT breaker results
+        if: always()
+        run: |
+          test "${{ steps.canonical.outcome }}" = "success"
+          test "${{ steps.fuzz.outcome }}" = "success"
+
+  multi-instance-session-theft:
+    name: "Breaker 3 - Multi-instance stolen-session fork soak"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: breaker-audit
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Apply migrations
+        working-directory: .
+        run: |
+          set -euo pipefail
+          for migration in infrastructure/postgres/migrations/*.up.sql; do
+            psql "postgres://openinvest:breaker-audit@127.0.0.1:5432/openinvest?sslmode=disable"               -v ON_ERROR_STOP=1 < "$migration"
+          done
+      - name: Five-hour cross-instance stolen-cookie race
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:breaker-audit@127.0.0.1:5432/openinvest?sslmode=disable
+        run: |
+          set -euo pipefail
+          end=$((SECONDS + 18000))
+          iteration=0
+          while (( SECONDS < end )); do
+            iteration=$((iteration + 1))
+            echo "MULTI_INSTANCE_SESSION_THEFT_ITERATION=$iteration"
+            go test -race ./internal/postgres               -run='^TestAuthTheftPostgresMultiInstanceStolenPairCannotForkSessionFamily$'               -count=10
+          done
+
+  provider-deadline-breaker:
+    name: "Breaker 4 - Slow-provider connection exhaustion"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Repeated hard-deadline provider probes
+        run: |
+          set -euo pipefail
+          end=$((SECONDS + 18000))
+          iteration=0
+          failures=0
+          while (( SECONDS < end )); do
+            iteration=$((iteration + 1))
+            echo "PROVIDER_DEADLINE_BREAKER_ITERATION=$iteration"
+            if ! timeout 30s go test ./internal/provider/tinvest               -run='^TestCorporateActionsSlowProviderHonorsCallerDeadline$'               -count=1 -timeout=25s; then
+              failures=$((failures + 1))
+              echo "provider deadline failure count=$failures" >&2
+            fi
+            if (( failures >= 3 )); then
+              echo "provider deadline failure reproduced three times; stopping early" >&2
+              exit 1
+            fi
+          done
+
+  operational-hardening-gate:
+    name: "Breaker 5 - Browser and transport hardening gate"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Require browser security headers in deployable frontend config
+        run: |
+          set -euo pipefail
+          file="frontend-next/next.config.ts"
+          required=(
+            "Content-Security-Policy"
+            "Strict-Transport-Security"
+            "X-Content-Type-Options"
+            "X-Frame-Options"
+            "Referrer-Policy"
+            "Permissions-Policy"
+          )
+          failed=0
+          for header in "${required[@]}"; do
+            if ! grep -Fq "$header" "$file"; then
+              echo "MISSING_SECURITY_HEADER=$header" >&2
+              failed=1
+            fi
+          done
+          test "$failed" -eq 0
