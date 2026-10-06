@@ -13,6 +13,7 @@ type API struct {
 	corporateActionProvider verticalslice.CorporateActionProvider
 	allowDevelopmentSubject bool
 	authLimiter             *authRateLimiter
+	authCredentialLimiter   *authRateLimiter
 	dividendLimiter         *authRateLimiter
 	importAdmission         *importAdmission
 	expensiveReadAdmission  *expensiveReadAdmission
@@ -31,7 +32,8 @@ func New(service *verticalslice.Service, authService *auth.Service, importReview
 	return newApp(&API{
 		service:                service,
 		auth:                   authService,
-		authLimiter:            newAuthRateLimiter(20, time.Minute),
+		authLimiter:            newAuthRateLimiter(defaultAuthIPEmergencyLimit, time.Minute),
+		authCredentialLimiter:  newAuthRateLimiter(defaultAuthCredentialLimit, time.Minute),
 		dividendLimiter:        newDividendCalculatorRateLimiter(),
 		importAdmission:        newDefaultImportAdmission(),
 		expensiveReadAdmission: newDefaultExpensiveReadAdmission(),
@@ -48,7 +50,8 @@ func NewDevelopment(service *verticalslice.Service) *fiber.App {
 	return newApp(&API{
 		service:                 service,
 		allowDevelopmentSubject: true,
-		authLimiter:             newAuthRateLimiter(20, time.Minute),
+		authLimiter:             newAuthRateLimiter(defaultAuthIPEmergencyLimit, time.Minute),
+		authCredentialLimiter:  newAuthRateLimiter(defaultAuthCredentialLimit, time.Minute),
 		dividendLimiter:         newDividendCalculatorRateLimiter(),
 		importAdmission:         newDefaultImportAdmission(),
 		importReviewSecret:      secret,
