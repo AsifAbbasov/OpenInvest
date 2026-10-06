@@ -1,6 +1,8 @@
 package httpapi
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/netip"
@@ -140,6 +142,23 @@ func (api *API) checkAuthRateLimit(c fiber.Ctx) error {
 	}
 	key := c.Path() + "|" + clientIP
 	if !api.authLimiter.allow(key, api.nowUTC()) {
+		return errAuthRateLimited
+	}
+	return nil
+}
+
+func normalizedAuthCredentialKey(rawEmail string) string {
+	normalized := strings.ToLower(strings.TrimSpace(rawEmail))
+	digest := sha256.Sum256([]byte(normalized))
+	return hex.EncodeToString(digest[:])
+}
+
+func (api *API) checkAuthCredentialRateLimit(c fiber.Ctx, rawEmail string) error {
+	if api == nil || api.authCredentialLimiter == nil {
+		return nil
+	}
+	key := c.Path() + "|credential|" + normalizedAuthCredentialKey(rawEmail)
+	if !api.authCredentialLimiter.allow(key, api.nowUTC()) {
 		return errAuthRateLimited
 	}
 	return nil
