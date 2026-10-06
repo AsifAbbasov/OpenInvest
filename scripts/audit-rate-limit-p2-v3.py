@@ -385,12 +385,15 @@ def materialization_probe(subject_id, portfolio_id):
     print(p.stdout, flush=True)
     log("MATERIALIZATION_PROBE_END")
     found = {}
+    timeout_observed = None
     for line in p.stdout.splitlines():
+        if "P2V3_TIMEOUTS statement=" in line:
+            timeout_observed = line.split("P2V3_TIMEOUTS ", 1)[1].strip()
         if "P2V3_MATERIALIZATION endpoint=" in line:
             tail = line.split("P2V3_MATERIALIZATION endpoint=", 1)[1]
             endpoint, countpart = tail.split(" count=", 1)
             found[endpoint.strip()] = int(countpart.strip())
-    return found
+    return found, timeout_observed
 
 def victim_series(base, token, victim_portfolio, count=40):
     out = []
@@ -541,9 +544,11 @@ RESET ROLE;
             if rr["status"] != 200:
                 raise RuntimeError(f"readiness failed after seed: {rr}")
 
-        mats = materialization_probe(attacker_subject, portfolios[10000])
+        mats, runtime_timeout_observed = materialization_probe(attacker_subject, portfolios[10000])
         all_results["materializations"] = mats
+        all_results["runtime_timeout_observed"] = runtime_timeout_observed
         log("MATERIALIZATIONS|" + json.dumps(mats, sort_keys=True))
+        log("RUNTIME_TIMEOUT_OBSERVED|" + str(runtime_timeout_observed))
 
         # Single-instance matrix: api1 only. Escalation is stopped per dataset/endpoint
         # when timeouts, high 5xx rate, or p95 near the DB timeout indicates unsafe pressure.
