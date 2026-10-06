@@ -38,6 +38,11 @@ func (api *API) getPortfolioReturns(c fiber.Ctx) error {
 	if err != nil {
 		return writeMappedError(c, err)
 	}
+	release, err := api.acquireExpensiveRead(subjectID)
+	if err != nil {
+		return writeExpensiveReadAdmissionError(c, err)
+	}
+	defer release()
 	projection, err := api.service.GetPortfolioReturns(
 		c.Context(),
 		subjectID,
