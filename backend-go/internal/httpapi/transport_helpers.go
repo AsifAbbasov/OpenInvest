@@ -98,6 +98,12 @@ func writeMappedErrorWithMeta(c fiber.Ctx, meta metaDTO, err error) error {
 	case errors.Is(err, errAuthRateLimited):
 		c.Set("Retry-After", authRateLimitRetryAfterSeconds)
 		return writeErrorWithMeta(c, meta, http.StatusTooManyRequests, "RATE_LIMITED", "Too many authentication attempts")
+	case errors.Is(err, errExpensiveReadSubjectLimited):
+		c.Set("Retry-After", expensiveReadSubjectRetryAfterSeconds)
+		return writeErrorWithMeta(c, meta, http.StatusTooManyRequests, "RATE_LIMITED", "Too many concurrent portfolio projection requests")
+	case errors.Is(err, errExpensiveReadCapacityExhausted):
+		c.Set("Retry-After", expensiveReadCapacityRetryAfterSeconds)
+		return writeErrorWithMeta(c, meta, http.StatusServiceUnavailable, "READ_CAPACITY_EXHAUSTED", "Portfolio projection capacity is temporarily exhausted")
 	case errors.Is(err, auth.ErrInvalidInput):
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
 	case errors.Is(err, auth.ErrEmailAlreadyExists):
