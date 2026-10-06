@@ -72,6 +72,16 @@ func portfolioPositionsProjectionTx(
 	if err != nil {
 		return verticalslice.PortfolioPositionsProjection{}, err
 	}
+	return portfolioPositionsProjectionFromEffectiveRowsTx(ctx, tx, portfolioID, asOfDate, ledgerRows)
+}
+
+func portfolioPositionsProjectionFromEffectiveRowsTx(
+	ctx context.Context,
+	tx *sql.Tx,
+	portfolioID string,
+	asOfDate string,
+	ledgerRows []effectiveLedgerRow,
+) (verticalslice.PortfolioPositionsProjection, error) {
 	rebuilt, latestIncludedTradeDate, err := rebuildPortfolioPositionsFromEffectiveRows(ledgerRows)
 	if err != nil {
 		return verticalslice.PortfolioPositionsProjection{}, err
