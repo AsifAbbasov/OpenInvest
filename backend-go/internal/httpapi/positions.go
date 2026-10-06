@@ -72,6 +72,11 @@ func (api *API) getPortfolioPositions(c fiber.Ctx) error {
 	if err != nil {
 		return writeMappedError(c, err)
 	}
+	release, err := api.acquireExpensiveRead(subjectID)
+	if err != nil {
+		return writeMappedError(c, err)
+	}
+	defer release()
 	projection, err := api.service.GetPortfolioPositions(c.Context(), subjectID, portfolioID, asOfDate)
 	if err != nil {
 		return writeMappedError(c, err)
