@@ -211,6 +211,43 @@ jobs:
           POSTGRES_PASSWORD: openinvest-ci-config-only
         run: docker compose config --quiet
 
+      - name: Generate clean permanent V2 patch
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/openinvest-permanent-patch-v2"
+          patch="$RUNNER_TEMP/openinvest-permanent-patch-v2/RATE_LIMITING_ARCHITECTURE_HARDENING_V2.patch"
+          git diff --binary 5357900e71e1e6f27907f304d59b20490a3b081d..HEAD -- \
+            . \
+            ':(exclude).github/workflows/rate-limit-architecture-hardening-v1-builder.yml' \
+            ':(exclude).github/workflows/rate-limit-architecture-financial-parity-v2-builder.yml' \
+            ':(exclude)scripts/audit-rate-limit-architecture-hardening-v1.py' \
+            > "$patch"
+          test -s "$patch"
+          sha256sum "$patch" | tee "$RUNNER_TEMP/openinvest-permanent-patch-v2/RATE_LIMITING_ARCHITECTURE_HARDENING_V2.patch.sha256"
+          echo "=== V2 PATCH STAT ==="
+          git diff --stat 5357900e71e1e6f27907f304d59b20490a3b081d..HEAD -- \
+            . \
+            ':(exclude).github/workflows/rate-limit-architecture-hardening-v1-builder.yml' \
+            ':(exclude).github/workflows/rate-limit-architecture-financial-parity-v2-builder.yml' \
+            ':(exclude)scripts/audit-rate-limit-architecture-hardening-v1.py'
+          echo "=== V2 PATCH NAME STATUS ==="
+          git diff --name-status 5357900e71e1e6f27907f304d59b20490a3b081d..HEAD -- \
+            . \
+            ':(exclude).github/workflows/rate-limit-architecture-hardening-v1-builder.yml' \
+            ':(exclude).github/workflows/rate-limit-architecture-financial-parity-v2-builder.yml' \
+            ':(exclude)scripts/audit-rate-limit-architecture-hardening-v1.py'
+          git worktree add --detach "$RUNNER_TEMP/patch-check-v2" 5357900e71e1e6f27907f304d59b20490a3b081d
+          (cd "$RUNNER_TEMP/patch-check-v2" && git apply --check "$patch")
+          echo "PATCH_APPLY_CHECK=PASS"
+
+      - name: Upload clean permanent V2 patch
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rate-limiting-architecture-hardening-v2-patch
+          path: ${{ runner.temp }}/openinvest-permanent-patch-v2/
+          if-no-files-found: error
+          retention-days: 1
+
       - name: Dump runtime evidence
         if: always()
         run: |
