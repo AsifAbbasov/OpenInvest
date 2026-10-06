@@ -1,0 +1,133 @@
+name: Audit Financial Parity Architecture Hardening ChatGPT V1
+
+on:
+  push:
+    branches:
+      - audit/rate-limit-architecture-hardening-v1-chatgpt
+
+permissions:
+  contents: read
+
+jobs:
+  financial-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest_patch
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: openinvest-ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest_patch"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    steps:
+      - name: Check out candidate
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+
+      - name: Verify baseline and permanent candidate identity
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse 5357900e71e1e6f27907f304d59b20490a3b081d^{tree})" = "a5bc1f547055b60958c8306745b5f36872cb762a"
+          git merge-base --is-ancestor 5357900e71e1e6f27907f304d59b20490a3b081d HEAD
+          git worktree add --detach "$RUNNER_TEMP/openinvest-baseline" 5357900e71e1e6f27907f304d59b20490a3b081d
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+
+      - name: Create isolated baseline DB
+        run: |
+          set -euo pipefail
+          docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d postgres -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE DATABASE openinvest_baseline;
+          SQL
+
+      - name: Apply candidate DB migrations and runtime role
+        env:
+          OPENINVEST_DATABASE_OWNER_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest_patch?sslmode=disable
+        run: |
+          set -euo pipefail
+          bash scripts/apply-migrations.sh
+          docker exec -i "${{ job.services.postgres.id }}" \
+            psql -U openinvest -d openinvest_patch -v ON_ERROR_STOP=1 -v runtime_capability_profile=R0 \
+            < infrastructure/postgres/runtime/openinvest_runtime_role.sql
+          docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_patch -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$
+          BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='openinvest_runtime_parity') THEN
+              CREATE ROLE openinvest_runtime_parity LOGIN PASSWORD 'parity-runtime'
+                NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+            END IF;
+          END
+          $$;
+          GRANT openinvest_runtime TO openinvest_runtime_parity;
+          SQL
+
+      - name: Apply exact baseline DB migrations and runtime role
+        working-directory: ${{ runner.temp }}/openinvest-baseline
+        env:
+          OPENINVEST_DATABASE_OWNER_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest_baseline?sslmode=disable
+        run: |
+          set -euo pipefail
+          bash scripts/apply-migrations.sh
+          docker exec -i "${{ job.services.postgres.id }}" \
+            psql -U openinvest -d openinvest_baseline -v ON_ERROR_STOP=1 -v runtime_capability_profile=R0 \
+            < infrastructure/postgres/runtime/openinvest_runtime_role.sql
+          docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_baseline -v ON_ERROR_STOP=1 <<'SQL'
+          GRANT openinvest_runtime TO openinvest_runtime_parity;
+          SQL
+
+      - name: Run exact baseline PostgreSQL financial regression suite
+        working-directory: ${{ runner.temp }}/openinvest-baseline/backend-go
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest_baseline?sslmode=disable
+          OPENINVEST_DATABASE_RUNTIME_TEST_URL: postgres://openinvest_runtime_parity:parity-runtime@127.0.0.1:5432/openinvest_baseline?sslmode=disable
+        run: |
+          set -euo pipefail
+          go test -count=1 -v ./internal/postgres | tee "$RUNNER_TEMP/baseline-postgres-tests.txt"
+          go test -count=1 -v ./internal/verticalslice | tee "$RUNNER_TEMP/baseline-verticalslice-tests.txt"
+          echo "BASELINE_FINANCIAL_FIXTURES=PASS"
+
+      - name: Run candidate PostgreSQL financial regression suite
+        working-directory: backend-go
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest_patch?sslmode=disable
+          OPENINVEST_DATABASE_RUNTIME_TEST_URL: postgres://openinvest_runtime_parity:parity-runtime@127.0.0.1:5432/openinvest_patch?sslmode=disable
+        run: |
+          set -euo pipefail
+          go test -count=1 -v ./internal/postgres | tee "$RUNNER_TEMP/candidate-postgres-tests.txt"
+          go test -count=1 -v ./internal/verticalslice | tee "$RUNNER_TEMP/candidate-verticalslice-tests.txt"
+          echo "CANDIDATE_FINANCIAL_FIXTURES=PASS"
+
+      - name: Prove protected formula sources unchanged outside orchestration
+        run: |
+          set -euo pipefail
+          for p in \
+            backend-go/internal/verticalslice/stage_03_71_wac.go \
+            backend-go/internal/verticalslice/stage_03_77_returns.go
+          do
+            if [ -e "$p" ]; then
+              git diff --exit-code 5357900e71e1e6f27907f304d59b20490a3b081d -- "$p"
+            fi
+          done
+          echo "FINANCIAL_FORMULA_SOURCE_DRIFT=NO"
+
+      - name: Report parity evidence
+        if: always()
+        run: |
+          set +e
+          echo "POSTGRES_VERSION=$(docker exec "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest_patch -Atc 'show server_version')"
+          echo "FINANCIAL_PARITY_METHOD=EXACT_BASELINE_AND_CANDIDATE_CANONICAL_EXPECTATION_SUITES_ON_ISOLATED_POSTGRES18_DATABASES"
+          grep -E 'PASS|FAIL' "$RUNNER_TEMP/baseline-postgres-tests.txt" | tail -n 80 || true
+          grep -E 'PASS|FAIL' "$RUNNER_TEMP/candidate-postgres-tests.txt" | tail -n 80 || true
