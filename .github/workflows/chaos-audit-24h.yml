@@ -129,13 +129,15 @@ jobs:
           while (( SECONDS < end )); do
             i=$((i + 1))
             echo "NETWORK_PARTITION_ITERATION=$i"
-            docker network disconnect bridge "$DB_CONTAINER" || true
+            network="$(docker inspect -f '{{range $name, $_ := .NetworkSettings.Networks}}{{$name}}{{"\n"}}{{end}}' "$DB_CONTAINER" | head -n1)"
+            test -n "$network"
+            docker network disconnect "$network" "$DB_CONTAINER"
             sleep 2
             if psql "$url" -At -c 'SELECT 1' >/dev/null 2>&1; then
-              echo "partition did not interrupt connectivity" >&2
+              echo "partition did not interrupt connectivity on network $network" >&2
               exit 1
             fi
-            docker network connect bridge "$DB_CONTAINER" || true
+            docker network connect "$network" "$DB_CONTAINER"
             for n in {1..60}; do
               if psql "$url" -At -v ON_ERROR_STOP=1 -c 'SELECT 1' >/dev/null 2>&1; then
                 break
@@ -143,6 +145,8 @@ jobs:
               sleep 1
             done
             test "$(psql "$url" -At -v ON_ERROR_STOP=1 -c 'SELECT 1')" = "1"
+            active="$(psql "$url" -At -v ON_ERROR_STOP=1 -c "SELECT count(*) FROM pg_stat_activity WHERE datname='openinvest' AND state <> 'idle';")"
+            test "$active" -lt 20
             sleep 1
           done
 
@@ -190,12 +194,7 @@ jobs:
               if docker exec "$name" pg_isready -U openinvest -d openinvest >/dev/null 2>&1; then break; fi
               sleep 1
             done
-            docker exec "$name" psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 <<'SQL'
-            CHECKPOINT;
-            SELECT 1;
-            INSERT INTO pressure(payload) VALUES ('recovered'::bytea);
-            SELECT count(*) >= 1 FROM pressure;
-            SQL
+            docker exec "$name" psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 -c "CHECKPOINT; SELECT 1; INSERT INTO pressure(payload) VALUES ('recovered'::bytea); SELECT count(*) >= 1 FROM pressure;"
             cleanup
             trap - EXIT
           done
@@ -219,16 +218,12 @@ jobs:
               sleep 1
             done
           done
-          docker exec oi-chaos-primary psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 <<'SQL'
-          CREATE TABLE replicated_witness(id bigint PRIMARY KEY, payload text NOT NULL);
-          CREATE PUBLICATION chaos_pub FOR TABLE replicated_witness;
-          SQL
-          docker exec oi-chaos-replica psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 <<'SQL'
-          CREATE TABLE replicated_witness(id bigint PRIMARY KEY, payload text NOT NULL);
-          CREATE SUBSCRIPTION chaos_sub
-            CONNECTION 'host=oi-chaos-primary dbname=openinvest user=openinvest password=replica-chaos'
-            PUBLICATION chaos_pub;
-          SQL
+          docker exec oi-chaos-primary psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 -c "CREATE TABLE replicated_witness(id bigint PRIMARY KEY, payload text NOT NULL);"
+          docker exec oi-chaos-primary psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 -c "CREATE PUBLICATION chaos_pub FOR TABLE replicated_witness;"
+          docker exec oi-chaos-replica psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 -c "CREATE TABLE replicated_witness(id bigint PRIMARY KEY, payload text NOT NULL);"
+          docker exec oi-chaos-replica psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 -c "CREATE SUBSCRIPTION chaos_sub CONNECTION 'host=oi-chaos-primary dbname=openinvest user=openinvest password=replica-chaos' PUBLICATION chaos_pub;"
+          test "$(docker exec oi-chaos-primary psql -U openinvest -d openinvest -At -c "SELECT to_regclass('public.replicated_witness') IS NOT NULL;")" = "t"
+          test "$(docker exec oi-chaos-replica psql -U openinvest -d openinvest -At -c "SELECT to_regclass('public.replicated_witness') IS NOT NULL;")" = "t"
       - name: Five-hour replica-lag and catch-up cycles
         run: |
           set -euo pipefail
@@ -319,6 +314,11 @@ jobs:
             1, 'DEPOSIT', 0, '2026-01-01'::date, 'MANUAL', now()
           FROM generate_series(1, 400000);
           SQL
+      - name: Verify recovery command exists
+        run: |
+          set -euo pipefail
+          test -f cmd/recover-ledger-sequence-index/main.go
+          go test ./cmd/recover-ledger-sequence-index -count=1
       - name: Five-hour exact DDL interruption and owner recovery loop
         env:
           OPENINVEST_DATABASE_OWNER_URL: postgres://openinvest:chaos-audit@127.0.0.1:5432/openinvest?sslmode=disable
@@ -349,7 +349,7 @@ jobs:
             fi
             wait "$ddl_client" 2>/dev/null || true
 
-            go run ./cmd/recover-ledger-sequence-index
+            (cd "$GITHUB_WORKSPACE/backend-go" && go run ./cmd/recover-ledger-sequence-index)
 
             state="$(psql "$url" -At -v ON_ERROR_STOP=1 -c "
               SELECT i.indisvalid::text || '|' || i.indisready::text
