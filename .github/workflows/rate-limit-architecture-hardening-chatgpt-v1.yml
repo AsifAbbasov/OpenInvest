@@ -1,0 +1,258 @@
+name: Audit Rate Limit Architecture Hardening V1 ChatGPT
+
+on:
+  push:
+    branches:
+      - audit/rate-limit-architecture-hardening-v1-chatgpt
+
+permissions:
+  contents: read
+
+concurrency:
+  group: audit-rate-limit-architecture-hardening-v1-chatgpt
+  cancel-in-progress: true
+
+jobs:
+  full-validation:
+    name: Architecture hardening full validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: openinvest-ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    steps:
+      - name: Check out temporary audit branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+
+      - name: Verify exact protected baseline ancestry
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 5357900e71e1e6f27907f304d59b20490a3b081d HEAD
+          test "$(git rev-parse 5357900e71e1e6f27907f304d59b20490a3b081d^{tree})" = "a5bc1f547055b60958c8306745b5f36872cb762a"
+          echo "AUDIT_HEAD=$(git rev-parse HEAD)"
+          echo "AUDIT_TREE=$(git rev-parse HEAD^{tree})"
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+
+      - name: Apply canonical PostgreSQL migrations
+        env:
+          OPENINVEST_DATABASE_OWNER_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+        run: bash scripts/apply-migrations.sh
+
+      - name: Configure canonical R0 runtime role
+        run: |
+          set -euo pipefail
+          docker exec -i "${{ job.services.postgres.id }}"             psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 -v runtime_capability_profile=R0             < infrastructure/postgres/runtime/openinvest_runtime_role.sql
+          docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$
+          BEGIN
+              IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'openinvest_runtime_ci') THEN
+                  CREATE ROLE openinvest_runtime_ci LOGIN PASSWORD 'openinvest-runtime-ci'
+                      NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+              END IF;
+          END
+          $$;
+          GRANT openinvest_runtime TO openinvest_runtime_ci;
+          SQL
+
+      - name: Build patched API binary
+        working-directory: backend-go
+        run: go build -trimpath -o "${RUNNER_TEMP}/openinvest-api" ./cmd/api
+
+      - name: Run real PostgreSQL before-after load harness
+        env:
+          POSTGRES_CONTAINER_ID: ${{ job.services.postgres.id }}
+          OPENINVEST_P2_API_BIN: ${{ runner.temp }}/openinvest-api
+          OPENINVEST_P2_RUNTIME_URL: postgres://openinvest_runtime_ci:openinvest-runtime-ci@127.0.0.1:5432/openinvest?sslmode=disable
+          OPENINVEST_P2_OWNER_DB: openinvest
+          OPENINVEST_P2_RESULTS_DIR: ${{ runner.temp }}/openinvest-arch-hardening
+        run: |
+          set -euo pipefail
+          python3 scripts/audit-rate-limit-architecture-hardening-v1.py
+
+      - name: Run deterministic cancellation proof verbosely
+        working-directory: backend-go
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+          OPENINVEST_DATABASE_RUNTIME_TEST_URL: postgres://openinvest_runtime_ci:openinvest-runtime-ci@127.0.0.1:5432/openinvest?sslmode=disable
+        run: |
+          set -euo pipefail
+          go test ./internal/postgres -run '^TestArchitectureHardening(PostgresCancellationProof|CancellationConstants)$' -count=1 -v
+          go test ./internal/httpapi -run '^TestArchitectureHardeningHTTPForcedRequestContextCancelsPostgres$' -count=1 -v
+
+      - name: Run Go tests
+        working-directory: backend-go
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+          OPENINVEST_DATABASE_RUNTIME_TEST_URL: postgres://openinvest_runtime_ci:openinvest-runtime-ci@127.0.0.1:5432/openinvest?sslmode=disable
+        run: go test ./...
+
+      - name: Run Go race tests
+        working-directory: backend-go
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+          OPENINVEST_DATABASE_RUNTIME_TEST_URL: postgres://openinvest_runtime_ci:openinvest-runtime-ci@127.0.0.1:5432/openinvest?sslmode=disable
+        run: go test -race ./...
+
+      - name: Run go vet
+        working-directory: backend-go
+        run: go vet ./...
+
+      - name: Validate OpenAPI
+        working-directory: backend-go
+        run: go run ./cmd/validate-openapi
+
+      - name: Validate PostgreSQL migrations
+        working-directory: backend-go
+        run: go run ./cmd/validate-migrations --mode=repository
+
+      - name: Run Go vulnerability scan
+        working-directory: backend-go
+        run: |
+          set -euo pipefail
+          go install golang.org/x/vuln/cmd/govulncheck@v1.7.0
+          "$(go env GOPATH)/bin/govulncheck" ./...
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.22.2"
+
+      - name: Enable pinned pnpm
+        run: corepack enable && corepack prepare pnpm@11.8.0 --activate
+
+      - name: Install frontend dependencies
+        working-directory: frontend-next
+        run: pnpm install --frozen-lockfile
+
+      - name: Frontend typecheck
+        working-directory: frontend-next
+        run: pnpm run typecheck
+
+      - name: Frontend tests
+        working-directory: frontend-next
+        run: pnpm test
+
+      - name: Frontend build
+        working-directory: frontend-next
+        run: pnpm run build
+
+      - name: Audit frontend dependencies against protected baseline
+        run: |
+          set -euo pipefail
+          git diff --quiet 5357900e71e1e6f27907f304d59b20490a3b081d -- frontend-next/package.json frontend-next/pnpm-lock.yaml
+          set +e
+          (cd frontend-next && pnpm audit) > "$RUNNER_TEMP/patch-pnpm-audit.txt" 2>&1
+          patch_rc=$?
+          set -e
+          git worktree add --detach "$RUNNER_TEMP/dependency-baseline" 5357900e71e1e6f27907f304d59b20490a3b081d
+          set +e
+          (cd "$RUNNER_TEMP/dependency-baseline/frontend-next" && pnpm audit) > "$RUNNER_TEMP/baseline-pnpm-audit.txt" 2>&1
+          baseline_rc=$?
+          set -e
+          echo "PATCH_PNPM_AUDIT_RC=$patch_rc"
+          echo "BASELINE_PNPM_AUDIT_RC=$baseline_rc"
+          if [ "$patch_rc" -ne "$baseline_rc" ]; then
+            echo "Dependency audit differs from protected baseline"
+            cat "$RUNNER_TEMP/patch-pnpm-audit.txt"
+            cat "$RUNNER_TEMP/baseline-pnpm-audit.txt"
+            exit 1
+          fi
+          if [ "$patch_rc" -eq 0 ]; then
+            echo "DEPENDENCY_SECURITY_SCAN=SUCCESS"
+          else
+            echo "DEPENDENCY_SECURITY_SCAN=BASELINE_EQUIVALENT_NO_PATCH_INPUT_CHANGE"
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@d0d8abe699bfb85fec6de9f7adb5ae17292296ff
+        with:
+          version: "0.11.21"
+          enable-cache: true
+          cache-dependency-glob: microservice-python/uv.lock
+
+      - name: Python tests
+        working-directory: microservice-python
+        run: |
+          uv sync --extra dev --locked
+          uv run pytest
+
+      - name: Audit Python dependencies
+        working-directory: microservice-python
+        run: |
+          uv export --frozen --format requirements.txt --all-extras --no-emit-project --output-file /tmp/openinvest-python-requirements.txt
+          uvx --from pip-audit==2.10.1 pip-audit -r /tmp/openinvest-python-requirements.txt --strict --progress-spinner off
+
+      - name: Docker Compose config
+        env:
+          POSTGRES_PASSWORD: openinvest-ci-config-only
+        run: docker compose config --quiet
+
+      - name: Export clean remediation patch
+        if: always()
+        run: |
+          set -euo pipefail
+          patch="$RUNNER_TEMP/RATE_LIMITING_ARCHITECTURE_HARDENING_V1.patch"
+          git diff --binary 5357900e71e1e6f27907f304d59b20490a3b081d...HEAD -- \
+            . \
+            ':(exclude).github/workflows/rate-limit-architecture-hardening-chatgpt-v1.yml' \
+            ':(exclude)scripts/audit-rate-limit-architecture-hardening-v1.py' \
+            > "$patch"
+          test -s "$patch"
+          echo "=== PATCH SHA256 ==="
+          sha256sum "$patch"
+          echo "=== PATCH STAT ==="
+          git diff --stat 5357900e71e1e6f27907f304d59b20490a3b081d...HEAD -- \
+            . \
+            ':(exclude).github/workflows/rate-limit-architecture-hardening-chatgpt-v1.yml' \
+            ':(exclude)scripts/audit-rate-limit-architecture-hardening-v1.py'
+          echo "=== PATCH NAME STATUS ==="
+          git diff --name-status 5357900e71e1e6f27907f304d59b20490a3b081d...HEAD -- \
+            . \
+            ':(exclude).github/workflows/rate-limit-architecture-hardening-chatgpt-v1.yml' \
+            ':(exclude)scripts/audit-rate-limit-architecture-hardening-v1.py'
+          check="$RUNNER_TEMP/patch-check-chatgpt"
+          git worktree add --detach "$check" 5357900e71e1e6f27907f304d59b20490a3b081d
+          (cd "$check" && git apply --check "$patch")
+          echo "PATCH_APPLY_CHECK=PASS"
+          gzip -c "$patch" | base64 -w0 > "$RUNNER_TEMP/patch.gz.b64"
+          echo "PATCH_GZIP_BASE64_BEGIN"
+          cat "$RUNNER_TEMP/patch.gz.b64"
+          echo
+          echo "PATCH_GZIP_BASE64_END"
+
+      - name: Dump runtime evidence
+        if: always()
+        run: |
+          set +e
+          echo '=== RESULTS JSON ==='
+          cat "${RUNNER_TEMP}/openinvest-arch-hardening/results.json" 2>/dev/null || true
+          echo '=== API1 LOG ==='
+          cat "${RUNNER_TEMP}/openinvest-arch-hardening/oi-arch-hardening-api1.log" 2>/dev/null || true
+          echo '=== API2 LOG ==='
+          cat "${RUNNER_TEMP}/openinvest-arch-hardening/oi-arch-hardening-api2.log" 2>/dev/null || true
