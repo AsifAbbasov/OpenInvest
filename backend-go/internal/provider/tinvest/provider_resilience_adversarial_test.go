@@ -5,7 +5,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"net/http/httptest"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -17,9 +17,8 @@ import (
 func TestProviderResilienceRepeatedDeadlineStormDrainsAllCapacityAndRecovers(t *testing.T) {
 	var active atomic.Int32
 	var maximum atomic.Int32
-	started := make(chan struct{}, 1024)
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	transport := roundTripFunc(func(request *http.Request) (*http.Response, error) {
 		current := active.Add(1)
 		defer active.Add(-1)
 		for {
@@ -28,17 +27,20 @@ func TestProviderResilienceRepeatedDeadlineStormDrainsAllCapacityAndRecovers(t *
 				break
 			}
 		}
-		started <- struct{}{}
-		<-r.Context().Done()
-	}))
-	defer server.Close()
-
-	provider, err := newCorporateActionProvider(server.Client(), fixedClock{now: testNow}, testToken, server.URL+"/rest")
+		<-request.Context().Done()
+		return nil, request.Context().Err()
+	})
+	provider, err := newCorporateActionProvider(
+		&http.Client{Transport: transport},
+		fixedClock{now: testNow},
+		testToken,
+		"https://example.invalid/rest",
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	const waves = 40
+	const waves = 100
 	const contenders = 64
 	for wave := 0; wave < waves; wave++ {
 		var wg sync.WaitGroup
@@ -47,7 +49,7 @@ func TestProviderResilienceRepeatedDeadlineStormDrainsAllCapacityAndRecovers(t *
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				ctx, cancel := context.WithTimeout(context.Background(), 40*time.Millisecond)
+				ctx, cancel := context.WithTimeout(context.Background(), 25*time.Millisecond)
 				defer cancel()
 				_, err := provider.CorporateActions(ctx, testQuery("SBER"))
 				errs <- err
@@ -66,26 +68,35 @@ func TestProviderResilienceRepeatedDeadlineStormDrainsAllCapacityAndRecovers(t *
 			}
 		}
 
-		deadline := time.Now().Add(2 * time.Second)
+		deadline := time.Now().Add(time.Second)
 		for (len(provider.semaphore) != 0 || active.Load() != 0) && time.Now().Before(deadline) {
-			time.Sleep(5 * time.Millisecond)
+			time.Sleep(time.Millisecond)
 		}
 		if got := len(provider.semaphore); got != 0 {
 			t.Fatalf("wave %d leaked provider semaphore slots: %d", wave, got)
 		}
 		if got := active.Load(); got != 0 {
-			t.Fatalf("wave %d left %d upstream handlers active", wave, got)
+			t.Fatalf("wave %d retained %d transport calls", wave, got)
 		}
 	}
-	if maximum.Load() > maxConcurrency {
-		t.Fatalf("deadline storm exceeded provider concurrency bound: got=%d max=%d", maximum.Load(), maxConcurrency)
+
+	if got := maximum.Load(); got > maxConcurrency {
+		t.Fatalf("deadline storm exceeded provider concurrency bound: got=%d max=%d", got, maxConcurrency)
 	}
 
-	recovery := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		_, _ = io.WriteString(w, `{"dividends":[]}`)
-	}))
-	defer recovery.Close()
-	recovered, err := newCorporateActionProvider(recovery.Client(), fixedClock{now: testNow}, testToken, recovery.URL+"/rest")
+	successTransport := roundTripFunc(func(_ *http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     make(http.Header),
+			Body:       io.NopCloser(strings.NewReader(`{"dividends":[]}`)),
+		}, nil
+	})
+	recovered, err := newCorporateActionProvider(
+		&http.Client{Transport: successTransport},
+		fixedClock{now: testNow},
+		testToken,
+		"https://example.invalid/rest",
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -95,16 +106,28 @@ func TestProviderResilienceRepeatedDeadlineStormDrainsAllCapacityAndRecovers(t *
 }
 
 func TestProviderResilienceConcurrencyAdmissionIsFailFastUnderSaturation(t *testing.T) {
-	started := make(chan struct{}, maxConcurrency)
 	release := make(chan struct{})
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	started := make(chan struct{}, maxConcurrency)
+	transport := roundTripFunc(func(request *http.Request) (*http.Response, error) {
 		started <- struct{}{}
-		<-release
-		_, _ = io.WriteString(w, `{"dividends":[]}`)
-	}))
-	defer server.Close()
+		select {
+		case <-release:
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     make(http.Header),
+				Body:       io.NopCloser(strings.NewReader(`{"dividends":[]}`)),
+			}, nil
+		case <-request.Context().Done():
+			return nil, request.Context().Err()
+		}
+	})
 
-	provider, err := newCorporateActionProvider(server.Client(), fixedClock{now: testNow}, testToken, server.URL+"/rest")
+	provider, err := newCorporateActionProvider(
+		&http.Client{Transport: transport},
+		fixedClock{now: testNow},
+		testToken,
+		"https://example.invalid/rest",
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -124,7 +147,7 @@ func TestProviderResilienceConcurrencyAdmissionIsFailFastUnderSaturation(t *test
 		}
 	}
 
-	const overflow = 256
+	const overflow = 512
 	start := time.Now()
 	for i := 0; i < overflow; i++ {
 		_, err := provider.CorporateActions(context.Background(), testQuery("SBER"))
@@ -141,5 +164,8 @@ func TestProviderResilienceConcurrencyAdmissionIsFailFastUnderSaturation(t *test
 		if err := <-primary; err != nil {
 			t.Fatalf("primary request failed after release: %v", err)
 		}
+	}
+	if got := len(provider.semaphore); got != 0 {
+		t.Fatalf("provider capacity did not fully drain after release: %d", got)
 	}
 }
