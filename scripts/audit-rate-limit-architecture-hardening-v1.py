@@ -331,7 +331,8 @@ class Monitor:
 
 def summarize(results):
     lat = [r["ms"] for r in results]
-    success = sum(1 for r in results if 200 <= r["status"] < 300)
+    admitted = [r["ms"] for r in results if 200 <= r["status"] < 300]
+    success = len(admitted)
     return {
         "requests": len(results),
         "success": success,
@@ -345,6 +346,10 @@ def summarize(results):
         "p95_ms": percentile(lat, .95),
         "p99_ms": percentile(lat, .99),
         "max_ms": max(lat) if lat else None,
+        "admitted_success_p50_ms": percentile(admitted, .50),
+        "admitted_success_p95_ms": percentile(admitted, .95),
+        "admitted_success_p99_ms": percentile(admitted, .99),
+        "admitted_success_max_ms": max(admitted) if admitted else None,
     }
 
 def run_batch(bases, token, path, concurrency, total, procs):
