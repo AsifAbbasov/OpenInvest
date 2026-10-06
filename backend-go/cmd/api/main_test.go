@@ -341,6 +341,8 @@ func TestArchitectureHardeningDeploymentOwnershipDocumentationContract(t *testin
 		"OPENINVEST_DEPLOYMENT_GLOBAL_ABUSE_CONTROL=verified-edge-v1",
 		"OPENINVEST_TINVEST_GLOBAL_BUDGET_OWNER=verified-shared-provider-budget-v1",
 		"process-local maps/channels",
+		"does NOT prove the external edge",
+		"Module #12",
 	} {
 		if !strings.Contains(text, required) {
 			t.Fatalf("deployment abuse-control contract missing %q", required)
