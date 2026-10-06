@@ -137,7 +137,13 @@ func (api *API) checkAuthRateLimit(c fiber.Ctx) error {
 }
 
 func (api *API) checkAuthLoginIPRateLimit(c fiber.Ctx) error {
-	return api.checkAuthIPRateLimit(c, api.authLoginIPLimiter)
+	limiter := api.authLoginIPLimiter
+	if limiter == nil {
+		// Preserve explicit test/custom constructor injection and fail back to the
+		// legacy IP limiter rather than silently removing auth admission.
+		limiter = api.authLimiter
+	}
+	return api.checkAuthIPRateLimit(c, limiter)
 }
 
 func (api *API) checkAuthIPRateLimit(c fiber.Ctx, limiter *authRateLimiter) error {
