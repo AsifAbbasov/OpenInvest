@@ -471,3 +471,31 @@ responses:
         schema: { $ref: "./schemas.yaml#/ErrorResponse" }
         examples:
           default: { $ref: "../examples/errors.json#/rateLimitError" }
+
+  ExpensiveReadSubjectLimited:
+    description: >-
+      The authenticated subject already owns the maximum number of concurrent expensive
+      portfolio projection reads. The server fails fast without queueing additional work.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+      Retry-After: { $ref: "#/headers/RetryAfter" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/ErrorResponse" }
+        examples:
+          default: { $ref: "../examples/errors.json#/expensiveReadSubjectLimited" }
+
+  ExpensiveReadCapacityUnavailable:
+    description: >-
+      Process-local shared capacity for expensive portfolio projection reads is temporarily
+      exhausted. The server fails fast without creating an unbounded queue.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+      Retry-After: { $ref: "#/headers/RetryAfter" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/ErrorResponse" }
+        examples:
+          default: { $ref: "../examples/errors.json#/expensiveReadCapacityUnavailable" }
