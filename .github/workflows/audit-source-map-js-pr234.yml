@@ -43,12 +43,24 @@ jobs:
           pnpm why source-map-js
           grep -F 'source-map-js@1.2.1' pnpm-lock.yaml
 
-      - name: Narrow lockfile-only refresh
+      - name: Prove parent constraints
+        working-directory: frontend-next
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('fs');
+          for (const pkg of ['postcss', 'css-tree']) {
+            const p = JSON.parse(fs.readFileSync('node_modules/' + pkg + '/package.json', 'utf8'));
+            console.log(pkg + '@' + p.version + ' source-map-js=' + JSON.stringify(p.dependencies?.['source-map-js']));
+          }
+          NODE
+
+      - name: Narrow transitive lockfile-only refresh
         working-directory: frontend-next
         run: |
           set -euo pipefail
           cp pnpm-lock.yaml "$RUNNER_TEMP/pnpm-lock.before.yaml"
-          pnpm update source-map-js@1.2.2 --lockfile-only
+          pnpm update source-map-js@1.2.2 --lockfile-only --depth 100
           echo '=== DIFF NAME STATUS ==='
           git -C .. diff --name-status
           echo '=== DIFF STAT ==='
