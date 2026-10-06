@@ -4,10 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"os"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 )
@@ -288,7 +286,7 @@ func architectureHardeningActiveSleepQueries(t *testing.T, ownerDB *sql.DB) int 
 		FROM pg_stat_activity
 		WHERE state='active'
 		  AND query LIKE '%pg_sleep(8)%'
-		  AND application_name <> current_setting('application_name')
+		  AND pid <> pg_backend_pid()
 	`).Scan(&count); err != nil {
 		t.Fatalf("count active sleep queries: %v", err)
 	}
@@ -305,6 +303,4 @@ func TestArchitectureHardeningCancellationConstants(t *testing.T) {
 	if architectureHardeningPollInterval < 50*time.Millisecond || architectureHardeningPollInterval > 100*time.Millisecond {
 		t.Fatalf("pg_stat_activity sampling=%s, want 50-100ms", architectureHardeningPollInterval)
 	}
-	_ = fmt.Sprintf
-	_ = sync.Once{}
 }
