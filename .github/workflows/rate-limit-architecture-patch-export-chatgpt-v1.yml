@@ -1,0 +1,42 @@
+name: Export Architecture Hardening Patch ChatGPT V1
+
+on:
+  push:
+    branches:
+      - audit/rate-limit-architecture-hardening-v1-chatgpt
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+
+      - name: Export permanent candidate only
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse 5357900e71e1e6f27907f304d59b20490a3b081d^{tree})" = "a5bc1f547055b60958c8306745b5f36872cb762a"
+          test "$(git rev-parse fff4002f147d1f282448e0fd54a28b8bdb48610f^)" = "5357900e71e1e6f27907f304d59b20490a3b081d"
+          mkdir -p "$RUNNER_TEMP/openinvest-permanent-patch"
+          patch="$RUNNER_TEMP/openinvest-permanent-patch/RATE_LIMITING_ARCHITECTURE_HARDENING_V1.patch"
+          git diff --binary 5357900e71e1e6f27907f304d59b20490a3b081d..fff4002f147d1f282448e0fd54a28b8bdb48610f > "$patch"
+          sha256sum "$patch" | tee "$RUNNER_TEMP/openinvest-permanent-patch/RATE_LIMITING_ARCHITECTURE_HARDENING_V1.patch.sha256"
+          echo "=== PATCH STAT ==="
+          git diff --stat 5357900e71e1e6f27907f304d59b20490a3b081d..fff4002f147d1f282448e0fd54a28b8bdb48610f
+          echo "=== PATCH NAME STATUS ==="
+          git diff --name-status 5357900e71e1e6f27907f304d59b20490a3b081d..fff4002f147d1f282448e0fd54a28b8bdb48610f
+          git worktree add --detach "$RUNNER_TEMP/patch-check" 5357900e71e1e6f27907f304d59b20490a3b081d
+          (cd "$RUNNER_TEMP/patch-check" && git apply --check "$patch")
+          echo "PATCH_APPLY_CHECK=PASS"
+
+      - name: Upload exact permanent patch
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rate-limiting-architecture-hardening-v1-chatgpt-patch
+          path: ${{ runner.temp }}/openinvest-permanent-patch/
+          if-no-files-found: error
+          retention-days: 1
