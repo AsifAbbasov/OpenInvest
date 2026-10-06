@@ -59,22 +59,33 @@ jobs:
           }
           NODE
 
-      - name: Evaluate broad compatible transitive refresh
+      - name: Apply minimal compatible pnpm override
         working-directory: frontend-next
         run: |
           set -euo pipefail
-          cp pnpm-lock.yaml "$RUNNER_TEMP/pnpm-lock.before.yaml"
-          pnpm update --lockfile-only --depth 100
+          node - <<'NODE'
+          const fs = require('fs');
+          const path = 'package.json';
+          const p = JSON.parse(fs.readFileSync(path, 'utf8'));
+          p.pnpm = p.pnpm || {};
+          p.pnpm.overrides = p.pnpm.overrides || {};
+          p.pnpm.overrides['source-map-js'] = '1.2.2';
+          fs.writeFileSync(path, JSON.stringify(p, null, 2) + '\n');
+          NODE
+          pnpm install --lockfile-only
           echo '=== DIFF NAME STATUS ==='
           git -C .. diff --name-status
           echo '=== DIFF NUMSTAT ==='
-          git -C .. diff --numstat -- frontend-next/pnpm-lock.yaml
-          echo '=== SOURCE MAP AFTER BROAD REFRESH ==='
-          grep -F 'source-map-js@' pnpm-lock.yaml
-          echo '=== LOCK DIFF ==='
-          git -C .. diff -- frontend-next/pnpm-lock.yaml
+          git -C .. diff --numstat -- frontend-next/package.json frontend-next/pnpm-lock.yaml
+          test "$(git -C .. diff --name-only | wc -l | tr -d ' ')" = "2"
+          git -C .. diff --name-only | grep -Fx 'frontend-next/package.json'
+          git -C .. diff --name-only | grep -Fx 'frontend-next/pnpm-lock.yaml'
           grep -F 'source-map-js@1.2.2' pnpm-lock.yaml
           ! grep -F 'source-map-js@1.2.1' pnpm-lock.yaml
+          echo '=== PACKAGE DIFF ==='
+          git -C .. diff -- frontend-next/package.json
+          echo '=== LOCK DIFF ==='
+          git -C .. diff -- frontend-next/pnpm-lock.yaml
 
       - name: Reinstall exact refreshed lock
         working-directory: frontend-next
@@ -103,10 +114,12 @@ jobs:
         working-directory: frontend-next
         run: pnpm run build
 
-      - name: Upload refreshed lockfile
+      - name: Upload minimal dependency files
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: source-map-js-pr234-lockfile
-          path: frontend-next/pnpm-lock.yaml
+          name: source-map-js-pr234-minimal-dependency-files
+          path: |
+            frontend-next/package.json
+            frontend-next/pnpm-lock.yaml
           if-no-files-found: error
           retention-days: 1
