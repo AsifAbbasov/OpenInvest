@@ -3,3 +3,4 @@ allowBuilds:
   sharp: true
 overrides:
   baseline-browser-mapping: 2.11.21
+  source-map-js: 1.2.2

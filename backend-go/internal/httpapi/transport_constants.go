@@ -12,6 +12,12 @@ const maxHTTPImportRows = 100
 
 const authRateLimitRetryAfterSeconds = "60"
 
+const defaultAuthLoginIPLimit = 100
+
+const defaultAuthCredentialLimit = 10
+
+const defaultAuthCredentialMaxKeys = 4096
+
 const importFreshRateRetryAfterSeconds = "60"
 
 const importExecutionRateRetryAfterSeconds = "60"
@@ -35,6 +41,14 @@ const defaultImportFreshMaxSubjects = 2048
 const defaultImportFreshWindow = time.Minute
 
 const defaultImportActiveCapacity = 2
+
+const expensiveReadSubjectRetryAfterSeconds = "1"
+
+const expensiveReadCapacityRetryAfterSeconds = "1"
+
+const defaultExpensiveReadPerSubjectCapacity = 5
+
+const defaultExpensiveReadGlobalCapacity = 8
 
 const dividendCalculatorRateLimitRetryAfterSeconds = "60"
 

@@ -43,6 +43,18 @@ func portfolioReturnProjectionTx(
 	if err != nil {
 		return verticalslice.PortfolioReturnProjection{}, err
 	}
+	return portfolioReturnProjectionFromEffectiveRowsTx(ctx, tx, portfolioID, asOfDate, ledgerRows)
+}
+
+// portfolioReturnProjectionFromEffectiveRowsTx derives return cash flows and terminal valuation
+// from one request-scoped immutable effective-ledger input.
+func portfolioReturnProjectionFromEffectiveRowsTx(
+	ctx context.Context,
+	tx *sql.Tx,
+	portfolioID string,
+	asOfDate string,
+	ledgerRows []effectiveLedgerRow,
+) (verticalslice.PortfolioReturnProjection, error) {
 	externalCashFlows := make([]verticalslice.PortfolioReturnCashFlow, 0, len(ledgerRows))
 	for _, row := range ledgerRows {
 		switch row.TransactionType {
@@ -69,7 +81,7 @@ func portfolioReturnProjectionTx(
 		}
 	}
 
-	positions, err := portfolioPositionsProjectionTx(ctx, tx, portfolioID, asOfDate)
+	positions, err := portfolioPositionsProjectionFromEffectiveRowsTx(ctx, tx, portfolioID, asOfDate, ledgerRows)
 	if err != nil {
 		return verticalslice.PortfolioReturnProjection{}, err
 	}

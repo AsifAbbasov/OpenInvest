@@ -1,6 +1,8 @@
 package httpapi
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/netip"
@@ -131,7 +133,21 @@ func normalizedClientIP(c fiber.Ctx) (string, error) {
 }
 
 func (api *API) checkAuthRateLimit(c fiber.Ctx) error {
-	if api.authLimiter == nil {
+	return api.checkAuthIPRateLimit(c, api.authLimiter)
+}
+
+func (api *API) checkAuthLoginIPRateLimit(c fiber.Ctx) error {
+	limiter := api.authLoginIPLimiter
+	if limiter == nil {
+		// Preserve explicit test/custom constructor injection and fail back to the
+		// legacy IP limiter rather than silently removing auth admission.
+		limiter = api.authLimiter
+	}
+	return api.checkAuthIPRateLimit(c, limiter)
+}
+
+func (api *API) checkAuthIPRateLimit(c fiber.Ctx, limiter *authRateLimiter) error {
+	if limiter == nil {
 		return nil
 	}
 	clientIP, err := normalizedClientIP(c)
@@ -139,7 +155,20 @@ func (api *API) checkAuthRateLimit(c fiber.Ctx) error {
 		return err
 	}
 	key := c.Path() + "|" + clientIP
-	if !api.authLimiter.allow(key, api.nowUTC()) {
+	if !limiter.allow(key, api.nowUTC()) {
+		return errAuthRateLimited
+	}
+	return nil
+}
+
+func (api *API) checkAuthCredentialRateLimit(path string, email string) error {
+	if api.authCredentialLimiter == nil {
+		return nil
+	}
+	normalized := strings.ToLower(strings.TrimSpace(email))
+	sum := sha256.Sum256([]byte(normalized))
+	key := path + "|credential:" + hex.EncodeToString(sum[:])
+	if !api.authCredentialLimiter.allow(key, api.nowUTC()) {
 		return errAuthRateLimited
 	}
 	return nil

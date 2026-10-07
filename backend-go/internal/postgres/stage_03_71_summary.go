@@ -28,13 +28,17 @@ func (s *Store) GetPortfolioSummaryStage371(
 	if err != nil {
 		return verticalslice.PortfolioSummary{}, err
 	}
-	cashFlow, err := portfolioCashFlowProjectionTx(ctx, tx, portfolioID, "", summary.AsOfDate)
+	ledgerRows, err := effectiveLedgerRowsTx(ctx, tx, portfolioID, summary.AsOfDate)
+	if err != nil {
+		return verticalslice.PortfolioSummary{}, err
+	}
+	cashFlow, err := portfolioCashFlowProjectionFromEffectiveRows(portfolioID, "", summary.AsOfDate, ledgerRows)
 	if err != nil {
 		return verticalslice.PortfolioSummary{}, err
 	}
 	summary.DividendsReceived = cashFlow.Totals.DividendsGross
 	summary.CouponsReceived = cashFlow.Totals.CouponsGross
-	returns, err := portfolioReturnProjectionTx(ctx, tx, portfolioID, summary.AsOfDate)
+	returns, err := portfolioReturnProjectionFromEffectiveRowsTx(ctx, tx, portfolioID, summary.AsOfDate, ledgerRows)
 	if err != nil {
 		return verticalslice.PortfolioSummary{}, err
 	}
