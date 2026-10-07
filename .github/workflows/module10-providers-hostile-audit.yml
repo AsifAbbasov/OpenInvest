@@ -33,10 +33,14 @@ jobs:
             slug: concurrency-exhaustion
           - test: TestModule10ParserAndProviderDataAbuse
             slug: parser-response-abuse
+          - test: TestModule10AdditionalParserHostility
+            slug: parser-additional-hostility
           - test: TestModule10DedupRedirectStampedeAndCircuitBound
             slug: dedup-redirect-stampede
           - test: TestModule10FailureIsolationAndResourceLeak
             slug: failure-isolation-resource-leak
+          - test: TestModule10ProviderReplicaChaos
+            slug: provider-replica-chaos
           - test: TestModule10TokenHandling
             slug: token-handling
     defaults:
