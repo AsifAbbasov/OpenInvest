@@ -1,0 +1,69 @@
+name: Module 10 Provider P2 Challenger
+
+on:
+  push:
+    branches:
+      - audit/providers-external-api-budget-resilience-p2-challenger-v1
+    paths:
+      - "backend-go/internal/provider/tinvest/module10_p2_challenger_test.go"
+      - ".github/workflows/module10-providers-p2-challenger.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  challenger:
+    name: Challenger / ${{ matrix.slug }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - test: TestModule10ChallengerRoutedBudgetExhaustion
+            slug: routed-budget-exhaustion
+          - test: TestModule10ChallengerDistributedBudgetThroughRoutedApps
+            slug: routed-distributed-budget
+          - test: TestModule10ChallengerConflictingDuplicateKeys
+            slug: conflicting-duplicate-keys
+          - test: TestModule10ChallengerSlowProviderRawTCP
+            slug: slow-provider-raw-tcp
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Set up Go
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Run independent challenger scenario
+        env:
+          TEST_NAME: ${{ matrix.test }}
+        run: |
+          set -o pipefail
+          go test -count=1 -v -timeout=4m ./internal/provider/tinvest -run "^${TEST_NAME}$" 2>&1 | tee "/tmp/module10-challenger-${{ matrix.slug }}.log"
+      - name: Upload challenger evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: module10-challenger-${{ matrix.slug }}-evidence
+          path: /tmp/module10-challenger-${{ matrix.slug }}.log
+          if-no-files-found: error
+
+  final-enforcement:
+    name: Final independent challenger enforcement
+    if: always()
+    needs:
+      - challenger
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aggregate challenger results
+        env:
+          CHALLENGER_RESULT: ${{ needs.challenger.result }}
+        run: |
+          printf 'CHALLENGER_RESULT=%s\n' "$CHALLENGER_RESULT"
+          test "$CHALLENGER_RESULT" = success
