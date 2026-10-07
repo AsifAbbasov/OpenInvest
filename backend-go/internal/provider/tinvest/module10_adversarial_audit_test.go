@@ -53,10 +53,9 @@ func module10AuditProvider(t *testing.T, h http.Handler) (*Provider, *httptest.S
 
 func TestModule10SlowProviderLifecycle(t *testing.T) {
 	t.Run("never_headers", func(t *testing.T) {
-		cancelSeen := make(chan struct{}, 1)
+		release := make(chan struct{})
 		p, s := module10AuditProvider(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			<-r.Context().Done()
-			cancelSeen <- struct{}{}
+			<-release
 		}))
 		defer func() { s.CloseClientConnections(); s.Close() }()
 
@@ -64,13 +63,9 @@ func TestModule10SlowProviderLifecycle(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 120*time.Millisecond)
 		defer cancel()
 		_, err := p.CorporateActions(ctx, module10AuditQuery())
+		close(release)
 		if !errors.Is(err, context.DeadlineExceeded) {
 			t.Fatalf("deadline not preserved: %v", err)
-		}
-		select {
-		case <-cancelSeen:
-		case <-time.After(time.Second):
-			t.Fatal("upstream cancellation not observed")
 		}
 		if len(p.semaphore) != 0 {
 			t.Fatal("concurrency permit leaked")
@@ -80,33 +75,30 @@ func TestModule10SlowProviderLifecycle(t *testing.T) {
 		if after := runtime.NumGoroutine(); after > before+10 {
 			t.Fatalf("goroutine growth before=%d after=%d", before, after)
 		}
+		t.Log("MODULE10_SLOW never_headers caller_deadline=true permit_released=true")
 	})
 
 	t.Run("body_never_completes", func(t *testing.T) {
-		cancelSeen := make(chan struct{}, 1)
+		release := make(chan struct{})
 		p, s := module10AuditProvider(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			_, _ = io.WriteString(w, "{\"dividends\":[")
 			if f, ok := w.(http.Flusher); ok { f.Flush() }
-			<-r.Context().Done()
-			cancelSeen <- struct{}{}
+			<-release
 		}))
 		defer func() { s.CloseClientConnections(); s.Close() }()
 
 		ctx, cancel := context.WithTimeout(context.Background(), 120*time.Millisecond)
 		defer cancel()
 		_, err := p.CorporateActions(ctx, module10AuditQuery())
+		close(release)
 		if !errors.Is(err, context.DeadlineExceeded) {
 			t.Fatalf("deadline not preserved: %v", err)
-		}
-		select {
-		case <-cancelSeen:
-		case <-time.After(time.Second):
-			t.Fatal("upstream body cancellation not observed")
 		}
 		if len(p.semaphore) != 0 {
 			t.Fatal("concurrency permit leaked")
 		}
+		t.Log("MODULE10_SLOW body_never_completes caller_deadline=true permit_released=true")
 	})
 
 	t.Run("slow_chunked", func(t *testing.T) {
@@ -179,11 +171,12 @@ func TestModule10SlowProviderLifecycle(t *testing.T) {
 func TestModule10RecoveryAndNoRetry(t *testing.T) {
 	var slow atomic.Bool
 	slow.Store(true)
+	slowRelease := make(chan struct{})
 	var calls atomic.Int64
 	p, s := module10AuditProvider(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		calls.Add(1)
 		if slow.Load() {
-			<-r.Context().Done()
+			<-slowRelease
 			return
 		}
 		_, _ = io.WriteString(w, "{\"dividends\":[]}")
@@ -193,6 +186,7 @@ func TestModule10RecoveryAndNoRetry(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 80*time.Millisecond)
 	_, err := p.CorporateActions(ctx, module10AuditQuery())
 	cancel()
+	close(slowRelease)
 	if !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatalf("timeout error=%v", err)
 	}
@@ -414,6 +408,7 @@ func TestModule10FailureIsolationAndResourceLeak(t *testing.T) {
 	if entries, err := os.ReadDir("/proc/self/fd"); err == nil { beforeFD = len(entries) }
 
 	var mode atomic.Int64
+	timeoutRelease := make(chan struct{})
 	p, s := module10AuditProvider(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch mode.Load() {
 		case 0, 5:
@@ -421,7 +416,7 @@ func TestModule10FailureIsolationAndResourceLeak(t *testing.T) {
 		case 1, 2:
 			w.WriteHeader(http.StatusServiceUnavailable)
 		case 3:
-			<-r.Context().Done()
+			<-timeoutRelease
 		case 4:
 			_, _ = io.WriteString(w, "{")
 		}
@@ -432,7 +427,10 @@ func TestModule10FailureIsolationAndResourceLeak(t *testing.T) {
 		var cancel context.CancelFunc
 		if i == 3 { ctx, cancel = context.WithTimeout(ctx, 60*time.Millisecond) }
 		_, err := p.CorporateActions(ctx, module10AuditQuery())
-		if cancel != nil { cancel() }
+		if cancel != nil {
+			cancel()
+			close(timeoutRelease)
+		}
 		if (i == 0 || i == 5) && err != nil { t.Fatalf("success phase %d: %v", i, err) }
 		if i > 0 && i < 5 && err == nil { t.Fatalf("failure phase %d succeeded", i) }
 	}
@@ -463,64 +461,76 @@ func TestModule10FailureIsolationAndResourceLeak(t *testing.T) {
 
 
 func TestModule10RawTCPCancellationProof(t *testing.T) {
-	ln, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer ln.Close()
+	for _, tc := range []struct {
+		name        string
+		partialBody bool
+	}{
+		{name: "never_headers"},
+		{name: "partial_body", partialBody: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ln, err := net.Listen("tcp", "127.0.0.1:0")
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer ln.Close()
 
-	connectionResult := make(chan error, 1)
-	go func() {
-		conn, acceptErr := ln.Accept()
-		if acceptErr != nil {
-			connectionResult <- acceptErr
-			return
-		}
-		defer conn.Close()
+			connectionResult := make(chan error, 1)
+			go func() {
+				conn, acceptErr := ln.Accept()
+				if acceptErr != nil {
+					connectionResult <- acceptErr
+					return
+				}
+				defer conn.Close()
 
-		reader := bufio.NewReader(conn)
-		request, readErr := http.ReadRequest(reader)
-		if readErr != nil {
-			connectionResult <- readErr
-			return
-		}
-		if request.Body != nil {
-			_, _ = io.Copy(io.Discard, request.Body)
-			_ = request.Body.Close()
-		}
+				reader := bufio.NewReader(conn)
+				request, readErr := http.ReadRequest(reader)
+				if readErr != nil {
+					connectionResult <- readErr
+					return
+				}
+				if request.Body != nil {
+					_, _ = io.Copy(io.Discard, request.Body)
+					_ = request.Body.Close()
+				}
+				if tc.partialBody {
+					_, _ = io.WriteString(conn, "HTTP/1.1 200 OK\r\nContent-Length: 1000\r\n\r\n{\"dividends\":[")
+				}
+				_ = conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+				_, readErr = reader.ReadByte()
+				connectionResult <- readErr
+			}()
 
-		_ = conn.SetReadDeadline(time.Now().Add(2 * time.Second))
-		_, readErr = reader.ReadByte()
-		connectionResult <- readErr
-	}()
+			p, err := newCorporateActionProvider(
+				&http.Client{},
+				module10AuditClock{now: time.Now().UTC()},
+				"audit-readonly-token",
+				"http://"+ln.Addr().String()+"/rest",
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+			ctx, cancel := context.WithTimeout(context.Background(), 120*time.Millisecond)
+			defer cancel()
+			_, callErr := p.CorporateActions(ctx, module10AuditQuery())
+			if !errors.Is(callErr, context.DeadlineExceeded) {
+				t.Fatalf("deadline not preserved: %v", callErr)
+			}
 
-	p, err := newCorporateActionProvider(
-		&http.Client{},
-		module10AuditClock{now: time.Now().UTC()},
-		"audit-readonly-token",
-		"http://"+ln.Addr().String()+"/rest",
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Millisecond)
-	defer cancel()
-	_, callErr := p.CorporateActions(ctx, module10AuditQuery())
-	if !errors.Is(callErr, context.DeadlineExceeded) {
-		t.Fatalf("deadline not preserved: %v", callErr)
-	}
-
-	select {
-	case readErr := <-connectionResult:
-		if readErr == nil {
-			t.Fatal("upstream connection produced unexpected post-request byte")
-		}
-		if networkErr, ok := readErr.(net.Error); ok && networkErr.Timeout() {
-			t.Fatalf("upstream TCP connection remained open after caller cancellation: %v", readErr)
-		}
-		t.Logf("MODULE10_RAW_TCP caller_deadline=true upstream_connection_closed=true read_error=%T", readErr)
-	case <-time.After(3 * time.Second):
-		t.Fatal("raw TCP cancellation witness did not complete")
+			select {
+			case readErr := <-connectionResult:
+				if readErr == nil {
+					t.Fatal("upstream connection produced unexpected post-request byte")
+				}
+				if networkErr, ok := readErr.(net.Error); ok && networkErr.Timeout() {
+					t.Fatalf("upstream TCP connection remained open after caller cancellation: %v", readErr)
+				}
+				t.Logf("MODULE10_RAW_TCP case=%s caller_deadline=true upstream_connection_closed=true read_error=%T", tc.name, readErr)
+			case <-time.After(3 * time.Second):
+				t.Fatal("raw TCP cancellation witness did not complete")
+			}
+		})
 	}
 }
 
