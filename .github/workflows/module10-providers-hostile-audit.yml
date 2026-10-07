@@ -23,6 +23,8 @@ jobs:
         include:
           - test: TestModule10SlowProviderLifecycle
             slug: slow-provider-lifecycle
+          - test: TestModule10RawTCPCancellationProof
+            slug: raw-tcp-cancellation
           - test: TestModule10RecoveryAndNoRetry
             slug: recovery-no-retry
           - test: TestModule10DistributedProviderBudget
