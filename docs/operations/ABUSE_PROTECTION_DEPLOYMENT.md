@@ -5,7 +5,8 @@ OpenInvest deliberately separates three security layers.
 1. **Per-process safety limits** stay inside the Go API and fail fast before expensive work. These
    include auth/IP and credential buckets, Argon2 admission, import execution/fresh admission and
    heavy-import capacity, expensive portfolio-read admission, the dividend fresh-command limiter,
-   and the T-Invest provider's local concurrency/request budget.
+   the Corporate Actions public-endpoint caller budget/coalescing layer, and the T-Invest provider's
+   local concurrency/request budget.
 2. **Deployment-global abuse limits** are owned by the shared edge/gateway in staging and production.
    The application does not claim that process-local maps/channels become global when replicas scale.
 3. **Provider-global budget** for T-Invest is separately deployment-owned. Provider activation remains
@@ -36,6 +37,7 @@ import execution                    <= 120/min deployment-wide
 fresh import commands               <= 60/min deployment-wide
 heavy import work                   <= 2 concurrently deployment-wide
 anonymous fresh dividend commands   <= 20/min per canonical client IP and <= 1200/min deployment-wide
+corporate-actions projection         <= 12/min per canonical client IP and <= 48/min deployment-wide
 expensive portfolio reads           <= 8 concurrently deployment-wide
 
 The repository process-local expensive-read admission allows up to 5 concurrent reads for one

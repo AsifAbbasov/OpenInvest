@@ -26,32 +26,18 @@ func (api *API) getCorporateActionProjection(c fiber.Ctx) error {
 		To:            c.Query("to"),
 	}
 	sort.Strings(query.InstrumentIDs)
+	if err := verticalslice.ValidateCorporateActionQuery(query); err != nil {
+		return writeCorporateActionProjectionError(c, err)
+	}
+	if err := api.admitCorporateActionProjection(c); err != nil {
+		return writeCorporateActionProjectionError(c, err)
+	}
 
-	events, err := verticalslice.FetchCorporateActions(c.Context(), api.corporateActionProvider, query)
+	projection, err := api.loadCorporateActionProjection(c.Context(), query)
 	if err != nil {
 		return writeCorporateActionProjectionError(c, err)
 	}
-	calendar, err := verticalslice.ProjectCorporateActionCalendar(events)
-	if err != nil {
-		return writeCorporateActionProjectionError(c, err)
-	}
-	heatmap, err := verticalslice.ProjectCorporateActionHeatmap(events)
-	if err != nil {
-		return writeCorporateActionProjectionError(c, err)
-	}
-	calendar = filterCorporateActionCalendarWindow(calendar, query.From, query.To)
-	heatmap = filterCorporateActionHeatmapWindow(heatmap, query.From, query.To)
-
-	return writeOK(c, corporateActionProjectionDTO{
-		Calendar: mapCorporateActionCalendar(calendar),
-		Heatmap:  mapCorporateActionHeatmap(heatmap),
-		Coverage: corporateActionCoverageDTO{
-			InputMode:     "PROVIDER",
-			InstrumentIDs: append([]string(nil), query.InstrumentIDs...),
-			From:          query.From,
-			To:            query.To,
-		},
-	})
+	return writeOK(c, projection)
 }
 
 func corporateActionInstrumentIDs(c fiber.Ctx) ([]string, error) {
@@ -68,6 +54,9 @@ func corporateActionInstrumentIDs(c fiber.Ctx) ([]string, error) {
 
 func writeCorporateActionProjectionError(c fiber.Ctx, err error) error {
 	switch {
+	case errors.Is(err, errCorporateActionProjectionRateLimited):
+		c.Set("Retry-After", corporateActionProjectionRateLimitRetryAfterSeconds)
+		return writeError(c, http.StatusTooManyRequests, "RATE_LIMITED", "Too many corporate actions requests")
 	case errors.Is(err, verticalslice.ErrInvalidCorporateActionQuery):
 		return writeError(c, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
 	case errors.Is(err, verticalslice.ErrCorporateActionsProviderUnavailable):
