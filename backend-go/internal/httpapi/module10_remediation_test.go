@@ -4,14 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
-	"net/http/httptest"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/valyala/fasthttp"
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
@@ -65,24 +66,36 @@ func module10RemediationApp(provider verticalslice.CorporateActionProvider) (*AP
 	return api, newReplayApp(api)
 }
 
+type module10RemediationResponse struct {
+	StatusCode int
+	RetryAfter string
+}
+
 func module10RemediationRequest(
 	t *testing.T,
 	app *fiber.App,
-	remoteAddr string,
+	peer string,
 	path string,
 	xff string,
-) *http.Response {
+) module10RemediationResponse {
 	t.Helper()
-	req := httptest.NewRequest(http.MethodGet, path, nil)
-	req.RemoteAddr = remoteAddr
+	remoteIP := net.ParseIP(peer)
+	if remoteIP == nil {
+		t.Fatalf("invalid test peer IP %q", peer)
+	}
+	var request fasthttp.Request
+	request.Header.SetMethod(http.MethodGet)
+	request.SetRequestURI(path)
 	if xff != "" {
-		req.Header.Set("X-Forwarded-For", xff)
+		request.Header.Set(fiber.HeaderXForwardedFor, xff)
 	}
-	res, err := app.Test(req)
-	if err != nil {
-		t.Fatalf("app.Test(): %v", err)
+	var requestCtx fasthttp.RequestCtx
+	requestCtx.Init(&request, &net.TCPAddr{IP: remoteIP, Port: 5000}, nil)
+	app.Handler()(&requestCtx)
+	return module10RemediationResponse{
+		StatusCode: requestCtx.Response.StatusCode(),
+		RetryAfter: string(requestCtx.Response.Header.Peek("Retry-After")),
 	}
-	return res
 }
 
 func module10RemediationPath(instruments, from, to string) string {
@@ -95,12 +108,11 @@ func TestModule10RemediationSequentialAnonymousAttackAndLegitimateSurvival(t *te
 	path := module10RemediationPath("SBER", "2026-01-01", "2026-12-31")
 	counts := map[int]int{}
 	for i := 0; i < 60; i++ {
-		res := module10RemediationRequest(t, app, "203.0.113.10:5000", path, "")
+		res := module10RemediationRequest(t, app, "203.0.113.10", path, "")
 		counts[res.StatusCode]++
-		if res.StatusCode == http.StatusTooManyRequests && res.Header.Get("Retry-After") != "60" {
-			t.Fatalf("Retry-After=%q want=60", res.Header.Get("Retry-After"))
+		if res.StatusCode == http.StatusTooManyRequests && res.RetryAfter != "60" {
+			t.Fatalf("Retry-After=%q want=60", res.RetryAfter)
 		}
-		_ = res.Body.Close()
 	}
 	if got := provider.calls.Load(); got != defaultCorporateActionProjectionPerClientLimit {
 		t.Fatalf("provider calls after 60 anonymous requests=%d want=%d", got, defaultCorporateActionProjectionPerClientLimit)
@@ -109,11 +121,10 @@ func TestModule10RemediationSequentialAnonymousAttackAndLegitimateSurvival(t *te
 	legit := module10RemediationRequest(
 		t,
 		app,
-		"198.51.100.20:5001",
+		"198.51.100.20",
 		module10RemediationPath("GAZP", "2026-01-01", "2026-12-31"),
 		"",
 	)
-	defer legit.Body.Close()
 	if legit.StatusCode != http.StatusOK {
 		t.Fatalf("legitimate status=%d want=200", legit.StatusCode)
 	}
@@ -142,9 +153,8 @@ func TestModule10RemediationIdenticalConcurrentCoalescing(t *testing.T) {
 				wg.Add(1)
 				go func() {
 					defer wg.Done()
-					res := module10RemediationRequest(t, app, "203.0.113.11:5000", path, "")
+					res := module10RemediationRequest(t, app, "203.0.113.11", path, "")
 					statuses <- res.StatusCode
-					_ = res.Body.Close()
 				}()
 			}
 			select {
@@ -202,9 +212,8 @@ func TestModule10RemediationDistinctAndCanonicalEquivalentAttacks(t *testing.T) 
 		for i := 0; i < 60; i++ {
 			day := base.AddDate(0, 0, i)
 			date := day.Format("2006-01-02")
-			res := module10RemediationRequest(t, app, "203.0.113.12:5000", module10RemediationPath("SBER", date, date), "")
+			res := module10RemediationRequest(t, app, "203.0.113.12", module10RemediationPath("SBER", date, date), "")
 			counts[res.StatusCode]++
-			_ = res.Body.Close()
 		}
 		if got := provider.calls.Load(); got != defaultCorporateActionProjectionPerClientLimit {
 			t.Fatalf("distinct-query provider calls=%d want=%d", got, defaultCorporateActionProjectionPerClientLimit)
@@ -228,9 +237,8 @@ func TestModule10RemediationDistinctAndCanonicalEquivalentAttacks(t *testing.T) 
 			wg.Add(1)
 			go func(i int) {
 				defer wg.Done()
-				res := module10RemediationRequest(t, app, "203.0.113.13:5000", paths[i%2], "")
+				res := module10RemediationRequest(t, app, "203.0.113.13", paths[i%2], "")
 				statuses <- res.StatusCode
-				_ = res.Body.Close()
 			}(i)
 		}
 		select {
@@ -260,14 +268,12 @@ func TestModule10RemediationNATForwardingAndCardinalityBounds(t *testing.T) {
 		_, app := module10RemediationApp(provider)
 		path := module10RemediationPath("SBER", "2026-01-01", "2026-12-31")
 		for i := 0; i < 12; i++ {
-			res := module10RemediationRequest(t, app, "203.0.113.14:5000", path, "")
+			res := module10RemediationRequest(t, app, "203.0.113.14", path, "")
 			if res.StatusCode != http.StatusOK {
 				t.Fatalf("normal shared-NAT request %d status=%d", i+1, res.StatusCode)
 			}
-			_ = res.Body.Close()
 		}
-		res := module10RemediationRequest(t, app, "203.0.113.14:5000", path, "")
-		defer res.Body.Close()
+		res := module10RemediationRequest(t, app, "203.0.113.14", path, "")
 		if res.StatusCode != http.StatusTooManyRequests {
 			t.Fatalf("shared-NAT request 13 status=%d want=429", res.StatusCode)
 		}
@@ -278,14 +284,13 @@ func TestModule10RemediationNATForwardingAndCardinalityBounds(t *testing.T) {
 		_, app := module10RemediationApp(provider)
 		path := module10RemediationPath("SBER", "2026-01-01", "2026-12-31")
 		for i := 0; i < 13; i++ {
-			res := module10RemediationRequest(t, app, "203.0.113.15:5000", path, fmt.Sprintf("198.51.100.%d", i+1))
+			res := module10RemediationRequest(t, app, "203.0.113.15", path, fmt.Sprintf("198.51.100.%d", i+1))
 			if i < 12 && res.StatusCode != http.StatusOK {
 				t.Fatalf("forwarded rotation request %d status=%d want=200", i+1, res.StatusCode)
 			}
 			if i == 12 && res.StatusCode != http.StatusTooManyRequests {
 				t.Fatalf("forwarded rotation request %d status=%d want=429", i+1, res.StatusCode)
 			}
-			_ = res.Body.Close()
 		}
 	})
 
@@ -318,18 +323,16 @@ func TestModule10RemediationCoalescerErrorAndCancellationRecovery(t *testing.T) 
 	path := module10RemediationPath("SBER", "2026-01-01", "2026-12-31")
 
 	provider.fail.Store(true)
-	failed := module10RemediationRequest(t, app, "203.0.113.16:5000", path, "")
+	failed := module10RemediationRequest(t, app, "203.0.113.16", path, "")
 	if failed.StatusCode != http.StatusServiceUnavailable {
 		t.Fatalf("provider failure status=%d want=503", failed.StatusCode)
 	}
-	_ = failed.Body.Close()
 	if got := api.corporateActionCoalescer.activeCalls(); got != 0 {
 		t.Fatalf("singleflight stuck after error: %d", got)
 	}
 
 	provider.fail.Store(false)
-	recovered := module10RemediationRequest(t, app, "203.0.113.16:5000", path, "")
-	defer recovered.Body.Close()
+	recovered := module10RemediationRequest(t, app, "203.0.113.16", path, "")
 	if recovered.StatusCode != http.StatusOK {
 		t.Fatalf("recovery status=%d want=200", recovered.StatusCode)
 	}
