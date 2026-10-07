@@ -1,0 +1,144 @@
+name: Module 10 Providers Hostile Audit
+
+on:
+  push:
+    branches:
+      - audit/providers-external-api-budget-resilience-v1
+    paths:
+      - "backend-go/**"
+      - ".github/workflows/module10-providers-hostile-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tinvest-hostile:
+    name: T-Invest hostile provider lifecycle
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Set up Go
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Run T-Invest hostile challenger
+        run: |
+          set -o pipefail
+          go test -count=1 -v ./internal/provider/tinvest -run '^TestModule10' 2>&1 | tee /tmp/module10-tinvest.log
+      - name: Upload T-Invest evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: module10-tinvest-evidence
+          path: /tmp/module10-tinvest.log
+          if-no-files-found: error
+
+  endpoint-abuse:
+    name: Provider endpoint abuse surface
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Set up Go
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Run endpoint budget-abuse challenger
+        run: |
+          set -o pipefail
+          go test -count=1 -v ./internal/httpapi -run '^TestModule10ProviderEndpointBudgetSurface$' 2>&1 | tee /tmp/module10-endpoint.log
+      - name: Upload endpoint evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: module10-endpoint-evidence
+          path: /tmp/module10-endpoint.log
+          if-no-files-found: error
+
+  moex-dormant:
+    name: Dormant MOEX adapter resilience
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Set up Go
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Run dormant MOEX challenger
+        run: |
+          set -o pipefail
+          go test -count=1 -v ./internal/provider/moexiss -run '^TestModule10' 2>&1 | tee /tmp/module10-moex.log
+      - name: Upload MOEX evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: module10-moex-evidence
+          path: /tmp/module10-moex.log
+          if-no-files-found: error
+
+  runtime-gates:
+    name: Runtime activation and ownership gates
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Set up Go
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Run runtime gate regression tests
+        run: |
+          set -o pipefail
+          go test -count=1 -v ./cmd/api -run 'TInvest|ProviderBudget|CorporateActionProvider' 2>&1 | tee /tmp/module10-runtime-gates.log
+      - name: Upload runtime gate evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: module10-runtime-gates-evidence
+          path: /tmp/module10-runtime-gates.log
+          if-no-files-found: error
+
+  final-enforcement:
+    name: Final hostile-audit enforcement
+    if: always()
+    needs:
+      - tinvest-hostile
+      - endpoint-abuse
+      - moex-dormant
+      - runtime-gates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aggregate independent subtest results
+        env:
+          TINVEST_RESULT: ${{ needs.tinvest-hostile.result }}
+          ENDPOINT_RESULT: ${{ needs.endpoint-abuse.result }}
+          MOEX_RESULT: ${{ needs.moex-dormant.result }}
+          RUNTIME_RESULT: ${{ needs.runtime-gates.result }}
+        run: |
+          printf 'TINVEST_RESULT=%s\n' "$TINVEST_RESULT"
+          printf 'ENDPOINT_RESULT=%s\n' "$ENDPOINT_RESULT"
+          printf 'MOEX_RESULT=%s\n' "$MOEX_RESULT"
+          printf 'RUNTIME_RESULT=%s\n' "$RUNTIME_RESULT"
+          test "$TINVEST_RESULT" = success
+          test "$ENDPOINT_RESULT" = success
+          test "$MOEX_RESULT" = success
+          test "$RUNTIME_RESULT" = success
