@@ -28,6 +28,22 @@ type module10AuditRoundTrip func(*http.Request) (*http.Response, error)
 
 func (fn module10AuditRoundTrip) RoundTrip(r *http.Request) (*http.Response, error) { return fn(r) }
 
+type module10HeaderRoundTripper struct {
+	base     http.RoundTripper
+	instance string
+}
+
+func (rt module10HeaderRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
+	base := rt.base
+	if base == nil {
+		base = http.DefaultTransport
+	}
+	cloned := r.Clone(r.Context())
+	cloned.Header = r.Header.Clone()
+	cloned.Header.Set("X-Audit-Instance", rt.instance)
+	return base.RoundTrip(cloned)
+}
+
 func module10AuditQuery() verticalslice.CorporateActionQuery {
 	return verticalslice.CorporateActionQuery{
 		InstrumentIDs: []string{"SBER"},
@@ -532,6 +548,154 @@ func TestModule10RawTCPCancellationProof(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestModule10AdditionalParserHostility(t *testing.T) {
+	cases := []struct {
+		name      string
+		body      string
+		wantError bool
+	}{
+		{
+			name:      "valid_1kb_unknown_field",
+			body:      "{\"dividends\":[],\"padding\":\"" + strings.Repeat("a", 1024) + "\"}",
+			wantError: false,
+		},
+		{
+			name:      "invalid_utf8_in_enum",
+			body:      "{\"dividends\":[{\"dividendType\":\"" + string([]byte{0xff}) + "\"}]}",
+			wantError: true,
+		},
+		{
+			name:      "oversized_array_with_invalid_items",
+			body:      "{\"dividends\":[" + strings.TrimSuffix(strings.Repeat("{},", 20000), ",") + "]}",
+			wantError: true,
+		},
+		{
+			name:      "deep_unknown_nesting",
+			body:      "{\"dividends\":[],\"nested\":" + strings.Repeat("[", 12000) + "0" + strings.Repeat("]", 12000) + "}",
+			wantError: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p, s := module10AuditProvider(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				_, _ = io.WriteString(w, tc.body)
+			}))
+			defer func() { s.CloseClientConnections(); s.Close() }()
+			_, err := p.CorporateActions(context.Background(), module10AuditQuery())
+			if tc.wantError && err == nil {
+				t.Fatal("hostile provider response accepted")
+			}
+			if !tc.wantError && err != nil {
+				t.Fatalf("bounded additive field unexpectedly rejected: %v", err)
+			}
+		})
+	}
+}
+
+func TestModule10ProviderReplicaChaos(t *testing.T) {
+	var firstA atomic.Bool
+	var pausedB atomic.Bool
+	aReached := make(chan struct{}, 1)
+	bReached := make(chan struct{}, 1)
+	releaseA := make(chan struct{})
+	resumeB := make(chan struct{})
+
+	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		instance := r.Header.Get("X-Audit-Instance")
+		if instance == "A" && firstA.CompareAndSwap(false, true) {
+			aReached <- struct{}{}
+			<-releaseA
+			return
+		}
+		if instance == "B" && pausedB.Load() {
+			bReached <- struct{}{}
+			<-resumeB
+		}
+		_, _ = io.WriteString(w, "{\"dividends\":[]}")
+	}))
+	defer func() { s.CloseClientConnections(); s.Close() }()
+
+	newReplica := func(instance string) *Provider {
+		baseClient := s.Client()
+		client := &http.Client{Transport: module10HeaderRoundTripper{base: baseClient.Transport, instance: instance}}
+		p, err := newCorporateActionProvider(
+			client,
+			module10AuditClock{now: time.Now().UTC()},
+			"audit-readonly-token",
+			s.URL+"/rest",
+		)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return p
+	}
+
+	replicaA := newReplica("A")
+	replicaB := newReplica("B")
+
+	ctxA, cancelA := context.WithCancel(context.Background())
+	aResult := make(chan error, 1)
+	go func() {
+		_, err := replicaA.CorporateActions(ctxA, module10AuditQuery())
+		aResult <- err
+	}()
+	select {
+	case <-aReached:
+	case <-time.After(time.Second):
+		t.Fatal("replica A request never reached shared upstream")
+	}
+	cancelA()
+	close(releaseA)
+	select {
+	case err := <-aResult:
+		if err == nil {
+			t.Fatal("killed replica A request unexpectedly succeeded")
+		}
+	case <-time.After(time.Second):
+		t.Fatal("replica A cancellation did not return")
+	}
+
+	restartedA := newReplica("A")
+	if _, err := restartedA.CorporateActions(context.Background(), module10AuditQuery()); err != nil {
+		t.Fatalf("restarted replica A failed: %v", err)
+	}
+
+	pausedB.Store(true)
+	bResult := make(chan error, 1)
+	go func() {
+		_, err := replicaB.CorporateActions(context.Background(), module10AuditQuery())
+		bResult <- err
+	}()
+	select {
+	case <-bReached:
+	case <-time.After(time.Second):
+		t.Fatal("replica B pause request never reached upstream")
+	}
+
+	if _, err := restartedA.CorporateActions(context.Background(), module10AuditQuery()); err != nil {
+		t.Fatalf("replica A poisoned by paused B: %v", err)
+	}
+	close(resumeB)
+	select {
+	case err := <-bResult:
+		if err != nil {
+			t.Fatalf("replica B did not recover after resume: %v", err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("replica B did not resume")
+	}
+
+	pausedB.Store(false)
+	if _, err := replicaB.CorporateActions(context.Background(), module10AuditQuery()); err != nil {
+		t.Fatalf("replica B final recovery failed: %v", err)
+	}
+	if len(replicaA.semaphore) != 0 || len(restartedA.semaphore) != 0 || len(replicaB.semaphore) != 0 {
+		t.Fatal("provider permit remained stuck after replica chaos")
+	}
+	t.Log("MODULE10_REPLICA_CHAOS kill_A=true restart_A=true pause_B=true resume_B=true global_deadlock=false stuck_permits=false recovery=true")
 }
 
 func TestModule10TokenHandling(t *testing.T) {
