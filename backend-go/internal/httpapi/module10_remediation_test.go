@@ -262,6 +262,86 @@ func TestModule10RemediationDistinctAndCanonicalEquivalentAttacks(t *testing.T) 
 	})
 }
 
+func TestModule10RemediationRoutedMultiInstanceAndGlobalCeiling(t *testing.T) {
+	for _, instances := range []int{1, 2, 4} {
+		t.Run(fmt.Sprintf("instances_%d", instances), func(t *testing.T) {
+			providers := make([]*module10RemediationProvider, 0, instances)
+			apps := make([]*fiber.App, 0, instances)
+			for i := 0; i < instances; i++ {
+				provider := &module10RemediationProvider{}
+				_, app := module10RemediationApp(provider)
+				providers = append(providers, provider)
+				apps = append(apps, app)
+			}
+			base := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+			for i, app := range apps {
+				for n := 0; n < 60; n++ {
+					day := base.AddDate(0, 0, n)
+					date := day.Format("2006-01-02")
+					res := module10RemediationRequest(
+						t,
+						app,
+						"203.0.113.30",
+						module10RemediationPath("SBER", date, date),
+						"",
+					)
+					if n < defaultCorporateActionProjectionPerClientLimit && res.StatusCode != http.StatusOK {
+						t.Fatalf("instance=%d request=%d status=%d want=200", i+1, n+1, res.StatusCode)
+					}
+					if n >= defaultCorporateActionProjectionPerClientLimit && res.StatusCode != http.StatusTooManyRequests {
+						t.Fatalf("instance=%d request=%d status=%d want=429", i+1, n+1, res.StatusCode)
+					}
+				}
+			}
+			var total int64
+			for _, provider := range providers {
+				total += provider.calls.Load()
+			}
+			want := int64(instances * defaultCorporateActionProjectionPerClientLimit)
+			if total != want {
+				t.Fatalf("instances=%d provider calls=%d want=%d", instances, total, want)
+			}
+			t.Logf("MODULE10_REMEDIATION_MULTI_INSTANCE instances=%d provider_calls=%d per_process_client_limit=%d",
+				instances, total, defaultCorporateActionProjectionPerClientLimit)
+		})
+	}
+
+	t.Run("process_global_emergency_ceiling", func(t *testing.T) {
+		provider := &module10RemediationProvider{}
+		_, app := module10RemediationApp(provider)
+		path := module10RemediationPath("SBER", "2026-01-01", "2026-12-31")
+		counts := map[int]int{}
+		for i := 0; i < 60; i++ {
+			peer := fmt.Sprintf("198.51.100.%d", i+1)
+			res := module10RemediationRequest(t, app, peer, path, "")
+			counts[res.StatusCode]++
+		}
+		if got := provider.calls.Load(); got != defaultCorporateActionProjectionGlobalLimit {
+			t.Fatalf("global-ceiling provider calls=%d want=%d", got, defaultCorporateActionProjectionGlobalLimit)
+		}
+		if counts[http.StatusOK] != defaultCorporateActionProjectionGlobalLimit || counts[http.StatusTooManyRequests] != 12 {
+			t.Fatalf("global ceiling status distribution=%v", counts)
+		}
+		t.Logf("MODULE10_REMEDIATION_GLOBAL_CEILING requests=60 provider_calls=%d http_200=%d http_429=%d",
+			provider.calls.Load(), counts[http.StatusOK], counts[http.StatusTooManyRequests])
+	})
+
+	t.Run("ipv6_peer_supported", func(t *testing.T) {
+		provider := &module10RemediationProvider{}
+		_, app := module10RemediationApp(provider)
+		res := module10RemediationRequest(
+			t,
+			app,
+			"2001:db8::1234",
+			module10RemediationPath("SBER", "2026-01-01", "2026-12-31"),
+			"",
+		)
+		if res.StatusCode != http.StatusOK {
+			t.Fatalf("IPv6 peer status=%d want=200", res.StatusCode)
+		}
+	})
+}
+
 func TestModule10RemediationNATForwardingAndCardinalityBounds(t *testing.T) {
 	t.Run("shared_nat_normal_flow", func(t *testing.T) {
 		provider := &module10RemediationProvider{}
