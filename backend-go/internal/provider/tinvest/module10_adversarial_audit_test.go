@@ -1,6 +1,7 @@
 package tinvest
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -57,7 +58,7 @@ func TestModule10SlowProviderLifecycle(t *testing.T) {
 			<-r.Context().Done()
 			cancelSeen <- struct{}{}
 		}))
-		defer s.Close()
+		defer func() { s.CloseClientConnections(); s.Close() }()
 
 		before := runtime.NumGoroutine()
 		ctx, cancel := context.WithTimeout(context.Background(), 120*time.Millisecond)
@@ -90,7 +91,7 @@ func TestModule10SlowProviderLifecycle(t *testing.T) {
 			<-r.Context().Done()
 			cancelSeen <- struct{}{}
 		}))
-		defer s.Close()
+		defer func() { s.CloseClientConnections(); s.Close() }()
 
 		ctx, cancel := context.WithTimeout(context.Background(), 120*time.Millisecond)
 		defer cancel()
@@ -121,7 +122,7 @@ func TestModule10SlowProviderLifecycle(t *testing.T) {
 				if f, ok := w.(http.Flusher); ok { f.Flush() }
 			}
 		}))
-		defer s.Close()
+		defer func() { s.CloseClientConnections(); s.Close() }()
 
 		ctx, cancel := context.WithTimeout(context.Background(), 120*time.Millisecond)
 		defer cancel()
@@ -144,7 +145,7 @@ func TestModule10SlowProviderLifecycle(t *testing.T) {
 			_ = rw.Flush()
 			_ = conn.Close()
 		}))
-		defer s.Close()
+		defer func() { s.CloseClientConnections(); s.Close() }()
 		if _, err := p.CorporateActions(context.Background(), module10AuditQuery()); err == nil {
 			t.Fatal("reset mid-body accepted")
 		}
@@ -187,7 +188,7 @@ func TestModule10RecoveryAndNoRetry(t *testing.T) {
 		}
 		_, _ = io.WriteString(w, "{\"dividends\":[]}")
 	}))
-	defer s.Close()
+	defer func() { s.CloseClientConnections(); s.Close() }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 80*time.Millisecond)
 	_, err := p.CorporateActions(ctx, module10AuditQuery())
@@ -207,7 +208,7 @@ func TestModule10RecoveryAndNoRetry(t *testing.T) {
 				attempts.Add(1)
 				w.WriteHeader(status)
 			}))
-			defer s.Close()
+			defer func() { s.CloseClientConnections(); s.Close() }()
 			_, err := p.CorporateActions(context.Background(), module10AuditQuery())
 			if err == nil { t.Fatal("expected provider error") }
 			if attempts.Load() != 1 { t.Fatalf("automatic retry observed: %d", attempts.Load()) }
@@ -223,7 +224,7 @@ func TestModule10DistributedProviderBudget(t *testing.T) {
 				upstream.Add(1)
 				_, _ = io.WriteString(w, "{}")
 			}))
-			defer s.Close()
+			defer func() { s.CloseClientConnections(); s.Close() }()
 
 			for n := 0; n < instances; n++ {
 				p, err := newCorporateActionProvider(s.Client(), module10AuditClock{now: time.Now().UTC()}, "audit-readonly-token", s.URL+"/rest")
@@ -261,7 +262,7 @@ func TestModule10ConcurrencyExhaustion(t *testing.T) {
 				}
 				_, _ = io.WriteString(w, "{}")
 			}))
-			defer s.Close()
+			defer func() { s.CloseClientConnections(); s.Close() }()
 			p, err := newCorporateActionProvider(s.Client(), module10AuditClock{now: time.Now().UTC()}, "audit-readonly-token", s.URL+"/rest")
 			if err != nil { t.Fatal(err) }
 
@@ -310,7 +311,7 @@ func TestModule10ParserAndProviderDataAbuse(t *testing.T) {
 			p, s := module10AuditProvider(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				_, _ = io.WriteString(w, tc.body)
 			}))
-			defer s.Close()
+			defer func() { s.CloseClientConnections(); s.Close() }()
 			_, err := p.CorporateActions(context.Background(), module10AuditQuery())
 			if tc.ok && err != nil { t.Fatalf("unexpected error: %v", err) }
 			if !tc.ok && err == nil { t.Fatal("hostile provider response accepted") }
@@ -322,7 +323,7 @@ func TestModule10ParserAndProviderDataAbuse(t *testing.T) {
 			p, s := module10AuditProvider(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				_, _ = io.WriteString(w, body)
 			}))
-			defer s.Close()
+			defer func() { s.CloseClientConnections(); s.Close() }()
 			if _, err := p.CorporateActions(context.Background(), module10AuditQuery()); err == nil {
 				t.Fatal("oversized body accepted")
 			}
@@ -386,7 +387,7 @@ func TestModule10DedupRedirectStampedeAndCircuitBound(t *testing.T) {
 				}
 				_, _ = io.WriteString(w, "{\"dividends\":[]}")
 			}))
-			defer s.Close()
+			defer func() { s.CloseClientConnections(); s.Close() }()
 
 			var wg sync.WaitGroup
 			wg.Add(clients)
@@ -435,6 +436,7 @@ func TestModule10FailureIsolationAndResourceLeak(t *testing.T) {
 		if (i == 0 || i == 5) && err != nil { t.Fatalf("success phase %d: %v", i, err) }
 		if i > 0 && i < 5 && err == nil { t.Fatalf("failure phase %d succeeded", i) }
 	}
+	s.CloseClientConnections()
 	s.Close()
 	if len(p.semaphore) != 0 { t.Fatal("permit stuck after failure isolation sequence") }
 
@@ -457,6 +459,69 @@ func TestModule10FailureIsolationAndResourceLeak(t *testing.T) {
 	if afterG > beforeG+20 { t.Fatalf("goroutine growth before=%d after=%d", beforeG, afterG) }
 	if beforeFD >= 0 && afterFD > beforeFD+20 { t.Fatalf("fd growth before=%d after=%d", beforeFD, afterFD) }
 	t.Logf("MODULE10_RESOURCE_LEAK before_g=%d after_g=%d before_fd=%d after_fd=%d failures=10000", beforeG, afterG, beforeFD, afterFD)
+}
+
+
+func TestModule10RawTCPCancellationProof(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ln.Close()
+
+	connectionResult := make(chan error, 1)
+	go func() {
+		conn, acceptErr := ln.Accept()
+		if acceptErr != nil {
+			connectionResult <- acceptErr
+			return
+		}
+		defer conn.Close()
+
+		reader := bufio.NewReader(conn)
+		request, readErr := http.ReadRequest(reader)
+		if readErr != nil {
+			connectionResult <- readErr
+			return
+		}
+		if request.Body != nil {
+			_, _ = io.Copy(io.Discard, request.Body)
+			_ = request.Body.Close()
+		}
+
+		_ = conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+		_, readErr = reader.ReadByte()
+		connectionResult <- readErr
+	}()
+
+	p, err := newCorporateActionProvider(
+		&http.Client{},
+		module10AuditClock{now: time.Now().UTC()},
+		"audit-readonly-token",
+		"http://"+ln.Addr().String()+"/rest",
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Millisecond)
+	defer cancel()
+	_, callErr := p.CorporateActions(ctx, module10AuditQuery())
+	if !errors.Is(callErr, context.DeadlineExceeded) {
+		t.Fatalf("deadline not preserved: %v", callErr)
+	}
+
+	select {
+	case readErr := <-connectionResult:
+		if readErr == nil {
+			t.Fatal("upstream connection produced unexpected post-request byte")
+		}
+		if networkErr, ok := readErr.(net.Error); ok && networkErr.Timeout() {
+			t.Fatalf("upstream TCP connection remained open after caller cancellation: %v", readErr)
+		}
+		t.Logf("MODULE10_RAW_TCP caller_deadline=true upstream_connection_closed=true read_error=%T", readErr)
+	case <-time.After(3 * time.Second):
+		t.Fatal("raw TCP cancellation witness did not complete")
+	}
 }
 
 func TestModule10TokenHandling(t *testing.T) {
