@@ -14,8 +14,29 @@ permissions:
 
 jobs:
   tinvest-hostile:
-    name: T-Invest hostile provider lifecycle
+    name: T-Invest hostile / ${{ matrix.slug }}
     runs-on: ubuntu-latest
+    timeout-minutes: 4
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - test: TestModule10SlowProviderLifecycle
+            slug: slow-provider-lifecycle
+          - test: TestModule10RecoveryAndNoRetry
+            slug: recovery-no-retry
+          - test: TestModule10DistributedProviderBudget
+            slug: distributed-budget
+          - test: TestModule10ConcurrencyExhaustion
+            slug: concurrency-exhaustion
+          - test: TestModule10ParserAndProviderDataAbuse
+            slug: parser-response-abuse
+          - test: TestModule10DedupRedirectStampedeAndCircuitBound
+            slug: dedup-redirect-stampede
+          - test: TestModule10FailureIsolationAndResourceLeak
+            slug: failure-isolation-resource-leak
+          - test: TestModule10TokenHandling
+            slug: token-handling
     defaults:
       run:
         working-directory: backend-go
@@ -27,21 +48,24 @@ jobs:
         with:
           go-version-file: backend-go/go.mod
           cache-dependency-path: backend-go/go.sum
-      - name: Run T-Invest hostile challenger
+      - name: Run independent T-Invest hostile scenario
+        env:
+          TEST_NAME: ${{ matrix.test }}
         run: |
           set -o pipefail
-          go test -count=1 -v ./internal/provider/tinvest -run '^TestModule10' 2>&1 | tee /tmp/module10-tinvest.log
+          go test -count=1 -v -timeout=3m ./internal/provider/tinvest -run "^${TEST_NAME}$" 2>&1 | tee "/tmp/module10-tinvest-${{ matrix.slug }}.log"
       - name: Upload T-Invest evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: module10-tinvest-evidence
-          path: /tmp/module10-tinvest.log
+          name: module10-tinvest-${{ matrix.slug }}-evidence
+          path: /tmp/module10-tinvest-${{ matrix.slug }}.log
           if-no-files-found: error
 
   endpoint-abuse:
     name: Provider endpoint abuse surface
     runs-on: ubuntu-latest
+    timeout-minutes: 4
     defaults:
       run:
         working-directory: backend-go
@@ -56,7 +80,7 @@ jobs:
       - name: Run endpoint budget-abuse challenger
         run: |
           set -o pipefail
-          go test -count=1 -v ./internal/httpapi -run '^TestModule10ProviderEndpointBudgetSurface$' 2>&1 | tee /tmp/module10-endpoint.log
+          go test -count=1 -v -timeout=3m ./internal/httpapi -run '^TestModule10ProviderEndpointBudgetSurface$' 2>&1 | tee /tmp/module10-endpoint.log
       - name: Upload endpoint evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -68,6 +92,7 @@ jobs:
   moex-dormant:
     name: Dormant MOEX adapter resilience
     runs-on: ubuntu-latest
+    timeout-minutes: 4
     defaults:
       run:
         working-directory: backend-go
@@ -82,7 +107,7 @@ jobs:
       - name: Run dormant MOEX challenger
         run: |
           set -o pipefail
-          go test -count=1 -v ./internal/provider/moexiss -run '^TestModule10' 2>&1 | tee /tmp/module10-moex.log
+          go test -count=1 -v -timeout=3m ./internal/provider/moexiss -run '^TestModule10' 2>&1 | tee /tmp/module10-moex.log
       - name: Upload MOEX evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -94,6 +119,7 @@ jobs:
   runtime-gates:
     name: Runtime activation and ownership gates
     runs-on: ubuntu-latest
+    timeout-minutes: 4
     defaults:
       run:
         working-directory: backend-go
@@ -108,7 +134,7 @@ jobs:
       - name: Run runtime gate regression tests
         run: |
           set -o pipefail
-          go test -count=1 -v ./cmd/api -run 'TInvest|ProviderBudget|CorporateActionProvider' 2>&1 | tee /tmp/module10-runtime-gates.log
+          go test -count=1 -v -timeout=3m ./cmd/api -run 'TInvest|ProviderBudget|CorporateActionProvider' 2>&1 | tee /tmp/module10-runtime-gates.log
       - name: Upload runtime gate evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
