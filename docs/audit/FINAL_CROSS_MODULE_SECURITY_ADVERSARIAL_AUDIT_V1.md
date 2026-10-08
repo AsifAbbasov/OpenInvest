@@ -208,3 +208,170 @@ Module #12 was not started.
 - Remediation authorized: **NO**.
 - Module #11 formally closed: **NO**.
 - Module #12 started: **NO**.
+
+## V2 challenger — remaining-boundary attack pass
+
+### V2 tested audit identity
+
+- Challenger harness HEAD: `416b87790d007a35ed95280019d3eebb5e2bd369`.
+- Challenger harness tree: `d076bab66b9d643b1ba5eb858bccf7f8860ec75e`.
+- Specialized audit workflow: run `37838098812` — SUCCESS.
+- Normal protected CI on the same challenger harness HEAD: run `37838106513` — SUCCESS, 10/10 required jobs.
+- This report update is evidence-only and therefore creates a later Git commit. A Git commit cannot truthfully embed its own final SHA/tree without self-reference; the executor's final verdict records the report-final HEAD/tree and the normal CI run on that exact report-final HEAD.
+
+### V2 specialized jobs
+
+All 15 specialized jobs completed successfully on the challenger harness HEAD:
+- A auth ownership idempotency;
+- B ledger/import/position/XIRR concurrency;
+- C cancellation and PostgreSQL runtime role;
+- D HTTP parser/rate-limit/provider;
+- E frontend/backend security contract;
+- F stateful/property/fuzz;
+- V2 preflight compile and identity;
+- A2 HTTP auth/CSRF/authorization;
+- B2 cancellation phase challenger;
+- C2 parser/routing hostile matrix;
+- D2 PostgreSQL concurrency race matrix;
+- E2 CSV adversarial campaign;
+- F2 full-system PostgreSQL state machine;
+- G2 dedicated cross-module fuzz;
+- H2 error-oracle/leakage challenger.
+
+### V2 executed counts and observations
+
+**Auth/CSRF/authorization**
+- Missing and malformed CSRF: rejected.
+- Cross-session CSRF: rejected.
+- Old refresh pair replay after rotation: rejected.
+- Old-cookie/new-CSRF and new-cookie/old-CSRF combinations: rejected.
+- Refresh replay after logout: rejected.
+- Mixed-case CSRF header: accepted as the same canonical header.
+- Duplicate identical refresh Cookie headers: observed status 200; no cross-principal effect was demonstrated.
+- Protected mutation route matrix: `M11_ROUTE_SECURITY_MATRIX_TOTAL=8`, PASS=8, FAIL=0.
+- Portfolio update/delete routes were not present in the discovered current contract.
+
+**Parser/routing**
+- 17 explicit hostile cases executed.
+- Malformed/percent-malformed UUIDs failed before downstream mutation.
+- Encoded slash, repeated slash and dot-segment variants did not route to a more privileged mutation handler.
+- Empty body, trailing JSON, multiple JSON documents, unknown field and malformed date failed closed.
+- Mixed-case Idempotency-Key worked canonically.
+- Duplicate Idempotency-Key produced one downstream call; no multi-call amplification was reproduced.
+- JSON with charset was accepted.
+- JSON payload under `text/plain` and with missing Content-Type was accepted by the tested development mutation path. No auth/ownership bypass was demonstrated. This is **HARDENING_ONLY M11-H03**: content-type enforcement is looser than the API's JSON media-type contract, but no security boundary violation was reproduced.
+
+**Concurrency/provider**
+- Real PostgreSQL repeated concurrency campaign: 7 scenarios × 12 iterations = **84 iterations** under `-race`.
+- Scenarios: BUY-vs-SELL, SELL-vs-SELL, correction-vs-correction, correction-vs-reversal, reversal-vs-reversal, XIRR-read-vs-correction, same-idempotency concurrent retry.
+- Different Idempotency-Key values for the same logical intent remain distinct commands by contract.
+- Provider identical-query coalescing: **100 repeated iterations**.
+- Provider cancellation/recovery: **25 repeated iterations**.
+- No data race was detected in the successful V2 or normal-CI race runs.
+
+**CSV**
+- Deterministic review campaign: **14 cases**; **11 ReviewCSV-success cases**, **3 parser-level rejects**.
+- The "invalid decimal" payload is accepted into review but its row is non-appendable; it is not accepted as a financial mutation.
+- The campaign verifies parser/review determinism and decision identity but does **not** construct a clean persisted ledger/reference model for every accepted CSV sequence. Therefore NV-M11-06 remains NOT_VERIFIED rather than being falsely closed.
+
+**Full-system generated state**
+- Seed: `110022`.
+- Sequences: **100**.
+- Operations: **3,000**.
+- Observable-state checks recorded: **3,000**.
+- Result: PASS.
+- Campaign mixes DEPOSIT, WITHDRAWAL, BUY, SELL, DIVIDEND, cash correction/reversal, manual valuation upsert/delete, and projection reads.
+- The campaign validates tracked quantity and repeat projection stability after each operation, but it does not independently reconstruct a complete clean-reference ledger/cash/XIRR model after every mutation. NV-M11-07 is therefore PARTIALLY_VERIFIED, not fully closed.
+
+**Dedicated V2 fuzz**
+- `FuzzM11RouteUUIDAuthorization`: 15s configured; successful run observed **45,149 executions** over ~16s.
+- `FuzzM11CorrectionReversalStateMachine`: 15s configured; successful run observed **130 executions** over ~17s.
+- Both dedicated missing V1 targets executed and passed.
+- Across V1+V2, executed fuzz target count is **8**; recorded wrapper/runtime evidence is approximately **109 seconds** (76s V1 wrapper totals + ~33s V2 observed).
+
+### V2 test-defect chronology
+
+The following were audit-harness defects or unsupported expectations; product implementation was not changed between red and green reproduction:
+
+- **TD-M11-04:** V2 refresh-CSRF test decoded the refresh response using the registration response shape, causing stale-combination failures/panic.
+- **TD-M11-05:** initial parser/fuzz fixtures used unsuitable test stores/lifecycle and produced harness panics/hangs instead of product evidence.
+- **TD-M11-06:** CSV harness expected an invalid Decimal row to make `ReviewCSV` fail entirely; the actual contract represents it as a non-appendable review row.
+- **TD-M11-07:** initial full-system state model treated expected historical oversell rejection / absent projection states as product failures instead of valid contract outcomes.
+- **TD-M11-08:** intermediate preflight introduced compile-only defects (missing `encoding/json` import and wrong audit-store append counter field).
+- **TD-M11-09:** valuation ownership assertion queried an obsolete/nonexistent direct ticker column instead of joining the assets table.
+- **TD-M11-10:** route authorization fuzz required 401 for malformed unauthenticated paths even when parser/routing correctly failed earlier with 400/404.
+- Prior TD-M11-01..03 remain as recorded in the V1 chronology.
+- Total classified test defects after V2: **10**.
+
+### V2 product-finding table
+
+| ID | Severity | Result |
+| --- | --- | --- |
+| Product security/correctness vulnerability | P0/P1/P2/P3 | **None demonstrated by corrected V2 harness** |
+| M11-H01 | HARDENING_ONLY | Already-issued short-lived access JWT remains valid until TTL after refresh/logout. |
+| M11-H02 | HARDENING_ONLY | Frontend does not expose backend Retry-After; no automatic retry/budget amplification reproduced. |
+| M11-H03 | HARDENING_ONLY | Tested JSON mutation path accepts JSON body with text/plain or missing Content-Type; no auth/ownership bypass reproduced. |
+
+Final demonstrated product counts after V2: **P0=0, P1=0, P2=0, P3=0, HARDENING_ONLY=3**.
+
+### Updated NV / residual table
+
+| Boundary | V2 status | Evidence / remaining limitation |
+| --- | --- | --- |
+| NV-M11-01 real HTTP cookie/CSRF matrix | PARTIALLY_VERIFIED | Major current-contract combinations executed, including cross-session, rotation, stale pairs, logout replay and duplicate identical cookies. Conflicting duplicate-cookie principal selection and every transport permutation were not proven. |
+| NV-M11-02 authorization/mutation route matrix | PASS for discovered current protected mutation routes | 8/8 reviewed mutation cases passed; absent portfolio update/delete routes were not invented. |
+| NV-M11-03 cancellation phase matrix | PARTIALLY_VERIFIED | DB blocked-before-commit atomicity plus 25 provider cancellation/recovery iterations verified. After-mutation-before-commit, raw TCP disconnect and response-serialization phases remain not deterministically proven. |
+| NV-M11-04 HTTP parser/routing matrix | PARTIALLY_VERIFIED | 17 hostile cases plus existing strict-decimal/CSV regressions executed. Duplicate Authorization, conflicting duplicate Cookie, invalid UTF-8 and every malformed media-type transport variant remain incomplete. |
+| NV-M11-05 concurrency/race matrix | PARTIALLY_VERIFIED | 84 repeated DB iterations under race plus 100 provider coalescing and 25 cancellation iterations. Import-vs-BUY, valuation read/update/delete and all requested 100-iteration DB scenarios were not fully executed. |
+| NV-M11-06 CSV full clean-reference campaign | NOT_VERIFIED | 14-case review campaign does not build/compare a persisted clean reference financial history for each accepted adversarial sequence. |
+| NV-M11-07 full-system state machine | PARTIALLY_VERIFIED | 100×30 / 3,000 operations passed, but not every step has an independently reconstructed clean-reference ledger/cash/XIRR state. |
+| NV-M11-08 dedicated missing fuzz targets | PASS | Route UUID+authorization and correction/reversal state-machine fuzz targets both executed ≥15s and passed. |
+| NV-M11-09 shared production provider budget | NOT_VERIFIED | **HORIZONTALLY_SHARED_PRODUCTION_PROVIDER_BUDGET_NOT_VERIFIED**; repository tests do not prove distributed production enforcement. `CARRY_FORWARD_MODULE_12=YES`. |
+
+Remaining NOT_VERIFIED-class items for final count: **7** (NV-M11-01, 03, 04, 05, 06, 07 and 09 are not fully proven; NV-M11-02 and NV-M11-08 are closed by V2 evidence).
+
+### Updated CM-01..CM-14 status after V2
+
+| Invariant | Final V2 status |
+| --- | --- |
+| CM-01 NO_CROSS_PRINCIPAL_DATA_ACCESS | PASS |
+| CM-02 NO_CROSS_PRINCIPAL_MUTATION | PASS |
+| CM-03 EXACTLY_ONCE_BUSINESS_EFFECT_UNDER_RETRY | PASS |
+| CM-04 EFFECTIVE_LEDGER_SINGLE_SOURCE_OF_TRUTH | PASS |
+| CM-05 POSITION_WAC_REBUILD_EQUIVALENCE | PASS |
+| CM-06 CASH_FLOW_XIRR_REBUILD_EQUIVALENCE | PASS |
+| CM-07 CANCELLATION_ATOMICITY | PARTIALLY_VERIFIED |
+| CM-08 RATE_LIMIT_PROVIDER_BUDGET_COMPOSITION | PARTIALLY_VERIFIED |
+| CM-09 NO_AUTH_OR_EXISTENCE_ORACLE | PARTIALLY_VERIFIED |
+| CM-10 NO_SECRET_OR_INTERNAL_ERROR_LEAKAGE | PARTIALLY_VERIFIED |
+| CM-11 RUNTIME_DB_ROLE_FAIL_CLOSED | PASS |
+| CM-12 SECURITY_CONTROL_ORDERING_SAFE | PARTIALLY_VERIFIED |
+| CM-13 CONCURRENT_COMMAND_SERIALIZATION_SAFE | PARTIALLY_VERIFIED |
+| CM-14 FRONTEND_BACKEND_SECURITY_CONTRACT_SAFE | PARTIALLY_VERIFIED |
+
+V2 upgrades CM-02 from PARTIALLY_VERIFIED to PASS. The other retained PARTIALLY_VERIFIED invariants are deliberately not upgraded from code inspection or narrower harnesses.
+
+### V2 normal CI security evidence
+
+Normal protected CI run `37838106513` on the challenger harness HEAD completed SUCCESS:
+- Go tests: SUCCESS.
+- Go race tests: SUCCESS; no `DATA RACE` marker.
+- Go vet: SUCCESS.
+- govulncheck: `No vulnerabilities found. Your code is affected by 0 vulnerabilities.`
+- Python tests: SUCCESS.
+- pip-audit: no known vulnerabilities.
+- pnpm audit: no known vulnerabilities.
+- Frontend typecheck/test/build: SUCCESS.
+- OpenAPI contract: SUCCESS.
+- PostgreSQL migration validation: SUCCESS.
+- Docker Compose config: SUCCESS.
+
+### V2 final challenger disposition
+
+- Product remediation authorized: **NO**.
+- PR #240 merge authorized: **NO**.
+- Module #11 formally closed: **NO**.
+- Module #12 started: **NO**.
+- `NV-M11-09=HORIZONTALLY_SHARED_PRODUCTION_PROVIDER_BUDGET_NOT_VERIFIED`.
+- `CARRY_FORWARD_MODULE_12=YES`.
+
