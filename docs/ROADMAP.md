@@ -376,3 +376,12 @@ See [`audit/OI_NEW_P2_REMEDIATION_CLOSURE.md`](audit/OI_NEW_P2_REMEDIATION_CLOSU
 Documentation-cleanup baseline: PR #190 / squash merge `8bcb2d1bba3454de1262ddc4e045fddf299a9564` after CI #548 / run `35334163751` with 10/10 required jobs successful. The roadmap intentionally does not pin the mutable `develop` tip.
 
 P3 and Stage 3.78+ remain separate future scope.
+
+## Current adversarial security audit campaign
+
+- Module #10 — **FORMALLY CLOSED** for repository-side Providers / External API / Budget Abuse / Resilience remediation.
+- Module #11 — **NEXT / NOT STARTED**.
+- Module #12 — **NOT STARTED**.
+- Module #12 carries external/shared provider-budget verification, full API-process multi-instance chaos verification, and exhaustive real-socket resource verification.
+- Repository-side controls do not prove horizontally shared production provider-budget enforcement.
+- Recording these gates does not authorize Module #11 or Module #12 implementation.

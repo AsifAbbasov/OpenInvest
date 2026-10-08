@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-DOC-001 |
-| Version | 1.1.79 |
+| Version | 1.1.80 |
 | Status | Approved |
 | Supersedes | Informal attachment-only inventory |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
@@ -71,6 +71,8 @@ Individual archived files live under `specifications/legacy/`. They are preserve
 | `ROADMAP.md` | Planning and high-level lifecycle/status |
 | `IMPLEMENTATION_LOG.md` | Implementation chronology and completion protocol |
 | `audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md` | Canonical cross-finding status for all 32 original Stage 3.16 audit findings |
+| `audit/PROVIDERS_EXTERNAL_API_BUDGET_RESILIENCE_REMEDIATION_PATCH_V1.md` | Supporting Module #10 repository-side remediation dossier; not a replacement for `SOURCE_OF_TRUTH.md` |
+| `audit/PROVIDERS_EXTERNAL_API_BUDGET_RESILIENCE_ADVERSARIAL_AUDIT_CLOSURE.md` | Canonical formal closure evidence for Module #10 repository-side provider budget abuse/resilience audit, with production/shared-provider residuals explicitly carried forward; not a replacement for `SOURCE_OF_TRUTH.md` |
 | `governance/REPOSITORY_DOCUMENTATION_RECONCILIATION.md` | Historical reconciliation record through Stage 3.72; later active lifecycle state is carried by the canonical registries and stage dossiers |
 | `product/MVP_PRODUCT_RISK_REFINEMENT.md` | Proposed product-risk response, ICP sharpening, import/tax/purchasing-power guardrails |
 

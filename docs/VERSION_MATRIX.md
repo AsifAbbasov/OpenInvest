@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
-| Version | 1.2.7 |
+| Version | 1.2.8 |
 | Status | Approved |
 | Supersedes | None |
 | Dependencies | Documents 42–43 |
@@ -15,6 +15,7 @@
 | Document 42 | 1.1.0 | Approved / current | 2 | Principal Architect | 2026-12-19 |
 | ADR-001–007 | 1.0.0 | Accepted, subject to 42–43 | 3 | Principal Architect | 2026-12-25 |
 | ADR-009 deterministic portfolio ledger ordering and WAC | 1.0.0 | Accepted / canonical through PR #137; runtime semantics implemented by Stage 3.71 | 3 | Principal Architect | Before any change to ledger ordering, WAC or acquisition-basis semantics |
+| Module #10 — Providers / External API / Budget Abuse / Resilience | 1.0.0 closure | Formally closed repository-side through PR #238 / merge `a0ebf29b38b4c3dcd1926c439f7c0193207245a5`; production/shared provider-budget verification remains outside repository-side closure and is carried to Module #12 | 3 | Principal Architect | Before changing public provider admission, provider budget policy, request coalescing, distributed/shared budget enforcement, or production provider scale-out |
 | Stage 3.73 Portfolio Time Machine / Historical Position View | 1.0.0 | Complete / canonical through PR #148 squash merge `683f9c4647f888bb3dbdfb9dd365b84b95137b46` from exact final head `a74fd85a46843ccdfe8192f2ac8687169a5a2ac7` after CI #424 / run `34109389368` 10/10 SUCCESS; reuses Stage 3.72 `asOfDate`; no new engine/API/schema/provider | 3 | Principal Architect | Before any Stage 3.77+ position-history, valuation, provider, tax-basis or accounting-semantics expansion |
 | Stage 3.74 Transaction Correction & Reversal / Ledger Repair UX | 1.0.0 | Complete / canonical through PR #150 squash merge `0580bf7e98c532202f84bbf9ceacd97aedbe4140` from exact final head `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02` after CI #435 / run `34117662576` 10/10 SUCCESS | 3 | Principal Architect | Before changes to correction/reversal or effective-ledger semantics |
 | Stage 3.75 Portfolio Cash Flow & Income Truth | 1.0.0 | Complete / canonical through PR #153; backend-owned effective-ledger cash-flow/income truth, truthful recorded dividend/coupon summaries and manual income/expense entry | 3 | Principal Architect | Before Stage 3.77+ cash-flow, income-attribution, accounting or valuation expansion |

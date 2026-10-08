@@ -550,3 +550,13 @@ P2 remediation closed 8/8 at
 Documentation cleanup was subsequently canonicalized through PR #190 / squash merge `8bcb2d1bba3454de1262ddc4e045fddf299a9564` from exact head `b5bbfa9ea9cbb5eb9d758e573419e1d376e4fb21` after CI #548 / run `35334163751` with 10/10 required jobs successful. Subsequent metadata finalization does not alter technical closure or pin the mutable `develop` tip.
 
 Technical details: [`audit/OI_NEW_P2_REMEDIATION_CLOSURE.md`](audit/OI_NEW_P2_REMEDIATION_CLOSURE.md).
+
+## 2026-10-08 — Module #10 Providers / External API / Budget Abuse / Resilience formally closed
+
+- PR #236 repository-side remediation was squash-merged at `a602cc39b4c5e916838b6900a1256183d038adef`.
+- PR #237 security dependency update was squash-merged at `d19c089ba107c3b6e5e514cc2f98ee3287744874`, with Next.js 16.3.8 and `golang.org/x/text` v0.41.0 retained.
+- CI #686 / run `37771374832` verified exact protected `develop@d19c089ba107c3b6e5e514cc2f98ee3287744874` successfully.
+- PR #238 documentation closure was squash-merged at `a0ebf29b38b4c3dcd1926c439f7c0193207245a5`.
+- M10-P2-01 is remediated repository-side; M10-P3-01 remains hardening-only/non-blocking.
+- External/shared provider-budget enforcement, full API-process multi-instance chaos, and exhaustive real-socket resource verification remain NOT VERIFIED and are carried to Module #12. Repository-side controls do not prove horizontally shared production provider-budget enforcement.
+- Module #11 and Module #12 remain not started.

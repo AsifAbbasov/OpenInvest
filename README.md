@@ -117,6 +117,14 @@ Source/provider status is tracked in the
 [Data Source Registry](docs/registries/DATA_SOURCE_REGISTRY.md) and
 [Corporate Actions source research](docs/research/CORPORATE_ACTIONS_SOURCE_OUTREACH.md).
 
+## Current security / audit status
+
+Module #10 repository-side provider-budget remediation and formal closure are complete.
+Production/shared-provider budget enforcement remains an explicit Module #12 verification item.
+Repository-side controls do not prove horizontally shared production provider-budget enforcement.
+
+See the [Module #10 adversarial audit closure](docs/audit/PROVIDERS_EXTERNAL_API_BUDGET_RESILIENCE_ADVERSARIAL_AUDIT_CLOSURE.md).
+
 ## Run locally
 
 ### Requirements
@@ -222,6 +230,7 @@ The README is the product entry point, not the complete engineering record.
 ### Engineering evidence
 
 - [Repository Audit Remediation Register](docs/audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md) — canonical index for the original repository audit and its remediation.
+- [Module #10 Providers / External API / Budget Abuse / Resilience closure](docs/audit/PROVIDERS_EXTERNAL_API_BUDGET_RESILIENCE_ADVERSARIAL_AUDIT_CLOSURE.md) — formal repository-side closure with production/shared-provider residuals preserved.
 
 ## Historical engineering evidence
 
