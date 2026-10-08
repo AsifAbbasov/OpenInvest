@@ -11,6 +11,8 @@ type API struct {
 	service                 *verticalslice.Service
 	auth                    *auth.Service
 	corporateActionProvider verticalslice.CorporateActionProvider
+	corporateActionLimiter  *authRateLimiter
+	corporateActionCoalescer *corporateActionProjectionCoalescer
 	allowDevelopmentSubject bool
 	authLimiter             *authRateLimiter
 	authLoginIPLimiter      *authRateLimiter
@@ -37,6 +39,8 @@ func New(service *verticalslice.Service, authService *auth.Service, importReview
 		authLoginIPLimiter:     newBoundedAuthRateLimiter(defaultAuthLoginIPLimit, defaultAuthRateLimiterGlobalLimit, defaultAuthRateLimiterMaxKeys, time.Minute),
 		authCredentialLimiter:  newBoundedAuthRateLimiter(defaultAuthCredentialLimit, defaultAuthRateLimiterGlobalLimit, defaultAuthCredentialMaxKeys, time.Minute),
 		dividendLimiter:        newDividendCalculatorRateLimiter(),
+		corporateActionLimiter:  newCorporateActionProjectionRateLimiter(),
+		corporateActionCoalescer: newCorporateActionProjectionCoalescer(),
 		importAdmission:        newDefaultImportAdmission(),
 		expensiveReads:         newDefaultExpensiveReadAdmission(),
 		importReviewSecret:     secret,

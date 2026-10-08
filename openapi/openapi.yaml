@@ -302,6 +302,7 @@ paths:
                       traceId: "10000000000000000000000000000001"
                       generatedAt: "2026-09-05T00:02:00Z"
         "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
         "502":
           description: Provider evidence failed canonical or supersession integrity validation.
           headers:
