@@ -73,13 +73,13 @@ func TestM11V2HTTPParserRoutingHostileMatrix(t *testing.T) {
 				t.Fatalf("hostile case produced 5xx status=%d body=%s", resp.StatusCode, string(body))
 			}
 			if tc.flexible {
-				if store.appendTransactionCalls > tc.wantCalls {
-					t.Fatalf("downstream amplification calls=%d max=%d", store.appendTransactionCalls, tc.wantCalls)
+				if store.appendCalls > tc.wantCalls {
+					t.Fatalf("downstream amplification calls=%d max=%d", store.appendCalls, tc.wantCalls)
 				}
-			} else if store.appendTransactionCalls != tc.wantCalls {
-				t.Fatalf("downstream calls=%d want=%d", store.appendTransactionCalls, tc.wantCalls)
+			} else if store.appendCalls != tc.wantCalls {
+				t.Fatalf("downstream calls=%d want=%d", store.appendCalls, tc.wantCalls)
 			}
-			t.Logf("M11_V2_PARSER_CASE=%s STATUS=%d CALLS=%d", tc.name, resp.StatusCode, store.appendTransactionCalls)
+			t.Logf("M11_V2_PARSER_CASE=%s STATUS=%d CALLS=%d", tc.name, resp.StatusCode, store.appendCalls)
 		})
 	}
 	t.Logf("M11_V2_HTTP_PARSER_ROUTING_CASES=%d", len(cases))
