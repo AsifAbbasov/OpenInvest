@@ -192,7 +192,7 @@ func TestM11V2ProtectedMutationAuthorizationHTTP(t *testing.T) {
 		foreignResp, _ := m11V2HTTPRequest(t, app, http.MethodPut, path, `{"marketPrice":{"amount":"999.00000000","currency":"RUB"},"asOfDate":"2026-10-06"}`, foreign.AccessToken, "")
 		if foreignResp.StatusCode != http.StatusNotFound { t.Fatalf("foreign put=%d", foreignResp.StatusCode) }
 		var price string
-		if err := db.QueryRow(`SELECT price_amount::text FROM investment.portfolio_manual_valuations WHERE portfolio_id=$1 AND ticker='SBER'`, portfolioID).Scan(&price); err != nil { t.Fatal(err) }
+		if err := db.QueryRow(`SELECT valuation.price_amount::text FROM investment.portfolio_manual_valuations valuation JOIN investment.assets asset ON asset.id=valuation.asset_id WHERE valuation.portfolio_id=$1 AND asset.ticker='SBER'`, portfolioID).Scan(&price); err != nil { t.Fatal(err) }
 		if price != "110.00000000" { t.Fatalf("foreign changed price=%s", price) }
 		deleteResp, _ := m11V2HTTPRequest(t, app, http.MethodDelete, path, "", foreign.AccessToken, "")
 		if deleteResp.StatusCode != http.StatusNotFound { t.Fatalf("foreign delete=%d", deleteResp.StatusCode) }

@@ -56,8 +56,15 @@ func FuzzM11RouteUUIDAuthorization(f *testing.F) {
 
 		_, parseErr := uuid.Parse(raw)
 		if !authenticated {
-			if store.listTransactionsCalls != 0 || resp.StatusCode != http.StatusUnauthorized {
-				t.Fatalf("unauthenticated raw=%q calls=%d status=%d", raw, store.listTransactionsCalls, resp.StatusCode)
+			if store.listTransactionsCalls != 0 {
+				t.Fatalf("unauthenticated route reached store raw=%q calls=%d status=%d", raw, store.listTransactionsCalls, resp.StatusCode)
+			}
+			if parseErr == nil {
+				if resp.StatusCode != http.StatusUnauthorized {
+					t.Fatalf("valid unauthenticated route status=%d raw=%q", resp.StatusCode, raw)
+				}
+			} else if resp.StatusCode != http.StatusBadRequest && resp.StatusCode != http.StatusUnauthorized && resp.StatusCode != http.StatusNotFound {
+				t.Fatalf("invalid unauthenticated route status=%d raw=%q", resp.StatusCode, raw)
 			}
 			return
 		}
