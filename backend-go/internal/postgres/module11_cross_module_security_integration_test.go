@@ -59,7 +59,7 @@ func TestM11IdempotencyOwnershipReplayIsolation(t *testing.T) {
 	request := stage371Trade(h.portfolioID, "BUY", "SBER", "1.00000000", "100.00000000", "2026-01-02")
 	rc := verticalslice.RequestContext{RequestID: uuid.NewString(), TraceID: "m11-idempotency-owner"}
 
-	first, firstArtifact, err := h.service.AppendTransactionWithReplay(h.ctx, rc, h.subjectID, key, path, request, func(tx verticalslice.Transaction) (verticalslice.CommandReplayArtifact, error) {
+	_, firstArtifact, err := h.service.AppendTransactionWithReplay(h.ctx, rc, h.subjectID, key, path, request, func(tx verticalslice.Transaction) (verticalslice.CommandReplayArtifact, error) {
 		return m11Artifact(rc, tx)
 	})
 	if err != nil {
