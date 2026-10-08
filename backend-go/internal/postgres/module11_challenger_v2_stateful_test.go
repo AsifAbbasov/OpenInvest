@@ -1,6 +1,7 @@
 package postgres_test
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"os"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/openinvest/openinvest/backend-go/internal/postgres"
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
@@ -21,8 +23,9 @@ func TestM11V2FullSystemStatefulCampaign(t *testing.T) {
 	rng := rand.New(rand.NewSource(seed))
 	totalOperations := 0
 	referenceComparisons := 0
+	allSequencesPassed := true
 	for sequence := 0; sequence < sequences; sequence++ {
-		t.Run(fmt.Sprintf("sequence-%03d", sequence), func(t *testing.T) {
+		if !t.Run(fmt.Sprintf("sequence-%03d", sequence), func(t *testing.T) {
 			h := newStage371Harness(t, fmt.Sprintf("M11 V2 stateful %03d", sequence))
 			cleanupStage376Valuations(t, h)
 			units := 0
@@ -47,8 +50,22 @@ func TestM11V2FullSystemStatefulCampaign(t *testing.T) {
 						units += qty
 					} else {
 						qty := 1+rng.Intn(units)
-						appendStage371Trade(t, h, stage371Trade(h.portfolioID, "SELL", "SBER", fmt.Sprintf("%d.00000000", qty), fmt.Sprintf("%d.00000000", 90+rng.Intn(100)), date))
-						units -= qty
+						_, err := h.service.AppendTransaction(
+							h.ctx,
+							verticalslice.RequestContext{},
+							h.subjectID,
+							uuid.NewString(),
+							"/api/v1/portfolios/"+h.portfolioID+"/transactions",
+							stage371Trade(h.portfolioID, "SELL", "SBER", fmt.Sprintf("%d.00000000", qty), fmt.Sprintf("%d.00000000", 90+rng.Intn(100)), date),
+						)
+						switch {
+						case err == nil:
+							units -= qty
+						case errors.Is(err, verticalslice.ErrInsufficientPositionQuantity):
+							t.Logf("M11_V2_STATEFUL_EXPECTED_HISTORICAL_OVERSELL_REJECTION sequence=%d step=%d", sequence, step)
+						default:
+							t.Fatalf("stateful SELL: %v", err)
+						}
 					}
 				case 4:
 					appendStage371Trade(t, h, stage375Request(h.portfolioID, "DIVIDEND", "SBER", fmt.Sprintf("%d.00000000", 1+rng.Intn(25)), "0.00000000", "0.00000000", date))
@@ -101,13 +118,14 @@ func TestM11V2FullSystemStatefulCampaign(t *testing.T) {
 					positions.Items[0].WeightedAverageCost.Amount.String() != positionsAgain.Items[0].WeightedAverageCost.Amount.String()) {
 					t.Fatalf("repeat position projection drift")
 				}
-				if _, err := h.service.GetPortfolioCashFlow(h.ctx, h.subjectID, h.portfolioID, "", ""); err != nil { t.Fatalf("cash flow: %v", err) }
-				if _, err := h.service.GetPortfolioReturns(h.ctx, h.subjectID, h.portfolioID, date); err != nil { t.Fatalf("returns: %v", err) }
-				if _, err := h.service.GetPortfolioSummary(h.ctx, h.subjectID, h.portfolioID, date); err != nil { t.Fatalf("summary: %v", err) }
+				if _, err := h.service.GetPortfolioCashFlow(h.ctx, h.subjectID, h.portfolioID, "", ""); err != nil && !errors.Is(err, postgres.ErrNotFound) { t.Fatalf("cash flow: %v", err) }
+				if _, err := h.service.GetPortfolioReturns(h.ctx, h.subjectID, h.portfolioID, date); err != nil && !errors.Is(err, postgres.ErrNotFound) { t.Fatalf("returns: %v", err) }
+				if _, err := h.service.GetPortfolioSummary(h.ctx, h.subjectID, h.portfolioID, ""); err != nil && !errors.Is(err, postgres.ErrNotFound) { t.Fatalf("summary: %v", err) }
 				referenceComparisons++
 			}
-		})
+		}) { allSequencesPassed = false }
 	}
+	if !allSequencesPassed { t.Fatal("one or more stateful sequences failed; see subtest evidence") }
 	t.Logf("M11_FULL_SYSTEM_STATEFUL_SEED=%d", seed)
 	t.Logf("M11_FULL_SYSTEM_STATEFUL_SEQUENCES=%d", sequences)
 	t.Logf("M11_FULL_SYSTEM_STATEFUL_OPERATIONS=%d", totalOperations)

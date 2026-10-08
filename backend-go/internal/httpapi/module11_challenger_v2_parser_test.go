@@ -48,18 +48,18 @@ func TestM11V2HTTPParserRoutingHostileMatrix(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			store := &stage329Store{}
+			store := &stage374HTTPStore{}
 			app := NewDevelopment(verticalslice.NewService(store, fixedHTTPClock{}))
 			req := httptest.NewRequest(http.MethodPost, tc.path, bytes.NewReader(tc.body))
 			if tc.content != "" { req.Header.Set("Content-Type", tc.content) }
 			switch tc.headerMode {
 			case "mixed":
-				req.Header.Set("iDeMpOtEnCy-KeY", "m11-v2-mixed-key")
+				req.Header.Set("iDeMpOtEnCy-KeY", "m11-v2-mixed-key-0001")
 			case "duplicate":
-				req.Header.Add("Idempotency-Key", "m11-v2-dup-key-a")
-				req.Header.Add("Idempotency-Key", "m11-v2-dup-key-b")
+				req.Header.Add("Idempotency-Key", "m11-v2-duplicate-key-a-0001")
+				req.Header.Add("Idempotency-Key", "m11-v2-duplicate-key-b-0001")
 			default:
-				req.Header.Set("Idempotency-Key", "m11-v2-"+strings.ReplaceAll(tc.name, " ", "-"))
+				req.Header.Set("Idempotency-Key", "m11-v2-parser-"+strings.ReplaceAll(tc.name, " ", "-")+"-0001")
 			}
 			resp, err := app.Test(req)
 			if err != nil { t.Fatal(err) }

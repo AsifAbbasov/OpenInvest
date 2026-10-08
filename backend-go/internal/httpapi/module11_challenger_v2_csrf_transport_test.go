@@ -8,6 +8,23 @@ import (
 	"github.com/openinvest/openinvest/backend-go/internal/auth"
 )
 
+
+func m11V2ReadRefreshCSRF(t *testing.T, response *http.Response) string {
+	t.Helper()
+	var payload struct {
+		Data struct {
+			CSRFToken string `json:"csrfToken"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(response.Body).Decode(&payload); err != nil {
+		t.Fatalf("decode refresh response: %v", err)
+	}
+	if payload.Data.CSRFToken == "" {
+		t.Fatal("missing refresh csrf token")
+	}
+	return payload.Data.CSRFToken
+}
+
 func TestM11V2CSRFStaleCombinationMatrix(t *testing.T) {
 	for _, mode := range []string{"old_cookie_new_csrf", "new_cookie_old_csrf"} {
 		t.Run(mode, func(t *testing.T) {
@@ -24,7 +41,7 @@ func TestM11V2CSRFStaleCombinationMatrix(t *testing.T) {
 
 			rotated := authRequest(t, app, http.MethodPost, "/api/v1/auth/refresh", "", oldCookie.Value, oldCSRF)
 			newCookie := requireCookie(t, rotated, auth.RefreshCookieName)
-			newCSRF := readCSRFToken(t, rotated)
+			newCSRF := m11V2ReadRefreshCSRF(t, rotated)
 			rotated.Body.Close()
 
 			cookie, csrf := oldCookie.Value, newCSRF

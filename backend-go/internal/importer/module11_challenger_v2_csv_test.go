@@ -27,7 +27,7 @@ func TestM11V2CSVAdversarialCampaign(t *testing.T) {
 		{"malformed width", header+"BUY,SBER,1.00000000\n", true},
 		{"duplicate header", "transaction_type,ticker,ticker,quantity,unit_price,gross_amount,commission,tax,trade_date,settlement_date,currency,broker_operation_id,note\nBUY,SBER,SBER,1.00000000,100.00000000,100.00000000,0.00000000,0.00000000,2026-01-01,,RUB,h-1,note\n", true},
 		{"unknown header", strings.Replace(header, "note", "unknown_column", 1)+"DEPOSIT,,,,10.00000000,0.00000000,0.00000000,2026-01-01,,RUB,u-1,note\n", true},
-		{"invalid decimal", header+"DEPOSIT,,,,1e100,0.00000000,0.00000000,2026-01-01,,RUB,bad-dec-1,note\n", true},
+		{"invalid decimal", header+"DEPOSIT,,,,1e100,0.00000000,0.00000000,2026-01-01,,RUB,bad-dec-1,note\n", false},
 	}
 	accepted, rejected := 0, 0
 	for _, tc := range cases {
@@ -52,6 +52,9 @@ func TestM11V2CSVAdversarialCampaign(t *testing.T) {
 				t.Fatalf("case %s unexpectedly accepted", tc.name)
 			}
 			accepted++
+			if tc.name == "invalid decimal" && (len(review.Rows) != 1 || review.Rows[0].Status == ReviewStatusAppendable) {
+				t.Fatalf("invalid Decimal row unexpectedly appendable: %+v", review.Rows)
+			}
 			first, err := ReviewSemanticDigest(review)
 			if err != nil { t.Fatal(err) }
 			second, err := ReviewSemanticDigest(review)
