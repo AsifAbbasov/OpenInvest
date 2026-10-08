@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-CHG-001 |
-| Version | 1.2.4 |
+| Version | 1.2.5 |
 | Status | Active |
 | Supersedes | None |
 | Dependencies | `SOURCE_OF_TRUTH.md` |
@@ -13,6 +13,15 @@
 > This file records what changed over time; historical entries remain evidence of what was true when recorded.
 > It does not define current runtime truth, future sequencing, executable HTTP authority, provider/source-use rights, or architectural decision authority.
 > Use [`SOURCE_OF_TRUTH.md`](SOURCE_OF_TRUTH.md), [`ROADMAP.md`](ROADMAP.md), [`../openapi/openapi.yaml`](../openapi/openapi.yaml), [`registries/DATA_SOURCE_REGISTRY.md`](registries/DATA_SOURCE_REGISTRY.md), and accepted [`ADR/`](ADR/) for those respective roles.
+
+## 2026-10-08 — Module #10 provider resilience audit formally closed
+
+- PR #236 remediation merged at `a602cc39b4c5e916838b6900a1256183d038adef`; repository-side M10-P2-01 is remediated.
+- PR #237 merged the Next.js 16.3.8 security update at `d19c089ba107c3b6e5e514cc2f98ee3287744874`; `golang.org/x/text` remains at v0.41.0.
+- Exact protected `develop` post-merge CI run `37771374832` completed SUCCESS with pnpm/Python audits clean, govulncheck reporting 0 reachable vulnerabilities, and Go race PASS.
+- PR #238 documentation closure merged at `a0ebf29b38b4c3dcd1926c439f7c0193207245a5`.
+- M10-P3-01 remains hardening-only/non-blocking; external/shared provider-budget, multi-instance chaos, and real-socket resource verification remain explicit Module #12 residuals.
+- Repository-side controls do not prove horizontally shared production provider-budget enforcement.
 
 ## 2026-09-10 — Historical forensic reconciliation canonicalized after protected merge
 
