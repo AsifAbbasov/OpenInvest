@@ -49,7 +49,7 @@ actions and remain subject to the bounded admission policy.
 ```
 
 The external edge acknowledgement remains required for the wider deployment-global controls above,
-but it is not enforcement for Corporate Actions. Corporate Actions endpoint admission is additionally
+but it is not enforcement for Corporate Actions and does not prove the external edge is actually deployed. Corporate Actions endpoint admission is additionally
 owned by the shared Redis security-budget authority: <=12/min per canonical client and <=48/min
 globally across replicas. Redis admission is atomic and TTL-bounded. A Redis outage fails closed for
 that provider-backed path instead of falling back to process-local counters.
