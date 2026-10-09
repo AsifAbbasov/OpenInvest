@@ -83,7 +83,20 @@ func newRuntime() (runtime *applicationRuntime, err error) {
 		return nil, fmt.Errorf("configure HTTP network boundary: %w", err)
 	}
 
-	corporateActionProvider, err := configuredTInvestCorporateActionProvider()
+	sharedBudget, err := configuredSharedBudgetAuthority()
+	if err != nil {
+		return nil, fmt.Errorf("configure shared budget backend: %w", err)
+	}
+	defer func() {
+		if err == nil {
+			return
+		}
+		if closeErr := closeSharedBudget(sharedBudget); closeErr != nil {
+			err = errors.Join(err, fmt.Errorf("close shared budget after initialization failure: %w", closeErr))
+		}
+	}()
+
+	corporateActionProvider, err := configuredTInvestCorporateActionProvider(sharedBudget)
 	if err != nil {
 		return nil, fmt.Errorf("configure corporate action provider: %w", err)
 	}
@@ -93,14 +106,18 @@ func newRuntime() (runtime *applicationRuntime, err error) {
 	if databaseURL == "" {
 		store := unavailableStore{}
 		return &applicationRuntime{
-			app: httpapi.NewDevelopmentReplayRuntime(
+			app: httpapi.NewDevelopmentReplayRuntimeWithSharedBudget(
 				verticalslice.NewService(store, verticalslice.SystemClock{}),
 				corporateActionProvider,
+				sharedBudget,
 				httpNetworkConfig,
 				requestLifecycle,
 			),
 			requests:      requestLifecycle,
 			listenAddress: listenAddress,
+			close: func() error {
+				return closeSharedBudget(sharedBudget)
+			},
 		}, nil
 	}
 
@@ -143,11 +160,12 @@ func newRuntime() (runtime *applicationRuntime, err error) {
 		return nil, fmt.Errorf("initialize auth service: %w", err)
 	}
 
-	app, err := httpapi.NewReplayRuntime(
+	app, err := httpapi.NewReplayRuntimeWithSharedBudget(
 		service,
 		authService,
 		configuredImportReviewTokenSecret(),
 		corporateActionProvider,
+		sharedBudget,
 		httpNetworkConfig,
 		requestLifecycle,
 	)
@@ -159,7 +177,9 @@ func newRuntime() (runtime *applicationRuntime, err error) {
 		app:           app,
 		requests:      requestLifecycle,
 		listenAddress: listenAddress,
-		close:         store.Close,
+		close: func() error {
+			return closeRuntimeDependencies(store.Close, sharedBudget)
+		},
 	}, nil
 }
 
