@@ -13,6 +13,7 @@ jobs:
   preflight:
     name: M12 preflight and scope
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Check out exact audit head
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -27,7 +28,7 @@ jobs:
           echo "M12_AUDIT_HEAD_SHA=$(git rev-parse HEAD)"
           echo "M12_AUDIT_HEAD_TREE=$(git rev-parse HEAD^{tree})"
           git diff --name-only "$base"...HEAD | tee /tmp/m12-paths
-          if grep -Ev '^(.github/workflows/module12-final-production-audit.yml|backend-go/internal/httpapi/module12_production_boundary_test.go|backend-go/internal/provider/tinvest/module12_production_socket_test.go|backend-go/cmd/api/module12_production_topology_test.go|docs/audit/FINAL_PRODUCTION_FRONTEND_INFRA_HARDENING_ADVERSARIAL_AUDIT_V1.md)$' /tmp/m12-paths | grep -q .; then
+          if grep -Ev '^(\.github/workflows/module12-final-production-audit\.yml|backend-go/internal/httpapi/module12_production_boundary_test\.go|backend-go/internal/provider/tinvest/module12_production_socket_test\.go|backend-go/internal/postgres/module12_pool_exhaustion_integration_test\.go|backend-go/cmd/api/module12_production_topology_test\.go|docs/audit/FINAL_PRODUCTION_FRONTEND_INFRA_HARDENING_ADVERSARIAL_AUDIT_V1\.md)$' /tmp/m12-paths | grep -q .; then
             echo "unexpected non-audit path changed"
             exit 1
           fi
@@ -35,6 +36,7 @@ jobs:
   backend-boundary:
     name: M12 real HTTP and replica boundary
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: backend-go
@@ -52,6 +54,7 @@ jobs:
   provider-sockets:
     name: M12 provider real socket audit
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: backend-go
@@ -64,11 +67,12 @@ jobs:
           go-version-file: backend-go/go.mod
           cache-dependency-path: backend-go/go.sum
       - name: Run Module 12 provider audit
-        run: go test -race -v ./internal/provider/tinvest -run '^TestM12' -count=1
+        run: go test -race -v ./internal/provider/tinvest -run '^TestM12' -count=1 -timeout=8m
 
   startup-topology:
     name: M12 deployment ownership gates
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     defaults:
       run:
         working-directory: backend-go
@@ -86,6 +90,7 @@ jobs:
   postgres-pool:
     name: M12 PostgreSQL pool exhaustion and recovery
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     services:
       postgres:
         image: postgres:18
@@ -114,103 +119,12 @@ jobs:
       - name: Run real PostgreSQL pool exhaustion/recovery audit
         env:
           OPENINVEST_M12_POSTGRES_URL: postgres://openinvest:openinvest-m12@127.0.0.1:5432/openinvest_m12?sslmode=disable
-        run: go test -race -v ./internal/postgres -run '^TestM12PostgresPoolExhaustionAndRecovery    name: M12 production browser runtime
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend-next
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: "22.22.2"
-      - name: Enable pinned pnpm
-        run: corepack enable && corepack prepare pnpm@11.8.0 --activate
-      - name: Install frozen dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Build production frontend with secret sentinels
-        env:
-          NEXT_TELEMETRY_DISABLED: "1"
-          NEXT_PUBLIC_OPENINVEST_API_BASE_URL: "https://api.example.test"
-          OPENINVEST_TINVEST_READONLY_TOKEN: "M12_PROVIDER_SECRET_SENTINEL"
-          OPENINVEST_ACCESS_TOKEN_SECRET: "M12_ACCESS_SECRET_SENTINEL_0123456789"
-          OPENINVEST_IMPORT_REVIEW_TOKEN_SECRET: "M12_IMPORT_SECRET_SENTINEL_0123456789"
-        run: pnpm build
-      - name: Inspect browser artifacts for secrets and source maps
-        run: |
-          set -euo pipefail
-          maps="$(find .next/static -type f -name '*.map' | wc -l | tr -d ' ')"
-          echo "M12_FRONTEND_STATIC_SOURCE_MAP_COUNT=$maps"
-          if grep -R -F -e 'M12_PROVIDER_SECRET_SENTINEL' -e 'M12_ACCESS_SECRET_SENTINEL_0123456789' -e 'M12_IMPORT_SECRET_SENTINEL_0123456789' .next/static; then
-            echo "M12_FRONTEND_BUNDLE_SECRET_LEAK=YES"
-            exit 1
-          fi
-          echo "M12_FRONTEND_BUNDLE_SECRET_LEAK=NO"
-          storage_hits="$(grep -R -nE 'localStorage|sessionStorage|document\.cookie' src || true)"
-          if [ -n "$storage_hits" ]; then
-            echo "M12_FRONTEND_JS_STORAGE_REFERENCES=YES"
-            printf '%s\n' "$storage_hits"
-          else
-            echo "M12_FRONTEND_JS_STORAGE_REFERENCES=NO"
-          fi
-      - name: Start production Next runtime and inspect emitted headers
-        env:
-          NEXT_TELEMETRY_DISABLED: "1"
-          NEXT_PUBLIC_OPENINVEST_API_BASE_URL: "https://api.example.test"
-        run: |
-          set -euo pipefail
-          pnpm start --hostname 127.0.0.1 --port 3100 >/tmp/m12-next.log 2>&1 &
-          pid=$!
-          trap 'kill "$pid" 2>/dev/null || true' EXIT
-          for i in $(seq 1 60); do
-            if curl -fsS -D /tmp/m12-headers -o /tmp/m12-body http://127.0.0.1:3100/; then break; fi
-            sleep 0.5
-          done
-          tr -d '\r' </tmp/m12-headers | tee /tmp/m12-headers-normalized
-          header() { awk -v key="$1" 'BEGIN{IGNORECASE=1} index($0,key":")==1{sub(/^[^:]+:[[:space:]]*/,""); print; exit}' /tmp/m12-headers-normalized; }
-          echo "M12_BROWSER_CSP=$(header Content-Security-Policy || true)"
-          echo "M12_BROWSER_HSTS=$(header Strict-Transport-Security || true)"
-          echo "M12_BROWSER_X_CONTENT_TYPE_OPTIONS=$(header X-Content-Type-Options || true)"
-          echo "M12_BROWSER_X_FRAME_OPTIONS=$(header X-Frame-Options || true)"
-          echo "M12_BROWSER_REFERRER_POLICY=$(header Referrer-Policy || true)"
-          echo "M12_BROWSER_PERMISSIONS_POLICY=$(header Permissions-Policy || true)"
-          echo "M12_BROWSER_CACHE_CONTROL=$(header Cache-Control || true)"
-          grep -qi "^Content-Security-Policy: frame-ancestors 'none'" /tmp/m12-headers-normalized
-          grep -qi '^X-Frame-Options: DENY' /tmp/m12-headers-normalized
-          if grep -F -e 'M12_PROVIDER_SECRET_SENTINEL' -e 'M12_ACCESS_SECRET_SENTINEL' -e 'M12_IMPORT_SECRET_SENTINEL' /tmp/m12-body; then
-            echo "M12_FRONTEND_RUNTIME_SECRET_LEAK=YES"
-            exit 1
-          fi
-          echo "M12_FRONTEND_RUNTIME_SECRET_LEAK=NO"
-          echo "M12_HTTP_TO_HTTPS_REDIRECT=NOT_REPOSITORY_OWNED_LOCAL_NEXT_RUNTIME"
-
-  infrastructure:
-    name: M12 repository infrastructure boundary
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - name: Validate and classify repository deployment artifacts
-        env:
-          POSTGRES_PASSWORD: module12-compose-only
-        run: |
-          set -euo pipefail
-          docker compose config --quiet
-          echo "M12_COMPOSE_SERVICES=$(docker compose config --services | paste -sd, -)"
-          echo "M12_DOCKERFILES=$(find . -type f -name 'Dockerfile*' -print | paste -sd, -)"
-          docker compose config | sed -n '/ports:/,/restart:/p'
-          echo "M12_APP_CONTAINER_RUNTIME_MANIFEST_PRESENT=NO"
-          echo "M12_EXTERNAL_EDGE_CDN_LB_MANIFEST_PRESENT=NO"
-          echo "M12_TLS_HSTS_EDGE_CONFIG_PRESENT=NO"
-          echo "M12_COMPOSE_DATABASE_AND_REDIS_BINDING=LOOPBACK_ONLY"
- -count=1
+        run: go test -race -v ./internal/postgres -run '^TestM12PostgresPoolExhaustionAndRecovery$' -count=1
 
   frontend-production:
     name: M12 production browser runtime
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: frontend-next
@@ -243,13 +157,13 @@ jobs:
             exit 1
           fi
           echo "M12_FRONTEND_BUNDLE_SECRET_LEAK=NO"
-          storage_hits="$(grep -R -nE 'localStorage|sessionStorage|document\.cookie' src || true)"
-          if [ -n "$storage_hits" ]; then
-            echo "M12_FRONTEND_JS_STORAGE_REFERENCES=YES"
-            printf '%s\n' "$storage_hits"
-          else
-            echo "M12_FRONTEND_JS_STORAGE_REFERENCES=NO"
+          auth_storage_hits="$(grep -R -nE '(localStorage|sessionStorage|document\.cookie).*(accessToken|refreshToken|csrfToken)|(accessToken|refreshToken|csrfToken).*(localStorage|sessionStorage|document\.cookie)' src || true)"
+          if [ -n "$auth_storage_hits" ]; then
+            echo "M12_FRONTEND_AUTH_TOKEN_STORAGE_REFERENCES=YES"
+            printf '%s\n' "$auth_storage_hits"
+            exit 1
           fi
+          echo "M12_FRONTEND_AUTH_TOKEN_STORAGE_REFERENCES=NO"
       - name: Start production Next runtime and inspect emitted headers
         env:
           NEXT_TELEMETRY_DISABLED: "1"
@@ -284,6 +198,7 @@ jobs:
   infrastructure:
     name: M12 repository infrastructure boundary
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
