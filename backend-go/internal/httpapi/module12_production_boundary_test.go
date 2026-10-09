@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -356,4 +357,59 @@ func TestM12RealSocketDisconnectAndSlowClientBehavior(t *testing.T) {
 	time.Sleep(250 * time.Millisecond)
 	t.Logf("M12_SOCKET_RESOURCES goroutines_baseline=%d goroutines_peak=%d goroutines_recovery=%d fd_baseline=%d fd_peak=%d fd_recovery=%d",
 		baselineG, peakG, runtime.NumGoroutine(), baselineFD, peakFD, module12FDCount())
+}
+
+func TestM12ProcessRestartResetsProcessLocalGlobalBudget(t *testing.T) {
+	trusted, err := NewHTTPNetworkConfig(true, []string{"127.0.0.1/32"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	first := module12NewReplica(t, trusted)
+	for i := 0; i < defaultCorporateActionProjectionGlobalLimit; i++ {
+		clientIP := fmt.Sprintf("198.18.0.%d", i+1)
+		if status := module12ProjectionStatus(t, first.baseURL, clientIP); status != http.StatusOK {
+			t.Fatalf("initial process request %d status=%d", i+1, status)
+		}
+	}
+	if status := module12ProjectionStatus(t, first.baseURL, "198.18.1.1"); status != http.StatusTooManyRequests {
+		t.Fatalf("process-global ceiling not reached before restart: status=%d", status)
+	}
+
+	restarted := module12NewReplica(t, trusted)
+	status := module12ProjectionStatus(t, restarted.baseURL, "198.18.1.1")
+	if status != http.StatusOK {
+		t.Fatalf("fresh process did not reset process-local limiter state: status=%d", status)
+	}
+	t.Logf("M12_PROCESS_RESTART_RESETS_LOCAL_BUDGET=YES first_process_calls=%d restarted_process_first_status=%d",
+		first.provider.calls.Load(), status)
+}
+
+func TestM12HostAndForwardedHostAreNotReflectedByHealthEndpoint(t *testing.T) {
+	replica := module12NewReplica(t, HTTPNetworkConfig{})
+	request, err := http.NewRequest(http.MethodGet, replica.baseURL+"/api/v1/health", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request.Host = "attacker.example"
+	request.Header.Set("X-Forwarded-Host", "evil.example")
+	request.Header.Set("Forwarded", "host=evil.example;proto=https")
+	response, err := (&http.Client{Timeout: 2 * time.Second}).Do(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("health status=%d", response.StatusCode)
+	}
+	if location := response.Header.Get("Location"); location != "" {
+		t.Fatalf("host header influenced redirect location: %q", location)
+	}
+	for name, values := range response.Header {
+		for _, value := range values {
+			if strings.Contains(value, "attacker.example") || strings.Contains(value, "evil.example") {
+				t.Fatalf("host material reflected in response header %s=%q", name, value)
+			}
+		}
+	}
+	t.Log("M12_HOST_HEADER_ARBITRARY_ACCEPTED=YES RESPONSE_REFLECTION=NO REDIRECT_INFLUENCE=NO EDGE_HOST_ALLOWLIST=NOT_VERIFIED")
 }
