@@ -70,8 +70,11 @@ That acknowledgement is not enforcement. Outside explicit development/local mode
 also requires a reachable `OPENINVEST_SHARED_BUDGET_REDIS_URL`. The shared Redis authority owns the
 aggregate <=60 provider requests/minute budget across replicas and shares conservative
 `X-RateLimit-Remaining` / `X-RateLimit-Reset` observations. The local provider concurrency bound of
-four remains process-local resource defense. Caller cancellation does not release that local slot until
-the bounded transport safety interval has elapsed, preventing cancellation-driven concurrency growth.
+four remains process-local resource defense. Caller cancellation returns promptly, while the operation
+retains its slot until the locally owned HTTP operation and response-body closure complete. The local
+five-second deadline cancels the transport; elapsed time alone does not release the slot. This bounds
+local operation ownership, not arbitrary remote server-side computation after a connection closes.
+External-provider server-side termination remains NOT_VERIFIED.
 
 Development/local mode does not require these deployment ownership acknowledgements because it is
 not a horizontally scaled production security boundary. Production fail-closed configuration tests
