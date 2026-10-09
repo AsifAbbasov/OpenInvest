@@ -99,6 +99,7 @@ jobs:
           go test -v ./internal/provider/tinvest -run TestSharedProviderBudgetBackendFailureFailsClosed -count=1
           go test -v ./internal/provider/tinvest -run TestSharedProviderAllowanceObservationIsGlobal -count=1
           go test -v ./internal/provider/tinvest -run TestCancelledProviderWorkRemainsBoundedByConcurrency -count=1
+          go test -v ./internal/provider/tinvest -run TestRawDownstreamDisconnectRetainsLocalOperationOwnership -count=1
           go test -v ./internal/provider/tinvest -run TestProviderPartialResetTimeoutStillFailClosedAndRecover -count=1
 
       - name: Configure OI-NEW-04 active R2 runtime role
@@ -528,7 +529,7 @@ jobs:
       - name: Install pinned govulncheck
         run: go install golang.org/x/vuln/cmd/govulncheck@v1.7.0
       - name: Scan reachable Go vulnerabilities
-        run: $(go env GOPATH)/bin/govulncheck ./...
+        run: $(go env GOPATH)/bin/govulncheck -show verbose ./...
 
   dependency-security:
     name: Dependency security scan

@@ -37,7 +37,6 @@ const (
 	cancelledDividendType   = "Cancelled"
 
 	requestTimeout               = 5 * time.Second
-	cancelledWorkSafetyHold      = requestTimeout + 500*time.Millisecond
 	maxResponseBodyBytes   int64 = 256 * 1024
 	maxConcurrency               = 4
 	maxRequestsPerMinute         = 60
@@ -72,13 +71,13 @@ var canonicalInstrumentMappings = map[string]instrumentMapping{
 }
 
 type Provider struct {
-	client      *http.Client
-	clock       verticalslice.Clock
-	baseURL     *url.URL
-	token       string
-	semaphore   chan struct{}
-	requestGate   *requestBudget
-	sharedBudget  sharedbudget.Authority
+	client       *http.Client
+	clock        verticalslice.Clock
+	baseURL      *url.URL
+	token        string
+	semaphore    chan struct{}
+	requestGate  *requestBudget
+	sharedBudget sharedbudget.Authority
 }
 
 var _ verticalslice.CorporateActionProvider = (*Provider)(nil)
@@ -133,11 +132,11 @@ func newCorporateActionProviderWithSharedBudget(
 	}
 
 	return &Provider{
-		client:      &clientCopy,
-		clock:       clock,
-		baseURL:     parsedBaseURL,
-		token:       readOnlyToken,
-		semaphore:   make(chan struct{}, maxConcurrency),
+		client:       &clientCopy,
+		clock:        clock,
+		baseURL:      parsedBaseURL,
+		token:        readOnlyToken,
+		semaphore:    make(chan struct{}, maxConcurrency),
 		requestGate:  newRequestBudget(maxRequestsPerMinute, time.Minute, time.Now),
 		sharedBudget: budget,
 	}, nil
@@ -402,13 +401,36 @@ func (provider *Provider) post(ctx context.Context, method string, payload corpo
 	if err := provider.acquire(ctx); err != nil {
 		return nil, err
 	}
-	releaseImmediately := true
-	defer func() {
-		if releaseImmediately {
-			<-provider.semaphore
-		}
+	// The operation owns its slot until Do, body processing, and Close finish.
+	// Returning to a cancelled caller does not transfer or release ownership.
+	type result struct {
+		body []byte
+		err  error
+	}
+	operationContext, cancel := context.WithTimeout(ctx, requestTimeout)
+	completed := make(chan result, 1)
+	go func() {
+		defer cancel()
+		body, err := provider.postOwned(operationContext, method, payload)
+		<-provider.semaphore
+		completed <- result{body: body, err: err}
 	}()
+	select {
+	case <-ctx.Done():
+		cancel()
+		return nil, ctx.Err()
+	case outcome := <-completed:
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		if errors.Is(outcome.err, context.DeadlineExceeded) || errors.Is(outcome.err, context.Canceled) {
+			return nil, providerUnavailableError("provider transport reached local deadline")
+		}
+		return outcome.body, outcome.err
+	}
+}
 
+func (provider *Provider) postOwned(ctx context.Context, method string, payload corporateActionRequest) ([]byte, error) {
 	if provider.sharedBudget != nil {
 		allowed, err := provider.sharedBudget.AdmitProvider(ctx, maxRequestsPerMinute, time.Minute)
 		if err != nil {
@@ -434,12 +456,9 @@ func (provider *Provider) post(ctx context.Context, method string, payload corpo
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Authorization", "Bearer "+provider.token)
 
-	networkStarted := time.Now()
 	response, err := provider.client.Do(request)
 	if err != nil {
 		if contextErr := ctx.Err(); contextErr != nil {
-			releaseImmediately = false
-			provider.releaseCancelledSlotAtSafeBoundary(networkStarted)
 			return nil, contextErr
 		}
 		return nil, providerUnavailableError("provider request failed")
@@ -447,7 +466,7 @@ func (provider *Provider) post(ctx context.Context, method string, payload corpo
 	defer response.Body.Close()
 	if provider.sharedBudget != nil {
 		if remaining, resetAfter, ok := providerAllowance(response.Header); ok {
-			if err := provider.sharedBudget.ObserveProviderAllowance(context.Background(), remaining, resetAfter); err != nil {
+			if err := provider.sharedBudget.ObserveProviderAllowance(ctx, remaining, resetAfter); err != nil {
 				return nil, providerUnavailableError("shared provider allowance state unavailable")
 			}
 		}
@@ -469,8 +488,6 @@ func (provider *Provider) post(ctx context.Context, method string, payload corpo
 	body, err := io.ReadAll(io.LimitReader(response.Body, maxResponseBodyBytes+1))
 	if err != nil {
 		if contextErr := ctx.Err(); contextErr != nil {
-			releaseImmediately = false
-			provider.releaseCancelledSlotAtSafeBoundary(networkStarted)
 			return nil, contextErr
 		}
 		return nil, providerUnavailableError("provider response read failed")
@@ -479,17 +496,6 @@ func (provider *Provider) post(ctx context.Context, method string, payload corpo
 		return nil, providerDataError("provider response body exceeds 256 KiB")
 	}
 	return body, nil
-}
-
-func (provider *Provider) releaseCancelledSlotAtSafeBoundary(networkStarted time.Time) {
-	remaining := time.Until(networkStarted.Add(cancelledWorkSafetyHold))
-	if remaining <= 0 {
-		<-provider.semaphore
-		return
-	}
-	time.AfterFunc(remaining, func() {
-		<-provider.semaphore
-	})
 }
 
 func (provider *Provider) acquire(ctx context.Context) error {

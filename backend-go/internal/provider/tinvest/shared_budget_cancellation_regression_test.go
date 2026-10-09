@@ -192,80 +192,72 @@ func TestSharedProviderAllowanceObservationIsGlobal(t *testing.T) {
 	t.Log("M12_SHARED_PROVIDER_REMOTE_ALLOWANCE=GLOBAL_CONSERVATIVE")
 }
 
-type cancellationRegressionState struct {
-	active     atomic.Int32
-	maximum    atomic.Int32
-	cancelSeen atomic.Int32
-	block      atomic.Bool
-	entered    chan struct{}
-}
-
-func (state *cancellationRegressionState) updateMaximum(current int32) {
-	for {
-		seen := state.maximum.Load()
-		if current <= seen || state.maximum.CompareAndSwap(seen, current) {
-			return
-		}
-	}
-}
-
-func (state *cancellationRegressionState) handler(w http.ResponseWriter, r *http.Request) {
-	current := state.active.Add(1)
-	state.updateMaximum(current)
-	defer state.active.Add(-1)
-	select {
-	case state.entered <- struct{}{}:
-	default:
-	}
-	if state.block.Load() {
-		select {
-		case <-r.Context().Done():
-			state.cancelSeen.Add(1)
-		case <-time.After(requestTimeout + 250*time.Millisecond):
-		}
-	}
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write([]byte(`{"dividends":[]}`))
-}
-
+// These checks exercise repository-owned operation lifetime, not termination
+// of computations performed by an external server after a connection closes.
 func TestCancelledProviderWorkRemainsBoundedByConcurrency(t *testing.T) {
-	state := &cancellationRegressionState{entered: make(chan struct{}, 32)}
-	state.block.Store(true)
-	server := httptest.NewServer(http.HandlerFunc(state.handler))
-	defer server.Close()
-	provider, err := newCorporateActionProvider(&http.Client{}, fixedClock{now: testNow}, testToken, server.URL+"/rest")
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	baselineG := runtime.NumGoroutine()
 	baselineFD := providerRegressionFDCount()
-	var activeAfter750 int32
-	var localInUseAfterCancel int
-	peakG := baselineG
-	peakFD := baselineFD
-	const rounds = 5
-	const concurrent = 4
-	totalCancellations := 0
-
+	peakG, peakFD := baselineG, baselineFD
+	maximumSlots := 0
+	const rounds = 10
 	for round := 0; round < rounds; round++ {
-		type result struct{ err error }
-		results := make(chan result, concurrent)
-		cancels := make([]context.CancelFunc, 0, concurrent)
-		for i := 0; i < concurrent; i++ {
-			ctx, cancel := context.WithCancel(context.Background())
-			cancels = append(cancels, cancel)
-			go func(ctx context.Context) {
-				_, callErr := provider.CorporateActions(ctx, sharedProviderQuery())
-				results <- result{err: callErr}
-			}(ctx)
+		entered := make(chan struct{}, maxConcurrency)
+		release := make(chan struct{})
+		var active atomic.Int32
+		transport := operationLifetimeTransport{entered: entered, release: release, active: &active}
+		provider, err := newCorporateActionProvider(&http.Client{Transport: transport}, fixedClock{now: testNow}, testToken, "http://operation.test/rest")
+		if err != nil {
+			t.Fatal(err)
 		}
-		for i := 0; i < concurrent; i++ {
+		results := make(chan error, maxConcurrency)
+		cancels := make([]context.CancelFunc, maxConcurrency)
+		for i := 0; i < maxConcurrency; i++ {
+			ctx, cancel := context.WithCancel(context.Background())
+			cancels[i] = cancel
+			go func() { _, err := provider.CorporateActions(ctx, sharedProviderQuery()); results <- err }()
+		}
+		for i := 0; i < maxConcurrency; i++ {
 			select {
-			case <-state.entered:
+			case <-entered:
 			case <-time.After(2 * time.Second):
-				t.Fatal("provider request did not reach real socket")
+				close(release)
+				t.Fatal("operation did not enter transport")
 			}
+		}
+		for _, cancel := range cancels {
+			cancel()
+		}
+		for i := 0; i < maxConcurrency; i++ {
+			select {
+			case err := <-results:
+				if !errors.Is(err, context.Canceled) {
+					close(release)
+					t.Fatalf("caller cancellation: %v", err)
+				}
+			case <-time.After(time.Second):
+				close(release)
+				t.Fatal("caller cancellation blocked")
+			}
+		}
+		if got := len(provider.semaphore); got != maxConcurrency {
+			close(release)
+			t.Fatalf("slot released before RoundTrip terminal: %d", got)
+		}
+		if round == 0 {
+			time.Sleep(requestTimeout + time.Second)
+			if len(provider.semaphore) != maxConcurrency {
+				close(release)
+				t.Fatal("elapsed timeout released an unterminated local operation")
+			}
+		}
+		maximumSlots = len(provider.semaphore)
+		if active.Load() != maxConcurrency {
+			close(release)
+			t.Fatal("local operation accounting mismatch")
+		}
+		if _, err := provider.CorporateActions(context.Background(), sharedProviderQuery()); !errors.Is(err, verticalslice.ErrCorporateActionsProviderUnavailable) {
+			close(release)
+			t.Fatalf("occupied transport accepted replacement: %v", err)
 		}
 		if got := runtime.NumGoroutine(); got > peakG {
 			peakG = got
@@ -273,61 +265,39 @@ func TestCancelledProviderWorkRemainsBoundedByConcurrency(t *testing.T) {
 		if got := providerRegressionFDCount(); got > peakFD {
 			peakFD = got
 		}
-		for _, cancel := range cancels {
-			cancel()
-			totalCancellations++
-		}
-		for i := 0; i < concurrent; i++ {
-			got := <-results
-			if !errors.Is(got.err, context.Canceled) {
-				t.Fatalf("cancelled provider call returned %v", got.err)
-			}
-		}
-		if inUse := len(provider.semaphore); inUse != maxConcurrency {
-			t.Fatalf("round=%d semaphore released before safe boundary: in_use=%d want=%d", round, inUse, maxConcurrency)
-		}
-		if round == 0 {
-			localInUseAfterCancel = len(provider.semaphore)
-			time.Sleep(750 * time.Millisecond)
-			activeAfter750 = state.active.Load()
-		}
-		deadline := time.Now().Add(cancelledWorkSafetyHold + 2*time.Second)
+		close(release) // Explicit, observed RoundTrip terminal condition.
+		deadline := time.Now().Add(time.Second)
 		for len(provider.semaphore) != 0 && time.Now().Before(deadline) {
-			time.Sleep(20 * time.Millisecond)
+			time.Sleep(time.Millisecond)
 		}
-		if len(provider.semaphore) != 0 {
-			t.Fatalf("round=%d quarantined provider slots did not recover", round)
+		if len(provider.semaphore) != 0 || active.Load() != 0 {
+			t.Fatal("local transport did not recover")
 		}
-		for state.active.Load() != 0 && time.Now().Before(deadline) {
-			time.Sleep(20 * time.Millisecond)
-		}
-		if state.active.Load() != 0 {
-			t.Fatalf("round=%d upstream work did not reach bounded terminal state", round)
-		}
-	}
-	if state.maximum.Load() > maxConcurrency {
-		t.Fatalf("provider max active upstream=%d exceeds configured max=%d", state.maximum.Load(), maxConcurrency)
-	}
-
-	state.block.Store(false)
-	if _, err := provider.CorporateActions(context.Background(), sharedProviderQuery()); err != nil {
-		t.Fatalf("legitimate request after cancellation campaign: %v", err)
 	}
 	runtime.GC()
-	time.Sleep(250 * time.Millisecond)
-	t.Logf("M12_CANCELLATION total=%d upstream_context_cancellations=%d upstream_active_after_750ms=%d provider_max_active_upstream=%d local_concurrency_in_use_after_caller_cancel=%d goroutines_baseline=%d goroutines_peak=%d goroutines_recovery=%d fd_baseline=%d fd_peak=%d fd_recovery=%d subsequent_legitimate_request=PASS",
-		totalCancellations,
-		state.cancelSeen.Load(),
-		activeAfter750,
-		state.maximum.Load(),
-		localInUseAfterCancel,
-		baselineG,
-		peakG,
-		runtime.NumGoroutine(),
-		baselineFD,
-		peakFD,
-		providerRegressionFDCount(),
-	)
+	time.Sleep(100 * time.Millisecond)
+	if got := runtime.NumGoroutine(); got > baselineG+maxConcurrency+4 {
+		t.Fatalf("goroutine recovery grew: baseline=%d recovery=%d", baselineG, got)
+	}
+	if got := providerRegressionFDCount(); baselineFD >= 0 && got > baselineFD+2 {
+		t.Fatalf("FD recovery grew: baseline=%d recovery=%d", baselineFD, got)
+	}
+	t.Logf("TOTAL_CANCELLATIONS=%d MAX_LOCAL_PROVIDER_TRANSPORTS=%d MAX_SEMAPHORE_IN_USE=%d GOROUTINES_BASELINE=%d GOROUTINES_PEAK=%d GOROUTINES_RECOVERY=%d FD_BASELINE=%d FD_PEAK=%d FD_RECOVERY=%d", rounds*maxConcurrency, maxConcurrency, maximumSlots, baselineG, peakG, runtime.NumGoroutine(), baselineFD, peakFD, providerRegressionFDCount())
+}
+
+type operationLifetimeTransport struct {
+	entered chan<- struct{}
+	release <-chan struct{}
+	active  *atomic.Int32
+}
+
+func (transport operationLifetimeTransport) RoundTrip(request *http.Request) (*http.Response, error) {
+	transport.active.Add(1)
+	defer transport.active.Add(-1)
+	transport.entered <- struct{}{}
+	<-request.Context().Done()
+	<-transport.release
+	return nil, request.Context().Err()
 }
 
 func providerRegressionFDCount() int {

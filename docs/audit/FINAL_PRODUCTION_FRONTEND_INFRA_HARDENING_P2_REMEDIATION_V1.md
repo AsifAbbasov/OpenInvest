@@ -34,7 +34,8 @@ Audit PR #244 remains open/draft/unmerged and is not part of this remediation.
 17. `backend-go/internal/provider/tinvest/shared_budget_cancellation_regression_test.go`
 18. `backend-go/internal/sharedbudget/redis.go`
 19. `docs/operations/ABUSE_PROTECTION_DEPLOYMENT.md`
-20. `docs/audit/FINAL_PRODUCTION_FRONTEND_INFRA_HARDENING_P2_REMEDIATION_V1.md`
+20. `backend-go/internal/provider/tinvest/local_transport_socket_test.go`
+21. `docs/audit/FINAL_PRODUCTION_FRONTEND_INFRA_HARDENING_P2_REMEDIATION_V1.md`
 
 No frontend source, business feature, migration, OpenAPI, caching, retry, polling, or Module #12 closure work is included.
 
@@ -157,57 +158,80 @@ Provider quota response observation is shared conservatively:
 M12_SHARED_PROVIDER_REMOTE_ALLOWANCE=GLOBAL_CONSERVATIVE
 ```
 
-## Cancellation/resource design
+## Cancellation/resource design — corrected follow-up
 
-The provider retains local concurrency occupancy when caller cancellation returns before the underlying upstream transport has reached a safe terminal state.
+The earlier fixed 5.5-second quarantine and the associated claim about remote
+server-side concurrency are withdrawn. Elapsed time is not evidence that an
+external server stopped computing.
 
-A cancelled call returns promptly to the caller where possible, but the provider slot is quarantined for a bounded safety hold of `requestTimeout + 500ms` when abandoned upstream work may still exist. This prevents admitting replacement work while the old upstream operation can still consume resources.
+Each admitted operation now owns a semaphore slot in a bounded worker until
+`http.Client.Do`, response-body processing, and response-body closure return.
+Caller cancellation returns promptly and cancels the operation context, without
+releasing its slot. A buffered completion channel prevents an abandoned caller
+from blocking worker recovery. At most four such workers may own operations.
+The five-second local deadline remains; a custom RoundTripper that fails to
+honor context cancellation remains occupied rather than freeing capacity on a
+timer. Such an injected transport cannot be guaranteed to terminate; the
+standard net/http transport is required to honor context and timeout semantics.
+Provider allowance observation now uses the bounded operation context.
 
-The finite provider HTTP timeout remains 5 seconds.
+## Local transport verification
 
-## Cancellation/resource regression campaign
+Local race-enabled tests performed during the follow-up:
 
-Real socket regression:
-- rounds: 5
-- concurrent per round: 4
-- total cancellations: 20
-- configured provider concurrency: 4
+- Ten rounds of four caller cancellations: 40 cancellations.
+- A controlled local RoundTripper reports its terminal condition only after an
+  explicit release. The first round remains owned for six seconds, past the old
+  quarantine. No replacement operation is admitted while the four local
+  operations remain owned. This is a local transport ownership test, not a
+  reproduction of accumulating remote computations.
+- Real Fiber listener and raw TCP clients: four disconnects while provider
+  operations are pending; four slots remain occupied; a distinct legitimate
+  request receives HTTP 503 while occupied, and HTTP 200 after actual operation
+  completion. Downstream disconnect context propagation is not observed.
+- Partial response, connection reset, and local upstream timeout recover.
 
-Protected-CI measurements:
-
-```text
-TOTAL_CANCELLATIONS=20
-UPSTREAM_CONTEXT_CANCELLATIONS=0
-UPSTREAM_ACTIVE_AFTER_750MS=4
-PROVIDER_MAX_ACTIVE_UPSTREAM=4
-LOCAL_CONCURRENCY_IN_USE_AFTER_CALLER_CANCEL=4
-
-GOROUTINES_BASELINE=3
-GOROUTINES_PEAK=27
-GOROUTINES_RECOVERY=6
-
-FD_BASELINE=10
-FD_PEAK=18
-FD_RECOVERY=12
-
-SUBSEQUENT_LEGITIMATE_REQUEST=PASS
-```
-
-Immediate upstream context cancellation is therefore not claimed. The security invariant is instead provided by conservative slot occupancy: abandoned upstream work remains bounded by the configured concurrency capacity.
+Measured local campaign (race enabled):
 
 ```text
-CANCELLED_OR_DISCONNECTED_CALLS_CANNOT_CREATE_UNBOUNDED_UPSTREAM_CONCURRENCY=YES
-UPSTREAM_ACTIVE_MUST_NOT_EXCEED_CONFIGURED_PROVIDER_CONCURRENCY_BOUND=YES
-CANCELLATION_AMPLIFICATION=NO
+TOTAL_CANCELLATIONS=40
+MAX_LOCAL_PROVIDER_TRANSPORTS=4
+MAX_SEMAPHORE_IN_USE=4
+GOROUTINES_BASELINE=4
+GOROUTINES_PEAK=12
+GOROUTINES_RECOVERY=4
+FD_BASELINE=7
+FD_PEAK=7
+FD_RECOVERY=7
+RAW_TCP_DISCONNECT_TEST=PASS
+DOWNSTREAM_DISCONNECTS=4
+DOWNSTREAM_DISCONNECT_CONTEXT_PROPAGATION=NO
+UPSTREAM_HANDLERS_ACTIVE_AT_RAW_DISCONNECT_SAMPLE=4
+SUBSEQUENT_REQUEST_STATUS_WHILE_OCCUPIED=503
+SUBSEQUENT_REQUEST_STATUS_AFTER_COMPLETION=200
 ```
 
-Transport failure regressions:
+The raw TCP test uses a bounded, cooperative socket fixture. It does not prove
+termination of arbitrary external server computations. The requested hostile
+remote-work accumulation reproduction was not executed. The local campaign
+uses an injected RoundTripper, so its file-descriptor measurements do not prove
+real-socket resource recovery under forty cancellations. No broader leak or
+remote cancellation guarantee is claimed from these measurements.
 
 ```text
-PARTIAL_RESPONSE_RECOVERY=PASS
-CONNECTION_RESET_RECOVERY=PASS
-UPSTREAM_TIMEOUT_RECOVERY=PASS
+M12_P2_02_REPOSITORY_SIDE=NOT_YET_PROVEN_REMEDIATED_TO_FULL_REQUESTED_SCOPE
+M12_P2_02_LOCAL_TRANSPORT_RESOURCE_AMPLIFICATION=LOCAL_LIFETIME_TESTS_PASS
+LOCAL_OUTBOUND_TRANSPORT_CONCURRENCY_BOUNDED=YES_WITHIN_VERIFIED_LOCAL_LIFETIME_SCOPE
+SHARED_PROVIDER_REQUEST_BUDGET_BOUNDED=YES
+REAL_EXTERNAL_PROVIDER_SERVER_SIDE_CANCELLATION=NOT_VERIFIED
+REMOTE_PROVIDER_SERVER_SIDE_TERMINATION=NOT_VERIFIED
+LONG_LIVED_UPSTREAM_TEST_RESULT=NOT_EXECUTED
+OLD_UPSTREAM_ACTIVE_AFTER_SAFETY_HOLD=NOT_MEASURED
+NEW_REQUESTS_ADMITTED_AFTER_SAFETY_HOLD=NOT_MEASURED
+MAX_REMOTE_HANDLERS_OBSERVED=4_IN_RAW_TCP_FIXTURE_ONLY
 ```
+
+Exact final-head protected CI must be checked after this follow-up commit.
 
 ## Dependency and configuration changes
 
@@ -247,16 +271,35 @@ DATA_RACE=NONE
 
 The final report-only PR head must still pass protected CI before merge review.
 
+## Verbose vulnerability scan follow-up
+
+`govulncheck -show verbose ./...` with Go 1.26.9 and govulncheck v1.7.0:
+
+```text
+REACHABLE_VULNERABILITIES=0
+IMPORTED_PACKAGE_VULNERABILITIES=0
+NON_REACHABLE_GOVULN_ID=GO-2026-5932
+NON_REACHABLE_GOVULN_MODULE=golang.org/x/crypto
+NON_REACHABLE_GOVULN_VERSION=v0.57.0
+NON_REACHABLE_GOVULN_PACKAGE=golang.org/x/crypto/openpgp
+FIXED_VERSION=N/A
+```
+
+The advisory concerns the unmaintained OpenPGP package. The scan did not find an
+imported affected package or a product call path. This is a module advisory,
+not a demonstrated reachable product vulnerability. No scanner suppression or
+dependency change is introduced by this follow-up.
+
 ## Remediation disposition
 
 ```text
 M12_P2_01_REPOSITORY_SIDE=REMEDIATED
-M12_P2_02_REPOSITORY_SIDE=REMEDIATED
+M12_P2_02_REPOSITORY_SIDE=NOT_YET_PROVEN_REMEDIATED_TO_FULL_REQUESTED_SCOPE
 
 REPLICA_COUNT_MUST_NOT_MULTIPLY_SECURITY_BUDGET=YES
 PROCESS_RESTART_MUST_NOT_RESET_SHARED_BUDGET=YES
 SHARED_BACKEND_FAILURE=FAIL_CLOSED
-CANCELLATION_AMPLIFICATION=NO
+LOCAL_TRANSPORT_LIFETIME_TESTS=PASS
 PROVIDER_MAX_ACTIVE_UPSTREAM=4
 CONFIGURED_MAX_CONCURRENCY=4
 ```
