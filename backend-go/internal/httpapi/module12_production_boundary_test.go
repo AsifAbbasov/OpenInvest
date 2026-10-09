@@ -342,11 +342,15 @@ func TestM12RealSocketDisconnectAndSlowClientBehavior(t *testing.T) {
 	start := time.Now()
 	_ = slowConn.SetReadDeadline(time.Now().Add(17 * time.Second))
 	var one [1]byte
-	_, readErr := slowConn.Read(one[:])
+	readN, readErr := slowConn.Read(one[:])
 	elapsed := time.Since(start)
 	_ = slowConn.Close()
-	closedWithinBound := readErr != nil && elapsed < 17*time.Second
-	t.Logf("M12_SLOWLORIS_BOUNDED=%t elapsed=%s read_error=%v configured_read_timeout=%s", closedWithinBound, elapsed.Round(time.Millisecond), readErr, defaultHTTPReadTimeout)
+	boundedWithinDeadline := elapsed < 17*time.Second
+	firstByte := ""
+	if readN > 0 {
+		firstByte = fmt.Sprintf("%q", one[0])
+	}
+	t.Logf("M12_SLOWLORIS_BOUNDED=%t elapsed=%s read_n=%d first_byte=%s read_error=%v configured_read_timeout=%s", boundedWithinDeadline, elapsed.Round(time.Millisecond), readN, firstByte, readErr, defaultHTTPReadTimeout)
 
 	runtime.GC()
 	time.Sleep(250 * time.Millisecond)
