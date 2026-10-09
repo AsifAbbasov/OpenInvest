@@ -628,8 +628,8 @@ func TestImportAdmissionConstructorParity(t *testing.T) {
 		t.Fatalf("parse replay_app.go: %v", err)
 	}
 	for _, name := range []string{
-		"NewReplay", "NewReplayWithCorporateActionProvider", "NewReplayWithCorporateActionProviderAndHTTPNetworkConfig", "NewReplayRuntime",
-		"NewDevelopmentReplay", "NewDevelopmentReplayWithCorporateActionProvider", "NewDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig", "NewDevelopmentReplayRuntime",
+		"NewReplay", "NewReplayWithCorporateActionProvider", "NewReplayWithCorporateActionProviderAndHTTPNetworkConfig", "NewReplayRuntime", "NewReplayRuntimeWithSharedBudget",
+		"NewDevelopmentReplay", "NewDevelopmentReplayWithCorporateActionProvider", "NewDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig", "NewDevelopmentReplayRuntime", "NewDevelopmentReplayRuntimeWithSharedBudget",
 	} {
 		constructor := findReplayConstructor(t, replayNode, name)
 		if countReplayConstructorCalls(constructor.Body, "newReplayWithCorporateActionProviderAndHTTPNetworkConfig")+
@@ -653,8 +653,8 @@ func TestImportAdmissionConstructorParity(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read cmd/api production composition: %v", err)
 	}
-	if !strings.Contains(string(composition), "httpapi.NewReplayRuntime(") || !strings.Contains(string(composition), "httpapi.NewDevelopmentReplayRuntime(") {
-		t.Fatal("cmd/api no longer composes production and development API through admission-wired replay runtimes")
+	if !strings.Contains(string(composition), "httpapi.NewReplayRuntimeWithSharedBudget(") || !strings.Contains(string(composition), "httpapi.NewDevelopmentReplayRuntimeWithSharedBudget(") {
+		t.Fatal("cmd/api no longer composes production and development API through shared-budget admission-wired replay runtimes")
 	}
 }
 
