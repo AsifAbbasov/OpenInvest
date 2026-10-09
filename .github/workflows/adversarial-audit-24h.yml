@@ -1,0 +1,382 @@
+name: Adversarial Audit 24h
+# launch-pair: full-parallel-all-runs-v3
+
+on:
+  push:
+    branches:
+      - chore/native-go-fuzz-targets
+    paths:
+      - ".github/workflows/adversarial-audit-24h.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+
+jobs:
+  phase-1-core-numeric-input:
+    name: "Phase 1 - Decimal and CSV core fuzz"
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Baseline compile evidence
+        id: baseline
+        continue-on-error: true
+        run: go test ./internal/decimal ./internal/importer
+      - name: Fuzz Decimal parser
+        id: decimal_parser
+        continue-on-error: true
+        run: go test ./internal/decimal -run='^$' -fuzz='^FuzzFromString$' -fuzztime=80m -timeout=85m
+      - name: Fuzz Decimal arithmetic
+        id: decimal_arithmetic
+        continue-on-error: true
+        run: go test ./internal/decimal -run='^$' -fuzz='^FuzzDecimalArithmetic$' -fuzztime=80m -timeout=85m
+      - name: Fuzz fixed-scale Decimal algebra
+        id: decimal_algebra
+        continue-on-error: true
+        run: go test ./internal/decimal -run='^$' -fuzz='^FuzzDecimalFixedScaleAlgebra$' -fuzztime=80m -timeout=85m
+      - name: Fuzz arbitrary CSV review
+        id: csv_review
+        continue-on-error: true
+        run: go test ./internal/importer -run='^$' -fuzz='^FuzzReviewCSV$' -fuzztime=80m -timeout=85m
+      - name: Archive fuzz findings
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: adversarial-phase-1-fuzz-corpus
+          path: |
+            backend-go/internal/**/testdata/fuzz/**
+          if-no-files-found: ignore
+      - name: Enforce Phase 1 result
+        if: always()
+        run: |
+          set -euo pipefail
+          failed=0
+          for outcome in             "${{ steps.baseline.outcome }}"             "${{ steps.decimal_parser.outcome }}"             "${{ steps.decimal_arithmetic.outcome }}"             "${{ steps.decimal_algebra.outcome }}"             "${{ steps.csv_review.outcome }}"
+          do
+            if [[ "$outcome" != "success" ]]; then failed=1; fi
+          done
+          test "$failed" -eq 0
+
+  phase-2-parser-transport:
+    name: "Phase 2 - CSV boundaries and HTTP transport fuzz"
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Baseline compile evidence
+        id: baseline
+        continue-on-error: true
+        run: go test ./internal/importer ./internal/httpapi
+      - name: Fuzz CSV header structure
+        id: csv_header
+        continue-on-error: true
+        run: go test ./internal/importer -run='^$' -fuzz='^FuzzValidateCSVHeaderShape$' -fuzztime=80m -timeout=85m
+      - name: Fuzz CSV structural resource bounds
+        id: csv_bounds
+        continue-on-error: true
+        run: go test ./internal/importer -run='^$' -fuzz='^FuzzReviewCSVStructuralBounds$' -fuzztime=80m -timeout=85m
+      - name: Fuzz strict JSON transport
+        id: json_transport
+        continue-on-error: true
+        run: go test ./internal/httpapi -run='^$' -fuzz='^FuzzDecodeStrictJSON$' -fuzztime=80m -timeout=85m
+      - name: Fuzz money transport
+        id: money_transport
+        continue-on-error: true
+        run: go test ./internal/httpapi -run='^$' -fuzz='^FuzzParseMoney$' -fuzztime=80m -timeout=85m
+      - name: Archive fuzz findings
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: adversarial-phase-2-fuzz-corpus
+          path: |
+            backend-go/internal/**/testdata/fuzz/**
+          if-no-files-found: ignore
+      - name: Enforce Phase 2 result
+        if: always()
+        run: |
+          set -euo pipefail
+          failed=0
+          for outcome in             "${{ steps.baseline.outcome }}"             "${{ steps.csv_header.outcome }}"             "${{ steps.csv_bounds.outcome }}"             "${{ steps.json_transport.outcome }}"             "${{ steps.money_transport.outcome }}"
+          do
+            if [[ "$outcome" != "success" ]]; then failed=1; fi
+          done
+          test "$failed" -eq 0
+
+  phase-3-financial-state:
+    name: "Phase 3 - Stateful WAC and XIRR fuzz"
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Baseline compile evidence
+        id: baseline
+        continue-on-error: true
+        run: go test ./internal/position ./internal/verticalslice
+      - name: Fuzz stateful WAC ledger sequence
+        id: wac
+        continue-on-error: true
+        run: go test ./internal/position -run='^$' -fuzz='^FuzzStatefulWACLedgerSequence$' -fuzztime=80m -timeout=85m
+      - name: Fuzz business dates
+        id: business_date
+        continue-on-error: true
+        run: go test ./internal/verticalslice -run='^$' -fuzz='^FuzzParseBusinessDate$' -fuzztime=80m -timeout=85m
+      - name: Fuzz basic return projection
+        id: return_projection
+        continue-on-error: true
+        run: go test ./internal/verticalslice -run='^$' -fuzz='^FuzzBuildPortfolioReturnProjection$' -fuzztime=80m -timeout=85m
+      - name: Fuzz adversarial multi-flow XIRR
+        id: xirr
+        continue-on-error: true
+        run: go test ./internal/verticalslice -run='^$' -fuzz='^FuzzXIRRAdversarialSequence$' -fuzztime=80m -timeout=85m
+      - name: Archive fuzz findings
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: adversarial-phase-3-fuzz-corpus
+          path: |
+            backend-go/internal/**/testdata/fuzz/**
+          if-no-files-found: ignore
+      - name: Enforce Phase 3 result
+        if: always()
+        run: |
+          set -euo pipefail
+          failed=0
+          for outcome in             "${{ steps.baseline.outcome }}"             "${{ steps.wac.outcome }}"             "${{ steps.business_date.outcome }}"             "${{ steps.return_projection.outcome }}"             "${{ steps.xirr.outcome }}"
+          do
+            if [[ "$outcome" != "success" ]]; then failed=1; fi
+          done
+          test "$failed" -eq 0
+
+  phase-4-domain-postgres:
+    name: "Phase 4 - Corporate actions, pagination and PostgreSQL concurrency"
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: openinvest-audit
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Apply migrations to disposable PostgreSQL
+        id: migrations
+        continue-on-error: true
+        working-directory: .
+        run: |
+          set -euo pipefail
+          for migration in infrastructure/postgres/migrations/*.up.sql; do
+            psql "postgres://openinvest:openinvest-audit@127.0.0.1:5432/openinvest?sslmode=disable" -v ON_ERROR_STOP=1 < "$migration"
+          done
+      - name: Baseline compile evidence
+        id: baseline
+        continue-on-error: true
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-audit@127.0.0.1:5432/openinvest?sslmode=disable
+        run: go test ./internal/httpapi ./internal/verticalslice ./internal/postgres
+      - name: Fuzz corporate-action projections
+        id: corporate_actions
+        continue-on-error: true
+        run: go test ./internal/verticalslice -run='^$' -fuzz='^FuzzCorporateActionProjectionIntegrity$' -fuzztime=80m -timeout=85m
+      - name: Fuzz signed pagination cursor isolation
+        id: pagination
+        continue-on-error: true
+        run: go test ./internal/httpapi -run='^$' -fuzz='^FuzzPaginationCursorIsolationAndTamperResistance$' -fuzztime=80m -timeout=85m
+      - name: Fuzz PostgreSQL concurrent ledger and replay
+        id: postgres_concurrency
+        continue-on-error: true
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-audit@127.0.0.1:5432/openinvest?sslmode=disable
+        run: go test ./internal/postgres -run='^$' -fuzz='^FuzzPostgresConcurrentLedgerReplay$' -fuzztime=80m -timeout=85m -parallel=4
+      - name: Fuzz backdated correction reversal and generation isolation
+        id: backdated
+        continue-on-error: true
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-audit@127.0.0.1:5432/openinvest?sslmode=disable
+        run: go test ./internal/postgres -run='^$' -fuzz='^FuzzBackdatedCorrectionReversalPositionGeneration$' -fuzztime=80m -timeout=85m -parallel=4
+      - name: Archive fuzz findings
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: adversarial-phase-4-fuzz-corpus
+          path: |
+            backend-go/internal/**/testdata/fuzz/**
+          if-no-files-found: ignore
+      - name: Enforce Phase 4 result
+        if: always()
+        run: |
+          set -euo pipefail
+          failed=0
+          for outcome in             "${{ steps.migrations.outcome }}"             "${{ steps.baseline.outcome }}"             "${{ steps.corporate_actions.outcome }}"             "${{ steps.pagination.outcome }}"             "${{ steps.postgres_concurrency.outcome }}"             "${{ steps.backdated.outcome }}"
+          do
+            if [[ "$outcome" != "success" ]]; then failed=1; fi
+          done
+          test "$failed" -eq 0
+
+  phase-5-systemic-security-recovery:
+    name: "Phase 5 - Authorization, exhaustion, provider, CI, observability, backup and DR"
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    services:
+      primary:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: primary-audit
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      recovery:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: recovery-audit
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Apply migrations to disposable primary
+        id: migrations
+        continue-on-error: true
+        working-directory: .
+        run: |
+          set -euo pipefail
+          for migration in infrastructure/postgres/migrations/*.up.sql; do
+            psql "postgres://openinvest:primary-audit@127.0.0.1:5432/openinvest?sslmode=disable" -v ON_ERROR_STOP=1 < "$migration"
+          done
+      - name: Authorization matrix
+        id: authorization
+        continue-on-error: true
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:primary-audit@127.0.0.1:5432/openinvest?sslmode=disable
+        run: go test ./internal/postgres -run='^(TestAuthorizationMatrix|TestSecurityAuthorizationMatrix)' -count=20 -v
+      - name: HTTP resource exhaustion guards
+        id: http_resources
+        continue-on-error: true
+        run: go test ./internal/httpapi -run='^(TestResourceExhaustion|TestAuthRateLimiterRemainsMemoryBounded)' -count=100 -v
+      - name: PostgreSQL pool saturation and recovery
+        id: db_pool
+        continue-on-error: true
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:primary-audit@127.0.0.1:5432/openinvest?sslmode=disable
+        run: go test ./internal/postgres -run='^TestResourceExhaustionPostgresPoolSaturationCancelsAndRecovers$' -count=10 -v
+      - name: Provider domain fault simulation
+        id: provider_domain
+        continue-on-error: true
+        run: go test ./internal/verticalslice -run='^TestProviderFaultSimulation' -count=50 -v
+      - name: Provider transport fault injection
+        id: provider_transport
+        continue-on-error: true
+        run: go test ./internal/provider/tinvest -run='^TestCorporateActions(SlowProvider|MidBodyReadFailure|ConnectionFailure)' -count=50 -v
+      - name: Observability contract
+        id: observability
+        continue-on-error: true
+        run: go test ./internal/httpapi -run='^TestObservability' -count=50 -v
+      - name: CI and secret regression gate
+        id: ci_security
+        continue-on-error: true
+        run: go test ./internal/securityci -count=1 -v
+      - name: Race detector on critical packages
+        id: race
+        continue-on-error: true
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:primary-audit@127.0.0.1:5432/openinvest?sslmode=disable
+        run: go test -race ./internal/position ./internal/httpapi ./internal/postgres
+      - name: Go vet evidence
+        id: vet
+        continue-on-error: true
+        run: go vet ./...
+      - name: Vulnerability scan evidence
+        id: vuln
+        continue-on-error: true
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@v1.7.0
+          "$(go env GOPATH)/bin/govulncheck" ./...
+      - name: Backup restore rehearsal
+        id: backup
+        working-directory: .
+        continue-on-error: true
+        env:
+          OPENINVEST_PG_TOOL_IMAGE: postgres:18
+          OPENINVEST_BACKUP_SOURCE_URL: postgres://openinvest:primary-audit@127.0.0.1:5432/openinvest?sslmode=disable
+          OPENINVEST_BACKUP_RESTORE_URL: postgres://openinvest:recovery-audit@127.0.0.1:5433/openinvest?sslmode=disable
+        run: bash scripts/security/backup_restore_rehearsal.sh
+      - name: Disaster recovery rehearsal
+        id: dr
+        working-directory: .
+        continue-on-error: true
+        env:
+          OPENINVEST_PG_TOOL_IMAGE: postgres:18
+          OPENINVEST_DR_PRIMARY_URL: postgres://openinvest:primary-audit@127.0.0.1:5432/openinvest?sslmode=disable
+          OPENINVEST_DR_RECOVERY_URL: postgres://openinvest:recovery-audit@127.0.0.1:5433/openinvest?sslmode=disable
+        run: bash scripts/security/disaster_recovery_rehearsal.sh
+      - name: Enforce Phase 5 result
+        if: always()
+        run: |
+          set -euo pipefail
+          failed=0
+          for outcome in             "${{ steps.migrations.outcome }}"             "${{ steps.authorization.outcome }}"             "${{ steps.http_resources.outcome }}"             "${{ steps.db_pool.outcome }}"             "${{ steps.provider_domain.outcome }}"             "${{ steps.provider_transport.outcome }}"             "${{ steps.observability.outcome }}"             "${{ steps.ci_security.outcome }}"             "${{ steps.race.outcome }}"             "${{ steps.vet.outcome }}"             "${{ steps.vuln.outcome }}"             "${{ steps.backup.outcome }}"             "${{ steps.dr.outcome }}"
+          do
+            if [[ "$outcome" != "success" ]]; then failed=1; fi
+          done
+          test "$failed" -eq 0

@@ -1,0 +1,389 @@
+name: Resilience Chaos Audit 24h
+# launch-group: simultaneous-2026-10-06T17:35Z
+# launch: repaired-chaos-v3
+
+on:
+  push:
+    branches:
+      - chore/native-go-fuzz-targets
+    paths:
+      - ".github/workflows/chaos-audit-24h.yml"
+      - "backend-go/internal/postgres/multi_instance_chaos_integration_test.go"
+      - "backend-go/internal/postgres/resource_pool_pressure_integration_test.go"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  multi-instance-clock-soak:
+    name: "Chaos 1 - Multi-instance, idempotency and clock-skew soak"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: chaos-audit
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Apply migrations
+        working-directory: .
+        run: |
+          set -euo pipefail
+          for migration in infrastructure/postgres/migrations/*.up.sql; do
+            psql "postgres://openinvest:chaos-audit@127.0.0.1:5432/openinvest?sslmode=disable" -v ON_ERROR_STOP=1 < "$migration"
+          done
+      - name: Five-hour multi-instance and clock-skew soak
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:chaos-audit@127.0.0.1:5432/openinvest?sslmode=disable
+        run: |
+          set -euo pipefail
+          end=$((SECONDS + 18000))
+          i=0
+          while (( SECONDS < end )); do
+            i=$((i + 1))
+            echo "CHAOS_MULTI_INSTANCE_ITERATION=$i"
+            go test -race ./internal/postgres -run='^TestChaos(MultiInstanceSharedDatabaseSerializesMutations|MultiInstanceSharedIdempotencyAllowsOneMutation|ClockSkewDoesNotOverrideLedgerSequenceAuthority)$' -count=5
+          done
+
+  network-partition-process-kill:
+    name: "Chaos 2 - Network partition and process-kill transaction recovery"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: chaos-audit
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Prepare disposable witness
+        run: |
+          set -euo pipefail
+          psql "postgres://openinvest:chaos-audit@127.0.0.1:5432/openinvest?sslmode=disable" -v ON_ERROR_STOP=1 -c             "CREATE TABLE IF NOT EXISTS public.chaos_commit_witness(id bigserial PRIMARY KEY, marker text NOT NULL UNIQUE);"
+      - name: Two-hour client-kill before COMMIT
+        run: |
+          set -euo pipefail
+          url="postgres://openinvest:chaos-audit@127.0.0.1:5432/openinvest?sslmode=disable"
+          end=$((SECONDS + 7200))
+          i=0
+          while (( SECONDS < end )); do
+            i=$((i + 1))
+            marker="killed-client-$i"
+            PGAPPNAME="openinvest-chaos-kill-$i" psql "$url" -v ON_ERROR_STOP=1 -c "BEGIN; INSERT INTO public.chaos_commit_witness(marker) VALUES ('$marker'); SELECT pg_sleep(30); COMMIT;" >/tmp/chaos-client.log 2>&1 &
+            client=$!
+            sleep 0.25
+            kill -9 "$client" 2>/dev/null || true
+            wait "$client" 2>/dev/null || true
+
+            for n in {1..100}; do
+              count="$(psql "$url" -At -v ON_ERROR_STOP=1 -c "SELECT count(*) FROM public.chaos_commit_witness WHERE marker='$marker';" 2>/dev/null || true)"
+              [[ "$count" == "0" ]] && break
+              sleep 0.05
+            done
+            test "$count" = "0"
+
+            for n in {1..100}; do
+              active="$(psql "$url" -At -v ON_ERROR_STOP=1 -c "SELECT count(*) FROM pg_stat_activity WHERE datname='openinvest' AND application_name='openinvest-chaos-kill-$i';" 2>/dev/null || echo 999)"
+              [[ "$active" == "0" ]] && break
+              sleep 0.05
+            done
+            test "$active" = "0"
+          done
+      - name: Three-hour Docker-network partition and recovery
+        env:
+          DB_CONTAINER: ${{ job.services.postgres.id }}
+        run: |
+          set -euo pipefail
+          url="postgres://openinvest:chaos-audit@127.0.0.1:5432/openinvest?sslmode=disable"
+          network="$(docker inspect -f '{{range $name, $_ := .NetworkSettings.Networks}}{{$name}}{{"\n"}}{{end}}' "$DB_CONTAINER" | head -n1)"
+          test -n "$network"
+          end=$((SECONDS + 10800))
+          i=0
+          while (( SECONDS < end )); do
+            i=$((i + 1))
+            echo "NETWORK_PARTITION_ITERATION=$i NETWORK=$network"
+            docker network disconnect "$network" "$DB_CONTAINER"
+            sleep 2
+            if psql "$url" -At -c 'SELECT 1' >/dev/null 2>&1; then
+              echo "partition did not interrupt connectivity" >&2
+              exit 1
+            fi
+            docker network connect "$network" "$DB_CONTAINER"
+            recovered=0
+            for n in {1..90}; do
+              if [[ "$(psql "$url" -At -v ON_ERROR_STOP=1 -c 'SELECT 1' 2>/dev/null || true)" == "1" ]]; then
+                recovered=1
+                break
+              fi
+              sleep 1
+            done
+            test "$recovered" -eq 1
+            psql "$url" -v ON_ERROR_STOP=1 -c "INSERT INTO public.chaos_commit_witness(marker) VALUES ('network-recovered-$i');" >/dev/null
+          done
+
+  disk-pressure-recovery:
+    name: "Chaos 3 - PostgreSQL ENOSPC and recovery"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Five-hour isolated disk-pressure cycles
+        run: |
+          set -euo pipefail
+          end=$((SECONDS + 18000))
+          cycle=0
+          while (( SECONDS < end )); do
+            cycle=$((cycle + 1))
+            name="oi-disk-chaos-$cycle"
+            docker rm -f "$name" >/dev/null 2>&1 || true
+            docker run -d --name "$name"               --tmpfs /var/lib/postgresql/data:rw,size=512m               -e POSTGRES_DB=openinvest -e POSTGRES_USER=openinvest -e POSTGRES_PASSWORD=chaos-disk               postgres:18 >/dev/null
+            cleanup() { docker rm -f "$name" >/dev/null 2>&1 || true; }
+            trap cleanup EXIT
+
+            for n in {1..90}; do
+              docker exec "$name" pg_isready -U openinvest -d openinvest >/dev/null 2>&1 && break
+              sleep 1
+            done
+            docker exec "$name" psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 -c               "CREATE EXTENSION IF NOT EXISTS pgcrypto; CREATE TABLE pressure(id bigserial primary key, payload bytea not null);"
+
+            available_kb="$(docker exec "$name" df -Pk /var/lib/postgresql/data | awk 'NR==2 {print $4}')"
+            leave_kb=65536
+            fill_kb=$((available_kb - leave_kb))
+            test "$fill_kb" -gt 0
+            docker exec -u 0 "$name" sh -c "dd if=/dev/zero of=/var/lib/postgresql/data/chaos.fill bs=1024 count=$fill_kb status=none"
+
+            set +e
+            docker exec "$name" psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 -c               "INSERT INTO pressure(payload) SELECT gen_random_bytes(1024) FROM generate_series(1,120000);" >/tmp/disk-write.log 2>&1
+            write_status=$?
+            set -e
+            if (( write_status == 0 )); then
+              echo "disk-pressure write unexpectedly completed" >&2
+              exit 1
+            fi
+            if ! docker inspect -f '{{.State.Running}}' "$name" | grep -qx true; then
+              echo "PostgreSQL process exited under ENOSPC pressure" >&2
+              docker logs "$name" >&2 || true
+              exit 1
+            fi
+
+            docker exec -u 0 "$name" rm -f /var/lib/postgresql/data/chaos.fill
+            for n in {1..90}; do
+              docker exec "$name" pg_isready -U openinvest -d openinvest >/dev/null 2>&1 && break
+              sleep 1
+            done
+            docker exec "$name" psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 -c               "CHECKPOINT; INSERT INTO pressure(payload) VALUES ('recovered'::bytea); SELECT count(*) >= 1 FROM pressure;"
+            cleanup
+            trap - EXIT
+          done
+
+  replica-lag-recovery:
+    name: "Chaos 4 - Logical replica lag, pause and catch-up"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Start isolated logical primary and replica
+        run: |
+          set -euo pipefail
+          docker network rm oi-replica-chaos >/dev/null 2>&1 || true
+          docker network create oi-replica-chaos
+          docker run -d --name oi-chaos-primary --network oi-replica-chaos             -e POSTGRES_DB=openinvest -e POSTGRES_USER=openinvest -e POSTGRES_PASSWORD=replica-chaos             postgres:18 -c wal_level=logical -c max_replication_slots=4 -c max_wal_senders=4
+          docker run -d --name oi-chaos-replica --network oi-replica-chaos             -e POSTGRES_DB=openinvest -e POSTGRES_USER=openinvest -e POSTGRES_PASSWORD=replica-chaos postgres:18
+          for c in oi-chaos-primary oi-chaos-replica; do
+            for n in {1..90}; do
+              docker exec "$c" pg_isready -U openinvest -d openinvest >/dev/null 2>&1 && break
+              sleep 1
+            done
+          done
+          docker exec oi-chaos-primary psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 -c "CREATE TABLE replicated_witness(id bigint PRIMARY KEY, payload text NOT NULL);"
+          docker exec oi-chaos-primary psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 -c "CREATE PUBLICATION chaos_pub FOR TABLE replicated_witness;"
+          docker exec oi-chaos-replica psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 -c "CREATE TABLE replicated_witness(id bigint PRIMARY KEY, payload text NOT NULL);"
+          docker exec oi-chaos-replica psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 -c "CREATE SUBSCRIPTION chaos_sub CONNECTION 'host=oi-chaos-primary dbname=openinvest user=openinvest password=replica-chaos' PUBLICATION chaos_pub;"
+      - name: Five-hour lag and catch-up cycles
+        run: |
+          set -euo pipefail
+          end=$((SECONDS + 18000))
+          cycle=0
+          id=0
+          while (( SECONDS < end )); do
+            cycle=$((cycle + 1))
+            before="$(docker exec oi-chaos-replica psql -U openinvest -d openinvest -At -c 'SELECT count(*) FROM replicated_witness;')"
+            docker pause oi-chaos-replica >/dev/null
+            for n in {1..200}; do
+              id=$((id + 1))
+              docker exec oi-chaos-primary psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 -c                 "INSERT INTO replicated_witness VALUES ($id, 'cycle-$cycle');" >/dev/null
+            done
+            primary_count="$(docker exec oi-chaos-primary psql -U openinvest -d openinvest -At -c 'SELECT count(*) FROM replicated_witness;')"
+            test "$primary_count" -gt "$before"
+            docker unpause oi-chaos-replica >/dev/null
+            caught=0
+            for n in {1..180}; do
+              replica_count="$(docker exec oi-chaos-replica psql -U openinvest -d openinvest -At -c 'SELECT count(*) FROM replicated_witness;' 2>/dev/null || echo -1)"
+              if [[ "$replica_count" == "$primary_count" ]]; then caught=1; break; fi
+              sleep 1
+            done
+            test "$caught" -eq 1
+            sleep 5
+          done
+      - name: Cleanup
+        if: always()
+        run: |
+          docker rm -f oi-chaos-primary oi-chaos-replica >/dev/null 2>&1 || true
+          docker network rm oi-replica-chaos >/dev/null 2>&1 || true
+
+  migration-interruption-recovery:
+    name: "Chaos 5 - Exact concurrent-index interruption and recovery"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: chaos-audit
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Apply migrations through pre-index state
+        run: |
+          set -euo pipefail
+          for migration in infrastructure/postgres/migrations/*.up.sql; do
+            case "$migration" in *000009_stage_03_71_ledger_sequence_unique.up.sql) break ;; esac
+            psql "postgres://openinvest:chaos-audit@127.0.0.1:5432/openinvest?sslmode=disable" -v ON_ERROR_STOP=1 < "$migration"
+          done
+      - name: Seed large pre-activation ledger
+        run: |
+          set -euo pipefail
+          url="postgres://openinvest:chaos-audit@127.0.0.1:5432/openinvest?sslmode=disable"
+          psql "$url" -v ON_ERROR_STOP=1 <<'SQL'
+          INSERT INTO investment.subjects(id) VALUES ('20000000-0000-4000-8000-000000000001') ON CONFLICT DO NOTHING;
+          INSERT INTO investment.portfolios(id, subject_id, name)
+          VALUES ('20000000-0000-4000-8000-000000000002','20000000-0000-4000-8000-000000000001','chaos migration')
+          ON CONFLICT DO NOTHING;
+          INSERT INTO investment.transaction_entries(entry_id, transaction_id, portfolio_id, revision, transaction_type, gross_amount, trade_date, source_kind, created_at)
+          SELECT gen_random_uuid(), gen_random_uuid(), '20000000-0000-4000-8000-000000000002'::uuid, 1, 'DEPOSIT', 0, '2026-01-01'::date, 'MANUAL', now()
+          FROM generate_series(1, 400000);
+          SQL
+      - name: Five-hour exact DDL interruption and SQL recovery loop
+        run: |
+          set -euo pipefail
+          url="postgres://openinvest:chaos-audit@127.0.0.1:5432/openinvest?sslmode=disable"
+          end=$((SECONDS + 18000))
+          cycle=0
+          while (( SECONDS < end )); do
+            cycle=$((cycle + 1))
+            psql "$url" -v ON_ERROR_STOP=1 -c 'DROP INDEX CONCURRENTLY IF EXISTS investment.transaction_entries_portfolio_ledger_sequence_uidx;' >/dev/null
+            psql "$url" -v ON_ERROR_STOP=1 -c 'CREATE UNIQUE INDEX CONCURRENTLY transaction_entries_portfolio_ledger_sequence_uidx ON investment.transaction_entries (portfolio_id, ledger_sequence);' >/tmp/ddl.log 2>&1 &
+            ddl_client=$!
+
+            pid=""
+            for n in {1..200}; do
+              pid="$(psql "$url" -At -c "SELECT pid FROM pg_stat_progress_create_index WHERE index_relid::regclass::text LIKE '%transaction_entries_portfolio_ledger_sequence_uidx%' LIMIT 1;" 2>/dev/null || true)"
+              [[ -n "$pid" ]] && break
+              sleep 0.05
+            done
+            if [[ -n "$pid" ]]; then
+              psql "$url" -v ON_ERROR_STOP=1 -c "SELECT pg_terminate_backend($pid);" >/dev/null || true
+            else
+              kill -9 "$ddl_client" 2>/dev/null || true
+            fi
+            wait "$ddl_client" 2>/dev/null || true
+
+            state="$(psql "$url" -At -c "SELECT COALESCE(i.indisvalid::text||'|'||i.indisready::text,'missing') FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace JOIN pg_index i ON i.indexrelid=c.oid WHERE n.nspname='investment' AND c.relname='transaction_entries_portfolio_ledger_sequence_uidx';" || true)"
+            echo "POST_INTERRUPTION_INDEX_STATE=${state:-missing}"
+
+            psql "$url" -v ON_ERROR_STOP=1 -c 'DROP INDEX CONCURRENTLY IF EXISTS investment.transaction_entries_portfolio_ledger_sequence_uidx;' >/dev/null
+            psql "$url" -v ON_ERROR_STOP=1 -c 'CREATE UNIQUE INDEX CONCURRENTLY transaction_entries_portfolio_ledger_sequence_uidx ON investment.transaction_entries (portfolio_id, ledger_sequence);' >/dev/null
+            state="$(psql "$url" -At -v ON_ERROR_STOP=1 -c "SELECT i.indisvalid::text||'|'||i.indisready::text FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace JOIN pg_index i ON i.indexrelid=c.oid WHERE n.nspname='investment' AND c.relname='transaction_entries_portfolio_ledger_sequence_uidx';")"
+            test "$state" = "true|true"
+
+            if [[ -d backend-go/cmd/recover-ledger-sequence-index ]]; then
+              (cd backend-go && OPENINVEST_DATABASE_OWNER_URL="$url" go run ./cmd/recover-ledger-sequence-index)
+            else
+              echo "RECOVERY_COMMAND_NOT_PRESENT=backend-go/cmd/recover-ledger-sequence-index"
+            fi
+          done
+
+  combined-contention-soak:
+    name: "Chaos 6 - Combined same-database contention soak"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: chaos-audit
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Apply migrations
+        working-directory: .
+        run: |
+          set -euo pipefail
+          for migration in infrastructure/postgres/migrations/*.up.sql; do
+            psql "postgres://openinvest:chaos-audit@127.0.0.1:5432/openinvest?sslmode=disable" -v ON_ERROR_STOP=1 < "$migration"
+          done
+      - name: Five-hour combined contention load
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:chaos-audit@127.0.0.1:5432/openinvest?sslmode=disable
+        run: |
+          set -euo pipefail
+          end=$((SECONDS + 18000))
+          pids=()
+          worker() {
+            id="$1"
+            while (( SECONDS < end )); do
+              case $((id % 4)) in
+                0) go test -race ./internal/postgres -run='^TestChaos' -count=2 ;;
+                1) go test -race ./internal/postgres -run='^TestAuthorizationMatrix' -count=2 ;;
+                2) go test -race ./internal/postgres -run='^TestResourceExhaustionPostgresPoolSaturationCancelsAndRecovers$' -count=2 ;;
+                3) go test -race ./internal/postgres -run='^TestStage371Concurrent' -count=2 ;;
+              esac
+            done
+          }
+          for id in $(seq 1 8); do worker "$id" >"combined-worker-$id.log" 2>&1 & pids+=("$!"); done
+          failed=0
+          for pid in "${pids[@]}"; do wait "$pid" || failed=1; done
+          for log in combined-worker-*.log; do echo "===== $log ====="; tail -n 200 "$log" || true; done
+          test "$failed" -eq 0
