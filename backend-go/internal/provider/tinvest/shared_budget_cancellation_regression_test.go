@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"runtime"
-	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -337,10 +336,6 @@ const (
 
 func TestProviderPartialResetTimeoutStillFailClosedAndRecover(t *testing.T) {
 	var mode atomic.Int32
-	var mu sync.Mutex
-	activeConns := make([]*http.Transport, 0)
-	_ = mu
-	_ = activeConns
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch transportFailureMode(mode.Load()) {
 		case transportPartial:
