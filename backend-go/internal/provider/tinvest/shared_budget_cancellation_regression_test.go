@@ -196,6 +196,7 @@ type cancellationRegressionState struct {
 	active     atomic.Int32
 	maximum    atomic.Int32
 	cancelSeen atomic.Int32
+	block      atomic.Bool
 	entered    chan struct{}
 }
 
@@ -216,10 +217,12 @@ func (state *cancellationRegressionState) handler(w http.ResponseWriter, r *http
 	case state.entered <- struct{}{}:
 	default:
 	}
-	select {
-	case <-r.Context().Done():
-		state.cancelSeen.Add(1)
-	case <-time.After(requestTimeout + 250*time.Millisecond):
+	if state.block.Load() {
+		select {
+		case <-r.Context().Done():
+			state.cancelSeen.Add(1)
+		case <-time.After(requestTimeout + 250*time.Millisecond):
+		}
 	}
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write([]byte(`{"dividends":[]}`))
@@ -227,6 +230,7 @@ func (state *cancellationRegressionState) handler(w http.ResponseWriter, r *http
 
 func TestCancelledProviderWorkRemainsBoundedByConcurrency(t *testing.T) {
 	state := &cancellationRegressionState{entered: make(chan struct{}, 32)}
+	state.block.Store(true)
 	server := httptest.NewServer(http.HandlerFunc(state.handler))
 	defer server.Close()
 	provider, err := newCorporateActionProvider(&http.Client{}, fixedClock{now: testNow}, testToken, server.URL+"/rest")
@@ -238,6 +242,8 @@ func TestCancelledProviderWorkRemainsBoundedByConcurrency(t *testing.T) {
 	baselineFD := providerRegressionFDCount()
 	var activeAfter750 int32
 	var localInUseAfterCancel int
+	peakG := baselineG
+	peakFD := baselineFD
 	const rounds = 5
 	const concurrent = 4
 	totalCancellations := 0
@@ -260,6 +266,12 @@ func TestCancelledProviderWorkRemainsBoundedByConcurrency(t *testing.T) {
 			case <-time.After(2 * time.Second):
 				t.Fatal("provider request did not reach real socket")
 			}
+		}
+		if got := runtime.NumGoroutine(); got > peakG {
+			peakG = got
+		}
+		if got := providerRegressionFDCount(); got > peakFD {
+			peakFD = got
 		}
 		for _, cancel := range cancels {
 			cancel()
@@ -297,6 +309,7 @@ func TestCancelledProviderWorkRemainsBoundedByConcurrency(t *testing.T) {
 		t.Fatalf("provider max active upstream=%d exceeds configured max=%d", state.maximum.Load(), maxConcurrency)
 	}
 
+	state.block.Store(false)
 	if _, err := provider.CorporateActions(context.Background(), sharedProviderQuery()); err != nil {
 		t.Fatalf("legitimate request after cancellation campaign: %v", err)
 	}
@@ -309,10 +322,10 @@ func TestCancelledProviderWorkRemainsBoundedByConcurrency(t *testing.T) {
 		state.maximum.Load(),
 		localInUseAfterCancel,
 		baselineG,
-		baselineG+int(state.maximum.Load()),
+		peakG,
 		runtime.NumGoroutine(),
 		baselineFD,
-		baselineFD+int(state.maximum.Load()),
+		peakFD,
 		providerRegressionFDCount(),
 	)
 }
