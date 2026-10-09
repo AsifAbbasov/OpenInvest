@@ -3,6 +3,7 @@ package httpapi
 import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/openinvest/openinvest/backend-go/internal/auth"
+	"github.com/openinvest/openinvest/backend-go/internal/sharedbudget"
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 	"time"
 )
@@ -11,6 +12,7 @@ type API struct {
 	service                 *verticalslice.Service
 	auth                    *auth.Service
 	corporateActionProvider verticalslice.CorporateActionProvider
+	corporateActionBudget   sharedbudget.Authority
 	corporateActionLimiter  *authRateLimiter
 	corporateActionCoalescer *corporateActionProjectionCoalescer
 	allowDevelopmentSubject bool
