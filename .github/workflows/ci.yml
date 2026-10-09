@@ -92,8 +92,7 @@ jobs:
           OPENINVEST_SHARED_BUDGET_TEST_REDIS_URL: redis://127.0.0.1:6379/0
         run: |
           set -euo pipefail
-          go test -v ./internal/httpapi \
-            -run '^(TestCorporateActionSharedBudgetAcrossReplicasAndRestart|TestCorporateActionSharedPerClientLimitAcrossReplicas|TestCorporateActionSharedBudgetBackendFailureFailsClosed)      - name: Configure OI-NEW-04 active R2 runtime role
+          go test -v ./internal/httpapi -run '^(TestCorporateActionSharedBudgetAcrossReplicasAndRestart|TestCorporateActionSharedPerClientLimitAcrossReplicas|TestCorporateActionSharedBudgetBackendFailureFailsClosed)      - name: Configure OI-NEW-04 active R2 runtime role
         working-directory: .
         run: |
           docker exec -i "${{ job.services.postgres.id }}" \
@@ -552,10 +551,8 @@ jobs:
         run: |
           uv export --frozen --format requirements.txt --all-extras --no-emit-project --output-file /tmp/openinvest-python-requirements.txt
           uvx --from pip-audit==2.10.1 pip-audit -r /tmp/openinvest-python-requirements.txt --strict --progress-spinner off
- \
-            -count=1
-          go test -v ./internal/provider/tinvest \
-            -run '^(TestSharedProviderBudgetAcrossInstancesAndRestart|TestSharedProviderBudgetBackendFailureFailsClosed|TestSharedProviderAllowanceObservationIsGlobal|TestCancelledProviderWorkRemainsBoundedByConcurrency|TestProviderPartialResetTimeoutStillFailClosedAndRecover)      - name: Configure OI-NEW-04 active R2 runtime role
+ -count=1
+          go test -v ./internal/provider/tinvest -run '^(TestSharedProviderBudgetAcrossInstancesAndRestart|TestSharedProviderBudgetBackendFailureFailsClosed|TestSharedProviderAllowanceObservationIsGlobal|TestCancelledProviderWorkRemainsBoundedByConcurrency|TestProviderPartialResetTimeoutStillFailClosedAndRecover)      - name: Configure OI-NEW-04 active R2 runtime role
         working-directory: .
         run: |
           docker exec -i "${{ job.services.postgres.id }}" \
@@ -1014,8 +1011,7 @@ jobs:
         run: |
           uv export --frozen --format requirements.txt --all-extras --no-emit-project --output-file /tmp/openinvest-python-requirements.txt
           uvx --from pip-audit==2.10.1 pip-audit -r /tmp/openinvest-python-requirements.txt --strict --progress-spinner off
- \
-            -count=1
+ -count=1
 
       - name: Configure OI-NEW-04 active R2 runtime role
         working-directory: .
