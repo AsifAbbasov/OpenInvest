@@ -6,14 +6,16 @@ require github.com/gofiber/fiber/v3 v3.5.0
 
 require (
 	github.com/google/uuid v1.6.0
-	github.com/redis/go-redis/v9 v9.22.0
 	github.com/jackc/pgx/v5 v5.9.2
+	github.com/redis/go-redis/v9 v9.22.0
+	github.com/valyala/fasthttp v1.73.0
 	golang.org/x/crypto v0.57.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
 	github.com/andybalholm/brotli v1.2.2 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/gofiber/schema v1.8.3 // indirect
 	github.com/gofiber/utils/v2 v2.4.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -27,7 +29,7 @@ require (
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/tinylib/msgp v1.6.4 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.73.0 // indirect
+	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/net v0.60.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
