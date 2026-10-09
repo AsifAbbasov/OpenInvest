@@ -26,7 +26,10 @@ const (
 	corporateActionProjectionRateLimitRetryAfterSeconds = "60"
 )
 
-var errCorporateActionProjectionRateLimited = errors.New("corporate action projection rate limited")
+var (
+	errCorporateActionProjectionRateLimited = errors.New("corporate action projection rate limited")
+	errCorporateActionProjectionAdmissionUnavailable = errors.New("corporate action projection shared admission unavailable")
+)
 
 type corporateActionProjectionCall struct {
 	done      chan struct{}
@@ -61,14 +64,30 @@ func newCorporateActionProjectionCoalescer() *corporateActionProjectionCoalescer
 }
 
 func (api *API) admitCorporateActionProjection(c fiber.Ctx) error {
-	if api.corporateActionLimiter == nil {
-		return nil
-	}
 	clientIP, err := normalizedClientIP(c)
 	if err != nil {
 		return err
 	}
 	key := c.Path() + "|" + clientIP
+	if api.corporateActionBudget != nil {
+		allowed, budgetErr := api.corporateActionBudget.AdmitEndpoint(
+			c.Context(),
+			key,
+			defaultCorporateActionProjectionPerClientLimit,
+			defaultCorporateActionProjectionGlobalLimit,
+			defaultCorporateActionProjectionWindow,
+		)
+		if budgetErr != nil {
+			return errCorporateActionProjectionAdmissionUnavailable
+		}
+		if !allowed {
+			return errCorporateActionProjectionRateLimited
+		}
+		return nil
+	}
+	if api.corporateActionLimiter == nil {
+		return nil
+	}
 	if !api.corporateActionLimiter.allow(key, api.nowUTC()) {
 		return errCorporateActionProjectionRateLimited
 	}
