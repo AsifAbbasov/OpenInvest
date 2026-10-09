@@ -37,6 +37,7 @@ const (
 	cancelledDividendType   = "Cancelled"
 
 	requestTimeout               = 5 * time.Second
+	cancelledWorkSafetyHold      = requestTimeout + 500*time.Millisecond
 	maxResponseBodyBytes   int64 = 256 * 1024
 	maxConcurrency               = 4
 	maxRequestsPerMinute         = 60
@@ -481,7 +482,7 @@ func (provider *Provider) post(ctx context.Context, method string, payload corpo
 }
 
 func (provider *Provider) releaseCancelledSlotAtSafeBoundary(networkStarted time.Time) {
-	remaining := time.Until(networkStarted.Add(requestTimeout))
+	remaining := time.Until(networkStarted.Add(cancelledWorkSafetyHold))
 	if remaining <= 0 {
 		<-provider.semaphore
 		return
