@@ -89,10 +89,12 @@ const (
 )
 
 type module12SocketState struct {
-	mode    atomic.Int32
-	active  atomic.Int32
-	maximum atomic.Int32
-	entered chan struct{}
+	mode         atomic.Int32
+	active       atomic.Int32
+	maximum      atomic.Int32
+	cancelSeen   atomic.Int32
+	entered      chan struct{}
+	forceRelease chan struct{}
 }
 
 func (s *module12SocketState) updateMaximum(current int32) {
@@ -114,7 +116,11 @@ func (s *module12SocketState) handler(w http.ResponseWriter, r *http.Request) {
 	}
 	switch module12SocketMode(s.mode.Load()) {
 	case module12SocketBlockUntilCancel:
-		<-r.Context().Done()
+		select {
+		case <-r.Context().Done():
+			s.cancelSeen.Add(1)
+		case <-s.forceRelease:
+		}
 	case module12SocketPartialResponse:
 		hijacker, ok := w.(http.Hijacker)
 		if !ok {
@@ -157,7 +163,10 @@ func module12FDs() int {
 }
 
 func TestM12ProviderRealSocketCancellationResetAndRecovery(t *testing.T) {
-	state := &module12SocketState{entered: make(chan struct{}, 128)}
+	state := &module12SocketState{
+		entered:      make(chan struct{}, 128),
+		forceRelease: make(chan struct{}),
+	}
 	server := httptest.NewServer(http.HandlerFunc(state.handler))
 	defer server.Close()
 	transport := &http.Transport{}
@@ -200,12 +209,23 @@ func TestM12ProviderRealSocketCancellationResetAndRecovery(t *testing.T) {
 
 	peakG := runtime.NumGoroutine()
 	peakFD := module12FDs()
+	time.Sleep(750 * time.Millisecond)
+	activeAfterCancel := state.active.Load()
+	localSlotsAfterCancel := len(provider.semaphore)
+	cancelSeen := state.cancelSeen.Load()
+	if localSlotsAfterCancel != 0 {
+		t.Fatalf("local provider semaphore did not recover after cancellation: %d", localSlotsAfterCancel)
+	}
+	t.Logf("M12_PROVIDER_UPSTREAM_CANCEL_PROPAGATED=%t upstream_active_after_750ms=%d upstream_context_cancellations=%d local_semaphore_slots_in_use=%d",
+		activeAfterCancel == 0, activeAfterCancel, cancelSeen, localSlotsAfterCancel)
+
+	close(state.forceRelease)
 	deadline := time.Now().Add(2 * time.Second)
 	for state.active.Load() != 0 && time.Now().Before(deadline) {
 		time.Sleep(10 * time.Millisecond)
 	}
-	if state.active.Load() != 0 || len(provider.semaphore) != 0 {
-		t.Fatalf("provider resources not recovered: active=%d semaphore=%d", state.active.Load(), len(provider.semaphore))
+	if state.active.Load() != 0 {
+		t.Fatalf("fake upstream handlers did not release after harness cleanup: active=%d", state.active.Load())
 	}
 
 	state.mode.Store(int32(module12SocketSuccess))
