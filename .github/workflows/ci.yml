@@ -35,6 +35,15 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
     defaults:
       run:
         working-directory: backend-go
@@ -75,6 +84,7 @@ jobs:
         env:
           OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
           OPENINVEST_DATABASE_RUNTIME_TEST_URL: postgres://openinvest_runtime_ci:openinvest-runtime-ci@127.0.0.1:5432/openinvest?sslmode=disable
+          OPENINVEST_SHARED_BUDGET_TEST_REDIS_URL: redis://127.0.0.1:6379/0
         run: go test ./...
 
       - name: Configure OI-NEW-04 active R2 runtime role
@@ -396,6 +406,15 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
     defaults:
       run:
         working-directory: backend-go
@@ -436,6 +455,7 @@ jobs:
         env:
           OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
           OPENINVEST_DATABASE_RUNTIME_TEST_URL: postgres://openinvest_runtime_ci:openinvest-runtime-ci@127.0.0.1:5432/openinvest?sslmode=disable
+          OPENINVEST_SHARED_BUDGET_TEST_REDIS_URL: redis://127.0.0.1:6379/0
         run: go test -race ./...
 
       - name: Configure OI-NEW-04 active R2 runtime role
