@@ -156,3 +156,43 @@ Known non-reachable advisory is retained, not suppressed: GO-2026-5932, golang.o
 No new product P0/P1/P2/P3 finding was demonstrated within this scoped verification. Full requested continuation remains incomplete; unresolved severity totals across unexecuted matrices are NOT_ESTABLISHED. New harness defects must be reported separately from product findings if CI reveals one. Two V1 test defects remain historical, not new V2 defects.
 
 `REMEDIATION_AUTHORIZED=NO`; `APPROVE_FOR_MERGE=NO`; `FORMAL_MODULE_12_CLOSED=NO`; `FINAL_REPOSITORY_WIDE_ASSAULT_STARTED=NO`.
+
+## Safe conformance extension on existing PR #246
+
+Only tests, collector/workflow and this report change. Final head/run results are reported after CI; old V2 runs are not credited for this extension. No new PR, production access, product/runtime change or merge.
+
+### VERIFIED_REPOSITORY_SIDE
+
+Nine scoped evidence groups: (1) existing shared budgets/rolling windows; (2) existing bounded provider cancellation; (3) new supported-path logging conformance; (4) new ordinary CORS/Host conformance; (5) existing sensitive cache invariants; (6) supported error/health/readiness conformance; (7) new isolated PostgreSQL permissions plus existing legitimate runtime/recovery tests; (8) deployment inventory; (9) frontend artifacts/runtime. These count evidence groups, not exhaustive security guarantees. Acceptance of new groups depends on the final CI results.
+
+Logging: nine synthetic categories are presented through ordinary request headers and a synthetic dependency-error chain. Stdout, stderr and the standard Go logger are captured with draining pipes. Five request cases cover registration success, validation 400, unauthorized 401, missing-route 404 and infrastructure 500. Assertions search response bodies and captured output for the synthetic values; output also checks URL-encoded values. RAW_ACCESS_TOKEN_IN_LOGS / RAW_REFRESH_COOKIE_IN_LOGS / RAW_BEARER_IN_LOGS / RAW_PROVIDER_TOKEN_IN_LOGS / RAW_DATABASE_PASSWORD_IN_LOGS / RAW_REDIS_PASSWORD_IN_LOGS / RAW_IMPORT_REVIEW_TOKEN_IN_LOGS = NO_FOR_TESTED_PATHS if this group passes. FINANCIAL_PAYLOAD_LOGGING_POLICY=NO_PAYLOAD_LOGGING_OBSERVED_IN_TESTED_PATHS; no universal repository policy is inferred. This is not process startup/shutdown logging verification or real dependency-client diagnostic redaction.
+
+CORS/Host: nine ordinary cases use the actual Fiber parser/handler via app.Test, not a deployed origin or browser. Allowed/disallowed/null/missing Origin, allowed/disallowed preflight, legitimate/arbitrary Host and forwarded host with HTTP/HTTPS proto are exercised. Allowed origin must receive exact ACAO and credentials true; others must receive neither. Preflight without permission still returns 204. Auth registration response records status, cache, Vary, ETag, Location, CSP and cookie count; cookies remain Secure and host-only. Host/proto changes must not introduce redirect or weaken those cookie/cache assertions. Backend CSP in this fixture is recorded as absent, not claimed present.
+
+Cache: existing auth lifecycle and authenticated portfolio success/error tests retain no-store assertions; the supported provider-unavailable response also asserts no-store. AUTHENTICATED_RESPONSE_PUBLIC_CACHE / PRIVATE_FINANCIAL_RESPONSE_PUBLIC_CACHE / SET_COOKIE_RESPONSE_PUBLIC_CACHE = NO_FOR_TESTED_RESPONSES. Public Next root and 404 remain recorded by the frontend group. No poisoning or CDN behavior is inferred.
+
+Errors: new supported-path sentinel bodies plus existing sanitized auth errors, ordinary 429/409, provider-unavailable 503 and readiness/health tests are collected independently. Redis fail-closed remains in the existing shared-budget group. New bodies scan synthetic credentials, panic/goroutine text, source-directory, SQL and DSN prefixes. STACK_TRACE_LEAK / FILESYSTEM_PATH_LEAK / SQL_TEXT_LEAK / DATABASE_CREDENTIAL_LEAK / REDIS_CREDENTIAL_LEAK / PROVIDER_TOKEN_LEAK / INTERNAL_ADDRESS_LEAK = NO_FOR_SCANNED_RESPONSES if the group passes. A dedicated new 403 sentinel fixture, all response-header metadata and process startup/shutdown diagnostics are not established by these assertions.
+
+PostgreSQL: dedicated real PostgreSQL 18 CI service, canonical owner migrations, existing runtime-role SQL and a separate runtime login. CREATE/ALTER/DROP TABLE, CREATE/DROP SCHEMA, CREATE EXTENSION file_fdw, ALTER owner ROLE, GRANT and REVOKE are each attempted in a transaction always rolled back. Each denial must have SQLSTATE 42501; arbitrary errors do not count. Owner/runtime identities must differ. Existing legitimate runtime auth/manual-valuation tests and timeout rollback/pool recovery run separately. Local integration skips are not credited. Final runtime permission result is determined by CI.
+
+Infrastructure inventory covers docker-compose.yml, both workflow files, scripts/apply-migrations.sh, scripts/bootstrap-local.sh and scripts/stage-03-04-smoke.sh. APPLICATION_PRODUCTION_CONTAINER_MANIFEST / DOCKERFILE / TERRAFORM / KUBERNETES / HELM / ECS / NOMAD / REVERSE_PROXY_CONFIG = ABSENT in reviewed deployment inventory. COMPOSE_POSTGRES_BINDING=`127.0.0.1:${POSTGRES_PORT:-5432}:5432`; COMPOSE_REDIS_BINDING=`127.0.0.1:${REDIS_PORT:-6379}:6379`. PRIVILEGED_CONFIGURATION / HOST_NETWORK_CONFIGURATION / CAPABILITIES_CONFIGURATION / SECURITY_OPT_CONFIGURATION / RUNTIME_USER_CONFIGURATION / READ_ONLY_FILESYSTEM_CONFIGURATION = NOT_SET. DEVICE_MOUNTS / DOCKER_SOCKET_MOUNTS / SECRET_BUILD_ARGS = NOT_PRESENT_IN_REVIEWED_ARTIFACTS. Compose uses named data volumes; CI service ports are runner fixture bindings. Compose password is an environment reference; literal workflow passwords are isolated test credentials. Two local scripts use sslmode=disable. Absence is not a deployed-control PASS.
+
+Frontend evidence is retained and rerun: source maps 0, public synthetic matches 0, local CSP/X-Frame-Options present, local HSTS/nosniff/referrer/permissions absent. No external-edge HSTS PASS.
+
+### NOT_VERIFIED_PRODUCTION_ONLY
+
+Nine distinct boundaries: actual edge topology/CIDRs; TLS/HTTPS/HSTS; provider-account quota; external server-side termination/recovery; multi-host orchestration; deployed container policy; third-party log aggregation; production PostgreSQL network/firewall/TLS; actual CDN behavior. NOT_VERIFIED_PRODUCTION_ONLY_COUNT=9. These are not converted to PASS by local conformance evidence.
+
+### NOT_EXECUTED_EXECUTOR_POLICY
+
+```
+FORWARDING_HEADER_ADVERSARIAL_SPOOFING_MATRIX=NOT_EXECUTED_EXECUTOR_POLICY
+REAL_BROWSER_CSRF_SESSION_RACE_MATRIX=NOT_EXECUTED_EXECUTOR_POLICY
+RESOURCE_EXHAUSTION_SOCKET_MATRIX=NOT_EXECUTED_EXECUTOR_POLICY
+CACHE_POISONING_ADVERSARIAL_MATRIX=NOT_EXECUTED_EXECUTOR_POLICY
+NOT_EXECUTED_EXECUTOR_POLICY_COUNT=4
+```
+
+Safe CORS/Host checks, existing proxy/auth/cache tests and bounded socket regressions are separate evidence and do not replace these matrices. All twelve historical residual dispositions remain visible above. NV-M12-07 now has limited repository log evidence; production aggregation remains NOT_VERIFIED.
+
+FULL_REQUESTED_CONTINUATION_COMPLETED=NO; SAFE_REQUESTED_SCOPE_COMPLETED=PARTIAL_WITH_EXPLICIT_LIMITS; CLOSURE_READINESS=NOT_ESTABLISHED. The safe startup/shutdown and complete all-status/all-header sentinel checks are not established. Zero new demonstrated findings in executed tests does not establish zero unresolved findings in unexecuted work. New exact-head CI identifiers and outcomes are returned in the final stop report.

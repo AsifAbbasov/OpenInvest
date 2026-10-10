@@ -1,12 +1,4 @@
 name: Module 12 V2 scoped verification
-on:
-  pull_request:
-    branches: [develop]
-    paths:
-      - scripts/audit/module12_v2_verify.py
-      - .github/workflows/module12-v2-verification.yml
-      - docs/audit/FINAL_PRODUCTION_FRONTEND_INFRA_HARDENING_ADVERSARIAL_AUDIT_V2.md
-  workflow_dispatch:
 permissions:
   contents: read
 concurrency:
@@ -21,56 +13,155 @@ jobs:
     services:
       redis:
         image: redis:8-alpine
-        ports: [6379:6379]
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 20
+        ports:
+        - 6379:6379
+        options: --health-cmd "redis-cli ping" --health-interval 5s --health-timeout
+          3s --health-retries 20
     env:
       OPENINVEST_SHARED_BUDGET_TEST_REDIS_URL: redis://127.0.0.1:6379/0
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
-        with:
-          go-version-file: backend-go/go.mod
-          cache-dependency-path: backend-go/go.sum
-      - name: Verify independent existing regression groups and collect all results
-        run: python3 scripts/audit/module12_v2_verify.py backend
-      - name: Preserve logs and summary even after a failure
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: module12-v2-backend-${{ github.event.pull_request.head.sha || github.sha }}
-          path: audit-artifacts/module12-v2/backend
-          if-no-files-found: error
-          retention-days: 14
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      with:
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+    - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+      with:
+        go-version-file: backend-go/go.mod
+        cache-dependency-path: backend-go/go.sum
+    - name: Verify independent existing regression groups and collect all results
+      run: python3 scripts/audit/module12_v2_verify.py backend
+    - name: Preserve logs and summary even after a failure
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: module12-v2-backend-${{ github.event.pull_request.head.sha || github.sha
+          }}
+        path: audit-artifacts/module12-v2/backend
+        if-no-files-found: error
+        retention-days: 14
   frontend:
     name: Production frontend artifact and runtime verification
     if: github.event_name == 'workflow_dispatch' || github.head_ref == 'audit/final-production-frontend-infra-hardening-v2'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version: "22.22.2"
-      - name: Enable repository-pinned pnpm
-        run: corepack enable && corepack prepare pnpm@11.8.0 --activate
-      - name: Install frozen frontend dependencies
-        working-directory: frontend-next
-        run: pnpm install --frozen-lockfile
-      - name: Verify build, public artifacts and local production runtime
-        run: python3 scripts/audit/module12_v2_verify.py frontend
-      - name: Preserve logs and summary even after a failure
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: module12-v2-frontend-${{ github.event.pull_request.head.sha || github.sha }}
-          path: audit-artifacts/module12-v2/frontend
-          if-no-files-found: error
-          retention-days: 14
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      with:
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      with:
+        node-version: 22.22.2
+    - name: Enable repository-pinned pnpm
+      run: corepack enable && corepack prepare pnpm@11.8.0 --activate
+    - name: Install frozen frontend dependencies
+      working-directory: frontend-next
+      run: pnpm install --frozen-lockfile
+    - name: Verify build, public artifacts and local production runtime
+      run: python3 scripts/audit/module12_v2_verify.py frontend
+    - name: Preserve logs and summary even after a failure
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: module12-v2-frontend-${{ github.event.pull_request.head.sha || github.sha
+          }}
+        path: audit-artifacts/module12-v2/frontend
+        if-no-files-found: error
+        retention-days: 14
+  safe-http:
+    name: Safe HTTP logs, CORS, Host and cache conformance
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'audit/final-production-frontend-infra-hardening-v2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      redis:
+        image: redis:8-alpine
+        ports:
+        - 6379:6379
+        options: --health-cmd "redis-cli ping" --health-interval 5s --health-timeout
+          3s --health-retries 20
+    env:
+      OPENINVEST_SHARED_BUDGET_TEST_REDIS_URL: redis://127.0.0.1:6379/0
+    steps:
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      with:
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+    - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+      with:
+        go-version-file: backend-go/go.mod
+        cache-dependency-path: backend-go/go.sum
+    - name: Verify independent existing regression groups and collect all results
+      run: python3 scripts/audit/module12_v2_verify.py safe-http
+    - name: Preserve logs and summary even after a failure
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: module12-v2-safe-http-${{ github.event.pull_request.head.sha || github.sha
+          }}
+        path: audit-artifacts/module12-v2/safe-http
+        if-no-files-found: error
+        retention-days: 14
+  postgres-runtime-role:
+    name: Isolated PostgreSQL runtime permission conformance
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'audit/final-production-frontend-infra-hardening-v2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: openinvest-safe-ci
+          POSTGRES_DB: openinvest
+        ports:
+        - 5432:5432
+        options: --health-cmd "pg_isready -U openinvest -d openinvest" --health-interval
+          5s --health-timeout 3s --health-retries 20
+    env:
+      OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-safe-ci@127.0.0.1:5432/openinvest?sslmode=disable
+      OPENINVEST_DATABASE_RUNTIME_TEST_URL: postgres://openinvest_runtime_safe_ci:openinvest-runtime-safe-ci@127.0.0.1:5432/openinvest?sslmode=disable
+    steps:
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      with:
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+    - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+      with:
+        go-version-file: backend-go/go.mod
+        cache-dependency-path: backend-go/go.sum
+    - name: Initialize isolated owner and existing runtime capability role
+      env:
+        OPENINVEST_DATABASE_OWNER_URL: postgres://openinvest:openinvest-safe-ci@127.0.0.1:5432/openinvest?sslmode=disable
+        PGPASSWORD: openinvest-safe-ci
+      run: 'bash scripts/apply-migrations.sh
+
+        psql -h 127.0.0.1 -U openinvest -d openinvest -v ON_ERROR_STOP=1 -f infrastructure/postgres/runtime/openinvest_runtime_role.sql
+
+        psql -h 127.0.0.1 -U openinvest -d openinvest -v ON_ERROR_STOP=1 <<''SQL''
+
+        CREATE ROLE openinvest_runtime_safe_ci LOGIN PASSWORD ''openinvest-runtime-safe-ci'';
+
+        GRANT openinvest_runtime TO openinvest_runtime_safe_ci;
+
+        SQL
+
+        '
+    - name: Verify independent existing regression groups and collect all results
+      run: python3 scripts/audit/module12_v2_verify.py postgres
+    - name: Preserve logs and summary even after a failure
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: module12-v2-postgres-${{ github.event.pull_request.head.sha || github.sha
+          }}
+        path: audit-artifacts/module12-v2/postgres
+        if-no-files-found: error
+        retention-days: 14
+'on':
+  pull_request:
+    branches:
+    - develop
+    paths:
+    - scripts/audit/module12_v2_verify.py
+    - .github/workflows/module12-v2-verification.yml
+    - docs/audit/FINAL_PRODUCTION_FRONTEND_INFRA_HARDENING_ADVERSARIAL_AUDIT_V2.md
+    - backend-go/internal/httpapi/module12_safe_conformance_test.go
+    - backend-go/internal/postgres/module12_safe_permissions_test.go
+  workflow_dispatch: null

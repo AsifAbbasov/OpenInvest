@@ -12,7 +12,7 @@ import urllib.request
 
 ROOT = Path(__file__).resolve().parents[2]
 parser = argparse.ArgumentParser()
-parser.add_argument('mode', choices=['frontend', 'backend'])
+parser.add_argument('mode', choices=['frontend', 'backend', 'safe-http', 'postgres'])
 parser.add_argument('--output', default='audit-artifacts/module12-v2')
 args = parser.parse_args()
 OUT = ROOT / args.output / args.mode
@@ -32,9 +32,9 @@ def command(name, argv, cwd, env=None, timeout=360):
         (OUT / (name + '.log')).write_bytes(run.stdout)
         record(name, 'PASS' if run.returncode == 0 else 'FAILED',
                {'returncode': run.returncode, 'log': name + '.log'})
-        if args.mode == 'backend':
+        if args.mode != 'frontend':
             for line in run.stdout.decode(errors='replace').splitlines():
-                if any(k in line for k in ['M12_', 'TOTAL_CANCELLATIONS=', 'FIRST_WAVE_REMOTE_',
+                if any(k in line for k in ['M12_', 'M12_SAFE_', 'TOTAL_CANCELLATIONS=', 'FIRST_WAVE_REMOTE_',
                                           'HOSTILE_NONCOOPERATIVE_', 'BOUNDARY_BURST_',
                                           'DOWNSTREAM_DISCONNECTS=', 'DETACHED_OPERATION_']):
                     print(line, flush=True)
@@ -66,6 +66,18 @@ if args.mode == 'backend':
                                './internal/provider/tinvest', '-run', '^' + name + '$', '-count=1']))
     for name, argv in commands:
         command(name, argv, cwd)
+elif args.mode in ['safe-http', 'postgres']:
+    cwd = ROOT / 'backend-go'
+    if args.mode == 'safe-http':
+        selectors = [('cors-host', '^TestModule12SafeCORSHostConformance$'), ('logs-errors', '^TestModule12SafeLogAndErrorConformance$'), ('sensitive-cache', '^TestSensitiveResponseCachePolicy'), ('supported-errors', 'TestAuthInfrastructureFailuresUseSanitizedInternalError|TestOINew03.*|TestCorporateActionProjectionReturns503WhenSourceIsUnavailable|TestAuthRateLimitedResponseIncludesRetryAfter|TestStage374HTTPMapsRevisionConflictAndRejectsMissingCorrectionSettlementField')]
+        package = './internal/httpapi'
+    else:
+        selectors = [('role-boundaries', '^TestModule12SafeRuntimePermissionConformance$'), ('legitimate-runtime', '^TestOINew01RequiredRuntime'), ('timeout-recovery', '^TestRuntimeTimeoutFailuresRollbackAndLeavePoolUsable$')]
+        package = './internal/postgres'
+        if not os.getenv('OPENINVEST_DATABASE_RUNTIME_TEST_URL'):
+            record('database-required', 'FAILED', {'reason': 'real PostgreSQL runtime URL missing'})
+    for name, selector in selectors:
+        command(name, ['go', 'test', '-race', '-v', '-timeout', '180s', package, '-run', selector, '-count=1'], cwd)
 else:
     cwd = ROOT / 'frontend-next'
     env = dict(os.environ, NEXT_TELEMETRY_DISABLED='1')
