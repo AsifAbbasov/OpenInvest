@@ -57,6 +57,8 @@ func writeCorporateActionProjectionError(c fiber.Ctx, err error) error {
 	case errors.Is(err, errCorporateActionProjectionRateLimited):
 		c.Set("Retry-After", corporateActionProjectionRateLimitRetryAfterSeconds)
 		return writeError(c, http.StatusTooManyRequests, "RATE_LIMITED", "Too many corporate actions requests")
+	case errors.Is(err, errCorporateActionProjectionAdmissionUnavailable):
+		return writeError(c, http.StatusServiceUnavailable, "CORPORATE_ACTIONS_SOURCE_UNAVAILABLE", "Corporate actions source is unavailable")
 	case errors.Is(err, verticalslice.ErrInvalidCorporateActionQuery):
 		return writeError(c, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
 	case errors.Is(err, verticalslice.ErrCorporateActionsProviderUnavailable):

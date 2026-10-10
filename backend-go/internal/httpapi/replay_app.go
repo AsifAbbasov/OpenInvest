@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/openinvest/openinvest/backend-go/internal/auth"
+	"github.com/openinvest/openinvest/backend-go/internal/sharedbudget"
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
@@ -25,7 +26,7 @@ func NewReplayWithCorporateActionProvider(
 	corporateActionProvider verticalslice.CorporateActionProvider,
 ) (*fiber.App, error) {
 	return newReplayWithCorporateActionProviderAndHTTPNetworkConfig(
-		service, authService, importReviewTokenSecret, corporateActionProvider, HTTPNetworkConfig{},
+		service, authService, importReviewTokenSecret, corporateActionProvider, nil, HTTPNetworkConfig{},
 		newDividendCalculatorRateLimiter(), nil,
 	)
 }
@@ -41,7 +42,7 @@ func NewReplayWithCorporateActionProviderAndHTTPNetworkConfig(
 	httpNetworkConfig HTTPNetworkConfig,
 ) (*fiber.App, error) {
 	return newReplayWithCorporateActionProviderAndHTTPNetworkConfig(
-		service, authService, importReviewTokenSecret, corporateActionProvider, httpNetworkConfig,
+		service, authService, importReviewTokenSecret, corporateActionProvider, nil, httpNetworkConfig,
 		newDividendCalculatorRateLimiter(), nil,
 	)
 }
@@ -57,7 +58,22 @@ func NewReplayRuntime(
 	requestLifecycle *RequestLifecycle,
 ) (*fiber.App, error) {
 	return newReplayWithCorporateActionProviderAndHTTPNetworkConfig(
-		service, authService, importReviewTokenSecret, corporateActionProvider, httpNetworkConfig,
+		service, authService, importReviewTokenSecret, corporateActionProvider, nil, httpNetworkConfig,
+		newDividendCalculatorRateLimiter(), requestLifecycle,
+	)
+}
+
+func NewReplayRuntimeWithSharedBudget(
+	service *verticalslice.Service,
+	authService *auth.Service,
+	importReviewTokenSecret []byte,
+	corporateActionProvider verticalslice.CorporateActionProvider,
+	corporateActionBudget sharedbudget.Authority,
+	httpNetworkConfig HTTPNetworkConfig,
+	requestLifecycle *RequestLifecycle,
+) (*fiber.App, error) {
+	return newReplayWithCorporateActionProviderAndHTTPNetworkConfig(
+		service, authService, importReviewTokenSecret, corporateActionProvider, corporateActionBudget, httpNetworkConfig,
 		newDividendCalculatorRateLimiter(), requestLifecycle,
 	)
 }
@@ -67,6 +83,7 @@ func newReplayWithCorporateActionProviderAndHTTPNetworkConfig(
 	authService *auth.Service,
 	importReviewTokenSecret []byte,
 	corporateActionProvider verticalslice.CorporateActionProvider,
+	corporateActionBudget sharedbudget.Authority,
 	httpNetworkConfig HTTPNetworkConfig,
 	dividendLimiter *authRateLimiter,
 	requestLifecycle *RequestLifecycle,
@@ -79,6 +96,7 @@ func newReplayWithCorporateActionProviderAndHTTPNetworkConfig(
 		service:                 service,
 		auth:                    authService,
 		corporateActionProvider: corporateActionProvider,
+		corporateActionBudget:   corporateActionBudget,
 		authLimiter:             newAuthRateLimiter(20, time.Minute),
 		authLoginIPLimiter:      newBoundedAuthRateLimiter(defaultAuthLoginIPLimit, defaultAuthRateLimiterGlobalLimit, defaultAuthRateLimiterMaxKeys, time.Minute),
 		authCredentialLimiter:   newBoundedAuthRateLimiter(defaultAuthCredentialLimit, defaultAuthRateLimiterGlobalLimit, defaultAuthCredentialMaxKeys, time.Minute),
@@ -107,7 +125,7 @@ func NewDevelopmentReplayWithCorporateActionProvider(
 	corporateActionProvider verticalslice.CorporateActionProvider,
 ) *fiber.App {
 	return newDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig(
-		service, corporateActionProvider, HTTPNetworkConfig{}, newDividendCalculatorRateLimiter(), nil,
+		service, corporateActionProvider, nil, HTTPNetworkConfig{}, newDividendCalculatorRateLimiter(), nil,
 	)
 }
 
@@ -119,7 +137,7 @@ func NewDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig(
 	httpNetworkConfig HTTPNetworkConfig,
 ) *fiber.App {
 	return newDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig(
-		service, corporateActionProvider, httpNetworkConfig, newDividendCalculatorRateLimiter(), nil,
+		service, corporateActionProvider, nil, httpNetworkConfig, newDividendCalculatorRateLimiter(), nil,
 	)
 }
 
@@ -132,13 +150,26 @@ func NewDevelopmentReplayRuntime(
 	requestLifecycle *RequestLifecycle,
 ) *fiber.App {
 	return newDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig(
-		service, corporateActionProvider, httpNetworkConfig, newDividendCalculatorRateLimiter(), requestLifecycle,
+		service, corporateActionProvider, nil, httpNetworkConfig, newDividendCalculatorRateLimiter(), requestLifecycle,
+	)
+}
+
+func NewDevelopmentReplayRuntimeWithSharedBudget(
+	service *verticalslice.Service,
+	corporateActionProvider verticalslice.CorporateActionProvider,
+	corporateActionBudget sharedbudget.Authority,
+	httpNetworkConfig HTTPNetworkConfig,
+	requestLifecycle *RequestLifecycle,
+) *fiber.App {
+	return newDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig(
+		service, corporateActionProvider, corporateActionBudget, httpNetworkConfig, newDividendCalculatorRateLimiter(), requestLifecycle,
 	)
 }
 
 func newDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig(
 	service *verticalslice.Service,
 	corporateActionProvider verticalslice.CorporateActionProvider,
+	corporateActionBudget sharedbudget.Authority,
 	httpNetworkConfig HTTPNetworkConfig,
 	dividendLimiter *authRateLimiter,
 	requestLifecycle *RequestLifecycle,
@@ -150,6 +181,7 @@ func newDevelopmentReplayWithCorporateActionProviderAndHTTPNetworkConfig(
 	return newReplayApp(&API{
 		service:                 service,
 		corporateActionProvider: corporateActionProvider,
+		corporateActionBudget:   corporateActionBudget,
 		allowDevelopmentSubject: true,
 		authLimiter:             newAuthRateLimiter(20, time.Minute),
 		authLoginIPLimiter:      newBoundedAuthRateLimiter(defaultAuthLoginIPLimit, defaultAuthRateLimiterGlobalLimit, defaultAuthRateLimiterMaxKeys, time.Minute),

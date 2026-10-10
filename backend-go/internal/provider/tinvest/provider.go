@@ -21,6 +21,7 @@ import (
 	"unicode"
 
 	"github.com/openinvest/openinvest/backend-go/internal/decimal"
+	"github.com/openinvest/openinvest/backend-go/internal/sharedbudget"
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
@@ -70,12 +71,13 @@ var canonicalInstrumentMappings = map[string]instrumentMapping{
 }
 
 type Provider struct {
-	client      *http.Client
-	clock       verticalslice.Clock
-	baseURL     *url.URL
-	token       string
-	semaphore   chan struct{}
-	requestGate *requestBudget
+	client       *http.Client
+	clock        verticalslice.Clock
+	baseURL      *url.URL
+	token        string
+	semaphore    chan struct{}
+	requestGate  *requestBudget
+	sharedBudget sharedbudget.Authority
 }
 
 var _ verticalslice.CorporateActionProvider = (*Provider)(nil)
@@ -84,7 +86,26 @@ func NewCorporateActionProvider(client *http.Client, clock verticalslice.Clock, 
 	return newCorporateActionProvider(client, clock, readOnlyToken, productionBaseURL)
 }
 
+func NewCorporateActionProviderWithSharedBudget(
+	client *http.Client,
+	clock verticalslice.Clock,
+	readOnlyToken string,
+	budget sharedbudget.Authority,
+) (*Provider, error) {
+	return newCorporateActionProviderWithSharedBudget(client, clock, readOnlyToken, productionBaseURL, budget)
+}
+
 func newCorporateActionProvider(client *http.Client, clock verticalslice.Clock, readOnlyToken string, baseURL string) (*Provider, error) {
+	return newCorporateActionProviderWithSharedBudget(client, clock, readOnlyToken, baseURL, nil)
+}
+
+func newCorporateActionProviderWithSharedBudget(
+	client *http.Client,
+	clock verticalslice.Clock,
+	readOnlyToken string,
+	baseURL string,
+	budget sharedbudget.Authority,
+) (*Provider, error) {
 	if client == nil {
 		return nil, errors.New("tinvest: http client is required")
 	}
@@ -111,12 +132,13 @@ func newCorporateActionProvider(client *http.Client, clock verticalslice.Clock, 
 	}
 
 	return &Provider{
-		client:      &clientCopy,
-		clock:       clock,
-		baseURL:     parsedBaseURL,
-		token:       readOnlyToken,
-		semaphore:   make(chan struct{}, maxConcurrency),
-		requestGate: newRequestBudget(maxRequestsPerMinute, time.Minute, time.Now),
+		client:       &clientCopy,
+		clock:        clock,
+		baseURL:      parsedBaseURL,
+		token:        readOnlyToken,
+		semaphore:    make(chan struct{}, maxConcurrency),
+		requestGate:  newRequestBudget(maxRequestsPerMinute, time.Minute, time.Now),
+		sharedBudget: budget,
 	}, nil
 }
 
@@ -379,9 +401,44 @@ func (provider *Provider) post(ctx context.Context, method string, payload corpo
 	if err := provider.acquire(ctx); err != nil {
 		return nil, err
 	}
-	defer func() { <-provider.semaphore }()
+	// The operation owns its slot until Do, body processing, and Close finish.
+	// Returning to a cancelled caller does not transfer or release ownership.
+	type result struct {
+		body []byte
+		err  error
+	}
+	operationContext, cancel := context.WithTimeout(context.WithoutCancel(ctx), requestTimeout)
+	completed := make(chan result, 1)
+	go func() {
+		defer cancel()
+		body, err := provider.postOwned(operationContext, method, payload)
+		<-provider.semaphore
+		completed <- result{body: body, err: err}
+	}()
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case outcome := <-completed:
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		if errors.Is(outcome.err, context.DeadlineExceeded) || errors.Is(outcome.err, context.Canceled) {
+			return nil, providerUnavailableError("provider transport reached local deadline")
+		}
+		return outcome.body, outcome.err
+	}
+}
 
-	if !provider.requestGate.Allow() {
+func (provider *Provider) postOwned(ctx context.Context, method string, payload corporateActionRequest) ([]byte, error) {
+	if provider.sharedBudget != nil {
+		allowed, err := provider.sharedBudget.AdmitProvider(ctx, maxRequestsPerMinute, time.Minute)
+		if err != nil {
+			return nil, providerUnavailableError("shared provider budget unavailable")
+		}
+		if !allowed {
+			return nil, providerUnavailableError("shared provider request budget exhausted")
+		}
+	} else if !provider.requestGate.Allow() {
 		return nil, providerUnavailableError("internal provider request budget exhausted")
 	}
 
@@ -406,7 +463,15 @@ func (provider *Provider) post(ctx context.Context, method string, payload corpo
 		return nil, providerUnavailableError("provider request failed")
 	}
 	defer response.Body.Close()
-	provider.requestGate.ObserveProviderHeaders(response.Header)
+	if provider.sharedBudget != nil {
+		if remaining, resetAfter, ok := providerAllowance(response.Header); ok {
+			if err := provider.sharedBudget.ObserveProviderAllowance(ctx, remaining, resetAfter); err != nil {
+				return nil, providerUnavailableError("shared provider allowance state unavailable")
+			}
+		}
+	} else {
+		provider.requestGate.ObserveProviderHeaders(response.Header)
+	}
 
 	switch {
 	case response.StatusCode == http.StatusUnauthorized,
@@ -725,28 +790,33 @@ func (budget *requestBudget) Allow() bool {
 	return true
 }
 
-func (budget *requestBudget) ObserveProviderHeaders(header http.Header) {
+func providerAllowance(header http.Header) (int, time.Duration, bool) {
 	remainingRaw := strings.TrimSpace(header.Get("X-RateLimit-Remaining"))
 	resetRaw := strings.TrimSpace(header.Get("X-RateLimit-Reset"))
 	if remainingRaw == "" || resetRaw == "" {
-		return
+		return 0, 0, false
 	}
 	remaining, err := strconv.Atoi(remainingRaw)
 	if err != nil || remaining < 0 {
-		return
+		return 0, 0, false
 	}
 	resetSeconds, err := strconv.Atoi(resetRaw)
-	if err != nil || resetSeconds < 0 || resetSeconds > 3600 {
+	if err != nil || resetSeconds <= 0 || resetSeconds > 3600 {
+		return 0, 0, false
+	}
+	return remaining, time.Duration(resetSeconds) * time.Second, true
+}
+
+func (budget *requestBudget) ObserveProviderHeaders(header http.Header) {
+	remaining, resetAfter, ok := providerAllowance(header)
+	if !ok {
 		return
 	}
 	budget.mu.Lock()
 	defer budget.mu.Unlock()
 	now := budget.now()
 	budget.expireRemoteLimit(now)
-	if resetSeconds == 0 {
-		return
-	}
-	resetAt := now.Add(time.Duration(resetSeconds) * time.Second)
+	resetAt := now.Add(resetAfter)
 	if budget.remoteResetAt.IsZero() {
 		budget.remoteRemaining = remaining
 		budget.remoteResetAt = resetAt
