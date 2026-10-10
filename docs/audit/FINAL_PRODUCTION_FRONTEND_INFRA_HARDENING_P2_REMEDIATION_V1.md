@@ -197,27 +197,84 @@ FD_PEAK=17
 FD_RECOVERY=9
 ```
 
-## Explicitly unexecuted hostile reproduction
+## Final non-cooperative upstream evidence gate
 
-The requested pre-fix/post-fix reproduction using an upstream that ignores socket
-cancellation indefinitely was not executed. The cooperative post-fix socket
-fixture and controlled local RoundTripper are not substitutes for that evidence.
-No pre-fix remote counts, hostile post-fix remote counts or reproduction outcome
-are invented.
+This evidence-only follow-up starts from independently reviewed PR head
+`b3b872795342d29312714c40a3fc8fcf3f1abe6c`, tree
+`7f959f844ae228c8884e97fba8208ec1b3ada16c`, whose protected CI run
+`38063030700` passed ten of ten jobs. That previous run is not credited as CI
+for the new evidence commit. No provider production or Redis implementation is
+changed by this follow-up. Only the permanent test, its explicit CI evidence
+invocation, and this report change.
+
+The accepted original audit evidence is retained without rerunning vulnerable
+code: 20 concurrent cancellations, local semaphore occupancy zero, 20 upstream
+handlers still active after 750 milliseconds, and zero upstream context
+cancellations. These are accepted pre-remediation audit measurements, not new
+measurements from this follow-up.
+
+`TestNoncooperativeUpstreamCannotRecycleCapacityOnCallerCancellation` uses a
+real httptest HTTP server and the normal Go HTTP transport. Its blocked upstream
+handler waits only for the explicit test release channel. It never exits on
+request-context cancellation, connection closure or a self-terminating timer.
+Remote active, maximum and total-started counters are independent of the client
+transport counters. Local operation observation extends through response-body
+closure, using the existing transparent transport instrumentation.
+
+Four requests enter the remote fixture; all four callers are then cancelled and
+must return context.Canceled within one shared one-second promptness deadline.
+After an additional 500 milliseconds, the test verifies four occupied slots,
+four local operations and four remote handlers. Four replacement attempts must
+fail closed without reaching the remote server. The measurement must complete
+at least one second before the provider's five-second timeout; scheduler delays
+that violate that bound fail the test rather than count as evidence.
+
+The test records its security counters before explicitly releasing handlers.
+It then observes zero slots, zero local operations and zero remote active
+handlers, switches the fixture to immediate success, and verifies a legitimate
+request plus bounded goroutine and descriptor recovery. Deferred release exists
+only as failure cleanup; successful measurements precede explicit release.
+Remote total/max counters below describe the blocked challenge phase, before
+the subsequent legitimate request in immediate-success mode.
+
+The final challenger passed locally with the race detector:
 
 ```text
-PRE_FIX_CALLER_CANCELLATION_AMPLIFICATION=NOT_EXECUTED
-PRE_FIX_FIRST_WAVE_REMOTE_ACTIVE=NOT_MEASURED
-PRE_FIX_SECOND_WAVE_REACHED_REMOTE=NOT_MEASURED
-PRE_FIX_REMOTE_MAX_ACTIVE=NOT_MEASURED
-POST_FIX_SECOND_WAVE_REACHED_REMOTE=NOT_MEASURED_FOR_HOSTILE_FIXTURE
-M12_P2_02_CALLER_CANCELLATION_AMPLIFICATION=DEFENSIVE_SCOPE_ONLY_PENDING_HOSTILE_VERIFICATION
+HOSTILE_NONCOOPERATIVE_UPSTREAM_TEST=PASS
+FIRST_WAVE_REMOTE_ACTIVE=4
+CALLERS_CANCELLED=4
+CALLERS_RETURNED_PROMPTLY=YES
+OBSERVATION_DELAY_MS=500
+PROVIDER_SEMAPHORE_IN_USE_AFTER_CANCEL=4
+LOCAL_PROVIDER_OPERATIONS_AFTER_CANCEL=4
+SECOND_WAVE_ATTEMPTS=4
+SECOND_WAVE_REACHED_REMOTE=0
+REMOTE_TOTAL_STARTED=4
+REMOTE_MAX_ACTIVE=4
+SEMAPHORE_AFTER_RELEASE=0
+LOCAL_PROVIDER_OPERATIONS_AFTER_RELEASE=0
+SUBSEQUENT_LEGITIMATE_REQUEST=PASS
+M12_P2_02_CALLER_CANCELLATION_AMPLIFICATION=REMEDIATED_REPOSITORY_SIDE
+LOCAL_PROVIDER_TRANSPORT_CONCURRENCY_BOUNDED=YES
+CALLER_CANCELLATION_CANNOT_RECYCLE_PROVIDER_CAPACITY_EARLY=YES
+M12_P2_01_REPOSITORY_SIDE=REMEDIATED
+M12_P2_01_ROLLING_WINDOW_SEMANTICS=PASS
 REAL_EXTERNAL_PROVIDER_SERVER_SIDE_CANCELLATION=NOT_VERIFIED
 REMOTE_PROVIDER_SERVER_SIDE_TERMINATION=NOT_VERIFIED
 ```
 
-External computations may continue after local transport closure. Neither local
-operation bounds nor shared request budgets prove arbitrary remote termination.
+This proves caller cancellation cannot recycle local capacity before the
+independently bounded operation reaches its local terminal condition. After
+that timeout closes the local transport, arbitrary remote computation may
+continue. Neither this challenger nor the shared request budget proves that
+external computation terminates. Remote provider termination remains a residual
+production/provider property.
+
+The permanent challenger is invoked explicitly in the existing protected CI
+Module 12 evidence step. Existing cooperative socket, hard-timeout, raw TCP,
+local lifetime, error recovery and all rolling/shared-replica regressions remain
+unchanged and are rerun. Exact final-head CI results are reported separately
+once all ten protected jobs complete.
 
 ## Execution and dependency evidence
 
