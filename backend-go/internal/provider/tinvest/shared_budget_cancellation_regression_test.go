@@ -295,9 +295,8 @@ func (transport operationLifetimeTransport) RoundTrip(request *http.Request) (*h
 	transport.active.Add(1)
 	defer transport.active.Add(-1)
 	transport.entered <- struct{}{}
-	<-request.Context().Done()
 	<-transport.release
-	return nil, request.Context().Err()
+	return nil, errors.New("controlled local transport completed")
 }
 
 func providerRegressionFDCount() int {

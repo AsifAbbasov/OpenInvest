@@ -68,14 +68,21 @@ OPENINVEST_TINVEST_GLOBAL_BUDGET_OWNER=verified-shared-provider-budget-v1
 
 That acknowledgement is not enforcement. Outside explicit development/local mode, provider activation
 also requires a reachable `OPENINVEST_SHARED_BUDGET_REDIS_URL`. The shared Redis authority owns the
-aggregate <=60 provider requests/minute budget across replicas and shares conservative
+aggregate <=60 provider requests in any rolling 60-second interval across replicas and shares conservative
 `X-RateLimit-Remaining` / `X-RateLimit-Reset` observations. The local provider concurrency bound of
 four remains process-local resource defense. Caller cancellation returns promptly, while the operation
-retains its slot until the locally owned HTTP operation and response-body closure complete. The local
-five-second deadline cancels the transport; elapsed time alone does not release the slot. This bounds
+uses a separate context with its own five-second deadline and retains its slot until the locally owned
+HTTP operation and response-body closure complete. Caller cancellation does not cancel that operation.
+The independent deadline cancels the transport; elapsed time alone does not release the slot. This bounds
 local operation ownership, not arbitrary remote server-side computation after a connection closes.
 External-provider server-side termination remains NOT_VERIFIED.
 
 Development/local mode does not require these deployment ownership acknowledgements because it is
 not a horizontally scaled production security boundary. Production fail-closed configuration tests
 must remain green whenever these ownership gates change.
+
+Shared endpoint and provider budgets use atomic Redis-time sorted-set rolling journals.
+An old string counter is conservatively converted to a full-window reservation,
+which can deny traffic for one window during a format transition. No window is
+reset early, and every journal has a bounded TTL. Production clock integrity and
+shared Redis namespace/topology must be verified by the deployment operator.

@@ -2,6 +2,7 @@ package sharedbudget
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -29,44 +30,59 @@ type RedisAuthority struct {
 	namespace string
 }
 
-var endpointAdmissionScript = redis.NewScript(`
-local global = tonumber(redis.call("GET", KEYS[1]) or "0")
-local client = tonumber(redis.call("GET", KEYS[2]) or "0")
-local global_limit = tonumber(ARGV[1])
-local client_limit = tonumber(ARGV[2])
-local ttl = tonumber(ARGV[3])
-if global >= global_limit or client >= client_limit then
-	return 0
+// Legacy string counters lack timestamps. Conservatively reserve a full
+// rolling allowance for one complete window when converting their key type.
+const legacyReservationScript = `
+local function reserve_legacy(key, limit, now, ttl)
+ redis.call("DEL", key)
+ for i = 1, limit do
+  redis.call("ZADD", key, now, "legacy-reservation:" .. i)
+ end
+ redis.call("PEXPIRE", key, ttl)
 end
-global = redis.call("INCR", KEYS[1])
-if global == 1 then
-	redis.call("PEXPIRE", KEYS[1], ttl)
+`
+
+var endpointAdmissionScript = redis.NewScript(legacyReservationScript + `
+local global_type = redis.call("TYPE", KEYS[1]).ok
+local client_type = redis.call("TYPE", KEYS[2]).ok
+if (global_type ~= "none" and global_type ~= "zset" and global_type ~= "string") or
+   (client_type ~= "none" and client_type ~= "zset" and client_type ~= "string") then return 0 end
+local time = redis.call("TIME")
+local now = tonumber(time[1]) * 1000000 + tonumber(time[2])
+if global_type == "string" or client_type == "string" then
+ if global_type == "string" then reserve_legacy(KEYS[1], tonumber(ARGV[1]), now, ARGV[4]) end
+ if client_type == "string" then reserve_legacy(KEYS[2], tonumber(ARGV[2]), now, ARGV[4]) end
+ return 0
 end
-client = redis.call("INCR", KEYS[2])
-if client == 1 then
-	redis.call("PEXPIRE", KEYS[2], ttl)
-end
+local cutoff = now - tonumber(ARGV[3])
+redis.call("ZREMRANGEBYSCORE", KEYS[1], "-inf", cutoff)
+redis.call("ZREMRANGEBYSCORE", KEYS[2], "-inf", cutoff)
+if redis.call("ZCARD", KEYS[1]) >= tonumber(ARGV[1]) or
+   redis.call("ZCARD", KEYS[2]) >= tonumber(ARGV[2]) then return 0 end
+redis.call("ZADD", KEYS[1], now, ARGV[5])
+redis.call("ZADD", KEYS[2], now, ARGV[5])
+redis.call("PEXPIRE", KEYS[1], ARGV[4])
+redis.call("PEXPIRE", KEYS[2], ARGV[4])
 return 1
 `)
 
-var providerAdmissionScript = redis.NewScript(`
-local used = tonumber(redis.call("GET", KEYS[1]) or "0")
-local limit = tonumber(ARGV[1])
-local ttl = tonumber(ARGV[2])
-if used >= limit then
-	return 0
+var providerAdmissionScript = redis.NewScript(legacyReservationScript + `
+local used_type = redis.call("TYPE", KEYS[1]).ok
+if used_type ~= "none" and used_type ~= "zset" and used_type ~= "string" then return 0 end
+local time = redis.call("TIME")
+local now = tonumber(time[1]) * 1000000 + tonumber(time[2])
+if used_type == "string" then
+ reserve_legacy(KEYS[1], tonumber(ARGV[1]), now, ARGV[3])
+ return 0
 end
+local cutoff = now - tonumber(ARGV[2])
+redis.call("ZREMRANGEBYSCORE", KEYS[1], "-inf", cutoff)
+if redis.call("ZCARD", KEYS[1]) >= tonumber(ARGV[1]) then return 0 end
 local remote = redis.call("GET", KEYS[2])
-if remote and tonumber(remote) <= 0 then
-	return 0
-end
-used = redis.call("INCR", KEYS[1])
-if used == 1 then
-	redis.call("PEXPIRE", KEYS[1], ttl)
-end
-if remote then
-	redis.call("DECR", KEYS[2])
-end
+if remote and tonumber(remote) <= 0 then return 0 end
+redis.call("ZADD", KEYS[1], now, ARGV[4])
+redis.call("PEXPIRE", KEYS[1], ARGV[3])
+if remote then redis.call("DECR", KEYS[2]) end
 return 1
 `)
 
@@ -133,8 +149,12 @@ func (authority *RedisAuthority) AdmitEndpoint(
 	if authority == nil || authority.client == nil {
 		return false, ErrUnavailable
 	}
-	if strings.TrimSpace(clientIdentity) == "" || clientLimit <= 0 || globalLimit <= 0 || window <= 0 {
+	if strings.TrimSpace(clientIdentity) == "" || clientLimit <= 0 || globalLimit <= 0 || window < time.Microsecond {
 		return false, errors.New("shared endpoint budget configuration is invalid")
+	}
+	member, err := admissionMember()
+	if err != nil {
+		return false, fmt.Errorf("%w: admission identity: %v", ErrUnavailable, err)
 	}
 	sum := sha256.Sum256([]byte(clientIdentity))
 	clientKey := authority.key("corporate-actions:endpoint:client:" + hex.EncodeToString(sum[:]))
@@ -147,7 +167,9 @@ func (authority *RedisAuthority) AdmitEndpoint(
 		[]string{globalKey, clientKey},
 		globalLimit,
 		clientLimit,
-		window.Milliseconds(),
+		windowMicroseconds(window),
+		windowTTL(window),
+		member,
 	).Int64()
 	if err != nil {
 		return false, fmt.Errorf("%w: endpoint admission: %v", ErrUnavailable, err)
@@ -159,8 +181,12 @@ func (authority *RedisAuthority) AdmitProvider(ctx context.Context, limit int, w
 	if authority == nil || authority.client == nil {
 		return false, ErrUnavailable
 	}
-	if limit <= 0 || window <= 0 {
+	if limit <= 0 || window < time.Microsecond {
 		return false, errors.New("shared provider budget configuration is invalid")
+	}
+	member, err := admissionMember()
+	if err != nil {
+		return false, fmt.Errorf("%w: admission identity: %v", ErrUnavailable, err)
 	}
 	ctx, cancel := authority.operationContext(ctx)
 	defer cancel()
@@ -172,7 +198,9 @@ func (authority *RedisAuthority) AdmitProvider(ctx context.Context, limit int, w
 			authority.key("tinvest:provider:remote-remaining"),
 		},
 		limit,
-		window.Milliseconds(),
+		windowMicroseconds(window),
+		windowTTL(window),
+		member,
 	).Int64()
 	if err != nil {
 		return false, fmt.Errorf("%w: provider admission: %v", ErrUnavailable, err)
@@ -220,4 +248,28 @@ func (authority *RedisAuthority) operationContext(parent context.Context) (conte
 		return context.WithCancel(parent)
 	}
 	return context.WithTimeout(parent, operationTimeout)
+}
+
+func admissionMember() (string, error) {
+	var nonce [16]byte
+	if _, err := rand.Read(nonce[:]); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(nonce[:]), nil
+}
+
+func windowTTL(window time.Duration) int64 {
+	ttl := window.Milliseconds()
+	if window%time.Millisecond != 0 {
+		ttl++
+	}
+	return ttl
+}
+
+func windowMicroseconds(window time.Duration) int64 {
+	value := window.Microseconds()
+	if window%time.Microsecond != 0 {
+		value++
+	}
+	return value
 }

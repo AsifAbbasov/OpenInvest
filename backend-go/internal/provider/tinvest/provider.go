@@ -407,7 +407,7 @@ func (provider *Provider) post(ctx context.Context, method string, payload corpo
 		body []byte
 		err  error
 	}
-	operationContext, cancel := context.WithTimeout(ctx, requestTimeout)
+	operationContext, cancel := context.WithTimeout(context.WithoutCancel(ctx), requestTimeout)
 	completed := make(chan result, 1)
 	go func() {
 		defer cancel()
@@ -417,7 +417,6 @@ func (provider *Provider) post(ctx context.Context, method string, payload corpo
 	}()
 	select {
 	case <-ctx.Done():
-		cancel()
 		return nil, ctx.Err()
 	case outcome := <-completed:
 		if err := ctx.Err(); err != nil {
