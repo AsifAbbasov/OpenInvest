@@ -86,7 +86,7 @@ else:
     sentinels = {key: 'M12V2_SYNTHETIC_' + key + '_d6c24017'
                  for key in ['ACCESS_TOKEN', 'REFRESH_COOKIE', 'AUTHORIZATION_BEARER',
                              'PROVIDER_TOKEN', 'DATABASE_URL_PASSWORD', 'REDIS_URL_PASSWORD',
-                             'IMPORT_REVIEW_TOKEN', 'FINANCIAL_PAYLOAD_SENTINEL']}
+                             'IMPORT_REVIEW_TOKEN', 'CSRF_TOKEN', 'FINANCIAL_PAYLOAD_SENTINEL', 'USER_EMAIL_SENTINEL']}
     # Synthetic private build inputs only; no production credentials or API calls.
     env.update(sentinels)
     env['OPENINVEST_TINVEST_TOKEN'] = sentinels['PROVIDER_TOKEN']

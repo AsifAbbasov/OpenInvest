@@ -23,7 +23,7 @@ func TestModule12ApplicationDiagnosticCapture(t *testing.T) {
 	// and production credentials from reaching this fixture.
 	command.Env = []string{"M12_LOG_CAPTURE_CHILD=1", "OPENINVEST_ENV=production", "DATABASE_URL="}
 	var sentinels []string
-	for _, category := range []string{"ACCESS_TOKEN", "REFRESH_COOKIE", "AUTHORIZATION_BEARER", "PROVIDER_TOKEN", "DATABASE_PASSWORD", "REDIS_PASSWORD", "IMPORT_REVIEW_TOKEN", "CSRF_TOKEN", "FINANCIAL_PAYLOAD_SENTINEL"} {
+	for _, category := range []string{"ACCESS_TOKEN", "REFRESH_COOKIE", "AUTHORIZATION_BEARER", "PROVIDER_TOKEN", "DATABASE_PASSWORD", "REDIS_PASSWORD", "IMPORT_REVIEW_TOKEN", "CSRF_TOKEN", "FINANCIAL_PAYLOAD_SENTINEL", "USER_EMAIL_SENTINEL"} {
 		value := "M12_DIAGNOSTIC_" + category + "_43851f"
 		sentinels = append(sentinels, value)
 		command.Env = append(command.Env, category+"="+value)

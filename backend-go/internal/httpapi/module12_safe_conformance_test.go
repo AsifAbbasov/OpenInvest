@@ -78,7 +78,7 @@ func TestModule12SafeCORSHostConformance(t *testing.T) {
 
 func TestModule12SafeLogAndErrorConformance(t *testing.T) {
 	values := map[string]string{}
-	for _, k := range []string{"ACCESS_TOKEN", "REFRESH_COOKIE", "AUTHORIZATION_BEARER", "PROVIDER_TOKEN", "DATABASE_PASSWORD", "REDIS_PASSWORD", "IMPORT_REVIEW_TOKEN", "CSRF_TOKEN", "FINANCIAL_PAYLOAD_SENTINEL"} {
+	for _, k := range []string{"ACCESS_TOKEN", "REFRESH_COOKIE", "AUTHORIZATION_BEARER", "PROVIDER_TOKEN", "DATABASE_PASSWORD", "REDIS_PASSWORD", "IMPORT_REVIEW_TOKEN", "CSRF_TOKEN", "FINANCIAL_PAYLOAD_SENTINEL", "USER_EMAIL_SENTINEL"} {
 		values[k] = "M12_SAFE_" + k + "_7654c9"
 	}
 	oldOut, oldErr, oldLog := os.Stdout, os.Stderr, log.Writer()
@@ -128,7 +128,8 @@ func TestModule12SafeLogAndErrorConformance(t *testing.T) {
 			store.findErr = fmt.Errorf("synthetic dependency unavailable postgres://fixture:password@db.internal:5432/db redis://redis.internal:6379 /workspace/private/store.go SELECT secret: %s", strings.Join(all, " "))
 		}
 		app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
-		req := httptest.NewRequest(tc.method, tc.path, strings.NewReader(tc.body))
+		body := strings.ReplaceAll(tc.body, "logs@example.test", values["USER_EMAIL_SENTINEL"]+"@example.test")
+		req := httptest.NewRequest(tc.method, tc.path, strings.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+values["AUTHORIZATION_BEARER"])
 		req.Header.Set("Cookie", "refresh="+values["REFRESH_COOKIE"])
@@ -163,5 +164,5 @@ func TestModule12SafeLogAndErrorConformance(t *testing.T) {
 	for _, f := range failures {
 		t.Error(f)
 	}
-	t.Logf("M12_SAFE_LOG_ERROR_CASES=5 CAPTURED_LOG_BYTES=%d SENTINEL_CATEGORIES=9 FINANCIAL_POLICY=NO_PAYLOAD_LOGGING_OBSERVED_IN_TESTED_PATHS", len(output))
+	t.Logf("M12_SAFE_LOG_ERROR_CASES=5 CAPTURED_LOG_BYTES=%d SENTINEL_CATEGORIES=10 FINANCIAL_POLICY=NO_PAYLOAD_LOGGING_OBSERVED_IN_TESTED_PATHS", len(output))
 }

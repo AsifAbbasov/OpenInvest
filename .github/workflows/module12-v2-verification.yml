@@ -17,6 +17,9 @@ on:
 permissions:
   contents: read
 
+env:
+  OPENINVEST_MODULE12_V2_ADVERSARIAL: "1"
+
 concurrency:
   group: module12-v2-adversarial-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: false
