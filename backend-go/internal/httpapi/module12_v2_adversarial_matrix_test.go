@@ -163,6 +163,56 @@ func TestModule12V2ForwardedHeaderIdentityAdversarialMatrix(t *testing.T) {
 		})
 	}
 
+	for _, campaign := range []struct {
+		name string
+		header func(int) http.Header
+	}{
+		{
+			name: "trusted_proxy_spoof_prefix_rotation",
+			header: func(i int) http.Header {
+				return http.Header{"X-Forwarded-For": {fmt.Sprintf("198.51.100.%d, 203.0.113.99", 40+i)}}
+			},
+		},
+		{
+			name: "trusted_proxy_duplicate_xff_rotation",
+			header: func(i int) http.Header {
+				return http.Header{"X-Forwarded-For": {fmt.Sprintf("198.51.100.%d", 40+i), "203.0.113.99"}}
+			},
+		},
+		{
+			name: "trusted_proxy_conflicting_family_rotation",
+			header: func(i int) http.Header {
+				return http.Header{
+					"X-Forwarded-For": {"203.0.113.99"},
+					"Forwarded": {fmt.Sprintf("for=198.51.100.%d", 40+i)},
+					"CF-Connecting-IP": {fmt.Sprintf("192.0.2.%d", 40+i)},
+					"X-Real-IP": {fmt.Sprintf("198.18.0.%d", 40+i)},
+				}
+			},
+		},
+	} {
+		campaign := campaign
+		t.Run(campaign.name, func(t *testing.T) {
+			server := startM12V2Listener(t, m12V2IdentityApp(t, trusted, 12))
+			admitted := 0
+			resolved := ""
+			for i := 0; i < 36; i++ {
+				h := campaign.header(i)
+				identityResp := m12V2Do(t, http.MethodGet, server.url+"/m12/identity", h, "")
+				b, _ := io.ReadAll(identityResp.Body)
+				identityResp.Body.Close()
+				resolved = strings.TrimSpace(string(b))
+				resp := m12V2Do(t, http.MethodGet, server.url+"/m12/rate", h, "")
+				if resp.StatusCode == http.StatusOK { admitted++ }
+				resp.Body.Close()
+			}
+			t.Logf("CASE=%s MODE=TRUSTED_PROXY RESOLVED_CLIENT_IDENTITY=%s STATUS=MIXED_200_429 RATE_LIMIT_ADMITTED=%d PROVIDER_CALLS=0 EXPECTED_MAX=12", campaign.name, resolved, admitted)
+			if admitted > 12 {
+				t.Errorf("HEADER_IDENTITY_BUDGET_BYPASS=YES campaign=%s admitted=%d", campaign.name, admitted)
+			}
+		})
+	}
+
 	s := startM12V2Listener(t, m12V2IdentityApp(t, untrusted, 12))
 	admitted := 0
 	for i := 0; i < 36; i++ {
