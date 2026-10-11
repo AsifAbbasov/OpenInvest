@@ -238,3 +238,21 @@ Production-only boundaries remain NOT_VERIFIED: real external provider budget an
 `REMEDIATION_AUTHORIZED=NO`; `APPROVE_FOR_MERGE=NO`; `FORMAL_MODULE_12_CLOSED=NO`; `FINAL_REPOSITORY_WIDE_ASSAULT_STARTED=NO`.
 
 A new exact-head CI and specialized run are required after this audit-harness correction. Their IDs, exact head/tree and final pass/fail counts are emitted in the STOP report; no pre-correction run is substituted as final-head evidence.
+
+
+## Finalization note before exact-head gate
+
+The controlled adversarial continuation is now repository-side complete for the requested A-H test harnesses. The final pre-report exact-head execution revalidated one retained product security finding and no additional product finding:
+
+`ID=M12-V2-CORS-01` (alias of `M12V2-P3-01`)  
+`SEVERITY=P3`  
+`BOUNDARY=CORS duplicate Origin parsing`  
+`LOCAL_REPRODUCER=OPTIONS /api/v1/auth/register with two conflicting Origin header fields: one configured allowed origin and one disallowed origin`  
+`OBSERVED_RESULT=repository-owned local Fiber listener returned 204 with Access-Control-Allow-Origin set to the allowed origin and Access-Control-Allow-Credentials=true instead of failing closed on the ambiguous duplicate Origin representation`  
+`SECURITY_IMPACT=credentialed CORS parser-normalization ambiguity/hardening weakness; ordinary browser JavaScript duplicate-Origin exploitation was not reproduced`  
+`CLASSIFICATION=PRODUCT_SECURITY_FINDING`  
+`AUTO_REMEDIATE=NO`
+
+The same execution showed the other specialized groups passing: browser auth/CSRF race, shared-budget cancellation, bounded socket matrix, error metadata, frontend production runtime, PostgreSQL runtime role, forwarded-header identity matrix and log-redaction matrix. The only specialized failure was the intentionally retained CORS finding above. Normal CI on the pre-finalization head completed all 10 configured jobs successfully. Exact-head run IDs for the report commit itself are intentionally not embedded here, because embedding them would create another commit and invalidate exact-head evidence; they are emitted in the external STOP REPORT after this report commit's workflows complete.
+
+No product/runtime implementation was changed. No remediation was authorized. PR #246 must remain OPEN, DRAFT and UNMERGED. Formal Module 12 closure remains NO because a P3 product finding is retained for independent review/remediation.
