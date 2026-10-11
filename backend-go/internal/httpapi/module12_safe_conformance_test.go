@@ -220,12 +220,23 @@ func TestModule12SafeLogAndErrorConformance(t *testing.T) {
 		}
 	}
 
-	// Exercise the real auth limiter until a repository-owned 429 is returned.
-	rateApp := newHTTPAuthApp(t, newHTTPAuthService(t, &httpAuthTestStore{}))
+	// Exercise the real per-credential auth limiter until a repository-owned
+	// 429 is returned. Registration creates the synthetic identity; repeated
+	// wrong-password logins are bounded and never use a real credential.
+	rateStore := &httpAuthTestStore{}
+	rateApp := newHTTPAuthApp(t, newHTTPAuthService(t, rateStore))
+	registerBody := `{"email":"m12-rate@example.test","password":"correct horse battery staple","language":"en","theme":"system","timezone":"UTC"}`
+	registerReq := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(registerBody))
+	registerReq.Header.Set("Content-Type", "application/json")
+	registerResp, registerErr := rateApp.Test(registerReq)
+	if registerErr != nil || registerResp.StatusCode != http.StatusCreated {
+		failures = append(failures, "rate_limit: synthetic registration failed")
+	}
+	if registerResp != nil { registerResp.Body.Close() }
 	rateStatus := 0
-	for i := 0; i < 25; i++ {
-		body := fmt.Sprintf(`{"email":"m12-rate-%d@example.test","password":"correct horse battery staple","language":"en","theme":"system","timezone":"UTC"}`, i)
-		req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(body))
+	for i := 0; i < defaultAuthCredentialLimit+2; i++ {
+		body := `{"email":"m12-rate@example.test","password":"definitely wrong synthetic password"}`
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", strings.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+values["AUTHORIZATION_BEARER"])
 		resp, e := rateApp.Test(req)
