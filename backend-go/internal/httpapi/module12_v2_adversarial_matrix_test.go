@@ -261,7 +261,7 @@ func TestModule12V2CacheCORSHostBoundaryAdversarialMatrix(t *testing.T) {
 		{"disallowed_origin","POST","/api/v1/auth/register","https://evil.example.test","api.example.test","{}",nil,false,true},
 		{"origin_null","POST","/api/v1/auth/register","null","api.example.test","{}",nil,false,true},
 		{"missing_origin","GET","/api/v1/portfolios","","api.example.test","",nil,false,true},
-		{"duplicate_equal_origin","OPTIONS","/api/v1/auth/register","","api.example.test","",http.Header{"Origin":{"https://allowed.example.test","https://allowed.example.test"},"Access-Control-Request-Method":{"POST"}},true,false},
+		{"duplicate_equal_origin","OPTIONS","/api/v1/auth/register","","api.example.test","",http.Header{"Origin":{"https://allowed.example.test","https://allowed.example.test"},"Access-Control-Request-Method":{"POST"}},false,false},
 		{"duplicate_conflicting_origin","OPTIONS","/api/v1/auth/register","","api.example.test","",http.Header{"Origin":{"https://allowed.example.test","https://evil.example.test"},"Access-Control-Request-Method":{"POST"}},false,false},
 		{"comma_combined_origin","OPTIONS","/api/v1/auth/register","https://allowed.example.test, https://evil.example.test","api.example.test","",http.Header{"Access-Control-Request-Method":{"POST"}},false,false},
 		{"arbitrary_host","POST","/api/v1/auth/register","https://allowed.example.test","attacker.example.test","{}",nil,true,true},
@@ -293,6 +293,12 @@ func TestModule12V2CacheCORSHostBoundaryAdversarialMatrix(t *testing.T) {
 				if acao != expectedOrigin || acac != "true" { t.Errorf("allowed origin mismatch ACAO=%q ACAC=%q", acao, acac) }
 			} else if acao != "" || acac != "" {
 				t.Errorf("ambiguous/disallowed origin authorized ACAO=%q ACAC=%q", acao, acac)
+			}
+			if (c.name == "duplicate_equal_origin" ||
+				c.name == "duplicate_conflicting_origin" ||
+				c.name == "comma_combined_origin") &&
+				resp.StatusCode != http.StatusBadRequest {
+				t.Errorf("ambiguous origin did not fail closed status=%d", resp.StatusCode)
 			}
 			if resp.Header.Get("Location") != "" { t.Errorf("host/proto controlled redirect %q", resp.Header.Get("Location")) }
 			for _, cookie := range resp.Cookies() {
