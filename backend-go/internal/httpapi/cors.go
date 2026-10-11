@@ -8,7 +8,20 @@ import (
 )
 
 func localDevelopmentCORS(c fiber.Ctx) error {
-	origin := strings.TrimSpace(c.Get("Origin"))
+	// Origin is not a list-valued header. Inspect every field before using
+	// its value so duplicates cannot be hidden by a single-value lookup.
+	origins := c.Request().Header.PeekAll("Origin")
+	if len(origins) > 1 {
+		return c.SendStatus(http.StatusBadRequest)
+	}
+	origin := ""
+	if len(origins) == 1 {
+		origin = strings.TrimSpace(string(origins[0]))
+		// Intermediaries may combine repeated fields into one comma list.
+		if strings.Contains(origin, ",") {
+			return c.SendStatus(http.StatusBadRequest)
+		}
+	}
 	if origin != "" && allowedWebOrigin(origin) {
 		c.Set("Access-Control-Allow-Origin", origin)
 		c.Set("Access-Control-Allow-Credentials", "true")
