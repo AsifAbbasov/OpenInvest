@@ -78,6 +78,8 @@ elif args.mode in ['safe-http', 'postgres']:
             record('database-required', 'FAILED', {'reason': 'real PostgreSQL runtime URL missing'})
     for name, selector in selectors:
         command(name, ['go', 'test', '-race', '-v', '-timeout', '180s', package, '-run', selector, '-count=1'], cwd)
+    if args.mode == 'safe-http':
+        command('application-diagnostic-capture', ['go', 'test', '-race', '-v', '-timeout', '30s', './cmd/api', '-run', '^TestModule12ApplicationDiagnosticCapture$', '-count=1'], cwd)
 else:
     cwd = ROOT / 'frontend-next'
     env = dict(os.environ, NEXT_TELEMETRY_DISABLED='1')

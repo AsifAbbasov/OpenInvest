@@ -164,4 +164,5 @@ jobs:
     - docs/audit/FINAL_PRODUCTION_FRONTEND_INFRA_HARDENING_ADVERSARIAL_AUDIT_V2.md
     - backend-go/internal/httpapi/module12_safe_conformance_test.go
     - backend-go/internal/postgres/module12_safe_permissions_test.go
+    - backend-go/cmd/api/module12_log_capture_test.go
   workflow_dispatch: null
