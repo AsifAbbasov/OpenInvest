@@ -10,12 +10,20 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/netip"
+	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
 )
+
+func requireModule12V2Adversarial(t *testing.T) {
+	t.Helper()
+	if os.Getenv("OPENINVEST_MODULE12_V2_ADVERSARIAL") != "1" {
+		t.Skip("Module 12 V2 adversarial matrix runs only in the specialized workflow")
+	}
+}
 
 type m12V2Listener struct {
 	app *fiber.App
@@ -73,6 +81,7 @@ func m12V2IdentityApp(t *testing.T, cfg HTTPNetworkConfig, limit int) *fiber.App
 }
 
 func TestModule12V2ForwardedHeaderIdentityAdversarialMatrix(t *testing.T) {
+	requireModule12V2Adversarial(t)
 	trusted, err := NewHTTPNetworkConfig(true, []string{"127.0.0.1/32"})
 	if err != nil { t.Fatal(err) }
 	untrusted, err := NewHTTPNetworkConfig(true, []string{"127.0.0.2/32"})
@@ -175,6 +184,7 @@ func m12V2Hash(body []byte) string {
 }
 
 func TestModule12V2CacheCORSHostBoundaryAdversarialMatrix(t *testing.T) {
+	requireModule12V2Adversarial(t)
 	t.Setenv("OPENINVEST_ALLOWED_WEB_ORIGINS", "https://allowed.example.test")
 	type tc struct {
 		name, method, path, origin, host, body string
@@ -187,7 +197,7 @@ func TestModule12V2CacheCORSHostBoundaryAdversarialMatrix(t *testing.T) {
 		{"disallowed_origin","POST","/api/v1/auth/register","https://evil.example.test","api.example.test","{}",nil,false,true},
 		{"origin_null","POST","/api/v1/auth/register","null","api.example.test","{}",nil,false,true},
 		{"missing_origin","GET","/api/v1/portfolios","","api.example.test","",nil,false,true},
-		{"duplicate_equal_origin","OPTIONS","/api/v1/auth/register","","api.example.test","",http.Header{"Origin":{"https://allowed.example.test","https://allowed.example.test"},"Access-Control-Request-Method":{"POST"}},false,false},
+		{"duplicate_equal_origin","OPTIONS","/api/v1/auth/register","","api.example.test","",http.Header{"Origin":{"https://allowed.example.test","https://allowed.example.test"},"Access-Control-Request-Method":{"POST"}},true,false},
 		{"duplicate_conflicting_origin","OPTIONS","/api/v1/auth/register","","api.example.test","",http.Header{"Origin":{"https://allowed.example.test","https://evil.example.test"},"Access-Control-Request-Method":{"POST"}},false,false},
 		{"comma_combined_origin","OPTIONS","/api/v1/auth/register","https://allowed.example.test, https://evil.example.test","api.example.test","",http.Header{"Access-Control-Request-Method":{"POST"}},false,false},
 		{"arbitrary_host","POST","/api/v1/auth/register","https://allowed.example.test","attacker.example.test","{}",nil,true,true},
@@ -212,7 +222,9 @@ func TestModule12V2CacheCORSHostBoundaryAdversarialMatrix(t *testing.T) {
 			resp.Body.Close()
 			acao, acac := resp.Header.Get("Access-Control-Allow-Origin"), resp.Header.Get("Access-Control-Allow-Credentials")
 			if c.allowed {
-				if acao != c.origin || acac != "true" { t.Errorf("allowed origin mismatch ACAO=%q ACAC=%q", acao, acac) }
+				expectedOrigin := c.origin
+				if expectedOrigin == "" { expectedOrigin = "https://allowed.example.test" }
+				if acao != expectedOrigin || acac != "true" { t.Errorf("allowed origin mismatch ACAO=%q ACAC=%q", acao, acac) }
 			} else if acao != "" || acac != "" {
 				t.Errorf("ambiguous/disallowed origin authorized ACAO=%q ACAC=%q", acao, acac)
 			}

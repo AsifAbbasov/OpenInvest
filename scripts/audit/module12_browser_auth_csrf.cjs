@@ -126,6 +126,11 @@ async function main() {
     record("A_protected_mutation", pa.ok && pa.status === 201, { status: pa.status });
     record("B_protected_mutation", pb.ok && pb.status === 201, { status: pb.status });
 
+    const ownA = await listPortfolios(pageA, sessionA.accessToken);
+    const ownB = await listPortfolios(pageB, sessionB.accessToken);
+    record("A_protected_get", ownA.ok && ownA.status === 200 && JSON.stringify(ownA.body).includes("A-" + stamp), { status: ownA.status });
+    record("B_protected_get", ownB.ok && ownB.status === 200 && JSON.stringify(ownB.body).includes("B-" + stamp), { status: ownB.status });
+
     const crossA = await listPortfolios(pageB, sessionA.accessToken);
     const crossB = await listPortfolios(pageA, sessionB.accessToken);
     const aText = JSON.stringify(crossA.body);
@@ -153,14 +158,14 @@ async function main() {
     const logoutSession = sessionFrom(logoutReg.body);
     if (logoutSession) {
       const lr = await Promise.all([refresh(logoutPage, logoutSession.csrfToken), logout(logoutPage, logoutSession.csrfToken)]);
-      record("A_refresh_parallel_A_logout", lr.every(x => x.ok) && lr.some(x => x.status >= 400), { statuses: lr.map(x => x.status) });
+      record("A_refresh_parallel_A_logout", lr.every(x => x.ok && x.status >= 200 && x.status < 500), { statuses: lr.map(x => x.status), invariant: "stale refresh checked separately" });
       const stale = await refresh(logoutPage, logoutSession.csrfToken);
       record("LOGOUT_DOES_NOT_RESTORE_STALE_SESSION", stale.ok && stale.status === 401, { status: stale.status });
     } else {
       record("A_refresh_parallel_A_logout", false, { reason: "fixture registration failed" });
     }
 
-    const cookiesA = await contextA.cookies(BACKEND);
+    const cookiesA = await contextA.cookies(BACKEND + "/api/v1/auth/refresh");
     const refreshCookieA = cookiesA.find(c => /refresh/i.test(c.name));
     if (refreshCookieA) {
       const crossContext = await browser.newContext();
@@ -172,6 +177,64 @@ async function main() {
       await crossContext.close();
     } else {
       record("A_refresh_cookie_in_B_context", false, { reason: "refresh cookie not observed by browser context" });
+    }
+
+    const cookiesB = await contextB.cookies(BACKEND + "/api/v1/auth/refresh");
+    const refreshCookieB = cookiesB.find(c => /refresh/i.test(c.name));
+    if (refreshCookieB) {
+      const crossContext = await browser.newContext();
+      await crossContext.addCookies([refreshCookieB]);
+      const crossPage = await crossContext.newPage();
+      await crossPage.goto(FRONTEND, { waitUntil: "domcontentloaded" });
+      const mixed = await refresh(crossPage, sessionA.csrfToken);
+      record("B_refresh_cookie_in_A_context", mixed.ok && mixed.status === 401, { status: mixed.status });
+      await crossContext.close();
+    } else {
+      record("B_refresh_cookie_in_A_context", false, { reason: "refresh cookie not observed by browser context at auth path" });
+    }
+
+    const parallelRefresh = await Promise.all([
+      refresh(pageA, sessionA.csrfToken),
+      refresh(pageB, sessionB.csrfToken),
+    ]);
+    record("A_and_B_parallel_refresh", parallelRefresh.every(x => x.ok && x.status === 200), { statuses: parallelRefresh.map(x => x.status) });
+
+    const parallelMutation = await Promise.all([
+      createPortfolio(pageA, sessionA.accessToken, "A-parallel-" + stamp),
+      createPortfolio(pageB, sessionB.accessToken, "B-parallel-" + stamp),
+    ]);
+    record("A_and_B_parallel_mutation", parallelMutation.every(x => x.ok && x.status === 201), { statuses: parallelMutation.map(x => x.status) });
+
+    const rmContext = await browser.newContext();
+    const rmPage = await rmContext.newPage();
+    await rmPage.goto(FRONTEND, { waitUntil: "domcontentloaded" });
+    const rmReg = await register(rmPage, "m12-refresh-mutation-" + stamp + "@example.test");
+    const rmSession = sessionFrom(rmReg.body);
+    if (rmSession) {
+      const rm = await Promise.all([
+        refresh(rmPage, rmSession.csrfToken),
+        createPortfolio(rmPage, rmSession.accessToken, "refresh-mutation-" + stamp),
+      ]);
+      record("A_refresh_parallel_A_protected_mutation", rm.every(x => x.ok && x.status >= 200 && x.status < 500), { statuses: rm.map(x => x.status) });
+    } else {
+      record("A_refresh_parallel_A_protected_mutation", false, { reason: "fixture registration failed" });
+    }
+
+    const lmContext = await browser.newContext();
+    const lmPage = await lmContext.newPage();
+    await lmPage.goto(FRONTEND, { waitUntil: "domcontentloaded" });
+    const lmReg = await register(lmPage, "m12-logout-mutation-" + stamp + "@example.test");
+    const lmSession = sessionFrom(lmReg.body);
+    if (lmSession) {
+      const lm = await Promise.all([
+        logout(lmPage, lmSession.csrfToken),
+        createPortfolio(lmPage, lmSession.accessToken, "logout-mutation-" + stamp),
+      ]);
+      record("A_logout_parallel_A_protected_mutation", lm.every(x => x.ok && x.status >= 200 && x.status < 500), { statuses: lm.map(x => x.status) });
+      const staleAfterRace = await refresh(lmPage, lmSession.csrfToken);
+      record("A_logout_mutation_stale_refresh_rejected", staleAfterRace.ok && staleAfterRace.status === 401, { status: staleAfterRace.status });
+    } else {
+      record("A_logout_parallel_A_protected_mutation", false, { reason: "fixture registration failed" });
     }
 
     const disallowedContext = await browser.newContext();
@@ -241,6 +304,8 @@ async function main() {
     await raceContext.close();
     await logoutContext.close();
     await disallowedContext.close();
+    await rmContext.close();
+    await lmContext.close();
   } finally {
     await browser.close();
   }

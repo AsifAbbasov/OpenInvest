@@ -18,6 +18,7 @@ func m12V2FDCount() int {
 }
 
 func TestModule12V2BoundedRealSocketAdversarialMatrix(t *testing.T) {
+	requireModule12V2Adversarial(t)
 	app := newHTTPAuthApp(t, newHTTPAuthService(t, &httpAuthTestStore{}))
 	s := startM12V2Listener(t, app)
 	addr := s.ln.Addr().String()

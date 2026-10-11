@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -16,6 +17,9 @@ import (
 )
 
 func TestModule12V2UpstreamResourceAdversarialMatrix(t *testing.T) {
+	if os.Getenv("OPENINVEST_MODULE12_V2_ADVERSARIAL") != "1" {
+		t.Skip("Module 12 V2 adversarial matrix runs only in the specialized workflow")
+	}
 	type tc struct {
 		name string
 		handler func(http.ResponseWriter, *http.Request)
@@ -31,7 +35,8 @@ func TestModule12V2UpstreamResourceAdversarialMatrix(t *testing.T) {
 		{"RST_mid_body", func(w http.ResponseWriter, r *http.Request){ h, ok := w.(http.Hijacker); if !ok { return }; c, rw, err := h.Hijack(); if err != nil { return }; _,_=rw.WriteString("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 100\r\n\r\n{\"dividends\":["); _=rw.Flush(); if tcp,ok:=c.(*net.TCPConn);ok{_ = tcp.SetLinger(0)}; _=c.Close() }},
 		{"malformed_json", func(w http.ResponseWriter, r *http.Request){ w.Header().Set("Content-Type","application/json"); _,_=io.WriteString(w,"{not-json") }},
 		{"bounded_oversized_json", func(w http.ResponseWriter, r *http.Request){ w.Header().Set("Content-Type","application/json"); _,_=io.WriteString(w,"{\"dividends\":[\""+strings.Repeat("x",512*1024)+"\"]}") }},
-		{"deadline_timeout", func(w http.ResponseWriter, r *http.Request){ <-r.Context().Done() }},
+		{"deadline_timeout", func(w http.ResponseWriter, r *http.Request){ select { case <-time.After(500*time.Millisecond): return; case <-r.Context().Done(): return } }},
+		{"noncooperative_handler", func(w http.ResponseWriter, r *http.Request){ time.Sleep(250*time.Millisecond) }},
 		{"very_slow_chunk_stream", func(w http.ResponseWriter, r *http.Request){ w.Header().Set("Content-Type","application/json"); _,_=io.WriteString(w,"{\"dividends\":["); if f,ok:=w.(http.Flusher);ok{f.Flush()}; ticker:=time.NewTicker(20*time.Millisecond); defer ticker.Stop(); for i:=0;i<100;i++{ select{case <-r.Context().Done():return;case <-ticker.C: _,_=io.WriteString(w," "); if f,ok:=w.(http.Flusher);ok{f.Flush()} } } }},
 		{"close_without_body", func(w http.ResponseWriter, r *http.Request){ w.WriteHeader(http.StatusOK) }},
 	}
@@ -49,6 +54,7 @@ func TestModule12V2UpstreamResourceAdversarialMatrix(t *testing.T) {
 			deadline := time.Now().Add(time.Second)
 			for len(provider.semaphore) != 0 && time.Now().Before(deadline) { time.Sleep(time.Millisecond) }
 			if got := len(provider.semaphore); got != 0 { t.Errorf("PROVIDER_SLOT_LEAK=YES case=%s slots=%d", c.name, got) }
+			server.CloseClientConnections()
 
 			good := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){ w.Header().Set("Content-Type","application/json"); _,_=io.WriteString(w,"{\"dividends\":[]}") }))
 			defer good.Close()

@@ -12,6 +12,9 @@ import (
 )
 
 func TestModule12V2RuntimeRoleAdversarialMatrix(t *testing.T) {
+	if os.Getenv("OPENINVEST_MODULE12_V2_ADVERSARIAL") != "1" {
+		t.Skip("Module 12 V2 adversarial matrix runs only in the specialized workflow")
+	}
 	ownerURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
 	runtimeURL := os.Getenv("OPENINVEST_DATABASE_RUNTIME_TEST_URL")
 	if ownerURL == "" || runtimeURL == "" {
@@ -111,6 +114,9 @@ func TestModule12V2RuntimeRoleAdversarialMatrix(t *testing.T) {
 }
 
 func TestModule12V2RuntimeRoleCannotChangeSessionAuthorization(t *testing.T) {
+	if os.Getenv("OPENINVEST_MODULE12_V2_ADVERSARIAL") != "1" {
+		t.Skip("Module 12 V2 adversarial matrix runs only in the specialized workflow")
+	}
 	runtimeURL := os.Getenv("OPENINVEST_DATABASE_RUNTIME_TEST_URL")
 	if strings.TrimSpace(runtimeURL) == "" { t.Skip("isolated runtime URL required") }
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
