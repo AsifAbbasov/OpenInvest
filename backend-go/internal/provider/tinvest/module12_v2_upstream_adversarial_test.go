@@ -9,12 +9,20 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"runtime"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
+
+func m12V2ProviderFDCount() int {
+	entries, err := os.ReadDir("/proc/self/fd")
+	if err != nil { return -1 }
+	return len(entries)
+}
 
 func TestModule12V2UpstreamResourceAdversarialMatrix(t *testing.T) {
 	if os.Getenv("OPENINVEST_MODULE12_V2_ADVERSARIAL") != "1" {
@@ -43,18 +51,48 @@ func TestModule12V2UpstreamResourceAdversarialMatrix(t *testing.T) {
 	for _, c := range cases {
 		c := c
 		t.Run(c.name, func(t *testing.T) {
-			server := httptest.NewServer(http.HandlerFunc(c.handler))
+			var providerCalls atomic.Int64
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				providerCalls.Add(1)
+				c.handler(w, r)
+			}))
 			defer server.Close()
 			provider, err := newCorporateActionProvider(server.Client(), fixedClock{now:testNow}, testToken, server.URL+"/rest")
 			if err != nil { t.Fatal(err) }
+			beforeG, beforeFD := runtime.NumGoroutine(), m12V2ProviderFDCount()
+			peakG, peakFD, peakSem := beforeG, beforeFD, 0
+			stopSample, sampled := make(chan struct{}), make(chan struct{})
+			go func() {
+				ticker := time.NewTicker(2 * time.Millisecond)
+				defer ticker.Stop()
+				defer close(sampled)
+				for {
+					select {
+					case <-stopSample:
+						return
+					case <-ticker.C:
+						if g := runtime.NumGoroutine(); g > peakG { peakG = g }
+						if fd := m12V2ProviderFDCount(); fd > peakFD { peakFD = fd }
+						if sem := len(provider.semaphore); sem > peakSem { peakSem = sem }
+					}
+				}
+			}()
 			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 			defer cancel()
 			_, callErr := provider.CorporateActions(ctx, testQuery("SBER"))
+			close(stopSample)
+			<-sampled
 			if callErr == nil { t.Errorf("hostile upstream %s unexpectedly produced a valid response", c.name) }
 			deadline := time.Now().Add(time.Second)
 			for len(provider.semaphore) != 0 && time.Now().Before(deadline) { time.Sleep(time.Millisecond) }
 			if got := len(provider.semaphore); got != 0 { t.Errorf("PROVIDER_SLOT_LEAK=YES case=%s slots=%d", c.name, got) }
 			server.CloseClientConnections()
+			resourceDeadline := time.Now().Add(time.Second)
+			for time.Now().Before(resourceDeadline) {
+				if len(provider.semaphore) == 0 && runtime.NumGoroutine() <= beforeG+6 && (beforeFD < 0 || m12V2ProviderFDCount() <= beforeFD+4) { break }
+				time.Sleep(10 * time.Millisecond)
+			}
+			afterG, afterFD := runtime.NumGoroutine(), m12V2ProviderFDCount()
 
 			good := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){ w.Header().Set("Content-Type","application/json"); _,_=io.WriteString(w,"{\"dividends\":[]}") }))
 			defer good.Close()
@@ -63,7 +101,7 @@ func TestModule12V2UpstreamResourceAdversarialMatrix(t *testing.T) {
 			if _, err := recovery.CorporateActions(context.Background(), testQuery("SBER")); err != nil {
 				t.Errorf("POST_CASE_LEGITIMATE_REQUEST=FAIL case=%s err=%v", c.name, err)
 			}
-			t.Logf("CASE=%s STATUS=handled ERROR=%v SEMAPHORE_RECOVERY=%d POST_CASE_LEGITIMATE_REQUEST=PASS", c.name, callErr, len(provider.semaphore))
+			t.Logf("CASE=%s STATUS=handled ERROR=%v PROVIDER_CALLS=%d SEMAPHORE_PEAK=%d SEMAPHORE_RECOVERY=%d GOROUTINES_BASELINE=%d GOROUTINES_PEAK=%d GOROUTINES_RECOVERY=%d FD_BASELINE=%d FD_PEAK=%d FD_RECOVERY=%d POST_CASE_LEGITIMATE_REQUEST=PASS", c.name, callErr, providerCalls.Load(), peakSem, len(provider.semaphore), beforeG, peakG, afterG, beforeFD, peakFD, afterFD)
 		})
 	}
 

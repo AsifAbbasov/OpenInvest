@@ -125,8 +125,10 @@ func TestModule12V2ForwardedHeaderIdentityAdversarialMatrix(t *testing.T) {
 				tc := tc
 				t.Run(tc.name, func(t *testing.T) {
 					var got [2]string
+					var status [2]int
 					for i := 0; i < 2; i++ {
 						resp := m12V2Do(t, http.MethodGet, s.url+"/m12/identity", tc.h, "")
+						status[i] = resp.StatusCode
 						b, _ := io.ReadAll(resp.Body)
 						resp.Body.Close()
 						got[i] = strings.TrimSpace(string(b))
@@ -138,7 +140,7 @@ func TestModule12V2ForwardedHeaderIdentityAdversarialMatrix(t *testing.T) {
 					if mode.name != "TRUSTED_PROXY" && got[0] != "127.0.0.1" {
 						t.Errorf("untrusted/direct forwarding header spoof changed identity to %q", got[0])
 					}
-					t.Logf("CASE=%s MODE=%s RAW_HEADER_VARIANT=%q RESOLVED_CLIENT_IDENTITY=%s", tc.name, mode.name, tc.h, got[0])
+					t.Logf("CASE=%s MODE=%s RAW_HEADER_VARIANT=%q RESOLVED_CLIENT_IDENTITY=%s STATUS=%d RATE_LIMIT_ADMITTED=NOT_APPLICABLE PROVIDER_CALLS=0", tc.name, mode.name, tc.h, got[0], status[0])
 				})
 			}
 		})
@@ -156,7 +158,7 @@ func TestModule12V2ForwardedHeaderIdentityAdversarialMatrix(t *testing.T) {
 				if resp.StatusCode == http.StatusOK { admitted++ }
 				resp.Body.Close()
 			}
-			t.Logf("CASE=RATE_LIMIT_IDENTITY_CAMPAIGN REPLICAS=%d RATE_LIMIT_ADMITTED=%d EXPECTED_MAX=12", replicas, admitted)
+			t.Logf("CASE=RATE_LIMIT_IDENTITY_CAMPAIGN MODE=TRUSTED_PROXY REPLICAS=%d RAW_HEADER_VARIANT=X-Forwarded-For RESOLVED_CLIENT_IDENTITY=198.51.100.88 STATUS=MIXED_200_429 RATE_LIMIT_ADMITTED=%d PROVIDER_CALLS=0 EXPECTED_MAX=12", replicas, admitted)
 			if admitted > 12 { t.Errorf("CROSS_REPLICA_IDENTITY_BUDGET_BYPASS=YES replicas=%d admitted=%d", replicas, admitted) }
 		})
 	}
@@ -205,6 +207,8 @@ func TestModule12V2CacheCORSHostBoundaryAdversarialMatrix(t *testing.T) {
 		{"forwarded_host","POST","/api/v1/auth/register","https://allowed.example.test","api.example.test","{}",http.Header{"Forwarded":{"host=attacker.example.test;proto=http"}},true,true},
 		{"x_forwarded_proto_http","GET","/api/v1/portfolios","","api.example.test","",http.Header{"X-Forwarded-Proto":{"http"}},false,true},
 		{"x_forwarded_proto_https","GET","/api/v1/portfolios","","api.example.test","",http.Header{"X-Forwarded-Proto":{"https"}},false,true},
+		{"forwarded_proto_http","GET","/api/v1/portfolios","","api.example.test","",http.Header{"Forwarded":{"proto=http"}},false,true},
+		{"forwarded_proto_https","GET","/api/v1/portfolios","","api.example.test","",http.Header{"Forwarded":{"proto=https"}},false,true},
 		{"router_headers","GET","/api/v1/portfolios?limit=10","","api.example.test","",http.Header{"RSC":{"1"},"Next-Router-State-Tree":{"synthetic"},"Next-Router-Prefetch":{"1"},"Accept-Encoding":{"identity"}},false,true},
 	}
 	for _, c := range cases {

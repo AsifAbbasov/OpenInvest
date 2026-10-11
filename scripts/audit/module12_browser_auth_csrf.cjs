@@ -198,6 +198,20 @@ async function main() {
       refresh(pageB, sessionB.csrfToken),
     ]);
     record("A_and_B_parallel_refresh", parallelRefresh.every(x => x.ok && x.status === 200), { statuses: parallelRefresh.map(x => x.status) });
+    const refreshedSessionA = sessionFrom(parallelRefresh[0].body);
+    const refreshedSessionB = sessionFrom(parallelRefresh[1].body);
+    if (refreshedSessionA && refreshedSessionB) {
+      const refreshedOwnA = await listPortfolios(pageA, refreshedSessionA.accessToken);
+      const refreshedOwnB = await listPortfolios(pageB, refreshedSessionB.accessToken);
+      const refreshedAText = JSON.stringify(refreshedOwnA.body);
+      const refreshedBText = JSON.stringify(refreshedOwnB.body);
+      record("REFRESH_DOES_NOT_SWITCH_PRINCIPAL",
+        refreshedOwnA.ok && refreshedOwnA.status === 200 && refreshedAText.includes("A-" + stamp) && !refreshedAText.includes("B-" + stamp) &&
+        refreshedOwnB.ok && refreshedOwnB.status === 200 && refreshedBText.includes("B-" + stamp) && !refreshedBText.includes("A-" + stamp),
+        { aStatus: refreshedOwnA.status, bStatus: refreshedOwnB.status });
+    } else {
+      record("REFRESH_DOES_NOT_SWITCH_PRINCIPAL", false, { reason: "parallel refresh did not return both sessions" });
+    }
 
     const parallelMutation = await Promise.all([
       createPortfolio(pageA, sessionA.accessToken, "A-parallel-" + stamp),
@@ -310,13 +324,26 @@ async function main() {
     await browser.close();
   }
 
+  const ok = name => results.some(r => r.name === name && r.ok);
+  const mutationNames = [
+    "unsafe_mutation_without_bearer_application/json",
+    "unsafe_mutation_without_bearer_text/plain",
+    "unsafe_mutation_without_bearer_application/x-www-form-urlencoded",
+    "unsafe_mutation_without_bearer_multipart/form-data",
+  ];
   process.stdout.write(JSON.stringify({
     summary: {
       cases: results.length,
       failures,
-      NO_CROSS_PRINCIPAL_SESSION_CONFUSION: failures === 0 ? "YES" : "CHECK_RESULTS",
-      NO_CROSS_ORIGIN_CREDENTIAL_BYPASS: failures === 0 ? "YES" : "CHECK_RESULTS",
-      NO_UNSAFE_MUTATION_CSRF: failures === 0 ? "YES" : "CHECK_RESULTS",
+      NO_CROSS_PRINCIPAL_SESSION_CONFUSION:
+        ok("A_access_token_with_B_cookie") && ok("B_access_token_with_A_cookie") &&
+        ok("A_refresh_cookie_in_B_context") && ok("B_refresh_cookie_in_A_context") ? "YES" : "CHECK_RESULTS",
+      NO_CROSS_ORIGIN_CREDENTIAL_BYPASS:
+        ok("disallowed_origin_browser_fetch") && ok("Origin_null") && ok("disallowed_preflight") ? "YES" : "CHECK_RESULTS",
+      NO_UNSAFE_MUTATION_CSRF: mutationNames.every(ok) ? "YES" : "CHECK_RESULTS",
+      REFRESH_DOES_NOT_SWITCH_PRINCIPAL: ok("REFRESH_DOES_NOT_SWITCH_PRINCIPAL") ? "YES" : "CHECK_RESULTS",
+      LOGOUT_DOES_NOT_RESTORE_STALE_SESSION:
+        ok("LOGOUT_DOES_NOT_RESTORE_STALE_SESSION") && ok("A_logout_mutation_stale_refresh_rejected") ? "YES" : "CHECK_RESULTS",
     }
   }) + "\n");
   if (failures > 0) process.exitCode = 1;
