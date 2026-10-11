@@ -18,7 +18,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: module12-v2-adversarial-\${{ github.event.pull_request.number || github.ref }}
+  group: module12-v2-adversarial-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -36,7 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
-          ref: \${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
         with:
           go-version-file: backend-go/go.mod
@@ -47,7 +47,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: module12-v2-shared-budget-cancellation-\${{ github.run_id }}
+          name: module12-v2-shared-budget-cancellation-${{ github.run_id }}
           path: audit-artifacts/module12-v2/backend
           if-no-files-found: warn
           retention-days: 14
@@ -59,7 +59,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
-          ref: \${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
         with:
           go-version-file: backend-go/go.mod
@@ -75,7 +75,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: module12-v2-forwarded-header-\${{ github.run_id }}
+          name: module12-v2-forwarded-header-${{ github.run_id }}
           path: audit-artifacts/module12-v2/forwarded-header
           if-no-files-found: warn
           retention-days: 14
@@ -100,7 +100,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
-          ref: \${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
         with:
           go-version-file: backend-go/go.mod
@@ -174,14 +174,14 @@ jobs:
           set +e
           NODE_PATH=/tmp/m12-playwright/node_modules node scripts/audit/module12_browser_auth_csrf.cjs \
             2>&1 | tee audit-artifacts/module12-v2/browser/browser-matrix.log
-          status=\${PIPESTATUS[0]}
+          status=${PIPESTATUS[0]}
           set -e
           exit "$status"
       - name: Preserve browser evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: module12-v2-browser-auth-csrf-\${{ github.run_id }}
+          name: module12-v2-browser-auth-csrf-${{ github.run_id }}
           path: audit-artifacts/module12-v2/browser
           if-no-files-found: warn
           retention-days: 14
@@ -193,7 +193,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
-          ref: \${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
         with:
           go-version-file: backend-go/go.mod
@@ -221,7 +221,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: module12-v2-socket-\${{ github.run_id }}
+          name: module12-v2-socket-${{ github.run_id }}
           path: audit-artifacts/module12-v2/socket
           if-no-files-found: warn
           retention-days: 14
@@ -233,7 +233,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
-          ref: \${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
         with:
           go-version-file: backend-go/go.mod
@@ -247,7 +247,7 @@ jobs:
             "handlers|cd backend-go && go test -race -v ./internal/httpapi -run '^TestModule12SafeLogAndErrorConformance$' -count=1" \
             "real-main|cd backend-go && go test -race -v ./cmd/api -run '^TestModule12ApplicationDiagnosticCapture$' -count=1"
           do
-            name="\${spec%%|*}"; cmd="\${spec#*|}"
+            name="${spec%%|*}"; cmd="${spec#*|}"
             set +e
             bash -lc "$cmd" >"audit-artifacts/module12-v2/log-redaction/$name.log" 2>&1
             rc=$?
@@ -260,7 +260,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: module12-v2-log-redaction-\${{ github.run_id }}
+          name: module12-v2-log-redaction-${{ github.run_id }}
           path: audit-artifacts/module12-v2/log-redaction
           if-no-files-found: warn
           retention-days: 14
@@ -272,7 +272,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
-          ref: \${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
         with:
           go-version-file: backend-go/go.mod
@@ -288,7 +288,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: module12-v2-cache-cors-host-\${{ github.run_id }}
+          name: module12-v2-cache-cors-host-${{ github.run_id }}
           path: audit-artifacts/module12-v2/cache-cors-host
           if-no-files-found: warn
           retention-days: 14
@@ -307,7 +307,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
-          ref: \${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
         with:
           go-version-file: backend-go/go.mod
@@ -318,7 +318,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: module12-v2-error-metadata-\${{ github.run_id }}
+          name: module12-v2-error-metadata-${{ github.run_id }}
           path: audit-artifacts/module12-v2/safe-http
           if-no-files-found: warn
           retention-days: 14
@@ -342,7 +342,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
-          ref: \${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
         with:
           go-version-file: backend-go/go.mod
@@ -380,7 +380,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: module12-v2-postgres-runtime-role-\${{ github.run_id }}
+          name: module12-v2-postgres-runtime-role-${{ github.run_id }}
           path: audit-artifacts/module12-v2/postgres
           if-no-files-found: warn
           retention-days: 14
@@ -392,7 +392,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
-          ref: \${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: "22.22.2"
@@ -407,7 +407,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: module12-v2-frontend-production-\${{ github.run_id }}
+          name: module12-v2-frontend-production-${{ github.run_id }}
           path: audit-artifacts/module12-v2/frontend
           if-no-files-found: warn
           retention-days: 14
