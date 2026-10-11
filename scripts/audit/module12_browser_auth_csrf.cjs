@@ -33,7 +33,10 @@ async function browserFetch(page, path, init = {}) {
 }
 
 function sessionFrom(body) {
-  return body && body.data && body.data.session ? body.data.session : null;
+  if (!body || !body.data) return null;
+  if (body.data.session) return body.data.session;
+  if (body.data.accessToken && body.data.csrfToken) return body.data;
+  return null;
 }
 
 function userFrom(body) {
