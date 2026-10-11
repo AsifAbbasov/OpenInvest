@@ -1,14 +1,21 @@
 package httpapi
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/gofiber/fiber/v3"
+	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
 func TestModule12SafeCORSHostConformance(t *testing.T) {
@@ -76,6 +83,26 @@ func TestModule12SafeCORSHostConformance(t *testing.T) {
 	}
 }
 
+type module12LogFixtureProvider struct{ err error }
+
+func (p module12LogFixtureProvider) CorporateActions(context.Context, verticalslice.CorporateActionQuery) ([]verticalslice.CorporateActionEvent, error) {
+	return nil, p.err
+}
+
+type module12UnavailableBudget struct{ err error }
+
+func (b module12UnavailableBudget) Ping(context.Context) error { return b.err }
+func (b module12UnavailableBudget) AdmitEndpoint(context.Context, string, int, int, time.Duration) (bool, error) {
+	return false, b.err
+}
+func (b module12UnavailableBudget) AdmitProvider(context.Context, int, time.Duration) (bool, error) {
+	return false, b.err
+}
+func (b module12UnavailableBudget) ObserveProviderAllowance(context.Context, int, time.Duration) error {
+	return b.err
+}
+func (b module12UnavailableBudget) Close() error { return nil }
+
 func TestModule12SafeLogAndErrorConformance(t *testing.T) {
 	values := map[string]string{}
 	for _, k := range []string{"ACCESS_TOKEN", "REFRESH_COOKIE", "AUTHORIZATION_BEARER", "PROVIDER_TOKEN", "DATABASE_PASSWORD", "REDIS_PASSWORD", "IMPORT_REVIEW_TOKEN", "CSRF_TOKEN", "FINANCIAL_PAYLOAD_SENTINEL", "USER_EMAIL_SENTINEL"} {
@@ -115,6 +142,8 @@ func TestModule12SafeLogAndErrorConformance(t *testing.T) {
 	}{
 		{"success", "POST", "/api/v1/auth/register", `{"email":"logs@example.test","password":"correct horse battery staple","language":"en","theme":"system","timezone":"UTC"}`, 201, false},
 		{"validation", "POST", "/api/v1/auth/register", `{}`, 400, false},
+		{"malformed_request", "POST", "/api/v1/auth/register", `{`, 400, false},
+		{"invalid_authentication", "POST", "/api/v1/auth/login", `{"email":"logs@example.test","password":"wrong password material"}`, 401, false},
 		{"unauthorized", "GET", "/api/v1/portfolios", "", 401, false},
 		{"not_found", "GET", "/api/v1/not-present", "", 404, false},
 		{"dependency_error", "POST", "/api/v1/auth/login", `{"email":"logs@example.test","password":"correct horse battery staple"}`, 500, true},
@@ -155,6 +184,102 @@ func TestModule12SafeLogAndErrorConformance(t *testing.T) {
 			}
 		}
 	}
+
+	// Controlled 403/409 serializer fixtures use the repository's production
+	// error writer and cache middleware; no product behavior is changed.
+	fixtureApp := fiber.New()
+	fixtureApp.Use(sensitiveResponseCachePolicy)
+	fixtureApp.Get("/m12/forbidden", func(c fiber.Ctx) error {
+		return writeErrorWithMeta(c, requestMeta(c), http.StatusForbidden, "FORBIDDEN", "Forbidden")
+	})
+	fixtureApp.Get("/m12/conflict", func(c fiber.Ctx) error {
+		return writeErrorWithMeta(c, requestMeta(c), http.StatusConflict, "CONFLICT", "Conflict")
+	})
+	for _, fixture := range []struct {
+		name, path string
+		status int
+	}{
+		{"forbidden", "/m12/forbidden", http.StatusForbidden},
+		{"conflict", "/m12/conflict", http.StatusConflict},
+	} {
+		req := httptest.NewRequest(http.MethodGet, fixture.path, nil)
+		req.Header.Set("Authorization", "Bearer "+values["AUTHORIZATION_BEARER"])
+		req.Header.Set("X-CSRF-Token", values["CSRF_TOKEN"])
+		resp, e := fixtureApp.Test(req)
+		if e != nil {
+			failures = append(failures, fixture.name+": request failed")
+			continue
+		}
+		b, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if resp.StatusCode != fixture.status {
+			failures = append(failures, fmt.Sprintf("%s status %d expected %d", fixture.name, resp.StatusCode, fixture.status))
+		}
+		for k, v := range values {
+			if strings.Contains(string(b), v) { failures = append(failures, fixture.name+": response disclosed "+k) }
+		}
+	}
+
+	// Exercise the real auth limiter until a repository-owned 429 is returned.
+	rateApp := newHTTPAuthApp(t, newHTTPAuthService(t, &httpAuthTestStore{}))
+	rateStatus := 0
+	for i := 0; i < 25; i++ {
+		body := fmt.Sprintf(`{"email":"m12-rate-%d@example.test","password":"correct horse battery staple","language":"en","theme":"system","timezone":"UTC"}`, i)
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+values["AUTHORIZATION_BEARER"])
+		resp, e := rateApp.Test(req)
+		if e != nil { failures = append(failures, "rate_limit: request failed"); break }
+		rateStatus = resp.StatusCode
+		b, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		for k, v := range values {
+			if strings.Contains(string(b), v) { failures = append(failures, "rate_limit: response disclosed "+k) }
+		}
+		if rateStatus == http.StatusTooManyRequests { break }
+	}
+	if rateStatus != http.StatusTooManyRequests {
+		failures = append(failures, fmt.Sprintf("rate_limit status %d expected %d", rateStatus, http.StatusTooManyRequests))
+	}
+
+	providerCases := []struct {
+		name string
+		provider verticalslice.CorporateActionProvider
+		budget module12UnavailableBudget
+		useBudget bool
+	}{
+		{"provider_error", module12LogFixtureProvider{err: errors.New("synthetic provider failure")}, module12UnavailableBudget{}, false},
+		{"provider_timeout", module12LogFixtureProvider{err: context.DeadlineExceeded}, module12UnavailableBudget{}, false},
+		{"redis_unavailable", module12LogFixtureProvider{}, module12UnavailableBudget{err: fmt.Errorf("synthetic redis unavailable: %s", values["REDIS_PASSWORD"])}, true},
+	}
+	for _, pc := range providerCases {
+		api := &API{
+			corporateActionProvider: pc.provider,
+			corporateActionLimiter: newCorporateActionProjectionRateLimiter(),
+			corporateActionCoalescer: newCorporateActionProjectionCoalescer(),
+		}
+		if pc.useBudget { api.corporateActionBudget = pc.budget }
+		app := newReplayApp(api)
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/corporate-actions/projection?instrumentId=SBER&from=2026-01-01&to=2026-12-31", nil)
+		req.Header.Set("Authorization", "Bearer "+values["AUTHORIZATION_BEARER"])
+		resp, e := app.Test(req)
+		if e != nil {
+			failures = append(failures, pc.name+": request failed")
+			continue
+		}
+		b, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if resp.StatusCode < 500 || resp.StatusCode > 503 {
+			failures = append(failures, fmt.Sprintf("%s status %d expected 5xx fail-closed", pc.name, resp.StatusCode))
+		}
+		for k, v := range values {
+			if strings.Contains(string(b), v) { failures = append(failures, pc.name+": response disclosed "+k) }
+		}
+		for _, needle := range []string{"panic:", "goroutine ", "/workspace/", "SELECT ", "postgres://", "redis://"} {
+			if strings.Contains(string(b), needle) { failures = append(failures, pc.name+": metadata disclosed") }
+		}
+	}
+
 	output := restore()
 	for k, v := range values {
 		if strings.Contains(output, v) || strings.Contains(output, url.QueryEscape(v)) {
@@ -164,5 +289,5 @@ func TestModule12SafeLogAndErrorConformance(t *testing.T) {
 	for _, f := range failures {
 		t.Error(f)
 	}
-	t.Logf("M12_SAFE_LOG_ERROR_CASES=5 CAPTURED_LOG_BYTES=%d SENTINEL_CATEGORIES=10 FINANCIAL_POLICY=NO_PAYLOAD_LOGGING_OBSERVED_IN_TESTED_PATHS", len(output))
+	t.Logf("M12_SAFE_LOG_ERROR_CASES=14 CAPTURED_LOG_BYTES=%d SENTINEL_CATEGORIES=10 FINANCIAL_POLICY=NO_PAYLOAD_LOGGING_OBSERVED_IN_TESTED_PATHS", len(output))
 }
