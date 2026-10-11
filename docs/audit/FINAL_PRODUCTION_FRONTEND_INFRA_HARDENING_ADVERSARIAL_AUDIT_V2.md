@@ -208,3 +208,33 @@ For the latest request, REPOSITORY_DYNAMIC_VERIFIED covers the retained bounded 
 FORWARDING_IDENTITY_CONFORMANCE=NOT_EXECUTED_REQUESTED_MATRIX_EXECUTOR_POLICY; BROWSER_SESSION_CONFORMANCE=NOT_EXECUTED_REQUESTED_MATRIX_EXECUTOR_POLICY; SOCKET_LIFECYCLE_CONFORMANCE=NOT_EXECUTED_REQUESTED_MATRIX_EXECUTOR_POLICY; CACHE_VARIATION_CONFORMANCE=NOT_EXECUTED_REQUESTED_MATRIX_EXECUTOR_POLICY. Earlier safe configuration, auth, bounded socket and cache-header checks remain retained, distinct evidence.
 
 REPOSITORY_TESTABLE_CONTINUATION_COMPLETED=NO; CLOSURE_READINESS=NOT_ESTABLISHED. No new product/runtime implementation change, merge, Module 12 closure or final repository-wide assault. Final exact-head run identifiers are reported separately after this extension's CI completes; prior runs are not substituted.
+
+
+## Superseding controlled-adversarial execution evidence
+
+This section supersedes the earlier pre-execution `NOT_EXECUTED_EXECUTOR_POLICY` statements for the repository-controlled A-H matrices. Those statements are retained above only as chronology from an earlier partial pass; they are no longer the current execution status.
+
+On audit head `96c230c58f5166daea55d33775ef75539cc66d8b`, normal CI run `38154259883` completed SUCCESS with all 10 configured jobs successful, including Go tests, Go race, govulncheck and dependency security scan. Specialized run `38154259919` completed all 9 jobs: browser-auth-csrf-race PASS, socket-matrix PASS, shared-budget-cancellation PASS, postgres-runtime-role PASS, error-metadata PASS, log-redaction PASS, frontend-production-runtime PASS, forwarded-header-matrix FAIL and cache-cors-host FAIL.
+
+### Harness defect isolated
+
+`TEST_DEFECT=M12V2-TD-01`: the initial `same_identity_replicas_2` and `same_identity_replicas_4` forwarded-header subtests instantiated an independent in-memory limiter per local listener. That fixture necessarily admitted 12 requests per listener and therefore manufactured an apparent cross-replica budget multiplication. It did not exercise the repository's Redis-backed shared budget and is not a product finding. The audit-only harness is corrected so all listeners in this identity-composition subtest share one admission authority; Redis-backed 1/2/4-instance budget behavior remains independently exercised by the specialized shared-budget job. No production code is changed.
+
+### Finding retained
+
+`ID=M12V2-P3-01`  
+`SEVERITY=P3`  
+`BOUNDARY=CORS duplicate Origin parsing`  
+`ATTACKER_PREREQUISITES=ability to send a raw request containing multiple Origin header fields to the repository-owned HTTP listener; no production reachability is assumed`  
+`LOCAL_REPRODUCER=OPTIONS /api/v1/auth/register with Origin: https://allowed.example.test and a second Origin: https://evil.example.test`  
+`OBSERVED_RESULT=local Fiber path emitted Access-Control-Allow-Origin: https://allowed.example.test and Access-Control-Allow-Credentials: true instead of rejecting the ambiguous duplicate-Origin request`  
+`SECURITY_IMPACT=credentialed CORS parser ambiguity/hardening weakness; a real-browser cross-origin credential bypass was not reproduced because ordinary browser JavaScript does not control duplicate Origin fields`  
+`EVIDENCE=specialized run 38154259919, cache-cors-host job, duplicate_conflicting_origin case`
+
+The disallowed single Origin, `Origin: null`, comma-combined Origin, arbitrary Host, forwarded Host/proto, router-header cache variations, browser CSRF/session races, bounded socket lifecycle, logging sentinels, error-metadata scans and PostgreSQL runtime-role checks did not reproduce a violation under the tested repository-local conditions.
+
+Production-only boundaries remain NOT_VERIFIED: real external provider budget and server-side termination, actual multi-host production routing/orchestration, production CDN/cache behavior, production TLS/HSTS edge behavior, third-party log aggregation, and deployed PostgreSQL network/firewall/TLS policy.
+
+`REMEDIATION_AUTHORIZED=NO`; `APPROVE_FOR_MERGE=NO`; `FORMAL_MODULE_12_CLOSED=NO`; `FINAL_REPOSITORY_WIDE_ASSAULT_STARTED=NO`.
+
+A new exact-head CI and specialized run are required after this audit-harness correction. Their IDs, exact head/tree and final pass/fail counts are emitted in the STOP report; no pre-correction run is substituted as final-head evidence.

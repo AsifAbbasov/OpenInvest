@@ -60,10 +60,9 @@ func m12V2Do(t *testing.T, method, url string, headers http.Header, body string)
 	return resp
 }
 
-func m12V2IdentityApp(t *testing.T, cfg HTTPNetworkConfig, limit int) *fiber.App {
+func m12V2IdentityAppWithLimiter(t *testing.T, cfg HTTPNetworkConfig, limiter *authRateLimiter) *fiber.App {
 	t.Helper()
 	app := newFiberApp(cfg)
-	limiter := newBoundedAuthRateLimiter(limit, 100000, 10000, time.Minute)
 	app.Get("/m12/identity", func(c fiber.Ctx) error {
 		ip, err := normalizedClientIP(c)
 		if err != nil { return c.Status(http.StatusBadRequest).SendString("invalid") }
@@ -78,6 +77,11 @@ func m12V2IdentityApp(t *testing.T, cfg HTTPNetworkConfig, limit int) *fiber.App
 		return c.SendString(ip)
 	})
 	return app
+}
+
+func m12V2IdentityApp(t *testing.T, cfg HTTPNetworkConfig, limit int) *fiber.App {
+	t.Helper()
+	return m12V2IdentityAppWithLimiter(t, cfg, newBoundedAuthRateLimiter(limit, 100000, 10000, time.Minute))
 }
 
 func TestModule12V2ForwardedHeaderIdentityAdversarialMatrix(t *testing.T) {
@@ -149,8 +153,16 @@ func TestModule12V2ForwardedHeaderIdentityAdversarialMatrix(t *testing.T) {
 	for _, replicas := range []int{1,2,4} {
 		replicas := replicas
 		t.Run(fmt.Sprintf("same_identity_replicas_%d", replicas), func(t *testing.T) {
+			// This matrix is about forwarded-header identity stability across listeners.
+			// Use one shared admission authority so the fixture does not manufacture a
+			// false "distributed bypass" merely by constructing N independent limiters.
+			// The repository's actual Redis-backed shared-budget behavior is exercised
+			// separately by the shared-budget-cancellation specialized job.
+			sharedLimiter := newBoundedAuthRateLimiter(12, 100000, 10000, time.Minute)
 			servers := make([]*m12V2Listener, replicas)
-			for i := range servers { servers[i] = startM12V2Listener(t, m12V2IdentityApp(t, trusted, 12)) }
+			for i := range servers {
+				servers[i] = startM12V2Listener(t, m12V2IdentityAppWithLimiter(t, trusted, sharedLimiter))
+			}
 			headers := http.Header{"X-Forwarded-For": {"198.51.100.88"}}
 			admitted := 0
 			for i := 0; i < 48; i++ {
@@ -158,7 +170,7 @@ func TestModule12V2ForwardedHeaderIdentityAdversarialMatrix(t *testing.T) {
 				if resp.StatusCode == http.StatusOK { admitted++ }
 				resp.Body.Close()
 			}
-			t.Logf("CASE=RATE_LIMIT_IDENTITY_CAMPAIGN MODE=TRUSTED_PROXY REPLICAS=%d RAW_HEADER_VARIANT=X-Forwarded-For RESOLVED_CLIENT_IDENTITY=198.51.100.88 STATUS=MIXED_200_429 RATE_LIMIT_ADMITTED=%d PROVIDER_CALLS=0 EXPECTED_MAX=12", replicas, admitted)
+			t.Logf("CASE=RATE_LIMIT_IDENTITY_CAMPAIGN MODE=TRUSTED_PROXY REPLICAS=%d SHARED_AUTHORITY=YES RAW_HEADER_VARIANT=X-Forwarded-For RESOLVED_CLIENT_IDENTITY=198.51.100.88 STATUS=MIXED_200_429 RATE_LIMIT_ADMITTED=%d PROVIDER_CALLS=0 EXPECTED_MAX=12", replicas, admitted)
 			if admitted > 12 { t.Errorf("CROSS_REPLICA_IDENTITY_BUDGET_BYPASS=YES replicas=%d admitted=%d", replicas, admitted) }
 		})
 	}
