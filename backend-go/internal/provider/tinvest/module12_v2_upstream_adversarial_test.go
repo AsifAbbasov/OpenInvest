@@ -52,8 +52,11 @@ func TestModule12V2UpstreamResourceAdversarialMatrix(t *testing.T) {
 		c := c
 		t.Run(c.name, func(t *testing.T) {
 			var providerCalls atomic.Int64
+			var activeHandlers atomic.Int64
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				providerCalls.Add(1)
+				activeHandlers.Add(1)
+				defer activeHandlers.Add(-1)
 				c.handler(w, r)
 			}))
 			defer server.Close()
@@ -83,9 +86,21 @@ func TestModule12V2UpstreamResourceAdversarialMatrix(t *testing.T) {
 			close(stopSample)
 			<-sampled
 			if callErr == nil { t.Errorf("hostile upstream %s unexpectedly produced a valid response", c.name) }
-			deadline := time.Now().Add(time.Second)
-			for len(provider.semaphore) != 0 && time.Now().Before(deadline) { time.Sleep(time.Millisecond) }
+			// If the remote fixture still owns work after the caller has timed out,
+			// capacity must remain owned locally; otherwise cancellation could amplify
+			// remote work by immediately admitting replacements.
+			if activeHandlers.Load() > 0 && len(provider.semaphore) == 0 {
+				t.Errorf("EARLY_PROVIDER_CAPACITY_RECYCLE=YES case=%s active_handlers=%d", c.name, activeHandlers.Load())
+			}
+			// All fixtures are bounded. Wait for their actual local terminal condition,
+			// rather than imposing an earlier artificial release requirement.
+			terminalDeadline := time.Now().Add(3 * time.Second)
+			for time.Now().Before(terminalDeadline) {
+				if len(provider.semaphore) == 0 && activeHandlers.Load() == 0 { break }
+				time.Sleep(5 * time.Millisecond)
+			}
 			if got := len(provider.semaphore); got != 0 { t.Errorf("PROVIDER_SLOT_LEAK=YES case=%s slots=%d", c.name, got) }
+			if got := activeHandlers.Load(); got != 0 { t.Errorf("UPSTREAM_HANDLER_LEAK=YES case=%s active=%d", c.name, got) }
 			server.CloseClientConnections()
 			resourceDeadline := time.Now().Add(time.Second)
 			for time.Now().Before(resourceDeadline) {
@@ -101,7 +116,7 @@ func TestModule12V2UpstreamResourceAdversarialMatrix(t *testing.T) {
 			if _, err := recovery.CorporateActions(context.Background(), testQuery("SBER")); err != nil {
 				t.Errorf("POST_CASE_LEGITIMATE_REQUEST=FAIL case=%s err=%v", c.name, err)
 			}
-			t.Logf("CASE=%s STATUS=handled ERROR=%v PROVIDER_CALLS=%d SEMAPHORE_PEAK=%d SEMAPHORE_RECOVERY=%d GOROUTINES_BASELINE=%d GOROUTINES_PEAK=%d GOROUTINES_RECOVERY=%d FD_BASELINE=%d FD_PEAK=%d FD_RECOVERY=%d POST_CASE_LEGITIMATE_REQUEST=PASS", c.name, callErr, providerCalls.Load(), peakSem, len(provider.semaphore), beforeG, peakG, afterG, beforeFD, peakFD, afterFD)
+			t.Logf("CASE=%s STATUS=handled ERROR=%v PROVIDER_CALLS=%d SEMAPHORE_PEAK=%d SEMAPHORE_RECOVERY=%d UPSTREAM_ACTIVE_RECOVERY=%d GOROUTINES_BASELINE=%d GOROUTINES_PEAK=%d GOROUTINES_RECOVERY=%d FD_BASELINE=%d FD_PEAK=%d FD_RECOVERY=%d POST_CASE_LEGITIMATE_REQUEST=PASS", c.name, callErr, providerCalls.Load(), peakSem, len(provider.semaphore), activeHandlers.Load(), beforeG, peakG, afterG, beforeFD, peakFD, afterFD)
 		})
 	}
 
