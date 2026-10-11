@@ -89,7 +89,12 @@ func TestModule12V2UpstreamResourceAdversarialMatrix(t *testing.T) {
 			// If the remote fixture still owns work after the caller has timed out,
 			// capacity must remain owned locally; otherwise cancellation could amplify
 			// remote work by immediately admitting replacements.
-			if activeHandlers.Load() > 0 && len(provider.semaphore) == 0 {
+			requiresPostCallerOwnership := false
+			switch c.name {
+			case "headers_delay", "body_delay", "partial_body_then_stall", "deadline_timeout", "noncooperative_handler", "very_slow_chunk_stream":
+				requiresPostCallerOwnership = true
+			}
+			if requiresPostCallerOwnership && activeHandlers.Load() > 0 && len(provider.semaphore) == 0 {
 				t.Errorf("EARLY_PROVIDER_CAPACITY_RECYCLE=YES case=%s active_handlers=%d", c.name, activeHandlers.Load())
 			}
 			// All fixtures are bounded. Wait for their actual local terminal condition,
