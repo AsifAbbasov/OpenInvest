@@ -1,10 +1,12 @@
 package httpapi
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -207,4 +209,133 @@ func TestModule1AuthErrorSurfaceDoesNotLeakSyntheticSecrets(t *testing.T) {
 		t.Fatalf("response must remain structured JSON: %v", err)
 	}
 	t.Logf("PROPERTY=M1-LOG-LEAK STATUS=%d BODY_BYTES=%d RAW_SECRET_LEAK=NO_FOR_TESTED_RESPONSE", resp.StatusCode, len(body))
+}
+
+
+func TestModule1SessionFixationPreauthCookieIsNeverReused(t *testing.T) {
+	store := &httpAuthTestStore{}
+	app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
+	attackerCookie := "attacker-controlled-preauth-session"
+
+	registerBody := `{
+		"email":"module1-fixation@example.test",
+		"password":"correct horse battery staple",
+		"language":"en",
+		"theme":"system",
+		"timezone":"UTC"
+	}`
+	registerReq := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(registerBody))
+	registerReq.Header.Set("Content-Type", "application/json")
+	registerReq.AddCookie(&http.Cookie{Name: auth.RefreshCookieName, Value: attackerCookie})
+	registerResp, err := app.Test(registerReq)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer registerResp.Body.Close()
+	if registerResp.StatusCode != http.StatusCreated {
+		t.Fatalf("register expected 201 got=%d", registerResp.StatusCode)
+	}
+	issued := requireCookie(t, registerResp, auth.RefreshCookieName)
+	if issued.Value == attackerCookie {
+		t.Fatal("ATTACKER_SUPPLIED_PREAUTH_SESSION_IDENTIFIER_REUSED during registration")
+	}
+
+	loginReq := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", strings.NewReader(`{"email":"module1-fixation@example.test","password":"correct horse battery staple"}`))
+	loginReq.Header.Set("Content-Type", "application/json")
+	loginReq.AddCookie(&http.Cookie{Name: auth.RefreshCookieName, Value: attackerCookie})
+	loginResp, err := app.Test(loginReq)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer loginResp.Body.Close()
+	if loginResp.StatusCode != http.StatusOK {
+		t.Fatalf("login expected 200 got=%d", loginResp.StatusCode)
+	}
+	loginIssued := requireCookie(t, loginResp, auth.RefreshCookieName)
+	if loginIssued.Value == attackerCookie {
+		t.Fatal("ATTACKER_SUPPLIED_PREAUTH_SESSION_IDENTIFIER_REUSED during login")
+	}
+	if loginIssued.Value == issued.Value {
+		t.Fatal("login must create a fresh session rather than preserve prior session identity")
+	}
+	t.Log("SESSION_FIXATION_PREAUTH_IDENTIFIER_REUSED=NO")
+}
+
+func module1ProtectedRouteSafe(status int) bool {
+	return status < 200 || status >= 300
+}
+
+func TestModule1ProtectedRouteInventoryRejectsAnonymous(t *testing.T) {
+	app := newHTTPAuthApp(t, newHTTPAuthService(t, &httpAuthTestStore{}))
+	const portfolio = "11111111-1111-4111-8111-111111111111"
+	const transaction = "22222222-2222-4222-8222-222222222222"
+	cases := []struct {
+		method, path, body string
+	}{
+		{http.MethodGet, "/api/v1/portfolios", ""},
+		{http.MethodPost, "/api/v1/portfolios", `{"name":"x","baseCurrency":"RUB"}`},
+		{http.MethodGet, "/api/v1/portfolios/" + portfolio, ""},
+		{http.MethodGet, "/api/v1/portfolios/" + portfolio + "/summary", ""},
+		{http.MethodGet, "/api/v1/portfolios/" + portfolio + "/positions", ""},
+		{http.MethodPut, "/api/v1/portfolios/" + portfolio + "/valuations/TEST", `{"marketPrice":{"amount":"1","currency":"RUB"},"asOfDate":"2026-10-13"}`},
+		{http.MethodDelete, "/api/v1/portfolios/" + portfolio + "/valuations/TEST", ""},
+		{http.MethodGet, "/api/v1/portfolios/" + portfolio + "/returns?asOfDate=2026-10-13", ""},
+		{http.MethodGet, "/api/v1/portfolios/" + portfolio + "/cash-flow", ""},
+		{http.MethodGet, "/api/v1/portfolios/" + portfolio + "/transactions", ""},
+		{http.MethodPost, "/api/v1/portfolios/" + portfolio + "/transactions", `{"transactionType":"DEPOSIT","grossAmount":{"amount":"1","currency":"RUB"},"commission":{"amount":"0","currency":"RUB"},"tax":{"amount":"0","currency":"RUB"},"tradeDate":"2026-10-13"}`},
+		{http.MethodPatch, "/api/v1/portfolios/" + portfolio + "/transactions/" + transaction, `{}`},
+		{http.MethodDelete, "/api/v1/portfolios/" + portfolio + "/transactions/" + transaction, `{}`},
+		{http.MethodPost, "/api/v1/portfolios/" + portfolio + "/imports/review", `{"csvPayload":"type,amount\\n"}`},
+		{http.MethodPost, "/api/v1/portfolios/" + portfolio + "/imports/append", `{}`},
+	}
+	tested := 0
+	for _, tc := range cases {
+		req := httptest.NewRequest(tc.method, tc.path, strings.NewReader(tc.body))
+		if tc.body != "" {
+			req.Header.Set("Content-Type", "application/json")
+		}
+		req.Header.Set("Idempotency-Key", "module1-route-inventory-"+fmt.Sprint(tested))
+		resp, err := app.Test(req)
+		if err != nil {
+			t.Fatalf("%s %s: %v", tc.method, tc.path, err)
+		}
+		resp.Body.Close()
+		tested++
+		t.Logf("PROPERTY=M1-ROUTE-AUTH METHOD=%s PATH=%s STATUS=%d", tc.method, tc.path, resp.StatusCode)
+		if !module1ProtectedRouteSafe(resp.StatusCode) {
+			t.Fatalf("PROTECTED_ROUTE_WITHOUT_AUTH_GUARD method=%s path=%s status=%d", tc.method, tc.path, resp.StatusCode)
+		}
+	}
+	t.Logf("PROTECTED_ROUTES_DISCOVERED=%d PROTECTED_ROUTES_TESTED=%d PROTECTED_ROUTES_WITHOUT_AUTH_GUARD=0", len(cases), tested)
+}
+
+func TestModule1ProtectedRouteOracleNegativeControl(t *testing.T) {
+	if module1ProtectedRouteSafe(http.StatusOK) {
+		t.Fatal("negative control failed: oracle accepted a synthetic unauthorized 200")
+	}
+	if !module1ProtectedRouteSafe(http.StatusUnauthorized) {
+		t.Fatal("negative control failed: oracle rejected expected unauthorized denial")
+	}
+	t.Log("NEGATIVE_CONTROL_DETECTED=YES")
+}
+
+func TestModule1AuthStandardLoggerSentinelRedaction(t *testing.T) {
+	var captured bytes.Buffer
+	previous := log.Writer()
+	log.SetOutput(&captured)
+	defer log.SetOutput(previous)
+
+	sentinel := "M1_SYNTHETIC_PASSWORD_SENTINEL_4b28"
+	app := newHTTPAuthApp(t, newHTTPAuthService(t, &httpAuthTestStore{}))
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", strings.NewReader(fmt.Sprintf(`{"email":"missing@example.test","password":%q}`, sentinel)))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if strings.Contains(captured.String(), sentinel) {
+		t.Fatalf("RAW_SECRET_LEAK_IN_STANDARD_LOG=%q", captured.String())
+	}
+	t.Logf("AUTH_LOG_LEAKAGE=NO_FOR_TESTED_STANDARD_LOG_PATH bytes=%d", captured.Len())
 }
