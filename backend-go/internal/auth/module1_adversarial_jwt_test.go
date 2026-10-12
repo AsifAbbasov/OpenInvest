@@ -197,3 +197,67 @@ func FuzzModule1JWTByteChangingPayloadMutationNeverAuthenticates(f *testing.F) {
 		}
 	})
 }
+
+
+func TestModule1JWTRejectsUnknownCriticalHeader(t *testing.T) {
+	now := time.Date(2026, 10, 13, 0, 0, 0, 0, time.UTC)
+	user := module1JWTUser()
+	token := module1SignedRawJWT(
+		`{"alg":"HS256","typ":"JWT","crit":["kid"],"kid":"synthetic-key-selector"}`,
+		fmt.Sprintf(`{"sub":%q,"uid":%q,"investmentSubjectId":%q,"exp":%d,"iat":%d}`,
+			user.ID, user.ID, user.InvestmentSubjectID, now.Add(15*time.Minute).Unix(), now.Unix()),
+	)
+	if _, err := verifyAccessToken(module1JWTSecret, token, now); err == nil {
+		t.Fatal("PROPERTY=M1-JWT-CRIT UNKNOWN_CRITICAL_HEADER_ACCEPTED")
+	}
+}
+
+func TestModule1EmailCanonicalizationPolicyMatrix(t *testing.T) {
+	cases := []struct {
+		name, input, expected string
+	}{
+		{"ascii_case", "Investor@Example.COM", "investor@example.com"},
+		{"outer_whitespace", "  Investor@Example.COM  ", "investor@example.com"},
+		{"plus_addressing_preserved", "Investor+Tag@Example.COM", "investor+tag@example.com"},
+		{"dot_variant_preserved", "First.Last@Example.COM", "first.last@example.com"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := normalizeEmail(tc.input)
+			if got != tc.expected {
+				t.Fatalf("EMAIL_NORMALIZATION_POLICY case=%s expected=%q got=%q", tc.name, tc.expected, got)
+			}
+			if normalizeEmail(got) != got {
+				t.Fatalf("normalization must be idempotent case=%s first=%q second=%q", tc.name, got, normalizeEmail(got))
+			}
+		})
+	}
+	if normalizeEmail("a+b@example.test") == normalizeEmail("ab@example.test") {
+		t.Fatal("plus-addressing must not be silently collapsed without an explicit product policy")
+	}
+	if normalizeEmail("first.last@example.test") == normalizeEmail("firstlast@example.test") {
+		t.Fatal("dot variants must not be silently collapsed without an explicit product policy")
+	}
+}
+
+func FuzzModule1EmailNormalizationIdempotent(f *testing.F) {
+	for _, seed := range []string{
+		" Investor@Example.COM ",
+		"a+b@example.test",
+		"first.last@example.test",
+		"δοκιμή@example.test",
+		"",
+	} {
+		f.Add(seed)
+	}
+	f.Fuzz(func(t *testing.T, input string) {
+		once := normalizeEmail(input)
+		twice := normalizeEmail(once)
+		if once != twice {
+			t.Fatalf("PROPERTY=FZ-REG-01 normalization not idempotent input=%q once=%q twice=%q", input, once, twice)
+		}
+		if strings.TrimSpace(once) != once {
+			t.Fatalf("PROPERTY=FZ-REG-01 normalization retained outer whitespace input=%q normalized=%q", input, once)
+		}
+	})
+}
