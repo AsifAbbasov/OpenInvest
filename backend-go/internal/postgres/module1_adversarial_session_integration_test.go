@@ -17,6 +17,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib"
 
@@ -41,7 +42,7 @@ func module1Percentile(values []time.Duration, p float64) time.Duration {
 	return copyValues[index]
 }
 
-func module1AuthHTTPApp(t *testing.T, store *postgres.Store) interface{ Test(*http.Request, ...int) (*http.Response, error) } {
+func module1AuthHTTPApp(t *testing.T, store *postgres.Store) *fiber.App {
 	t.Helper()
 	authService, err := auth.NewService(store, verticalslice.SystemClock{}, auth.Config{
 		AccessTokenSecret: []byte("01234567890123456789012345678901"),
