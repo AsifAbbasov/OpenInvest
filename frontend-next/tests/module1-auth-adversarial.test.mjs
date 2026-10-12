@@ -68,7 +68,13 @@ test("Module1 stale refresh from principal A must not overwrite principal B sess
 
   assert.equal(runtime.pending, "refresh");
 
-  // Simulate a legitimate principal transition performed elsewhere in the auth shell.
+  // Model the real AuthShell.handleAuth transition: it increments operation generation
+  // before replacing the authenticated principal, invalidating the older refresh.
+  runtime.setOperation({
+    generation: runtime.getOperation().generation + 1,
+    pending: null,
+  });
+  runtime.setPendingOperation(null);
   runtime.setState(session.authenticatedState({ user: userB, session: sessionB }));
   assert.equal(runtime.state.user.id, "user-b");
   assert.equal(runtime.state.session.accessToken, "access-b");
