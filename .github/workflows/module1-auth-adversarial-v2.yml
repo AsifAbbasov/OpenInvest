@@ -36,6 +36,7 @@ jobs:
           set -o pipefail
           mkdir -p ../audit-artifacts/module1/jwt
           go test -race -v ./internal/auth -run '^TestModule1(JWT|Email)' -count=1 2>&1 | tee ../audit-artifacts/module1/jwt/deterministic.log
+          go test -race -v ./internal/auth -run '^TestModule1RefreshLogoutStateMachineDeterministic$' -count=1 2>&1 | tee ../audit-artifacts/module1/jwt/session-state-machine.log
       - name: Preserve JWT evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -81,6 +82,7 @@ jobs:
           run_target FuzzModule1JWTMalformedStructureNeverAuthenticates
           run_target FuzzModule1JWTByteChangingPayloadMutationNeverAuthenticates
           run_target FuzzModule1EmailNormalizationIdempotent
+          run_target FuzzModule1RefreshLogoutStateMachine
           exit "$failed"
       - name: Preserve fuzz evidence
         if: always()
