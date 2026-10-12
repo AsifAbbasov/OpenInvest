@@ -130,15 +130,16 @@ func TestModule1RegistrationEnumerationAndPreRegistrationSquatting(t *testing.T)
 	}
 	t.Logf("AUTH_ADV_02_DIRECT_RESPONSE_ENUMERATION=CONFIRMED EMAIL_OWNERSHIP_VERIFICATION=ABSENT ACCOUNT_STATE=%s PRE_REGISTRATION_SQUATTING=CONFIRMED", state)
 
-	const samples = 10
+	const samples = 20
 	newDurations := make([]time.Duration, 0, samples)
 	duplicateDurations := make([]time.Duration, 0, samples)
 	for i := 0; i < samples; i++ {
 		newEmail := fmt.Sprintf("module1-enum-sample-%s-%d@example.test", uuid.NewString(), i)
+		sampleApp := module1AuthHTTPApp(t, store)
 		req := module1JSONRequest(http.MethodPost, "/api/v1/auth/register", registerBody(newEmail))
-		req.RemoteAddr = fmt.Sprintf("198.51.100.%d:44321", 50+i)
+		req.RemoteAddr = fmt.Sprintf("198.51.100.%d:44321", 50+(i%150))
 		start := time.Now()
-		resp, runErr := app.Test(req)
+		resp, runErr := sampleApp.Test(req)
 		newDurations = append(newDurations, time.Since(start))
 		if runErr != nil {
 			t.Fatal(runErr)
@@ -148,10 +149,11 @@ func TestModule1RegistrationEnumerationAndPreRegistrationSquatting(t *testing.T)
 			t.Fatalf("new sample %d expected=201 got=%d", i, resp.StatusCode)
 		}
 
+		dupApp := module1AuthHTTPApp(t, store)
 		dupReq := module1JSONRequest(http.MethodPost, "/api/v1/auth/register", registerBody(email))
-		dupReq.RemoteAddr = fmt.Sprintf("198.51.100.%d:44321", 100+i)
+		dupReq.RemoteAddr = fmt.Sprintf("203.0.113.%d:44321", 50+(i%150))
 		start = time.Now()
-		dupResp, runErr := app.Test(dupReq)
+		dupResp, runErr := dupApp.Test(dupReq)
 		duplicateDurations = append(duplicateDurations, time.Since(start))
 		if runErr != nil {
 			t.Fatal(runErr)
@@ -212,7 +214,7 @@ func TestModule1RefreshHighContentionPersistentStateOracle(t *testing.T) {
 				UserID: userID,
 				InvestmentSubjectID: subjectID,
 				EmailNormalized: email,
-				PasswordHash: "synthetic-not-used-by-refresh-test",
+				PasswordHash: "argon2id$v=19$m=65536,t=3,p=1$AAECAwQFBgcICQoLDA0ODw$9Wc7VFOLWWIqyGrC4T85CfZU8wFkNPcB2GE1ympJUGU",
 				Language: auth.LanguageEN,
 				Theme: auth.ThemeSystem,
 				Timezone: "UTC",
