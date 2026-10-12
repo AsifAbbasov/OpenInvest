@@ -193,3 +193,36 @@ func TestModule1BearerParserNegativeControl(t *testing.T) {
 		t.Fatalf("oracle failed to reject deliberately invalid scheme: %q", got)
 	}
 }
+
+
+func TestModule1ProtectedRouteInventoryRejectsAnonymous(t *testing.T) {
+	app := newHTTPAuthApp(t, newHTTPAuthService(t, &httpAuthTestStore{}))
+	const portfolioID = "11111111-1111-4111-8111-111111111111"
+	cases := []struct {
+		method string
+		path   string
+	}{
+		{http.MethodGet, "/api/v1/portfolios"},
+		{http.MethodGet, "/api/v1/portfolios/" + portfolioID},
+		{http.MethodGet, "/api/v1/portfolios/" + portfolioID + "/summary"},
+		{http.MethodGet, "/api/v1/portfolios/" + portfolioID + "/positions"},
+		{http.MethodGet, "/api/v1/portfolios/" + portfolioID + "/returns"},
+		{http.MethodGet, "/api/v1/portfolios/" + portfolioID + "/cash-flow"},
+		{http.MethodGet, "/api/v1/portfolios/" + portfolioID + "/transactions"},
+	}
+	for _, test := range cases {
+		name := test.method + "_" + strings.ReplaceAll(test.path, "/", "_")
+		t.Run(name, func(t *testing.T) {
+			req := httptest.NewRequest(test.method, test.path, nil)
+			resp, err := app.Test(req)
+			if err != nil {
+				t.Fatalf("request: %v", err)
+			}
+			defer resp.Body.Close()
+			t.Logf("PROTECTED_ROUTE=%s %s STATUS=%d", test.method, test.path, resp.StatusCode)
+			if resp.StatusCode != http.StatusUnauthorized {
+				t.Fatalf("protected route accepted anonymous request or rejected before auth guard: status=%d", resp.StatusCode)
+			}
+		})
+	}
+}
