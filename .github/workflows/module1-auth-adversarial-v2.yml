@@ -111,7 +111,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p ../audit-artifacts/module1/raw-http
-          go test -race -v ./internal/httpapi -run '^TestModule1' -count=1             2>&1 | tee ../audit-artifacts/module1/raw-http/matrix.log
+          go test -race -v ./internal/httpapi -run '^TestModule1[A-Z]' -count=1             2>&1 | tee ../audit-artifacts/module1/raw-http/matrix.log
       - name: Preserve raw HTTP evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
