@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func module1StateMachineFixture(t testing.TB) (*Service, *memoryStore, string, string) {
+func module1StateMachineFixture(t *testing.T) (*Service, *memoryStore, string, string) {
 	t.Helper()
 	now := fixedClock{}.Now()
 	user := StoredUser{
