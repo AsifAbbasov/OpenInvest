@@ -35,7 +35,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p ../audit-artifacts/module1/jwt
-          go test -race -v ./internal/auth -run '^TestModule1JWT' -count=1 2>&1 | tee ../audit-artifacts/module1/jwt/deterministic.log
+          go test -race -v ./internal/auth -run '^TestModule1(JWT|Email)' -count=1 2>&1 | tee ../audit-artifacts/module1/jwt/deterministic.log
       - name: Preserve JWT evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -80,6 +80,7 @@ jobs:
           }
           run_target FuzzModule1JWTMalformedStructureNeverAuthenticates
           run_target FuzzModule1JWTByteChangingPayloadMutationNeverAuthenticates
+          run_target FuzzModule1EmailNormalizationIdempotent
           exit "$failed"
       - name: Preserve fuzz evidence
         if: always()
@@ -174,7 +175,270 @@ jobs:
           run_case contention '^TestModule1RefreshHighContentionPersistentStateOracle$'
           run_case refresh_logout '^TestLogoutRacingRefreshCannotLeaveDescendantActive$'
           run_case replay_descendant '^TestReplayRacingDescendantRefreshLeavesNoActiveFamilyMember$'
-          run_case family_guard '^TestConcurrentRefreshReplayRevokesWinningSessionFamily$'
+          run_case family_guard '^TestConcurrentRefreshReplayRevokesWinningSessionFamily
+      - name: Preserve PostgreSQL evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: module1-postgres-session-${{ github.run_id }}
+          path: audit-artifacts/module1/postgres
+          if-no-files-found: warn
+          retention-days: 14
+
+  frontend-auth-state:
+    name: module1-frontend-auth-state
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.22.2"
+      - name: Exact-head provenance
+        run: |
+          set -euo pipefail
+          test "$GITHUB_SHA" = "$(git rev-parse HEAD)"
+          echo "TESTED_COMMIT_SHA=$(git rev-parse HEAD)"
+          echo "TESTED_TREE_SHA=$(git rev-parse HEAD^{tree})"
+      - name: Install frozen dependencies
+        working-directory: frontend-next
+        run: corepack enable && corepack prepare pnpm@11.8.0 --activate && pnpm install --frozen-lockfile
+      - name: Auth state adversarial matrix collect-all
+        run: |
+          set -u
+          mkdir -p audit-artifacts/module1/frontend
+          failed=0
+          run_case() {
+            name="$1"; file="$2"
+            set +e
+            (cd frontend-next && node --experimental-strip-types --test "$file")               >"audit-artifacts/module1/frontend/$name.log" 2>&1
+            rc=$?
+            set -e
+            cat "audit-artifacts/module1/frontend/$name.log"
+            [ "$rc" -eq 0 ] || failed=1
+          }
+          run_case existing tests/auth-session.test.mjs
+          run_case adversarial tests/module1-auth-state-adversarial.test.mjs
+          exit "$failed"
+      - name: Preserve frontend evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: module1-frontend-auth-${{ github.run_id }}
+          path: audit-artifacts/module1/frontend
+          if-no-files-found: warn
+          retention-days: 14
+
+  historical-revalidation:
+    name: module1-historical-revalidation
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Exact-head provenance
+        run: |
+          set -euo pipefail
+          test "$GITHUB_SHA" = "$(git rev-parse HEAD)"
+          echo "TESTED_COMMIT_SHA=$(git rev-parse HEAD)"
+          echo "TESTED_TREE_SHA=$(git rev-parse HEAD^{tree})"
+      - name: OI-NEW-02 and auth service revalidation
+        working-directory: backend-go
+        run: |
+          set -o pipefail
+          mkdir -p ../audit-artifacts/module1/history
+          failed=0
+          go test -race -v ./internal/httpapi -run '^TestAuthInfrastructureFailuresUseSanitizedInternalError$' -count=20             2>&1 | tee ../audit-artifacts/module1/history/oi-new-02.log || failed=1
+          go test -race -v ./internal/auth -run '^TestService(RefreshRequiresCSRFBeforeRotation|RejectsRefreshReplayAfterRotation|LogoutRevokesSession)$' -count=50             2>&1 | tee ../audit-artifacts/module1/history/session-service.log || failed=1
+          exit "$failed"
+      - name: Preserve historical evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: module1-history-${{ github.run_id }}
+          path: audit-artifacts/module1/history
+          if-no-files-found: warn
+          retention-days: 14
+
+          run_case cross_principal '^TestModule1CrossPrincipalAuthorizationIdempotencyAndCache
+      - name: Preserve PostgreSQL evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: module1-postgres-session-${{ github.run_id }}
+          path: audit-artifacts/module1/postgres
+          if-no-files-found: warn
+          retention-days: 14
+
+  frontend-auth-state:
+    name: module1-frontend-auth-state
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.22.2"
+      - name: Exact-head provenance
+        run: |
+          set -euo pipefail
+          test "$GITHUB_SHA" = "$(git rev-parse HEAD)"
+          echo "TESTED_COMMIT_SHA=$(git rev-parse HEAD)"
+          echo "TESTED_TREE_SHA=$(git rev-parse HEAD^{tree})"
+      - name: Install frozen dependencies
+        working-directory: frontend-next
+        run: corepack enable && corepack prepare pnpm@11.8.0 --activate && pnpm install --frozen-lockfile
+      - name: Auth state adversarial matrix collect-all
+        run: |
+          set -u
+          mkdir -p audit-artifacts/module1/frontend
+          failed=0
+          run_case() {
+            name="$1"; file="$2"
+            set +e
+            (cd frontend-next && node --experimental-strip-types --test "$file")               >"audit-artifacts/module1/frontend/$name.log" 2>&1
+            rc=$?
+            set -e
+            cat "audit-artifacts/module1/frontend/$name.log"
+            [ "$rc" -eq 0 ] || failed=1
+          }
+          run_case existing tests/auth-session.test.mjs
+          run_case adversarial tests/module1-auth-state-adversarial.test.mjs
+          exit "$failed"
+      - name: Preserve frontend evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: module1-frontend-auth-${{ github.run_id }}
+          path: audit-artifacts/module1/frontend
+          if-no-files-found: warn
+          retention-days: 14
+
+  historical-revalidation:
+    name: module1-historical-revalidation
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Exact-head provenance
+        run: |
+          set -euo pipefail
+          test "$GITHUB_SHA" = "$(git rev-parse HEAD)"
+          echo "TESTED_COMMIT_SHA=$(git rev-parse HEAD)"
+          echo "TESTED_TREE_SHA=$(git rev-parse HEAD^{tree})"
+      - name: OI-NEW-02 and auth service revalidation
+        working-directory: backend-go
+        run: |
+          set -o pipefail
+          mkdir -p ../audit-artifacts/module1/history
+          failed=0
+          go test -race -v ./internal/httpapi -run '^TestAuthInfrastructureFailuresUseSanitizedInternalError$' -count=20             2>&1 | tee ../audit-artifacts/module1/history/oi-new-02.log || failed=1
+          go test -race -v ./internal/auth -run '^TestService(RefreshRequiresCSRFBeforeRotation|RejectsRefreshReplayAfterRotation|LogoutRevokesSession)$' -count=50             2>&1 | tee ../audit-artifacts/module1/history/session-service.log || failed=1
+          exit "$failed"
+      - name: Preserve historical evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: module1-history-${{ github.run_id }}
+          path: audit-artifacts/module1/history
+          if-no-files-found: warn
+          retention-days: 14
+
+          run_case cross_principal_csrf '^TestModule1CrossPrincipalCSRFCannotRotateAnotherUsersRefreshCookie
+      - name: Preserve PostgreSQL evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: module1-postgres-session-${{ github.run_id }}
+          path: audit-artifacts/module1/postgres
+          if-no-files-found: warn
+          retention-days: 14
+
+  frontend-auth-state:
+    name: module1-frontend-auth-state
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.22.2"
+      - name: Exact-head provenance
+        run: |
+          set -euo pipefail
+          test "$GITHUB_SHA" = "$(git rev-parse HEAD)"
+          echo "TESTED_COMMIT_SHA=$(git rev-parse HEAD)"
+          echo "TESTED_TREE_SHA=$(git rev-parse HEAD^{tree})"
+      - name: Install frozen dependencies
+        working-directory: frontend-next
+        run: corepack enable && corepack prepare pnpm@11.8.0 --activate && pnpm install --frozen-lockfile
+      - name: Auth state adversarial matrix collect-all
+        run: |
+          set -u
+          mkdir -p audit-artifacts/module1/frontend
+          failed=0
+          run_case() {
+            name="$1"; file="$2"
+            set +e
+            (cd frontend-next && node --experimental-strip-types --test "$file")               >"audit-artifacts/module1/frontend/$name.log" 2>&1
+            rc=$?
+            set -e
+            cat "audit-artifacts/module1/frontend/$name.log"
+            [ "$rc" -eq 0 ] || failed=1
+          }
+          run_case existing tests/auth-session.test.mjs
+          run_case adversarial tests/module1-auth-state-adversarial.test.mjs
+          exit "$failed"
+      - name: Preserve frontend evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: module1-frontend-auth-${{ github.run_id }}
+          path: audit-artifacts/module1/frontend
+          if-no-files-found: warn
+          retention-days: 14
+
+  historical-revalidation:
+    name: module1-historical-revalidation
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Exact-head provenance
+        run: |
+          set -euo pipefail
+          test "$GITHUB_SHA" = "$(git rev-parse HEAD)"
+          echo "TESTED_COMMIT_SHA=$(git rev-parse HEAD)"
+          echo "TESTED_TREE_SHA=$(git rev-parse HEAD^{tree})"
+      - name: OI-NEW-02 and auth service revalidation
+        working-directory: backend-go
+        run: |
+          set -o pipefail
+          mkdir -p ../audit-artifacts/module1/history
+          failed=0
+          go test -race -v ./internal/httpapi -run '^TestAuthInfrastructureFailuresUseSanitizedInternalError$' -count=20             2>&1 | tee ../audit-artifacts/module1/history/oi-new-02.log || failed=1
+          go test -race -v ./internal/auth -run '^TestService(RefreshRequiresCSRFBeforeRotation|RejectsRefreshReplayAfterRotation|LogoutRevokesSession)$' -count=50             2>&1 | tee ../audit-artifacts/module1/history/session-service.log || failed=1
+          exit "$failed"
+      - name: Preserve historical evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: module1-history-${{ github.run_id }}
+          path: audit-artifacts/module1/history
+          if-no-files-found: warn
+          retention-days: 14
+
           exit "$failed"
       - name: Preserve PostgreSQL evidence
         if: always()
