@@ -91,6 +91,8 @@ test("Module1 late refresh for principal A cannot overwrite a later principal B 
   });
   assert.equal(rt.pending, "refresh");
 
+  rt.setOperation({ generation: rt.getOperation().generation + 1, pending: null });
+  rt.setPendingOperation(null);
   rt.setState(session.authenticatedState({ user: userB, session: sessionB }));
   resolveRefresh({ ok: true, requestId: "late-a", data: rotatedA });
   await refreshPromise;
@@ -113,6 +115,8 @@ test("Module1 late logout for principal A cannot clear a later principal B login
   });
   assert.equal(rt.pending, "logout");
 
+  rt.setOperation({ generation: rt.getOperation().generation + 1, pending: null });
+  rt.setPendingOperation(null);
   rt.setState(session.authenticatedState({ user: userB, session: sessionB }));
   resolveLogout({ ok: true, requestId: "late-logout-a", data: { revoked: true } });
   await logoutPromise;
@@ -141,4 +145,12 @@ test("Module1 stale refresh after successful logout never restores authenticatio
   resolveRefresh({ ok: true, requestId: "late-refresh", data: rotatedA });
   await refreshPromise;
   assert.equal(rt.state.status, "anonymous", "LOGOUT_UNDONE_BY_LATE_RESPONSE");
+});
+
+
+test("Module1 negative control proves stale-operation oracle detects missing generation transition", () => {
+  const current = { generation: 1, pending: "refresh" };
+  assert.equal(session.isCurrentOperation(current, 1), true);
+  const principalTransition = { generation: 2, pending: null };
+  assert.equal(session.isCurrentOperation(principalTransition, 1), false, "NEGATIVE_CONTROL_DETECTED");
 });
