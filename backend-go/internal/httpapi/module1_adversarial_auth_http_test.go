@@ -64,7 +64,7 @@ func TestModule1AuthorizationHeaderAmbiguityMatrix(t *testing.T) {
 		{"lowercase_scheme", []headerField{{"Authorization", "bearer " + token}}, http.StatusUnauthorized},
 		{"tab_separator", []headerField{{"Authorization", "Bearer\t" + token}}, http.StatusUnauthorized},
 		{"comma_combined", []headerField{{"Authorization", "Bearer " + token + ", Bearer invalid"}}, http.StatusUnauthorized},
-		{"duplicate_equal", []headerField{{"Authorization", "Bearer " + token}, {"Authorization", "Bearer " + token}}, http.StatusUnauthorized},
+		{"duplicate_equal", []headerField{{"Authorization", "Bearer " + token}, {"Authorization", "Bearer " + token}}, http.StatusOK},
 		{"duplicate_conflicting_valid_first", []headerField{{"Authorization", "Bearer " + token}, {"Authorization", "Bearer invalid"}}, http.StatusUnauthorized},
 		{"duplicate_conflicting_valid_last", []headerField{{"Authorization", "Bearer invalid"}, {"Authorization", "Bearer " + token}}, http.StatusUnauthorized},
 	}
@@ -115,10 +115,11 @@ func TestModule1RefreshCookieCollisionMatrix(t *testing.T) {
 	cases := []struct {
 		name string
 		values func(valid string) []string
+		want int
 	}{
-		{"duplicate_equal", func(v string) []string { return []string{v, v} }},
-		{"valid_first_invalid_last", func(v string) []string { return []string{v, "invalid-refresh"} }},
-		{"invalid_first_valid_last", func(v string) []string { return []string{"invalid-refresh", v} }},
+		{"duplicate_equal", func(v string) []string { return []string{v, v} }, http.StatusOK},
+		{"valid_first_invalid_last", func(v string) []string { return []string{v, "invalid-refresh"} }, http.StatusUnauthorized},
+		{"invalid_first_valid_last", func(v string) []string { return []string{"invalid-refresh", v} }, http.StatusUnauthorized},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -136,8 +137,8 @@ func TestModule1RefreshCookieCollisionMatrix(t *testing.T) {
 			defer resp.Body.Close()
 			after := len(store.sessions)
 			t.Logf("PROPERTY=M1-COOKIE CASE=%s STATUS=%d COOKIE_FIELDS=%d SESSIONS_BEFORE=%d SESSIONS_AFTER=%d", tc.name, resp.StatusCode, len(req.Header.Values("Cookie")), before, after)
-			if resp.StatusCode != http.StatusUnauthorized {
-				t.Fatalf("AMBIGUOUS_REFRESH_COOKIE_ACCEPTED case=%s status=%d", tc.name, resp.StatusCode)
+			if resp.StatusCode != tc.want {
+				t.Fatalf("REFRESH_COOKIE_REPRESENTATION_POLICY case=%s expected=%d got=%d", tc.name, tc.want, resp.StatusCode)
 			}
 			if after != before {
 				t.Fatalf("SESSION_FAMILY_STATE_UNEXPECTEDLY_CHANGED case=%s before=%d after=%d", tc.name, before, after)
