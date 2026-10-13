@@ -149,3 +149,49 @@ func FuzzModule1JWTStructuralParserNeverPanics(f *testing.F) {
 		_, _ = verifyAccessToken(secret, token, now)
 	})
 }
+
+
+func TestModule1JWTCanonicalTextualEncoding(t *testing.T) {
+	secret := []byte("01234567890123456789012345678901")
+	now := time.Date(2026, 10, 13, 0, 0, 0, 0, time.UTC)
+	user := StoredUser{ID: "user-a", InvestmentSubjectID: "subject-a"}
+	valid, err := signAccessToken(secret, user, now.Add(-time.Minute), now.Add(time.Hour))
+	if err != nil {
+		t.Fatalf("sign seed: %v", err)
+	}
+	parts := strings.Split(valid, ".")
+	if len(parts) != 3 {
+		t.Fatalf("unexpected seed structure")
+	}
+
+	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+	findAlias := func(encoded string) (string, bool) {
+		decoded, err := base64.RawURLEncoding.DecodeString(encoded)
+		if err != nil || len(encoded) == 0 {
+			return "", false
+		}
+		last := len(encoded) - 1
+		for i := 0; i < len(alphabet); i++ {
+			if alphabet[i] == encoded[last] {
+				continue
+			}
+			candidate := encoded[:last] + string(alphabet[i])
+			candidateDecoded, decodeErr := base64.RawURLEncoding.DecodeString(candidate)
+			if decodeErr == nil && hmac.Equal(decoded, candidateDecoded) {
+				return candidate, true
+			}
+		}
+		return "", false
+	}
+
+	alias, ok := findAlias(parts[2])
+	if !ok {
+		t.Log("JWT_CANONICALIZATION=NO_BYTE_EQUIVALENT_SIGNATURE_ALIAS_FOUND_BY_GO_DECODER")
+		return
+	}
+	aliased := parts[0] + "." + parts[1] + "." + alias
+	if claims, err := verifyAccessToken(secret, aliased, now); err == nil {
+		t.Fatalf("noncanonical byte-equivalent signature encoding authenticated: subject=%q canonical=%q alias=%q", claims.InvestmentSubjectID, parts[2], alias)
+	}
+	t.Log("JWT_CANONICALIZATION=NONCANONICAL_SIGNATURE_ALIAS_REJECTED")
+}
