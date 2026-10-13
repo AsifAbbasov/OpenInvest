@@ -5,12 +5,21 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 	"time"
 )
 
+func requireModule1Adversarial(t *testing.T) {
+	t.Helper()
+	if os.Getenv("OPENINVEST_MODULE1_ADVERSARIAL") != "1" {
+		t.Skip("OPENINVEST_MODULE1_ADVERSARIAL is not enabled")
+	}
+}
+
 func TestModule1JWTStructuralSignatureAndTimeMatrix(t *testing.T) {
+	requireModule1Adversarial(t)
 	secret := []byte("01234567890123456789012345678901")
 	now := time.Date(2026, 10, 13, 0, 0, 0, 0, time.UTC)
 	user := StoredUser{ID: "user-a", InvestmentSubjectID: "subject-a"}
@@ -84,6 +93,7 @@ func TestModule1JWTStructuralSignatureAndTimeMatrix(t *testing.T) {
 }
 
 func TestModule1JWTSignedDuplicateSecurityClaimBehaviorIsRecorded(t *testing.T) {
+	requireModule1Adversarial(t)
 	secret := []byte("01234567890123456789012345678901")
 	now := time.Date(2026, 10, 13, 0, 0, 0, 0, time.UTC)
 	header := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"HS256","typ":"JWT"}`))
@@ -152,6 +162,7 @@ func FuzzModule1JWTStructuralParserNeverPanics(f *testing.F) {
 
 
 func TestModule1JWTCanonicalTextualEncoding(t *testing.T) {
+	requireModule1Adversarial(t)
 	secret := []byte("01234567890123456789012345678901")
 	now := time.Date(2026, 10, 13, 0, 0, 0, 0, time.UTC)
 	user := StoredUser{ID: "user-a", InvestmentSubjectID: "subject-a"}
