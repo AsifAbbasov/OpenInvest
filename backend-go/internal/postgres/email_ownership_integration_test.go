@@ -156,3 +156,31 @@ func TestEmailOwnershipExpiredDeliveryCannotActivate(t *testing.T) {
 		t.Fatalf("expired token activated identity: %d %v", count, err)
 	}
 }
+
+func TestEmailOwnershipRuntimePrivilegeBoundary(t *testing.T) {
+	url := os.Getenv("OPENINVEST_DATABASE_RUNTIME_TEST_URL")
+	if url == "" {
+		t.Skip("isolated runtime PostgreSQL service required")
+	}
+	store, err := postgres.OpenRuntime(url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	service, err := auth.NewService(store, nil, auth.Config{AccessTokenSecret: []byte("01234567890123456789012345678901")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	email := "runtime-ownership-" + uuid.NewString() + "@example.test"
+	if err := service.BeginEmailRegistration(context.Background(), email); err != nil {
+		t.Fatal(err)
+	}
+	sink := &ownershipMail{}
+	if found, err := service.DeliverOne(context.Background(), sink); err != nil || !found {
+		t.Fatalf("runtime delivery %t %v", found, err)
+	}
+	if err := service.CompleteEmailRegistration(context.Background(), sink.token, ownerRequest()); err != nil {
+		t.Fatal(err)
+	}
+	t.Log("EMAIL_OWNERSHIP_RUNTIME_PRIVILEGE_BOUNDARY=PASS")
+}

@@ -115,3 +115,17 @@ FINAL_REPOSITORY_WIDE_ASSAULT_STARTED=NO
 IMPLEMENTATION_READY_FOR_GATEKEEPER_ACCEPTANCE=NO_FULL_EVIDENCE_PENDING
 STOP_FOR_INDEPENDENT_GATEKEEPER_REVIEW=YES
 ```
+
+## First exact-head CI failure and justified correction
+
+Run 38411406391 on e93e3174ffa19573bc8f994c381369e6431ba8c0 passed eight
+jobs, including migration validation, but Go tests/race failed. Complete job logs
+115344943310 and 115344943148 identify an implementation integration defect:
+OpenRuntime correctly rejected grants on the four new unknown identity relations.
+The correction adds exactly their reviewed SELECT/INSERT/UPDATE/DELETE envelopes
+to runtime_privileges.go, retaining rejection of unknown relations, dangerous
+capabilities, ownership paths, DDL rights and audit/ledger mutations. A real runtime
+role activation test was added. This is not a relaxed oracle or suppressed failure.
+Fresh exact-head normal CI is required after this correction. Deployment must
+coordinate new code/schema/runtime grants; old startup guards cannot accept newly
+introduced capabilities. No rolling-deployment compatibility is claimed here.
