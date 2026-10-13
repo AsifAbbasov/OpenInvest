@@ -129,6 +129,7 @@ func TestModule1RefreshCookieCollisionMatrix(t *testing.T) {
 			refresh := requireCookie(t, register, auth.RefreshCookieName)
 			csrf := readCSRFToken(t, register)
 			register.Body.Close()
+			before := len(store.sessions)
 
 			req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/refresh", nil)
 			req.Header.Set("X-CSRF-Token", csrf)
@@ -143,12 +144,12 @@ func TestModule1RefreshCookieCollisionMatrix(t *testing.T) {
 			}
 			defer resp.Body.Close()
 			after := len(store.sessions)
-			t.Logf("CASE=%s STATUS=%d SESSION_COUNT_BEFORE=1 SESSION_COUNT_AFTER=%d", order.name, resp.StatusCode, after)
+			t.Logf("CASE=%s STATUS=%d SESSION_COUNT_BEFORE=%d SESSION_COUNT_AFTER=%d", order.name, resp.StatusCode, before, after)
 			if order.validFirst {
 				if resp.StatusCode != http.StatusOK {
 					t.Fatalf("first valid refresh cookie was not selected: status=%d", resp.StatusCode)
 				}
-				if after != 1 {
+				if after != before {
 					t.Fatalf("successful rotation must replace exactly one session, got session count=%d", after)
 				}
 				if _, exists := store.sessions[tokenHashForModule1(refresh.Value)]; exists {
@@ -158,7 +159,7 @@ func TestModule1RefreshCookieCollisionMatrix(t *testing.T) {
 				if resp.StatusCode != http.StatusUnauthorized {
 					t.Fatalf("first invalid refresh cookie must not fall through to later valid cookie: status=%d", resp.StatusCode)
 				}
-				if after != 1 {
+				if after != before {
 					t.Fatalf("rejected duplicate-cookie request mutated session state: count=%d", after)
 				}
 				if _, exists := store.sessions[tokenHashForModule1(refresh.Value)]; !exists {
@@ -223,10 +224,7 @@ func TestModule1SessionFixationPreAuthCookieNotReused(t *testing.T) {
 	seedLegacyFixture(t, app, `{"email":"fixation@example.test","password":"correct horse battery staple","language":"en","theme":"system","timezone":"UTC"}`)
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", strings.NewReader(`{
 		"email":"fixation@example.test",
-		"password":"correct horse battery staple",
-		"language":"en",
-		"theme":"system",
-		"timezone":"UTC"
+		"password":"correct horse battery staple"
 	}`))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Add("Cookie", auth.RefreshCookieName+"=attacker-controlled-preauth-cookie")
@@ -388,6 +386,7 @@ func TestModule1RefreshCookiePhysicalHeaderCollisionMatrix(t *testing.T) {
 			refresh := requireCookie(t, register, auth.RefreshCookieName)
 			csrf := readCSRFToken(t, register)
 			register.Body.Close()
+			before := len(store.sessions)
 			req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/refresh", nil)
 			req.Header.Set("X-CSRF-Token", csrf)
 			for _, marker := range tc.headers {
@@ -404,7 +403,7 @@ func TestModule1RefreshCookiePhysicalHeaderCollisionMatrix(t *testing.T) {
 				if _, exists := store.sessions[tokenHashForModule1(refresh.Value)]; exists {
 					t.Fatal("successful refresh left old credential active")
 				}
-				if len(store.sessions) != 1 { t.Fatalf("rotated session count=%d", len(store.sessions)) }
+				if len(store.sessions) != before { t.Fatalf("rotated session count=%d baseline=%d", len(store.sessions), before) }
 			} else {
 				if _, exists := store.sessions[tokenHashForModule1(refresh.Value)]; !exists {
 					t.Fatal("rejected cookie collision mutated valid session")
