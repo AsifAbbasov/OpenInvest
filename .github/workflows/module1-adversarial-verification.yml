@@ -193,7 +193,9 @@ jobs:
           run_case session_family_guard go test -race -v ./internal/postgres -run '^TestDatabaseRejectsNewSessionWithoutFamilyIdentity$' -count=1 -timeout=5m
           run_case registration_enumeration go test -race -v ./internal/postgres -run '^TestModule1Registration' -count=1 -timeout=5m
           run_case cross_principal go test -race -v ./internal/postgres -run '^TestModule1CrossPrincipal' -count=1 -timeout=5m
-          run_case bounded_high_contention go test -race -v ./internal/postgres -run '^TestModule1BoundedHighContentionRefreshCampaign\\
+          run_case bounded_high_contention go test -race -v ./internal/postgres -run 'TestModule1BoundedHighContentionRefreshCampaign' -count=1 -timeout=10m
+          echo "COLLECT_ALL_FAILURES=$failures"
+          exit "$failures"
 
   frontend-auth-state:
     name: frontend-auth-state
