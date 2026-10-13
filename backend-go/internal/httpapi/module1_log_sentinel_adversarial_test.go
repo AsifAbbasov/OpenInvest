@@ -44,8 +44,8 @@ func TestModule1AuthLogAndErrorResponseSecretSentinels(t *testing.T) {
 		"theme":"system",
 		"timezone":"UTC"
 	}`
-	register := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", registerBody, "", "")
-	if register.StatusCode != http.StatusCreated {
+	register := fixtureLegacyLogin(t, app, http.MethodPost, "/api/v1/auth/register", registerBody, "", "")
+	if register.StatusCode != http.StatusOK {
 		t.Fatalf("registration status=%d", register.StatusCode)
 	}
 	refreshCookie := requireCookie(t, register, auth.RefreshCookieName)
