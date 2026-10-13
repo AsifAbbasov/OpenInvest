@@ -367,3 +367,117 @@ func tokenHashForModule1(value string) string {
 	sum := sha256.Sum256([]byte(value))
 	return hex.EncodeToString(sum[:])
 }
+
+
+func TestModule1AuthorizationRepresentationExtendedMatrix(t *testing.T) {
+	requireModule1HTTPAdversarial(t)
+	store := &httpAuthTestStore{}
+	service := newHTTPAuthService(t, store)
+	appReg := newHTTPAuthApp(t, service)
+	register := authRequest(t, appReg, http.MethodPost, "/api/v1/auth/register", `{
+		"email":"module1-authz-extended@example.test",
+		"password":"correct horse battery staple",
+		"language":"en",
+		"theme":"system",
+		"timezone":"UTC"
+	}`, "", "")
+	defer register.Body.Close()
+	var payload struct {
+		Data struct {
+			Session struct { AccessToken string `json:"accessToken"` } `json:"session"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(register.Body).Decode(&payload); err != nil { t.Fatal(err) }
+	valid := "Bearer " + payload.Data.Session.AccessToken
+
+	api := &API{auth: service}
+	app := fiber.New()
+	app.Get("/protected", func(c fiber.Ctx) error {
+		subject, err := api.subjectID(c)
+		if err != nil { return c.SendStatus(http.StatusUnauthorized) }
+		return c.Status(http.StatusOK).SendString(subject)
+	})
+
+	cases := []struct{
+		name string
+		values []string
+		want int
+	}{
+		{"leading_whitespace", []string{" " + valid}, http.StatusUnauthorized},
+		{"trailing_whitespace", []string{valid + " "}, http.StatusOK},
+		{"double_space_after_scheme", []string{"Bearer  " + payload.Data.Session.AccessToken}, http.StatusOK},
+		{"tab_after_scheme", []string{"Bearer\t" + payload.Data.Session.AccessToken}, http.StatusUnauthorized},
+		{"uppercase_scheme", []string{"BEARER " + payload.Data.Session.AccessToken}, http.StatusUnauthorized},
+		{"mixed_case_scheme", []string{"BeArEr " + payload.Data.Session.AccessToken}, http.StatusUnauthorized},
+		{"three_values_valid_first", []string{valid, "Bearer synthetic.invalid", valid}, http.StatusOK},
+		{"three_values_invalid_first", []string{"Bearer synthetic.invalid", valid, valid}, http.StatusUnauthorized},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/protected", nil)
+			for _, v := range tc.values { req.Header.Add("Authorization", v) }
+			resp, err := app.Test(req)
+			if err != nil { t.Fatalf("request: %v", err) }
+			defer resp.Body.Close()
+			body, _ := io.ReadAll(resp.Body)
+			if resp.StatusCode != tc.want {
+				t.Fatalf("status=%d want=%d values=%q", resp.StatusCode, tc.want, tc.values)
+			}
+			if resp.StatusCode == http.StatusOK && strings.TrimSpace(string(body)) != store.user.InvestmentSubjectID {
+				t.Fatalf("resolved principal mismatch got=%q want=%q", strings.TrimSpace(string(body)), store.user.InvestmentSubjectID)
+			}
+			t.Logf("AUTH_REP_CASE=%s STATUS=%d", tc.name, resp.StatusCode)
+		})
+	}
+}
+
+func TestModule1RefreshCookiePhysicalHeaderCollisionMatrix(t *testing.T) {
+	requireModule1HTTPAdversarial(t)
+	for _, tc := range []struct{
+		name string
+		headers []string
+		wantOK bool
+	}{
+		{"two_headers_valid_then_invalid", []string{"VALID", "INVALID"}, true},
+		{"two_headers_invalid_then_valid", []string{"INVALID", "VALID"}, false},
+		{"duplicate_equal", []string{"VALID", "VALID"}, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			store := &httpAuthTestStore{}
+			app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
+			register := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", `{
+				"email":"physical-cookie-`+tc.name+`@example.test",
+				"password":"correct horse battery staple",
+				"language":"en",
+				"theme":"system",
+				"timezone":"UTC"
+			}`, "", "")
+			refresh := requireCookie(t, register, auth.RefreshCookieName)
+			csrf := readCSRFToken(t, register)
+			register.Body.Close()
+			req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/refresh", nil)
+			req.Header.Set("X-CSRF-Token", csrf)
+			for _, marker := range tc.headers {
+				value := "synthetic-invalid"
+				if marker == "VALID" { value = refresh.Value }
+				req.Header.Add("Cookie", auth.RefreshCookieName+"="+value)
+			}
+			resp, err := app.Test(req)
+			if err != nil { t.Fatalf("refresh: %v", err) }
+			defer resp.Body.Close()
+			ok := resp.StatusCode == http.StatusOK
+			if ok != tc.wantOK { t.Fatalf("status=%d wantOK=%t", resp.StatusCode, tc.wantOK) }
+			if ok {
+				if _, exists := store.sessions[tokenHashForModule1(refresh.Value)]; exists {
+					t.Fatal("successful refresh left old credential active")
+				}
+				if len(store.sessions) != 1 { t.Fatalf("rotated session count=%d", len(store.sessions)) }
+			} else {
+				if _, exists := store.sessions[tokenHashForModule1(refresh.Value)]; !exists {
+					t.Fatal("rejected cookie collision mutated valid session")
+				}
+			}
+			t.Logf("COOKIE_HEADER_CASE=%s STATUS=%d ACTIVE_SESSIONS=%d", tc.name, resp.StatusCode, len(store.sessions))
+		})
+	}
+}
