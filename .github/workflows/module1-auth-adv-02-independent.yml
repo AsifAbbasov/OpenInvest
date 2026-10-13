@@ -1,0 +1,56 @@
+name: Independent AUTH-ADV-02 bounded audit
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+permissions:
+  contents: read
+
+jobs:
+  independent-auth-adv-02:
+    name: Independent ownership matrix and crash counterexample
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: openinvest-ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Check out exact audit head
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Set up pinned Go toolchain
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+      - name: Apply migrations on disposable PostgreSQL
+        env:
+          OPENINVEST_DATABASE_OWNER_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+        run: |
+          set -euo pipefail
+          bash scripts/apply-migrations.sh
+      - name: Evidence identity preservation, token generation and atomicity
+        working-directory: backend-go
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+        run: |
+          set -euo pipefail
+          go test -race -v ./internal/postgres -run '^TestEmailOwnershipIndependent(LegacyAccountCannotBeReclaimed|GenerationInvalidatesOldToken|ConcurrentTokenConsumption)$' -count=1 -timeout=90s
+      - name: Negative control fourth crash must reach terminal failed state
+        working-directory: backend-go
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+        run: |
+          set -euo pipefail
+          go test -race -v ./internal/postgres -run '^TestEmailOwnershipIndependentFourthCrashTerminalState$' -count=1 -timeout=90s
