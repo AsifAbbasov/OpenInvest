@@ -353,3 +353,77 @@ func TestModule1JWTIssuedAtBehaviorRecorded(t *testing.T) {
 	}
 	t.Log("JWT_IAT_FUTURE_POLICY=ACCEPTED_NOT_CURRENTLY_VALIDATED; NO_ATTACKER_SIGNATURE_PATH_DEMONSTRATED")
 }
+
+
+func TestModule1JWTAlgorithmAndRequiredClaimMatrix(t *testing.T) {
+	requireModule1Adversarial(t)
+	secret := []byte("01234567890123456789012345678901")
+	now := time.Date(2026, 10, 13, 0, 0, 0, 0, time.UTC)
+
+	signRaw := func(headerJSON, payloadJSON string) string {
+		t.Helper()
+		header := base64.RawURLEncoding.EncodeToString([]byte(headerJSON))
+		payload := base64.RawURLEncoding.EncodeToString([]byte(payloadJSON))
+		unsigned := header + "." + payload
+		mac := hmac.New(sha256.New, secret)
+		_, _ = mac.Write([]byte(unsigned))
+		return unsigned + "." + base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+	}
+
+	validPayload := `{"sub":"user-a","uid":"user-a","investmentSubjectId":"subject-a","iat":1791849540,"exp":1893456000}`
+	algorithmCases := []struct {
+		name   string
+		header string
+	}{
+		{"alg_none", `{"alg":"none","typ":"JWT"}`},
+		{"alg_hs512", `{"alg":"HS512","typ":"JWT"}`},
+		{"alg_empty", `{"alg":"","typ":"JWT"}`},
+		{"missing_alg", `{"typ":"JWT"}`},
+		{"wrong_typ", `{"alg":"HS256","typ":"JWS"}`},
+		{"missing_typ", `{"alg":"HS256"}`},
+	}
+	for _, tc := range algorithmCases {
+		t.Run(tc.name, func(t *testing.T) {
+			token := signRaw(tc.header, validPayload)
+			if claims, err := verifyAccessToken(secret, token, now); err == nil {
+				t.Fatalf("algorithm/header confusion authenticated: claims=%+v", claims)
+			}
+		})
+	}
+
+	requiredClaimCases := []struct {
+		name    string
+		payload string
+	}{
+		{"missing_uid", `{"sub":"user-a","investmentSubjectId":"subject-a","iat":1791849540,"exp":1893456000}`},
+		{"empty_uid", `{"sub":"user-a","uid":"","investmentSubjectId":"subject-a","iat":1791849540,"exp":1893456000}`},
+		{"missing_investment_subject", `{"sub":"user-a","uid":"user-a","iat":1791849540,"exp":1893456000}`},
+		{"empty_investment_subject", `{"sub":"user-a","uid":"user-a","investmentSubjectId":"","iat":1791849540,"exp":1893456000}`},
+		{"missing_exp", `{"sub":"user-a","uid":"user-a","investmentSubjectId":"subject-a","iat":1791849540}`},
+		{"zero_exp", `{"sub":"user-a","uid":"user-a","investmentSubjectId":"subject-a","iat":1791849540,"exp":0}`},
+		{"expired_exp", `{"sub":"user-a","uid":"user-a","investmentSubjectId":"subject-a","iat":1791849540,"exp":1791849599}`},
+	}
+	for _, tc := range requiredClaimCases {
+		t.Run(tc.name, func(t *testing.T) {
+			token := signRaw(`{"alg":"HS256","typ":"JWT"}`, tc.payload)
+			if claims, err := verifyAccessToken(secret, token, now); err == nil {
+				t.Fatalf("missing/invalid required claim authenticated: claims=%+v", claims)
+			}
+		})
+	}
+
+	// sub and iat are carried claims but are not independently enforced by the current verifier.
+	// Record that policy explicitly without treating a validly signed synthetic token as an attacker bypass.
+	optionalPolicy := signRaw(
+		`{"alg":"HS256","typ":"JWT"}`,
+		`{"uid":"user-a","investmentSubjectId":"subject-a","exp":1893456000}`,
+	)
+	claims, err := verifyAccessToken(secret, optionalPolicy, now)
+	if err != nil {
+		t.Fatalf("current optional-claim policy changed unexpectedly: %v", err)
+	}
+	if claims.UserID != "user-a" || claims.InvestmentSubjectID != "subject-a" {
+		t.Fatalf("optional-claim policy changed principal: %+v", claims)
+	}
+	t.Log("JWT_REQUIRED_CLAIMS=uid,investmentSubjectId,exp; ALG_CONFUSION=REJECTED; ISSUER_AUDIENCE=NOT_CONFIGURED")
+}
