@@ -28,7 +28,7 @@ func TestModule1AuthorizationHeaderAmbiguityMatrix(t *testing.T) {
 	authService := newHTTPAuthService(t, store)
 	regApp := newHTTPAuthApp(t, authService)
 
-	register := authRequest(t, regApp, http.MethodPost, "/api/v1/auth/register", `{
+	register := fixtureLegacyLogin(t, regApp, http.MethodPost, "/api/v1/auth/register", `{
 		"email":"module1-authz@example.test",
 		"password":"correct horse battery staple",
 		"language":"en",
@@ -119,7 +119,7 @@ func TestModule1RefreshCookieCollisionMatrix(t *testing.T) {
 		t.Run(order.name, func(t *testing.T) {
 			store := &httpAuthTestStore{}
 			app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
-			register := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", `{
+			register := fixtureLegacyLogin(t, app, http.MethodPost, "/api/v1/auth/register", `{
 				"email":"cookie-`+order.name+`@example.test",
 				"password":"correct horse battery staple",
 				"language":"en",
@@ -172,69 +172,42 @@ func TestModule1RefreshCookieCollisionMatrix(t *testing.T) {
 func TestModule1AuthJSONAmbiguityMatrix(t *testing.T) {
 	requireModule1HTTPAdversarial(t)
 
-	// Duplicate object-member rejection is not part of the current OpenAPI or
-	// decodeStrictJSON contract. Go's encoding/json resolves duplicates last-wins.
-	// Preserve that parser observation while keeping strict negative oracles for
-	// trailing documents, wrong top-level types and unknown fields.
-	duplicateCases := []struct {
-		name          string
-		body          string
-		wantEmail     string
-	}{
-		{
-			name: "duplicate_email",
-			body: `{"email":"first@example.test","email":"second@example.test","password":"correct horse battery staple","language":"en","theme":"system","timezone":"UTC"}`,
-			wantEmail: "second@example.test",
-		},
-		{
-			name: "duplicate_password",
-			body: `{"email":"dup-password@example.test","password":"wrong wrong wrong","password":"correct horse battery staple","language":"en","theme":"system","timezone":"UTC"}`,
-			wantEmail: "dup-password@example.test",
-		},
-	}
-	for _, test := range duplicateCases {
-		t.Run(test.name, func(t *testing.T) {
-			store := &httpAuthTestStore{}
-			app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
-			req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(test.body))
-			req.Header.Set("Content-Type", "application/json")
-			resp, err := app.Test(req)
-			if err != nil { t.Fatalf("request: %v", err) }
-			defer resp.Body.Close()
-			t.Logf("CASE=%s STATUS=%d REGISTER_CALLS=%d RESOLVED_EMAIL=%q", test.name, resp.StatusCode, store.registerCalls, store.user.Email)
-			if resp.StatusCode != http.StatusCreated || store.registerCalls != 1 {
-				t.Fatalf("documented parser behavior changed: status=%d registerCalls=%d", resp.StatusCode, store.registerCalls)
-			}
-			if store.user.Email != test.wantEmail {
-				t.Fatalf("duplicate JSON member resolved unexpectedly: email=%q want=%q", store.user.Email, test.wantEmail)
-			}
-		})
-	}
+	t.Run("duplicate_email_last_member_wins_without_activation", func(t *testing.T) {
+		store := &httpOwnershipFixture{}
+		app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(`{"email":"first@example.test","email":"second@example.test"}`))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		if err != nil { t.Fatal(err) }
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusAccepted || store.email != "second@example.test" {
+			t.Fatalf("duplicate email resolution changed status=%d email=%q", resp.StatusCode, store.email)
+		}
+		if store.registerCalls != 0 || len(store.sessions) != 0 {
+			t.Fatal("duplicate registration representation activated identity/session before proof")
+		}
+	})
 
-	strictCases := []struct { name, body string }{
-		{"trailing_json", `{"email":"trailing@example.test","password":"correct horse battery staple","language":"en","theme":"system","timezone":"UTC"} {}`},
+	for _, tc := range []struct{name, body string}{
+		{"trailing_json", `{"email":"trailing@example.test"} {}`},
 		{"wrong_top_level_type", `[]`},
-		{"unknown_field", `{"email":"unknown@example.test","password":"correct horse battery staple","language":"en","theme":"system","timezone":"UTC","admin":true}`},
-	}
-	for _, test := range strictCases {
-		t.Run(test.name, func(t *testing.T) {
-			store := &httpAuthTestStore{}
+		{"unknown_field", `{"email":"unknown@example.test","admin":true}`},
+		{"legacy_password_field_rejected", `{"email":"legacy@example.test","password":"synthetic"}`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			store := &httpOwnershipFixture{}
 			app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
-			req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(test.body))
+			req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(tc.body))
 			req.Header.Set("Content-Type", "application/json")
 			resp, err := app.Test(req)
-			if err != nil { t.Fatalf("request: %v", err) }
+			if err != nil { t.Fatal(err) }
 			defer resp.Body.Close()
-			t.Logf("CASE=%s STATUS=%d REGISTER_CALLS=%d", test.name, resp.StatusCode, store.registerCalls)
-			if resp.StatusCode != http.StatusBadRequest {
-				t.Fatalf("strict JSON case must fail with 400, got %d", resp.StatusCode)
-			}
-			if store.registerCalls != 0 {
-				t.Fatalf("invalid JSON reached persistence: calls=%d", store.registerCalls)
+			if resp.StatusCode != http.StatusBadRequest || store.registerCalls != 0 || len(store.sessions) != 0 {
+				t.Fatalf("strict registration JSON failed closed status=%d registerCalls=%d sessions=%d", resp.StatusCode, store.registerCalls, len(store.sessions))
 			}
 		})
 	}
-	t.Log("DUPLICATE_JSON_POLICY=LAST_MEMBER_WINS_UNDER_CURRENT_CONTRACT; STRICT_UNKNOWN_AND_TRAILING_REJECTION=PASS")
+	t.Log("REGISTRATION_JSON_AMBIGUITY=NO_PREPROOF_ACTIVATION; STRICT_UNKNOWN_AND_TRAILING_REJECTION=PASS")
 }
 
 func TestModule1BearerParserNegativeControl(t *testing.T) {
@@ -285,34 +258,21 @@ func TestModule1ProtectedRouteInventoryRejectsAnonymous(t *testing.T) {
 
 func TestModule1SessionFixationPreAuthCookieNotReused(t *testing.T) {
 	requireModule1HTTPAdversarial(t)
-	store := &httpAuthTestStore{}
+	store := &httpOwnershipFixture{}
 	app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
-
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(`{
-		"email":"fixation@example.test",
-		"password":"correct horse battery staple",
-		"language":"en",
-		"theme":"system",
-		"timezone":"UTC"
-	}`))
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(`{"email":"fixation@example.test"}`))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Add("Cookie", auth.RefreshCookieName+"=attacker-controlled-preauth-cookie")
 	resp, err := app.Test(req)
-	if err != nil {
-		t.Fatalf("registration with preauth cookie: %v", err)
-	}
+	if err != nil { t.Fatal(err) }
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusCreated {
-		t.Fatalf("registration status=%d", resp.StatusCode)
+	if resp.StatusCode != http.StatusAccepted || len(resp.Cookies()) != 0 {
+		t.Fatalf("pre-proof registration status=%d cookies=%d", resp.StatusCode, len(resp.Cookies()))
 	}
-	cookie := requireCookie(t, resp, auth.RefreshCookieName)
-	if cookie.Value == "" || cookie.Value == "attacker-controlled-preauth-cookie" {
-		t.Fatalf("attacker-controlled preauth cookie was reused as authenticated session")
+	if len(store.sessions) != 0 || store.registerCalls != 0 {
+		t.Fatalf("pre-proof attacker cookie promoted to session/account sessions=%d registerCalls=%d", len(store.sessions), store.registerCalls)
 	}
-	if _, exists := store.sessions[tokenHashForModule1("attacker-controlled-preauth-cookie")]; exists {
-		t.Fatalf("attacker-controlled preauth refresh value reached durable session map")
-	}
-	t.Log("SESSION_FIXATION_PREAUTH_COOKIE_REUSED=NO")
+	t.Log("SESSION_FIXATION_PREAUTH_COOKIE_REUSED=NO SESSION_BEFORE_VERIFICATION=NO")
 }
 
 func TestModule1CrossPrincipalCSRFCannotRefreshOtherSession(t *testing.T) {
@@ -320,7 +280,7 @@ func TestModule1CrossPrincipalCSRFCannotRefreshOtherSession(t *testing.T) {
 
 	storeA := &httpAuthTestStore{}
 	appA := newHTTPAuthApp(t, newHTTPAuthService(t, storeA))
-	registerA := authRequest(t, appA, http.MethodPost, "/api/v1/auth/register", `{
+	registerA := fixtureLegacyLogin(t, appA, http.MethodPost, "/api/v1/auth/register", `{
 		"email":"csrf-a@example.test",
 		"password":"correct horse battery staple",
 		"language":"en",
@@ -333,7 +293,7 @@ func TestModule1CrossPrincipalCSRFCannotRefreshOtherSession(t *testing.T) {
 
 	storeB := &httpAuthTestStore{}
 	appB := newHTTPAuthApp(t, newHTTPAuthService(t, storeB))
-	registerB := authRequest(t, appB, http.MethodPost, "/api/v1/auth/register", `{
+	registerB := fixtureLegacyLogin(t, appB, http.MethodPost, "/api/v1/auth/register", `{
 		"email":"csrf-b@example.test",
 		"password":"correct horse battery staple",
 		"language":"en",
@@ -374,7 +334,7 @@ func TestModule1AuthorizationRepresentationExtendedMatrix(t *testing.T) {
 	store := &httpAuthTestStore{}
 	service := newHTTPAuthService(t, store)
 	appReg := newHTTPAuthApp(t, service)
-	register := authRequest(t, appReg, http.MethodPost, "/api/v1/auth/register", `{
+	register := fixtureLegacyLogin(t, appReg, http.MethodPost, "/api/v1/auth/register", `{
 		"email":"module1-authz-extended@example.test",
 		"password":"correct horse battery staple",
 		"language":"en",
@@ -445,7 +405,7 @@ func TestModule1RefreshCookiePhysicalHeaderCollisionMatrix(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			store := &httpAuthTestStore{}
 			app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
-			register := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", `{
+			register := fixtureLegacyLogin(t, app, http.MethodPost, "/api/v1/auth/register", `{
 				"email":"physical-cookie-`+tc.name+`@example.test",
 				"password":"correct horse battery staple",
 				"language":"en",
@@ -489,7 +449,7 @@ func TestModule1MalformedCookieAndContentTypeMatrix(t *testing.T) {
 	t.Run("refresh_malformed_cookie_rejected_without_state_mutation", func(t *testing.T) {
 		store := &httpAuthTestStore{}
 		app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
-		register := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", `{
+		register := fixtureLegacyLogin(t, app, http.MethodPost, "/api/v1/auth/register", `{
 			"email":"malformed-cookie@example.test",
 			"password":"correct horse battery staple",
 			"language":"en",
@@ -527,7 +487,7 @@ func TestModule1MalformedCookieAndContentTypeMatrix(t *testing.T) {
 	})
 
 	t.Run("registration_content_type_representation", func(t *testing.T) {
-		body := `{"email":"content-type@example.test","password":"correct horse battery staple","language":"en","theme":"system","timezone":"UTC"}`
+		body := `{"email":"content-type@example.test"}`
 		cases := []struct{
 			name string
 			contentType string
@@ -539,7 +499,7 @@ func TestModule1MalformedCookieAndContentTypeMatrix(t *testing.T) {
 		}
 		for _, tc := range cases {
 			t.Run(tc.name, func(t *testing.T) {
-				store := &httpAuthTestStore{}
+				store := &httpOwnershipFixture{}
 				app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
 				req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(body))
 				if tc.contentType != "" { req.Header.Set("Content-Type", tc.contentType) }
@@ -550,13 +510,13 @@ func TestModule1MalformedCookieAndContentTypeMatrix(t *testing.T) {
 				// The current handler decodes the JSON bytes directly and does not use Content-Type
 				// as an authentication/authorization decision. Record that transport policy, while
 				// requiring the resolved identity to remain exactly the submitted synthetic identity.
-				if resp.StatusCode != http.StatusCreated || store.registerCalls != 1 {
-					t.Fatalf("content-type=%q status=%d registerCalls=%d", tc.contentType, resp.StatusCode, store.registerCalls)
+				if resp.StatusCode != http.StatusAccepted || store.registerCalls != 0 || len(store.sessions) != 0 {
+					t.Fatalf("content-type=%q status=%d registerCalls=%d sessions=%d", tc.contentType, resp.StatusCode, store.registerCalls, len(store.sessions))
 				}
-				if store.user.Email != "content-type@example.test" {
-					t.Fatalf("content-type=%q changed resolved registration identity: %q", tc.contentType, store.user.Email)
+				if store.email != "content-type@example.test" {
+					t.Fatalf("content-type=%q changed resolved registration intent: %q", tc.contentType, store.email)
 				}
-				t.Logf("AUTH_CONTENT_TYPE_CASE=%s STATUS=%d RESOLVED_EMAIL=%q", tc.name, resp.StatusCode, store.user.Email)
+				t.Logf("AUTH_CONTENT_TYPE_CASE=%s STATUS=%d RESOLVED_EMAIL=%q", tc.name, resp.StatusCode, store.email)
 			})
 		}
 		t.Log("AUTH_CONTENT_TYPE_POLICY=BODY_JSON_DECODE_INDEPENDENT_OF_CONTENT_TYPE; PRINCIPAL_CONFUSION_OBSERVED=NO")
