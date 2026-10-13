@@ -20,9 +20,21 @@ import (
  "github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
+// Drain synthetic, already-queued fake deliveries before beginning a new probe.
+// Never calls external SMTP; bound prevents a polluted fixture from passing.
+func independentDrainPreviousDeliveries(t *testing.T,svc *auth.Service) {
+ t.Helper()
+ for i:=0;i<32;i++ {
+  found,err:=svc.DeliverOne(context.Background(),&ownershipMail{})
+  if err!=nil{t.Fatalf("fixture precondition: %v",err)}
+  if !found{return}
+ }
+ t.Fatal("TEST_FIXTURE_DEFECT: residual delivery work exceeds finite fixture budget")
+}
 func independentAddress(label string) string {return "adv02-"+label+"-"+uuid.NewString()+"@example.test"}
 func TestEmailOwnershipAdversarialHTTPMembershipParity(t *testing.T) {
  s,db:=ownershipService(t)
+ independentDrainPreviousDeliveries(t,s)
  app,err:=httpapi.New(verticalslice.NewService(&postgres.Store{},verticalslice.SystemClock{}),s,[]byte("verification-independent-32-byte-secret"))
  if err!=nil {t.Fatal(err)}
  fresh:=independentAddress("fresh")
@@ -62,7 +74,7 @@ func TestEmailOwnershipAdversarialHTTPMembershipParity(t *testing.T) {
 }
 
 func TestEmailOwnershipAdversarialCrossIntentAndPurpose(t *testing.T){
- s,db:=ownershipService(t);ctx:=context.Background()
+ s,db:=ownershipService(t);independentDrainPreviousDeliveries(t,s);ctx:=context.Background()
  a,b:=independentAddress("a"),independentAddress("b")
  for _,v:=range []string{a,b}{if err:=s.BeginEmailRegistration(ctx,v);err!=nil{t.Fatal(err)}}
  ma:=&ownershipMail{};mb:=&ownershipMail{}
@@ -88,7 +100,7 @@ func TestEmailOwnershipAdversarialCrossIntentAndPurpose(t *testing.T){
 }
 
 func TestEmailOwnershipAdversarialRollbackMidActivation(t *testing.T){
- s,db:=ownershipService(t);ctx:=context.Background()
+ s,db:=ownershipService(t);independentDrainPreviousDeliveries(t,s);ctx:=context.Background()
  email:=independentAddress("rollback")
  if err:=s.BeginEmailRegistration(ctx,email);err!=nil{t.Fatal(err)}
  sink:=&ownershipMail{};if ok,err:=s.DeliverOne(ctx,sink);!ok||err!=nil{t.Fatalf("send %t %v",ok,err)}
@@ -115,7 +127,7 @@ func TestEmailOwnershipAdversarialRollbackMidActivation(t *testing.T){
 }
 
 func TestEmailOwnershipAdversarialDeliveryRetriesAndWorkers(t *testing.T){
- s,db:=ownershipService(t);ctx:=context.Background()
+ s,db:=ownershipService(t);independentDrainPreviousDeliveries(t,s);ctx:=context.Background()
  email:=independentAddress("deliveries")
  if err:=s.BeginEmailRegistration(ctx,email);err!=nil{t.Fatal(err)}
  // Two workers concurrently see one queued job.
