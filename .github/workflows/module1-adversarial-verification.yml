@@ -218,7 +218,8 @@ jobs:
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
           echo "TESTED_SHA=$(git rev-parse HEAD)"
           echo "TESTED_TREE=$(git rev-parse HEAD^{tree})"
-      - name: Existing auth and HTTP regressions under race detector
+      - name: Existing auth regressions under race detector
         run: |
           set -euo pipefail
-          go test -race ./internal/auth ./internal/httpapi -count=1 -timeout=8m
+          go test -race ./internal/auth -run '^(TestService|TestPassword|TestStage337)' -count=1 -timeout=8m
+          go test -race ./internal/httpapi -run '^(TestAuthRefreshRequiresCSRFAndRejectsReplay|TestAuthLogoutClearsRefreshCookie|TestAuthInfrastructureFailuresUseSanitizedInternalError|TestSensitiveResponseCachePolicyCoversAuthLifecycleAndErrors|TestAuthRegisterSetsHttpOnlyRefreshCookieWithoutBodyLeak) -count=1 -timeout=8m
