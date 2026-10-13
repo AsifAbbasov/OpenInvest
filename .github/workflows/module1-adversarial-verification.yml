@@ -226,4 +226,4 @@ jobs:
         run: |
           set -euo pipefail
           go test -race ./internal/auth -run '^(TestService|TestPassword|TestStage337)' -count=1 -timeout=8m
-          go test -race ./internal/httpapi -run '^(TestAuthRefreshRequiresCSRFAndRejectsReplay|TestAuthLogoutClearsRefreshCookie|TestAuthInfrastructureFailuresUseSanitizedInternalError|TestSensitiveResponseCachePolicyCoversAuthLifecycleAndErrors|TestAuthRegisterSetsHttpOnlyRefreshCookieWithoutBodyLeak) -count=1 -timeout=8m
+          go test -race ./internal/httpapi -run 'TestAuthRefreshRequiresCSRFAndRejectsReplay|TestAuthLogoutClearsRefreshCookie|TestAuthInfrastructureFailuresUseSanitizedInternalError|TestSensitiveResponseCachePolicyCoversAuthLifecycleAndErrors|TestAuthRegisterSetsHttpOnlyRefreshCookieWithoutBodyLeak' -count=1 -timeout=8m
