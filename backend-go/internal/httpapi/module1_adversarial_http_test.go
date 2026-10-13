@@ -403,7 +403,7 @@ func TestModule1AuthorizationRepresentationExtendedMatrix(t *testing.T) {
 		values []string
 		want int
 	}{
-		{"leading_whitespace", []string{" " + valid}, http.StatusUnauthorized},
+		{"leading_whitespace", []string{" " + valid}, http.StatusOK}, // net/http normalizes leading OWS before Fiber
 		{"trailing_whitespace", []string{valid + " "}, http.StatusOK},
 		{"double_space_after_scheme", []string{"Bearer  " + payload.Data.Session.AccessToken}, http.StatusOK},
 		{"tab_after_scheme", []string{"Bearer\t" + payload.Data.Session.AccessToken}, http.StatusUnauthorized},
