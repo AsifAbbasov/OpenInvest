@@ -115,33 +115,6 @@ func TestAuthRegisterRejectsUnknownSensitiveFields(t *testing.T) {
 	}
 }
 
-func TestAuthRegisterRejectsTimezoneSyntaxBeforePersistence(t *testing.T) {
-	for _, timezone := range []string{" Asia/Baku", "UTC+04:00"} {
-		t.Run(timezone, func(t *testing.T) {
-			store := &httpAuthTestStore{}
-			authService := newHTTPAuthService(t, store)
-			app := newHTTPAuthApp(t, authService)
-
-			body := fmt.Sprintf(`{
-				"email":"investor@example.com",
-				"password":"correct horse battery staple",
-				"language":"en",
-				"theme":"system",
-				"timezone":%q
-			}`, timezone)
-			response := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", body, "", "")
-			defer response.Body.Close()
-
-			if response.StatusCode != http.StatusBadRequest {
-				t.Fatalf("expected invalid timezone status %d, got %d", http.StatusBadRequest, response.StatusCode)
-			}
-			if store.registerCalls != 0 {
-				t.Fatalf("invalid timezone must not reach RegisterUser, got %d calls", store.registerCalls)
-			}
-		})
-	}
-}
-
 func TestAuthRateLimitedResponseIncludesRetryAfter(t *testing.T) {
 	authService := newHTTPAuthService(t, &httpAuthTestStore{})
 	app := newApp(&API{

@@ -1,14 +1,17 @@
 package httpapi
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/openinvest/openinvest/backend-go/internal/auth"
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 )
@@ -104,5 +107,45 @@ func TestEmailOwnershipHTTPUnavailableDoesNotFallBack(t *testing.T) {
 	defer r.Body.Close()
 	if r.StatusCode != 503 || len(r.Cookies()) != 0 {
 		t.Fatal("missing ownership backend must fail closed")
+	}
+}
+
+func TestEmailOwnershipVerifyTimezoneSyntaxBeforePersistence(t *testing.T) {
+	for _, tc := range []struct {
+		zone           string
+		status, writes int
+	}{{" Asia/Baku", 400, 0}, {"UTC+04:00", 400, 0}, {"UTC", 200, 1}, {"Asia/Baku", 200, 1}} {
+		t.Run(tc.zone, func(t *testing.T) {
+			store := &httpOwnershipFixture{}
+			service, err := auth.NewService(store, nil, auth.Config{AccessTokenSecret: []byte("01234567890123456789012345678901")})
+			if err != nil {
+				t.Fatal(err)
+			}
+			app := newHTTPAuthApp(t, service)
+			if err := service.BeginEmailRegistration(context.Background(), "timezone@example.test"); err != nil {
+				t.Fatal(err)
+			}
+			sink := &httpVerificationSink{}
+			if ok, err := service.DeliverOne(context.Background(), sink); err != nil || !ok {
+				t.Fatalf("delivery: %t %v", ok, err)
+			}
+			payload, _ := json.Marshal(map[string]string{"token": sink.token, "password": "owner-selected-correct-horse", "language": "en", "theme": "system", "timezone": tc.zone})
+			request := httptest.NewRequest("POST", "/api/v1/auth/email/verify", bytes.NewReader(payload))
+			request.Header.Set("Content-Type", "application/json")
+			response, err := app.Test(request, fiber.TestConfig{Timeout: 5 * time.Second, FailOnTimeout: true})
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer response.Body.Close()
+			if response.StatusCode != tc.status || store.registerCalls != tc.writes {
+				t.Fatalf("status=%d writes=%d expected=%d/%d", response.StatusCode, store.registerCalls, tc.status, tc.writes)
+			}
+			if tc.writes == 0 && store.used {
+				t.Fatal("invalid timezone consumed verification proof")
+			}
+		})
+	}
+	if !t.Failed() {
+		t.Log("TIMEZONE_COMPLETION_NEGATIVE_AND_POSITIVE_CONTROLS=PASS")
 	}
 }

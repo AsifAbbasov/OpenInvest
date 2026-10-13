@@ -72,17 +72,33 @@ func (s *Store) LeaseVerificationDelivery(ctx context.Context, digest string) (a
 	// All paths lock intent before jobs/tokens. Never hold a database lock over delivery.
 	var id, email string
 	var gen int64
-	err = tx.QueryRowContext(ctx, `SELECT i.id,i.email_normalized,i.generation FROM identity.registration_intents i WHERE i.intent_state='pending' AND i.expires_at>statement_timestamp() AND EXISTS(SELECT 1 FROM identity.email_delivery_jobs j WHERE j.intent_id=i.id AND j.generation=i.generation AND j.attempts<4 AND j.available_at<=statement_timestamp() AND (j.job_state='queued' OR (j.job_state='leased' AND j.lease_until<statement_timestamp()))) ORDER BY i.created_at FOR UPDATE OF i SKIP LOCKED LIMIT 1`).Scan(&id, &email, &gen)
+	err = tx.QueryRowContext(ctx, `SELECT i.id,i.email_normalized,i.generation FROM identity.registration_intents i WHERE EXISTS(SELECT 1 FROM identity.email_delivery_jobs j WHERE j.intent_id=i.id AND j.generation=i.generation AND ((j.job_state='leased' AND j.lease_until<=statement_timestamp() AND j.attempts>=4) OR (i.intent_state='pending' AND i.expires_at>statement_timestamp() AND j.attempts<4 AND j.available_at<=statement_timestamp() AND (j.job_state='queued' OR (j.job_state='leased' AND j.lease_until<=statement_timestamp()))))) ORDER BY i.created_at FOR UPDATE OF i SKIP LOCKED LIMIT 1`).Scan(&id, &email, &gen)
 	if errors.Is(err, sql.ErrNoRows) {
 		return auth.VerificationDelivery{}, false, nil
 	}
 	if err != nil {
 		return auth.VerificationDelivery{}, false, err
 	}
+	// Exhausted expired leases are terminalized under the same parent lock used
+	// by leasing and activation. This bounded pass cannot issue a fifth token.
+	result, err := tx.ExecContext(ctx, `UPDATE identity.email_delivery_jobs SET job_state='failed',lease_id=NULL,lease_until=NULL WHERE intent_id=$1 AND generation=$2 AND job_state='leased' AND attempts>=4 AND lease_until<=statement_timestamp()`, id, gen)
+	if err != nil {
+		return auth.VerificationDelivery{}, false, err
+	}
+	changed, err := result.RowsAffected()
+	if err != nil {
+		return auth.VerificationDelivery{}, false, err
+	}
+	if changed != 0 {
+		return auth.VerificationDelivery{}, false, tx.Commit()
+	}
 	lease := uuid.NewString()
 	var job string
 	var expiry time.Time
-	err = tx.QueryRowContext(ctx, `UPDATE identity.email_delivery_jobs SET job_state='leased',lease_id=$2,lease_until=statement_timestamp()+interval '1 minute',attempts=attempts+1 WHERE intent_id=$1 AND generation=$3 AND attempts<4 RETURNING id`, id, lease, gen).Scan(&job)
+	err = tx.QueryRowContext(ctx, `UPDATE identity.email_delivery_jobs SET job_state='leased',lease_id=$2,lease_until=statement_timestamp()+interval '1 minute',attempts=attempts+1 WHERE intent_id=$1 AND generation=$3 AND attempts<4 AND available_at<=statement_timestamp() AND (job_state='queued' OR (job_state='leased' AND lease_until<=statement_timestamp())) RETURNING id`, id, lease, gen).Scan(&job)
+	if errors.Is(err, sql.ErrNoRows) {
+		return auth.VerificationDelivery{}, false, tx.Commit()
+	}
 	if err != nil {
 		return auth.VerificationDelivery{}, false, err
 	}
@@ -103,8 +119,24 @@ func (s *Store) FinishVerificationDelivery(ctx context.Context, d auth.Verificat
 	if sent {
 		state = "delivered"
 	}
-	_, err := s.db.ExecContext(ctx, `UPDATE identity.email_delivery_jobs SET job_state=CASE WHEN attempts>=4 AND $3='queued' THEN 'failed' ELSE $3 END,lease_id=NULL,lease_until=NULL,available_at=statement_timestamp()+interval '5 minutes' WHERE id=$1 AND lease_id=$2 AND job_state='leased'`, d.JobID, d.LeaseID, state)
-	return err
+	tx, err := ownershipTx(ctx, s.db)
+	if err != nil {
+		return err
+	}
+	defer rollback(tx)
+	var intentID string
+	err = tx.QueryRowContext(ctx, `SELECT i.id FROM identity.registration_intents i JOIN identity.email_delivery_jobs j ON j.intent_id=i.id WHERE j.id=$1 FOR UPDATE OF i`, d.JobID).Scan(&intentID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	_, err = tx.ExecContext(ctx, `UPDATE identity.email_delivery_jobs SET job_state=CASE WHEN attempts>=4 AND $3='queued' THEN 'failed' ELSE $3 END,lease_id=NULL,lease_until=NULL,available_at=statement_timestamp()+interval '5 minutes' WHERE id=$1 AND lease_id=$2 AND job_state='leased' AND lease_until>statement_timestamp()`, d.JobID, d.LeaseID, state)
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 func (s *Store) CompleteRegistration(ctx context.Context, digest string, record auth.RegistrationRecord) error {
 	tx, err := ownershipTx(ctx, s.db)

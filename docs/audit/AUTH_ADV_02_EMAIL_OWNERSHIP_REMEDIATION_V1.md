@@ -147,3 +147,28 @@ regression evidence explicitly against its PostgreSQL 18 runtime-role service.
 No specialized/adversarial workflow was added or dispatched. The mounted component
 test follows the repository's existing JSDOM/TSX convention; runtime assertions are
 executed, including the unchanged StrictMode negative-control assertion.
+
+## Targeted independent-audit corrections
+
+OI-AUTH-REL-01: expired fourth leases now participate in bounded recovery. A worker
+locks the parent intent, marks one exhausted expired lease failed, clears its lease,
+and commits without issuing a fifth token. Leasing rechecks job eligibility after
+locking; finish takes the same parent lock and refuses expired/replaced leases.
+The independent fourth-crash terminal-state oracle is retained in ordinary
+PostgreSQL coverage, with concurrent recovery, retry exhaustion, stale completion,
+digest-only storage and absence of account activation checks. PR #252 is unchanged.
+
+The obsolete register timezone oracle is replaced by verification/completion HTTP
+coverage using a real service-generated proof. Invalid timezone syntax must refuse
+persistence/proof consumption; UTC and Asia/Baku must complete successfully.
+
+Repository call-site review finds no non-test caller or method reference to exported
+Service.Register. Public handlers use BeginEmailRegistration and
+CompleteEmailRegistration. Legacy Register remains for explicit internal test
+fixtures; its API visibility remains an internal design debt, not a demonstrated
+public bypass. No runtime registration fallback was added or removed.
+
+No schema, OpenAPI, frontend, workflow or protected develop changes are needed for
+these corrections. Exact-head normal CI supplies disposable PostgreSQL execution;
+local missing-service skips are not credited as database evidence. Independent
+specialized acceptance remains separate and no closure or merge is authorized.
