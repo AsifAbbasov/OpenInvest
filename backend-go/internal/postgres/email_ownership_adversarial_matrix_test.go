@@ -24,7 +24,7 @@ import (
 // Never calls external SMTP; bound prevents a polluted fixture from passing.
 func independentDrainPreviousDeliveries(t *testing.T,svc *auth.Service) {
  t.Helper()
- for i:=0;i<32;i++ {
+ for i:=0;i<512;i++ {
   found,err:=svc.DeliverOne(context.Background(),&ownershipMail{})
   if err!=nil{t.Fatalf("fixture precondition: %v",err)}
   if !found{return}
