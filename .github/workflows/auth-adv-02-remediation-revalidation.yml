@@ -71,6 +71,7 @@ jobs:
         run: |
           set -euo pipefail
           go test -race -v ./internal/postgres -run '^(TestEmailOwnership|TestAuthAdv02)' -count=1 -timeout=8m
+          go test -race -v ./internal/httpapi -run '^TestAuthAdv02' -count=1 -timeout=8m
 
   legacy-module1-matrix:
     name: legacy-module1-matrix
