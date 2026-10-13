@@ -129,3 +129,6 @@ role activation test was added. This is not a relaxed oracle or suppressed failu
 Fresh exact-head normal CI is required after this correction. Deployment must
 coordinate new code/schema/runtime grants; old startup guards cannot accept newly
 introduced capabilities. No rolling-deployment compatibility is claimed here.
+
+The standalone delivery worker also uses OpenRuntime, not the schema-owner Open
+constructor. Explicit enablement cannot bypass the same runtime privilege guard.

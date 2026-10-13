@@ -20,7 +20,7 @@ func main() {
 		log.Print("verification mail worker disabled")
 		return
 	}
-	store, err := postgres.Open(os.Getenv("OPENINVEST_DATABASE_URL"))
+	store, err := postgres.OpenRuntime(os.Getenv("OPENINVEST_DATABASE_URL"))
 	if err != nil {
 		log.Fatal("mail worker database unavailable")
 	}
