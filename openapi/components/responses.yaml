@@ -44,17 +44,20 @@ responses:
         examples:
           default: { $ref: "../examples/operations.json#/readyResponse" }
 
-  Register:
-    description: Account created. Privacy Mode is enabled by default.
-    headers:
-      X-Request-ID: { $ref: "#/headers/RequestId" }
-      X-Trace-ID: { $ref: "#/headers/TraceId" }
-      Set-Cookie: { $ref: "#/headers/RefreshCookie" }
+  RegistrationAcknowledgment:
+    description: Generic acknowledgment; no account or session is created.
     content:
       application/json:
-        schema: { $ref: "./schemas.yaml#/AuthResponse" }
+        schema: { $ref: "./schemas.yaml#/RegistrationAcknowledgmentResponse" }
         examples:
           default: { $ref: "../examples/auth.json#/registerResponse" }
+  AccountReady:
+    description: Account activated. Normal login is required; no session issued.
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/AccountReadyResponse" }
+        examples:
+          default: { $ref: "../examples/auth.json#/verifyResponse" }
 
   Login:
     description: Authentication succeeded.
@@ -499,3 +502,9 @@ responses:
         schema: { $ref: "./schemas.yaml#/ErrorResponse" }
         examples:
           default: { $ref: "../examples/errors.json#/expensiveReadCapacityUnavailable" }
+
+  ServiceUnavailable:
+    description: Service temporarily unavailable. No credentials or membership information disclosed.
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/ErrorResponse" }

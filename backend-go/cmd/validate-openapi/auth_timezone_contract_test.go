@@ -25,8 +25,8 @@ type stage337TimezoneObjectSchema struct {
 }
 
 type stage337AuthSchemas struct {
-	User            stage337TimezoneObjectSchema `yaml:"User"`
-	RegisterRequest stage337TimezoneObjectSchema `yaml:"RegisterRequest"`
+	User               stage337TimezoneObjectSchema `yaml:"User"`
+	VerifyEmailRequest stage337TimezoneObjectSchema `yaml:"VerifyEmailRequest"`
 }
 
 func TestStage337AuthTimezoneContract(t *testing.T) {
@@ -40,11 +40,11 @@ func TestStage337AuthTimezoneContract(t *testing.T) {
 		t.Fatalf("parse schemas: %v", err)
 	}
 
-	registerTimezone := schemas.RegisterRequest.Properties.Timezone
+	registerTimezone := schemas.VerifyEmailRequest.Properties.Timezone
 	if registerTimezone.MinLength != 1 || registerTimezone.MaxLength != 64 {
-		t.Fatalf("RegisterRequest timezone bounds changed: min=%d max=%d", registerTimezone.MinLength, registerTimezone.MaxLength)
+		t.Fatalf("VerifyEmailRequest timezone bounds changed: min=%d max=%d", registerTimezone.MinLength, registerTimezone.MaxLength)
 	}
-	assertStage337TimezoneDescription(t, "RegisterRequest", registerTimezone)
+	assertStage337TimezoneDescription(t, "VerifyEmailRequest", registerTimezone)
 	assertStage337TimezoneDescription(t, "User", schemas.User.Properties.Timezone)
 }
 

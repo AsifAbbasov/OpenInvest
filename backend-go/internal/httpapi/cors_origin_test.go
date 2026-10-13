@@ -177,7 +177,8 @@ func TestCORSOriginCompatibility(t *testing.T) {
 	} {
 		t.Run(variant.name, func(t *testing.T) {
 			app := newHTTPAuthApp(t, newHTTPAuthService(t, &httpAuthTestStore{}))
-			request := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(`{"email":"cors-compat@example.test","password":"correct horse battery staple","language":"en","theme":"system","timezone":"UTC"}`))
+			seedLegacyFixture(t, app, `{"email":"cors-compat@example.test","password":"correct horse battery staple","language":"en","theme":"system","timezone":"UTC"}`)
+			request := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", strings.NewReader(`{"email":"cors-compat@example.test","password":"correct horse battery staple"}`))
 			request.Host = variant.host
 			request.Header.Set("Content-Type", "application/json")
 			request.Header.Set("Origin", allowed)
@@ -192,7 +193,7 @@ func TestCORSOriginCompatibility(t *testing.T) {
 				t.Fatal(err)
 			}
 			defer response.Body.Close()
-			assertNoStoreResponse(t, response, http.StatusCreated)
+			assertNoStoreResponse(t, response, http.StatusOK)
 			cookie := requireCookie(t, response, auth.RefreshCookieName)
 			if !cookie.Secure || !cookie.HttpOnly || cookie.SameSite != http.SameSiteStrictMode || cookie.Domain != "" {
 				t.Errorf("refresh cookie policy changed: %+v", cookie)

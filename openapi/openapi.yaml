@@ -83,15 +83,9 @@ paths:
                 default: { $ref: "./examples/errors.json#/serviceUnavailableError" }
 
   /api/v1/auth/register:
-    parameters:
-      - $ref: "#/components/parameters/RequestId"
-      - $ref: "#/components/parameters/Traceparent"
     post:
       operationId: register
-      summary: Register a privacy-first account
-      description: >-
-        Creates an account with Privacy Mode enabled, tax profile disabled, notifications
-        disabled, and anonymous analytics. Passport, INN, phone, and address are not accepted.
+      summary: Request email ownership instructions without creating an account
       tags: [Auth]
       security: []
       requestBody:
@@ -102,10 +96,48 @@ paths:
             examples:
               default: { $ref: "./examples/auth.json#/registerRequest" }
       responses:
-        "201": { $ref: "./components/responses.yaml#/responses/Register" }
+        "202": { $ref: "./components/responses.yaml#/responses/RegistrationAcknowledgment" }
         "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
-        "409": { $ref: "./components/responses.yaml#/responses/Conflict" }
         "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
+        "503": { $ref: "./components/responses.yaml#/responses/ServiceUnavailable" }
+
+  /api/v1/auth/email/resend:
+    post:
+      operationId: resendEmailVerification
+      summary: Request ownership instructions with generic public semantics
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "./components/schemas.yaml#/RegisterRequest" }
+            examples:
+              default: { $ref: "./examples/auth.json#/registerRequest" }
+      responses:
+        "202": { $ref: "./components/responses.yaml#/responses/RegistrationAcknowledgment" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
+        "503": { $ref: "./components/responses.yaml#/responses/ServiceUnavailable" }
+
+  /api/v1/auth/email/verify:
+    post:
+      operationId: verifyEmailRegistration
+      summary: Atomically activate an email-proven account without issuing a session
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "./components/schemas.yaml#/VerifyEmailRequest" }
+            examples:
+              default: { $ref: "./examples/auth.json#/verifyRequest" }
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/AccountReady" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
+        "503": { $ref: "./components/responses.yaml#/responses/ServiceUnavailable" }
 
   /api/v1/auth/login:
     parameters:

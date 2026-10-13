@@ -22,8 +22,8 @@ type stage335RequestSchema struct {
 }
 
 type stage335AuthSchemas struct {
-	RegisterRequest stage335RequestSchema `yaml:"RegisterRequest"`
-	LoginRequest    stage335RequestSchema `yaml:"LoginRequest"`
+	VerifyEmailRequest stage335RequestSchema `yaml:"VerifyEmailRequest"`
+	LoginRequest       stage335RequestSchema `yaml:"LoginRequest"`
 }
 
 func TestStage335AuthPasswordContract(t *testing.T) {
@@ -37,7 +37,7 @@ func TestStage335AuthPasswordContract(t *testing.T) {
 		t.Fatalf("parse schemas: %v", err)
 	}
 
-	assertPasswordBounds(t, "RegisterRequest", schemas.RegisterRequest.Properties.Password, 12, 256, "creation")
+	assertPasswordBounds(t, "VerifyEmailRequest", schemas.VerifyEmailRequest.Properties.Password, 12, 256, "creation")
 	assertPasswordBounds(t, "LoginRequest", schemas.LoginRequest.Properties.Password, 1, 256, "historical")
 }
 

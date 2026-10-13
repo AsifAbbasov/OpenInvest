@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { createContext, type ReactNode, useContext, useMemo, useRef, useState } from "react";
 
 import {
@@ -36,6 +37,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthShell({ children }: Readonly<{ children: ReactNode }>) {
+  const pathname = usePathname();
   const [state, setState] = useState<AuthState>(anonymousState());
   const [pendingOperation, setPendingOperation] = useState<SessionOperation | null>(null);
   const stateRef = useRef<AuthState>(state);
@@ -50,7 +52,7 @@ export function AuthShell({ children }: Readonly<{ children: ReactNode }>) {
   }
 
   async function handleRegister(payload: RegisterPayload) {
-    return handleAuth(await register(payload));
+    return register(payload); // Acknowledgment never changes principal/session state.
   }
 
   async function handleLogin(payload: LoginPayload) {
@@ -93,6 +95,7 @@ export function AuthShell({ children }: Readonly<{ children: ReactNode }>) {
     [pendingOperation, state],
   );
 
+  if (pathname === "/auth/verify") return <>{children}</>;
   if (state.status !== "authenticated") {
     return <AuthForm message={state.message} onLogin={handleLogin} onRegister={handleRegister} />;
   }

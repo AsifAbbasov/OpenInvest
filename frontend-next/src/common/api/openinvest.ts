@@ -33,13 +33,9 @@ export type AuthData = {
   session: AuthSession;
 };
 
-export type RegisterPayload = {
-  email: string;
-  password: string;
-  language: "en";
-  theme: "system";
-  timezone: string;
-};
+export type RegisterPayload = { email: string };
+export type RegistrationAcknowledgment = { status: "REQUEST_ACCEPTED"; message: string };
+export type VerifyEmailPayload = { token: string; password: string; language: "en" | "ru"; theme: "system" | "light" | "dark"; timezone: string };
 
 export type LoginPayload = {
   email: string;
@@ -575,8 +571,8 @@ export function openInvestApiBaseUrl() {
   return (process.env.NEXT_PUBLIC_OPENINVEST_API_BASE_URL ?? DEFAULT_API_BASE_URL).replace(/\/$/, "");
 }
 
-export async function register(payload: RegisterPayload): Promise<ApiResult<AuthData>> {
-  return request<AuthData>("/api/v1/auth/register", {
+export async function register(payload: RegisterPayload): Promise<ApiResult<RegistrationAcknowledgment>> {
+  return request<RegistrationAcknowledgment>("/api/v1/auth/register", {
     method: "POST",
     body: JSON.stringify(payload),
     credentials: "include",
@@ -903,4 +899,11 @@ function csrfHeaders(csrfToken: string) {
   return {
     "X-CSRF-Token": csrfToken,
   };
+}
+
+export async function resendVerification(email: string): Promise<ApiResult<RegistrationAcknowledgment>> {
+ return request<RegistrationAcknowledgment>("/api/v1/auth/email/resend",{method:"POST",body:JSON.stringify({email}),credentials:"omit"});
+}
+export async function verifyEmailRegistration(payload: VerifyEmailPayload): Promise<ApiResult<{status:"ACCOUNT_READY"}>> {
+ return request<{status:"ACCOUNT_READY"}>("/api/v1/auth/email/verify",{method:"POST",body:JSON.stringify(payload),credentials:"omit"});
 }

@@ -17,12 +17,12 @@ import (
 	"github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
-func TestAuthRegisterSetsHttpOnlyRefreshCookieWithoutBodyLeak(t *testing.T) {
+func TestAuthLoginSetsHttpOnlyRefreshCookieWithoutBodyLeak(t *testing.T) {
 	authStore := &httpAuthTestStore{}
 	authService := newHTTPAuthService(t, authStore)
 	app := newHTTPAuthApp(t, authService)
 
-	response := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", `{
+	response := fixtureLegacyLogin(t, app, http.MethodPost, "/api/v1/auth/register", `{
 		"email":"Investor@Example.com",
 		"password":"correct horse battery staple",
 		"language":"en",
@@ -31,8 +31,8 @@ func TestAuthRegisterSetsHttpOnlyRefreshCookieWithoutBodyLeak(t *testing.T) {
 	}`, "", "")
 	defer response.Body.Close()
 
-	if response.StatusCode != http.StatusCreated {
-		t.Fatalf("expected status %d, got %d", http.StatusCreated, response.StatusCode)
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, response.StatusCode)
 	}
 	refreshCookie := requireCookie(t, response, auth.RefreshCookieName)
 	if !refreshCookie.HttpOnly {
@@ -62,7 +62,7 @@ func TestAuthRefreshRequiresCSRFAndRejectsReplay(t *testing.T) {
 	authService := newHTTPAuthService(t, &httpAuthTestStore{})
 	app := newHTTPAuthApp(t, authService)
 
-	registerResponse := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", `{
+	registerResponse := fixtureLegacyLogin(t, app, http.MethodPost, "/api/v1/auth/register", `{
 		"email":"investor@example.com",
 		"password":"correct horse battery staple",
 		"language":"en",
@@ -248,7 +248,7 @@ func TestAuthLogoutRequiresExplicitScopeBody(t *testing.T) {
 	authService := newHTTPAuthService(t, &httpAuthTestStore{})
 	app := newHTTPAuthApp(t, authService)
 
-	registerResponse := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", `{
+	registerResponse := fixtureLegacyLogin(t, app, http.MethodPost, "/api/v1/auth/register", `{
 		"email":"investor@example.com",
 		"password":"correct horse battery staple",
 		"language":"en",
@@ -276,7 +276,7 @@ func TestAuthLogoutClearsRefreshCookie(t *testing.T) {
 	authService := newHTTPAuthService(t, &httpAuthTestStore{})
 	app := newHTTPAuthApp(t, authService)
 
-	registerResponse := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", `{
+	registerResponse := fixtureLegacyLogin(t, app, http.MethodPost, "/api/v1/auth/register", `{
 		"email":"investor@example.com",
 		"password":"correct horse battery staple",
 		"language":"en",
@@ -332,7 +332,7 @@ func TestAuthInfrastructureFailuresUseSanitizedInternalError(t *testing.T) {
 		infrastructureErr := fmt.Errorf("postgres refresh outage marker")
 		store := &httpAuthTestStore{}
 		app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
-		registerResponse := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", `{
+		registerResponse := fixtureLegacyLogin(t, app, http.MethodPost, "/api/v1/auth/register", `{
 			"email":"refresh-infra@example.com",
 			"password":"correct horse battery staple",
 			"language":"en",
@@ -351,7 +351,7 @@ func TestAuthInfrastructureFailuresUseSanitizedInternalError(t *testing.T) {
 		infrastructureErr := fmt.Errorf("postgres logout outage marker")
 		store := &httpAuthTestStore{}
 		app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
-		registerResponse := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", `{
+		registerResponse := fixtureLegacyLogin(t, app, http.MethodPost, "/api/v1/auth/register", `{
 			"email":"logout-infra@example.com",
 			"password":"correct horse battery staple",
 			"language":"en",
@@ -402,6 +402,8 @@ func newHTTPAuthApp(t *testing.T, authService *auth.Service) *fiber.App {
 	if err != nil {
 		t.Fatalf("new authenticated HTTP app: %v", err)
 	}
+	fixtureServices.Store(app, authService)
+	t.Cleanup(func() { fixtureServices.Delete(app) })
 	return app
 }
 

@@ -21,13 +21,15 @@ var httpMethods = []string{"get", "post", "put", "patch", "delete", "options", "
 var requiredOperations = map[string]string{
 	"GET /api/v1/health":                                                   "getHealth",
 	"GET /api/v1/ready":                                                    "getReadiness",
+	"POST /api/v1/auth/email/resend":                                       "resendEmailVerification",
+	"POST /api/v1/auth/email/verify":                                       "verifyEmailRegistration",
 	"POST /api/v1/auth/register":                                           "register",
 	"POST /api/v1/auth/login":                                              "login",
 	"POST /api/v1/auth/refresh":                                            "refreshSession",
 	"POST /api/v1/auth/logout":                                             "logout",
 	"GET /api/v1/assets/search":                                            "searchAssets",
 	"GET /api/v1/assets/{ticker}":                                          "getAsset",
-	"GET /api/v1/corporate-actions/projection":                              "getCorporateActionProjection",
+	"GET /api/v1/corporate-actions/projection":                             "getCorporateActionProjection",
 	"GET /api/v1/portfolios":                                               "listPortfolios",
 	"POST /api/v1/portfolios":                                              "createPortfolio",
 	"GET /api/v1/portfolios/{portfolioId}":                                 "getPortfolio",
@@ -48,7 +50,7 @@ var requiredOperations = map[string]string{
 	"GET /api/v1/dashboard":                                                "getDashboard",
 }
 
-var publicOperations = stringSet("getHealth", "getReadiness", "register", "login", "searchAssets", "getAsset", "getCorporateActionProjection", "calculateDividend")
+var publicOperations = stringSet("getHealth", "getReadiness", "register", "resendEmailVerification", "verifyEmailRegistration", "login", "searchAssets", "getAsset", "getCorporateActionProjection", "calculateDividend")
 var refreshOperations = stringSet("refreshSession", "logout")
 var idempotentOperations = stringSet("createPortfolio", "deletePortfolio", "createTransaction", "correctTransaction", "reverseTransaction", "appendReviewedPortfolioImport", "calculateDividend")
 

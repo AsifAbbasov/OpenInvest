@@ -210,6 +210,8 @@ func newReplayApp(api *API) *fiber.App {
 	app.Get("/api/v1/health", api.health)
 	app.Get("/api/v1/ready", api.ready)
 	app.Post("/api/v1/auth/register", api.register)
+	app.Post("/api/v1/auth/email/resend", api.register)
+	app.Post("/api/v1/auth/email/verify", api.verifyEmail)
 	app.Post("/api/v1/auth/login", api.login)
 	app.Post("/api/v1/auth/refresh", api.refresh)
 	app.Post("/api/v1/auth/logout", api.logout)

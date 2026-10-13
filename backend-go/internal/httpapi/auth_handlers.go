@@ -18,25 +18,40 @@ func (api *API) register(c fiber.Ctx) error {
 	if api.auth == nil {
 		return writeErrorWithMeta(c, meta, http.StatusServiceUnavailable, "SERVICE_NOT_READY", "Authentication service is not ready")
 	}
-	var request registerRequestDTO
+	var request struct {
+		Email string `json:"email"`
+	}
 	if err := decodeStrictJSON(c.Request().Body(), &request); err != nil {
-		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid JSON request body")
+		return writeErrorWithMeta(c, meta, 400, "VALIDATION_ERROR", "Invalid JSON request body")
 	}
-	if err := api.checkAuthCredentialRateLimit(c.Path(), request.Email); err != nil {
+	if err := api.auth.BeginEmailRegistration(c.Context(), request.Email); err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
-	result, err := api.auth.Register(c.Context(), auth.RegistrationRequest{
-		Email:    request.Email,
-		Password: string(request.Password),
-		Language: request.Language,
-		Theme:    request.Theme,
-		Timezone: request.Timezone,
-	})
-	if err != nil {
+	return writeStatusWithMeta(c, meta, http.StatusAccepted, map[string]string{"status": "REQUEST_ACCEPTED", "message": "If this address is eligible, instructions will be sent."})
+}
+
+func (api *API) verifyEmail(c fiber.Ctx) error {
+	meta := requestMeta(c)
+	if err := api.checkAuthRateLimit(c); err != nil {
 		return writeMappedErrorWithMeta(c, meta, err)
 	}
-	api.setRefreshCookie(c, result.RefreshToken)
-	return writeStatusWithMeta(c, meta, http.StatusCreated, mapAuthData(result))
+	if api.auth == nil {
+		return writeErrorWithMeta(c, meta, 503, "SERVICE_NOT_READY", "Authentication service is not ready")
+	}
+	var request struct {
+		Token    string           `json:"token"`
+		Password losslessPassword `json:"password"`
+		Language string           `json:"language"`
+		Theme    string           `json:"theme"`
+		Timezone string           `json:"timezone"`
+	}
+	if err := decodeStrictJSON(c.Request().Body(), &request); err != nil {
+		return writeErrorWithMeta(c, meta, 400, "VALIDATION_ERROR", "Invalid JSON request body")
+	}
+	if err := api.auth.CompleteEmailRegistration(c.Context(), request.Token, auth.RegistrationRequest{Password: string(request.Password), Language: request.Language, Theme: request.Theme, Timezone: request.Timezone}); err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
+	return writeStatusWithMeta(c, meta, 200, map[string]string{"status": "ACCOUNT_READY"})
 }
 
 func (api *API) login(c fiber.Ctx) error {

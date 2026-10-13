@@ -81,6 +81,11 @@ GRANT SELECT, INSERT ON identity.users TO openinvest_runtime;
 GRANT SELECT, INSERT ON identity.user_investment_links TO openinvest_runtime;
 GRANT SELECT, INSERT ON identity.credentials TO openinvest_runtime;
 GRANT SELECT, INSERT ON identity.privacy_settings TO openinvest_runtime;
+GRANT SELECT, INSERT, UPDATE, DELETE ON identity.registration_intents TO openinvest_runtime;
+GRANT SELECT, INSERT, UPDATE ON identity.email_verification_tokens TO openinvest_runtime;
+GRANT SELECT, INSERT ON identity.user_email_verifications TO openinvest_runtime;
+GRANT SELECT, INSERT, UPDATE ON identity.email_delivery_jobs TO openinvest_runtime;
+
 GRANT SELECT, INSERT, UPDATE, DELETE ON identity.sessions TO openinvest_runtime;
 
 -- investment
