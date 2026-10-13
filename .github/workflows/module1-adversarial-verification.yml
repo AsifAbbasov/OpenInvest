@@ -21,6 +21,8 @@ concurrency:
 jobs:
   jwt-structural-fuzz:
     name: jwt-structural-fuzz
+    env:
+      OPENINVEST_MODULE1_ADVERSARIAL: "1"
     runs-on: ubuntu-latest
     timeout-minutes: 12
     defaults:
@@ -61,6 +63,8 @@ jobs:
 
   http-auth-ambiguity:
     name: http-auth-ambiguity
+    env:
+      OPENINVEST_MODULE1_ADVERSARIAL: "1"
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
