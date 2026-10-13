@@ -1,0 +1,151 @@
+name: AUTH-ADV-02 remediation adversarial revalidation
+
+on:
+  push:
+    branches:
+      - audit/auth-adv-02-remediation-revalidation-v1
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: auth-adv-02-revalidation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  remediation-postgres:
+    name: remediation-postgres
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: openinvest-ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Exact-head lock
+        working-directory: .
+        run: |
+          set -euo pipefail
+          echo "TESTED_SHA=$(git rev-parse HEAD)"
+          echo "TESTED_TREE=$(git rev-parse HEAD^{tree})"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: Apply migrations and runtime role
+        working-directory: .
+        run: |
+          set -euo pipefail
+          OPENINVEST_DATABASE_OWNER_URL='postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable' bash scripts/apply-migrations.sh
+          docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 < infrastructure/postgres/runtime/openinvest_runtime_role.sql
+          docker exec -i "${{ job.services.postgres.id }}" psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$
+          BEGIN
+              IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'openinvest_runtime_ci') THEN
+                  CREATE ROLE openinvest_runtime_ci LOGIN PASSWORD 'openinvest-runtime-ci';
+              END IF;
+          END
+          $$;
+          GRANT openinvest_runtime TO openinvest_runtime_ci;
+          SQL
+      - name: Candidate ownership adversarial matrix
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+          OPENINVEST_DATABASE_RUNTIME_TEST_URL: postgres://openinvest_runtime_ci:openinvest-runtime-ci@127.0.0.1:5432/openinvest?sslmode=disable
+        run: |
+          set -euo pipefail
+          go test -race -v ./internal/postgres -run '^(TestEmailOwnership|TestAuthAdv02)' -count=1 -timeout=8m
+
+  legacy-module1-matrix:
+    name: legacy-module1-matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    env:
+      OPENINVEST_MODULE1_ADVERSARIAL: "1"
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Exact-head lock
+        working-directory: .
+        run: |
+          set -euo pipefail
+          echo "TESTED_SHA=$(git rev-parse HEAD)"
+          echo "TESTED_TREE=$(git rev-parse HEAD^{tree})"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: Existing bounded Module 1 fixed matrix
+        run: |
+          set -euo pipefail
+          go test -race -v ./internal/auth -run '^TestModule1JWT' -count=1 -timeout=5m
+          go test -race -v ./internal/httpapi -run '^TestModule1' -count=1 -timeout=7m
+      - name: Existing auth regressions
+        run: |
+          set -euo pipefail
+          go test -race ./internal/auth -run '^(TestService|TestPassword|TestStage337)' -count=1 -timeout=8m
+          go test -race ./internal/httpapi -run 'TestAuthRefreshRequiresCSRFAndRejectsReplay|TestAuthLogoutClearsRefreshCookie|TestAuthInfrastructureFailuresUseSanitizedInternalError|TestSensitiveResponseCachePolicyCoversAuthLifecycleAndErrors|TestAuthLoginSetsHttpOnlyRefreshCookieWithoutBodyLeak' -count=1 -timeout=8m
+
+  jwt-and-parser-fuzz:
+    name: jwt-and-parser-fuzz
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      OPENINVEST_MODULE1_ADVERSARIAL: "1"
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Bounded fuzz
+        run: |
+          set -euo pipefail
+          go test ./internal/auth -run '^$' -fuzz '^FuzzModule1JWTByteChangingMutationNeverAuthenticates$' -fuzztime=20s -timeout=90s
+          go test ./internal/auth -run '^$' -fuzz '^FuzzModule1JWTStructuralParserNeverPanics$' -fuzztime=20s -timeout=90s
+          go test ./internal/auth -run '^$' -fuzz '^FuzzModule1SessionLifecycleStateMachine$' -fuzztime=20s -timeout=90s
+          go test ./internal/httpapi -run '^$' -fuzz '^FuzzModule1BearerParserProperties$' -fuzztime=20s -timeout=90s
+
+  frontend-verification:
+    name: frontend-verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend-next
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.22.2"
+      - name: Install
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.8.0 --activate
+          pnpm install --frozen-lockfile
+      - name: Verification and existing auth state tests
+        run: |
+          set -euo pipefail
+          node --experimental-strip-types --test tests/email-ownership-api.test.mjs tests/email-verification.component.test.tsx tests/auth-session.test.mjs tests/module1-auth-adversarial.test.mjs
