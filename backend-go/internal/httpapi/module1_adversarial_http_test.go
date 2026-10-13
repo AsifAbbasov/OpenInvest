@@ -1,6 +1,8 @@
 package httpapi
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -238,4 +240,90 @@ func TestModule1ProtectedRouteInventoryRejectsAnonymous(t *testing.T) {
 			}
 		})
 	}
+}
+
+
+func TestModule1SessionFixationPreAuthCookieNotReused(t *testing.T) {
+	requireModule1HTTPAdversarial(t)
+	store := &httpAuthTestStore{}
+	app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(`{
+		"email":"fixation@example.test",
+		"password":"correct horse battery staple",
+		"language":"en",
+		"theme":"system",
+		"timezone":"UTC"
+	}`))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("Cookie", auth.RefreshCookieName+"=attacker-controlled-preauth-cookie")
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("registration with preauth cookie: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatalf("registration status=%d", resp.StatusCode)
+	}
+	cookie := requireCookie(t, resp, auth.RefreshCookieName)
+	if cookie.Value == "" || cookie.Value == "attacker-controlled-preauth-cookie" {
+		t.Fatalf("attacker-controlled preauth cookie was reused as authenticated session")
+	}
+	if _, exists := store.sessions[tokenHashForModule1("attacker-controlled-preauth-cookie")]; exists {
+		t.Fatalf("attacker-controlled preauth refresh value reached durable session map")
+	}
+	t.Log("SESSION_FIXATION_PREAUTH_COOKIE_REUSED=NO")
+}
+
+func TestModule1CrossPrincipalCSRFCannotRefreshOtherSession(t *testing.T) {
+	requireModule1HTTPAdversarial(t)
+
+	storeA := &httpAuthTestStore{}
+	appA := newHTTPAuthApp(t, newHTTPAuthService(t, storeA))
+	registerA := authRequest(t, appA, http.MethodPost, "/api/v1/auth/register", `{
+		"email":"csrf-a@example.test",
+		"password":"correct horse battery staple",
+		"language":"en",
+		"theme":"system",
+		"timezone":"UTC"
+	}`, "", "")
+	cookieA := requireCookie(t, registerA, auth.RefreshCookieName)
+	csrfA := readCSRFToken(t, registerA)
+	registerA.Body.Close()
+
+	storeB := &httpAuthTestStore{}
+	appB := newHTTPAuthApp(t, newHTTPAuthService(t, storeB))
+	registerB := authRequest(t, appB, http.MethodPost, "/api/v1/auth/register", `{
+		"email":"csrf-b@example.test",
+		"password":"correct horse battery staple",
+		"language":"en",
+		"theme":"system",
+		"timezone":"UTC"
+	}`, "", "")
+	csrfB := readCSRFToken(t, registerB)
+	registerB.Body.Close()
+
+	before := len(storeA.sessions)
+	resp := authRequest(t, appA, http.MethodPost, "/api/v1/auth/refresh", "", cookieA.Value, csrfB)
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("cross-principal csrf mismatch status=%d, want 401", resp.StatusCode)
+	}
+	if len(storeA.sessions) != before {
+		t.Fatalf("cross-principal csrf mismatch mutated A session state before=%d after=%d", before, len(storeA.sessions))
+	}
+
+	valid := authRequest(t, appA, http.MethodPost, "/api/v1/auth/refresh", "", cookieA.Value, csrfA)
+	defer valid.Body.Close()
+	if valid.StatusCode != http.StatusOK {
+		t.Fatalf("valid A refresh failed after rejected B csrf: %d", valid.StatusCode)
+	}
+	t.Log("CSRF_SESSION_BINDING_BYPASS=NO")
+}
+
+func tokenHashForModule1(value string) string {
+	// Test-side independent persistence check: the store keys are SHA-256 hex digests
+	// of raw refresh tokens. Reuse the public behavior via a tiny local computation.
+	sum := sha256.Sum256([]byte(value))
+	return hex.EncodeToString(sum[:])
 }
