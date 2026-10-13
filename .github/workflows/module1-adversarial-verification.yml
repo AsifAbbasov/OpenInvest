@@ -186,6 +186,7 @@ jobs:
           run_case logout_refresh_race go test -race -v ./internal/postgres -run '^TestLogoutRacingRefreshCannotLeaveDescendantActive$' -count=1 -timeout=5m
           run_case replay_descendant_race go test -race -v ./internal/postgres -run '^TestReplayRacingDescendantRefreshLeavesNoActiveFamilyMember$' -count=1 -timeout=5m
           run_case session_family_guard go test -race -v ./internal/postgres -run '^TestDatabaseRejectsNewSessionWithoutFamilyIdentity$' -count=1 -timeout=5m
+          run_case original_independent_fourth_crash go test -race -v ./internal/postgres -run '^TestEmailOwnershipOriginalIndependentFourthCrashTerminalState$' -count=1 -timeout=90s
           run_case email_ownership_adversarial go test -race -v ./internal/postgres -run '^TestEmailOwnership(Adversarial|Independent)' -count=1 -timeout=5m
           run_case cross_principal go test -race -v ./internal/postgres -run '^TestModule1CrossPrincipal' -count=1 -timeout=5m
           run_case idempotency_scope go test -race -v ./internal/postgres -run '^TestModule1IdempotencySecurityContextScopeMatrix$' -count=1 -timeout=5m
