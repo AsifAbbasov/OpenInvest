@@ -119,6 +119,8 @@ jobs:
 
   postgres-session-races:
     name: postgres-session-races
+    env:
+      OPENINVEST_MODULE1_ADVERSARIAL: "1"
     runs-on: ubuntu-latest
     timeout-minutes: 13
     services:
@@ -223,6 +225,7 @@ jobs:
       - name: Frontend auth state/race matrix
         run: |
           node --experimental-strip-types --test tests/auth-session.test.mjs tests/module1-auth-adversarial.test.mjs
+          node --experimental-loader ./tests/css-module-loader.mjs --import tsx --test tests/email-verification.component.test.tsx tests/email-verification-adversarial.component.test.tsx
 
   existing-auth-regressions:
     name: existing-auth-regressions
@@ -255,6 +258,7 @@ jobs:
           set -euo pipefail
           go test -race ./internal/auth -run '^(TestService|TestPassword|TestStage337)' -count=1 -timeout=8m
           go test -race ./internal/httpapi -run 'TestAuthRefreshRequiresCSRFAndRejectsReplay|TestAuthLogoutClearsRefreshCookie|TestAuthInfrastructureFailuresUseSanitizedInternalError|TestSensitiveResponseCachePolicyCoversAuthLifecycleAndErrors|TestAuthRegisterSetsHttpOnlyRefreshCookieWithoutBodyLeak' -count=1 -timeout=8m
+          go test -race -v ./internal/verificationmail -run '^TestEmailOwnershipIndependentSMTP' -count=1 -timeout=90s
 
 
   auth-parser-fuzz:
@@ -303,6 +307,40 @@ jobs:
         run: |
           set -euo pipefail
           go test ./internal/httpapi -run '^$' -fuzz '^FuzzModule1StrictAuthJSONDecoderNeverPanics$' -fuzztime=30s -timeout=2m
+      - name: Verification token canonicalization fuzz
+        id: ownership_fuzz
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          go test ./internal/auth -run '^
+        if: always()
+        env:
+          EMAIL_NORMALIZATION_FUZZ: ${{ steps.email_normalization_fuzz.outcome }}
+          OWNERSHIP_FUZZ: ${{ steps.ownership_fuzz.outcome }}
+          BEARER_PARSER_FUZZ: ${{ steps.bearer_parser_fuzz.outcome }}
+          AUTH_JSON_FUZZ: ${{ steps.auth_json_fuzz.outcome }}
+        run: |
+          echo "EMAIL_NORMALIZATION_FUZZ=$EMAIL_NORMALIZATION_FUZZ"
+          echo "BEARER_PARSER_FUZZ=$BEARER_PARSER_FUZZ"
+          echo "AUTH_JSON_FUZZ=$AUTH_JSON_FUZZ"
+          test "$EMAIL_NORMALIZATION_FUZZ" = "success"
+          test "$OWNERSHIP_FUZZ" = "success"
+          test "$BEARER_PARSER_FUZZ" = "success"
+          test "$AUTH_JSON_FUZZ" = "success"
+ -fuzz '^FuzzEmailOwnershipIndependentCanonicalDigest
+        if: always()
+        env:
+          EMAIL_NORMALIZATION_FUZZ: ${{ steps.email_normalization_fuzz.outcome }}
+          BEARER_PARSER_FUZZ: ${{ steps.bearer_parser_fuzz.outcome }}
+          AUTH_JSON_FUZZ: ${{ steps.auth_json_fuzz.outcome }}
+        run: |
+          echo "EMAIL_NORMALIZATION_FUZZ=$EMAIL_NORMALIZATION_FUZZ"
+          echo "BEARER_PARSER_FUZZ=$BEARER_PARSER_FUZZ"
+          echo "AUTH_JSON_FUZZ=$AUTH_JSON_FUZZ"
+          test "$EMAIL_NORMALIZATION_FUZZ" = "success"
+          test "$BEARER_PARSER_FUZZ" = "success"
+          test "$AUTH_JSON_FUZZ" = "success"
+ -fuzztime=30s -timeout=2m
       - name: Auth parser fuzz collect-all gate
         if: always()
         env:
