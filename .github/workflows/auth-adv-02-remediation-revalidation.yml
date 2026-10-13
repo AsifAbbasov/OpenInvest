@@ -148,4 +148,4 @@ jobs:
       - name: Verification and existing auth state tests
         run: |
           set -euo pipefail
-          node --experimental-strip-types --test tests/email-ownership-api.test.mjs tests/email-verification.component.test.tsx tests/auth-session.test.mjs tests/module1-auth-adversarial.test.mjs
+          pnpm test
