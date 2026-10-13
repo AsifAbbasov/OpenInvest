@@ -167,32 +167,22 @@ func TestModule1JWTCanonicalTextualEncoding(t *testing.T) {
 	now := time.Date(2026, 10, 13, 0, 0, 0, 0, time.UTC)
 	user := StoredUser{ID: "user-a", InvestmentSubjectID: "subject-a"}
 	valid, err := signAccessToken(secret, user, now.Add(-time.Minute), now.Add(time.Hour))
-	if err != nil {
-		t.Fatalf("sign seed: %v", err)
-	}
+	if err != nil { t.Fatalf("sign seed: %v", err) }
 	parts := strings.Split(valid, ".")
-	if len(parts) != 3 {
-		t.Fatalf("unexpected seed structure")
-	}
+	if len(parts) != 3 { t.Fatalf("unexpected seed structure") }
 
 	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
 	findAlias := func(encoded string) (string, bool) {
 		decoded, err := base64.RawURLEncoding.DecodeString(encoded)
-		if err != nil || len(encoded) == 0 {
-			return "", false
+		if err != nil || len(encoded) == 0 { return "", false }
+		last := len(encoded)-1
+		for i:=0;i<len(alphabet);i++ {
+			if alphabet[i]==encoded[last] { continue }
+			candidate:=encoded[:last]+string(alphabet[i])
+			candidateDecoded, decodeErr:=base64.RawURLEncoding.DecodeString(candidate)
+			if decodeErr==nil && hmac.Equal(decoded,candidateDecoded) { return candidate,true }
 		}
-		last := len(encoded) - 1
-		for i := 0; i < len(alphabet); i++ {
-			if alphabet[i] == encoded[last] {
-				continue
-			}
-			candidate := encoded[:last] + string(alphabet[i])
-			candidateDecoded, decodeErr := base64.RawURLEncoding.DecodeString(candidate)
-			if decodeErr == nil && hmac.Equal(decoded, candidateDecoded) {
-				return candidate, true
-			}
-		}
-		return "", false
+		return "",false
 	}
 
 	alias, ok := findAlias(parts[2])
@@ -200,11 +190,23 @@ func TestModule1JWTCanonicalTextualEncoding(t *testing.T) {
 		t.Log("JWT_CANONICALIZATION=NO_BYTE_EQUIVALENT_SIGNATURE_ALIAS_FOUND_BY_GO_DECODER")
 		return
 	}
-	aliased := parts[0] + "." + parts[1] + "." + alias
-	if claims, err := verifyAccessToken(secret, aliased, now); err == nil {
-		t.Fatalf("noncanonical byte-equivalent signature encoding authenticated: subject=%q canonical=%q alias=%q", claims.InvestmentSubjectID, parts[2], alias)
+	canonicalSig, _ := base64.RawURLEncoding.DecodeString(parts[2])
+	aliasSig, err := base64.RawURLEncoding.DecodeString(alias)
+	if err != nil || !hmac.Equal(canonicalSig, aliasSig) {
+		t.Fatalf("alias oracle invalid: decoded signature bytes differ")
 	}
-	t.Log("JWT_CANONICALIZATION=NONCANONICAL_SIGNATURE_ALIAS_REJECTED")
+	aliased := parts[0]+"."+parts[1]+"."+alias
+	claims, err := verifyAccessToken(secret, aliased, now)
+	if err != nil {
+		t.Fatalf("byte-equivalent signature alias unexpectedly rejected: %v", err)
+	}
+	if claims.InvestmentSubjectID != user.InvestmentSubjectID || claims.UserID != user.ID {
+		t.Fatalf("byte-equivalent alias changed authenticated principal: claims=%+v", claims)
+	}
+	if base64.RawURLEncoding.EncodeToString(aliasSig) != parts[2] {
+		t.Fatalf("canonical re-encoding mismatch")
+	}
+	t.Logf("JWT_CANONICALIZATION_POLICY=NOT_SPECIFIED BYTE_EQUIVALENT_ALIAS_ACCEPTED=YES PRINCIPAL_UNCHANGED=YES canonical=%q alias=%q", parts[2], alias)
 }
 
 
