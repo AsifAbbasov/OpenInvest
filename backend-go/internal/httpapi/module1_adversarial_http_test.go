@@ -118,7 +118,7 @@ func TestModule1RefreshCookieCollisionMatrix(t *testing.T) {
 	} {
 		t.Run(order.name, func(t *testing.T) {
 			store := &httpAuthTestStore{}
-			app := newHTTPAuthApp(t, newModule1OwnershipService(t, store))
+			app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
 			register := fixtureLegacyLogin(t, app, http.MethodPost, "/api/v1/auth/register", `{
 				"email":"cookie-`+order.name+`@example.test",
 				"password":"correct horse battery staple",
@@ -458,7 +458,7 @@ func TestModule1MalformedCookieAndContentTypeMatrix(t *testing.T) {
 
 	t.Run("refresh_malformed_cookie_rejected_without_state_mutation", func(t *testing.T) {
 		store := &httpAuthTestStore{}
-		app := newHTTPAuthApp(t, newModule1OwnershipService(t, store))
+		app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
 		register := fixtureLegacyLogin(t, app, http.MethodPost, "/api/v1/auth/register", `{
 			"email":"malformed-cookie@example.test",
 			"password":"correct horse battery staple",
