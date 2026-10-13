@@ -1,6 +1,9 @@
 name: Module 1 adversarial auth-session verification
 
 on:
+  push:
+    branches:
+      - audit/module1-auth-session-privacy-strengthened-v2
   pull_request:
     branches:
       - develop
