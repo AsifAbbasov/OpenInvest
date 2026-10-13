@@ -49,11 +49,11 @@ func TestModule1AuthLogAndErrorResponseSecretSentinels(t *testing.T) {
 		t.Fatalf("registration status=%d", register.StatusCode)
 	}
 	refreshCookie := requireCookie(t, register, auth.RefreshCookieName)
-	csrf := readCSRFToken(t, register)
 	var payload struct {
 		Data struct {
 			Session struct {
 				AccessToken string `json:"accessToken"`
+				CSRFToken   string `json:"csrfToken"`
 			} `json:"session"`
 		} `json:"data"`
 	}
@@ -62,6 +62,7 @@ func TestModule1AuthLogAndErrorResponseSecretSentinels(t *testing.T) {
 		t.Fatalf("decode registration response: %v", err)
 	}
 	register.Body.Close()
+	csrf := payload.Data.Session.CSRFToken
 	if payload.Data.Session.AccessToken == "" || refreshCookie.Value == "" || csrf == "" {
 		t.Fatal("missing generated auth secret sentinel prerequisites")
 	}
