@@ -51,6 +51,7 @@ func authAdv02Open(t *testing.T) (*auth.Service, *postgres.Store, *sql.DB) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { db.Close() })
+	if _, err := db.Exec(`DELETE FROM identity.registration_intents`); err != nil { t.Fatal(err) }
 	return svc, store, db
 }
 
