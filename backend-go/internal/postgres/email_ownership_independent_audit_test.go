@@ -25,6 +25,7 @@ func requireIndependentPG(t *testing.T) {
 func TestEmailOwnershipIndependentLegacyAccountCannotBeReclaimed(t *testing.T) {
     requireIndependentPG(t)
     service, db := ownershipService(t)
+    independentDrainPreviousDeliveries(t,service)
     ctx := context.Background()
     email := "independent-legacy@example.test"
     existing := ownerRequest()
@@ -54,6 +55,7 @@ func TestEmailOwnershipIndependentLegacyAccountCannotBeReclaimed(t *testing.T) {
 func TestEmailOwnershipIndependentGenerationInvalidatesOldToken(t *testing.T) {
     requireIndependentPG(t)
     service, db := ownershipService(t)
+    independentDrainPreviousDeliveries(t,service)
     ctx := context.Background()
     email := "independent-generation@example.test"
     if err := service.BeginEmailRegistration(ctx,email); err != nil {t.Fatal(err)}
@@ -74,6 +76,7 @@ func TestEmailOwnershipIndependentGenerationInvalidatesOldToken(t *testing.T) {
 func TestEmailOwnershipIndependentConcurrentTokenConsumption(t *testing.T) {
     requireIndependentPG(t)
     service, db := ownershipService(t)
+    independentDrainPreviousDeliveries(t,service)
     ctx := context.Background()
     email := "independent-concurrency@example.test"
     if err := service.BeginEmailRegistration(ctx,email); err != nil {t.Fatal(err)}
@@ -98,6 +101,7 @@ func TestEmailOwnershipIndependentConcurrentTokenConsumption(t *testing.T) {
 func TestEmailOwnershipIndependentFourthCrashTerminalState(t *testing.T) {
     requireIndependentPG(t)
     service, db := ownershipService(t)
+    independentDrainPreviousDeliveries(t,service)
     ctx := context.Background()
     email := "independent-final-crash@example.test"
     if err := service.BeginEmailRegistration(ctx,email); err != nil {t.Fatal(err)}
