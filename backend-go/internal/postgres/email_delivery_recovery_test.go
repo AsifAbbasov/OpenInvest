@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/openinvest/openinvest/backend-go/internal/postgres"
 	"os"
-	"sync"
 	"testing"
 )
 
