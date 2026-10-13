@@ -10,6 +10,7 @@ import (
     "sync"
     "testing"
 
+    "github.com/google/uuid"
     "github.com/openinvest/openinvest/backend-go/internal/auth"
     "github.com/openinvest/openinvest/backend-go/internal/postgres"
 )
@@ -27,7 +28,7 @@ func TestEmailOwnershipIndependentLegacyAccountCannotBeReclaimed(t *testing.T) {
     service, db := ownershipService(t)
     independentDrainPreviousDeliveries(t,service)
     ctx := context.Background()
-    email := "independent-legacy@example.test"
+    email := "independent-legacy-" + uuid.NewString() + "@example.test"
     existing := ownerRequest()
     existing.Email = email
     existing.Password = "legacy-owner-private-password-2026"
@@ -57,7 +58,7 @@ func TestEmailOwnershipIndependentGenerationInvalidatesOldToken(t *testing.T) {
     service, db := ownershipService(t)
     independentDrainPreviousDeliveries(t,service)
     ctx := context.Background()
-    email := "independent-generation@example.test"
+    email := "independent-generation-" + uuid.NewString() + "@example.test"
     if err := service.BeginEmailRegistration(ctx,email); err != nil {t.Fatal(err)}
     old := &ownershipMail{}
     if ok,err := service.DeliverOne(ctx,old); err != nil || !ok || old.email != email {t.Fatalf("initial delivery %t %v %q",ok,err,old.email)}
@@ -78,7 +79,7 @@ func TestEmailOwnershipIndependentConcurrentTokenConsumption(t *testing.T) {
     service, db := ownershipService(t)
     independentDrainPreviousDeliveries(t,service)
     ctx := context.Background()
-    email := "independent-concurrency@example.test"
+    email := "independent-concurrency-" + uuid.NewString() + "@example.test"
     if err := service.BeginEmailRegistration(ctx,email); err != nil {t.Fatal(err)}
     sink := &ownershipMail{}
     if ok,err := service.DeliverOne(ctx,sink); err != nil || !ok || sink.email != email {t.Fatalf("delivery %t %v %q",ok,err,sink.email)}
@@ -103,7 +104,7 @@ func TestEmailOwnershipOriginalIndependentFourthCrashTerminalState(t *testing.T)
     service, db := ownershipService(t)
     independentDrainPreviousDeliveries(t,service)
     ctx := context.Background()
-    email := "independent-final-crash@example.test"
+    email := "independent-final-crash-" + uuid.NewString() + "@example.test"
     if err := service.BeginEmailRegistration(ctx,email); err != nil {t.Fatal(err)}
     worker,err := postgres.Open(os.Getenv("OPENINVEST_DATABASE_TEST_URL"))
     if err != nil {t.Fatal(err)}
