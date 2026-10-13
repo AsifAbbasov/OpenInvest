@@ -110,7 +110,7 @@ func TestEmailOwnershipOriginalIndependentFourthCrashTerminalState(t *testing.T)
     if err != nil {t.Fatal(err)}
     defer worker.Close()
     for i:=1;i<=4;i++ {
-        sum:=sha256.Sum256([]byte(fmt.Sprintf("independent-crash-%d",i)))
+        sum:=sha256.Sum256([]byte(fmt.Sprintf("%s-independent-crash-%d",email,i)))
         lease,found,err:=worker.LeaseVerificationDelivery(ctx,hex.EncodeToString(sum[:]))
         if err!=nil || !found || lease.Email!=email {t.Fatalf("lease %d failed: found=%t email=%q err=%v",i,found,lease.Email,err)}
         // Deterministically simulate a crash without FinishVerificationDelivery,
