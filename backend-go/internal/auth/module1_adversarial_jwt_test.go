@@ -306,3 +306,50 @@ func FuzzModule1SessionLifecycleStateMachine(f *testing.F) {
 		}
 	})
 }
+
+
+func TestModule1JWTExtendedStructuralBoundaries(t *testing.T) {
+	requireModule1Adversarial(t)
+	secret := []byte("01234567890123456789012345678901")
+	now := time.Date(2026, 10, 13, 0, 0, 0, 0, time.UTC)
+	user := StoredUser{ID: "user-a", InvestmentSubjectID: "subject-a"}
+	valid, err := signAccessToken(secret, user, now.Add(-time.Minute), now.Add(time.Hour))
+	if err != nil { t.Fatal(err) }
+	parts := strings.Split(valid, ".")
+	if len(parts) != 3 { t.Fatal("unexpected JWT seed") }
+
+	cases := map[string]string{
+		"five_segments": valid + ".x.y",
+		"padded_header": parts[0] + "=" + "." + parts[1] + "." + parts[2],
+		"padded_payload": parts[0] + "." + parts[1] + "=" + "." + parts[2],
+		"oversized_header": strings.Repeat("A", 8192) + "." + parts[1] + "." + parts[2],
+		"oversized_payload": parts[0] + "." + strings.Repeat("A", 8192) + "." + parts[2],
+		"oversized_signature": parts[0] + "." + parts[1] + "." + strings.Repeat("A", 8192),
+		"signature_one_byte": parts[0] + "." + parts[1] + ".AA",
+	}
+	for name, token := range cases {
+		t.Run(name, func(t *testing.T) {
+			if claims, err := verifyAccessToken(secret, token, now); err == nil {
+				t.Fatalf("invalid structural boundary authenticated claims=%+v", claims)
+			}
+		})
+	}
+}
+
+func TestModule1JWTIssuedAtBehaviorRecorded(t *testing.T) {
+	requireModule1Adversarial(t)
+	secret := []byte("01234567890123456789012345678901")
+	now := time.Date(2026, 10, 13, 0, 0, 0, 0, time.UTC)
+	user := StoredUser{ID: "user-a", InvestmentSubjectID: "subject-a"}
+	futureIssued, err := signAccessToken(secret, user, now.Add(24*time.Hour), now.Add(25*time.Hour))
+	if err != nil { t.Fatal(err) }
+	claims, err := verifyAccessToken(secret, futureIssued, now)
+	if err != nil {
+		t.Logf("JWT_IAT_FUTURE_POLICY=REJECTED err=%v", err)
+		return
+	}
+	if claims.InvestmentSubjectID != user.InvestmentSubjectID {
+		t.Fatalf("future iat changed principal: %+v", claims)
+	}
+	t.Log("JWT_IAT_FUTURE_POLICY=ACCEPTED_NOT_CURRENTLY_VALIDATED; NO_ATTACKER_SIGNATURE_PATH_DEMONSTRATED")
+}
