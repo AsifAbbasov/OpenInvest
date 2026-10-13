@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -194,4 +195,75 @@ func TestModule1RegistrationTimingEvidenceBounded(t *testing.T) {
 	}
 	t.Logf("AUTH_ADV_02_TIMING_SAMPLES_PER_CLASS=%d NEW_MEDIAN=%s DUPLICATE_MEDIAN=%s", samples, median(newDurations), median(duplicateDurations))
 	t.Log("AUTH_ADV_02_TIMING_ENUMERATION=EVIDENCE_COLLECTED_NOT_CLASSIFIED_FROM_SMALL_SAMPLE")
+}
+
+
+func TestModule1RegistrationCanonicalizationPolicyMatrix(t *testing.T) {
+	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
+	if databaseURL == "" {
+		t.Skip("OPENINVEST_DATABASE_TEST_URL is not set")
+	}
+	store, err := postgres.Open(databaseURL)
+	if err != nil { t.Fatalf("open postgres store: %v", err) }
+	defer store.Close()
+	service, err := auth.NewService(store, verticalslice.SystemClock{}, auth.Config{
+		AccessTokenSecret: []byte("module1-audit-access-token-secret-32bytes"),
+		RefreshCookieSecure: true,
+	})
+	if err != nil { t.Fatalf("new auth service: %v", err) }
+
+	ctx := context.Background()
+	password := "correct horse battery staple"
+	suffix := uuid.NewString()
+	base := "module1-canon-" + suffix + "@example.test"
+	register := func(email string) error {
+		_, err := service.Register(ctx, auth.RegistrationRequest{
+			Email: email,
+			Password: password,
+			Language: auth.LanguageEN,
+			Theme: auth.ThemeSystem,
+			Timezone: "UTC",
+		})
+		return err
+	}
+
+	if err := register(base); err != nil { t.Fatalf("seed registration: %v", err) }
+
+	for _, tc := range []struct{
+		name string
+		email string
+		wantDuplicate bool
+	}{
+		{"ascii_case", strings.ToUpper(base), true},
+		{"leading_trailing_space", "  " + base + "  ", true},
+		{"plus_address_distinct", strings.Replace(base, "@", "+tag@", 1), false},
+		{"dot_localpart_distinct", strings.Replace(base, "module1-canon-", "module1.canon-", 1), false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			err := register(tc.email)
+			if tc.wantDuplicate {
+				if !errors.Is(err, auth.ErrEmailAlreadyExists) {
+					t.Fatalf("normalization-equivalent email err=%v want ErrEmailAlreadyExists", err)
+				}
+			} else if err != nil {
+				t.Fatalf("policy-distinct email unexpectedly rejected: %v", err)
+			}
+			t.Logf("EMAIL_CANON_CASE=%s DUPLICATE_EXPECTED=%t ERR=%v", tc.name, tc.wantDuplicate, err)
+		})
+	}
+
+	db, err := sql.Open("pgx", databaseURL)
+	if err != nil { t.Fatalf("open sql db: %v", err) }
+	defer db.Close()
+	var baseCount int
+	if err := db.QueryRowContext(ctx,
+		"SELECT count(*) FROM identity.users WHERE email_normalized=$1", strings.ToLower(strings.TrimSpace(base)),
+	).Scan(&baseCount); err != nil {
+		t.Fatalf("count canonical base: %v", err)
+	}
+	if baseCount != 1 {
+		t.Fatalf("case/space canonicalization created duplicate base identities: %d", baseCount)
+	}
+	t.Log("EMAIL_CASE_TRIM_COLLISION_CREATES_MULTIPLE_SECURITY_IDENTITIES=NO")
+	t.Log("PLUS_AND_DOT_EQUIVALENCE_POLICY=NOT_DEFINED; TREATED_AS_DISTINCT_IDENTITIES")
 }
