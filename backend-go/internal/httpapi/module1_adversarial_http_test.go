@@ -481,3 +481,84 @@ func TestModule1RefreshCookiePhysicalHeaderCollisionMatrix(t *testing.T) {
 		})
 	}
 }
+
+
+func TestModule1MalformedCookieAndContentTypeMatrix(t *testing.T) {
+	requireModule1HTTPAdversarial(t)
+
+	t.Run("refresh_malformed_cookie_rejected_without_state_mutation", func(t *testing.T) {
+		store := &httpAuthTestStore{}
+		app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
+		register := authRequest(t, app, http.MethodPost, "/api/v1/auth/register", `{
+			"email":"malformed-cookie@example.test",
+			"password":"correct horse battery staple",
+			"language":"en",
+			"theme":"system",
+			"timezone":"UTC"
+		}`, "", "")
+		refresh := requireCookie(t, register, auth.RefreshCookieName)
+		csrf := readCSRFToken(t, register)
+		register.Body.Close()
+
+		before := len(store.sessions)
+		for _, raw := range []string{
+			auth.RefreshCookieName,
+			auth.RefreshCookieName + "=",
+			auth.RefreshCookieName + "=synthetic-invalid",
+			"unrelated=synthetic; " + auth.RefreshCookieName + "=synthetic-invalid",
+		} {
+			req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/refresh", nil)
+			req.Header.Set("X-CSRF-Token", csrf)
+			req.Header.Add("Cookie", raw)
+			resp, err := app.Test(req)
+			if err != nil { t.Fatalf("cookie=%q request: %v", raw, err) }
+			resp.Body.Close()
+			if resp.StatusCode != http.StatusUnauthorized {
+				t.Fatalf("cookie=%q status=%d want=401", raw, resp.StatusCode)
+			}
+			if len(store.sessions) != before {
+				t.Fatalf("cookie=%q mutated session count before=%d after=%d", raw, before, len(store.sessions))
+			}
+			if _, ok := store.sessions[tokenHashForModule1(refresh.Value)]; !ok {
+				t.Fatalf("cookie=%q altered valid session while rejecting malformed material", raw)
+			}
+		}
+		t.Log("MALFORMED_REFRESH_COOKIE_PROMOTED_TO_VALID_SESSION=NO")
+	})
+
+	t.Run("registration_content_type_representation", func(t *testing.T) {
+		body := `{"email":"content-type@example.test","password":"correct horse battery staple","language":"en","theme":"system","timezone":"UTC"}`
+		cases := []struct{
+			name string
+			contentType string
+		}{
+			{"application_json", "application/json"},
+			{"application_json_charset", "application/json; charset=utf-8"},
+			{"text_plain", "text/plain"},
+			{"missing", ""},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				store := &httpAuthTestStore{}
+				app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
+				req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(body))
+				if tc.contentType != "" { req.Header.Set("Content-Type", tc.contentType) }
+				resp, err := app.Test(req)
+				if err != nil { t.Fatalf("request: %v", err) }
+				defer resp.Body.Close()
+
+				// The current handler decodes the JSON bytes directly and does not use Content-Type
+				// as an authentication/authorization decision. Record that transport policy, while
+				// requiring the resolved identity to remain exactly the submitted synthetic identity.
+				if resp.StatusCode != http.StatusCreated || store.registerCalls != 1 {
+					t.Fatalf("content-type=%q status=%d registerCalls=%d", tc.contentType, resp.StatusCode, store.registerCalls)
+				}
+				if store.user.Email != "content-type@example.test" {
+					t.Fatalf("content-type=%q changed resolved registration identity: %q", tc.contentType, store.user.Email)
+				}
+				t.Logf("AUTH_CONTENT_TYPE_CASE=%s STATUS=%d RESOLVED_EMAIL=%q", tc.name, resp.StatusCode, store.user.Email)
+			})
+		}
+		t.Log("AUTH_CONTENT_TYPE_POLICY=BODY_JSON_DECODE_INDEPENDENT_OF_CONTENT_TYPE; PRINCIPAL_CONFUSION_OBSERVED=NO")
+	})
+}
