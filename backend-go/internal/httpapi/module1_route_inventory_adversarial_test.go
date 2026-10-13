@@ -34,6 +34,7 @@ func TestModule1MachineDerivedProtectedRouteInventoryRejectsAnonymous(t *testing
 		"health": true,
 		"ready": true,
 		"register": true,
+		"verifyEmail": true,
 		"login": true,
 		"refresh": true,
 		"logout": true,
