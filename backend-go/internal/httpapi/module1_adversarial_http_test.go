@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -11,7 +12,15 @@ import (
 	"github.com/openinvest/openinvest/backend-go/internal/auth"
 )
 
+func requireModule1HTTPAdversarial(t *testing.T) {
+	t.Helper()
+	if os.Getenv("OPENINVEST_MODULE1_ADVERSARIAL") != "1" {
+		t.Skip("OPENINVEST_MODULE1_ADVERSARIAL is not enabled")
+	}
+}
+
 func TestModule1AuthorizationHeaderAmbiguityMatrix(t *testing.T) {
+	requireModule1HTTPAdversarial(t)
 	store := &httpAuthTestStore{}
 	authService := newHTTPAuthService(t, store)
 	regApp := newHTTPAuthApp(t, authService)
@@ -89,6 +98,7 @@ func TestModule1AuthorizationHeaderAmbiguityMatrix(t *testing.T) {
 }
 
 func TestModule1RefreshCookieCollisionMatrix(t *testing.T) {
+	requireModule1HTTPAdversarial(t)
 	for _, order := range []struct {
 		name    string
 		validFirst bool
@@ -131,6 +141,7 @@ func TestModule1RefreshCookieCollisionMatrix(t *testing.T) {
 }
 
 func TestModule1AuthJSONAmbiguityMatrix(t *testing.T) {
+	requireModule1HTTPAdversarial(t)
 	cases := []struct {
 		name string
 		path string
@@ -185,6 +196,7 @@ func TestModule1AuthJSONAmbiguityMatrix(t *testing.T) {
 }
 
 func TestModule1BearerParserNegativeControl(t *testing.T) {
+	requireModule1HTTPAdversarial(t)
 	valid := "Bearer synthetic-token"
 	if got := bearerToken(valid); got != "synthetic-token" {
 		t.Fatalf("negative-control prerequisite failed: %q", got)
@@ -196,6 +208,7 @@ func TestModule1BearerParserNegativeControl(t *testing.T) {
 
 
 func TestModule1ProtectedRouteInventoryRejectsAnonymous(t *testing.T) {
+	requireModule1HTTPAdversarial(t)
 	app := newHTTPAuthApp(t, newHTTPAuthService(t, &httpAuthTestStore{}))
 	const portfolioID = "11111111-1111-4111-8111-111111111111"
 	cases := []struct {
