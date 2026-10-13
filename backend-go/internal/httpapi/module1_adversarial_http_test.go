@@ -414,7 +414,7 @@ func TestModule1RefreshCookiePhysicalHeaderCollisionMatrix(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			store := &httpAuthTestStore{}
-			app := newHTTPAuthApp(t, newModule1OwnershipService(t, store))
+			app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
 			register := fixtureLegacyLogin(t, app, http.MethodPost, "/api/v1/auth/register", `{
 				"email":"physical-cookie-`+tc.name+`@example.test",
 				"password":"correct horse battery staple",
