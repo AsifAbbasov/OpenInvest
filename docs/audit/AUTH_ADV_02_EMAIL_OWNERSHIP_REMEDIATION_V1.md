@@ -132,3 +132,18 @@ introduced capabilities. No rolling-deployment compatibility is claimed here.
 
 The standalone delivery worker also uses OpenRuntime, not the schema-owner Open
 constructor. Explicit enablement cannot bypass the same runtime privilege guard.
+
+## Mounted verification regression and negative control
+
+The new mounted StrictMode component test first failed because effect replay read
+an already-cleared fragment and erased the in-memory token. The correction retains
+an existing token when the replay sees an empty fragment. The assertion is unchanged;
+the fixed test must pass while URL fragment/localStorage stay empty. This executable
+red-to-green control is a frontend implementation defect, not an auth bypass finding.
+The complete requested mounted state matrix remains pending.
+
+The existing ten-context normal workflow emits race-enabled verbose ownership
+regression evidence explicitly against its PostgreSQL 18 runtime-role service.
+No specialized/adversarial workflow was added or dispatched. The mounted component
+test follows the repository's existing JSDOM/TSX convention; runtime assertions are
+executed, including the unchanged StrictMode negative-control assertion.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import React, { useEffect, useState, type FormEvent } from "react";
 import { verifyEmailRegistration, resendVerification } from "@/common/api/openinvest";
 import { passwordValidationMessage } from "@/features/auth/passwordPolicy";
 
@@ -16,7 +16,9 @@ export default function VerifyEmailPage() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setToken(window.location.hash.slice(1));
+    const fragment = window.location.hash.slice(1);
+    // StrictMode replays this effect after the fragment has already been removed.
+    if (fragment) setToken(fragment);
     window.history.replaceState(null, "", window.location.pathname);
   }, []);
 

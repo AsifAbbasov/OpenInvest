@@ -106,6 +106,14 @@ jobs:
           go test -v ./internal/provider/tinvest -run TestRawDownstreamDisconnectRetainsLocalOperationOwnership -count=1
           go test -v ./internal/provider/tinvest -run TestProviderPartialResetTimeoutStillFailClosedAndRecover -count=1
 
+      - name: Emit email ownership remediation evidence
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+          OPENINVEST_DATABASE_RUNTIME_TEST_URL: postgres://openinvest_runtime_ci:openinvest-runtime-ci@127.0.0.1:5432/openinvest?sslmode=disable
+        run: |
+          set -euo pipefail
+          go test -race -v ./internal/auth ./internal/httpapi ./internal/postgres -run '^TestEmailOwnership' -count=1 -timeout=90s
+
       - name: Configure OI-NEW-04 active R2 runtime role
         working-directory: .
         run: |
