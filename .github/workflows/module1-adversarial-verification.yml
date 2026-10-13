@@ -49,21 +49,45 @@ jobs:
           echo "TESTED_TREE=$(git rev-parse HEAD^{tree})"
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
       - name: JWT fixed adversarial matrix
+        id: jwt_fixed
+        continue-on-error: true
         run: |
           set -euo pipefail
           go test -race -v ./internal/auth -run '^TestModule1JWT' -count=1
       - name: JWT byte-changing fuzz campaign
+        id: jwt_mutation_fuzz
+        continue-on-error: true
         run: |
           set -euo pipefail
           go test ./internal/auth -run '^$' -fuzz '^FuzzModule1JWTByteChangingMutationNeverAuthenticates$' -fuzztime=30s -timeout=2m
       - name: JWT structural fuzz campaign
+        id: jwt_structural_fuzz
+        continue-on-error: true
         run: |
           set -euo pipefail
           go test ./internal/auth -run '^$' -fuzz '^FuzzModule1JWTStructuralParserNeverPanics$' -fuzztime=30s -timeout=2m
       - name: Session lifecycle state-machine fuzz campaign
+        id: session_state_fuzz
+        continue-on-error: true
         run: |
           set -euo pipefail
           go test ./internal/auth -run '^$' -fuzz '^FuzzModule1SessionLifecycleStateMachine$' -fuzztime=30s -timeout=2m
+      - name: JWT and state-machine collect-all gate
+        if: always()
+        env:
+          JWT_FIXED: ${{ steps.jwt_fixed.outcome }}
+          JWT_MUTATION_FUZZ: ${{ steps.jwt_mutation_fuzz.outcome }}
+          JWT_STRUCTURAL_FUZZ: ${{ steps.jwt_structural_fuzz.outcome }}
+          SESSION_STATE_FUZZ: ${{ steps.session_state_fuzz.outcome }}
+        run: |
+          echo "JWT_FIXED=$JWT_FIXED"
+          echo "JWT_MUTATION_FUZZ=$JWT_MUTATION_FUZZ"
+          echo "JWT_STRUCTURAL_FUZZ=$JWT_STRUCTURAL_FUZZ"
+          echo "SESSION_STATE_FUZZ=$SESSION_STATE_FUZZ"
+          test "$JWT_MUTATION_FUZZ" = "success"
+          test "$JWT_STRUCTURAL_FUZZ" = "success"
+          test "$SESSION_STATE_FUZZ" = "success"
+          test "$JWT_FIXED" = "success"
 
   http-auth-ambiguity:
     name: http-auth-ambiguity
