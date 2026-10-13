@@ -45,6 +45,9 @@ func TestModule1BoundedHighContentionRefreshCampaign(t *testing.T) {
 
 	ctx := context.Background()
 	baselineGoroutines := runtime.NumGoroutine()
+	baselineFDs := module1FDCount(t)
+	var baselineMem runtime.MemStats
+	runtime.ReadMemStats(&baselineMem)
 	peakGoroutines := baselineGoroutines
 	totalAttempts := 0
 	totalSuccesses := 0
@@ -150,8 +153,14 @@ func TestModule1BoundedHighContentionRefreshCampaign(t *testing.T) {
 	}
 
 	afterGoroutines := runtime.NumGoroutine()
+	afterFDs := module1FDCount(t)
+	var afterMem runtime.MemStats
+	runtime.GC()
+	runtime.ReadMemStats(&afterMem)
 	t.Logf("CONTENTION_LEVELS=2,4,8,16,32 REPETITIONS_PER_LEVEL=25 TOTAL_ATTEMPTS=%d TOTAL_SUCCESSES=%d", totalAttempts, totalSuccesses)
 	t.Logf("GOROUTINES_BASELINE=%d GOROUTINES_PEAK_OBSERVED=%d GOROUTINES_AFTER=%d", baselineGoroutines, peakGoroutines, afterGoroutines)
+	t.Logf("FD_BASELINE=%d FD_AFTER=%d", baselineFDs, afterFDs)
+	t.Logf("HEAP_ALLOC_BASELINE=%d HEAP_ALLOC_AFTER_GC=%d", baselineMem.HeapAlloc, afterMem.HeapAlloc)
 	t.Log("RACE_CREATES_MORE_VALID_SESSION_LINEAGES_THAN_SERIAL_POLICY_ALLOWS=NO")
 	t.Log("POST_ATTACK_SERVICE_RECOVERY=PASS")
 }
@@ -171,4 +180,15 @@ func itoaModule1(value int) string {
 	default:
 		return "unknown"
 	}
+}
+
+
+func module1FDCount(t *testing.T) int {
+	t.Helper()
+	entries, err := os.ReadDir("/proc/self/fd")
+	if err != nil {
+		t.Logf("FD_COUNT=NOT_AVAILABLE err=%v", err)
+		return -1
+	}
+	return len(entries)
 }
