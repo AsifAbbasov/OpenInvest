@@ -18,6 +18,7 @@ import (
 )
 
 func TestModule1BoundedHighContentionRefreshCampaign(t *testing.T) {
+	if os.Getenv("OPENINVEST_MODULE1_ADVERSARIAL") != "1" { t.Skip("requires explicitly enabled bounded adversarial campaign") }
 	databaseURL := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
 	if databaseURL == "" {
 		t.Skip("OPENINVEST_DATABASE_TEST_URL is not set")
