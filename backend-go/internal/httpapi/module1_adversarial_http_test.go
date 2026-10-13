@@ -118,7 +118,7 @@ func TestModule1RefreshCookieCollisionMatrix(t *testing.T) {
 	} {
 		t.Run(order.name, func(t *testing.T) {
 			store := &httpAuthTestStore{}
-			app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
+			app := newHTTPAuthApp(t, newModule1OwnershipService(t, store))
 			register := fixtureLegacyLogin(t, app, http.MethodPost, "/api/v1/auth/register", `{
 				"email":"cookie-`+order.name+`@example.test",
 				"password":"correct horse battery staple",
@@ -169,12 +169,22 @@ func TestModule1RefreshCookieCollisionMatrix(t *testing.T) {
 	}
 }
 
+func newModule1OwnershipService(t *testing.T, store *httpOwnershipFixture) *auth.Service {
+	t.Helper()
+	service, err := auth.NewService(store, fixedHTTPClock{}, auth.Config{
+		AccessTokenSecret: []byte("01234567890123456789012345678901"),
+		RefreshCookieSecure: true,
+	})
+	if err != nil { t.Fatal(err) }
+	return service
+}
+
 func TestModule1AuthJSONAmbiguityMatrix(t *testing.T) {
 	requireModule1HTTPAdversarial(t)
 
 	t.Run("duplicate_email_last_member_wins_without_activation", func(t *testing.T) {
 		store := &httpOwnershipFixture{}
-		app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
+		app := newHTTPAuthApp(t, newModule1OwnershipService(t, store))
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(`{"email":"first@example.test","email":"second@example.test"}`))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
@@ -196,7 +206,7 @@ func TestModule1AuthJSONAmbiguityMatrix(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			store := &httpOwnershipFixture{}
-			app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
+			app := newHTTPAuthApp(t, newModule1OwnershipService(t, store))
 			req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(tc.body))
 			req.Header.Set("Content-Type", "application/json")
 			resp, err := app.Test(req)
@@ -259,7 +269,7 @@ func TestModule1ProtectedRouteInventoryRejectsAnonymous(t *testing.T) {
 func TestModule1SessionFixationPreAuthCookieNotReused(t *testing.T) {
 	requireModule1HTTPAdversarial(t)
 	store := &httpOwnershipFixture{}
-	app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
+	app := newHTTPAuthApp(t, newModule1OwnershipService(t, store))
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(`{"email":"fixation@example.test"}`))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Add("Cookie", auth.RefreshCookieName+"=attacker-controlled-preauth-cookie")
@@ -404,7 +414,7 @@ func TestModule1RefreshCookiePhysicalHeaderCollisionMatrix(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			store := &httpAuthTestStore{}
-			app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
+			app := newHTTPAuthApp(t, newModule1OwnershipService(t, store))
 			register := fixtureLegacyLogin(t, app, http.MethodPost, "/api/v1/auth/register", `{
 				"email":"physical-cookie-`+tc.name+`@example.test",
 				"password":"correct horse battery staple",
@@ -448,7 +458,7 @@ func TestModule1MalformedCookieAndContentTypeMatrix(t *testing.T) {
 
 	t.Run("refresh_malformed_cookie_rejected_without_state_mutation", func(t *testing.T) {
 		store := &httpAuthTestStore{}
-		app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
+		app := newHTTPAuthApp(t, newModule1OwnershipService(t, store))
 		register := fixtureLegacyLogin(t, app, http.MethodPost, "/api/v1/auth/register", `{
 			"email":"malformed-cookie@example.test",
 			"password":"correct horse battery staple",
@@ -500,7 +510,7 @@ func TestModule1MalformedCookieAndContentTypeMatrix(t *testing.T) {
 		for _, tc := range cases {
 			t.Run(tc.name, func(t *testing.T) {
 				store := &httpOwnershipFixture{}
-				app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
+				app := newHTTPAuthApp(t, newModule1OwnershipService(t, store))
 				req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(body))
 				if tc.contentType != "" { req.Header.Set("Content-Type", tc.contentType) }
 				resp, err := app.Test(req)
