@@ -206,3 +206,101 @@ func TestModule1JWTCanonicalTextualEncoding(t *testing.T) {
 	}
 	t.Log("JWT_CANONICALIZATION=NONCANONICAL_SIGNATURE_ALIAS_REJECTED")
 }
+
+
+func FuzzModule1SessionLifecycleStateMachine(f *testing.F) {
+	f.Add([]byte{0, 1, 0, 2, 0})
+	f.Add([]byte{0, 0, 1, 2, 1})
+	f.Add([]byte{2, 0, 1})
+	f.Fuzz(func(t *testing.T, commands []byte) {
+		if len(commands) == 0 || len(commands) > 32 {
+			return
+		}
+		store := &memoryStore{}
+		store.user = StoredUser{
+			ID: "user-a",
+			InvestmentSubjectID: "subject-a",
+			Email: "state-machine@example.test",
+			Language: LanguageEN,
+			Theme: ThemeSystem,
+			Timezone: "UTC",
+			PrivacyMode: true,
+		}
+		rootRefresh := "root-refresh-synthetic"
+		rootCSRF := "root-csrf-synthetic"
+		rootRecord := SessionRecord{
+			SessionID: "root-session",
+			UserID: store.user.ID,
+			RefreshTokenHash: tokenHash(rootRefresh),
+			CSRFTokenHash: tokenHash(rootCSRF),
+			ExpiresAt: time.Date(2026, 11, 13, 0, 0, 0, 0, time.UTC),
+			Now: time.Date(2026, 10, 13, 0, 0, 0, 0, time.UTC),
+		}
+		store.sessions = map[string]SessionRecord{rootRecord.RefreshTokenHash: rootRecord}
+		service, err := NewService(store, fixedClock{}, Config{
+			AccessTokenSecret: []byte("01234567890123456789012345678901"),
+			RefreshCookieSecure: true,
+		})
+		if err != nil {
+			t.Fatalf("new state-machine service: %v", err)
+		}
+
+		currentRefresh, currentCSRF := rootRefresh, rootCSRF
+		active := true
+		type pair struct{ refresh, csrf string }
+		old := []pair{}
+
+		for step, raw := range commands {
+			switch raw % 4 {
+			case 0: // rotate current session
+				result, err := service.Refresh(t.Context(), currentRefresh, currentCSRF)
+				if !active {
+					if err == nil {
+						t.Fatalf("step=%d MODEL_DENY_IMPLEMENTATION_ALLOW refresh after logout", step)
+					}
+					continue
+				}
+				if err != nil {
+					t.Fatalf("step=%d model allowed refresh but implementation denied: %v", step, err)
+				}
+				old = append(old, pair{currentRefresh, currentCSRF})
+				currentRefresh, currentCSRF = result.RefreshToken, result.Session.CSRFToken
+			case 1: // replay an obsolete credential if one exists
+				if len(old) == 0 {
+					continue
+				}
+				p := old[int(raw)%len(old)]
+				if _, err := service.Refresh(t.Context(), p.refresh, p.csrf); err == nil {
+					t.Fatalf("step=%d obsolete refresh credential replay authenticated", step)
+				}
+			case 2: // revoke the current session
+				revoked, err := service.Logout(t.Context(), currentRefresh, currentCSRF, false)
+				if !active {
+					if err == nil || revoked {
+						t.Fatalf("step=%d already-revoked session was revoked again as valid", step)
+					}
+					continue
+				}
+				if err != nil || !revoked {
+					t.Fatalf("step=%d model allowed logout but implementation result revoked=%t err=%v", step, revoked, err)
+				}
+				old = append(old, pair{currentRefresh, currentCSRF})
+				active = false
+			case 3: // CSRF mismatch must never rotate
+				beforeCount := len(store.sessions)
+				if _, err := service.Refresh(t.Context(), currentRefresh, "wrong-csrf-synthetic"); err == nil {
+					t.Fatalf("step=%d CSRF mismatch authenticated", step)
+				}
+				if len(store.sessions) != beforeCount {
+					t.Fatalf("step=%d CSRF mismatch mutated session count before=%d after=%d", step, beforeCount, len(store.sessions))
+				}
+			}
+		}
+
+		for i, p := range old {
+			if _, err := service.Refresh(t.Context(), p.refresh, p.csrf); err == nil {
+				t.Fatalf("postcondition obsolete credential %d resurrected", i)
+			}
+		}
+	})
+}
