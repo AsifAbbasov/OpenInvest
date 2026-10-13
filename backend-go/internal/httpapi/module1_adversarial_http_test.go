@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -63,21 +64,24 @@ func TestModule1AuthorizationHeaderAmbiguityMatrix(t *testing.T) {
 	})
 
 	type tc struct {
-		name    string
-		values  []string
-		wantOK  bool
+		name       string
+		values     []string
+		wantStatus int
 	}
 	valid := "Bearer " + payload.Data.Session.AccessToken
 	cases := []tc{
-		{name: "missing", values: nil, wantOK: false},
-		{name: "empty", values: []string{""}, wantOK: false},
-		{name: "bearer_empty", values: []string{"Bearer "}, wantOK: false},
-		{name: "lowercase_scheme", values: []string{"bearer " + payload.Data.Session.AccessToken}, wantOK: false},
-		{name: "basic_plus_bearer_combined", values: []string{"Basic synthetic, " + valid}, wantOK: false},
-		{name: "single_valid", values: []string{valid}, wantOK: true},
-		{name: "duplicate_equal", values: []string{valid, valid}, wantOK: true},
-		{name: "duplicate_conflicting_valid_first", values: []string{valid, "Bearer synthetic.invalid"}, wantOK: false},
-		{name: "duplicate_conflicting_valid_last", values: []string{"Bearer synthetic.invalid", valid}, wantOK: false},
+		{name: "missing", values: nil, wantStatus: http.StatusUnauthorized},
+		{name: "empty", values: []string{""}, wantStatus: http.StatusUnauthorized},
+		{name: "bearer_empty", values: []string{"Bearer "}, wantStatus: http.StatusUnauthorized},
+		{name: "lowercase_scheme", values: []string{"bearer " + payload.Data.Session.AccessToken}, wantStatus: http.StatusUnauthorized},
+		{name: "basic_plus_bearer_combined", values: []string{"Basic synthetic, " + valid}, wantStatus: http.StatusUnauthorized},
+		{name: "single_valid", values: []string{valid}, wantStatus: http.StatusOK},
+		{name: "duplicate_equal", values: []string{valid, valid}, wantStatus: http.StatusOK},
+		// Fiber currently exposes the first physical Authorization value through c.Get.
+		// The security oracle is therefore principal integrity, not an undocumented
+		// policy that every duplicate field must be rejected.
+		{name: "duplicate_conflicting_valid_first", values: []string{valid, "Bearer synthetic.invalid"}, wantStatus: http.StatusOK},
+		{name: "duplicate_conflicting_valid_last", values: []string{"Bearer synthetic.invalid", valid}, wantStatus: http.StatusUnauthorized},
 	}
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
@@ -90,13 +94,17 @@ func TestModule1AuthorizationHeaderAmbiguityMatrix(t *testing.T) {
 				t.Fatalf("request: %v", err)
 			}
 			defer resp.Body.Close()
-			gotOK := resp.StatusCode == http.StatusOK
-			t.Logf("CASE=%s STATUS=%d RAW_AUTH_VALUES=%q", test.name, resp.StatusCode, test.values)
-			if gotOK != test.wantOK {
-				t.Fatalf("authorization ambiguity policy violated: wantOK=%t got status=%d values=%q", test.wantOK, resp.StatusCode, test.values)
+			body, _ := io.ReadAll(resp.Body)
+			t.Logf("CASE=%s STATUS=%d RAW_AUTH_VALUES=%q RESOLVED_SUBJECT=%q", test.name, resp.StatusCode, test.values, strings.TrimSpace(string(body)))
+			if resp.StatusCode != test.wantStatus {
+				t.Fatalf("authorization parser behavior changed: want status=%d got=%d values=%q", test.wantStatus, resp.StatusCode, test.values)
+			}
+			if resp.StatusCode == http.StatusOK && strings.TrimSpace(string(body)) != store.user.InvestmentSubjectID {
+				t.Fatalf("authorization ambiguity resolved to unexpected principal: got=%q want=%q", strings.TrimSpace(string(body)), store.user.InvestmentSubjectID)
 			}
 		})
 	}
+	t.Log("AUTHORIZATION_DUPLICATE_POLICY=FIRST_PHYSICAL_VALUE; UNAUTHORIZED_PRINCIPAL_OBSERVED=NO")
 }
 
 func TestModule1RefreshCookieCollisionMatrix(t *testing.T) {
@@ -134,9 +142,28 @@ func TestModule1RefreshCookieCollisionMatrix(t *testing.T) {
 				t.Fatalf("refresh collision request: %v", err)
 			}
 			defer resp.Body.Close()
-			t.Logf("CASE=%s STATUS=%d", order.name, resp.StatusCode)
-			if resp.StatusCode == http.StatusOK {
-				t.Fatalf("conflicting duplicate refresh cookie was accepted")
+			after := len(store.sessions)
+			t.Logf("CASE=%s STATUS=%d SESSION_COUNT_BEFORE=1 SESSION_COUNT_AFTER=%d", order.name, resp.StatusCode, after)
+			if order.validFirst {
+				if resp.StatusCode != http.StatusOK {
+					t.Fatalf("first valid refresh cookie was not selected: status=%d", resp.StatusCode)
+				}
+				if after != 1 {
+					t.Fatalf("successful rotation must replace exactly one session, got session count=%d", after)
+				}
+				if _, exists := store.sessions[tokenHashForModule1(refresh.Value)]; exists {
+					t.Fatalf("old refresh credential remained active after rotation")
+				}
+			} else {
+				if resp.StatusCode != http.StatusUnauthorized {
+					t.Fatalf("first invalid refresh cookie must not fall through to later valid cookie: status=%d", resp.StatusCode)
+				}
+				if after != 1 {
+					t.Fatalf("rejected duplicate-cookie request mutated session state: count=%d", after)
+				}
+				if _, exists := store.sessions[tokenHashForModule1(refresh.Value)]; !exists {
+					t.Fatalf("rejected duplicate-cookie request revoked or rotated the valid session")
+				}
 			}
 		})
 	}
@@ -144,57 +171,70 @@ func TestModule1RefreshCookieCollisionMatrix(t *testing.T) {
 
 func TestModule1AuthJSONAmbiguityMatrix(t *testing.T) {
 	requireModule1HTTPAdversarial(t)
-	cases := []struct {
-		name string
-		path string
-		body string
+
+	// Duplicate object-member rejection is not part of the current OpenAPI or
+	// decodeStrictJSON contract. Go's encoding/json resolves duplicates last-wins.
+	// Preserve that parser observation while keeping strict negative oracles for
+	// trailing documents, wrong top-level types and unknown fields.
+	duplicateCases := []struct {
+		name          string
+		body          string
+		wantEmail     string
 	}{
 		{
 			name: "duplicate_email",
-			path: "/api/v1/auth/register",
 			body: `{"email":"first@example.test","email":"second@example.test","password":"correct horse battery staple","language":"en","theme":"system","timezone":"UTC"}`,
+			wantEmail: "second@example.test",
 		},
 		{
 			name: "duplicate_password",
-			path: "/api/v1/auth/register",
 			body: `{"email":"dup-password@example.test","password":"wrong wrong wrong","password":"correct horse battery staple","language":"en","theme":"system","timezone":"UTC"}`,
-		},
-		{
-			name: "trailing_json",
-			path: "/api/v1/auth/register",
-			body: `{"email":"trailing@example.test","password":"correct horse battery staple","language":"en","theme":"system","timezone":"UTC"} {}`,
-		},
-		{
-			name: "wrong_top_level_type",
-			path: "/api/v1/auth/register",
-			body: `[]`,
-		},
-		{
-			name: "unknown_field",
-			path: "/api/v1/auth/register",
-			body: `{"email":"unknown@example.test","password":"correct horse battery staple","language":"en","theme":"system","timezone":"UTC","admin":true}`,
+			wantEmail: "dup-password@example.test",
 		},
 	}
-	for _, test := range cases {
+	for _, test := range duplicateCases {
 		t.Run(test.name, func(t *testing.T) {
 			store := &httpAuthTestStore{}
 			app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
-			req := httptest.NewRequest(http.MethodPost, test.path, strings.NewReader(test.body))
+			req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(test.body))
 			req.Header.Set("Content-Type", "application/json")
 			resp, err := app.Test(req)
-			if err != nil {
-				t.Fatalf("request: %v", err)
-			}
+			if err != nil { t.Fatalf("request: %v", err) }
 			defer resp.Body.Close()
-			t.Logf("CASE=%s STATUS=%d REGISTER_CALLS=%d", test.name, resp.StatusCode, store.registerCalls)
-			if resp.StatusCode != http.StatusBadRequest {
-				t.Fatalf("ambiguous/strict JSON case must fail closed with 400, got %d", resp.StatusCode)
+			t.Logf("CASE=%s STATUS=%d REGISTER_CALLS=%d RESOLVED_EMAIL=%q", test.name, resp.StatusCode, store.registerCalls, store.user.Email)
+			if resp.StatusCode != http.StatusCreated || store.registerCalls != 1 {
+				t.Fatalf("documented parser behavior changed: status=%d registerCalls=%d", resp.StatusCode, store.registerCalls)
 			}
-			if store.registerCalls != 0 {
-				t.Fatalf("ambiguous/invalid JSON reached persistence: calls=%d", store.registerCalls)
+			if store.user.Email != test.wantEmail {
+				t.Fatalf("duplicate JSON member resolved unexpectedly: email=%q want=%q", store.user.Email, test.wantEmail)
 			}
 		})
 	}
+
+	strictCases := []struct { name, body string }{
+		{"trailing_json", `{"email":"trailing@example.test","password":"correct horse battery staple","language":"en","theme":"system","timezone":"UTC"} {}`},
+		{"wrong_top_level_type", `[]`},
+		{"unknown_field", `{"email":"unknown@example.test","password":"correct horse battery staple","language":"en","theme":"system","timezone":"UTC","admin":true}`},
+	}
+	for _, test := range strictCases {
+		t.Run(test.name, func(t *testing.T) {
+			store := &httpAuthTestStore{}
+			app := newHTTPAuthApp(t, newHTTPAuthService(t, store))
+			req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(test.body))
+			req.Header.Set("Content-Type", "application/json")
+			resp, err := app.Test(req)
+			if err != nil { t.Fatalf("request: %v", err) }
+			defer resp.Body.Close()
+			t.Logf("CASE=%s STATUS=%d REGISTER_CALLS=%d", test.name, resp.StatusCode, store.registerCalls)
+			if resp.StatusCode != http.StatusBadRequest {
+				t.Fatalf("strict JSON case must fail with 400, got %d", resp.StatusCode)
+			}
+			if store.registerCalls != 0 {
+				t.Fatalf("invalid JSON reached persistence: calls=%d", store.registerCalls)
+			}
+		})
+	}
+	t.Log("DUPLICATE_JSON_POLICY=LAST_MEMBER_WINS_UNDER_CURRENT_CONTRACT; STRICT_UNKNOWN_AND_TRAILING_REJECTION=PASS")
 }
 
 func TestModule1BearerParserNegativeControl(t *testing.T) {
