@@ -1,0 +1,63 @@
+name: OpenInvest real SIGKILL worker lease and SQL connection abort
+on:
+  pull_request:
+    branches: [develop]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  worker-sigkill-and-backend-disconnect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: openinvest-ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Pin exact audit head
+        run: |
+          set -euo pipefail
+          echo "TESTED_SHA=$(git rev-parse HEAD)"
+          echo "TESTED_TREE=$(git rev-parse HEAD^{tree})"
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Apply migrations
+        env:
+          OPENINVEST_DATABASE_OWNER_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+        run: bash scripts/apply-migrations.sh
+      - name: Both real crash scenarios execute even on early failure
+        working-directory: backend-go
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+        run: |
+          set +e
+          errors=0
+          for name in TestOpenInvestRealProcessLeaseCrashAndRecovery TestOpenInvestRealBackendDisconnectRollback; do
+            echo "::group::$name"
+            go test -race -v ./internal/postgres -run "^$name$" -count=1 -timeout=3m
+            rc=$?
+            echo "::endgroup::"
+            if [ "$rc" -ne 0 ]; then
+              errors=$((errors+1))
+              echo "REAL_CRASH_FAILURE=$name rc=$rc"
+            else
+              echo "REAL_CRASH_PASS=$name"
+            fi
+          done
+          echo "REAL_CRASH_FAILED_SCENARIOS=$errors"
+          exit "$errors"
