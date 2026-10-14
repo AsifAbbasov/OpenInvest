@@ -1,0 +1,82 @@
+name: Module 1 campaign actual Next.js App Router Chromium E2E
+on:
+  pull_request:
+    branches: [develop]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  chromium-real-router:
+    name: Campaign real browser Next App Router async proof boundary
+    runs-on: ubuntu-latest
+    timeout-minutes: 17
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Immutable source and exact audit head
+        env:
+          EXPECTED: ${{ github.event.pull_request.head.sha || github.sha }}
+          FROZEN: bcfbc2687b60c68b33a8c4b0fbe969952c649d7d
+        run: |
+          set -euo pipefail
+          test "${GITHUB_ACTIONS:-}" = true
+          test "${RUNNER_ENVIRONMENT:-}" = github-hosted
+          test "$(git rev-parse HEAD)" = "$EXPECTED"
+          git merge-base --is-ancestor "$FROZEN" HEAD
+          test "$(git rev-parse "$FROZEN^{tree}")" = f0d56fb63076a8eaf32bc1f96fe0cdc4928bea96
+          git diff --name-only "$FROZEN" HEAD > /tmp/changed-files
+          if grep -Ev '^(\.github/workflows/module1-campaign-.*\.yml|backend-go/internal/(auth|postgres)/module1_campaign_.*_test\.go|frontend-next/tests/module1_campaign_.*|docs/audit/MODULE1_CAMPAIGN_.*)$' /tmp/changed-files; then exit 78; fi
+          echo 'PRODUCTION_CONTENT_IDENTICAL_TO_PR260=YES'
+          echo "TESTED_SHA=$(git rev-parse HEAD)"
+          echo "TESTED_TREE=$(git rev-parse HEAD^{tree})"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.22.2"
+      - name: Reproducible Next.js production build
+        working-directory: frontend-next
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare pnpm@11.8.0 --activate
+          pnpm install --frozen-lockfile
+          pnpm build
+      - name: Actual Chromium and Next.js asynchronous context scenarios
+        working-directory: frontend-next
+        run: |
+          set -euo pipefail
+          pnpm exec next start --hostname 127.0.0.1 --port 3000 > /tmp/campaign-next.log 2>&1 &
+          NEXT_PID=$!
+          PROFILE="$(mktemp -d)"
+          CHROME_PID=''
+          cleanup() {
+            if [ -n "$CHROME_PID" ]; then kill "$CHROME_PID" 2>/dev/null || true; fi
+            kill "$NEXT_PID" 2>/dev/null || true
+            rm -rf "$PROFILE"
+          }
+          trap cleanup EXIT
+          ready=0
+          for n in $(seq 1 60); do
+            if curl --silent --fail 'http://127.0.0.1:3000/auth/verify' >/tmp/campaign-page; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then tail -80 /tmp/campaign-next.log; exit 22; fi
+          BROWSER="$(command -v google-chrome || command -v chromium || true)"
+          if [ -z "$BROWSER" ]; then echo "REAL_CHROMIUM=NOT_EXERCISED"; exit 23; fi
+          "$BROWSER" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage \
+            --remote-debugging-port=9222 --remote-allow-origins='*' --user-data-dir="$PROFILE" about:blank \
+            > /tmp/campaign-chrome.log 2>&1 &
+          CHROME_PID=$!
+          timeout 70 node tests/module1_campaign_real_browser_e2e.mjs
+          echo 'REAL_NEXTJS_ROUTER_BROWSER_E2E=PASS'
+      - name: Upload failure screenshot and environment logs
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: module1-campaign-browser-forensic
+          path: |
+            /tmp/openinvest-campaign-browser-failure.png
+            /tmp/campaign-chrome.log
+            /tmp/campaign-next.log
+          if-no-files-found: ignore
+          retention-days: 7
