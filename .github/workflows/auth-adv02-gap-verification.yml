@@ -32,7 +32,7 @@ jobs:
           test "$(git merge-base "$BASE" HEAD)" = "$BASE"
           git diff --name-only "$BASE" HEAD > /tmp/changed
           cat /tmp/changed
-          if grep -Ev '^(backend-go/internal/auth/auth_gap_jwt_independent_test.go|backend-go/internal/postgres/auth_gap_(import_ack|session_csrf)_test.go|\.github/workflows/auth-adv02-gap-verification.yml)$' /tmp/changed; then
+          if grep -Ev '^(backend-go/internal/auth/auth_gap_jwt_independent_test.go|backend-go/internal/postgres/auth_gap_(import_ack|session_csrf|browser_seed)_test.go|\.github/workflows/auth-adv02-gap-verification.yml)$' /tmp/changed; then
             echo PRODUCTION_CONTENT_IDENTICAL_TO_PR260=NO
             exit 1
           fi
@@ -91,7 +91,7 @@ jobs:
           test "$(git merge-base "$BASE" HEAD)" = "$BASE"
           git diff --name-only "$BASE" HEAD > /tmp/changed
           cat /tmp/changed
-          if grep -Ev '^(backend-go/internal/auth/auth_gap_jwt_independent_test.go|backend-go/internal/postgres/auth_gap_(import_ack|session_csrf)_test.go|\.github/workflows/auth-adv02-gap-verification.yml)$' /tmp/changed; then exit 1; fi
+          if grep -Ev '^(backend-go/internal/auth/auth_gap_jwt_independent_test.go|backend-go/internal/postgres/auth_gap_(import_ack|session_csrf|browser_seed)_test.go|\.github/workflows/auth-adv02-gap-verification.yml)$' /tmp/changed; then exit 1; fi
           echo PRODUCTION_CONTENT_IDENTICAL_TO_PR260=YES
           echo TESTED_SHA=$(git rev-parse HEAD)
           echo TESTED_TREE=$(git rev-parse HEAD^{tree})
