@@ -24,7 +24,7 @@ import (
 
 func chaosAllowed(t *testing.T) {
  t.Helper()
- if os.Getenv("OPENINVEST_CHAOS_ISOLATED")!="YES_DISPOSABLE_GITHUB_RUNNER" {t.Fatal("NOT_EXECUTED: destructive isolation guard absent")}
+ if os.Getenv("OPENINVEST_CHAOS_ISOLATED")!="YES_DISPOSABLE_GITHUB_RUNNER" {t.Skip("destructive audit excluded from ordinary CI; dedicated isolated workflow required")}
  if os.Getenv("OPENINVEST_DATABASE_TEST_URL")=="" {t.Fatal("NOT_EXECUTED: ephemeral DB URL missing")}
 }
 func chaosHash(x string) string {a:=sha256.Sum256([]byte(x));return hex.EncodeToString(a[:])}
