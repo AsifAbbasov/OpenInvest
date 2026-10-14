@@ -8,7 +8,6 @@ import (
  "context"
  "database/sql"
  "fmt"
- "os"
  "strings"
  "testing"
  "time"
@@ -63,5 +62,4 @@ func TestModule1ExtendedRealKillWhileCOMMITExecutingDeferredTrigger(t *testing.T
  e=recovered.QueryRowContext(context.Background(),"SELECT count(*) FROM "+table).Scan(&rows)
  if e!=nil||rows!=0{t.Fatalf("DEFERRED_UNCOMMITTED_PROBE_SURVIVED_KILL rows=%d err=%v",rows,e)}
  t.Logf("REAL_COMMIT_IN_PROGRESS=CONFIRMED_BY_PG_STAT_ACTIVITY BACKEND_PID=%d POSTMASTER_SIGKILL=CONFIRMED DOCKER_EXIT=137 WAL_RECOVERY=YES DEFERRED_TRIGGER_ROLLED_BACK=YES COMMIT_CLIENT_RESPONSE=ERROR INTERNAL_WAL_CRITICAL_SECTION_OVERLAP=NOT_PROVEN",pid)
- _=os.Getenv("OPENINVEST_CHAOS_ISOLATED")
 }
