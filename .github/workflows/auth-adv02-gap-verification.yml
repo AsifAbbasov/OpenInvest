@@ -91,7 +91,7 @@ jobs:
           test "$(git merge-base "$BASE" HEAD)" = "$BASE"
           git diff --name-only "$BASE" HEAD > /tmp/changed
           cat /tmp/changed
-          if grep -Ev '^(backend-go/internal/auth/auth_gap_.*_test.go|backend-go/internal/postgres/auth_gap_.*_test.go|frontend-next/tests/auth_gap_.*\.mjs|\.github/workflows/auth-adv02-.*\.yml)$' /tmp/changed; then
+          if grep -Ev '^(backend-go/internal/auth/auth_gap_.*_test.go|backend-go/internal/postgres/auth_gap_.*_test.go|frontend-next/tests/auth_gap_.*\.mjs|\.github/workflows/auth-adv02-.*\.yml)$' /tmp/changed; then exit 1; fi
           echo PRODUCTION_CONTENT_IDENTICAL_TO_PR260=YES
           echo TESTED_SHA=$(git rev-parse HEAD)
           echo TESTED_TREE=$(git rev-parse HEAD^{tree})
