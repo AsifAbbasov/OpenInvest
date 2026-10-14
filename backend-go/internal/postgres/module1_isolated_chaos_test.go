@@ -345,7 +345,7 @@ func TestModule1ChaosNetworkDisconnectRollsBackAndCanRetry(t *testing.T){
 // Does not falsely claim deterministic SIGKILL in the COMMIT critical section.
 func TestModule1ChaosCommitAmbiguityAfterPostmasterCrash(t *testing.T){
  chaosAllowed(t)
- _,db:=ownershipService(t)
+ svc,db:=ownershipService(t)
  prefix:="commit-ambig-"+uuid.NewString()+"-"
  t.Cleanup(func(){db.Exec("DELETE FROM identity.registration_intents WHERE email_normalized LIKE $1",prefix+"%")})
  for n:=0;n<3;n++ {
@@ -358,15 +358,42 @@ func TestModule1ChaosCommitAmbiguityAfterPostmasterCrash(t *testing.T){
   go func(){done<-tx.Commit()}()
   recovered:=chaosRealCrashEvidence(t,db,n+1)
   defer recovered.Close()
-  result:=<-done
+  var result error
+  select {
+  case result=<-done:
+  case <-time.After(8*time.Second):
+   t.Fatal("COMMIT_RESULT_WAIT_TIMEOUT")
+  }
+  clientOutcome:="ACKNOWLEDGED"
+  if result!=nil{clientOutcome="UNCERTAIN_"+fmt.Sprintf("%T",result)}
   count:=chaosCount(t,recovered,"SELECT count(*) FROM identity.registration_intents WHERE email_normalized=$1",email)
   if count>1 {t.Fatalf("commit ambiguity duplicated identity intent: %d",count)}
   if result==nil&&count!=1{t.Fatalf("COMMIT acknowledged but WAL lost it: rows=%d",count)}
-  s,_:=ownershipService(t)
-  if err:=s.BeginEmailRegistration(context.Background(),email);err!=nil{t.Fatal(err)}
+  reconciledCount:=count
+  var intentBeforeRetry string
+  if count==1{
+   if err:=recovered.QueryRow("SELECT id::text FROM identity.registration_intents WHERE email_normalized=$1",email).Scan(&intentBeforeRetry);err!=nil{t.Fatal(err)}
+   if intentBeforeRetry!=chaosID{t.Fatalf("UNEXPECTED_COMMITTED_TRANSACTION_ID actual=%s expected=%s",intentBeforeRetry,chaosID)}
+  }
+  s:=chaosNewRegistrationService(t)
+  ctx,cancel:=context.WithTimeout(context.Background(),5*time.Second)
+  err=s.BeginEmailRegistration(ctx,email)
+  cancel()
+  if err!=nil{t.Fatal(err)}
   count=chaosCount(t,recovered,"SELECT count(*) FROM identity.registration_intents WHERE email_normalized=$1",email)
   if count!=1{t.Fatalf("client uncertainty led to duplicate/missing intent: %d",count)}
-  t.Logf("COMMIT_RACE_ROUND=%d CLIENT_COMMIT_ERROR=%t COMMITTED_COUNT_AFTER_CRASH=%d RETRIED_COUNT=%d",n+1,result!=nil,count,1)
+  var finalID string;var intentGen,jobGen int64;var jobs,users,sessions int
+  err=recovered.QueryRow(`SELECT i.id::text,i.generation,
+   (SELECT count(*) FROM identity.email_delivery_jobs j WHERE j.intent_id=i.id),
+   COALESCE((SELECT generation FROM identity.email_delivery_jobs j WHERE j.intent_id=i.id),0),
+   (SELECT count(*) FROM identity.users u WHERE u.email_normalized=i.email_normalized),
+   (SELECT count(*) FROM identity.sessions s JOIN identity.users u ON u.id=s.user_id WHERE u.email_normalized=i.email_normalized)
+   FROM identity.registration_intents i WHERE i.email_normalized=$1`,email).Scan(&finalID,&intentGen,&jobs,&jobGen,&users,&sessions)
+  if err!=nil||jobs!=1||intentGen!=jobGen||users!=0||sessions!=0||reconciledCount==1&&finalID!=chaosID{
+   t.Fatalf("COMMIT_RETRY_PARTIAL_STATE_OR_AUTH_FAILURE id=%s generation=%d jobgen=%d jobs=%d users=%d sessions=%d err=%v",finalID,intentGen,jobGen,jobs,users,sessions,err)
+  }
+  chaosOldPoolAndApplicationEvidence(t,db,svc,recovered,n+1)
+  t.Logf("ITERATION=%d TRANSACTION_ID=%s CLIENT_COMMIT_RESULT=%s SERVER_KILL_CONFIRMED=YES SERVER_RESTART_CONFIRMED=YES FRESH_CONNECTION_CONFIRMED=YES POST_RECOVERY_COMMITTED_ROW_COUNT=%d FINAL_ROW_COUNT_AFTER_RETRY=%d GENERATION_CONSISTENCY=YES NO_DUPLICATE_IDENTITY=YES NO_PARTIAL_STATE=YES COMMIT_CRITICAL_SECTION_OVERLAP=NOT_PROVEN",n+1,chaosID,clientOutcome,reconciledCount,count)
  }
- t.Log("COMMIT_AMBIGUITY_RECONCILIATION=PASS CRITICAL_SECTION_OVERLAP=NON_DETERMINISTIC")
+ t.Log("COMMIT_AMBIGUITY_RECONCILIATION=PASS COMMIT_CRITICAL_SECTION_OVERLAP=NOT_PROVEN")
 }
