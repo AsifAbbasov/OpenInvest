@@ -77,3 +77,38 @@ test("mounted verification shows sanitized network error, permits retry without 
   assert.equal(dom.window.localStorage.length,0);
  }finally{await React.act(async()=>root.unmount())}
 });
+
+
+test("ATTACK: changing verification link while page remains mounted must replace A token with B",async t=>{
+ t.after(()=>{globalThis.fetch=originalFetch});
+ const a="A".repeat(43),b="B".repeat(43);const requests=[];
+ globalThis.fetch=async(url,opts)=>{requests.push(JSON.parse(opts.body));return response(400,{error:{code:"INVALID_VERIFICATION",message:"Invalid token."}})};
+ const {container,root}=await mount(a);
+ try{
+  await inputPassword(container,"owner-selected-password-2026");
+  dom.window.history.replaceState(null,"","/auth/verify#"+b);
+  await React.act(async()=>{dom.window.dispatchEvent(new dom.window.Event("hashchange"));});
+  assert.equal(dom.window.location.hash,"","new verification secret must be removed from URL");
+  await submitVerification(container);
+  assert.equal(requests.length,1,"negative control: a verification request must be sent");
+  assert.equal(requests[0].token,b,"STALE_PRINCIPAL: token A was submitted after navigation to B");
+ }finally{await React.act(async()=>root.unmount())}
+});
+test("ATTACK: old verification response must not mark a different link/account ready",async t=>{
+ t.after(()=>{globalThis.fetch=originalFetch});
+ const a="C".repeat(43),b="D".repeat(43);let release,received=null;
+ globalThis.fetch=async(url,opts)=>{received=JSON.parse(opts.body).token;return new Promise(resolve=>{release=()=>resolve(response(200,{data:{status:"ACCOUNT_READY"}}));});};
+ const {container,root}=await mount(a);
+ try{
+  await inputPassword(container,"owner-selected-password-2026");
+  const form=container.querySelector("form.form-grid");assert.ok(form);
+  await React.act(async()=>{form.dispatchEvent(new dom.window.Event("submit",{bubbles:true,cancelable:true}));});
+  assert.equal(received,a,"negative control: old principal request was never sent");
+  assert.equal(typeof release,"function");
+  dom.window.history.replaceState(null,"","/auth/verify#"+b);
+  await React.act(async()=>{dom.window.dispatchEvent(new dom.window.Event("hashchange"));});
+  await React.act(async()=>{release();await Promise.resolve();});
+  assert.equal(container.querySelector("a[href='/']"),null,"STALE_RESPONSE: old A request marked the new B context ready");
+  assert.doesNotMatch(container.querySelector('[role="status"]').textContent,/Account ready/);
+ }finally{await React.act(async()=>root.unmount())}
+});
