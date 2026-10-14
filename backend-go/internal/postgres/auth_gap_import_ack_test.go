@@ -44,7 +44,8 @@ func TestAUTHGAPImportTwoRowAtomicLostCommitAckAndReplay(t *testing.T){
  ctx,cancel:=context.WithTimeout(context.Background(),12*time.Second)
  _,_,lostAckErr:=service.AppendImportedTransactionsWithOutcomeReplay(ctx,verticalslice.RequestContext{},f.subjectID,key,path,batch,builder)
  cancel();_=store.Close()
- select{case <-proxy.intercepted:case <-time.After(5*time.Second):t.Fatal("FAULT_NOT_EXERCISED: backend COMMIT CommandComplete not intercepted")}
+ if lostAckErr!=nil{t.Logf("IMPORT_FIRST_ATTEMPT_ERROR_BEFORE_ACK_CHECK=%v",lostAckErr)}
+ select{case <-proxy.intercepted:case <-time.After(5*time.Second):t.Fatalf("FAULT_NOT_EXERCISED: backend COMMIT CommandComplete not intercepted; first_attempt_error=%v; observed_rows=%d",lostAckErr,chaosCount(t,db,"SELECT count(*) FROM investment.transaction_entries WHERE portfolio_id=$1 AND source_account_label=$2",f.portfolioID,batch.SourceAccountLabel))}
  if lostAckErr==nil{t.Fatal("FALSE_SUCCESS: lost server COMMIT acknowledgment returned success")}
  query:=`SELECT count(*) FROM investment.transaction_entries WHERE portfolio_id=$1 AND source_account_label=$2`
  before:=chaosCount(t,db,query,f.portfolioID,batch.SourceAccountLabel)
