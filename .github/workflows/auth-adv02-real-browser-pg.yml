@@ -97,7 +97,6 @@ jobs:
           cleanup() {
             [ -z "$CHROME_PID" ] || kill "$CHROME_PID" 2>/dev/null || true
             kill "$API_PID" "$NEXT_PID" 2>/dev/null || true
-            rm -rf "$PROFILE"
             rm -f "$AUTHGAP_BROWSER_PROOF_FILE"
           }
           trap cleanup EXIT
