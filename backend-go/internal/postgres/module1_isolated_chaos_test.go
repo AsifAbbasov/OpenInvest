@@ -184,6 +184,19 @@ func chaosOldPoolAndApplicationEvidence(t *testing.T,db *sql.DB,svc *auth.Servic
  t.Logf("ROUND=%d APPLICATION_STORE_RECOVERY=PASS RECONNECTION_NO_DUPLICATE=YES",round)
 }
 
+func chaosNewRegistrationService(t *testing.T)*auth.Service{
+ t.Helper()
+ store,err:=postgres.Open(os.Getenv("OPENINVEST_DATABASE_TEST_URL"))
+ if err!=nil{t.Fatal(err)}
+ t.Cleanup(func(){_ = store.Close()})
+ ctx,cancel:=context.WithTimeout(context.Background(),5*time.Second)
+ defer cancel()
+ if err:=store.Ping(ctx);err!=nil{t.Fatalf("FRESH_APP_STORE_UNAVAILABLE: %v",err)}
+ svc,err:=auth.NewService(store,nil,auth.Config{AccessTokenSecret:[]byte("01234567890123456789012345678901")})
+ if err!=nil{t.Fatal(err)}
+ return svc
+}
+
 func TestModule1ChaosWorkerSubprocess(t *testing.T){
  if os.Getenv("OPENINVEST_CHAOS_CHILD")!="1"{return}
  url:=os.Getenv("OPENINVEST_DATABASE_TEST_URL")
