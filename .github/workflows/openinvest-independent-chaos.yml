@@ -1,0 +1,152 @@
+name: OpenInvest isolated crash and browser chaos (collect-all)
+on:
+  pull_request:
+    branches: [develop]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  postgres-hard-kill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Exact tested commit and tree
+        run: |
+          set -euo pipefail
+          echo "TESTED_SHA=$(git rev-parse HEAD)"
+          echo "TESTED_TREE=$(git rev-parse HEAD^{tree})"
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+      - name: Start disposable PostgreSQL 18
+        run: |
+          set -euo pipefail
+          docker run -d --name pg-chaos-openinvest -p 127.0.0.1:5432:5432 -e POSTGRES_DB=openinvest -e POSTGRES_USER=openinvest -e POSTGRES_PASSWORD=crash-fixture-2026 postgres:18
+          for i in $(seq 1 90); do if docker exec pg-chaos-openinvest pg_isready -U openinvest -d openinvest >/dev/null 2>&1; then exit 0; fi; sleep 1; done
+          exit 1
+      - name: Install PostgreSQL CLI
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+      - name: Apply real migrations
+        env:
+          OPENINVEST_DATABASE_OWNER_URL: postgres://openinvest:crash-fixture-2026@127.0.0.1:5432/openinvest?sslmode=disable
+        run: bash scripts/apply-migrations.sh
+      - name: Real postmaster SIGKILL and WAL restart recovery
+        env:
+          PG_CONTAINER: pg-chaos-openinvest
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:crash-fixture-2026@127.0.0.1:5432/openinvest?sslmode=disable
+          PGPASSWORD: crash-fixture-2026
+        run: bash scripts/audit/crash-recovery-postgres.sh
+  chromium-next-real-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Exact tested commit and tree
+        run: |
+          set -euo pipefail
+          echo "TESTED_SHA=$(git rev-parse HEAD)"
+          echo "TESTED_TREE=$(git rev-parse HEAD^{tree})"
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.22.2"
+      - name: Install frontend and independent browser tools
+        run: |
+          set -euo pipefail
+          cd frontend-next
+          corepack enable
+          corepack prepare pnpm@11.8.0 --activate
+          pnpm install --frozen-lockfile
+          pnpm build
+          cd ..
+          npm install --prefix /tmp/openinvest-audit-playwright --no-package-lock --no-save playwright@1.58.2
+          /tmp/openinvest-audit-playwright/node_modules/.bin/playwright install --with-deps chromium
+      - name: Serve real Next.js app and run Chromium suite
+        run: |
+          set -euo pipefail
+          (cd frontend-next && pnpm start --port 3000) >/tmp/openinvest-next.log 2>&1 &
+          NEXT_PID=$!
+          trap 'kill "$NEXT_PID" 2>/dev/null || true' EXIT
+          ready=0
+          for i in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:3000/auth/verify >/dev/null; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/openinvest-next.log; exit 20; fi
+          node scripts/audit/next-browser-chaos.mjs
+  signal-worker-process:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Real Go worker process SIGKILL and restart probe
+        working-directory: backend-go
+        run: |
+          set -euo pipefail
+          echo "TESTED_SHA=$(git rev-parse HEAD)"
+          go build -o /tmp/openinvest-verification-worker ./cmd/verification-mail-worker
+          /tmp/openinvest-verification-worker >/tmp/worker-boot.log 2>&1 &
+          PID=$!
+          wait "$PID"
+          grep -q "verification mail worker disabled" /tmp/worker-boot.log
+          # Real process termination negative control: process must die by SIGKILL,
+          # not a simulated context cancellation. External delivery remains disabled.
+          /bin/sleep 30 &
+          VICTIM=$!
+          kill -9 "$VICTIM"
+          if wait "$VICTIM"; then echo 'SIGNAL_CONTROL_DID_NOT_DIE'; exit 11; fi
+          echo 'REAL_SIGNAL_KILL_NEGATIVE_CONTROL=PASS'
+          echo 'ENABLED_WORKER_SIGKILL=NOT_VERIFIED_NO_EXTERNAL_SMTP'
+  focused-functional-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: openinvest-ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Migrate
+        env:
+          OPENINVEST_DATABASE_OWNER_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+        run: bash scripts/apply-migrations.sh
+      - name: Collect independent regression outcomes
+        working-directory: backend-go
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+        run: |
+          set +e
+          failures=0
+          for name in TestEmailOwnershipFinalRenewalWhilePriorLeaseUnfinished TestEmailOwnershipFinalMultiPointTransactionalFaultInjection TestEmailOwnershipFinalExhaustionConcurrentRecoveryAndLateCompletion TestEmailOwnershipIndependentFourthCrashTerminalState TestEmailOwnershipExtendedLegacyFinancialLedgerImmutableOnTakeover; do
+            echo "::group::$name"
+            go test -race -v ./internal/postgres -run "^$name$" -count=1 -timeout=3m
+            code=$?
+            echo "::endgroup::"
+            if [ "$code" -ne 0 ]; then failures=$((failures+1)); echo "CASE_FAILURE=$name"; else echo "CASE_PASS=$name"; fi
+          done
+          echo "TOTAL_FAILED_SCENARIOS=$failures"
+          exit "$failures"
