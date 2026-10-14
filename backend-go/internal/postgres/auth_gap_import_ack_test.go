@@ -34,9 +34,10 @@ func TestAUTHGAPImportTwoRowAtomicLostCommitAckAndReplay(t *testing.T){
  }
  key:="audit-import-two-row-ack-"+uuid.NewString()
  path:="/api/v1/portfolios/"+f.portfolioID+"/imports/append"
+ requestID:=uuid.NewString()
  builder:=func(outcome verticalslice.ImportAppendOutcome)(verticalslice.CommandReplayArtifact,error){
   if len(outcome.Transactions)!=2{return verticalslice.CommandReplayArtifact{},verticalslice.ErrInvalidInput}
-  return verticalslice.CommandReplayArtifact{StatusCode:201,Body:[]byte(`{"data":{"imported":2}}`),RequestID:"audit-request-1"},nil
+  return verticalslice.CommandReplayArtifact{StatusCode:201,Body:[]byte(`{"data":{"imported":2}}`),RequestID:requestID},nil
  }
  proxy:=extendedStartAckProxy(t)
  store,e:=postgres.Open(proxy.databaseURL(t));if e!=nil{t.Fatal(e)}
