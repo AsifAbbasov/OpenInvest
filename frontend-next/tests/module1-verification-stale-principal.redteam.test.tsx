@@ -63,8 +63,10 @@ test("same-mounted verification page must not submit superseded token after hash
   await mount(A,root);await fillPassword(container);
   // A hash-only navigation can preserve the same route/component instance.
   // Re-enter a new email-ownership proof and notify the browser without remount.
-  dom.window.history.pushState(null,"","/auth/verify#"+B);
-  dom.window.dispatchEvent(new dom.window.HashChangeEvent("hashchange"));
+  // Use the browser's real fragment setter; jsdom dispatches hashchange
+  // asynchronously, preserving the current same-route React component.
+  dom.window.location.hash=B;
+  await new Promise(resolve=>setTimeout(resolve,0));
   await React.act(async()=>{await Promise.resolve()});
   await submit(container);
   assert.equal(received.length,1,"negative control: verification submission did not happen");
