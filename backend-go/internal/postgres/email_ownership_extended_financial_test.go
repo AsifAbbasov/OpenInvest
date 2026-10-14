@@ -7,7 +7,6 @@ import(
  "errors"
  "io"
  "os"
- "net/http"
  "net/http/httptest"
  "strings"
  "testing"

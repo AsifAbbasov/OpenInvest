@@ -88,10 +88,10 @@ test("ATTACK: changing verification link while page remains mounted must replace
   await inputPassword(container,"owner-selected-password-2026");
   dom.window.history.replaceState(null,"","/auth/verify#"+b);
   await React.act(async()=>{dom.window.dispatchEvent(new dom.window.Event("hashchange"));});
-  assert.equal(dom.window.location.hash,"","new verification secret must be removed from URL");
   await submitVerification(container);
   assert.equal(requests.length,1,"negative control: a verification request must be sent");
   assert.equal(requests[0].token,b,"STALE_PRINCIPAL: token A was submitted after navigation to B");
+  assert.equal(dom.window.location.hash,"","new verification secret must be removed from URL");
  }finally{await React.act(async()=>root.unmount())}
 });
 test("ATTACK: old verification response must not mark a different link/account ready",async t=>{
@@ -107,8 +107,23 @@ test("ATTACK: old verification response must not mark a different link/account r
   assert.equal(typeof release,"function");
   dom.window.history.replaceState(null,"","/auth/verify#"+b);
   await React.act(async()=>{dom.window.dispatchEvent(new dom.window.Event("hashchange"));});
-  await React.act(async()=>{release();await Promise.resolve();});
+  await React.act(async()=>{release();await new Promise(resolve=>setTimeout(resolve,1));});
   assert.equal(container.querySelector("a[href='/']"),null,"STALE_RESPONSE: old A request marked the new B context ready");
   assert.doesNotMatch(container.querySelector('[role="status"]').textContent,/Account ready/);
+ }finally{await React.act(async()=>root.unmount())}
+});
+
+test("NEGATIVE CONTROL: deferred success without principal switch must show account ready",async t=>{
+ t.after(()=>{globalThis.fetch=originalFetch});
+ const old="E".repeat(43);let release,seen;
+ globalThis.fetch=async(url,opts)=>{seen=JSON.parse(opts.body).token;return new Promise(resolve=>{release=()=>resolve(response(200,{data:{status:"ACCOUNT_READY"}}));});};
+ const {container,root}=await mount(old);
+ try{
+  await inputPassword(container,"owner-selected-password-2026");
+  const form=container.querySelector("form.form-grid");assert.ok(form);
+  await React.act(async()=>{form.dispatchEvent(new dom.window.Event("submit",{bubbles:true,cancelable:true}));});
+  assert.equal(seen,old);assert.equal(typeof release,"function");
+  await React.act(async()=>{release();await new Promise(resolve=>setTimeout(resolve,1));});
+  assert.ok(container.querySelector("a[href='/']"),"HARNESS_ORACLE_DEFECT: deferred success never reaches mounted page");
  }finally{await React.act(async()=>root.unmount())}
 });
