@@ -109,6 +109,17 @@ async function main(){
   assert.equal(current.ready,true,"STALE_C_FAILURE_RESET_D");
   assert.equal(current.hash,"");assert.equal(current.local,0);assert.equal(current.session,0);
   process.stdout.write("BROWSER_STALE_C_FAILURE=REJECTED NEXTJS_PUSH_REPLACE=PASS TOKEN_FRAGMENT_SCRUB=PASS NO_BROWSER_TOKEN_STORAGE=PASS NO_AUTO_SESSION=PASS\n");
+  await js("history.back(); true");
+  await delay(400);
+  let afterHistory=await state();
+  assert.equal(afterHistory.hash,"","BACK_NAVIGATION_RESTORED_RAW_VERIFICATION_FRAGMENT");
+  assert.equal(afterHistory.local,0);assert.equal(afterHistory.session,0);
+  await js("history.forward(); true");
+  await delay(400);
+  afterHistory=await state();
+  assert.equal(afterHistory.hash,"","FORWARD_NAVIGATION_RESTORED_RAW_VERIFICATION_FRAGMENT");
+  assert.equal(afterHistory.local,0);assert.equal(afterHistory.session,0);
+  process.stdout.write("REAL_BROWSER_HISTORY_BACK_FORWARD=PASS NO_TOKEN_LEAK=YES\\n");
   process.stdout.write("BROWSER_VERIFICATION_REQUESTS="+events.join(",")+"\n");
  }catch(err){
   try{const image=await cdp.send("Page.captureScreenshot",{format:"png"});writeFileSync("/tmp/openinvest-campaign-browser-failure.png",Buffer.from(image.data,"base64"))}catch{}
