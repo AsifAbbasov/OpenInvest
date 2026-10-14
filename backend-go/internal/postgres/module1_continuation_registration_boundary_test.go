@@ -106,8 +106,16 @@ func TestModule1ContinuationCompetingValidProofAndMalformedProofs(t *testing.T){
  go func(){defer wg.Done();<-start
   legitimateErr=service.CompleteEmailRegistration(ctx,sink.token,ownerRequest())
  }()
- close(start);wg.Wait();close(errCh)
+ close(start);wg.Wait();close(errCh);close(capacityResults)
  for e:=range errCh{t.Error(e)}
+ capacityCount:=0;for range capacityResults{capacityCount++}
+ if errors.Is(legitimateErr,auth.ErrAuthCapacity){
+  // Capacity-limited password hashing is explicitly fail-closed by contract.
+  // Verify that the valid proof remains available after pressure is gone.
+  if n:=chaosCount(t,db,"SELECT count(*) FROM identity.users WHERE email_normalized=$1",email);n!=0{t.Fatalf("CAPACITY_FAILURE_CREATED_PREPROOF_USER=%d",n)}
+  legitimateErr=service.CompleteEmailRegistration(ctx,sink.token,ownerRequest())
+ }
+ if legitimateErr!=nil{t.Fatalf("LEGITIMATE_PROOF_DID_NOT_RECOVER_AFTER_CAPACITY: %v",legitimateErr)}
  if n:=chaosCount(t,db,"SELECT count(*) FROM identity.users WHERE email_normalized=$1 AND account_state='active'",email);n!=1{t.Fatalf("PROOF_RACE_ACCOUNT_COUNT=%d",n)}
  if n:=chaosCount(t,db,"SELECT count(*) FROM identity.sessions s JOIN identity.users u ON s.user_id=u.id WHERE u.email_normalized=$1",email);n!=0{t.Fatalf("PROOF_RACE_AUTO_SESSION_COUNT=%d",n)}
  if e:=service.CompleteEmailRegistration(ctx,sink.token,ownerRequest());!errors.Is(e,auth.ErrInvalidVerification){t.Fatalf("CONSUMED_PROOF_REPLAY_ACCEPTED: %v",e)}
