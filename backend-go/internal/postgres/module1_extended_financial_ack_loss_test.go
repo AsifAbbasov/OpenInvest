@@ -5,7 +5,6 @@ import (
  "context"
  "io"
  "net/http/httptest"
- "os"
  "strings"
  "testing"
  "time"
@@ -40,7 +39,7 @@ func TestModule1ExtendedFinancialHTTPLostCommitAckIdempotentRetry(t *testing.T){
  req.Header.Set("Authorization","Bearer "+token)
  req.Header.Set("Content-Type","application/json")
  req.Header.Set("Idempotency-Key",key)
- resp,requestError:=app.Test(req,15000)
+ resp,requestError:=app.Test(req)
  if requestError==nil{
   _,_=io.Copy(io.Discard,resp.Body)
   _=resp.Body.Close()
