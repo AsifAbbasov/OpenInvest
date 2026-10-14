@@ -6,6 +6,7 @@ import {setTimeout as sleep} from "node:timers/promises";
 const fixture=JSON.parse(readFileSync(process.env.OPENINVEST_AUDIT_PROOF_FILE,"utf8"));
 const frontend="http://127.0.0.1:3000";
 const observed=[];
+const requestMethods=new Map();
 class CDP{
  constructor(ws){this.ws=ws;this.id=0;this.waiters=new Map();this.callbacks=new Map();
   ws.onmessage=event=>{const e=JSON.parse(event.data);if(e.id){
@@ -47,8 +48,11 @@ async function main(){
  await new Promise((resolve,reject)=>{ws.onopen=resolve;ws.onerror=reject});
  cdp=new CDP(ws);
  await cdp.send("Page.enable");await cdp.send("Runtime.enable");await cdp.send("Network.enable");
+ cdp.on("Network.requestWillBeSent",event=>{
+  requestMethods.set(event.requestId,event.request.method);
+ });
  cdp.on("Network.responseReceived",event=>{
-  if(event.response.url.includes("127.0.0.1:8080/api/v1/auth/email/verify"))
+  if(event.response.url.includes("127.0.0.1:8080/api/v1/auth/email/verify") && requestMethods.get(event.requestId)==="POST")
    observed.push({status:event.response.status,method:"POST"});
  });
  try{
