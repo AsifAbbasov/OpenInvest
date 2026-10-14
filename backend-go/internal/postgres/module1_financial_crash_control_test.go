@@ -4,7 +4,6 @@ import (
  "context"
  "database/sql"
  "encoding/json"
- "fmt"
  "io"
  "net/http/httptest"
  "os"
@@ -30,7 +29,7 @@ type chaosFinanceFixture struct {
  entriesJSON string
 }
 
-func chaosFinancialHTTP(t *testing.T) (func(string,string,string,string,string)(int,[]byte), string, string) {
+func chaosFinancialHTTP(t *testing.T) (func(string,string,string,string,string)(int,[]byte), *auth.Service) {
  t.Helper()
  store,err:=postgres.Open(os.Getenv("OPENINVEST_DATABASE_TEST_URL"));if err!=nil{t.Fatal(err)}
  t.Cleanup(func(){_ = store.Close()})
@@ -47,7 +46,7 @@ func chaosFinancialHTTP(t *testing.T) (func(string,string,string,string,string)(
   raw,e:=io.ReadAll(res.Body);if e!=nil{t.Fatal(e)}
   return res.StatusCode,raw
  }
- return run,"",""
+ return run,security
 }
 
 func chaosFinanceStorage(t *testing.T,db *sql.DB,pid string)(string,string){
@@ -68,9 +67,7 @@ func chaosFinanceSeed(t *testing.T,svc *auth.Service,db *sql.DB)*chaosFinanceFix
  if _,e=svc.Register(context.Background(),outsider);e!=nil{t.Fatal(e)}
  f.ownerID=x.User.ID
  if e=db.QueryRow("SELECT investment_subject_id FROM identity.user_investment_links WHERE user_id=$1",f.ownerID).Scan(&f.subjectID);e!=nil{t.Fatal(e)}
- run,_,_:=chaosFinancialHTTP(t)
- store,e:=postgres.Open(os.Getenv("OPENINVEST_DATABASE_TEST_URL"));if e!=nil{t.Fatal(e)};defer store.Close()
- security,e:=auth.NewService(store,nil,auth.Config{AccessTokenSecret:[]byte("financial-chaos-audit-secret-32-bytes")});if e!=nil{t.Fatal(e)}
+ run,security:=chaosFinancialHTTP(t)
  login,e:=security.Login(context.Background(),auth.LoginRequest{Email:f.ownerEmail,Password:f.password});if e!=nil{t.Fatal(e)}
  token:=login.Session.AccessToken
  code,raw:=run("POST","/api/v1/portfolios",token,`{"name":"Crash durable financial portfolio","baseCurrency":"RUB"}`,"fin-create-"+uuid.NewString())
@@ -97,6 +94,21 @@ func chaosFinanceReconcile(t *testing.T,db *sql.DB,f *chaosFinanceFixture,round 
  if e:=db.QueryRow("SELECT subject_id FROM investment.portfolios WHERE id=$1",f.portfolioID).Scan(&portfolioSubject);e!=nil||portfolioSubject!=f.subjectID{t.Fatal("FINANCE_PORTFOLIO_OWNERSHIP_CHANGED")}
  p,entries:=chaosFinanceStorage(t,db,f.portfolioID)
  if p!=f.portfolioJSON||entries!=f.entriesJSON{t.Fatalf("FINANCE_LEDGER_OR_PORTFOLIO_CHANGED after WAL round=%d",round)}
- t.Logf("FINANCIAL_ROUND=%d LEDGER_STORAGE_IDENTICAL=YES PORTFOLIO_OWNER_IDENTICAL=YES",round)
- _=fmt.Sprintf
+ run,security:=chaosFinancialHTTP(t)
+ ownerLogin,e:=security.Login(context.Background(),auth.LoginRequest{Email:f.ownerEmail,Password:f.password})
+ if e!=nil{t.Fatalf("FINANCE_OWNER_LOGIN_RECOVERY_FAILED: %v",e)}
+ outsiderLogin,e:=security.Login(context.Background(),auth.LoginRequest{Email:f.outsiderEmail,Password:f.password})
+ if e!=nil{t.Fatalf("FINANCE_OUTSIDER_LOGIN_RECOVERY_FAILED: %v",e)}
+ endpoint:="/api/v1/portfolios/"+f.portfolioID
+ ownerToken:=ownerLogin.Session.AccessToken
+ outsiderToken:=outsiderLogin.Session.AccessToken
+ if code,raw:=run("GET",endpoint,ownerToken,"","");code!=200{t.Fatalf("OWNER_CANNOT_READ_PORTFOLIO_AFTER_CRASH status=%d body=%s",code,raw)}
+ if code,raw:=run("GET",endpoint+"/transactions",ownerToken,"","");code!=200||!strings.Contains(string(raw),"DEPOSIT"){t.Fatalf("OWNER_CANNOT_READ_LEDGER_AFTER_CRASH status=%d body=%s",code,raw)}
+ if code,_:=run("GET",endpoint,outsiderToken,"","");code==200{t.Fatal("CROSS_PRINCIPAL_PORTFOLIO_READ_ALLOWED")}
+ if code,_:=run("GET",endpoint+"/transactions",outsiderToken,"","");code==200{t.Fatal("CROSS_PRINCIPAL_LEDGER_READ_ALLOWED")}
+ deposit:=`{"transactionType":"DEPOSIT","ticker":null,"quantity":null,"unitPrice":null,"grossAmount":{"amount":"20000.00000000","currency":"RUB"},"commission":{"amount":"0.00000000","currency":"RUB"},"tax":{"amount":"0.00000000","currency":"RUB"},"tradeDate":"2026-01-10","settlementDate":"2026-01-10","note":"Unauthorized crash probe"}`
+ if code,_:=run("POST",endpoint+"/transactions",outsiderToken,deposit,"outsider-"+uuid.NewString());code==200||code==201{t.Fatal("CROSS_PRINCIPAL_FINANCIAL_MUTATION_ALLOWED")}
+ p,entries=chaosFinanceStorage(t,db,f.portfolioID)
+ if p!=f.portfolioJSON||entries!=f.entriesJSON{t.Fatal("CROSS_PRINCIPAL_FINANCIAL_DATA_MUTATED")}
+ t.Logf("FINANCIAL_ROUND=%d LEDGER_STORAGE_IDENTICAL=YES PORTFOLIO_OWNER_IDENTICAL=YES POST_CRASH_OWNER_READ=PASS CROSS_PRINCIPAL_READ_WRITE=DENIED",round)
 }
