@@ -14,7 +14,7 @@ import (
 )
 
 func renewalDigest(s string) string { h := sha256.Sum256([]byte(s)); return hex.EncodeToString(h[:]) }
-func TestEmailOwnershipFinalRenewalWhilePriorLeaseUnfinished(t *testing.T) {
+func TestEmailOwnershipBuilderRenewalWhilePriorLeaseUnfinished(t *testing.T) {
 
 	for _, mode := range []string{"delivered_old_generation_control", "unfinished_old_generation", "failed_old_generation", "still_valid_old_lease"} {
 		t.Run(mode, func(t *testing.T) {
