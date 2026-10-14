@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        case: [AckLossRealRegistrationStore, NormalCommitControl, RealHTTPActivationThroughThreePostgresKills, FinancialHTTPLostCommitAckIdempotentRetry, FinancialTradesWACAcrossThreeRealCrashes]
+        case: [AckLossRealRegistrationStore, NormalCommitControl, RealHTTPActivationThroughThreePostgresKills, FinancialHTTPLostCommitAckIdempotentRetry, FinancialTradesWACAcrossThreeRealCrashes, RealKillWhileCOMMITExecutingDeferredTrigger]
     services:
       postgres:
         image: postgres:18
