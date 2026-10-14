@@ -61,8 +61,12 @@ jobs:
           test "$(wc -l < /tmp/chaos-postgres-services)" -eq 1
           ID="$(cat /tmp/chaos-postgres-services)"
           test -n "$ID"
+          test "${GITHUB_ACTIONS:-}" = "true"
+          test "${RUNNER_ENVIRONMENT:-}" = "github-hosted"
+          test "$(docker inspect --format '{{.Config.Image}}' "$ID")" = "postgres:18"
+          test "$(docker inspect --format '{{.State.Status}}' "$ID")" = "running"
           echo "OPENINVEST_CHAOS_PG_CONTAINER=$ID" >> "$GITHUB_ENV"
-          echo "DISPOSABLE_PG_CONTAINER_IDENTIFIED=YES"
+          echo "DISPOSABLE_PG_CONTAINER_IDENTIFIED=YES VERIFIED_GITHUB_HOSTED=YES POSTGRES_IMAGE=postgres:18"
       - name: Real OS process and database kill scenario
         working-directory: backend-go
         env:
@@ -72,10 +76,25 @@ jobs:
         run: |
           set -uo pipefail
           echo "CASE_START=$CASE"
-          go test -race -v ./internal/postgres -run "^TestModule1Chaos${CASE}$" -count=1 -timeout=11m
+          TEST_NAME="TestModule1Chaos${CASE}"
+          go test ./internal/postgres -list "^${TEST_NAME}$" | grep -Fx "$TEST_NAME"
+          DISCOVERY_RESULT=$?
+          if [ "$DISCOVERY_RESULT" -ne 0 ]; then
+            echo "TEST_DISCOVERY_FAILED=$TEST_NAME"
+            exit "$DISCOVERY_RESULT"
+          fi
+          go test -race -v ./internal/postgres -run "^${TEST_NAME}$" -count=1 -timeout=11m
           RESULT=$?
           echo "CASE_END=$CASE STATUS=$RESULT"
           exit "$RESULT"
+      - name: Preserve real PostgreSQL crash logs on every outcome
+        if: always()
+        run: |
+          set -uo pipefail
+          if [ -n "${OPENINVEST_CHAOS_PG_CONTAINER:-}" ]; then
+            docker inspect --format 'FINAL_POSTGRES_CONTAINER={{.Id}} STATUS={{.State.Status}} EXIT_CODE={{.State.ExitCode}} IMAGE={{.Config.Image}}' "$OPENINVEST_CHAOS_PG_CONTAINER" || true
+            docker logs --tail 120 "$OPENINVEST_CHAOS_PG_CONTAINER" 2>&1 | grep -E 'automatic recovery in progress|redo starts at|redo done at|database system is ready|database system was interrupted' || true
+          fi
 
   real-nextjs-chromium-smoke:
     name: real Next.js server + Chromium (navigation smoke)
