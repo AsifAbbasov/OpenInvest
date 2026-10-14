@@ -1,0 +1,127 @@
+name: AUTH-ADV-02 real browser + real Go API + disposable PostgreSQL
+on:
+  pull_request:
+    branches: [develop]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-fullstack:
+    name: "Live Chromium + Next 16 + Go API + PostgreSQL 18 (not a network fixture)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: openinvest-ci
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - name: Pin tested SHA / TREE and verify audit-only unchanged product blobs
+        env:
+          EXPECTED: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_ACTIONS" = true
+          test "$RUNNER_ENVIRONMENT" = github-hosted
+          test "$(git rev-parse HEAD)" = "$EXPECTED"
+          BASE=bcfbc2687b60c68b33a8c4b0fbe969952c649d7d
+          test "$(git rev-parse "$BASE^{tree}")" = f0d56fb63076a8eaf32bc1f96fe0cdc4928bea96
+          test "$(git merge-base "$BASE" HEAD)" = "$BASE"
+          git diff --name-only "$BASE" HEAD >/tmp/authgap-paths
+          cat /tmp/authgap-paths
+          if grep -Ev '^(backend-go/internal/auth/auth_gap_.*_test.go|backend-go/internal/postgres/auth_gap_.*_test.go|frontend-next/tests/auth_gap_.*\.mjs|\.github/workflows/auth-adv02-.*\.yml)$' /tmp/authgap-paths; then exit 1; fi
+          echo PRODUCTION_CONTENT_IDENTICAL_TO_PR260=YES
+          echo TESTED_SHA=$(git rev-parse HEAD)
+          echo TESTED_TREE=$(git rev-parse HEAD^{tree})
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.22.2"
+      - name: Apply canonical migrations to disposable PostgreSQL 18
+        run: |
+          set -euo pipefail
+          OPENINVEST_DATABASE_OWNER_URL='postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable' bash scripts/apply-migrations.sh
+      - name: Seed a real email proof through actual auth service + PostgreSQL + worker lease
+        working-directory: backend-go
+        env:
+          OPENINVEST_CHAOS_ISOLATED: YES_DISPOSABLE_GITHUB_RUNNER
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+          AUTHGAP_BROWSER_PROOF_FILE: /tmp/authgap-browser-proof.json
+        run: |
+          set -euo pipefail
+          go test ./internal/postgres -list '^TestAUTHGAPSeedRealBackendBrowserProof$' | grep -Fx TestAUTHGAPSeedRealBackendBrowserProof
+          go test -v ./internal/postgres -run '^TestAUTHGAPSeedRealBackendBrowserProof$' -count=1 -timeout=4m
+          test -s "$AUTHGAP_BROWSER_PROOF_FILE"
+          test "$(stat -c %a "$AUTHGAP_BROWSER_PROOF_FILE")" = 600
+      - name: Build production Next.js against real Go HTTP API
+        working-directory: frontend-next
+        env:
+          NEXT_PUBLIC_OPENINVEST_API_BASE_URL: http://127.0.0.1:8080
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare pnpm@11.8.0 --activate
+          pnpm install --frozen-lockfile
+          pnpm build
+      - name: Browser integration against actual running Go process + real PostgreSQL
+        env:
+          AUTHGAP_BROWSER_PROOF_FILE: /tmp/authgap-browser-proof.json
+          OPENINVEST_ENV: development
+          DATABASE_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+          OPENINVEST_ACCESS_TOKEN_SECRET: isolated-browser-test-only-32-bytes-hmac-secret
+          OPENINVEST_REFRESH_COOKIE_INSECURE: "true"
+          NEXT_PUBLIC_OPENINVEST_API_BASE_URL: http://127.0.0.1:8080
+        run: |
+          set -euo pipefail
+          ( cd backend-go && go run ./cmd/api > /tmp/authgap-real-api.log 2>&1 ) &
+          API_PID=$!
+          ( cd frontend-next && pnpm exec next start --hostname 127.0.0.1 --port 3000 > /tmp/authgap-real-next.log 2>&1 ) &
+          NEXT_PID=$!
+          PROFILE="$(mktemp -d)"
+          CHROME_PID=''
+          cleanup() {
+            [ -z "$CHROME_PID" ] || kill "$CHROME_PID" 2>/dev/null || true
+            kill "$API_PID" "$NEXT_PID" 2>/dev/null || true
+            rm -rf "$PROFILE"
+            rm -f "$AUTHGAP_BROWSER_PROOF_FILE"
+          }
+          trap cleanup EXIT
+          ready=0
+          for i in $(seq 1 70); do
+            if curl --silent --fail http://127.0.0.1:8080/api/v1/health >/dev/null && curl --silent --fail http://127.0.0.1:3000/auth/verify >/dev/null; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" != 1 ]; then tail -90 /tmp/authgap-real-api.log; tail -90 /tmp/authgap-real-next.log; exit 18; fi
+          CHROME="$(command -v google-chrome || command -v chromium || true)"
+          test -n "$CHROME" || { echo REAL_CHROMIUM=NOT_EXECUTED; exit 19; }
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --remote-debugging-port=9222 --remote-allow-origins='*' --user-data-dir="$PROFILE" about:blank >/tmp/authgap-real-chrome.log 2>&1 &
+          CHROME_PID=$!
+          ( cd frontend-next && timeout 85 node tests/auth_gap_real_backend_browser.mjs )
+          echo REAL_FRONTEND_GO_POSTGRES_E2E=PASS
+      - name: Preserve frontend/backend browser evidence on failures
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: authgap-live-fullstack-forensic
+          path: |
+            /tmp/authgap-fullstack-browser-failure.png
+            /tmp/authgap-real-api.log
+            /tmp/authgap-real-next.log
+            /tmp/authgap-real-chrome.log
+          if-no-files-found: ignore
+          retention-days: 7
