@@ -116,4 +116,4 @@ jobs:
         working-directory: frontend-next
         run: |
           set -euo pipefail
-          node --experimental-loader ./tests/css-module-loader.mjs --import tsx --test tests/email-verification-adversarial.component.test.tsx tests/module1-verification-stale-principal.redteam.test.tsx
+          node --experimental-loader ./tests/css-module-loader.mjs --import tsx --test tests/email-verification-adversarial.component.test.tsx tests/module1-verification-stale-principal.redteam.test.tsx tests/module1-final-navigation-independently-strengthened.test.tsx
