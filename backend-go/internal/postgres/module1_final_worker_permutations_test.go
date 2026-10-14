@@ -90,6 +90,9 @@ func TestEmailOwnershipFinalRenewalWhilePriorLeaseUnfinished(t *testing.T){
    if mode=="delivered_old_generation_control"{
     if err:=worker.FinishVerificationDelivery(ctx,first,true);err!=nil{t.Fatal(err)}
    }
+   // Simulate the realistic abandoned-worker condition: both the 24h intent
+   // and the one-minute lease are expired before renewal is requested.
+   if _,err:=db.Exec("UPDATE identity.email_delivery_jobs SET lease_until=statement_timestamp()-interval '2 seconds' WHERE id=$1",first.JobID);err!=nil{t.Fatal(err)}
    if _,err:=db.Exec("UPDATE identity.registration_intents SET expires_at=statement_timestamp()-interval '2 seconds' WHERE email_normalized=$1",email);err!=nil{t.Fatal(err)}
    if err:=s.BeginEmailRegistration(ctx,email);err!=nil{t.Fatal(err)}
    var generation,jobGeneration int64
