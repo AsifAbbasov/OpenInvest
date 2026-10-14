@@ -7,7 +7,7 @@ permissions:
   contents: read
 jobs:
   real-ack-interception:
-    name: "Real PostgreSQL ACK loss / \${{ matrix.case }}"
+    name: "Real PostgreSQL ACK loss / ${{ matrix.case }}"
     runs-on: ubuntu-latest
     timeout-minutes: 17
     strategy:
@@ -30,10 +30,10 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
-          ref: \${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Validate exact SHA and isolated runner
         env:
-          EXPECTED: \${{ github.event.pull_request.head.sha || github.sha }}
+          EXPECTED: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$EXPECTED"
@@ -54,7 +54,7 @@ jobs:
         env:
           OPENINVEST_CHAOS_ISOLATED: YES_DISPOSABLE_GITHUB_RUNNER
           OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
-          CASE: \${{ matrix.case }}
+          CASE: ${{ matrix.case }}
         run: |
           set -euo pipefail
           TEST="TestModule1Extended$CASE"
