@@ -4,7 +4,6 @@ package postgres_test
 // They intentionally chain distinct failure modes rather than replay earlier single crashes.
 import (
  "context"
- "database/sql"
  "fmt"
  "io"
  "net/http/httptest"
