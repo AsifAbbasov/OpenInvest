@@ -95,5 +95,5 @@ jobs:
           OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
         run: |
           set -euo pipefail
-          test "$(go test ./internal/postgres -list '^TestModule1Campaign' | grep -c '^TestModule1Campaign')" -eq 2
+          test "$(go test ./internal/postgres -list '^TestModule1Campaign' | grep -c '^TestModule1Campaign')" -eq 3
           go test -race -v ./internal/postgres -run '^TestModule1Campaign' -count=1 -timeout=12m
