@@ -225,3 +225,87 @@ func TestModule1CascadeCorrectionReversalWithTwoRealCrashes(t *testing.T){
  if entries!=f.entriesJSON{t.Fatal("FOREIGN_REVERSAL_ALTERED_LEDGER")}
  t.Log("TWO_REAL_POSTGRES_SIGKILLS=YES WAL_RECOVERY_BOTH=PASS PATCH_CORRECTION_EXACT_REVISION_TWO=PASS DUPLICATE_CORRECTIONS=0 STALE_REVISION_REJECTED=YES DELETE_REVERSAL_EXACTLY_ONCE=PASS DUPLICATE_REVERSALS=0 CROSS_PRINCIPAL_CORRECTION_REVERSAL=DENIED")
 }
+
+
+// Sixteen independent conflicting commands race on one revision. Correcting
+// and cancelling the same financial event cannot both win. After a physical
+// PG18 crash, replaying the victorious key MUST NOT mutate immutable history.
+func TestModule1CascadeSixteenWayCorrectionVersusReversalThenCrash(t *testing.T){
+ chaosAllowed(t)
+ original,db:=ownershipService(t)
+ f:=chaosFinanceSeed(t,original,db)
+ var transactionID string
+ if err:=db.QueryRow("SELECT transaction_id::text FROM investment.transaction_entries WHERE portfolio_id=$1 AND transaction_type='DEPOSIT' AND gross_amount=10000 ORDER BY created_at LIMIT 1",f.portfolioID).Scan(&transactionID);err!=nil{t.Fatal(err)}
+ path:="/api/v1/portfolios/"+f.portfolioID+"/transactions/"+transactionID
+ store,err:=postgres.Open(os.Getenv("OPENINVEST_DATABASE_TEST_URL"));if err!=nil{t.Fatal(err)}
+ defer store.Close()
+ security,err:=auth.NewService(store,nil,auth.Config{AccessTokenSecret:[]byte("financial-chaos-audit-secret-32-bytes")})
+ if err!=nil{t.Fatal(err)}
+ owner,err:=security.Login(context.Background(),auth.LoginRequest{Email:f.ownerEmail,Password:f.password});if err!=nil{t.Fatal(err)}
+ app,err:=httpapi.New(verticalslice.NewService(store,verticalslice.SystemClock{}),security,[]byte("financial-chaos-import-secret-32-bytes"))
+ if err!=nil{t.Fatal(err)}
+ const n=16
+ type operation struct {method,body,key string}
+ var commands [n]operation
+ for i:=0;i<n;i++{
+  cmd:=operation{key:"cascade-conflicting-"+uuid.NewString()}
+  if i%2==0{
+   cmd.method="PATCH"
+   cmd.body=fmt.Sprintf(`{"expectedRevision":1,"reason":"Adversarial parallel conflicting correction","corrected":%s}`,cascadeDeposit(fmt.Sprintf("12%d.00000000",i+10),"conflict-correction-"+uuid.NewString()))
+  }else{
+   cmd.method="DELETE"
+   cmd.body=`{"expectedRevision":1,"reason":"Adversarial competing cancellation","effectiveDate":"2026-04-08"}`
+  }
+  commands[i]=cmd
+ }
+ type outcome struct{index,status int; err error}
+ results:=make(chan outcome,n)
+ start:=make(chan struct{})
+ var wg sync.WaitGroup
+ for i:=0;i<n;i++{
+  wg.Add(1)
+  go func(index int){
+   defer wg.Done();<-start
+   c:=commands[index]
+   req:=httptest.NewRequest(c.method,path,strings.NewReader(c.body))
+   req.Header.Set("Authorization","Bearer "+owner.Session.AccessToken)
+   req.Header.Set("Content-Type","application/json")
+   req.Header.Set("Idempotency-Key",c.key)
+   response,e:=app.Test(req)
+   if e!=nil{results<-outcome{index:index,err:e};return}
+   _,_=io.Copy(io.Discard,response.Body);_=response.Body.Close()
+   results<-outcome{index:index,status:response.StatusCode}
+  }(i)
+ }
+ close(start);wg.Wait();close(results)
+ winner:=-1
+ for result:=range results{
+  if result.err!=nil{t.Fatalf("CONCURRENT_HTTP_TEST_HARNESS_ERROR case=%d err=%v",result.index,result.err)}
+  if result.status==200{
+   if winner>=0{t.Fatalf("MULTIPLE_SUCCESSFUL_CONFLICTING_COMMANDS first=%d second=%d",winner,result.index)}
+   winner=result.index
+  }
+ }
+ if winner<0{t.Fatal("NO_SUCCESSFUL_POSITIVE_CONTROL: all 16 valid owner commands failed")}
+ correctionCount:=chaosCount(t,db,"SELECT count(*) FROM investment.transaction_entries WHERE portfolio_id=$1 AND transaction_id=$2 AND revision=2",f.portfolioID,transactionID)
+ reversalCount:=chaosCount(t,db,"SELECT count(*) FROM investment.transaction_entries WHERE portfolio_id=$1 AND reverses_transaction_id=$2",f.portfolioID,transactionID)
+ if correctionCount+reversalCount!=1{t.Fatalf("CONCURRENT_LEDGER_CONFLICT: corrections=%d reversals=%d",correctionCount,reversalCount)}
+ if winner%2==0&&correctionCount!=1{t.Fatalf("WINNING_CORRECTION_NOT_DURABLE winner=%d",winner)}
+ if winner%2!=0&&reversalCount!=1{t.Fatalf("WINNING_REVERSAL_NOT_DURABLE winner=%d",winner)}
+ f.portfolioJSON,f.entriesJSON=chaosFinanceStorage(t,db,f.portfolioID)
+ fresh:=chaosRealCrashEvidence(t,db,1);defer fresh.Close()
+ chaosFinanceReconcile(t,fresh,f,1)
+ run,securityAfter:=chaosFinancialHTTP(t)
+ freshOwner,err:=securityAfter.Login(context.Background(),auth.LoginRequest{Email:f.ownerEmail,Password:f.password});if err!=nil{t.Fatal(err)}
+ winning:=commands[winner]
+ code,body:=run(winning.method,path,freshOwner.Session.AccessToken,winning.body,winning.key)
+ if code!=200{t.Fatalf("WINNER_REPLAY_AFTER_REAL_CRASH_FAILED code=%d body=%s winner=%d",code,body,winner)}
+ _,after:=chaosFinanceStorage(t,fresh,f.portfolioID)
+ if after!=f.entriesJSON{t.Fatal("WINNER_REPLAY_CHANGED_CANONICAL_FINANCIAL_HISTORY")}
+ loser:=commands[(winner+1)%n]
+ code,_=run(loser.method,path,freshOwner.Session.AccessToken,loser.body,loser.key)
+ if code==200||code==201{t.Fatal("LOSING_STALE_COMMAND_WON_AFTER_CRASH")}
+ _,after=chaosFinanceStorage(t,fresh,f.portfolioID)
+ if after!=f.entriesJSON{t.Fatal("LOSER_REPLAY_CHANGED_CANONICAL_FINANCIAL_HISTORY")}
+ t.Logf("CONFLICTING_REAL_HTTP_COMMANDS=16 SINGLE_WINNER=%d WINNER_TYPE=%s CORRECTION_ROWS=%d REVERSAL_ROWS=%d REAL_PG18_SIGKILL=YES WAL_RECOVERY=YES WINNER_IDEMPOTENCY_REPLAY=UNCHANGED LOSING_STALE_REQUEST_REJECTED=YES IMMUTABLE_LEDGER=PASS",winner,winning.method,correctionCount,reversalCount)
+}
