@@ -107,7 +107,7 @@ test("ATTACK: old verification response must not mark a different link/account r
   assert.equal(typeof release,"function");
   dom.window.history.replaceState(null,"","/auth/verify#"+b);
   await React.act(async()=>{dom.window.dispatchEvent(new dom.window.Event("hashchange"));});
-  await React.act(async()=>{release();await new Promise(resolve=>setTimeout(resolve,1));});
+  release();await new Promise(resolve=>setTimeout(resolve,40));await React.act(async()=>{});
   assert.equal(container.querySelector("a[href='/']"),null,"STALE_RESPONSE: old A request marked the new B context ready");
   assert.doesNotMatch(container.querySelector('[role="status"]').textContent,/Account ready/);
  }finally{await React.act(async()=>root.unmount())}
@@ -123,7 +123,7 @@ test("NEGATIVE CONTROL: deferred success without principal switch must show acco
   const form=container.querySelector("form.form-grid");assert.ok(form);
   await React.act(async()=>{form.dispatchEvent(new dom.window.Event("submit",{bubbles:true,cancelable:true}));});
   assert.equal(seen,old);assert.equal(typeof release,"function");
-  await React.act(async()=>{release();await new Promise(resolve=>setTimeout(resolve,1));});
+  release();await new Promise(resolve=>setTimeout(resolve,40));await React.act(async()=>{});
   assert.ok(container.querySelector("a[href='/']"),"HARNESS_ORACLE_DEFECT: deferred success never reaches mounted page");
  }finally{await React.act(async()=>root.unmount())}
 });
