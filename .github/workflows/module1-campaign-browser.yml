@@ -51,9 +51,10 @@ jobs:
           PROFILE="$(mktemp -d)"
           CHROME_PID=''
           cleanup() {
-            if [ -n "$CHROME_PID" ]; then kill "$CHROME_PID" 2>/dev/null || true; fi
+            if [ -n "$CHROME_PID" ]; then kill "$CHROME_PID" 2>/dev/null || true; wait "$CHROME_PID" 2>/dev/null || true; fi
             kill "$NEXT_PID" 2>/dev/null || true
-            rm -rf "$PROFILE"
+            wait "$NEXT_PID" 2>/dev/null || true
+            rm -rf "$PROFILE" 2>/dev/null || true
           }
           trap cleanup EXIT
           ready=0
