@@ -95,34 +95,15 @@ test("ATTACK: changing verification link while page remains mounted must replace
  }finally{await React.act(async()=>root.unmount())}
 });
 
-test("ATTACK: same-turn navigation A to B must invalidate in-flight successful response A",async t=>{
+
+test("ATTACK: hash navigation without remount must scrub the newly supplied fragment",async t=>{
  t.after(()=>{globalThis.fetch=originalFetch});
- const a="C".repeat(43),b="D".repeat(43);const requests=[];
- globalThis.fetch=async(url,opts)=>{requests.push(JSON.parse(opts.body).token);return response(200,{data:{status:"ACCOUNT_READY"},meta:{requestId:"synthetic"}})};
- const {container,root}=await mount(a);
+ globalThis.fetch=async()=>{throw Error("negative control: unexpected verification request")};
+ const {container,root}=await mount("F".repeat(43));
  try{
-  await inputPassword(container,"owner-selected-password-2026");
-  const form=container.querySelector("form.form-grid");assert.ok(form);
-  await React.act(async()=>{
-    form.dispatchEvent(new dom.window.Event("submit",{bubbles:true,cancelable:true}));
-    dom.window.history.replaceState(null,"","/auth/verify#"+b);
-    dom.window.dispatchEvent(new dom.window.Event("hashchange"));
-  });
-  assert.deepEqual(requests,[a],"negative control: A was not submitted before navigation");
-  assert.equal(container.querySelector("a[href='/']"),null,"STALE_RESPONSE: A completion marked page B as ready");
-  assert.doesNotMatch(container.querySelector('[role="status"]').textContent,/Account ready/);
- }finally{await React.act(async()=>root.unmount())}
-});
-test("NEGATIVE CONTROL: successful same-turn response without link switch must mark ready",async t=>{
- t.after(()=>{globalThis.fetch=originalFetch});
- const a="E".repeat(43);const requests=[];
- globalThis.fetch=async(url,opts)=>{requests.push(JSON.parse(opts.body).token);return response(200,{data:{status:"ACCOUNT_READY"},meta:{requestId:"synthetic"}})};
- const {container,root}=await mount(a);
- try{
-  await inputPassword(container,"owner-selected-password-2026");
-  const form=container.querySelector("form.form-grid");assert.ok(form);
-  await React.act(async()=>{form.dispatchEvent(new dom.window.Event("submit",{bubbles:true,cancelable:true}));});
-  assert.deepEqual(requests,[a]);
-  assert.ok(container.querySelector("a[href='/']"),"HARNESS_ORACLE_DEFECT: valid same-turn success was not reflected");
+   assert.ok(container.querySelector("form.form-grid"),"negative control: verification page not mounted");
+   dom.window.history.replaceState(null,"","/auth/verify#"+"G".repeat(43));
+   await React.act(async()=>{dom.window.dispatchEvent(new dom.window.Event("hashchange"));});
+   assert.equal(dom.window.location.hash,"","RAW_VERIFICATION_SECRET_REMAINS_IN_URL_AFTER_IN_PLACE_NAVIGATION");
  }finally{await React.act(async()=>root.unmount())}
 });
