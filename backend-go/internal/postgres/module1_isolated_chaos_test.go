@@ -203,6 +203,7 @@ func TestModule1ChaosEightRealSIGKILLWorkersAndRecovery(t *testing.T){
 func TestModule1ChaosPostgresAbruptKillWALRecovery(t *testing.T){
  chaosAllowed(t)
  svc,db:=ownershipService(t);independentDrainPreviousDeliveries(t,svc)
+ financial:=chaosFinanceSeed(t,svc,db)
  prefix:="pgwal-"+uuid.NewString()+"-"
  t.Cleanup(func(){db.Exec("DELETE FROM identity.registration_intents WHERE email_normalized LIKE $1",prefix+"%")})
  for round:=1;round<=3;round++{
@@ -214,6 +215,7 @@ func TestModule1ChaosPostgresAbruptKillWALRecovery(t *testing.T){
   store.Close()
   recovered:=chaosRealCrashEvidence(t,db,round)
   defer recovered.Close()
+  chaosFinanceReconcile(t,recovered,financial,round)
   var state string;var attempts int
   if err:=recovered.QueryRow("SELECT j.job_state,j.attempts FROM identity.email_delivery_jobs j JOIN identity.registration_intents i ON i.id=j.intent_id WHERE i.email_normalized=$1",address).Scan(&state,&attempts);err!=nil||state!="leased"||attempts!=1{t.Fatalf("durable lease lost after PostgreSQL SIGKILL: state=%s attempts=%d err=%v",state,attempts,err)}
   if count:=chaosCount(t,recovered,"SELECT count(*) FROM identity.users WHERE email_normalized=$1",address);count!=0{t.Fatalf("post-crash pre-proof user=%d",count)}
@@ -226,7 +228,7 @@ func TestModule1ChaosPostgresAbruptKillWALRecovery(t *testing.T){
   if err:=recovered.QueryRow("SELECT lease_id FROM identity.email_delivery_jobs WHERE id=$1",replacement.JobID).Scan(&leaseID);err!=nil||leaseID!=replacement.LeaseID{t.Fatalf("old lease callback stole WAL successor: %q %v",leaseID,err)}
   fresh.Close()
  }
- t.Log("POSTGRES_REAL_SIGKILL_ROUNDS=3 WAL_DURABILITY=PASS STALE_LEASE_AFTER_RESTART=REJECTED")
+ t.Log("POSTGRES_REAL_SIGKILL_ROUNDS=3 WAL_DURABILITY=PASS STALE_LEASE_AFTER_RESTART=REJECTED FINANCIAL_LEDGER_PRESERVED=YES")
 }
 
 // Server-initiated physical socket closure while a transaction is open must
