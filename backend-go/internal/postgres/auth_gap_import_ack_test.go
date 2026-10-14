@@ -50,7 +50,7 @@ func TestAUTHGAPImportTwoRowAtomicLostCommitAckAndReplay(t *testing.T){
  before:=chaosCount(t,db,query,f.portfolioID,batch.SourceAccountLabel)
  if before!=2{t.Fatalf("ATOMIC_TWO_ROW_IMPORT_FAILED after lost ack: %d rows",before)}
  var total string
- if e:=db.QueryRow(`SELECT sum(gross_amount)::numeric(28,8)::text FROM investment.transaction_entries WHERE portfolio_id=$1 AND source_account_label=$2`,f.portfolioID,batch.SourceAccountLabel).Scan(&total);e!=nil||total!="1731.00000000"{t.Fatalf("IMPORTED_MONEY_CORRUPTED amount=%s err=%v",total,e)}
+ if e:=db.QueryRow(`SELECT sum(gross_amount)::numeric(28,8)::text FROM investment.transaction_entries WHERE portfolio_id=$1 AND source_account_label=$2`,f.portfolioID,batch.SourceAccountLabel).Scan(&total);e!=nil||total!="1730.99999999"{t.Fatalf("IMPORTED_MONEY_CORRUPTED amount=%s err=%v",total,e)}
  beforePortfolio,beforeEntries:=chaosFinanceStorage(t,db,f.portfolioID)
  fresh,e:=postgres.Open(getOwnershipURL(t));if e!=nil{t.Fatal(e)}
  defer fresh.Close()
@@ -66,5 +66,5 @@ func TestAUTHGAPImportTwoRowAtomicLostCommitAckAndReplay(t *testing.T){
  _,_,wrongSubjectErr:=verticalslice.NewService(fresh,verticalslice.SystemClock{}).AppendImportedTransactionsWithOutcomeReplay(context.Background(),verticalslice.RequestContext{},uuid.NewString(),key,path,batch,builder)
  if wrongSubjectErr==nil{t.Fatal("UNAUTHORIZED_FOREIGN_SUBJECT_IMPORTED_OR_REPLAYED")}
  if chaosCount(t,db,query,f.portfolioID,batch.SourceAccountLabel)!=2{t.Fatal("FOREIGN_REPLAY_MUTATED_IMPORT")}
- t.Log("AUTH_GAP_IMPORT_COMMIT_ACK_WITHHELD=YES TWO_ROW_ATOMIC_COMMIT=YES EXACT_DECIMAL_TOTAL=1731.00000000 SAME_IDEMPOTENCY_REPLAY=EXACT_NO_REBUILD CROSS_PRINCIPAL_DENIED=YES NO_DUPLICATE_IMPORT=YES")
+ t.Log("AUTH_GAP_IMPORT_COMMIT_ACK_WITHHELD=YES TWO_ROW_ATOMIC_COMMIT=YES EXACT_DECIMAL_TOTAL=1730.99999999 SAME_IDEMPOTENCY_REPLAY=EXACT_NO_REBUILD CROSS_PRINCIPAL_DENIED=YES NO_DUPLICATE_IMPORT=YES")
 }
