@@ -13,7 +13,7 @@ const React=await import("react");
 const {createRoot}=await import("react-dom/client");
 const {default:VerifyEmailPage}=await import("../src/app/auth/verify/page.tsx");
 const initialFetch=globalThis.fetch;
-function response(ok){return new Response(JSON.stringify(ok?{data:{status:"ACCOUNT_READY"}}:{error:{code:"INVALID_VERIFICATION",message:"Verification could not be completed. Request new instructions."}}),{status:ok?200:400,headers:{"Content-Type":"application/json"}})}
+function response(ok){return new Response(JSON.stringify(ok?{data:{status:"ACCOUNT_READY"},meta:{requestId:"independent-synthetic"}}:{error:{code:"INVALID_VERIFICATION",message:"Verification could not be completed. Request new instructions."},meta:{requestId:"independent-synthetic"}}),{status:ok?200:400,headers:{"Content-Type":"application/json"}})}
 function deferred(){let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve}}
 const tok=(letter)=>letter.repeat(43);
 async function mount(token){
