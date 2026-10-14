@@ -13,14 +13,15 @@ sql "INSERT INTO public.independent_chaos_markers VALUES ('$marker',101)"
 test "$(sql "SELECT value FROM public.independent_chaos_markers WHERE id='$marker'")" = 101
 # Crash PostgreSQL postmaster without graceful shutdown. The orchestrator
 # must NOT restart the container automatically; startup is explicit.
-docker exec -u postgres "$PG_CONTAINER" sh -c 'kill -9 "$(head -1 /var/lib/postgresql/18/docker/postmaster.pid)"' || true
+docker kill --signal=KILL "$PG_CONTAINER" >/dev/null
+test "$(docker inspect -f '{{.State.Running}}' "$PG_CONTAINER")" = false || { echo 'SIGKILL_DID_NOT_STOP_CONTAINER'; exit 95; }
 for n in $(seq 1 25); do
  if ! pg_isready -h 127.0.0.1 -p 5432 -U openinvest -d openinvest >/dev/null 2>&1; then break; fi
  sleep .2
 done
 if pg_isready -h 127.0.0.1 -p 5432 -U openinvest -d openinvest >/dev/null 2>&1; then echo 'FAIL_POSTMASTER_NOT_CRASHED'; exit 91; fi
 echo 'POSTMASTER_SIGKILL_CONFIRMED=YES'
-docker restart "$PG_CONTAINER" >/dev/null
+docker start "$PG_CONTAINER" >/dev/null
 ready=0
 for n in $(seq 1 100); do
  if pg_isready -h 127.0.0.1 -p 5432 -U openinvest -d openinvest >/dev/null 2>&1; then ready=1; break; fi
