@@ -94,36 +94,35 @@ test("ATTACK: changing verification link while page remains mounted must replace
   assert.equal(dom.window.location.hash,"","new verification secret must be removed from URL");
  }finally{await React.act(async()=>root.unmount())}
 });
-test("ATTACK: old verification response must not mark a different link/account ready",async t=>{
+
+test("ATTACK: same-turn navigation A to B must invalidate in-flight successful response A",async t=>{
  t.after(()=>{globalThis.fetch=originalFetch});
- const a="C".repeat(43),b="D".repeat(43);let release,received=null;
- globalThis.fetch=async(url,opts)=>{received=JSON.parse(opts.body).token;return new Promise(resolve=>{release=()=>resolve(response(200,{data:{status:"ACCOUNT_READY"},meta:{requestId:"synthetic"}}));});};
+ const a="C".repeat(43),b="D".repeat(43);const requests=[];
+ globalThis.fetch=async(url,opts)=>{requests.push(JSON.parse(opts.body).token);return response(200,{data:{status:"ACCOUNT_READY"},meta:{requestId:"synthetic"}})};
+ const {container,root}=await mount(a);
+ try{
+  await inputPassword(container,"owner-selected-password-2026");
+  const form=container.querySelector("form.form-grid");assert.ok(form);
+  await React.act(async()=>{
+    form.dispatchEvent(new dom.window.Event("submit",{bubbles:true,cancelable:true}));
+    dom.window.history.replaceState(null,"","/auth/verify#"+b);
+    dom.window.dispatchEvent(new dom.window.Event("hashchange"));
+  });
+  assert.deepEqual(requests,[a],"negative control: A was not submitted before navigation");
+  assert.equal(container.querySelector("a[href='/']"),null,"STALE_RESPONSE: A completion marked page B as ready");
+  assert.doesNotMatch(container.querySelector('[role="status"]').textContent,/Account ready/);
+ }finally{await React.act(async()=>root.unmount())}
+});
+test("NEGATIVE CONTROL: successful same-turn response without link switch must mark ready",async t=>{
+ t.after(()=>{globalThis.fetch=originalFetch});
+ const a="E".repeat(43);const requests=[];
+ globalThis.fetch=async(url,opts)=>{requests.push(JSON.parse(opts.body).token);return response(200,{data:{status:"ACCOUNT_READY"},meta:{requestId:"synthetic"}})};
  const {container,root}=await mount(a);
  try{
   await inputPassword(container,"owner-selected-password-2026");
   const form=container.querySelector("form.form-grid");assert.ok(form);
   await React.act(async()=>{form.dispatchEvent(new dom.window.Event("submit",{bubbles:true,cancelable:true}));});
-  assert.equal(received,a,"negative control: old principal request was never sent");
-  assert.equal(typeof release,"function");
-  dom.window.history.replaceState(null,"","/auth/verify#"+b);
-  await React.act(async()=>{dom.window.dispatchEvent(new dom.window.Event("hashchange"));});
-  release();await new Promise(resolve=>setTimeout(resolve,40));await React.act(async()=>{});
-  assert.equal(container.querySelector("a[href='/']"),null,"STALE_RESPONSE: old A request marked the new B context ready");
-  assert.doesNotMatch(container.querySelector('[role="status"]').textContent,/Account ready/);
- }finally{await React.act(async()=>root.unmount())}
-});
-
-test("NEGATIVE CONTROL: deferred success without principal switch must show account ready",async t=>{
- t.after(()=>{globalThis.fetch=originalFetch});
- const old="E".repeat(43);let release,seen;
- globalThis.fetch=async(url,opts)=>{seen=JSON.parse(opts.body).token;return new Promise(resolve=>{release=()=>resolve(response(200,{data:{status:"ACCOUNT_READY"},meta:{requestId:"synthetic"}}));});};
- const {container,root}=await mount(old);
- try{
-  await inputPassword(container,"owner-selected-password-2026");
-  const form=container.querySelector("form.form-grid");assert.ok(form);
-  await React.act(async()=>{form.dispatchEvent(new dom.window.Event("submit",{bubbles:true,cancelable:true}));});
-  assert.equal(seen,old);assert.equal(typeof release,"function");
-  release();await new Promise(resolve=>setTimeout(resolve,40));await React.act(async()=>{});
-  assert.ok(container.querySelector("a[href='/']"),"HARNESS_ORACLE_DEFECT: deferred success never reaches mounted page");
+  assert.deepEqual(requests,[a]);
+  assert.ok(container.querySelector("a[href='/']"),"HARNESS_ORACLE_DEFECT: valid same-turn success was not reflected");
  }finally{await React.act(async()=>root.unmount())}
 });
