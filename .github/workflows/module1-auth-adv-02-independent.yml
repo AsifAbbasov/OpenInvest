@@ -30,6 +30,17 @@ jobs:
     steps:
       - name: Check out exact audit head
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Assert exact audit commit and tree
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          echo "EXPECTED_AUDIT_SHA=$EXPECTED_SHA"
+          echo "TESTED_SHA=$(git rev-parse HEAD)"
+          echo "TESTED_TREE=$(git rev-parse HEAD^{tree})"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
       - name: Set up pinned Go toolchain
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
         with:
