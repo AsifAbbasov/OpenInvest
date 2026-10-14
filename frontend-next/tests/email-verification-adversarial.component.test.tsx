@@ -97,7 +97,7 @@ test("ATTACK: changing verification link while page remains mounted must replace
 test("ATTACK: old verification response must not mark a different link/account ready",async t=>{
  t.after(()=>{globalThis.fetch=originalFetch});
  const a="C".repeat(43),b="D".repeat(43);let release,received=null;
- globalThis.fetch=async(url,opts)=>{received=JSON.parse(opts.body).token;return new Promise(resolve=>{release=()=>resolve(response(200,{data:{status:"ACCOUNT_READY"}}));});};
+ globalThis.fetch=async(url,opts)=>{received=JSON.parse(opts.body).token;return new Promise(resolve=>{release=()=>resolve(response(200,{data:{status:"ACCOUNT_READY"},meta:{requestId:"synthetic"}}));});};
  const {container,root}=await mount(a);
  try{
   await inputPassword(container,"owner-selected-password-2026");
@@ -116,7 +116,7 @@ test("ATTACK: old verification response must not mark a different link/account r
 test("NEGATIVE CONTROL: deferred success without principal switch must show account ready",async t=>{
  t.after(()=>{globalThis.fetch=originalFetch});
  const old="E".repeat(43);let release,seen;
- globalThis.fetch=async(url,opts)=>{seen=JSON.parse(opts.body).token;return new Promise(resolve=>{release=()=>resolve(response(200,{data:{status:"ACCOUNT_READY"}}));});};
+ globalThis.fetch=async(url,opts)=>{seen=JSON.parse(opts.body).token;return new Promise(resolve=>{release=()=>resolve(response(200,{data:{status:"ACCOUNT_READY"},meta:{requestId:"synthetic"}}));});};
  const {container,root}=await mount(old);
  try{
   await inputPassword(container,"owner-selected-password-2026");
