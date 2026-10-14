@@ -13,13 +13,14 @@ import (
  "testing"
 
  "github.com/google/uuid"
+ "github.com/gofiber/fiber/v3"
  "github.com/openinvest/openinvest/backend-go/internal/auth"
  "github.com/openinvest/openinvest/backend-go/internal/httpapi"
  "github.com/openinvest/openinvest/backend-go/internal/postgres"
  "github.com/openinvest/openinvest/backend-go/internal/verticalslice"
 )
 
-func continuationAuthHTTP(t *testing.T,app interface{Test(*http.Request)(*http.Response,error)},method,path,body,cookie,csrf string)(int,[]byte,*http.Response){
+func continuationAuthHTTP(t *testing.T,app *fiber.App,method,path,body,cookie,csrf string)(int,[]byte,*http.Response){
  t.Helper()
  req:=httptest.NewRequest(method,path,strings.NewReader(body))
  if body!=""{req.Header.Set("Content-Type","application/json")}
