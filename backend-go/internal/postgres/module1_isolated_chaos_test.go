@@ -118,6 +118,72 @@ func chaosRecoveryDB(t *testing.T) *sql.DB {
  return db
 }
 
+type chaosRowEvidence struct{
+ intentID string
+ generation int64
+ intentState string
+ jobID string
+ jobGeneration int64
+ jobState string
+ attempts int
+ leaseID string
+ jobCount int
+ userCount int
+ sessionCount int
+}
+func chaosReadPersistentState(t *testing.T,db *sql.DB,email string)chaosRowEvidence{
+ t.Helper()
+ ctx,cancel:=context.WithTimeout(context.Background(),5*time.Second)
+ defer cancel()
+ var v chaosRowEvidence
+ err:=db.QueryRowContext(ctx,`SELECT i.id::text,i.generation,i.intent_state,j.id::text,j.generation,j.job_state,j.attempts,COALESCE(j.lease_id::text,''),
+  (SELECT count(*) FROM identity.email_delivery_jobs k WHERE k.intent_id=i.id),
+  (SELECT count(*) FROM identity.users u WHERE u.email_normalized=i.email_normalized),
+  (SELECT count(*) FROM identity.sessions x JOIN identity.users u ON u.id=x.user_id WHERE u.email_normalized=i.email_normalized)
+  FROM identity.registration_intents i JOIN identity.email_delivery_jobs j ON j.intent_id=i.id
+  WHERE i.email_normalized=$1`,email).Scan(&v.intentID,&v.generation,&v.intentState,&v.jobID,&v.jobGeneration,&v.jobState,&v.attempts,&v.leaseID,&v.jobCount,&v.userCount,&v.sessionCount)
+ if err!=nil{t.Fatalf("FRESH_PERSISTENT_STATE_QUERY_FAILED: %v",err)}
+ if v.generation!=v.jobGeneration||v.jobCount!=1||v.userCount!=0||v.sessionCount!=0{
+  t.Fatalf("INTENT_JOB_PREPROOF_INVARIANTS_BROKEN: %+v",v)
+ }
+ return v
+}
+func chaosOldPoolAndApplicationEvidence(t *testing.T,db *sql.DB,svc *auth.Service,fresh *sql.DB,round int){
+ t.Helper()
+ query:=func()(int,error){
+  ctx,cancel:=context.WithTimeout(context.Background(),4*time.Second)
+  defer cancel()
+  var one int
+  e:=db.QueryRowContext(ctx,"SELECT 1").Scan(&one)
+  return one,e
+ }
+ first,firstErr:=query()
+ second,secondErr:=query()
+ t.Logf("ROUND=%d PRECRASH_POOL_FIRST_QUERY=%d ERROR=%v PRECRASH_POOL_SECOND_QUERY=%d SECOND_ERROR=%v",round,first,firstErr,second,secondErr)
+ if secondErr!=nil||second!=1{t.Fatalf("DATABASE_SQL_OLD_POOL_PERMANENTLY_UNAVAILABLE: %v",secondErr)}
+ address:="reconnect-"+uuid.NewString()+"@example.test"
+ makeRegistration:=func()error{
+  ctx,cancel:=context.WithTimeout(context.Background(),5*time.Second)
+  defer cancel()
+  return svc.BeginEmailRegistration(ctx,address)
+ }
+ firstAppError:=makeRegistration()
+ t.Logf("ROUND=%d PRECRASH_APPLICATION_STORE_FIRST_ATTEMPT_ERROR=%v",round,firstAppError)
+ if firstAppError!=nil{
+  secondAppError:=makeRegistration()
+  t.Logf("ROUND=%d PRECRASH_APPLICATION_STORE_SECOND_ATTEMPT_ERROR=%v",round,secondAppError)
+  if secondAppError!=nil{t.Fatalf("APPLICATION_STORE_RECOVERY_FAILURE: %v",secondAppError)}
+ }
+ ctx,cancel:=context.WithTimeout(context.Background(),5*time.Second)
+ defer cancel()
+ var n int
+ if e:=fresh.QueryRowContext(ctx,"SELECT count(*) FROM identity.registration_intents WHERE email_normalized=$1",address).Scan(&n);e!=nil||n!=1{
+  t.Fatalf("APPLICATION_RECONNECTION_DUPLICATE_OR_LOST_REGISTRATION count=%d error=%v",n,e)
+ }
+ if _,e:=fresh.ExecContext(ctx,"DELETE FROM identity.registration_intents WHERE email_normalized=$1",address);e!=nil{t.Fatal(e)}
+ t.Logf("ROUND=%d APPLICATION_STORE_RECOVERY=PASS RECONNECTION_NO_DUPLICATE=YES",round)
+}
+
 func TestModule1ChaosWorkerSubprocess(t *testing.T){
  if os.Getenv("OPENINVEST_CHAOS_CHILD")!="1"{return}
  url:=os.Getenv("OPENINVEST_DATABASE_TEST_URL")
