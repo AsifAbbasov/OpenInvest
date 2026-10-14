@@ -55,6 +55,60 @@ func chaosDBReady(t *testing.T){
 
 // A readiness probe is not a post-crash reconciliation connection: explicitly
 // create and ping a separate pool that never existed before SIGKILL.
+// Capture evidence for a real database-process death, rather than accepting
+// a successful readiness probe as evidence of process restart or WAL replay.
+func chaosDockerEvidence(t *testing.T, args ...string) string {
+ t.Helper()
+ name:=os.Getenv("OPENINVEST_CHAOS_PG_CONTAINER")
+ if name==""{t.Fatal("ISOLATION_FAILURE: no disposable service ID")}
+ ctx,cancel:=context.WithTimeout(context.Background(),20*time.Second)
+ defer cancel()
+ cmd:=exec.CommandContext(ctx,"docker",append(args,name)...)
+ out,e:=cmd.CombinedOutput()
+ if e!=nil{t.Fatalf("DOCKER_EVIDENCE_FAILED args=%v err=%v output=%s",args,e,out)}
+ return strings.TrimSpace(string(out))
+}
+func chaosDatabaseIdentity(t *testing.T, db *sql.DB)(string,string,int){
+ t.Helper()
+ ctx,cancel:=context.WithTimeout(context.Background(),5*time.Second)
+ defer cancel()
+ var system,start string;var backendPID int
+ err:=db.QueryRowContext(ctx,"SELECT system_identifier::text,pg_postmaster_start_time()::text,pg_backend_pid() FROM pg_control_system()").Scan(&system,&start,&backendPID)
+ if err!=nil{t.Fatalf("DATABASE_IDENTITY_UNAVAILABLE: %v",err)}
+ return system,start,backendPID
+}
+func chaosRealCrashEvidence(t *testing.T, before *sql.DB, round int)*sql.DB{
+ t.Helper()
+ if os.Getenv("GITHUB_ACTIONS")!="true"||os.Getenv("RUNNER_ENVIRONMENT")!="github-hosted"{
+  t.Fatal("ISOLATION_FAILURE: not an ephemeral hosted GitHub runner")
+ }
+ systemBefore,startBefore,pidBefore:=chaosDatabaseIdentity(t,before)
+ originalID:=chaosDockerEvidence(t,"inspect","--format","{{.Id}}")
+ image:=chaosDockerEvidence(t,"inspect","--format","{{.Config.Image}}")
+ if image!="postgres:18"{t.Fatalf("WRONG_CRASH_TARGET_IMAGE: %q",image)}
+ priorLogs:=chaosDockerEvidence(t,"logs","--tail","500")
+ recoveryCount:=strings.Count(priorLogs,"automatic recovery in progress")
+ chaosDocker(t,"kill","--signal=KILL")
+ exitState:=chaosDockerEvidence(t,"inspect","--format","{{.State.Status}}|{{.State.ExitCode}}")
+ if exitState!="exited|137"{t.Fatalf("REAL_KILL_NOT_CONFIRMED: %s",exitState)}
+ chaosDocker(t,"start")
+ restartedID:=chaosDockerEvidence(t,"inspect","--format","{{.Id}}")
+ status:=chaosDockerEvidence(t,"inspect","--format","{{.State.Status}}")
+ if originalID!=restartedID||status!="running"{t.Fatal("SAME_POSTGRES_CONTAINER_NOT_RESTARTED")}
+ chaosDBReady(t)
+ recovered:=chaosRecoveryDB(t)
+ systemAfter,startAfter,pidAfter:=chaosDatabaseIdentity(t,recovered)
+ if systemBefore!=systemAfter||startBefore==startAfter{
+  t.Fatalf("CLUSTER_PERSISTENCE_OR_POSTMASTER_RESTART_UNPROVEN: same_system=%t new_start=%t",systemBefore==systemAfter,startBefore!=startAfter)
+ }
+ logs:=chaosDockerEvidence(t,"logs","--tail","500")
+ if strings.Count(logs,"automatic recovery in progress")<=recoveryCount||!strings.Contains(logs,"redo done at"){
+  t.Fatal("WAL_RECOVERY_LOGS_NOT_OBSERVED")
+ }
+ t.Logf("ROUND=%d POSTMASTER_ACTUALLY_KILLED=YES DOCKER_SIGKILL_EXIT=137 SAME_CONTAINER_RESTARTED=YES SAME_CLUSTER=YES OLD_POSTMASTER_START=%s NEW_POSTMASTER_START=%s OLD_BACKEND_PID=%d NEW_BACKEND_PID=%d WAL_RECOVERY_OBSERVED=YES FRESH_CONNECTION_ESTABLISHED=YES",round,startBefore,startAfter,pidBefore,pidAfter)
+ return recovered
+}
+
 func chaosRecoveryDB(t *testing.T) *sql.DB {
  t.Helper()
  db,err:=sql.Open("pgx",os.Getenv("OPENINVEST_DATABASE_TEST_URL"));if err!=nil{t.Fatal(err)}
@@ -158,12 +212,8 @@ func TestModule1ChaosPostgresAbruptKillWALRecovery(t *testing.T){
   lease,ok,err:=store.LeaseVerificationDelivery(context.Background(),chaosHash(address))
   if err!=nil||!ok||lease.Email!=address{store.Close();t.Fatalf("negative pre-crash control %t %v",ok,err)}
   store.Close()
-  chaosDocker(t,"kill","--signal=KILL")
-  chaosDocker(t,"start")
-  chaosDBReady(t)
-  recovered:=chaosRecoveryDB(t)
+  recovered:=chaosRealCrashEvidence(t,db,round)
   defer recovered.Close()
-  t.Logf("FRESH_CONNECTION_ESTABLISHED=YES WAL_ROUND=%d",round)
   var state string;var attempts int
   if err:=recovered.QueryRow("SELECT j.job_state,j.attempts FROM identity.email_delivery_jobs j JOIN identity.registration_intents i ON i.id=j.intent_id WHERE i.email_normalized=$1",address).Scan(&state,&attempts);err!=nil||state!="leased"||attempts!=1{t.Fatalf("durable lease lost after PostgreSQL SIGKILL: state=%s attempts=%d err=%v",state,attempts,err)}
   if count:=chaosCount(t,recovered,"SELECT count(*) FROM identity.users WHERE email_normalized=$1",address);count!=0{t.Fatalf("post-crash pre-proof user=%d",count)}
@@ -223,12 +273,8 @@ func TestModule1ChaosCommitAmbiguityAfterPostmasterCrash(t *testing.T){
   if err!=nil{t.Fatal(err)}
   done:=make(chan error,1)
   go func(){done<-tx.Commit()}()
-  chaosDocker(t,"kill","--signal=KILL")
-  chaosDocker(t,"start")
-  chaosDBReady(t)
-  recovered:=chaosRecoveryDB(t)
+  recovered:=chaosRealCrashEvidence(t,db,n+1)
   defer recovered.Close()
-  t.Logf("COMMIT_ROUND=%d FRESH_CONNECTION_ESTABLISHED=YES",n+1)
   result:=<-done
   count:=chaosCount(t,recovered,"SELECT count(*) FROM identity.registration_intents WHERE email_normalized=$1",email)
   if count>1 {t.Fatalf("commit ambiguity duplicated identity intent: %d",count)}
