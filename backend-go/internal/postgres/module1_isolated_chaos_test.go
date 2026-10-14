@@ -53,6 +53,17 @@ func chaosDBReady(t *testing.T){
  t.Fatal("RECOVERY_DEFECT: PostgreSQL did not become ready within 30 seconds")
 }
 
+// A readiness probe is not a post-crash reconciliation connection: explicitly
+// create and ping a separate pool that never existed before SIGKILL.
+func chaosRecoveryDB(t *testing.T) *sql.DB {
+ t.Helper()
+ db,err:=sql.Open("pgx",os.Getenv("OPENINVEST_DATABASE_TEST_URL"));if err!=nil{t.Fatal(err)}
+ ctx,cancel:=context.WithTimeout(context.Background(),5*time.Second)
+ defer cancel()
+ if err=db.PingContext(ctx);err!=nil{db.Close();t.Fatalf("FRESH_POSTCRASH_POOL_PING_FAILED: %v",err)}
+ return db
+}
+
 func TestModule1ChaosWorkerSubprocess(t *testing.T){
  if os.Getenv("OPENINVEST_CHAOS_CHILD")!="1"{return}
  url:=os.Getenv("OPENINVEST_DATABASE_TEST_URL")
@@ -150,16 +161,19 @@ func TestModule1ChaosPostgresAbruptKillWALRecovery(t *testing.T){
   chaosDocker(t,"kill","--signal=KILL")
   chaosDocker(t,"start")
   chaosDBReady(t)
+  recovered:=chaosRecoveryDB(t)
+  defer recovered.Close()
+  t.Logf("FRESH_CONNECTION_ESTABLISHED=YES WAL_ROUND=%d",round)
   var state string;var attempts int
-  if err:=db.QueryRow("SELECT j.job_state,j.attempts FROM identity.email_delivery_jobs j JOIN identity.registration_intents i ON i.id=j.intent_id WHERE i.email_normalized=$1",address).Scan(&state,&attempts);err!=nil||state!="leased"||attempts!=1{t.Fatalf("durable lease lost after PostgreSQL SIGKILL: state=%s attempts=%d err=%v",state,attempts,err)}
-  if count:=chaosCount(t,db,"SELECT count(*) FROM identity.users WHERE email_normalized=$1",address);count!=0{t.Fatalf("post-crash pre-proof user=%d",count)}
-  chaosSQL(t,db,"UPDATE identity.email_delivery_jobs SET lease_until=statement_timestamp()-interval '2 seconds', available_at=statement_timestamp()-interval '2 seconds' WHERE id=$1",lease.JobID)
+  if err:=recovered.QueryRow("SELECT j.job_state,j.attempts FROM identity.email_delivery_jobs j JOIN identity.registration_intents i ON i.id=j.intent_id WHERE i.email_normalized=$1",address).Scan(&state,&attempts);err!=nil||state!="leased"||attempts!=1{t.Fatalf("durable lease lost after PostgreSQL SIGKILL: state=%s attempts=%d err=%v",state,attempts,err)}
+  if count:=chaosCount(t,recovered,"SELECT count(*) FROM identity.users WHERE email_normalized=$1",address);count!=0{t.Fatalf("post-crash pre-proof user=%d",count)}
+  chaosSQL(t,recovered,"UPDATE identity.email_delivery_jobs SET lease_until=statement_timestamp()-interval '2 seconds', available_at=statement_timestamp()-interval '2 seconds' WHERE id=$1",lease.JobID)
   fresh,err:=postgres.Open(os.Getenv("OPENINVEST_DATABASE_TEST_URL"));if err!=nil{t.Fatal(err)}
   replacement,ok,err:=fresh.LeaseVerificationDelivery(context.Background(),chaosHash(address+"-recover"))
   if err!=nil||!ok||replacement.Email!=address||replacement.LeaseID==lease.LeaseID{fresh.Close();t.Fatalf("WAL recovery failed new owner: %t %v",ok,err)}
   if err:=fresh.FinishVerificationDelivery(context.Background(),lease,true);err!=nil{t.Fatal(err)}
   var leaseID string
-  if err:=db.QueryRow("SELECT lease_id FROM identity.email_delivery_jobs WHERE id=$1",replacement.JobID).Scan(&leaseID);err!=nil||leaseID!=replacement.LeaseID{t.Fatalf("old lease callback stole WAL successor: %q %v",leaseID,err)}
+  if err:=recovered.QueryRow("SELECT lease_id FROM identity.email_delivery_jobs WHERE id=$1",replacement.JobID).Scan(&leaseID);err!=nil||leaseID!=replacement.LeaseID{t.Fatalf("old lease callback stole WAL successor: %q %v",leaseID,err)}
   fresh.Close()
  }
  t.Log("POSTGRES_REAL_SIGKILL_ROUNDS=3 WAL_DURABILITY=PASS STALE_LEASE_AFTER_RESTART=REJECTED")
@@ -212,13 +226,16 @@ func TestModule1ChaosCommitAmbiguityAfterPostmasterCrash(t *testing.T){
   chaosDocker(t,"kill","--signal=KILL")
   chaosDocker(t,"start")
   chaosDBReady(t)
+  recovered:=chaosRecoveryDB(t)
+  defer recovered.Close()
+  t.Logf("COMMIT_ROUND=%d FRESH_CONNECTION_ESTABLISHED=YES",n+1)
   result:=<-done
-  count:=chaosCount(t,db,"SELECT count(*) FROM identity.registration_intents WHERE email_normalized=$1",email)
+  count:=chaosCount(t,recovered,"SELECT count(*) FROM identity.registration_intents WHERE email_normalized=$1",email)
   if count>1 {t.Fatalf("commit ambiguity duplicated identity intent: %d",count)}
   if result==nil&&count!=1{t.Fatalf("COMMIT acknowledged but WAL lost it: rows=%d",count)}
   s,_:=ownershipService(t)
   if err:=s.BeginEmailRegistration(context.Background(),email);err!=nil{t.Fatal(err)}
-  count=chaosCount(t,db,"SELECT count(*) FROM identity.registration_intents WHERE email_normalized=$1",email)
+  count=chaosCount(t,recovered,"SELECT count(*) FROM identity.registration_intents WHERE email_normalized=$1",email)
   if count!=1{t.Fatalf("client uncertainty led to duplicate/missing intent: %d",count)}
   t.Logf("COMMIT_RACE_ROUND=%d CLIENT_COMMIT_ERROR=%t COMMITTED_COUNT_AFTER_CRASH=%d RETRIED_COUNT=%d",n+1,result!=nil,count,1)
  }
