@@ -28,6 +28,6 @@ for n in $(seq 1 100); do
 done
 test "$ready" -eq 1 || { echo 'POSTGRES_RECOVERY_TIMEOUT'; exit 92; }
 test "$(sql "SELECT value FROM public.independent_chaos_markers WHERE id='$marker'")" = 101 || { echo 'DURABLE_COMMITTED_MARKER_LOST'; exit 93; }
-test "$(sql 'SELECT count(*) FROM identity.registration_intents WHERE generation <> (SELECT j.generation FROM identity.email_delivery_jobs j WHERE j.intent_id=identity.registration_intents.id) AND intent_state=\x27pending\x27 AND expires_at>statement_timestamp()')" = 0 || { echo 'CROSS_GENERATION_MISMATCH_AFTER_RESTART'; exit 94; }
+test "$(sql "SELECT count(*) FROM identity.registration_intents i JOIN identity.email_delivery_jobs j ON j.intent_id=i.id WHERE i.generation<>j.generation AND i.intent_state='pending' AND i.expires_at>statement_timestamp()")" = 0 || { echo 'CROSS_GENERATION_MISMATCH_AFTER_RESTART'; exit 94; }
 sql "DELETE FROM public.independent_chaos_markers WHERE id='$marker'"
 echo 'POSTGRES_SIGKILL_RESTART_COMMITTED_DURABILITY=PASS'
