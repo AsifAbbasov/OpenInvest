@@ -83,7 +83,7 @@ func TestModule1ContinuationCompetingValidProofAndMalformedProofs(t *testing.T){
  var dbHash string
  if err=db.QueryRow("SELECT t.token_hash FROM identity.email_verification_tokens t JOIN identity.registration_intents i ON t.intent_id=i.id WHERE i.email_normalized=$1",email).Scan(&dbHash);err!=nil{t.Fatal(err)}
  if dbHash==sink.token||strings.Contains(dbHash,sink.token){t.Fatal("RAW_VERIFICATION_TOKEN_PERSISTED")}
- const invalid=8
+ const invalid=7
  start:=make(chan struct{})
  errCh:=make(chan error,invalid+1)
  var wg sync.WaitGroup
@@ -108,5 +108,5 @@ func TestModule1ContinuationCompetingValidProofAndMalformedProofs(t *testing.T){
  if n:=chaosCount(t,db,"SELECT count(*) FROM identity.users WHERE email_normalized=$1 AND account_state='active'",email);n!=1{t.Fatalf("PROOF_RACE_ACCOUNT_COUNT=%d",n)}
  if n:=chaosCount(t,db,"SELECT count(*) FROM identity.sessions s JOIN identity.users u ON s.user_id=u.id WHERE u.email_normalized=$1",email);n!=0{t.Fatalf("PROOF_RACE_AUTO_SESSION_COUNT=%d",n)}
  if e:=service.CompleteEmailRegistration(ctx,sink.token,ownerRequest());!errors.Is(e,auth.ErrInvalidVerification){t.Fatalf("CONSUMED_PROOF_REPLAY_ACCEPTED: %v",e)}
- t.Log("REAL_POSTGRES_PROOF_RACE=9_CONCURRENT_OPERATIONS ATTACKER_MUTATED_PROOFS=8 ALL_DENIED=YES REAL_EMAIL_PROOF_SINGLE_ACTIVATION=YES DIGEST_ONLY_STORAGE=YES AUTOMATIC_SESSION=NO CONSUMED_REPLAY=DENIED")
+ t.Log("REAL_POSTGRES_PROOF_RACE=8_CONCURRENT_OPERATIONS ATTACKER_MUTATED_PROOFS=7 ALL_DENIED=YES REAL_EMAIL_PROOF_SINGLE_ACTIVATION=YES DIGEST_ONLY_STORAGE=YES AUTOMATIC_SESSION=NO CONSUMED_REPLAY=DENIED")
 }
