@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        case: [LostFinancialAckAndPhysicalCrashSameOperation, TwelveBlockedFinancialWritesAndRealSIGKILL, CorrectionReversalWithTwoRealCrashes]
+        case: [LostFinancialAckAndPhysicalCrashSameOperation, TwelveBlockedFinancialWritesAndRealSIGKILL, CorrectionReversalWithTwoRealCrashes, SixteenWayCorrectionVersusReversalThenCrash]
     services:
       postgres:
         image: postgres:18
