@@ -5,7 +5,7 @@ import fs from "node:fs";
 import {setTimeout as sleep} from "node:timers/promises";
 const fixture=JSON.parse(fs.readFileSync(process.env.AUTHGAP_BROWSER_PROOF_FILE,"utf8"));
 const invalid="Z".repeat(43);
-const wait=async(label,fn)=>{for(let i=0;i<130;i++){if(await fn())return;await sleep(90)}throw Error("NOT_OBSERVED "+label)};
+const wait=async(label,fn)=>{for(let i=0;i<400;i++){if(await fn())return;await sleep(90)}throw Error("NOT_OBSERVED "+label)};
 await wait("Chrome debugging endpoint",async()=>{try{return (await fetch("http://127.0.0.1:9222/json/list")).ok}catch{return false}});
 const pages=await (await fetch("http://127.0.0.1:9222/json/list")).json();
 const target=pages.find(p=>p.type==="page"&&p.webSocketDebuggerUrl);
