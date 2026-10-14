@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func TestEmailOwnershipIndependentFourthCrashTerminalState(t *testing.T) {
+func TestEmailOwnershipBuilderFourthCrashTerminalState(t *testing.T) {
 
 	service, db := ownershipService(t)
 
