@@ -30,7 +30,7 @@ func TestModule1CascadeLostFinancialAckAndPhysicalCrashSameOperation(t *testing.
  chaosAllowed(t)
  original,db:=ownershipService(t)
  f:=chaosFinanceSeed(t,original,db)
- direct,authService:=chaosFinancialHTTP(t)
+ _,authService:=chaosFinancialHTTP(t)
  owner,err:=authService.Login(context.Background(),auth.LoginRequest{Email:f.ownerEmail,Password:f.password})
  if err!=nil{t.Fatal(err)}
  outsider,err:=authService.Login(context.Background(),auth.LoginRequest{Email:f.outsiderEmail,Password:f.password})
@@ -127,8 +127,8 @@ func TestModule1CascadeTwelveBlockedFinancialWritesAndRealSIGKILL(t *testing.T){
  defer cancel()
  for ctx.Err()==nil{
   var active int
-  e=db.QueryRowContext(ctx,`SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND state='active' AND pid<>pg_backend_pid()`).Scan(&active)
-  if e==nil&&active>=2{observed=true;t.Logf("PG_BLOCKED_ACTIVE_FINANCIAL_WRITERS=%d",active);break}
+  err=db.QueryRowContext(ctx,`SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND state='active' AND pid<>pg_backend_pid()`).Scan(&active)
+  if err==nil&&active>=2{observed=true;t.Logf("PG_BLOCKED_ACTIVE_FINANCIAL_WRITERS=%d",active);break}
   time.Sleep(100*time.Millisecond)
  }
  if !observed{_=blocker.Rollback();t.Fatal("FAULT_NOT_INJECTED: multiple backend sessions blocked in SQL were not observed")}
