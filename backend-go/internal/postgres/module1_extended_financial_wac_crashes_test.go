@@ -45,7 +45,7 @@ func TestModule1ExtendedFinancialTradesWACAcrossThreeRealCrashes(t *testing.T){
  token:=login.Session.AccessToken
  base:="/api/v1/portfolios/"+f.portfolioID
  transaction:=func(kind,quantity,price,tradeDate string)string{
-  return fmt.Sprintf("{"transactionType":%q,"ticker":"SBER","quantity":%q,"unitPrice":{"amount":%q,"currency":"RUB"},"grossAmount":null,"commission":{"amount":"0.00000000","currency":"RUB"},"tax":{"amount":"0.00000000","currency":"RUB"},"tradeDate":%q,"settlementDate":null,"note":"WAC crash test"}",kind,quantity,price,tradeDate)
+  return fmt.Sprintf(`{"transactionType":%q,"ticker":"SBER","quantity":%q,"unitPrice":{"amount":%q,"currency":"RUB"},"grossAmount":null,"commission":{"amount":"0.00000000","currency":"RUB"},"tax":{"amount":"0.00000000","currency":"RUB"},"tradeDate":%q,"settlementDate":null,"note":"WAC crash test"}`,kind,quantity,price,tradeDate)
  }
  scenarios:=[]struct{kind,qty,price,date string}{
   {"BUY","10.00000000","100.00000000","2026-02-01"},
