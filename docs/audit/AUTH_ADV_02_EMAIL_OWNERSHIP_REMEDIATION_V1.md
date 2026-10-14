@@ -172,3 +172,47 @@ No schema, OpenAPI, frontend, workflow or protected develop changes are needed f
 these corrections. Exact-head normal CI supplies disposable PostgreSQL execution;
 local missing-service skips are not credited as database evidence. Independent
 specialized acceptance remains separate and no closure or merge is authorized.
+
+## OI-AUTH-REL-02 and AUTH-ADV-03 targeted continuation
+
+Frozen starting head bd3e0399f18f511f330db21524d2d08b8fdf6636, tree
+1b9a6e8e14d7ac9cd6c46edccdd52349c9b2ec4a. Independent PR #253
+2345d1e667e045d1ef8202d06e857cc198c71185 and PR #255
+9f47b8880fdfaa233a75379f82cad1b4c60862ab remain unchanged.
+Test-only head 5f3b1a7629b69cf8a2ba21be6cd8db959dfa27b2 reproduced the
+original renewal failure in CI 38516713384 with race-enabled PostgreSQL 18:
+intent_gen=2 job_gen=1. The unchanged mounted same-route token assertion also
+failed against the old component locally and in that normal CI.
+
+Renewal now permits the job upsert whenever the intent generation actually changes,
+regardless of the old job state. Existing parent-first locking and shared intake
+transaction are retained. Attempt counters reset only for a distinct generation;
+within one generation the four-attempt limit and fourth-crash terminalization stay
+unchanged. An expired intent invalidates even a still-unexpired old lease by atomically
+replacing generation/lease fields; stale success/failure callbacks cannot complete
+its successor. This is database ownership fencing, not a guarantee that previously
+started remote SMTP work can be forcibly terminated. No pre-proof account or session
+is created. Tests retain the original RED oracle, and cover delivered/failed/expired
+and still-valid old leases, concurrent renewal/recovery, and isolated owner-fixture
+trigger failure with transaction rollback.
+
+Canonical frontend finding AUTH-ADV-03, alias OI-AUTH-FE-01: capture a new fragment
+into a versioned proof context, remove only its fragment while preserving router
+history metadata/query, and invalidate pending UI operations. Hash/popstate events
+and a mounted 250ms fallback cover silent history updates; submission/response handling
+also checks the current fragment synchronously. StrictMode empty-fragment replay
+preserves a valid captured proof. Superseded/unmounted responses cannot set ready,
+error or busy state for a newer proof. No persistent secret storage, automatic login,
+raw-secret diagnostic, auth/session contract or backend architecture change is added.
+Mounted tests exercise actual page rendering, StrictMode, token switches, stale success
+and error, remount, failure/retry, two links, and silent history updates.
+The imported success fixture now includes the required BaseResponse.meta envelope;
+otherwise the API helper treated its malformed 'success' as a failure. All independent
+security assertions remain, with stronger positive-control evidence.
+
+REAL_NEXTJS_NAVIGATION=NOT_VERIFIED: this executor has no installed browser engine
+or Playwright package. Installed Next.js Link/usePathname documentation and production
+build are inspected, but JSDOM history/component tests do not establish actual App
+Router end-to-end navigation. Production SMTP/edge and independent specialized
+acceptance remain outside Builder evidence. No merge, deployment, long campaign or
+formal closure is performed.

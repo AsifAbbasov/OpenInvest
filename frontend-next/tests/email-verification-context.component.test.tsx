@@ -14,7 +14,7 @@ const {createRoot}=await import("react-dom/client");
 const {default:VerifyEmailPage}=await import("../src/app/auth/verify/page.tsx");
 const originalFetch=globalThis.fetch;
 const defer=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve}};
-const ok=()=>new Response(JSON.stringify({data:{status:"ACCOUNT_READY"}}),{status:200,headers:{"Content-Type":"application/json"}});
+const ok=()=>new Response(JSON.stringify({data:{status:"ACCOUNT_READY"},meta:{requestId:"synthetic-local",traceId:"synthetic-local",generatedAt:"2026-10-14T00:00:00Z"}}),{status:200,headers:{"Content-Type":"application/json"}});
 const denied=()=>new Response(JSON.stringify({error:{code:"INVALID_VERIFICATION",message:"Verification could not be completed. Request new instructions."}}),{status:400,headers:{"Content-Type":"application/json"}});
 const token=(letter)=>letter.repeat(43);
 async function mount(tok,root){
@@ -65,9 +65,7 @@ test("same-mounted verification page must not submit superseded token after hash
   // Re-enter a new email-ownership proof and notify the browser without remount.
   // Use the browser's real fragment setter; jsdom dispatches hashchange
   // asynchronously, preserving the current same-route React component.
-  dom.window.location.hash=B;
-  await new Promise(resolve=>setTimeout(resolve,0));
-  await React.act(async()=>{await Promise.resolve()});
+  await React.act(async()=>{dom.window.location.hash=B;await new Promise(resolve=>setTimeout(resolve,0));});
   await submit(container);
   assert.equal(received.length,1,"negative control: verification submission did not happen");
   assert.notEqual(received[0],A,"superseded proof A was submitted after navigation to B");
@@ -77,3 +75,62 @@ test("same-mounted verification page must not submit superseded token after hash
  }finally{await React.act(async()=>root.unmount())}
 });
 
+
+for(const outcome of ["success","error"]){
+ test(`same-mounted stale ${outcome} cannot overwrite a newer proof`,async t=>{
+  t.after(()=>{globalThis.fetch=originalFetch});
+  const A=token("E"),B=token("F"),pending=defer(),received=[];
+  globalThis.fetch=async(url,options)=>{const req=JSON.parse(options.body);received.push(req.token);assert.equal(options.credentials,"omit");return req.token===A?pending.promise:denied()};
+  dom.window.document.body.innerHTML='<div id="root"></div>';const container=dom.window.document.getElementById("root"),root=createRoot(container);
+  try{
+   await mount(A,root);await fillPassword(container);await submit(container);assert.deepEqual(received,[A]);
+   await React.act(async()=>{dom.window.location.hash=B;await new Promise(r=>setTimeout(r,0))});
+   assert.equal(dom.window.location.hash,"");await submit(container);assert.deepEqual(received,[A,B]);
+   const before=visibleState(container);assert.equal(before.ready,false);
+   pending.resolve(outcome==="success"?ok():new Response(JSON.stringify({error:{message:"obsolete failure"}}),{status:400,headers:{"Content-Type":"application/json"}}));
+   await React.act(async()=>{await pending.promise;await Promise.resolve()});
+   assert.deepEqual(visibleState(container),before,"superseded response changed current UI");
+   assert.equal(dom.window.localStorage.length,0);assert.equal(dom.window.sessionStorage.length,0);
+  }finally{pending.resolve(denied());await React.act(async()=>root.unmount())}
+ });
+}
+
+test("network failure permits retry and a second link after completion",async t=>{
+ t.after(()=>{globalThis.fetch=originalFetch});const received=[];let failure=true;
+ globalThis.fetch=async(url,options)=>{received.push(JSON.parse(options.body).token);if(failure){failure=false;throw new Error("synthetic network failure")};return ok()};
+ dom.window.document.body.innerHTML='<div id="root"></div>';const container=dom.window.document.getElementById("root"),root=createRoot(container);
+ try{
+  await mount(token("G"),root);await fillPassword(container);await submit(container);assert.equal(visibleState(container).ready,false);
+  assert.equal(container.querySelector("form.form-grid button").disabled,false);
+  await submit(container);assert.equal(visibleState(container).ready,true);
+  await React.act(async()=>{dom.window.location.hash=token("H");await new Promise(r=>setTimeout(r,0))});
+  assert.equal(visibleState(container).ready,false);assert.equal(dom.window.location.hash,"");await fillPassword(container);await submit(container);
+  assert.deepEqual(received,[token("G"),token("G"),token("H")]);assert.equal(visibleState(container).ready,true);
+  assert.equal(dom.window.localStorage.length,0);assert.equal(dom.window.sessionStorage.length,0);assert.equal(dom.window.document.cookie,"");
+ }finally{await React.act(async()=>root.unmount())}
+});
+
+test("silent same-route history navigation captures and removes the new proof",async t=>{
+ t.after(()=>{globalThis.fetch=originalFetch});const received=[];
+ globalThis.fetch=async(url,options)=>{received.push(JSON.parse(options.body).token);return denied()};
+ dom.window.document.body.innerHTML='<div id="root"></div>';const container=dom.window.document.getElementById("root"),root=createRoot(container);
+ try{
+  await mount(token("I"),root);await fillPassword(container);
+  await React.act(async()=>{dom.window.history.pushState({syntheticRouterState:true},"","/auth/verify?local=1#"+token("J"));await new Promise(r=>setTimeout(r,300));});
+  assert.equal(dom.window.location.hash,"");assert.equal(dom.window.location.search,"?local=1");assert.deepEqual(dom.window.history.state,{syntheticRouterState:true});
+  await submit(container);assert.deepEqual(received,[token("J")]);
+ }finally{await React.act(async()=>root.unmount())}
+});
+
+test("explicit hashchange after same-route replacement captures B before submission",async t=>{
+ t.after(()=>{globalThis.fetch=originalFetch});const received=[];
+ globalThis.fetch=async(url,options)=>{received.push(JSON.parse(options.body).token);return denied()};
+ dom.window.document.body.innerHTML='<div id="root"></div>';const container=dom.window.document.getElementById("root"),root=createRoot(container);
+ try{
+  await mount(token("K"),root);await fillPassword(container);
+  dom.window.history.replaceState(null,"","/auth/verify#"+token("L"));
+  await React.act(async()=>{dom.window.dispatchEvent(new dom.window.Event("hashchange"))});
+  assert.equal(dom.window.location.hash,"","new fragment must be removed before any submission");assert.deepEqual(received,[]);
+  await submit(container);assert.deepEqual(received,[token("L")],"new proof must replace old proof");
+ }finally{await React.act(async()=>root.unmount())}
+});
