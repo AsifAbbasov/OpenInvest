@@ -278,10 +278,22 @@ func TestModule1ChaosPostgresAbruptKillWALRecovery(t *testing.T){
   store,err:=postgres.Open(os.Getenv("OPENINVEST_DATABASE_TEST_URL"));if err!=nil{t.Fatal(err)}
   lease,ok,err:=store.LeaseVerificationDelivery(context.Background(),chaosHash(address))
   if err!=nil||!ok||lease.Email!=address{store.Close();t.Fatalf("negative pre-crash control %t %v",ok,err)}
+
   store.Close()
+  before:=chaosReadPersistentState(t,db,address)
+  if before.jobID!=lease.JobID||before.leaseID!=lease.LeaseID||before.attempts!=1||before.jobState!="leased"||before.intentState!="pending"{t.Fatalf("INVALID_ACKNOWLEDGED_PRECRASH_STATE: %+v",before)}
+  competitor,err:=postgres.Open(os.Getenv("OPENINVEST_DATABASE_TEST_URL"));if err!=nil{t.Fatal(err)}
+  stolen,claimed,err:=competitor.LeaseVerificationDelivery(context.Background(),chaosHash(address+"-competitor"))
+  competitor.Close()
+  if err!=nil||claimed&&stolen.JobID==lease.JobID{t.Fatalf("ACTIVE_LEASE_EXCLUSION_NEGATIVE_CONTROL_FAILED claimed=%t err=%v",claimed,err)}
   recovered:=chaosRealCrashEvidence(t,db,round)
   defer recovered.Close()
+
+  after:=chaosReadPersistentState(t,recovered,address)
+  if after!=before{t.Fatalf("ACKNOWLEDGED_COMMIT_OR_LEASE_STATE_CHANGED_AFTER_WAL before=%+v after=%+v",before,after)}
+  t.Logf("WAL_ROUND=%d ACKNOWLEDGED_COMMIT_PRESERVED=YES DELIVERY_STATE_PRESERVED=YES NO_PREMATURE_AUTH=YES",round)
   chaosFinanceReconcile(t,recovered,financial,round)
+  chaosOldPoolAndApplicationEvidence(t,db,svc,recovered,round)
   var state string;var attempts int
   if err:=recovered.QueryRow("SELECT j.job_state,j.attempts FROM identity.email_delivery_jobs j JOIN identity.registration_intents i ON i.id=j.intent_id WHERE i.email_normalized=$1",address).Scan(&state,&attempts);err!=nil||state!="leased"||attempts!=1{t.Fatalf("durable lease lost after PostgreSQL SIGKILL: state=%s attempts=%d err=%v",state,attempts,err)}
   if count:=chaosCount(t,recovered,"SELECT count(*) FROM identity.users WHERE email_normalized=$1",address);count!=0{t.Fatalf("post-crash pre-proof user=%d",count)}
@@ -290,6 +302,9 @@ func TestModule1ChaosPostgresAbruptKillWALRecovery(t *testing.T){
   replacement,ok,err:=fresh.LeaseVerificationDelivery(context.Background(),chaosHash(address+"-recover"))
   if err!=nil||!ok||replacement.Email!=address||replacement.LeaseID==lease.LeaseID{fresh.Close();t.Fatalf("WAL recovery failed new owner: %t %v",ok,err)}
   if err:=fresh.FinishVerificationDelivery(context.Background(),lease,true);err!=nil{t.Fatal(err)}
+  successor:=chaosReadPersistentState(t,recovered,address)
+  if successor.intentID!=before.intentID||successor.generation!=before.generation||successor.jobID!=before.jobID||successor.jobGeneration!=before.jobGeneration||successor.jobState!="leased"||successor.attempts!=2||successor.leaseID!=replacement.LeaseID||successor.leaseID==before.leaseID{t.Fatalf("STALE_LEASE_OWNERSHIP_OR_RETRY_BUDGET_INVALID: %+v",successor)}
+  t.Logf("WAL_ROUND=%d STALE_CALLBACK_REJECTED=YES NEW_WORKER_OWNERSHIP=YES RETRY_BUDGET_BOUNDED=YES",round)
   var leaseID string
   if err:=recovered.QueryRow("SELECT lease_id FROM identity.email_delivery_jobs WHERE id=$1",replacement.JobID).Scan(&leaseID);err!=nil||leaseID!=replacement.LeaseID{t.Fatalf("old lease callback stole WAL successor: %q %v",leaseID,err)}
   fresh.Close()
