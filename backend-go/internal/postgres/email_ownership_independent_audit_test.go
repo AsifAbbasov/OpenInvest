@@ -98,7 +98,7 @@ func TestEmailOwnershipIndependentConcurrentTokenConsumption(t *testing.T) {
 
 // Property oracle: after the last lease expires, a restart must not leave a
 // permanently unclaimable job marked 'leased'. No transport/network is called.
-func TestEmailOwnershipIndependentFourthCrashTerminalState(t *testing.T) {
+func TestEmailOwnershipIndependentOriginalFourthCrashTerminalState(t *testing.T) {
     requireIndependentPG(t)
     service, db := ownershipService(t)
     independentDrainPreviousDeliveries(t,service)
