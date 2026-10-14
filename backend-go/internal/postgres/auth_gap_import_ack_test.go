@@ -37,7 +37,7 @@ func TestAUTHGAPImportTwoRowAtomicLostCommitAckAndReplay(t *testing.T){
  requestID:=uuid.NewString()
  builder:=func(outcome verticalslice.ImportAppendOutcome)(verticalslice.CommandReplayArtifact,error){
   if len(outcome.Transactions)!=2{return verticalslice.CommandReplayArtifact{},verticalslice.ErrInvalidInput}
-  return verticalslice.CommandReplayArtifact{StatusCode:201,Body:[]byte(`{"data":{"imported":2}}`),RequestID:requestID},nil
+  return verticalslice.CommandReplayArtifact{StatusCode:201,Body:[]byte(`{"data":{"imported":2}}`),RequestID:requestID,TraceID:"d0ee0000000000000000000000000001"},nil
  }
  proxy:=extendedStartAckProxy(t)
  store,e:=postgres.Open(proxy.databaseURL(t));if e!=nil{t.Fatal(e)}
