@@ -108,7 +108,7 @@ jobs:
         working-directory: frontend-next
         run: |
           set -uo pipefail
-          pnpm start -- --hostname 127.0.0.1 --port 3000 > /tmp/oi-next.log 2>&1 &
+          pnpm exec next start --hostname 127.0.0.1 --port 3000 > /tmp/oi-next.log 2>&1 &
           NEXT_PID=$!
           trap 'kill "$NEXT_PID" 2>/dev/null || true' EXIT
           ready=0
