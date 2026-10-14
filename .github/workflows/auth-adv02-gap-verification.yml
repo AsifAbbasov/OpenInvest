@@ -59,7 +59,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        case: [ImportTwoRowAtomicLostCommitAckAndReplay, RealPostgresCSRFMatrixAndSessionIsolation, RefreshLogoutRacingFinancialWrites]
+        case: [ImportTwoRowAtomicLostCommitAckAndReplay, RealPostgresCSRFMatrixAndSessionIsolation, RefreshLogoutRacingFinancialWrites, EightSessionFinanceIdempotencySchedules]
     services:
       postgres:
         image: postgres:18
