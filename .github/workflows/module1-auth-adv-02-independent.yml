@@ -50,6 +50,13 @@ jobs:
         run: |
           set -euo pipefail
           go test -race -v ./internal/postgres -run '^TestEmailOwnershipIndependent(LegacyAccountCannotBeReclaimed|GenerationInvalidatesOldToken|ConcurrentTokenConsumption)$' -count=1 -timeout=90s
+      - name: Corrected ownership lifecycle and runtime-role matrix
+        working-directory: backend-go
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+        run: |
+          set -euo pipefail
+          go test -race -v ./internal/postgres -run '^TestEmailOwnership(RegistrationActivation|ConcurrentCompletion|ExpiredDeliveryCannotActivate|RuntimePrivilegeBoundary|DeliveryRetryAndStaleCompletion)$' -count=1 -timeout=3m
       - name: Timezone verification oracle on mounted HTTP boundary
         working-directory: backend-go
         run: |
