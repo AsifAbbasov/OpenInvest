@@ -167,3 +167,61 @@ func TestModule1CascadeTwelveBlockedFinancialWritesAndRealSIGKILL(t *testing.T){
  if code==200{t.Fatal("CROSS_PRINCIPAL_LEDGER_READ_AFTER_MULTIPLE_INFLIGHT_CRASH")}
  t.Logf("CASCADE=12_REAL_HTTP_REQUESTS_BLOCKED_AT_POSTGRESQL_LOCK THEN_REAL_POSTMASTER_SIGKILL=YES WAL_RECOVERY=YES ORIGINAL_UNSUCCESSFUL_OR_AMBIGUOUS=%d RETRIES_ALL_SUCCESS=YES EXACT_DECIMAL_LEDGER_ROWS=%d DUPLICATES=0 CROSS_PRINCIPAL_READ=DENIED",failedOrAmbiguous,total)
 }
+
+
+// PATCH correction and DELETE reversal are two different immutable-ledger
+// transitions. Crash AFTER each acknowledged transition, replay its exact
+// idempotency key, reject stale revisions and foreign principal requests.
+func TestModule1CascadeCorrectionReversalWithTwoRealCrashes(t *testing.T){
+ chaosAllowed(t)
+ initial,db:=ownershipService(t)
+ f:=chaosFinanceSeed(t,initial,db)
+ endpoint:="/api/v1/portfolios/"+f.portfolioID+"/transactions/"
+ var transactionID string
+ if err:=db.QueryRow("SELECT transaction_id::text FROM investment.transaction_entries WHERE portfolio_id=$1 AND transaction_type='DEPOSIT' AND gross_amount=10000 ORDER BY created_at LIMIT 1",f.portfolioID).Scan(&transactionID);err!=nil{t.Fatal(err)}
+ run,security:=chaosFinancialHTTP(t)
+ owner,err:=security.Login(context.Background(),auth.LoginRequest{Email:f.ownerEmail,Password:f.password});if err!=nil{t.Fatal(err)}
+ outsider,err:=security.Login(context.Background(),auth.LoginRequest{Email:f.outsiderEmail,Password:f.password});if err!=nil{t.Fatal(err)}
+ path:=endpoint+transactionID
+ correctBody:=fmt.Sprintf(`{"expectedRevision":1,"reason":"Audit corrections without double charge","corrected":%s}`,cascadeDeposit("11000.00000000","cascade-correct-"+uuid.NewString()))
+ correctKey:="cascade-correction-"+uuid.NewString()
+ code,payload:=run("PATCH",path,owner.Session.AccessToken,correctBody,correctKey)
+ if code!=200{t.Fatalf("POSITIVE_CONTROL_CORRECTION_REJECTED code=%d body=%s",code,payload)}
+ if n:=chaosCount(t,db,"SELECT count(*) FROM investment.transaction_entries WHERE portfolio_id=$1 AND transaction_id=$2",f.portfolioID,transactionID);n!=2{t.Fatalf("CORRECTION_REVISIONS_COUNT=%d",n)}
+ if n:=chaosCount(t,db,"SELECT count(*) FROM investment.transaction_entries WHERE portfolio_id=$1 AND transaction_id=$2 AND revision=2 AND gross_amount=11000.00000000",f.portfolioID,transactionID);n!=1{t.Fatalf("CORRECTION_EXACT_DECIMAL_REVISION_BAD=%d",n)}
+ f.portfolioJSON,f.entriesJSON=chaosFinanceStorage(t,db,f.portfolioID)
+ db1:=chaosRealCrashEvidence(t,db,1);defer db1.Close()
+ chaosFinanceReconcile(t,db1,f,1)
+ run1,security1:=chaosFinancialHTTP(t)
+ owner1,err:=security1.Login(context.Background(),auth.LoginRequest{Email:f.ownerEmail,Password:f.password});if err!=nil{t.Fatal(err)}
+ code,payload=run1("PATCH",path,owner1.Session.AccessToken,correctBody,correctKey)
+ if code!=200{t.Fatalf("CORRECTION_REPLAY_AFTER_REAL_KILL_REJECTED code=%d body=%s",code,payload)}
+ _,entries:=chaosFinanceStorage(t,db1,f.portfolioID)
+ if entries!=f.entriesJSON{t.Fatal("FINANCIAL_CORRECTION_REPLAY_CREATED_DUPLICATE_HISTORY")}
+ code,_=run1("PATCH",path,owner1.Session.AccessToken,correctBody,"cascade-stale-"+uuid.NewString())
+ if code==200||code==201{t.Fatal("STALE_CORRECTION_REVISION_ACCEPTED_WITH_NEW_IDEMPOTENCY_KEY")}
+ code,_=run1("PATCH",path,outsider.Session.AccessToken,correctBody,correctKey)
+ if code==200||code==201{t.Fatal("FOREIGN_CORRECTION_SUCCEEDED")}
+ _,entries=chaosFinanceStorage(t,db1,f.portfolioID)
+ if entries!=f.entriesJSON{t.Fatal("STALENESS_OR_FOREIGN_CORRECTION_ALTERED_HISTORY")}
+ reverseBody:=`{"expectedRevision":2,"reason":"Audit cancellation without double reversal","effectiveDate":"2026-03-12"}`
+ reverseKey:="cascade-reverse-"+uuid.NewString()
+ code,payload=run1("DELETE",path,owner1.Session.AccessToken,reverseBody,reverseKey)
+ if code!=200{t.Fatalf("POSITIVE_CONTROL_REVERSAL_REJECTED code=%d body=%s",code,payload)}
+ if n:=chaosCount(t,db1,"SELECT count(*) FROM investment.transaction_entries WHERE portfolio_id=$1 AND reverses_transaction_id=$2",f.portfolioID,transactionID);n!=1{t.Fatalf("REVERSAL_COUNT=%d",n)}
+ f.portfolioJSON,f.entriesJSON=chaosFinanceStorage(t,db1,f.portfolioID)
+ db2:=chaosRealCrashEvidence(t,db1,2);defer db2.Close()
+ chaosFinanceReconcile(t,db2,f,2)
+ run2,security2:=chaosFinancialHTTP(t)
+ owner2,err:=security2.Login(context.Background(),auth.LoginRequest{Email:f.ownerEmail,Password:f.password});if err!=nil{t.Fatal(err)}
+ code,payload=run2("DELETE",path,owner2.Session.AccessToken,reverseBody,reverseKey)
+ if code!=200{t.Fatalf("REVERSAL_REPLAY_AFTER_REAL_KILL_REJECTED code=%d body=%s",code,payload)}
+ if n:=chaosCount(t,db2,"SELECT count(*) FROM investment.transaction_entries WHERE portfolio_id=$1 AND reverses_transaction_id=$2",f.portfolioID,transactionID);n!=1{t.Fatalf("DUPLICATE_REVERSAL_AFTER_SIGKILL=%d",n)}
+ _,entries=chaosFinanceStorage(t,db2,f.portfolioID)
+ if entries!=f.entriesJSON{t.Fatal("REVERSAL_REPLAY_ALTERED_DURABLE_LEDGER")}
+ code,_=run2("DELETE",path,outsider.Session.AccessToken,reverseBody,reverseKey)
+ if code==200||code==201{t.Fatal("FOREIGN_REVERSAL_ACCEPTED")}
+ _,entries=chaosFinanceStorage(t,db2,f.portfolioID)
+ if entries!=f.entriesJSON{t.Fatal("FOREIGN_REVERSAL_ALTERED_LEDGER")}
+ t.Log("TWO_REAL_POSTGRES_SIGKILLS=YES WAL_RECOVERY_BOTH=PASS PATCH_CORRECTION_EXACT_REVISION_TWO=PASS DUPLICATE_CORRECTIONS=0 STALE_REVISION_REJECTED=YES DELETE_REVERSAL_EXACTLY_ONCE=PASS DUPLICATE_REVERSALS=0 CROSS_PRINCIPAL_CORRECTION_REVERSAL=DENIED")
+}
