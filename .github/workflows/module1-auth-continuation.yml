@@ -29,6 +29,9 @@ jobs:
           - case: RealPGCompetingProofs
             pkg: ./internal/postgres
             filter: TestModule1ContinuationCompetingValidProofAndMalformedProofs
+          - case: RealPGSignedImportIdentityAndSessionReplay
+            pkg: ./internal/postgres
+            filter: TestModule1ContinuationRealHTTPImportReviewPrincipalAndSessionReplay
     services:
       postgres:
         image: postgres:18
@@ -60,7 +63,7 @@ jobs:
           test "$(git merge-base "$FROZEN" HEAD)" = "$FROZEN"
           git diff --name-only "$FROZEN" HEAD > /tmp/continuation-changes
           cat /tmp/continuation-changes
-          if grep -Ev '^(\.github/workflows/module1-auth-continuation\.yml|backend-go/internal/auth/module1_continuation_jwt_contract_test\.go|backend-go/internal/postgres/module1_continuation_real_http_auth_test\.go|backend-go/internal/postgres/module1_continuation_registration_boundary_test\.go)$' /tmp/continuation-changes; then
+          if grep -Ev '^(\.github/workflows/module1-auth-continuation\.yml|backend-go/internal/auth/module1_continuation_jwt_contract_test\.go|backend-go/internal/postgres/module1_continuation_real_http_auth_test\.go|backend-go/internal/postgres/module1_continuation_registration_boundary_test\.go|backend-go/internal/postgres/module1_continuation_import_identity_test\.go)$' /tmp/continuation-changes; then
              echo 'FAIL_UNEXPECTED_PRODUCT_CHANGE'
              exit 1
           fi
