@@ -43,15 +43,14 @@ This is an OpenInvest fail-closed source/use decision; it is not a claim that Mo
 
 A constrained T-Invest Corporate Actions adapter exists for dividend and bond-coupon reference events, but production provider traffic is not activated. It does not provide brokerage-account synchronization, order placement, trading, or live market prices.
 
-For deeper technical state, start with the
-[Source of Truth](docs/SOURCE_OF_TRUTH.md) and
-[Architecture Freeze](docs/ARCHITECTURE_FREEZE_v1.2.md).
+Start with the [Document Index](docs/DOCUMENT_INDEX.md) for current contracts, dated technical acceptance and historical evidence. Provider/source-use authority remains in the [Data Source Registry](docs/registries/DATA_SOURCE_REGISTRY.md).
 
 ## Current capabilities
 
 ### Accounts and portfolios
 
-- Registration, login, session refresh, and logout are implemented.
+- Public registration accepts email only; proof completion activates a new account without automatic login. Normal login, refresh and logout remain separate.
+- SMTP delivery activation is separately gated; the default local development path does not configure a production sender or deliver verification mail.
 - Users can create and inspect portfolios through the Go API and Next.js Web application.
 - Portfolio access is isolated by authenticated ownership boundaries.
 
@@ -119,17 +118,17 @@ Source/provider status is tracked in the
 
 ## Current security / audit status
 
-Module #10 repository-side provider-budget remediation and formal closure are complete.
-Production/shared-provider budget enforcement remains an explicit Module #12 verification item.
-Repository-side controls do not prove horizontally shared production provider-budget enforcement.
+[Module #1 technical acceptance and integration](docs/audit/MODULE1_TECHNICAL_CLOSURE.md) are confirmed for PR #268 and its exact post-merge CI. This is repository-side evidence, not production deployment authorization or an update to historical formal-closure decisions.
 
-See the [Module #10 adversarial audit closure](docs/audit/PROVIDERS_EXTERNAL_API_BUDGET_RESILIENCE_ADVERSARIAL_AUDIT_CLOSURE.md).
+[Module #12 remediation and scoped revalidation](docs/audit/FINAL_PRODUCTION_FRONTEND_INFRA_HARDENING_ADVERSARIAL_AUDIT_CLOSURE.md) records shared Redis-backed budgets, bounded local provider operations and duplicate-Origin hardening. Its embedded candidate statuses are dated evidence; deployment-specific provider quotas, CDN/LB behavior, TLS/HSTS and actual multi-host/network controls remain unverified by repository tests. The [Module #10 closure](docs/audit/PROVIDERS_EXTERNAL_API_BUDGET_RESILIENCE_ADVERSARIAL_AUDIT_CLOSURE.md) remains historical evidence, not the latest provider-remediation description.
+
+See the [current navigation reconciliation](docs/governance/DOCUMENTATION_NAVIGATION_RECONCILIATION.md) for precedence and retained historical boundaries. No deployment or new audit campaign is authorized by this README.
 
 ## Run locally
 
 ### Requirements
 
-- Go `1.25.14`;
+- Go `1.26.9`, matching [backend-go/go.mod](backend-go/go.mod);
 - Node.js `>=22.22.2`;
 - pnpm `11.8.0` through Corepack;
 - Docker / Docker Compose;
@@ -176,7 +175,7 @@ In a second terminal, start the Web application:
 pnpm run dev:web
 ```
 
-The local Web script points to `http://localhost:8080` by default.
+The local Web script points to `http://localhost:8080` by default. The development API script enables a local auth bypass and insecure refresh cookies by default; these are local-only settings, not a production login/deployment configuration. See [.env.example](.env.example) and the [operations guides](docs/operations/) before any separately authorized deployment.
 
 ### Verify
 
@@ -197,51 +196,10 @@ This stops the normal local containers without deleting the PostgreSQL or Redis 
 
 ## Documentation
 
-The README is the product entry point, not the complete engineering record.
-
-### Architecture
-
-- [Source of Truth](docs/SOURCE_OF_TRUTH.md) — current architecture and product/runtime authority.
-- [Architecture Freeze v1.2](docs/ARCHITECTURE_FREEZE_v1.2.md) — frozen architecture principles and change boundary.
-- [Document Index](docs/DOCUMENT_INDEX.md) — repository documentation map.
-
-### Current state
-
-- [Source of Truth](docs/SOURCE_OF_TRUTH.md) — current product/runtime authority.
-
-### Planning
-
-- [Roadmap](docs/ROADMAP.md) — completed and future planning.
-- [MVP Product Risk Refinement](docs/product/MVP_PRODUCT_RISK_REFINEMENT.md) — product-risk decisions and MVP constraints.
-
-### Implementation history
-
-- [Implementation Log](docs/IMPLEMENTATION_LOG.md) — implementation chronology and lifecycle history.
-
-### API
-
-- [OpenAPI contract](openapi/openapi.yaml) — current machine-readable HTTP contract.
-
-### External data
-
-- [Data Source Registry](docs/registries/DATA_SOURCE_REGISTRY.md) — approved, conditional, dormant, and rejected source/use modes.
-- [Corporate Actions source research](docs/research/CORPORATE_ACTIONS_SOURCE_OUTREACH.md) — provider evidence and unresolved rights/cost questions.
-
-### Engineering evidence
-
-- [Repository Audit Remediation Register](docs/audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md) — canonical index for the original repository audit and its remediation.
-- [Module #10 Providers / External API / Budget Abuse / Resilience closure](docs/audit/PROVIDERS_EXTERNAL_API_BUDGET_RESILIENCE_ADVERSARIAL_AUDIT_CLOSURE.md) — formal repository-side closure with production/shared-provider residuals preserved.
-
-## Historical engineering evidence
-
-Detailed implementation chronology, rejected alternatives, remediation rationale, CI evidence, and source-rights research are intentionally preserved outside this README.
-
-Use:
-
-- [Implementation Log](docs/IMPLEMENTATION_LOG.md) for the stage-level implementation index;
-- [Historical Feature Forensic Documentation Reconciliation](docs/governance/HISTORICAL_FEATURE_FORENSIC_DOCUMENTATION_RECONCILIATION.md) for deeper feature evidence;
-- [Repository Audit Remediation Register](docs/audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md) for the original audit closure index;
-- `docs/stages/` for individual planning, implementation, closure, remediation, and evidence dossiers.
-
-The historical records are evidence of how the system evolved. They are not a substitute for the current-state authority in
-[Source of Truth](docs/SOURCE_OF_TRUTH.md).
+- [Document Index](docs/DOCUMENT_INDEX.md): task-oriented navigation and authority map.
+- [Source of Truth](docs/SOURCE_OF_TRUTH.md) and [Architecture Freeze v1.2](docs/ARCHITECTURE_FREEZE_v1.2.md): established product/architecture authority; later dated technical records must be read in their own scope, not silently inferred from older audit-status paragraphs.
+- [OpenAPI](openapi/openapi.yaml): executable HTTP contract; [approved JWT identity policy](docs/api/ACCESS_JWT_IDENTITY_POLICY_V1.md) and [email-ownership addendum](docs/ADR/ADR-010-email-ownership-approval-candidate.md): Module #1 contract entry points.
+- [Roadmap](docs/ROADMAP.md) and [product-risk refinement](docs/product/MVP_PRODUCT_RISK_REFINEMENT.md): planning and product constraints, not deployment approval.
+- [Data Source Registry](docs/registries/DATA_SOURCE_REGISTRY.md) and [source research](docs/research/CORPORATE_ACTIONS_SOURCE_OUTREACH.md): provider rights, dormant/conditional modes and evidence.
+- [Implementation Log](docs/IMPLEMENTATION_LOG.md), [stage dossiers](docs/stages/), [historical feature reconciliation](docs/governance/HISTORICAL_FEATURE_FORENSIC_DOCUMENTATION_RECONCILIATION.md) and [original audit register](docs/audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md): chronology and immutable evidence, not current-state overrides.
+- [Documentation standard](docs/governance/DOCUMENTATION_STANDARD.md) and [migration inventory](docs/governance/DOCUMENTATION_MIGRATION_INVENTORY.csv): concise explanations, complete contracts and preserved history.
