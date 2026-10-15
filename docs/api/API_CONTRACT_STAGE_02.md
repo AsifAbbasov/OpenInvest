@@ -5,21 +5,18 @@
 | Document ID | API-STAGE-02 |
 | Version | 1.0.1 |
 | Status | Proposed / Awaiting Review |
+| Owner | Principal Architect |
 | Supersedes | Stage 1 operational OpenAPI skeleton |
 | Dependencies | Documents 42–43; ADR-003; ADR-006 |
+| Last Review Date | 2026-09-12 |
+| Next Review Date | At Stage 2 approval |
 
-> **Historical Stage 2 baseline**
->
-> This document preserves the Stage 2 API design/review snapshot, including historical `Proposed / Awaiting Review` wording.
-> It is explanatory historical evidence, not the current authoritative HTTP contract.
-> Current executable HTTP contract: [`../../openapi/openapi.yaml`](../../openapi/openapi.yaml).
-> Current product/runtime status: [`../SOURCE_OF_TRUTH.md`](../SOURCE_OF_TRUTH.md).
+> **Historical Stage 2 HTTP design:** the metadata preserves its original proposal/authorization status.
+> Current runtime status: [Source of Truth](../SOURCE_OF_TRUTH.md); executable authority: [OpenAPI](../../openapi/openapi.yaml).
 
 ## Purpose
 
-Freeze the MVP web boundary before backend implementation. The normative machine-readable
-contract is [`../../openapi/openapi.yaml`](../../openapi/openapi.yaml). This document explains
-the semantics that code generators and JSON Schema alone cannot communicate safely.
+Explain the MVP web semantics beyond JSON Schema; [OpenAPI](../../openapi/openapi.yaml) is the executable contract.
 
 ## Contract boundary
 
@@ -216,8 +213,9 @@ Breaking changes require an ADR and a new versioned contract boundary. Removing 
 financial meaning, changing date semantics, or weakening idempotency is breaking.
 
 Generated clients and server stubs remain out of Stage 2. Their future generation must use the
+reviewed contract and must fail CI on uncommitted contract drift.
 
 ## Explicitly out of scope
 
 No Stage 2 artifact implements services, repositories, SQL migrations, workers, collectors,
-frontend screens, mobile code, tax export, foreign securities, predictions, or  behavior.
+frontend screens, mobile code, tax export, foreign securities, predictions, or AI behavior.

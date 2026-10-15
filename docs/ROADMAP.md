@@ -113,30 +113,6 @@ Numbered implementation frontier remains Stage 3.77; [Module #1 technical integr
 
 Historical reference lines associated with this stage registry are retained below; detailed rationale and outcomes remain in the linked current stage dossiers.
 
-Canonical record: PR #46.
-
-Canonical record: PR #49.
-
-Canonical record: PR #53.
-
-Canonical record: PR #58.
-
-Canonical record: PR #97; commit(s) `abbd9f9f61574621e206f2e196b1fb8f056dc194`, `26f5ca18ca5772db569d22ce2eff64d5a7850b1b`.
-
-Canonical record: PR #101; commit(s) `a2cfeaa5ca68fdd951e2a99f69c96aec362fc416`, `d88be3c90231f374d7e6b7d94f4cd89e6788f700`.
-
-Canonical record: PR #104; commit(s) `c980a21f16b30449ec7fb7b07decc386d77bc27d`, `749446930a730c3f7c5b3402618577953d53d3f4`.
-
-Canonical record: PR #120; commit(s) `cd97f3217811bb123ad96d92b7d8a4be0e03c8bb`, `0510971289c204e9b5226359f2efdd1941542309`.
-
-Canonical record: PR #133; commit(s) `6fb395ffcef12840133dac27294f653276adcdf6`, `be09503ceaafb8781cc82829f98e37cda5c6be6b`.
-
-Canonical record: PR #145; commit(s) `e935f19b68624f0b8be6ca293ead8f4395cf555e`, `b6cd7766a6a584440dfdd7d00c35c34c8553a9ff`.
-
-Canonical record: PR #155; commit(s) `e00699f8d455bcbaea0c1dc69ce534460fea6ff9`, `f89e1e793ef505c31bf76de7d43c4d40fdd9c38b`, `5971ae4bf5461dd562d7a73289b5942b02f962ba`.
-
-Canonical record: PR #157; commit(s) `63d916b447e91c4de54efee5c66b27cf7727be92`, `b3bc17e710e306f9d1a4d7be95dfe56b3f7202ba`, `e91e28e96416d9510962a66c1399459844574bba`.
-
 ## Preserved historical activation snapshots
 
 These blocks retain their exact original bytes and outcomes; they are not a fresh current-state assessment.

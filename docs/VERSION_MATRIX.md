@@ -66,6 +66,4 @@ Document ID: REG-VER-001; Version: 1.2.8; approved version/compatibility registe
 
 Historical Stage 3.74/3.75 implementation outcomes and exact CI evidence remain in [ledger-repair](stages/STAGE_03_74_TRANSACTION_CORRECTION_REVERSAL_IMPLEMENTATION.md) and [cash/income](stages/STAGE_03_75_PORTFOLIO_CASH_FLOW_INCOME_IMPLEMENTATION.md); version/priority/review rows above remain authoritative in their scope.
 
-Canonical record: PR #155; commit(s) `f89e1e793ef505c31bf76de7d43c4d40fdd9c38b`, `5971ae4bf5461dd562d7a73289b5942b02f962ba`, `e00699f8d455bcbaea0c1dc69ce534460fea6ff9`.
-
 Canonical record: PR #157; commit(s) `b3bc17e710e306f9d1a4d7be95dfe56b3f7202ba`, `e91e28e96416d9510962a66c1399459844574bba`, `63d916b447e91c4de54efee5c66b27cf7727be92`.

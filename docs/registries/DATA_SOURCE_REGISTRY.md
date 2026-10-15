@@ -5,8 +5,11 @@
 | Document ID | REG-DATA-001 |
 | Version | 1.0.7 |
 | Status | Active |
+| Owner | Principal Architect |
 | Supersedes | Ad hoc external-source selection |
 | Dependencies | Documents 42–43 |
+| Last Review Date | 2026-09-11 |
+| Next Review Date | 2026-12-21 |
 
 External source implementation remains prohibited unless the exact source/use mode has an approved row below.
 Approval is scope-bound: a limited approval does not authorize use outside the row's explicit status and
@@ -14,25 +17,24 @@ restrictions.
 
 | Source | Owner | License/terms | Rate limits | Caching | Redistribution | Freshness | Fallback | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `NSD_CORPORATE_ACTIONS_API` | Principal Architect / Corporate Actions | NSD API/getCorpActions/GetNews provide the needed corporate-action data under information-service subscription/contract terms. Public nsddata.ru user agreement limits information to familiarisation, prohibits commercial/third-party use and automated processing. | API documentation states up to 1 request/second for subscribed API use. No shipped traffic authorized while NO-GO. | FORBIDDEN while NO-GO. | FORBIDDEN while NO-GO. | Corporate actions are maintained by NSD, but no OpenInvest production freshness claim while subscription/use rights are absent. | None; fail closed. | `NO-GO — zero-budget constraint; public-site automated processing forbidden and subscription not accepted` |
+| `INTERFAX_EDISCLOSURE_API` | Principal Architect / Corporate Actions | Contract/subscription: publication messages 16,180 RUB/month without VAT, minimum 3 months; complete publications 27,000 RUB/month. Public-site access is not a free API license. | Subscription-dependent; scraping not approved. | FORBIDDEN while NO-GO. | FORBIDDEN while NO-GO. | Near-publication when contracted; no current production claim. | None; fail closed. | NO-GO: zero budget, no subscription or public-site scraper authorization. |
+| `NSD_CORPORATE_ACTIONS_API` | Principal Architect / Corporate Actions | API/getCorpActions/GetNews require subscription/contract; public nsddata.ru terms permit familiarisation only, forbid commercial/third-party use and automated processing. | Subscribed API ≤1 request/second; no traffic while NO-GO. | FORBIDDEN while NO-GO. | FORBIDDEN while NO-GO. | NSD-maintained events; no OpenInvest production claim without rights. | None; fail closed. | NO-GO: zero budget; no accepted subscription or public-site automation rights. |
+| `TINVEST_CORPORATE_ACTIONS_CONSTRAINED` | Principal Architect / Corporate Actions | Exact ticket `3-781291` scenario only; FAQ conflict remains. | Official 200/min; internal ≤60/min, concurrency 4. | Request-lifetime only; persistent/cross-request storage forbidden. | Normalized display/derived analytics only; raw redistribution forbidden. | On-demand; no freshness/SLA claim. | None; fail closed. | CONDITIONAL-GO source/use only; full binding restrictions below; runtime activation separate. |
+| `CBR_CORPORATE_ACTIONS_FEED` | Principal Architect / Corporate Actions | Reviewed guidance does not require issuers to resubmit publicly disclosed reports/material facts to CBR; universal issuer-event feed not established. | N/A: no approved feed. | N/A | N/A | N/A | None. | NO-GO; legacy SEC `coupons` method obsolete. |
+| `ISSUER_DIRECT_DISCLOSURE` | Principal Architect / Corporate Actions | Issuer pages may be authoritative; terms, transport, schema, automation, retention and reuse require exact endpoint review. | UNKNOWN pending review. | UNKNOWN pending review. | UNKNOWN pending review. | Issuer-specific. | None; fail closed. | REVIEW REQUIRED per issuer/endpoint/use; no generic scraper approval. |
+| `MOEX_ISS_DELAYED_TQBR` | Principal Architect / Market Data | Guest ISS: familiarisation only; other use/public web or app placement needs an agreement. Reviewed non-issuer public-data tariff: 25,500 RUB/month for 15-minute delayed data. Distribution, Non-display and Derived Data policies apply. | Public hard quota UNKNOWN; dormant adapter: one request/Quote, no retry/fan-out/poll loop, 5s timeout. | Product storage/cache FORBIDDEN; deterministic fixtures only. | Public/API/UI/onward/derived redistribution FORBIDDEN. | Approximately 15-minute delay; adapter provenance/time validation is technical evidence only. | None; fail closed, provider unconfigured. | NO-GO for runtime/public/non-display/derived use; rights, cost acceptance, registry approval and separate wiring review required below. |
 
 ## Corporate-actions source decision
 
-Stage 3.61 originally recorded that no reviewed source satisfied OpenInvest's combined requirements for a production-usable Corporate Actions source/use mode. As of the 2026-09-09 source-rights review, one exact T-Invest use mode is accepted as **CONDITIONAL-GO** at the registry level only:
-
-`TINVEST_CORPORATE_ACTIONS_CONSTRAINED`
-
-The decision is intentionally narrow. It does not create an unrestricted T-Invest approval, does not activate runtime composition, and does not authorize a provider token, persistence, polling, raw redistribution, broader T-Invest services or new CorporateActionEvent kinds.
-
-Accordingly:
-
-
-Canonical record: PR #164; commit(s) `247081a95a7daf33c0077c88c5f41cb2e8161865`.
+Stage 3.61 found no acceptable production source. The 2026-09-09 review grants only
+`TINVEST_CORPORATE_ACTIONS_CONSTRAINED` the exact source/use CONDITIONAL-GO below; other rows remain binding.
+Feature 3D adapter implementation merged through PR #164 / `247081a95a7daf33c0077c88c5f41cb2e8161865`.
+That merge does not activate runtime, provision a token or authorize production traffic.
 
 Official/reviewed evidence:
 
-- `docs/research/CORPORATE_ACTIONS_SOURCE_OUTREACH.md`
-- `docs/research/T_INVEST_CONSTRAINED_SOURCE_USE_PROPOSAL.md`
+- [Corporate Actions source evidence](../research/CORPORATE_ACTIONS_SOURCE_OUTREACH.md)
+- [Constrained T-Invest proposal](../research/T_INVEST_CONSTRAINED_SOURCE_USE_PROPOSAL.md)
 - T-Invest support ticket `3-781291`
 - `https://e-disclosure.ru/poluchenie-informacii/shlyuz-api`
 - `https://gateway.e-disclosure.ru/swagger/ui/index.html`
@@ -47,13 +49,18 @@ Official/reviewed evidence:
 
 ### Evidence and FAQ conflict
 
-The registry decision relies on the exact-scenario evidence preserved in the canonical outreach and constrained proposal documents. OpenInvest described a free public application where the backend obtains T-Invest API data, normalizes it into OpenInvest's provider-neutral domain model, does not expose the raw API/feed or token, publicly displays normalized dividend/coupon/event data, and builds derived OpenInvest analytics. T-Invest support answered ticket `3-781291` for that scenario:
+The linked outreach/proposal preserve the exact scenario: a free public application uses backend-only
+retrieval and provider-neutral normalization for public dividend/coupon display and derived analytics,
+without raw API/feed or token exposure. T-Invest support answered ticket `3-781291`:
 
 > `Такое использование разрешено.`
 
 > English translation for readability: `This use is permitted.`
 > The original Russian provider wording above is preserved as the primary evidence.
 
+The published FAQ generically forbids public services/retransmission; that conflict remains unresolved.
+The support answer applies only to this exact normalized-display/derived-analytics scenario.
+Raw redistribution is forbidden; broader use requires a new source-rights review.
 
 ### Allowed source/use scope
 
@@ -106,7 +113,6 @@ provider response
 Request-scoped deduplication/memoization may exist only within one in-flight request and must not survive request completion.
 
 ### Authentication and secret boundary
-
 
 - server-side read-only Bearer token only;
 - token supplied only through runtime secret/environment configuration;
@@ -175,13 +181,17 @@ Realized portfolio truth remains ledger-owned through user/manual or separately 
 
 This registry decision is source/use-rights approval only. It does **not** by itself authorize or perform runtime activation.
 
-Canonical record: PR #164.
+Feature 3D / PR #164 completed adapter, secret, transport, normalization, provider-neutral, failure
+and runtime-composition review; the adapter remains disabled by default, without live-token/traffic evidence.
+Activation, broader methods/use, persistence/cache/polling, provider-specific public contracts or ledger
+coupling require fresh separate authorization. This registry does not authorize Stage 3.78.
 
 ## MOEX_ISS_DELAYED_TQBR activation decision
 
 Stage 3.60 records a fail-closed **NO-GO FOR SHIPPED RUNTIME** under the current OpenInvest zero-budget constraint.
 
 The existing Stage 3.59 adapter may remain in the repository and may continue to be compiled, unit-tested,
+security-scanned, and reviewed. Optional human-run technical smoke evidence may be used only to validate adapter
 compatibility; it does not authorize product collection, persistence, automated polling, display, redistribution,
 non-display processing, derived analytics, or third-party services.
 
@@ -191,6 +201,13 @@ portfolio valuation, alerts, insights, history, or other product calculations.
 
 A future production-use proposal requires a new review that defines the exact MOEX use category and supplies:
 
+- contractual/usage rights for that exact mode;
+- required attribution/display/audit obligations;
+- explicit Principal Architect acceptance of monetary cost;
+- rate-limit/traffic evidence;
+- cache/retention/persistence rights if applicable;
+- a fresh registry status change to an exact approved production mode;
+- separately reviewed runtime composition/public-contract changes.
 
 Technical availability, delayed access, or the existence of a merged adapter must never be treated as production
 source approval.

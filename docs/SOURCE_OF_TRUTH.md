@@ -40,13 +40,9 @@ The first public MVP targets long-term, dividend, FIRE and multi-account investo
 
 ## Financial standard
 
-- Decimal only; binary float forbidden for financial values.
-- Half-even rounding.
-- Eight decimal places internally; two for monetary display.
-- SQL `DATE` for financial business dates.
-- UTC `TIMESTAMP WITH TIME ZONE` for system timestamps.
-- MOEX calendar for MVP market events.
-- Canonical financial test vectors are mandatory before production algorithms.
+Financial truth uses Decimal only (no binary float), scale 8 and Half-Even rounding; monetary display uses scale 2.
+Business dates use SQL `DATE` and the MOEX calendar; system instants use UTC `TIMESTAMP WITH TIME ZONE`.
+Canonical financial test vectors are mandatory before production algorithms.
 
 ## Privacy definitions — approved target, separately gated lifecycle
 
