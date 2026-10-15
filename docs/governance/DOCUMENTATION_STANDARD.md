@@ -1,10 +1,15 @@
-# Documentation standard — concise explanations, complete contracts
-**Problem / Root Cause:** Long mixed-role documents obscure current decisions, while indiscriminate shortening can destroy contracts and historical evidence.
-**Risk:** Lost requirements, approval ambiguity and false PASS/closure claims; preservation takes priority over brevity.
-**Alternatives:** Rewrite everything or duplicate full archives; instead use concise explanatory summaries with immutable, versioned references.
-**Decision:** Every new/refactored class A explanatory document has at most 10 physical lines including its title; nine body lines use Problem / Root Cause (combined), Risk, Alternatives, Decision, Rationale, Implementation, Verification, Limitations, Status; no multiline Markdown tables.
-**Rationale:** All ten questions remain explicit without an eleventh title line; use short prose, not giant packed lines, and link details that cannot safely fit.
-**Implementation:** Class B normative specifications retain complete requirements/examples/schemas/runbooks; class C historical/security/hash-pinned records remain unchanged; mixed navigation/onboarding retains links, diagrams and instructions without a ten-line cap; historical portions remain protected; [inventory](DOCUMENTATION_MIGRATION_INVENTORY.csv).
-**Verification:** Before each documentation PR, count physical lines, check changed-file links/fragments and exact-SHA evidence, confirm decisions/statuses, compare protected files and run applicable normal CI; no new workflow/test changes are mandated by this standard.
-**Limitations:** The Phase 1 five-summary limit was historical; later scoped phases are tracked in the inventory, which is structured data rather than an explanatory report; unrefactored documents are not certified compliant; external link availability/CI artifact retention are not guaranteed.
-**Status:** Approved ten-line standard introduced through merged PR #269; Phase 2 navigation merged through PR #270; Phase 3 classification awaits Main Chat Review; later domain summaries retain full B contracts and immutable C records; no merge/deployment/formal closure authorization.
+# OpenInvest documentation standard — ADR · MADR · Diátaxis · Docs-as-Code
+**Purpose:** Maximize compression of EXISTING documentation; one live authority per contract, no duplicate reports or needless new Markdown.
+**Diátaxis / tutorial:** [README](../../README.md) keeps working onboarding steps, prerequisites and architecture diagrams.
+**Diátaxis / how-to:** Operations, infrastructure and scripts retain complete procedures, security prerequisites and rollback.
+**Diátaxis / reference:** OpenAPI, schemas, approved contracts and registries stay complete; past Git snapshots cannot replace a live normative rule.
+**Diátaxis / explanation:** ADRs and compact decisions explain context, root cause, problem, considered alternatives, choice and consequences.
+**Nygard + MADR:** Context → Decision → Consequences; distinguish evidenced alternatives from suggestions, explain rationale, trade-offs and residuals.
+**Class A / compact decision:** Target ≤10 physical lines; MAX 15 including title. Include Status/Version/Owner, Context, Root Cause, Problem, Risk, Alternatives, Decision, Rationale, Trade-offs, Implementation, Verification, Residuals; combine fields rather than omit facts.
+**Class B / normative or mixed:** No forced cap on APIs, database rules, operational guides, registers, onboarding or navigation; open with a ≤15-line overview when useful, eliminate duplicate narrative.
+**Class C / evidence:** Preserve hash-pinned bytes, historical RED/FAIL and dated decisions; ongoing research may add dated evidence, not rewrite previous findings.
+**Docs-as-Code:** Edit existing files on a branch in a Draft PR; check syntax, links/fragments, exact SHAs, byte/line deltas, normative coverage and applicable exact-head CI before owner-controlled merge.
+**Authority:** Documents 43 → 42 → accepted ADRs → applicable legacy; [Source of Truth](../SOURCE_OF_TRUTH.md), [Document Index](../DOCUMENT_INDEX.md) and [Data Source Registry](../registries/DATA_SOURCE_REGISTRY.md) retain distinct authority.
+**Governance:** Technical PASS ≠ formal closure ≠ deployment approval; accepted ADRs stay immutable, proposals are not approvals; never fabricate historic rationale or reclassify RED as PASS.
+**Template:** Use the existing [ADR / MADR template](../ADR/README.md); full tests/contracts stay in their current authoritative files, not a new duplicated summary.
+**Preservation:** B/C classification never automatically exempts removable narrative from review, but no shortening may remove operational obligations, rights, approval boundaries or immutable evidence.

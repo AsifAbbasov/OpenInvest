@@ -7,4 +7,4 @@
 **Implementation:** Integration tree `62efa62e8836a14c85dc2f95173a220b50efdca8`; [contract and scoped acceptance entry points](MODULE1_ARCHITECTURE_ACCEPTANCE_AND_INTEGRATION_READINESS.md); this record changes no implementation.
 **Verification:** [Post-merge CI #38758661473](https://github.com/AsifAbbasov/OpenInvest/actions/runs/38758661473) `workflow_dispatch`, branch `develop`, exact integrated SHA, SUCCESS 10/10; historical JWT REDs remain historical REDs, not converted to PASS.
 **Limitations:** SMTP activation, account recovery, immediate access-JWT revocation and deployment remain separately gated; edge/provider/network/global deployment behavior is not certified.
-**Status:** Technical acceptance/integration confirmed; record is a documentation candidate pending Main Chat Review/merge; historical formal-closure decisions unchanged, no new formal Module #1 closure or deployment authorization.
+**Status:** Technical acceptance/integration confirmed; technical record merged via PR #270; historical formal-closure decisions unchanged, no new formal Module #1 closure or deployment authorization.

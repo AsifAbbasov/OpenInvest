@@ -7,4 +7,4 @@
 **Implementation:** Reviewed four entry points; refreshed three navigation files, preserved [historical Stage 3.72 reconciliation](REPOSITORY_DOCUMENTATION_RECONCILIATION.md) byte-for-byte and reclassified mixed documents in the [inventory](DOCUMENTATION_MIGRATION_INVENTORY.csv).
 **Verification:** Link/fragment, manifest/hash, inventory and line-limit checks plus exact-head normal CI are required for this candidate; Module #1 integrated-SHA evidence is linked in its technical record.
 **Limitations:** Older authority/register files can contain dated lifecycle statements; this phase changes neither their historical decisions nor normative contracts and does not reconcile every repository status.
-**Status:** Phase 2 navigation candidate; standalone explanations use ten lines, mixed onboarding/navigation retain useful detail; no product change, new campaign, formal module closure or deployment authorization.
+**Status:** Phase 2 navigation merged via PR #270; standalone explanations use ten lines, mixed onboarding/navigation retain useful detail; no product change, new campaign, formal module closure or deployment authorization.
