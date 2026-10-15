@@ -8,8 +8,6 @@
 | Owner | Principal Architect |
 | Supersedes | Conflicting physical table drafts in legacy documents |
 | Dependencies | Documents 42–43; ADR-002; ADR-004; ADR-005; ADR-006 |
-| Last Review Date | 2026-09-12 |
-| Next Review Date | Before Stage 4 migrations |
 
 > **Historical Stage 2 logical ER design:** the metadata preserves its original proposal/authorization status.
 > Current runtime status: [Source of Truth](../SOURCE_OF_TRUTH.md); executable authority: [migration history](../../infrastructure/postgres/migrations/).

@@ -8,8 +8,6 @@
 | Owner | Principal Architect |
 | Supersedes | Stage 1 operational OpenAPI skeleton |
 | Dependencies | Documents 42–43; ADR-003; ADR-006 |
-| Last Review Date | 2026-09-12 |
-| Next Review Date | At Stage 2 approval |
 
 > **Historical Stage 2 HTTP design:** the metadata preserves its original proposal/authorization status.
 > Current runtime status: [Source of Truth](../SOURCE_OF_TRUTH.md); executable authority: [OpenAPI](../../openapi/openapi.yaml).

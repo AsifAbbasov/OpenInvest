@@ -8,8 +8,6 @@
 | Owner | Principal Architect |
 | Supersedes | Ad hoc external-source selection |
 | Dependencies | Documents 42–43 |
-| Last Review Date | 2026-09-11 |
-| Next Review Date | 2026-12-21 |
 
 External source implementation remains prohibited unless the exact source/use mode has an approved row below.
 Approval is scope-bound: a limited approval does not authorize use outside the row's explicit status and

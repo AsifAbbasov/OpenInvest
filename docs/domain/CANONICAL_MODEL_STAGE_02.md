@@ -8,8 +8,6 @@
 | Owner | Principal Architect |
 | Supersedes | Conflicting DTO shapes in legacy documents |
 | Dependencies | Documents 42–43; ADR-003; ADR-004; ADR-006 |
-| Last Review Date | 2026-09-12 |
-| Next Review Date | At Stage 2 approval |
 
 > **Historical Stage 2 canonical model:** the metadata preserves its original proposal/authorization status.
 > Current runtime status: [Source of Truth](../SOURCE_OF_TRUTH.md); executable authority: [OpenAPI](../../openapi/openapi.yaml).
