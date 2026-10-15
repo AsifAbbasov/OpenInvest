@@ -1,255 +1,42 @@
 # OpenInvest Source of Truth
+Document ID: SOT-001; Version: 1.5.4; architecture authority remains Documents 42–43 and accepted ADRs; this edit consolidates documentation without changing policy or implementation.
 
-| Field | Value |
-| --- | --- |
-| Document ID | SOT-001 |
-| Version | 1.5.4 |
-| Status | Approved / Architecture Freeze Active |
-| Supersedes | Disconnected source-of-truth declarations in legacy documents |
-| Dependencies | Documents 42–43 and accepted ADRs |
+## Authority and verified state
+Document priority: `Document 43 → Document 42 → accepted ADRs → Documents 1–41 → README → comments`.
 
-> **Document role — current human-readable authority**
->
-> This file owns the repository's current human-readable product/runtime state.
-> The executable HTTP contract is [`../openapi/openapi.yaml`](../openapi/openapi.yaml); future sequencing is [`ROADMAP.md`](ROADMAP.md); implementation chronology is [`IMPLEMENTATION_LOG.md`](IMPLEMENTATION_LOG.md).
-> Accepted [`ADR/`](ADR/) records own architectural rationale, [`registries/DATA_SOURCE_REGISTRY.md`](registries/DATA_SOURCE_REGISTRY.md) owns provider/source-use decisions, and [`stages/`](stages/) preserves historical implementation evidence.
-> These sources complement this document rather than being redefined by it.
+[OpenAPI](../openapi/openapi.yaml) owns the executable HTTP contract; [accepted ADRs](ADR/) own architectural rationale; [Data Source Registry](registries/DATA_SOURCE_REGISTRY.md) alone governs source use. [Roadmap](ROADMAP.md) owns sequencing; [Implementation Log](IMPLEMENTATION_LOG.md) and [stage dossiers](stages/) retain chronology; [Document Index](DOCUMENT_INDEX.md) routes readers.
+Architecture Freeze v1.2 and documentation freeze remain active. The numbered implemented frontier is Stage 3.77; this cleanup authorizes no Stage 3.78+ work, deployment or new audit campaign.
+[Module #1 technical acceptance/integration](audit/MODULE1_TECHNICAL_CLOSURE.md) is PASS through PR #268 and exact post-merge CI #38758661473. This is not a new formal module-closure decision. Historical JWT RED evidence and accepted JWT02 residual remain unchanged.
+[Module #12 scoped remediation/revalidation](audit/FINAL_PRODUCTION_FRONTEND_INFRA_HARDENING_ADVERSARIAL_AUDIT_CLOSURE.md) covers shared Redis provider budgets, local operation ownership and ambiguous Origin rejection; its embedded candidate flags are dated evidence, not present-day deployment approval. Actual edge/CDN behavior, account quotas, multi-host topology, TLS/HSTS, external logs and deployed PostgreSQL/network policy remain deployment evidence gaps.
 
-## Architecture status
+## Product and architecture boundaries
 
-**Architecture Freeze v1.2: ACTIVE**
-**Documentation Freeze: ACTIVE**
-**Documentation registry baseline: Stage 3.77 remains the numbered product/runtime frontier and is COMPLETE / CANONICAL. Separately governed Corporate Actions Feature 3D is implementation-complete / merged, while runtime activation remains a separate decision. PR/CI chronology is preserved in [`IMPLEMENTATION_LOG.md`](IMPLEMENTATION_LOG.md), [`CHANGELOG.md`](CHANGELOG.md), and the relevant [`stages/`](stages/) dossiers.**
-**Separately governed Feature 3D implementation: COMPLETE / MERGED for exact registry mode `TINVEST_CORPORATE_ACTIONS_CONSTRAINED`. Source/use remains `CONDITIONAL-GO`; runtime activation = NO; production T-Invest traffic authorized/claimed by Feature 3D = NO; provider events do not mutate ledger truth. Exact permitted methods, token, redistribution, caching/persistence/polling and other provider-specific operational restrictions are governed by [`registries/DATA_SOURCE_REGISTRY.md`](registries/DATA_SOURCE_REGISTRY.md). Implementation chronology is preserved in [`IMPLEMENTATION_LOG.md`](IMPLEMENTATION_LOG.md) and the [Feature 3D closure dossier](stages/FEATURE_3D_TINVEST_CORPORATE_ACTIONS_CLOSURE.md).**
-**Current candidate frontier: none. No Stage 3.78+ product/runtime scope, Feature 3D runtime activation, or broader T-Invest source/use scope is authorized by PR #164 or this documentation closure.**
-**Current adversarial security audit posture: Module #10 — Providers / External API / Budget Abuse / Resilience — is formally closed for repository-side remediation. Public Corporate Actions provider work is bounded by per-client admission (12 per 60 seconds), a process-global endpoint ceiling (48 per 60 seconds), and request coalescing; response caching remains disabled, with OpenAPI 429 and Retry-After behavior documented. This does not establish horizontally shared production provider-budget enforcement. External/shared provider-budget verification, full API-process multi-instance chaos verification, and exhaustive real-socket resource verification are carried to Module #12. Module #11 is the next audit gate and has not started; Module #12 has not started. Provider/source-use authority remains exclusively governed by [`registries/DATA_SOURCE_REGISTRY.md`](registries/DATA_SOURCE_REGISTRY.md).**
-Canonical record: PR #123, PR #124.
-**Current Corporate Actions lifecycle: Stage 3.61 planning and Stages 3.62/3.63/3.64 Features 3A/3B/3C are protected-merged through PRs #125/#126/#127/#128; Stage 3.65 documentation closure is canonical through PR #129 / merge `1c30a4bf637c933e7c210cff6e26fabd91d8bab1`; Stage 3.66 request-cancellation hardening is protected-merged through PR #130 / merge `7564dbbda9133f0b8965f9e7d0a0c0b81b82e992`, tree `b525f0960cb2613f62eaa9583d6394759a1cdd3b`; Stage 3.67 closure is canonical through PR #131 / merge `c885f6e57ea08e4583103fe2f22f142bf13a8560`, tree `53f823e92b02721211e1d89f8af6374fffc252ae`; provider-neutral boundary, Calendar/Heatmap projection, API/UI, stale-result protection and component-unmount/replacement cancellation are implemented and documentation-closed. Feature 3D is separately governed and implementation-complete under `TINVEST_CORPORATE_ACTIONS_CONSTRAINED`; source/use remains `CONDITIONAL-GO` and runtime activation remains NO. Exact provider/source-use restrictions are governed by [`registries/DATA_SOURCE_REGISTRY.md`](registries/DATA_SOURCE_REGISTRY.md).**
-**Current Dividend Calculator lifecycle: Stage 3.68 is canonical through PR #133 / squash merge `6fb395ffcef12840133dac27294f653276adcdf6`, protected tree `be09503ceaafb8781cc82829f98e37cda5c6be6b`; Stage 3.69 closure governance is canonical through PR #134 from exact published head `e98bad4b2431eb7f45a5bfff17c3601c49554b45`, CI #354 / run `33983374426` 10/10 SUCCESS, exact published-head closure verification `APPROVED`, and squash merge `fee7de358f0919802e16a398b19c8947bc852645`, protected tree `e7c9ddb96a5bf7add5204ccdf54aa20c190a0014`; Stage 3.68 lifecycle/documentation closure is COMPLETE; the public user-supplied calculator uses backend-owned exact Decimal arithmetic and durable idempotency/replay without external provider data, tax logic, portfolio mutation, schema/OpenAPI change or new dependency**
-**Current Portfolio Position / Cost Basis lifecycle: Stage 3.70 / ADR-009 is accepted and canonical through PR #137 squash merge `b772e52221fbb694b3116bd1b579db99d4e56302`; Stage 3.71 runtime is canonical through PR #138 squash merge `827f49f909ace5a3f7bcb2a3f51ce7c638c458ad` and lifecycle/documentation closure through PR #140 squash merge `97c35a7b0fe7e2cd487c63d03b8ba79f80dcfc7b`. Stage 3.72 planning is canonical through PR #142 squash merge `2144c52f4dc5ba9e917947d396ced1f3c572fe51`. Stage 3.72 runtime is canonical through PR #145 squash merge `e935f19b68624f0b8be6ca293ead8f4395cf555e` from exact head `b6cd7766a6a584440dfdd7d00c35c34c8553a9ff` after CI #413 / run `34091588982` 10/10 SUCCESS. The shipped Stage 3.72 projection exposes only open STOCK/BOND positions derived from the canonical Stage 3.71 ledger/WAC engine: quantity, authoritative weighted-average cost, remaining acquisition basis, total acquisition basis, and independent Half-Even acquisition-basis weights. The dedicated positions endpoint uses deterministic ticker ordering, optional endpoint-local BusinessDate cutoff semantics, ownership isolation, repeatable-read replay and fail-closed unsupported correction/reversal handling. At the Stage 3.72 lifecycle boundary, market valuation was intentionally explicit as `UNAVAILABLE / NO_APPROVED_MARKET_PRICE_SOURCE`; market price, market value, unrealized gain/loss, market weight, provider and market as-of were null and not inferred. Closed positions are omitted; an inactive catalog lifecycle does not hide an owned open position; existing `PortfolioSummary.positions` behavior and `analytics.snapshot_positions` remain unchanged. No market provider activation, production rollout, XIRR/returns, imported SELL expansion, correction/reversal runtime, tax basis, bond NKD, notifications, Redis/workers or later-stage scope was authorized by Stage 3.72. Stage 3.73 is canonical through PR #148 squash merge `683f9c4647f888bb3dbdfb9dd365b84b95137b46` from exact final head `a74fd85a46843ccdfe8192f2ac8687169a5a2ac7` after CI #424 / run `34109389368` 10/10 SUCCESS; it reuses the same endpoint-local `asOfDate` projection for user-visible historical holdings, adds no financial engine/API/schema/provider, and keeps provider-derived market fields unavailable. Stage 3.74 is canonical through PR #150 squash merge `0580bf7e98c532202f84bbf9ceacd97aedbe4140` from exact final head `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02` after CI #435 / run `34117662576` 10/10 SUCCESS; it adds append-only correction/reversal and effective-ledger truth without provider activation. Stage 3.75 is COMPLETE / CANONICAL and adds backend-owned effective-ledger cash-flow/income truth, truthful gross recorded dividend/coupon summary values and manual income/expense entry without market valuation, P&L, XIRR, provider activation, schema migration or new infrastructure. Stage 3.76 is COMPLETE / CANONICAL and adds only authenticated explicit `USER_SUPPLIED` RUB manual valuation and backend-derived current market value/unrealized P/L/return with honest portfolio coverage, lifecycle-safe position generations and exact-date historical eligibility. The delayed external provider remains dormant and provider-derived/live valuation remains NO-GO. Stage 3.77 is COMPLETE / CANONICAL and adds backend-owned XIRR only: DEPOSIT/WITHDRAWAL external-flow evidence, exact-date Stage 3.76 COMPLETE manual terminal valuation, ACT/365 and scale-8 Half-Even output with fail-closed multiple-root/numerical semantics. No Stage 3.78+ product/runtime scope is authorized. PR/CI chronology for Stages 3.75–3.77 is preserved in [`IMPLEMENTATION_LOG.md`](IMPLEMENTATION_LOG.md) and the corresponding [`stages/`](stages/) dossiers.**
-**Last completed audit-remediation planning gate: Stage 3.54 — P3-08 migration validator planning / PR #115 squash merge `b79a9d3c43621e56e598901bdf472771e8b68ef8`**
-**Last completed audit-remediation closure gate: Stage 3.56 — P3-08 migration validator closure / PR #117 squash merge `983104267221706c3c2ebd8d9be358e3921334b5` from exact head `02e9ef82ed087a892928dc643adccbdfa1ed9600` after CI #316 / run `33816103670` 10/10 and `PUBLISHED_EXACT_HEAD_CLOSURE=APPROVED`**
-**Original repository audit: COMPLETE — P3-08 CLOSED; P0/P1/P2/P3 = 0/0/0/0; 32/32 = 100%; remaining original findings: NONE**
-**Last completed architecture amendment: Next.js Web Presentation Amendment**
-**Stage 3.39 implementation merge baseline: PR #97 squash merge `abbd9f9f61574621e206f2e196b1fb8f056dc194`; the moving protected `develop` HEAD is intentionally not hard-coded by this merge-activated closure record**
-**Stage 3.41 implementation merge baseline: PR #101 squash merge `a2cfeaa5ca68fdd951e2a99f69c96aec362fc416`; the moving protected `develop` HEAD is intentionally not hard-coded by the Stage 3.42 merge-activated closure record**
-**Stage 3.44 implementation merge baseline: PR #104 squash merge `c980a21f16b30449ec7fb7b07decc386d77bc27d`; the moving protected `develop` HEAD is intentionally not hard-coded by the Stage 3.45 merge-activated closure record**
-**Stage 3.47 implementation merge baseline: PR #107 squash merge `332f7cd2ec40caf0760b97b806f637e4c89dbb96`; the moving protected `develop` HEAD is intentionally not hard-coded by the Stage 3.48 merge-activated closure record**
-Canonical record: PR #55, PR #58; commit(s) `6e8c806de857f844954f1db513487357dfe90187`, `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c`.
-Canonical record: PR #59, PR #60; commit(s) `dc83f5f3a11da164e6809593861d96ccf47b29ca`, `92edab5d3e93dafe2fcc6247644e38e878a4202f`, `0ddc618a3450ea81fd4befb3b10c959b3cb82a25`.
-**Stage 3.29 remediation: CLOSED for P2-05/P2-06/P2-07/P2-08/P2-15; implementation PR #61 was squash-merged into `develop` at `7331d3f34783baec3997497d1a79b78eaa558bd4` after exact-head CI #124, first independent `changes required`, blocker remediation on `f9e70e70956c76edbc2ab02c52d45124b2dea525`, renewed independent `APPROVED`, explicit merge gate, and closure governance squash-merged through PR #62 at `0bfb3ea9f8e4cc7337a92caef5c7a73f9a8921bc`; Stage 3.25 and remaining P2/P3 stay separate**
-Canonical record: PR #63, PR #64; commit(s) `8f68dd18800918e6a9882e995e13dba2723dc929`, `ae6497050692798795efb85678af64db97cc5f53`.
-Canonical record: PR #65, PR #66; commit(s) `9bf4d1d31597918eacf0c3358bf6caa2aa9db897`, `82557c55c0772a66707088b858ec9eafc2073119`, `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746`.
-Canonical record: PR #67, PR #68; commit(s) `0623d5ef326cd783b7dc0417dbcb02f18c506171`, `02aa2417a3caca79e2afc4e7b598b92055de96b7`, `a73b7f8c008d2f903e22e9b8a85b7c6248d6d3be`.
-Canonical record: PR #69, PR #70; commit(s) `87a7c38e16062a5f3fcef3727f60c0c6741eb805`, `88ec8f739f7bcc96267c25f41560e1960d4d48d5`, `71a1faeb97d33d05f2936111b53f1285edddabe9`.
-**Stage 3.34 remediation: P2-17 implementation is canonical through PR #80 at `c686a6721df51063ccf62a0303bb759d2215d60e` after exact-head CI #230, independent implementation `APPROVED`, and explicit merge gate; P2-16 is mechanically enforced through public-repository `develop` protection and squash-only merge policy; Stage 3.34 remediation closure is canonical through PR #82 at `ae5a152114cc163867a363953f8a3202396b1f6c`. Stage 3.35 P3-01 runtime implementation is canonical through PR #84 at `a47df19ccc7edff73f39f4e76aec47580c168c46`; governance closure is completed through PR #85.**
-**Stage 3.36 remediation: planning is canonical through PR #87 at `251296e0831cbb0b81c7799cc82cbdf3b451ae6e`; runtime implementation is canonical through PR #88 at `ebbc1c17b905e60d9e82337fc4a1ecd6cf9bccaa`, from frozen runtime head `131f1bf963e9d232b9e23273edd54caf54c10ffb`, after exact-head CI #257 / run `32822925542` with all 10 required jobs successful; closure governance is canonical through PR #89 at `9c83b68e28bbb8bc971620d3e00be5e177ce0820`. P3-03 is CLOSED; the original audit backlog immediately after Stage 3.36 closure was P0=0 / P1=0 / P2=0 / P3=8: P3-02, P3-04, P3-05, P3-06, P3-07, P3-08, P3-09, and P3-10. Stage 3.25 remains separate.**
-**Stage 3.37 remediation: planning is canonical through PR #90 at `46f74528dcc19424ad087d30d4f2f778e2079b87`; runtime implementation is canonical through PR #91 at `cb6d9b28cd47b1cd283b5861b916e0be627d0ac2`, from frozen final runtime head `1a2f89a0fa5095b3cca790521afa484bdc61e8a6`, after exact-head CI #265 / run `32869754524` with all 10 required jobs successful and fresh published-head independent `APPROVED`; closure governance is canonical through PR #92 at `305a53bb07136b274717ff48778a5e93d7b1607c` after exact-head closure CI #266 / run `32880893193`, fresh independent closure `APPROVED`, and separate explicit merge gate. P3-02 is CLOSED. The current original audit backlog is P0=0 / P1=0 / P2=0 / P3=7: P3-04, P3-05, P3-06, P3-07, P3-08, P3-09, and P3-10. Stage 3.25 remains separate.**
-Canonical record: PR #93, PR #94, PR #95; commit(s) `a944f1e5d5ee7d84db5393e8760eda254d732edd`, `2df9946d77ee044a191a0422c8cccbbfe02dc7c9`, `5ea8c6f4eddd735ea834dc4a27ecb70da7f81508`, `25eb3b9c3c153672f22a6718a7815a5d3c527f44`, `c5962fa09b6d7d145dda203dbdf90069de7b1fcc`.
-**Stage 3.39 remediation: planning is canonical through PR #96 at `32b198ee9d349f119ed374fd86d47622e27bcd73`; implementation plus governed forensic/evidence history is canonical through PR #97 squash-merged into protected `develop` at `abbd9f9f61574621e206f2e196b1fb8f056dc194` from final published head `26f5ca18ca5772db569d22ce2eff64d5a7850b1b`, after exact-head CI #279 / run `33121609429` with all 10 required jobs successful and separate final Internal + External published-head `APPROVED` verdicts. Closure PR #99 reached final head `4c2439f3fdc213fd38d2669233d993cc3dac043b` and was actually squash-merged into protected `develop` at `41e35b672d166cf74c3f0c3ee248330193ae51c1`. P3-04 is CLOSED. The current pre-Stage-3.42 original audit backlog is P0=0 / P1=0 / P2=0 / P3=5: P3-06, P3-07, P3-08, P3-09, P3-10. Stage 3.25 remains separate.**
-**Stage 3.40/3.41 P3-09 remediation: planning is canonical through PR #100 squash-merged at `559b57d0951cdc67125c2f72fc1fcfb34399e90e` with approved plan blob `33cb076fa529d3efcdfbea9a95d111aec30ccbad`. Implementation PR #101 reached final evidence head `d88be3c90231f374d7e6b7d94f4cd89e6788f700`, passed CI #291 / run `33277717164` with all 10 required jobs successful, preserved package blob `d6d605620e1bff426998d8bda716b7c2eda0613d` and lockfile blob `b3d656e792bdd28b16dea553b378f15f553b3074`, resolved `EXT-STAGE-03-41-P3-01`, received final External `APPROVED` and final evidence-publication verification `APPROVED`, and was actually squash-merged into protected `develop` at `a2cfeaa5ca68fdd951e2a99f69c96aec362fc416`. This SHA is the immutable Stage 3.41 implementation merge baseline; the moving protected `develop` HEAD is intentionally not hard-coded as permanently equal to it.**
-**Stage 3.42 P3-09 closure: closure PR #102 was squash-merged into protected `develop` at `8861d49580c92eabe5f859729b3777175134a4e2`. P3-09 is CLOSED. The post-closure original audit state is 28/32 closed (87.5%), with P0=0 / P1=0 / P2=0 / P3=4: P3-06, P3-07, P3-08, P3-10.**
-**Stage 3.43/3.44/3.45 P3-10 remediation and closure: planning is canonical through PR #103 squash merge `eaac5a5deb64196b263464e0d85e622065520b0e`, with approved plan blob `37a32856692ac58f408f2dd50335bb65019d9983`. Implementation PR #104 reached final evidence head `749446930a730c3f7c5b3402618577953d53d3f4`, passed CI #297 / run `33312723075` 10/10, received final External and evidence-publication verification `APPROVED`, and was squash-merged at `c980a21f16b30449ec7fb7b07decc386d77bc27d`. Closure PR #105 reached exact head `e91faace81b76b14a51de4dea3a4c18d697998af`, passed CI #298 / run `33315057112` 10/10, received exact-published-head closure `APPROVED`, and was squash-merged at `c029cd62715b15614e82972309bdc53669ec02ee`. P3-10 is CLOSED; the audit is 29/32 closed (90.625%), with P3-06, P3-07, P3-08 remaining.**
-**Stage 3.46/3.47 P3-06 remediation: planning is canonical through PR #106 squash merge `546f0406d1353c13673be4ab97c4a527a9b58116`, approved plan blob `9e028f817220973458b28a2393ee61bdd2eb83a0`. Implementation PR #107 reached final evidence head `657afbde74b79db6966333e27d52f0320660d6b3`, passed CI #301 / run `33343890109` 10/10, received final External and evidence-publication verification `APPROVED`, and was squash-merged at `332f7cd2ec40caf0760b97b806f637e4c89dbb96`. P3-06 remains OPEN pending Stage 3.48 closure activation.**
-**Stage 3.48 P3-06 closure activation: while the approved Stage 3.48 closure record and synchronized canonical surfaces are absent from protected `develop`, P3-06 remains OPEN and the original audit remains 29/32 closed (90.625%), with P3-06, P3-07, P3-08 remaining. Once present, P3-06 is CLOSED and the audit becomes 30/32 closed (93.75%), with P0=0 / P1=0 / P2=0 / P3=2: P3-07, P3-08.**
-**Stage 3.53 P2-GOV-01 disposition: EFFECTIVE through PR #112 squash merge `ea1f204eab47bf16566096722d6390557b8141af`. P2-GOV-01 is `DISPOSITIONED — HISTORICAL NONCOMPLIANCE PRESERVED / RESIDUAL GOVERNANCE RISK ACCEPTED`; historical Stage 3.50 noncompliance remains permanently preserved and is not retroactively compliant.**
-**Stage 3.51 P3-07 closure: COMPLETE through PR #113 exact published head `1868749965fa1c113875592668afaa8f1f1ca35e`, CI #309 / run `33540615693` 10/10, exact-published-head `APPROVED`, and squash merge `072350205b2746bdcd83f20718eb59efcd0478ef` / tree `c83120dcfdf1cab281fea10818860827eb699b64`. P3-07 is CLOSED; the original audit is 31/32 = 96.875%; only P3-08 remains OPEN.**
-**Stage 2 status: Closed / merged into `develop`; ADR-006 accepted**
-**Web presentation amendment status: Closed / merged into `develop`; ADR-007 accepted**
+OpenInvest is a privacy-first Personal Capital Operating System, not a broker, bank, trading terminal, investment adviser or tax service. PostgreSQL owns canonical financial data; clients do not invent unavailable market facts.
+The first public MVP targets long-term, dividend, FIRE and multi-account investors needing independent, explainable real-return accounting; it is not optimized for casual green/red brokerage-return badges.
 
-## Document priority
+- Monorepo; Go/Fiber API (toolchain pinned by [go.mod](../backend-go/go.mod)); Python analytics managed with uv; PostgreSQL logical domains `identity`, `investment`, `analytics`, `tax`, `audit`; Redis and process-local cache only where approved.
+- Next.js App Router/TypeScript/pnpm is the Web presentation layer under ADR-007: Browser → OpenAPI Go API → PostgreSQL/Redis/future workers; no direct client datastore or external market-data access, no LocalStorage business data. iOS SwiftUI/Android Jetpack Compose remain future scope.
+- API First, DDD, Clean Architecture, Event Driven; immutable ledger, versioned rebuildable snapshots; approved outbox/inbox processing uses at-least-once delivery with idempotent business handling; Zero Trust and Privacy by Design.
+- Planned MVP scope includes accounts, portfolios, transactions, stock/bond cards, dividend calculator/calendar, snapshots, WAC, XIRR, real/inflation-adjusted return, purchasing-power insight and dashboard. Scope membership is not a claim every planned feature is implemented.
+- [Backlog exclusions](BACKLOG_V2.md) and [product guardrails](product/MVP_PRODUCT_RISK_REFINEMENT.md) remain binding: no unapproved assistant/scenario/premium/Tax XML/email/forecast/family/public API/foreign-market/mobile expansion. Purchasing Power is secondary to capital/return/dividends; tax truth needs deterministic financial/legal test vectors.
+- Every fifth completed stage requires the established full repository line-by-line audit gate. Independent review, exact published-head CI and separate merge authority remain distinct; this document does not waive the review workflow.
 
-`Document 43 → Document 42 → accepted ADRs → Documents 1–41 → README → comments`
+## Active financial and API invariants
 
-
-## Product definition
-
-OpenInvest is a **Personal Capital Operating System**. It is not a broker, bank, trading terminal, investment adviser, or tax service.
-
-The first public MVP targets investors with real portfolio-accounting pain: long-term, dividend,
-FIRE, and multi-account investors who need independent, explainable real-return analytics. It is not
-optimized for casual brokerage-app users who only need a simple green/red return badge.
-
-## Frozen stack and architecture
-
-- Monorepo: `OpenInvest/`
-- Backend: Go 1.24+ and Fiber
-- Analytics: Python managed with uv
-- Database: PostgreSQL; schemas `identity`, `investment`, `analytics`, `tax`, `audit`
-- Cache: Redis plus process-local RAM cache
-- Web frontend: Next.js App Router, TypeScript, and pnpm; presentation layer only under ADR-007
-- Current client implementation scope: Web MVP only
-- Mobile future: iOS SwiftUI and Android Jetpack Compose; no current mobile implementation
-- Style: API First, DDD, Clean Architecture, Event Driven
-- Data: canonical database, immutable transactions, rebuildable versioned snapshots
-- Events: at-least-once delivery and idempotent business processing through outbox/inbox
-- Security: Zero Trust and Privacy by Design
-- External sources: official/permitted sources registered before use and accessed only through backend collectors
-- Client: no external market-data calls and no LocalStorage for business data
-- Boundary: Browser/Next.js → OpenAPI-defined Go API → PostgreSQL/Redis/future Python workers;
-  Next.js never replaces the Go business API or accesses data stores directly
-  in the same designated chat without using the Internal verdict/findings as supporting evidence →
-  evidence-only publication of the previously withheld current Internal chronology after the External
-
-## Mandatory quality gates
-
-  It must not use the current Internal verdict/findings as supporting evidence.
-  after that verdict it is published in an evidence-only follow-up, followed by required CI and
-- Every fifth completed stage requires a full repository line-by-line audit before proceeding.
-
-## MVP scope
-
-Included: registration; portfolio; transactions; stock card; bond card; dividend calculator; dividend calendar; snapshots; weighted-average cost; XIRR; real return; inflation-adjusted return; purchasing-power card; dashboard.
-
-Excluded:  Assistant; scenarios; premium analytics; Tax XML export; email automation; forecasts; family accounts; public API; foreign securities; mobile applications.
-
-
-Purchasing Power remains an MVP differentiator, but it is a secondary explanatory insight. Real
-return, capital, dividends/coupons, and inflation-adjusted performance stay above consumer-good
-equivalents in dashboard priority.
-
-Tax export remains outside MVP. Any future tax calculation core must be deterministic and covered by
-financial/legal test vectors;  may explain or assist review, but must never be the source of tax
-truth.
-
-Canonical record: commit(s) `65bdf6537b44ed57e1c00bf68d2dacd70aa09702`, `11805cc298bba13f09f7f7af8b1e1178dc351209`, `fe402030359459f909c156a1e993f18ceed257bf`, `86582efaa420b2c38465a5d0da041814149392c7`, `072d38d94b529221d6467502f82f03a674a7d805`, `e2b05650a4422b97d4bd924254367106b6a4686b`, `fb651632036fabaa31ec92e9d28b5782ca0f92e5`, `36d86c7ff2a9c75478de155d4f60b979b8da9376`, `89f6cab500653e09b5daa47e439b3f82fb4c8720`.
-
-Stage 3.8 import review append flow planning is merged into `develop` at
-`a35af2f5207bd564647d2a3fc032f4f940e62ddd`. Stage 3.8 implementation is closed and merged into
-`develop` at `1a1d08249e252c5a3ab3f275b5fae848d5bc0e79`; it added internal orchestration between
-Stage 3.6 review output and Stage 3.7 atomic append. Public import endpoints, OpenAPI changes,
-upload UI, SQL import-session persistence, raw file persistence, workers, broker/provider
-integrations, tax, mobile, and automatic append without explicit approved decisions remain out
-of scope.
-
-Stage 3.8 closure governance is merged into `develop` at
-`cb9a392eb90ede954d9cc68b247bada13a1540d9`. Stage 3.9 import API boundary planning is merged into
-`develop` at `5cde1ca0232921d306d5e9337e4a0ba9455404ab`. Stage 3.9 implementation is closed and
-merged into `develop` at `b749a1632791127e0e2d4f99a91cb95eafc88898`, with closure governance
-merged at `682ffd856395a6e3e988817551a512898fda2d38`; it added only the public Go API boundary,
-OpenAPI contract, DTOs, tests, and documentation for user-supplied CSV import review/append.
-`27480d6ff22e2929e33aeac352aef8a1b01bb448`. Stage 3.10 implementation is closed and merged into
-`develop` at `e19a1a0ea4b0b183687bd89daabdfbc973daea71`; it added only the presentation-only
-Next.js import upload/review UI over the existing Go API boundary. SQL import-session persistence,
-raw file persistence, backend contract changes, workers, broker/provider integrations, tax, mobile,
-and  remain out of scope. Stage 3.11 authentication and privacy-boundary planning is closed and
-merged into `develop` at `34a31b7bb379db8a59ecc52f2cd32697be3fe125`. Stage 3.11 implementation is
-closed and merged into `develop` at `5c49173ac858995929f266c2de991282dd194dec`; it implemented only
-the approved Go API auth, privacy-default, session, CSRF, audit, and persistence boundary. It does
-not authorize frontend auth UI, email verification, OAuth/passkeys/2FA, tax, mobile, workers,
-provider integrations, or portfolio feature expansion. Unsafe local auth flags with a configured
-`DATABASE_URL` require `OPENINVEST_ENV=development` or `local`; production authorization must use
-signed access tokens. Stage 3.11 closure governance is merged into `develop` at
-`2febb6f49224ec6252368d2195a4e3054ea24278`. Stage 3.12 Web authentication UI planning is closed
-and merged into `develop` at `25be13ce84844562e0381b79f4b81cbfed7eb44d`. Stage 3.12 Web
-authentication UI implementation is closed and merged into `develop` at
-`b4840b60346109e3cd54a07d9e1e131fc0cfad23`. Stage 3.12 closure governance is merged into
-`321eaf4f75df83d85fd356a8d6a454e49bbc4db4`. Stage 3.13 instrument catalog planning is
-merged into `develop` at `ca16af9adba249fc8c32c9b246b5f92f7e290b92`. Stage 3.13 instrument
-catalog implementation is closed and merged into `develop` at
-`b9c05fb14d0ee03e6de4dfc04ff67c16da33040b`; it is limited to backend-owned approved
-asset-catalog fixture resolution, supported ticker validation, existing asset table usage,
-snapshot stock/bond bucket classification from backend-owned asset type, tests, and documentation.
-It does not authorize OpenAPI changes, SQL migrations, Go handler changes, frontend work, provider
-integrations, workers, market-data ingestion, stock/bond cards, dividend/coupon scope, tax, mobile,
-or . Stage 3.13 closure governance is merged into `develop` at
-`45a298e3ba36dbe711fa27b8d044d80a77cfd74a`. Stage 3.14 asset search/card API
-boundary planning is closed and merged into `develop` at
-`2c4f7853599a455bb0cc04114b338a1145baf39c`. Stage 3.14 implementation is closed and
-merged into `develop` at `57a9404952cb65693614109dd4a14d41fa5c4295`; it is limited to the Go API
-asset search/detail boundary over the approved local catalog. Runtime asset search uses
-`lastPrice: null` until an approved market-data source exists, and asset detail remains deferred
-unless every mandatory source/detail field can be populated without fabricated data. Stage 3.14
-closure governance is merged into `develop` at `f5289eb604b8ba31aa422d0d09950da02e0f48b3`.
-Stage 3.15 Web asset discovery UI planning is closed and merged into `develop` at
-`dfeab109b2825fe0e0317e87a7abf2e706a29ea6`. Stage 3.15 implementation is closed and merged into
-`develop` at `22bede651a646d0e8b06568bda457d0626891e63`; it added only the reviewed Next.js
-presentation-only asset discovery boundary over the existing Go API and does not authorize market
-data, stock/bond card calculations, provider integrations, workers, tax, mobile, or . Stage 3.15
-closure governance is merged into `develop` at `9eec98c36d7aeffb21dc2d7e7e0eb1681106901d`. Stage
-3.16 repository audit planning is closed and merged into `develop` at
-`74eebe9ec8231764f21ce384c4690d073d0273da`; the mandatory audit returned `changes required`.
-Its in-scope blocking findings were resolved by the Stage 3.16 audit fixes, which passed read-only
-Canonical record: PR #44.
-`9e6b8a753bf73ef020ce40461df25a5878344d92`. The original audit report retains its historical
-`changes required` verdict. Neither the closure nor prior fixes authorize a subsequent
-implementation stage. Stage 3.17 privacy-lifecycle planning was squash-merged through PR #46 at
-`1e8c240`; it remains documentation-only evidence and does not authorize implementation. Stage 3.18
-was squash-merged through PR #47 at `4680e9c1b7b916169972c84ad8c3879955c7f509`; it preserved the
-contract/security boundary without authorizing implementation. Stage 3.19 was squash-merged through
-PR #48 at `fdf74c16446e7623f76882aa7add64554141abc6`; it remains a provider-neutral security/ADR
-proposal for cryptographic erasure, deletion-marker replay, restore, and separation of duties. Stage
-3.20 was squash-merged through PR #49 at `849d934906f878a6d79ba89e940e5ba470e64c09`; it recorded
-squash-merged through PR #50 at `207325e0497cc2608b99366f7f840472d270b6ed`; it inventories
-field-level disposition and external evidence gaps. Stage 3.22 was squash-merged through PR #51 at
-`5f42d32db1e045c23fb99a5af8f136b7a49e3bc2`; it defines provider-neutral key custody and
-destruction proof. Stage 3.23 was squash-merged through PR #52 at
-`f7f23bce33038f259c976db6375079c68209a7aa`; it defines the non-identifying deletion-marker
-control plane and restore gate. Stage 3.24 was squash-merged through PR #53 at
-Canonical record: commit(s) `544ad8cc7371caf93913ea7716f3feb68be0ea44`.
-is the separate evidence-collection plan. Proposed ADR-008 is non-normative until formal Security
-selection, or operational configuration is authorized.
-
-## Stage 3.27 audit remediation status
-
-Stage 3.27 is a separately authorized, narrowly scoped remediation of repository-audit findings
-P1-02, P1-03, and P1-04. It does not expand product scope or authorize the privacy-lifecycle,
-market-data, tax, mobile, or provider work that remains governed separately.
-
-The remediation candidate is based on `develop` at
-`213d1d9b4369a5e046b26c3a08990aa571603eaa`. Local Go 1.25.14/PostgreSQL 18 verification,
-migration apply/rollback/reapply, OpenAPI validation, full Go tests, `go vet`, direct database
-candidate was committed and pushed as `19a8abbb0c07ded7441839bfa99b538739e21fbc`, Draft PR #55
-was opened against `develop`, and GitHub Actions CI run #83 passed on that implementation head.
-
-Stage 3.27 is not canonical and must not be described as closed until the final PR head has green CI,
-squash-merged into `develop`.
-
-### Stage 3.27 final-review correction
-
-Canonical record: PR #55; commit(s) `c6c3a4c91a108426448a2bc230873ab9e479a335`.
-
-
-### Stage 3.27 closure governance
-
-Implementation PR #55 was squash-merged into `develop` at `6e8c806de857f844954f1db513487357dfe90187`.
-Its exact merge-candidate head `b281d5bdc1c28ca4f4ac6d913ca9683859209e4c` passed GitHub Actions CI #90
-of the earlier order-dependent fallback-to-strong identity blocker.
-
-Explicit merge gate approved the squash merge.
-
-Closure governance is recorded through PR #58. Stage 3.27 is closed for P1-02,
-P1-03, and P1-04. The then-remaining P1-01/P1-05 findings were subsequently
-addressed by the separately governed Stage 3.28 remediation. Stage 3.25 privacy
-evidence planning remains separate.
-
-## Stage 3.28 audit remediation closure governance
-
-Stage 3.28 is the separately authorized remediation of repository-audit findings P1-01 and P1-05.
-It does not reopen Stage 3.27, authorize Stage 3.25 privacy implementation, or close any P2/P3 item.
-
-Implementation PR #59 was squash-merged into `develop` at `dc83f5f3a11da164e6809593861d96ccf47b29ca`. Its exact
-Canonical record: commit(s) `92edab5d3e93dafe2fcc6247644e38e878a4202f`.
-returned `changes required` for one governance-status mismatch only and reported no additional
-blocking P1-01/P1-05 security or correctness issue. After the one-line governance correction,
-squash-merge authorization was then given.
-
-P1-01 is remediated through persisted session-family identity for new sessions, conservative
-legacy-session containment, serialized refresh/logout mutation paths, replay-triggered family
-revocation, and PostgreSQL defense in depth.
-
-P1-05 is remediated without weakening Argon2id parameters: the approved 64 MiB / t=3 / p=1
-cost remains, while hash/verify/dummy work shares a process-wide fail-fast two-operation capacity
-gate and over-budget stored encodings are rejected before expensive work.
-
-non-blocking for the P1-05 resource-exhaustion finding. Dedicated `503 + Retry-After` semantics
-remain optional HTTP-contract hardening.
-
-Closure governance PR #60 was squash-merged into `develop` at
-`0ddc618a3450ea81fd4befb3b10c959b3cb82a25` after exact-head CI #122, independent closure
-
-Stage 3.28 is CLOSED for P1-01 and P1-05. Stage 3.25 privacy evidence planning and the then-remaining
-P2/P3 findings stayed separate.
+- [ADR-009](ADR/ADR-009-deterministic-portfolio-ledger-ordering-and-wac.md): deterministic portfolio-local ledger order; manual SELL/WAC/acquisition basis; reject oversell atomically; backdated rebuild/snapshot methodology does not authorize imported SELL expansion or tax/bond-NKD semantics.
+- Open STOCK/BOND positions expose quantity, authoritative WAC, remaining/total acquisition basis and independent Half-Even basis weights; deterministic ticker order, endpoint-local BusinessDate cutoff, ownership isolation and repeatable-read replay. Omit closed positions; inactive catalog status does not hide owned holdings; existing summary/snapshot-position contracts remain distinct.
+- Current/historical views reuse the positions `asOfDate` contract. Corrections/reversals append revisions, preserve original rows and derive effective-ledger truth; historical oversell fails closed.
+- Cash/income uses effective-ledger cash flows, gross recorded dividend/coupon income, fees/taxes and monthly breakdown; expected provider events are not realized ledger income.
+- Manual valuation accepts only authenticated `USER_SUPPLIED` RUB prices, honest coverage, lifecycle-safe position generations and exact-date historical eligibility. Provider-derived/live valuation remains unavailable; no inferred prices or market weights when required data are absent.
+- XIRR uses DEPOSIT/WITHDRAWAL external flows, exact-date COMPLETE manual terminal valuation, ACT/365 and scale-8 Half-Even output; multiple roots/numerical failure fail closed. TWR, inflation/real-return implementation, FX and provider activation need separate gates.
+- Input boundaries retain exact ASCII Decimal grammar before big.Int work, `NUMERIC(28,8)` bounds including aggregate/snapshot metrics, 500-character notes, unknown-JSON-field rejection and Unicode-code-point length semantics; binary-float financial truth is forbidden.
+- Timezones preserve exact resolver-backed identifiers; reject `Local`, surrounding whitespace and raw `±HH:MM`/`UTC±HH:MM`, retain UTC and loadable identifiers such as `Etc/GMT+4`; tzdata is fallback availability, not normalization. BusinessDate and financial calculations remain independent.
+- CSV review rejects duplicate normalized headers before normalization and stops on the 101st data row. User-approved append is atomic; raw-file/import-session persistence and automatic append are not implied.
+- Signed review proofs bind versions, subject, portfolio, source/file hash, every row identity, normalized/final semantics and the reviewed APPENDABLE set; reparse exact input and fail closed on expiry/drift. Locked storage remains final duplicate/identity authority. Parser-v1 proofs cannot authorize fresh writes; authentic completed legacy artifacts permit only scoped read-only recovery.
+- Persist original versioned response bytes/status/request/trace identity atomically with financial mutation; validate body integrity, serialize duplicate command resolution and survive new Store connections. Missing legacy artifacts fail closed; completed replay does not reread mutable resources.
+- Browser retry journals contain only short-lived opaque metadata in sessionStorage, keyed by SHA-256 of stable principal/operation/optional portfolio. Retain unresolved retry identity across reload, rotate changed intent, clear confirmed success/conflict; never store raw identity, financial payload, CSV, review/auth tokens.
+- PostgreSQL owns exact `snapshotDatesRebuilt`; compute one sorted deduplicated affected-date union and rebuild each once under the same-portfolio lock, including applicable later snapshots.
+- Command/replay authority expires after 24 hours, with fresh DB clock after serialization; exact-key generation reclamation and session-expiry authority are preserved. Revoked-but-unexpired refresh containment remains; bounded cleanup uses at most 128 rows, `ORDER BY expires_at,id`, `FOR UPDATE SKIP LOCKED` in triggering transactions.
 
 ## Financial standard
 
@@ -261,7 +48,7 @@ P2/P3 findings stayed separate.
 - MOEX calendar for MVP market events.
 - Canonical financial test vectors are mandatory before production algorithms.
 
-## Privacy definitions
+## Privacy definitions — approved target, separately gated lifecycle
 
 - **Personal Data:** information that identifies a person directly or indirectly.
 - **Pseudonymized Data:** data linked through a reversible identifier.
@@ -269,322 +56,58 @@ P2/P3 findings stayed separate.
 
 Deleting a user removes identity data and irreversibly destroys its link to the financial ledger. The detached ledger becomes **Anonymous Financial History**. OpenInvest retains no re-identification mechanism.
 
-## Retention
+## Retention — approved policy, not a deployment verification
 
 - Identity/personal data: deleted completely after the approved deletion lifecycle.
 - Audit: 10 years.
 - Anonymous transactions and snapshots: no fixed expiration.
 - Backups: maximum 90 days, then automatic destruction.
 
-## Feature matrix
+Privacy lifecycle design is not proof that deletion, cryptographic erasure, key custody or restore controls are deployed; [ADR-008](ADR/ADR-008-privacy-lifecycle-erasure-and-restore.md) and Stage 3.25 evidence retain their separate approval/implementation boundaries.
 
-Canonical record: PR #138, PR #133.
+## Authentication, runtime permissions and delivery
 
-## ADR registry
+- Public register/resend accepts email only with generic acknowledgment; proof completion creates a new verified account atomically without automatic login. [Approved email-ownership addendum](ADR/ADR-010-email-ownership-approval-candidate.md) and current OpenAPI retain full proof, generation/lease, attempt/timeout, legacy, frontend, grant, retention and rollback requirements; the original migration-pinned ADR-010 is unchanged.
+- [JWT identity policy](api/ACCESS_JWT_IDENTITY_POLICY_V1.md): mandatory nonempty `sub`, `uid`, `investmentSubjectId`; exact `sub=uid`, no fallback; financial authorization uses the validated signed investment subject. Existing HS256/algorithm/type/expiration checks remain; JWT02 Option A accepts the documented future-iat residual, JWT03 remains informational; access JWTs are stateless, with no new immediate revocation feature.
+- Refresh-family identity, serialized rotation/logout, replay containment, conservative legacy handling and PostgreSQL defense remain. Auth admission precedes logout decode/service/rejected-event persistence; capacity exhaustion fails closed with the existing 429 contract.
+- Argon2id stays 64 MiB/t=3/p=1; hash/verify/dummy work shares fail-fast two-operation capacity and rejects over-budget stored encodings before expensive work. Auth limiter bounds per-key/global attempts and active cardinality with expired-bucket reclamation; provider shared Redis budgets are a separate boundary.
+- Runtime capability/credential-graph checks reject privileged/masked identities, protected-schema CREATE, protected-table ownership/mutation, SET-reachable escalation and ADMIN OPTION paths. Current additive email-ownership grants retain their explicit envelopes; no broad ledger/audit mutation rights are inferred.
+- Verification proof is 32 crypto-random bytes/canonical unpadded Base64URL, digest-only SHA-256 in PostgreSQL, purpose `new_registration`; intent lasts 24h, proof expires at min(30min, intent expiry). Same-generation valid proofs survive resend; renewal increments generation, replaces old job ownership and resets attempts only for the new generation; stale/expired callbacks cannot complete a new lease.
+- At most four pre-counted delivery attempts per generation; one-minute lease/resend suppression, five-minute failed retry, terminalize an exhausted expired lease without a fifth proof. Parent intent locks precede jobs/tokens; shared intake admission caps active pending intents at 10000.
+- Activation transaction binds intent email/proof/generation and creates user, credential, financial link, privacy defaults, verification and audit atomically; consumes outstanding proofs/cancels delivery, never logs in. Existing nondeleted accounts cannot be reclaimed; legacy users are not silently reverified, migrated or granted new ownership.
+- DB lock/statement limits are 2s/4s with 5s intake/completion DB context; bounded Argon2 work precedes that context. Delivery context is 30s, detached finalization 5s; SMTP requires STARTTLS/TLS≥1.2, finite connection deadlines and HTTPS proof URLs, opt-in worker and separately approved sender/DB configuration. Remote SMTP work is not forcibly terminated; delivery is at-least-once.
+- Verification UI keeps proofs in memory, scrubs fragments, fences token-context/stale responses and survives StrictMode replay; 250ms polling covers silent history changes with synchronous submission/response checks. No localStorage/sessionStorage secret persistence or automatic authentication.
+- Cleanup removes at most 100 intents expired over seven days per intake, not an idle retention SLA. Coordinated frontend/API/schema/runtime-grant rollout is required; grants are explicit/table-level where defined. Rollback closes admission through approved routing/maintenance, retains additive schema/evidence, never restores unverified activation or blindly rolls back to incompatible privilege guards; no dedicated registration-disable flag is claimed.
+- Module #1 does not authorize SMTP activation, account recovery, immediate access-token revocation or deployment. Local development bypass/insecure-cookie flags require development/local mode; production authorization uses signed access tokens.
 
-| ADR | Decision | Status |
+## Providers and public projections
+
+- QuoteProvider → canonical MarketQuote → application service preserves exact RUB Decimal, UTC `AsOf`/`RetrievedAt`, provenance and deterministic FRESH/STALE/UNKNOWN validation. The delayed MOEX TQBR adapter is implemented but dormant; asset search keeps `lastPrice: null` without an approved runtime source and detail waits for complete provenance.
+- CorporateActionProvider/CorporateActionEvent supports validated provenance, correction/cancellation linkage, deterministic dated Calendar and count/density-only Heatmap. Source unavailable differs from a valid empty result; private SourceEventID is not public, supersession integrity fails closed, responses are no-store, and stale/unmounted/replaced frontend requests are bounded/cancelled.
+- Feature 3D implementation is complete only for `TINVEST_CORPORATE_ACTIONS_CONSTRAINED`; source/use CONDITIONAL-GO is not runtime activation. Only GetDividends/DIVIDEND and GetBondCoupons/COUPON; server-side read-only token, no raw redistribution, persistence, cross-request provider cache, background polling or automatic ledger mutation; retain FAQ/support conflict and exact registry limits.
+- Repository shared rolling limits retain endpoint global 48/60s, client 12/60s and provider 60/60s with at most four local operations; Redis failure fails closed. Caller cancellation cannot recycle capacity before independent local operation termination; arbitrary remote server computation termination is not guaranteed.
+- The public dividend calculator uses user-supplied ticker/quantity/dividend/unit-cost and backend exact Decimal gross/yield; no provider, tax calculation or portfolio mutation is implied.
+
+## Governance and existing detailed records
+
+The original 32-finding audit and OI-NEW P2 set have their bounded closure records in [original audit register](audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md) and [OI-NEW closure](audit/OI_NEW_P2_REMEDIATION_CLOSURE.md); no new global finding inventory is asserted here. Protected develop requires ten CI contexts, PR entry, conversation resolution, linear history, no normal admin bypass/force-push/deletion and squash-only merge policy; this edit changes no settings.
+Accepted ADR-001–007 and ADR-009 retain Documents 42–43 precedence; approved ADR-010 addendum is separate from its historical hash-pinned original. [Version Matrix](VERSION_MATRIX.md), [Open Questions](OPEN_QUESTIONS.md), [stage dossiers](stages/) and [Implementation Log](IMPLEMENTATION_LOG.md) retain full decisions, exact commits and test outcomes. Duplicated prose is removed, not replaced by Git-only contracts.
+The cleaned Stage 3.54 plan hash remains `f2b598c396bdcdda4168fca9b7ef51db0f3b154b3acfc2abc06501cffba897b1`; earlier `c266d5b7c867d2e6847bbe169b0a890a997a81f886f1876117117e52c85aecba` is historical, with unchanged machine-contract cardinalities/semantics.
+
+## Historical evidence and protected snapshots
+
+Detailed outcomes remain in the current [implementation log](IMPLEMENTATION_LOG.md), [original audit register](audit/REPOSITORY_AUDIT_REMEDIATION_REGISTER.md) and stage dossiers: [import identity](stages/STAGE_03_27_IMPORT_FINANCIAL_IDENTITY_REMEDIATION.md), [auth/session](stages/STAGE_03_28_AUTH_SECURITY_REMEDIATION.md), [CI/governance](stages/STAGE_03_34_CLOSURE.md), [timezones](stages/STAGE_03_37_IANA_TIMEZONE_SEMANTICS_CLOSURE.md), [retention](stages/STAGE_03_38_IDEMPOTENCY_SESSION_RETENTION_CLOSURE.md), [Next.js](stages/STAGE_03_42_NEXTJS_SECURITY_MAINTENANCE_CLOSURE.md), [Fiber](stages/STAGE_03_45_FIBER_MAINTENANCE_CLOSURE.md), [HTTP decomposition](stages/STAGE_03_48_HTTPAPI_DECOMPOSITION_CLOSURE.md), [validator](stages/STAGE_03_56_P3_08_MIGRATION_VALIDATOR_CLOSURE.md) and [provider boundary](stages/STAGE_03_58_MARKET_DATA_PROVIDER_BOUNDARY_CLOSURE.md). Their historical failures and review iterations are not relabeled PASS.
+The earlier Stage 3.34 closure draft `b208ddfdca9fcc3ddb3589fb7d47c698fa9f0dfa` received `changes required` for canonical-status drift; the linked closure dossier records the corrected final disposition.
+
+| Historical verification | Exact source | Original result / current dossier |
 | --- | --- | --- |
-| ADR-001 | Go and Fiber backend | Accepted |
-| ADR-002 | PostgreSQL canonical database | Accepted |
-| ADR-003 | OpenAPI-first contracts | Accepted |
-| ADR-004 | Versioned rebuildable snapshots | Accepted |
-| ADR-005 | Privacy by Design | Accepted; interpreted with Document 43 anonymization terminology |
-| ADR-006 | Stage 2 MVP contract and canonical model freeze | Accepted |
-| ADR-007 | Next.js App Router for Web presentation only | Accepted |
-| ADR-009 | Deterministic portfolio ledger ordering and Weighted-Average-Cost position semantics | Accepted / canonical through Issue #136 and PR #137 squash merge `b772e52221fbb694b3116bd1b579db99d4e56302` |
-
-## Version matrix
-
-The complete version and legacy-document matrix is maintained in `VERSION_MATRIX.md`. `DOCUMENT_INDEX.md` is the navigation registry.
-
-## Open questions
-
-No unresolved architecture questions exist at Freeze v1.2 activation. See `OPEN_QUESTIONS.md` for the controlled process.
-
-Stage 3.70 GitHub Issue #136 is RESOLVED / CLOSED COMPLETED. ADR-009 became accepted/canonical through protected PR #137 squash merge `b772e52221fbb694b3116bd1b579db99d4e56302`. Stage 3.71 was separately authorized and later completed through PR #138; Issue #136 did not itself authorize runtime implementation.
-
-
-## Stage 3.29 audit remediation closure governance
-
-Stage 3.29 is a narrow repository-audit remediation for P2-05, P2-06, P2-07, P2-08, and P2-15 only.
-
-Implementation PR #61 was squash-merged into `develop` at
-Canonical record: commit(s) `7331d3f34783baec3997497d1a79b78eaa558bd4`.
-`f9e70e70956c76edbc2ab02c52d45124b2dea525`; exact-head GitHub Actions CI #124 completed
-otherwise-valid financial inputs could still overflow `analytics.portfolio_snapshots`
-`NUMERIC(28,8)` aggregate/derived values. The remediation kept snapshot methodology SQL-owned,
-added same-transaction pre-persistence range admission for all persistence-bound snapshot metrics,
-and added PostgreSQL integration proof for cumulative deposit overflow, BUY component-sum overflow,
-Explicit merge gate was received before the squash merge.
-
-P2-05 maps malformed decimal command input to deterministic validation semantics. P2-06 enforces
-the 500-character stored-note contract at application/import boundaries. P2-07 aligns canonical
-Decimal/OpenAPI magnitude with `NUMERIC(28,8)` and guards persistence-bound derived and aggregate
-snapshot values. P2-08 makes portfolio/transaction JSON writes fail closed on unknown fields.
-P2-15 rejects duplicate normalized CSV headers before row normalization.
-
-Closure governance PR #62 passed exact-head CI #127 on
-Canonical record: commit(s) `d70cf8322bae8713e6a6808624fa1493a46ed0ad`.
-fresh explicit merge gate, and was squash-merged into `develop` at
-`0bfb3ea9f8e4cc7337a92caef5c7a73f9a8921bc`.
-
-Stage 3.29 is CLOSED for P2-05/P2-06/P2-07/P2-08/P2-15. At Stage 3.29 closure, the original audit
-backlog contained 12 P2 and 10 P3 findings. Later remediation does not alter that historical closure
-
-
-## Stage 3.30 audit remediation closure governance
-
-Stage 3.30 is a narrow repository-audit remediation for P2-02, P2-03, and P2-04 only.
-
-Canonical record: PR #63; commit(s) `8f68dd18800918e6a9882e995e13dba2723dc929`.
-exact implementation head was `2f788e0811d78c9def0502676a74bee2f9922bf5`; exact-head GitHub Actions CI #128 completed `SUCCESS`.
-
-P2-02 now binds a short-lived signed review token to explicit token/parser versions, subject and
-portfolio context, source label/file hash, every row identity, deterministic normalized parser
-semantics, final review semantics, and the set of rows that were APPENDABLE at review time. Append
-reparses the exact payload and fails closed on expiry or normalized semantic drift. Mutable
-post-review ledger races still reach the locked store, preserving the store as the final duplicate
-and identity authority. This does not close P2-09 or P2-13.
-
-P2-03 moves the 100-row computational admission limit into `ReviewCSV`: the parser fails when the
-101st data record is read, so HTTP and non-HTTP callers share the same bound.
-
-
-Closure governance PR #64 passed exact-head CI #132 on
-Canonical record: commit(s) `7d97f5f967074f98311adcd4b8f7962e0584c719`.
-fresh explicit merge gate, and was squash-merged into `develop` at
-`ae6497050692798795efb85678af64db97cc5f53`.
-
-Stage 3.30 is CLOSED for P2-02/P2-03/P2-04. At Stage 3.30 closure, the original audit backlog
-contained 9 P2 and 10 P3 findings. Later remediation does not alter that historical closure scope.
-
-
-## Stage 3.31 audit remediation closure governance
-
-Stage 3.31 is a narrow repository-audit remediation for P2-01 and P2-14 only.
-
-Canonical record: PR #65; commit(s) `9bf4d1d31597918eacf0c3358bf6caa2aa9db897`.
-exact implementation head was `82557c55c0772a66707088b858ec9eafc2073119`; exact-head GitHub Actions CI #133 completed `SUCCESS`.
-
-P2-01 is remediated by routing logout through authentication admission before request decoding,
-auth-service work, and rejected-auth persistence. Rate-limited requests therefore cannot create
-another rejected logout audit event. Logout now exposes the existing HTTP 429 `RateLimited` contract.
-
-P2-14 is remediated with finite per-key attempt count, finite global downstream-attempt budget per
-window, finite active key-bucket cardinality, and cross-key expired-bucket reclamation. Capacity
-exhaustion fails closed. The limiter remains process-local and no Redis/distributed limiter is claimed.
-
-Closure governance PR #66 was squash-merged into `develop` at
-`ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746`. P2-01/P2-14 are CLOSED. The original audit backlog
-separate and is not superseded.
-
-
-## Stage 3.32 audit remediation closure governance
-
-Stage 3.32 is a narrow repository-audit remediation for P2-09 and P2-13 only.
-
-Implementation PR #67 was squash-merged into `develop` at
-Canonical record: commit(s) `0623d5ef326cd783b7dc0417dbcb02f18c506171`.
-was `02aa2417a3caca79e2afc4e7b598b92055de96b7`; exact-head GitHub Actions CI #181 completed
-`SUCCESS` across all six jobs.
-
-P2-09 now persists the original versioned HTTP response artifact in the same PostgreSQL transaction
-as the financial mutation, replays stored bytes/status/request/trace identity without rereading mutable
-resource state, validates response-body integrity, serializes duplicate command resolution, survives a
-new Store connection, and preserves import replay only for otherwise-valid authentic expired review
-proofs. Legacy completed rows without an exact artifact fail closed.
-
-P2-13 now persists only short-lived opaque technical retry metadata in `sessionStorage`, derives the
-storage slot from SHA-256 of stable authenticated principal + operation + optional portfolio scope,
-preserves unresolved retry identity across reload/remount, rotates changed intent, clears confirmed
-success/conflict state, and isolates User A/User B retry journals in the same browser tab without
-persisting raw principal, portfolio, financial payload, CSV, review token, or auth tokens.
-
-principal-scoped. The remediation added stable-principal scoping and an explicit A→B→A regression.
-CLOSED with no new blocking regressions. Explicit merge gate was then
-received before PR #67 merged.
-
-Stage 3.32 is CLOSED for P2-09/P2-13. Closure governance PR #68 was squash-merged into `develop` at
-`a73b7f8c008d2f903e22e9b8a85b7c6248d6d3be`. The remaining original repository-audit backlog after
-Stage 3.32 closure was 5 P2 and 10 P3 findings: P2-10/P2-11/P2-12/P2-16/P2-17 plus all P3 findings.
-
-
-## Stage 3.33 audit remediation closure governance
-
-Stage 3.33 is a narrow repository-audit remediation for P2-10, P2-11, and P2-12 only.
-
-Implementation PR #69 was squash-merged into `develop` at
-Canonical record: commit(s) `87a7c38e16062a5f3fcef3727f60c0c6741eb805`.
-was `88ec8f739f7bcc96267c25f41560e1960d4d48d5`; exact-head GitHub Actions CI #199 completed
-`SUCCESS` across all six jobs.
-
-P2-10 moves ownership of the exact `snapshotDatesRebuilt` result into PostgreSQL. The database builds
-the deterministic union of imported trade dates and applicable existing later snapshots, and the
-DB-owned outcome is carried into the exact replay artifact before commit.
-
-P2-11 replaces per-trade-date cascading snapshot rebuilds on the canonical import path with one sorted,
-deduplicated affected-date plan rebuilt exactly once while the same-portfolio lock remains held.
-Version-based PostgreSQL regression coverage proves pre-existing later snapshots advance exactly once.
-
-P2-12 enforces the append-only runtime boundary with a dedicated least-privilege PostgreSQL capability
-role and fail-closed startup validation of the authenticated credential graph. Validation rejects
-privileged or masked sessions, protected-schema CREATE, protected-table owner/mutation capability,
-SET-reachable escalation roles, and `MEMBER WITH ADMIN OPTION` role-administration paths. PostgreSQL
-integration coverage proves legitimate append succeeds while direct mutation, masked-session,
-latent SET-role, and latent ADMIN OPTION escalation scenarios are rejected.
-
-only `current_user` was initially trusted. The first remediation added same-connection
-`session_user`/`current_user` validation and SET-reachable credential-graph checks. The second
-remained a latent escalation path. The second remediation rejected ADMIN OPTION capability as a class
-P2-10 CLOSED, P2-11 CLOSED, P2-12 CLOSED, no new blocking regressions, and `APPROVED`. Explicit human
-squash-merge authorization was received before PR #69 merged.
-
-Stage 3.33 is CLOSED for P2-10/P2-11/P2-12. Closure governance PR #70 was squash-merged into `develop`
-at `71a1faeb97d33d05f2936111b53f1285edddabe9`. The remaining original repository-audit backlog after
-Stage 3.33 closure was exactly 2 P2 and 10 P3 findings: P2-16/P2-17 plus all P3 findings. Stage 3.25
-
-
-## Stage 3.34 audit remediation closure governance
-
-Stage 3.34 is the separately governed final P2 remediation for P2-16 and P2-17 only. Planning PR #71
-was squash-merged into `develop` at `b4299bcdc28202c27388642dc7b426b159bb315c` after exact-head
-CI #205 and repeat independent planning `APPROVED` following correction of the initial admin-bypass
-planning defect.
-
-P2-17 implementation PR #80 was squash-merged into `develop` at
-Canonical record: commit(s) `c686a6721df51063ccf62a0303bb759d2215d60e`.
-`fd3a72a159161ec0bdf8018fdbf6e0a3da361885` passed primary exact-head CI #230 and secondary
-exact-head CI #229 with all ten jobs successful. The implementation preserved the original six jobs
-and added Go vet, PostgreSQL-backed Go race tests, pinned govulncheck, dependency security scanning,
-CLOSED CANDIDATE, and explicitly left P2-16 OPEN until repository settings were mechanically enforced.
-Explicit merge gate was received before PR #80 merged.
-
-P2-16 is now mechanically enforced by repository settings rather than policy alone. The repository is
-public after the separately authorized full-history public-release audit; `develop` is protected with
-pull-request entry, the ten final Stage 3.34 GitHub Actions checks, conversation resolution, linear
-history, no normal administrator bypass, force-push disabled, and deletion disabled. Repository merge
-policy is squash-only: squash enabled, merge commits disabled, rebase merge disabled.
-
-Canonical record: PR #82.
-`b208ddfdca9fcc3ddb3589fb7d47c698fa9f0dfa` returned `changes required` for canonical-status drift:
-`SOURCE_OF_TRUTH.md` and `ROADMAP.md` still represented Stage 3.33 / two remaining P2 findings as the
-current state. This revision synchronizes those higher-level governance documents. Because the head
-Canonical record: PR #82.
-fresh independent `APPROVED`, and explicit merge gate before merge.
-
-Stage 3.34 closure through PR #82 is canonical on `develop`. P2-16 and P2-17 are CLOSED and the original 32-finding audit backlog is exactly P0=0, P1=0, P2=0, P3=10 before Stage 3.35 P3-01 closure. After Stage 3.35 P3-01 closure, the remaining findings are P3-02 through P3-10. P3-09
-Next.js maintenance and P3-10 Fiber maintenance remain separately governed. Stage 3.25 privacy
-
-## Stage 3.36 audit remediation closure governance
-
-Stage 3.36 is the separately governed P3-03 OpenAPI Decimal Grammar remediation. Planning PR #87
-was squash-merged into `develop` at `251296e0831cbb0b81c7799cc82cbdf3b451ae6e`. Runtime PR #88
-was squash-merged into `develop` at `ebbc1c17b905e60d9e82337fc4a1ecd6cf9bccaa`; the frozen final
-runtime head was `131f1bf963e9d232b9e23273edd54caf54c10ffb` and exact-head GitHub Actions CI #257 /
-run `32822925542` completed successfully across all 10 required jobs.
-
-The runtime narrows `decimal.FromString` to the published ASCII Decimal grammar, rejects oversized
-lexemes before `big.Int` conversion, moves import review semantics to parser version 2, prevents a
-parser-v1 review token from authorizing a fresh financial write, and retains only authenticated exact
-read-only recovery of an already-completed parser-v1 import artifact. It does not alter Decimal
-arithmetic, rounding, PostgreSQL `NUMERIC(28,8)`, migrations, stored financial values, or any other
-P3 finding.
-
-Canonical record: PR #88, PR #89; commit(s) `7fd4e549e396cd9d99dff5c6d1678d0a4099fb70`, `9c83b68e28bbb8bc971620d3e00be5e177ce0820`.
-
-P3-03 is canonically CLOSED. The current original audit backlog is P0=0 / P1=0 / P2=0 / P3=8:
-P3-02, P3-04, P3-05, P3-06, P3-07, P3-08, P3-09, and P3-10. Stage 3.25 privacy evidence planning
-remains separate and is not superseded.
-
-## Stage 3.37 audit remediation closure governance
-
-Stage 3.37 is the separately governed P3-02 True IANA Timezone Semantics remediation. Planning PR #90
-was squash-merged into `develop` at `46f74528dcc19424ad087d30d4f2f778e2079b87`. Runtime PR #91
-was squash-merged into `develop` at `cb6d9b28cd47b1cd283b5861b916e0be627d0ac2`; the frozen final
-runtime head was `1a2f89a0fa5095b3cca790521afa484bdc61e8a6` and exact-head GitHub Actions
-CI #265 / run `32869754524` completed successfully across all 10 required jobs.
-
-The runtime validates the exact submitted timezone identity, rejects `Local`, surrounding-whitespace
-forms, and raw ASCII `±HH:MM` / `UTC±HH:MM` before resolver admission, explicitly retains `UTC`,
-delegates other exact identifiers to `time.LoadLocation`, retains `_ "time/tzdata"` only as fallback
-availability, preserves loadable identifiers such as `Etc/GMT+4`, and persists accepted identity
-unchanged. It does not alter BusinessDate, SQL `DATE`, SystemTimestamp, financial calculations,
-migrations, historical preference rows, or any other P3 finding.
-
-whitespace/raw-offset bypass; the revised candidate closed that bypass and received renewed
-wording in the implementation record. The independently pre-commit-approved documentation correction
-advanced the final head to `1a2f89a0fa5095b3cca790521afa484bdc61e8a6`; CI #265 succeeded on that
-
-Closure governance PR #92 was published from exact closure head
-`dc206d9d9cf68b00c182ce1a247e5dcc289e16e8`, passed exact-head GitHub Actions CI #266 / run
-`32880893193` with all 10 required jobs successful, received fresh independent closure `APPROVED`,
-received separate explicit human Ready + squash-merge authorization, and was squash-merged into
-`develop` at `305a53bb07136b274717ff48778a5e93d7b1607c`.
-
-P3-02 is canonically CLOSED. The current original audit backlog is P0=0 / P1=0 / P2=0 / P3=7:
-planning remains separate and is not superseded.
-
-## Stage 3.38 audit remediation planning status
-
-
-The planning candidate freezes a bounded 24-hour idempotency/replay authority window, persisted
-per-session expiry authority, post-serialization/post-lock expiry decisions, concurrency-safe
-exact-key reclamation, bounded 128-row opportunistic PostgreSQL cleanup, dedicated expiry-leading
-indexes, and mandatory expiry-boundary race regressions. The first independent pre-commit planning
-requires authoritative expiry time only after the relevant serialization point and received renewed
-independent pre-commit `APPROVED`.
-
-Stage 3.38 planning is not canonical merely because this candidate exists. It becomes canonical only
-P3-04, P3-06, P3-07, P3-08, P3-09, P3-10, and Stage 3.25 remain separately governed.
-
-## Stage 3.38 audit remediation closure governance
-
-Stage 3.38 is the separately governed P3-05 idempotency/session retention and cleanup remediation.
-Planning PR #93 was squash-merged into `develop` at `a944f1e5d5ee7d84db5393e8760eda254d732edd`.
-Runtime PR #94 published exact head `5ea8c6f4eddd735ea834dc4a27ecb70da7f81508`, which passed GitHub Actions
-CI #268 / run `32913862780` with all 10 required jobs successful and received fresh
-independent published-head `APPROVED` with P0/P1/P2/P3 = None. The user then separately authorized
-Ready + squash merge of that exact head. PR #94 was squash-merged into `develop` at
-`2df9946d77ee044a191a0422c8cccbbfe02dc7c9`, and `develop` was read back at that exact SHA.
-
-The runtime makes command/replay authority expire at the frozen 24-hour boundary, uses fresh PostgreSQL
-wall clock after required serialization for mutation authority, permits exact-key fresh-generation
-reclamation after expiry, removes expired-session containment/revocation authority, preserves
-revoked-but-unexpired Stage 3.28 containment, and performs bounded 128-row opportunistic cleanup with
-`ORDER BY expires_at,id` and `FOR UPDATE SKIP LOCKED` inside triggering mutation transactions.
-
-
-This closure candidate changes governance documentation only. It does not modify runtime code, SQL,
-OpenAPI, privileges, retention semantics, BusinessDate/SQL `DATE`, SystemTimestamp, Decimal or
-financial arithmetic, immutable ledger/snapshot rules, account deletion, Stage 3.25 privacy work, or
-P3-04/P3-06/P3-07/P3-08/P3-09/P3-10.
-
-Until the closure PR itself receives fresh independent closure `APPROVED`, exact-head green CI after
-publication, separate explicit merge gate, and is merged into `develop`, P3-05
-remains canonically OPEN and the original audit backlog stays P0=0 / P1=0 / P2=0 / P3=7. After that
-closure merge, P3-05 becomes CLOSED and the remaining backlog is P3=6: P3-04, P3-06, P3-07, P3-08,
-P3-09, and P3-10.
-
-## Stage 3.42 P3-09 closure governance
-
-Stage 3.40 planning is canonical through PR #100 at
-`559b57d0951cdc67125c2f72fc1fcfb34399e90e`. Stage 3.41 implementation is canonical through
-PR #101 final evidence head `d88be3c90231f374d7e6b7d94f4cd89e6788f700`, CI #291 / run
-`33277717164` with all 10 required jobs successful, and actual squash merge
-`a2cfeaa5ca68fdd951e2a99f69c96aec362fc416`.
-
-Stage 3.42 is documentation/governance-only closure activation and changes no runtime/dependency,
-OpenAPI, database, migration, security/session, financial, privacy, or architecture behavior.
-
-Before the approved Stage 3.42 closure record and synchronized canonical surfaces are present on
-protected `develop`, P3-09 remains OPEN. The original audit state is 27/32 closed (84.375%) with
-exactly five remaining findings: P3-06, P3-07, P3-08, P3-09, P3-10.
-
-Once the approved Stage 3.42 closure record and synchronized canonical surfaces are present on
-protected `develop`, P3-09 is CLOSED. The original audit state becomes 28/32 closed (87.5%) with
-exactly four remaining findings: P3-06, P3-07, P3-08, P3-10.
-
-No future Stage 3.42 PR number, published head, CI run, or squash-merge SHA is predicted here.
+| Stage 3.37 closure | `dc206d9d9cf68b00c182ce1a247e5dcc289e16e8`; [CI 32880893193](https://github.com/AsifAbbasov/OpenInvest/actions/runs/32880893193) | SUCCESS 10/10; [timezone closure](stages/STAGE_03_37_IANA_TIMEZONE_SEMANTICS_CLOSURE.md) |
+| Stage 3.45 closure | `e91faace81b76b14a51de4dea3a4c18d697998af`; [CI 33315057112](https://github.com/AsifAbbasov/OpenInvest/actions/runs/33315057112) | SUCCESS 10/10; [Fiber closure](stages/STAGE_03_45_FIBER_MAINTENANCE_CLOSURE.md) |
+| Stage 3.59 implementation | `8d3c23cdb257ea2134d9f0ebc7b11fa264144611`; [CI 33900806691](https://github.com/AsifAbbasov/OpenInvest/actions/runs/33900806691) | SUCCESS 10/10; [MOEX adapter](stages/STAGE_03_59_MOEX_ISS_QUOTE_PROVIDER_IMPLEMENTATION.md), production activation remains separate |
+| Stage 3.72 implementation | `b6cd7766a6a584440dfdd7d00c35c34c8553a9ff`; [CI 34091588982](https://github.com/AsifAbbasov/OpenInvest/actions/runs/34091588982) | SUCCESS 10/10; [position projection](stages/STAGE_03_72_PORTFOLIO_POSITION_PROJECTION_IMPLEMENTATION_CLOSURE.md) |
+
+Earlier documentation commit identities remain recorded for traceability: Stage 3.6 closure `fb651632036fabaa31ec92e9d28b5782ca0f92e5`, Stage 3.8 closure `cb9a392eb90ede954d9cc68b247bada13a1540d9`, and Stage 3.36 governance `7fd4e549e396cd9d99dff5c6d1678d0a4099fb70`. These references do not create new approval or runtime authority.
+The activation snapshots below retain their original bytes and historical outcomes. Embedded OPEN/CLOSED/candidate values apply to the cited activation point, not a new current release decision.
 
 <!-- OPENINVEST_HISTORICAL_ACTIVATION_TIME_SNAPSHOT_STAGE_03_52_BEGIN CURRENT_AUTHORITY=NO -->
 <!-- OPENINVEST_STAGE_03_52_WORKFLOW_AMENDMENT_STATE_V1_BEGIN -->
@@ -642,19 +165,6 @@ P3_08_STATE=OPEN_UNAFFECTED
 <!-- OPENINVEST_STAGE_03_53_P2_GOV_01_DISPOSITION_STATE_V1_END -->
 <!-- OPENINVEST_HISTORICAL_ACTIVATION_TIME_SNAPSHOT_STAGE_03_53_END -->
 
-## Stage 3.51 P3-07 post-merge closure / forensic record
-
-Stage 3.49 planning is canonical through PR #109 squash merge `cfcc384a97327cc8b74aa05567b9629abf40a5fb`. Stage 3.50
-implementation is canonical through PR #110 squash merge `915d42f614121959fface9846a07cc1b412febe2` from exact published head
-`be774b3a8423ffba98633b257983856b2c990b95`, with form blob `8968fc9c5a91ba9d314c5f1fb29368793d6c6f61`, focused-test blob `12df8f19344829772f7eea3412edd33e131257bc` and CI #306 / run
-`33499393962` at 10/10 SUCCESS.
-
-The Stage 3.50 evidence lifecycle remains historically noncompliant. P2-GOV-01 is now dispositioned,
-not erased or rewritten, through Stage 3.53 / PR #112 protected squash merge `ea1f204eab47bf16566096722d6390557b8141af` under
-canonical REVIEW_WORKFLOW v1.4.0.
-
-Canonical record: PR #113; commit(s) `072350205b2746bdcd83f20718eb59efcd0478ef`, `1868749965fa1c113875592668afaa8f1f1ca35e`.
-
 <!-- OPENINVEST_HISTORICAL_ACTIVATION_TIME_SNAPSHOT_STAGE_03_51_BEGIN CURRENT_AUTHORITY=NO -->
 <!-- OPENINVEST_STAGE_03_51_P3_07_POST_MERGE_STATE_V1_BEGIN -->
 SCHEMA=OPENINVEST_STAGE_03_51_P3_07_POST_MERGE_STATE_V1
@@ -692,16 +202,6 @@ FORENSIC_NARRATIVE=STAGE_03_51_DOCUMENT
 BRANCH_DELETION_AUTHORIZED=NO
 <!-- OPENINVEST_STAGE_03_51_P3_07_POST_MERGE_STATE_V1_END -->
 <!-- OPENINVEST_HISTORICAL_ACTIVATION_TIME_SNAPSHOT_STAGE_03_51_END -->
-
-## Stage 3.54 / 3.55 / 3.56 P3-08 migration-validator closure governance
-
-Stage 3.54 planning is canonical through PR #115 squash merge `b79a9d3c43621e56e598901bdf472771e8b68ef8`, with approved plan blob `90fa563b9256b19055e2c14e52909596b392f221` and SHA-256 `c266d5b7c867d2e6847bbe169b0a890a997a81f886f1876117117e52c85aecba`.
-
-Canonical record: PR #116; commit(s) `9df58319b59a1bd3ab9817d07d59c3b3c36a1b1a`, `6d894f710329332f2f64b7d280a9b27a94be86d9`, `6a443969aef944bde0946d36c79f67ddb87c28fe`.
-
-Stage 3.56 independently replays the canonical §30 closure evidence: PLAN 18/18, H 269/269, SA 82/82 exact, S2 168/168, P3D 27/27, FD 19/19, R 75/75, TC execution ledger 631/631 with no missing/duplicate IDs, MPROP 631 exact TC bijection, 1895/1895 property mutations killed, 31/31 extra red-team killed, one taxonomy authority, observer closure 89+79=168, historical SQL 14/14 byte-identical, and PostgreSQL apply→DOWN→baseline→reapply plus all ten required CI checks green.
-
-Canonical record: PR #117; commit(s) `02e9ef82ed087a892928dc643adccbdfa1ed9600`, `2840e55f7a62e2f64a148947fe7e22236228a9d5`, `983104267221706c3c2ebd8d9be358e3921334b5`.
 
 <!-- OPENINVEST_STAGE_03_56_P3_08_CLOSURE_STATE_V1_BEGIN -->
 SCHEMA=OPENINVEST_STAGE_03_56_P3_08_CLOSURE_STATE_V1
@@ -755,118 +255,3 @@ SCHEMA_DATA_SQL_OPENAPI_FRONTEND_DEPENDENCY_CHANGE=NONE
 REMOTE_MUTATION_AUTHORIZED_BY_RECORD=NO
 BRANCH_DELETION_AUTHORIZED=NO
 <!-- OPENINVEST_STAGE_03_56_P3_08_CLOSURE_STATE_V1_END -->
-
-## Stage 3.57 / 3.58 market-data provider-boundary Feature 1 closure
-
-Stage 3.57 planning is canonical through PR #119 squash merge
-`8316d404d057f0a895713bd1d496a342409903c4`, with planning blob
-`6ddd4682b49a6a259c64474d9adf8882279eca5d` and approved SHA-256
-`e85fc028550663b51daafdea14deddc18f79ae1a3c917e3f5a8c414d5f5ce8ed`.
-
-Stage 3.57 Feature 1 implementation is canonical through PR #120 squash merge
-`cd97f3217811bb123ad96d92b7d8a4be0e03c8bb`. The final authorized PR tree is
-`0510971289c204e9b5226359f2efdd1941542309`, identical to the protected merge tree.
-Final evidence head `35db51707fce970e67bf9d5a9485f79619ec366d` passed CI #321 / run
-`33861987999` with all ten required jobs successful after a same-head retry of an external
-verification were `APPROVED` with no blocking finding and no semantic/runtime drift.
-
-The implementation establishes the provider-neutral `QuoteProvider` → canonical `MarketQuote` →
-application-service boundary, decimal RUB money preservation, distinct UTC `AsOf` / `RetrievedAt`,
-minimal provider provenance, deterministic derived `FRESH` / `STALE` / `UNKNOWN` freshness, and
-fail-closed canonical validation. It does not connect MOEX ISS, parse provider wire schema, enable a
-production provider, change OpenAPI/SQL/frontend, persist quotes, add cache/workers, or enrich
-production asset search; `lastPrice: null` therefore remains honest current production behavior.
-
-Stage 3.58 is the documentation/governance-only lifecycle closure for that already-merged runtime.
-It changes no development surface. Its closure becomes canonical only when the approved Stage 3.58
-record and synchronized `SOURCE_OF_TRUTH.md`, `ROADMAP.md`, and Stage 3.57 implementation record are
-present on protected `develop` after the mandatory governance/closure path.
-
-Feature 2 — a real MOEX ISS provider adapter and any production wiring/source activation — remains a
-separate governed stage and is not authorized by Stage 3.58.
-
-## Stage 3.59–3.69 market-data, Corporate Actions, and Dividend Calculator lifecycle
-
-Stage 3.59 real MOEX ISS quote-provider planning is canonical through PR #122 squash merge
-`edf3ffc24c3813f884fd3a4f8a7e9630cb9b8322`. The delayed TQBR adapter implementation is canonical through
-PR #123 squash merge `f55ad38c1f5ea52ba4502904fefa51c164c45006`, from final evidence head
-`8d3c23cdb257ea2134d9f0ebc7b11fa264144611` / tree
-`42596285fa8de467108ee1553b1575718761c7f2`, after CI #332 / run `33900806691` 10/10 and exact
-evidence-publication verification `APPROVED`.
-
-Canonical record: PR #124; commit(s) `7c022e6de1ab0a86ebf96ede48fafabc15b9f71c`.
-
-Canonical record: PR #125; commit(s) `0e449b4d729e4388081be4990c034c67c5e5019a`.
-
-Stage 3.62 / Feature 3A is canonical through PR #126 squash merge
-`fbbca6aeee7c12300a37eb5748628275aac427e4`, establishing the application-owned `CorporateActionProvider`,
-canonical `CorporateActionEvent`, validation, provenance and correction/cancellation linkage.
-
-Stage 3.63 / Feature 3B is canonical through PR #127 squash merge
-`a8f9e95c065ee708885461166e1e992d1f4aae22`, establishing deterministic current Calendar projection and
-count/density-only Heatmap projection with fail-closed supersession integrity and no monetary aggregation.
-
-Stage 3.64 / Feature 3C is canonical through PR #128 squash merge
-Canonical record: commit(s) `c204ee9eee320e6171b55983cfde5cf74a2008df`.
-`9bbcf6d3f0f4a3b87e06a944869fb6e4ef722784` passed CI #344 / run `33927609434` 10/10 and fresh External
-`f4631c04efd0ae47eaa46d7f38ef916f350c100f` / tree
-`33dd90d3928286c7d2628dd56e7d9f55eece08b5` passed CI #345 / run `33927918258` 10/10; exact
-evidence-publication verification `5547451403` returned `APPROVED` with runtime/test semantic drift `NONE`.
-The protected squash-merge tree is exactly the approved final evidence tree.
-
-The merged Corporate Actions product surface is provider-neutral and fail-closed:
-canonical event boundary → Calendar/Heatmap projection → Go HTTP/OpenAPI → typed Next.js client → Calendar/Heatmap UI.
-`CORPORATE_ACTIONS_SOURCE_UNAVAILABLE` remains distinct from a legitimate empty provider result; Heatmap remains
-event-density only; provider-owned `SourceEventID` is not public; responses use `Cache-Control: no-store` while source
-rights remain unapproved; no real corporate-actions provider is activated.
-
-Stage 3.65 documentation/governance closure is canonical through PR #129 squash merge
-`1c30a4bf637c933e7c210cff6e26fabd91d8bab1`, protected tree
-`4ba610c1d20c95f10a5a16a6a0ece6caceb3236e`; Corporate Actions architecture/API/UI implementation debt is
-documentation-closed.
-
-Stage 3.66 request-cancellation hardening is canonical through PR #130 squash merge
-`7564dbbda9133f0b8965f9e7d0a0c0b81b82e992`, protected tree
-`b525f0960cb2613f62eaa9583d6394759a1cdd3b`, after semantic CI #347 and evidence CI #348 both 10/10 SUCCESS.
-Stage 3.67 documentation/governance closure is canonical through PR #131 squash merge
-`c885f6e57ea08e4583103fe2f22f142bf13a8560`, protected tree
-`53f823e92b02721211e1d89f8af6374fffc252ae`. The previously carried component-unmount cancellation P3 and the
-Stage 3.66 lifecycle/documentation debt are CLOSED.
-
-Stage 3.68 Dividend Calculator is canonical through PR #133 squash merge
-`6fb395ffcef12840133dac27294f653276adcdf6`, protected tree
-`be09503ceaafb8781cc82829f98e37cda5c6be6b`. Semantic head
-`c4a87bf8cf4eeefc3dbf3e130e1a9e21b623952c` passed CI #352 / run `33972964583` 10/10 and fresh External
-Canonical record: commit(s) `014a594695b94b9af424b06a3e38590fbb5281ff`.
-`33974141987` 10/10 and exact evidence-publication verification APPROVED with no runtime/product/API/database/math/
-security/dependency semantic drift. The calculator is public and provider-independent: users supply ticker, quantity,
-dividend per unit and optional position cost; Go owns exact Decimal gross-dividend/gross-yield calculation; the Web
-frontend only submits exact strings and presents backend results. No provider, tax logic, portfolio mutation, OpenAPI
-change, schema/migration or new dependency was introduced.
-
-Stage 3.69 Dividend Calculator closure governance is canonical through PR #134 from exact published head
-`e98bad4b2431eb7f45a5bfff17c3601c49554b45`, CI #354 / run `33983374426` 10/10 SUCCESS and exact published-head
-closure verification `APPROVED`, then squash-merged into protected `develop` at
-`fee7de358f0919802e16a398b19c8947bc852645`, protected tree
-`e7c9ddb96a5bf7add5204ccdf54aa20c190a0014`. Stage 3.68 lifecycle/documentation closure is COMPLETE. The Stage 3.68
-implementation record remains the detailed implementation/evidence chronology but is explicitly marked historical for
-pre-merge status and points to Stage 3.69 for current lifecycle state.
-
-Feature 3D remains separately gated by exact source/use rights, licensing/cost acceptance, public-display rights,
-composition. Stage 3.68/3.69 does not authorize provider-derived live dividend data or a real Corporate Actions source.
-
-## OI-NEW P2 remediation closure
-
-OI-NEW P2 remediation: **CLOSED 8/8**.
-
-The completed set establishes PostgreSQL runtime least privilege, truthful auth/storage error classification, cheap public readiness with controlled startup integrity checks, explicit HTTP timeouts, explicit trusted-proxy client-IP semantics, bounded retroactive replay with exact weighted-average cost, transient-auth state preservation, and Portfolio Summary `asOfDate` contract/runtime alignment.
-
-Technical closure details: [`audit/OI_NEW_P2_REMEDIATION_CLOSURE.md`](audit/OI_NEW_P2_REMEDIATION_CLOSURE.md).
-
-Documentation-cleanup baseline: PR #190 / squash merge `8bcb2d1bba3454de1262ddc4e045fddf299a9564` from exact head `b5bbfa9ea9cbb5eb9d758e573419e1d376e4fb21` after CI #548 / run `35334163751` with 10/10 required jobs successful. This registry intentionally does not pin the mutable `develop` tip; later canonical commits do not reopen P2.
-
-This closure does not authorize P3, Stage 3.78+, provider activation, or other runtime scope.
-
-## Migration-validator documentation contract identity
-
-The current cleaned Stage 3.54 plan is pinned by SHA-256 `f2b598c396bdcdda4168fca9b7ef51db0f3b154b3acfc2abc06501cffba897b1`. The earlier SHA-256 `c266d5b7c867d2e6847bbe169b0a890a997a81f886f1876117117e52c85aecba` remains the historical identity of the pre-cleanup protected artifact. Machine-contract registry cardinalities and validator semantics are unchanged.

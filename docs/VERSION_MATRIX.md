@@ -1,15 +1,6 @@
 # Version Matrix
-
-Reading scope: preserve this full version/compatibility register and its dated evidence. Historical “current”/“next” labels describe the cited stage or review, not a fresh global status assessment. For later Module #1 integration use the [technical record](audit/MODULE1_TECHNICAL_CLOSURE.md); for documentation classifications use the [Phase 3 disposition](governance/DOCUMENTATION_PHASE3_DISPOSITION.md).
-
-| Field | Value |
-| --- | --- |
-| Document ID | REG-VER-001 |
-| Version | 1.2.8 |
-| Status | Approved |
-| Supersedes | None |
-| Dependencies | Documents 42–43 |
-
+Document ID: REG-VER-001; Version: 1.2.8; approved version/compatibility register under Documents 42–43. Review dates and stage-relative labels are historical metadata, not a fresh compatibility or deployment certification.
+[Source of Truth](SOURCE_OF_TRUTH.md) defines current boundaries; [Implementation Log](IMPLEMENTATION_LOG.md) and [stage dossiers](stages/) retain exact CI/commit chronology; [Module #1 technical record](audit/MODULE1_TECHNICAL_CLOSURE.md) records later integration. Registry priorities and review requirements below are unchanged.
 
 | Range | Version | Status under Freeze v1.2 | Priority | Owner | Review |
 | --- | --- | --- | --- | --- | --- |
@@ -25,18 +16,10 @@ Reading scope: preserve this full version/compatibility register and its dated e
 | Stage 3.77 Portfolio Money-Weighted Return / XIRR | 1.0.0 | Complete / canonical through PR #157; backend-owned ACT/365 XIRR with exact-date `USER_SUPPLIED` RUB terminal valuation; TWR/real/inflation/FX/provider activation remain dormant | 3 | Principal Architect | Before Stage 3.78+ return methodology, automated/provider valuation, tax-basis or accounting expansion |
 | Stage 2 contract artifacts | 1.0.x | Closed / canonical baseline on `develop` at `bfde623552ebea6eac7bdaabf0d1a2263883de12` | 3 | Principal Architect | 2026-12-25 |
 | Web presentation amendment | 1.0.x | Closed / canonical Web baseline on `develop` at `6a7748cc24fc852d42b90b0e0cb843b6020f3973` | 3 | Principal Architect | 2026-12-26 |
-Canonical record: PR #53; commit(s) `03908905b74da5c35d2fee71c2ed4956e4c06464`, `544ad8cc7371caf93913ea7716f3feb68be0ea44`.
 | Stage 3.17 privacy lifecycle planning | 0.1.1 | Complete / merged through PR #46 at `1e8c240` | 3 | Principal Architect | Historical planning gate closed; successor Stage 3.18 |
 | Stage 3.18 privacy contract and security proposal | 0.1.1 | Complete / merged through PR #47 at `4680e9c1b7b916169972c84ad8c3879955c7f509` | 3 | Principal Architect | Historical proposal closed; successor Stage 3.19 |
 | Stage 3.19 privacy security and ADR proposal | 0.1.1 | Complete / merged through PR #48 at `fdf74c16446e7623f76882aa7add64554141abc6` | 3 | Principal Architect | Historical proposal closed; successor Stage 3.20 |
-Canonical record: PR #49; commit(s) `849d934906f878a6d79ba89e940e5ba470e64c09`.
-Canonical record: PR #50; commit(s) `207325e0497cc2608b99366f7f840472d270b6ed`.
-Canonical record: PR #51; commit(s) `5f42d32db1e045c23fb99a5af8f136b7a49e3bc2`.
-Canonical record: PR #52; commit(s) `f7f23bce33038f259c976db6375079c68209a7aa`.
-Canonical record: PR #53; commit(s) `544ad8cc7371caf93913ea7716f3feb68be0ea44`.
 | Stage 3.27 import financial identity and cash-flow semantics remediation | 0.1.0 | Complete / closed for P1-02/P1-03/P1-04; implementation merged through PR #55 at `6e8c806de857f844954f1db513487357dfe90187` after exact-head CI #90, renewed independent `APPROVED`, and explicit human merge approval; closure governance recorded through PR #58 | 3 | Principal Architect | P1-01/P1-05 were intentionally deferred to the separate Stage 3.28 remediation |
-Canonical record: PR #59, PR #60; commit(s) `dc83f5f3a11da164e6809593861d96ccf47b29ca`, `92edab5d3e93dafe2fcc6247644e38e878a4202f`, `0ddc618a3450ea81fd4befb3b10c959b3cb82a25`.
-Canonical record: PR #61, PR #62; commit(s) `7331d3f34783baec3997497d1a79b78eaa558bd4`, `f9e70e70956c76edbc2ab02c52d45124b2dea525`, `0bfb3ea9f8e4cc7337a92caef5c7a73f9a8921bc`.
 | Stage 3.30 import review integrity | 0.1.0 | Complete / closed for P2-02/P2-03/P2-04; implementation merged through PR #63 at `8f68dd18800918e6a9882e995e13dba2723dc929`; closure governance merged through PR #64 at `ae6497050692798795efb85678af64db97cc5f53` | 3 | Principal Architect | Stage 3.25 and remaining P2/P3 stay separate |
 | Stage 3.31 authentication operational hardening | 0.1.0 | Complete / closed for P2-01/P2-14; implementation merged through PR #65 at `9bf4d1d31597918eacf0c3358bf6caa2aa9db897` after exact-head CI #133 and independent final `APPROVED`; closure governance merged through PR #66 at `ebc8222d2fdd03b6e3cbdb185bd3db6d0a6b4746` | 3 | Principal Architect | 7 P2 and 10 P3 remained after Stage 3.31 closure; Stage 3.25 separate |
 | Stage 3.32 exact idempotency replay and browser retry recovery | 0.1.0 | Complete / closure canonical through PR #68 at `a73b7f8c008d2f903e22e9b8a85b7c6248d6d3be`; P2-09/P2-13 CLOSED | 3 | Principal Architect | Historical closed stage |
@@ -61,12 +44,8 @@ Canonical record: PR #61, PR #62; commit(s) `7331d3f34783baec3997497d1a79b78eaa5
 | Stage 3.8 import review append flow slice | 0.1.x | Closed / merged into `develop` at `1a1d08249e252c5a3ab3f275b5fae848d5bc0e79` | 3 | Principal Architect | 2027-01-03 |
 | Stage 3.9 import API boundary planning | 0.1.x | Closed / merged into `develop` at `5cde1ca0232921d306d5e9337e4a0ba9455404ab` | 3 | Principal Architect | 2027-01-08 |
 | Stage 3.9 import API boundary slice | 0.1.x | Closed / merged into `develop` at `b749a1632791127e0e2d4f99a91cb95eafc88898`; closure docs at `682ffd856395a6e3e988817551a512898fda2d38` | 3 | Principal Architect | 2027-01-08 |
-Canonical record: commit(s) `27480d6ff22e2929e33aeac352aef8a1b01bb448`.
-Canonical record: commit(s) `e19a1a0ea4b0b183687bd89daabdfbc973daea71`.
 | Stage 3.11 authentication and privacy-boundary planning | 0.1.x | Closed / merged into `develop` at `34a31b7bb379db8a59ecc52f2cd32697be3fe125` | 3 | Principal Architect | 2027-01-09 |
 | Stage 3.11 authentication and privacy-boundary slice | 0.1.x | Closed / merged into `develop` at `5c49173ac858995929f266c2de991282dd194dec` | 3 | Principal Architect | 2027-01-09 |
-Canonical record: commit(s) `25be13ce84844562e0381b79f4b81cbfed7eb44d`.
-Canonical record: commit(s) `b4840b60346109e3cd54a07d9e1e131fc0cfad23`.
 | Stage 3.13 instrument catalog planning | 0.1.x | Closed / merged into `develop` at `ca16af9adba249fc8c32c9b246b5f92f7e290b92` | 3 | Principal Architect | Completed before Stage 3.14 planning |
 | Stage 3.13 instrument catalog slice | 0.1.x | Closed / merged into `develop` at `b9c05fb14d0ee03e6de4dfc04ff67c16da33040b` | 3 | Principal Architect | Completed before Stage 3.14 planning |
 | Stage 3.13 closure governance | 0.1.x | Closed / merged into `develop` at `45a298e3ba36dbe711fa27b8d044d80a77cfd74a` | 3 | Principal Architect | Completed before Stage 3.14 planning |
@@ -74,12 +53,10 @@ Canonical record: commit(s) `b4840b60346109e3cd54a07d9e1e131fc0cfad23`.
 | Stage 3.14 asset search/card API boundary slice | 0.1.x | Closed / merged into `develop` at `57a9404952cb65693614109dd4a14d41fa5c4295` | 3 | Principal Architect | Completed before Stage 3.15 planning |
 | Stage 3.14 closure governance | 0.1.x | Closed / merged into `develop` at `f5289eb604b8ba31aa422d0d09950da02e0f48b3` | 3 | Principal Architect | Completed before Stage 3.15 planning |
 | Stage 3.15 Web asset discovery UI planning | 0.1.x | Closed / merged into `develop` at `dfeab109b2825fe0e0317e87a7abf2e706a29ea6` | 3 | Principal Architect | Completed before Stage 3.15 implementation |
-Canonical record: commit(s) `22bede651a646d0e8b06568bda457d0626891e63`.
 | Stage 3.15 closure governance | 0.1.x | Closed / merged into `develop` at `9eec98c36d7aeffb21dc2d7e7e0eb1681106901d` | 3 | Principal Architect | Completed before Stage 3.16 planning |
 | Stage 3.16 repository audit planning | 0.1.x | Closed / merged into `develop` at `74eebe9ec8231764f21ce384c4690d073d0273da` | 3 | Principal Architect | Mandatory full repository audit returned `changes required` |
 | Stage 3.16 repository audit report | 0.1.x | Complete / returned `changes required` | 3 | Principal Architect | Manifest SHA `1fd740a8d5bca3afd05daa3268c079bae3a7a331a043ecdff5d35734ac77604e` |
 | Stage 3.16 repository audit coverage manifest | 0.1.x | Complete / 200-path immutable coverage record | 3 | Principal Architect | Audited target `74eebe9ec8231764f21ce384c4690d073d0273da` |
-Canonical record: commit(s) `9e6b8a753bf73ef020ce40461df25a5878344d92`.
 | Documents 28–39 | 2.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Document 40 | 3.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
 | Documents 1–27, 41 | 1.0 | Legacy normative | 4 | Principal Architect | 2026-12-19 |
@@ -87,11 +64,8 @@ Canonical record: commit(s) `9e6b8a753bf73ef020ce40461df25a5878344d92`.
 
 `Legacy normative` means applicable only when not superseded or contradicted by a higher-priority source.
 
-Stage 3.76 historical implementation authority
+Historical Stage 3.74/3.75 implementation outcomes and exact CI evidence remain in [ledger-repair](stages/STAGE_03_74_TRANSACTION_CORRECTION_REVERSAL_IMPLEMENTATION.md) and [cash/income](stages/STAGE_03_75_PORTFOLIO_CASH_FLOW_INCOME_IMPLEMENTATION.md); version/priority/review rows above remain authoritative in their scope.
 
-| Scope | Authority | Evidence |
-| --- | --- | --- |
-| Stage 3.74 Transaction Correction & Reversal / Ledger Repair UX | COMPLETE / CANONICAL | PR #150; final head `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02`; CI #435 / run `34117662576` 10/10 SUCCESS; protected squash merge `0580bf7e98c532202f84bbf9ceacd97aedbe4140` |
-| Stage 3.75 Portfolio Cash Flow & Income Truth | COMPLETE / CANONICAL | PR #153; implementation head `f97f44016d22e783980c47bbde4799a3124623f4`; CI #459 / run `34155729975` 10/10 SUCCESS; External `APPROVED`; evidence head `fae674518e37d11cad0da28d91682c35bf8bf99a`; CI #460 / run `34156290105` 10/10 SUCCESS; no-drift verification `APPROVED`; protected squash merge `57faae841805a5ab11ac959018a315cbada69207` |
 Canonical record: PR #155; commit(s) `f89e1e793ef505c31bf76de7d43c4d40fdd9c38b`, `5971ae4bf5461dd562d7a73289b5942b02f962ba`, `e00699f8d455bcbaea0c1dc69ce534460fea6ff9`.
+
 Canonical record: PR #157; commit(s) `b3bc17e710e306f9d1a4d7be95dfe56b3f7202ba`, `e91e28e96416d9510962a66c1399459844574bba`, `63d916b447e91c4de54efee5c66b27cf7727be92`.
