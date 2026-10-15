@@ -1,6 +1,8 @@
 # Module #1 — PR265 evidence provenance and proposed procedural disposition
 
-Status: PROPOSED_OWNER_DISPOSITION; PR265_PROCEDURAL_ACCEPTANCE=PENDING.
+Current owner disposition: [approved closeout decisions](MODULE1_OWNER_CLOSEOUT_APPROVALS_V1.md). Earlier proposed/pending statements below record the pre-approval package and are superseded only as to these three decisions; historical evidence and residuals remain unchanged.
+
+Status: OWNER_APPROVED_SUPPLEMENTAL_EVIDENCE; PR265_PROCEDURAL_ACCEPTANCE=APPROVED.
 This is a provenance record, not a campaign extension or a new test authorization.
 
 ## Clock and authorization chronology (UTC)

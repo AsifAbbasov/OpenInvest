@@ -1,6 +1,8 @@
 # Module #1 — JWT-02 and JWT-03 policy decision record
 
-Status: DECISION_PACKAGE; JWT02_OWNER_APPROVAL=PENDING.
+Current owner disposition: [approved closeout decisions](MODULE1_OWNER_CLOSEOUT_APPROVALS_V1.md). Earlier proposed/pending statements below record the pre-approval package and are superseded only as to these three decisions; historical evidence and residuals remain unchanged.
+
+Status: OWNER_APPROVED_OPTION_A; JWT02_OWNER_APPROVAL=APPROVED.
 Implementation frozen at PR266 e982d5a68e083a9e65b7f80b902f746b1b408bcb.
 No verifier/parser change is part of this documentation PR.
 
@@ -15,7 +17,7 @@ contract was found in ADR-006/OpenAPI. The original negative assertions remain R
 PR266 changed only identity consistency. Its green CI is not a green future-iat suite.
 Historical source fixtures preserve the full RED assertions rather than weaken them.
 
-### Option A — recommended for current closeout; NOT APPROVED
+### Option A — approved for current closeout
 
 Accept the existing lack of future-iat comparison as a documented residual. Keep
 exp <= now rejection unchanged; introduce no iat restriction or compatibility fallback.

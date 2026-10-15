@@ -1,12 +1,14 @@
 # ACCESS_JWT_IDENTITY_POLICY_V1
 
+Current owner disposition: [approved closeout decisions](../audit/MODULE1_OWNER_CLOSEOUT_APPROVALS_V1.md). Earlier proposed/pending statements below record the pre-approval package and are superseded only as to these three decisions; historical evidence and residuals remain unchanged.
+
 | Field | Value |
 | --- | --- |
 | Policy status | Approved by project owner on 2026-10-15 |
 | Approval evidence | Explicit owner message headed OPENINVEST — FORMAL JWT CONTRACT APPROVAL in the implementation conversation |
 | Implementation | PR #266, e982d5a68e083a9e65b7f80b902f746b1b408bcb |
 | Security review | ACCEPT_JWT01_REMEDIATION, as supplied by the owner in the architecture-closeout directive |
-| Broader ADR status | ADR-006 Accepted; ADR-010 remains Proposed |
+| Broader ADR status | ADR-006 Accepted; ADR-010 addendum owner-approved; original pinned ADR unchanged |
 
 ## Approved rule
 

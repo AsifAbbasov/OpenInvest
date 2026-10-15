@@ -1,5 +1,7 @@
 # Module #1 — architecture acceptance and integration readiness
 
+Current owner disposition: [approved closeout decisions](MODULE1_OWNER_CLOSEOUT_APPROVALS_V1.md). Earlier proposed/pending statements below record the pre-approval package and are superseded only as to these three decisions; historical evidence and residuals remain unchanged.
+
 Status: OWNER_DECISION_PACKAGE; MODULE1_CLOSED=NO. Prepared 2026-10-15.
 No production implementation, test or workflow change is made by this package.
 The original ADR010 is preserved byte-identically as migration 000015 authority;
@@ -231,3 +233,7 @@ JWT02_OWNER_APPROVAL=PENDING; PR265_PROCEDURAL_ACCEPTANCE=PENDING;
 READY_FOR_OWNER_ARCHITECTURE_DECISION=YES;
 READY_FOR_FINAL_MODULE1_GATEKEEPER=NO_PENDING_OWNER_DECISIONS;
 MODULE1_CLOSED=NO; MERGE_PERFORMED=NO; DEPLOY_PERFORMED=NO.
+
+## Current closeout review gate
+
+The three owner decisions are approved in the linked nine-line record. Owner-decision blockers above are resolved; the preparation snapshot is retained as history. Next technical review is Main Chat Review; automatic Gatekeeper delegation is not authorized. Consolidated integration review, exact candidate CI, separate merge authorization and post-merge verification remain required. SMTP/recovery/immediate JWT revocation/deployment stay separately gated; Module #1 is not formally closed.

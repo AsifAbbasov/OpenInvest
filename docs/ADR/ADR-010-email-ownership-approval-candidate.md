@@ -1,10 +1,12 @@
 # ADR-010: Email ownership before new account activation
 
+Current owner disposition: [approved closeout decisions](../audit/MODULE1_OWNER_CLOSEOUT_APPROVALS_V1.md). Earlier proposed/pending statements below record the pre-approval package and are superseded only as to these three decisions; historical evidence and residuals remain unchanged.
+
 | Field | Value |
 | --- | --- |
 | Document ID | ADR-010 |
 | Version | 1.1.0 approval candidate |
-| Status | Proposed |
+| Status | Approved by project owner, 2026-10-15; original pinned ADR unchanged |
 | Supersedes | Registration/session issuance portion of ADR-006 only after explicit architecture approval |
 | Dependencies | ADR-006; ADR-007; OpenAPI; ACCESS_JWT_IDENTITY_POLICY_V1 |
 | Implementation snapshot | PR #266, e982d5a68e083a9e65b7f80b902f746b1b408bcb |
