@@ -1,33 +1,15 @@
-# Architecture Decision Records
-
-ADRs are immutable after acceptance. If a decision changes, create a new ADR that supersedes the previous record.
-
-## Current records
-
-- ADR-001 through ADR-007 are accepted subject to Documents 42-43.
-- [ADR-008](ADR-008-privacy-lifecycle-erasure-and-restore.md) is proposed and non-normative until
-- [ADR-009](ADR-009-deterministic-portfolio-ledger-ordering-and-wac.md) is merge-activated under GitHub Issue #136:
-  Proposed/non-normative before the required development-path gates; Accepted only after explicit
-  Principal Architect acceptance and squash merge of the exact decision to protected `develop`.
-
-## Template
-
-```markdown
-# ADR-NNN: Decision title
-
-- Status: Proposed | Accepted | Superseded
-- Date: YYYY-MM-DD
-- Supersedes: ADR-NNN (optional)
-
-## Context
-
-What forces and constraints require a decision?
-
-## Decision
-
-What is the chosen approach?
-
-## Consequences
-
-What benefits, costs, risks, and follow-up work result?
-```
+# ADR — compact policy and template
+Accepted ADRs immutable; supersede by approved record. Documents 42–43 prevail.
+ADR-001–007 accepted; [008](ADR-008-privacy-lifecycle-erasure-and-restore.md) proposed; [009](ADR-009-deterministic-portfolio-ledger-ordering-and-wac.md) accepted (Issue #136 / PR #137).
+[ADR-010](ADR-010-email-ownership-before-account-activation.md) pinned/proposed; [addendum](ADR-010-email-ownership-approval-candidate.md) approved.
+New decision template: target 10, max 15 lines incl title; never invent alternatives:
+`# ADR-NNN — title`
+`Status / Version / Owner / Date / Supersedes:` approval and provenance.
+`Context:` relevant constraints.
+`Root Cause:` why it arose.
+`Problem:` observable failure.
+`Risk:` cost of inaction.
+`Alternatives:` considered options.
+`Decision:` selected approach.
+`Rationale / Trade-offs:` why, benefits and costs.
+`Implementation / Verification / Residuals:` code/PR, exact CI, remaining risks.

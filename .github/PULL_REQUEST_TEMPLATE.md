@@ -1,48 +1,20 @@
 # Pull Request
-
-## Summary
-
-- Technical purpose:
-- User value / why now:
-- Out of scope:
-
-## Scope
-
-- Changed files:
-- Architecture / ADR impact:
-- OpenAPI impact:
-- Database / migration impact:
-- Dependency impact:
-- Backward compatibility:
-
-## Testing
-
-- Local commands and results:
-- Regression coverage:
-- Financial vectors, if applicable:
-
-## CI
-
-- Required checks:
-- Result:
-
-## Security impact
-
-- Security boundary changed: `No` or explanation
-- Privacy impact: `No` or explanation
-- External data/source-use impact: `No` or registry entry
-
-## Financial semantics impact
-
-- Financial methodology changed: `No` or explanation
-- Decimal / rounding behavior changed: `No` or explanation
-- Ledger semantics changed: `No` or explanation
-
-## Documentation impact
-
-- Documentation changed: `No` or list
-- Current-state documents synchronized: `No` or list
-
-## Rollback
-
-- Rollback / revert plan:
+## Context / decision
+- Problem / root cause / user value:
+- Considered options / decision / rationale / trade-offs:
+- Changed files / out of scope / compatibility:
+## Contract impact
+- Architecture / ADR / OpenAPI / DB / migrations / dependencies:
+- Security / privacy / provider source-use:
+- Financial methodology / Decimal / ledger:
+- Rollback:
+## Verification
+- Local tests / regressions / financial vectors:
+- Exact-head CI checks / independent review / residual risks:
+## Docs-as-Code (ADR / MADR / Diátaxis)
+- Type: tutorial | how-to | reference | explanation | evidence:
+- Existing docs edited; reason for new files:
+- Class A: target 10, max 15 lines; B/C contracts and evidence preserved:
+- Links / hashes / versions / line and byte deltas:
+## Authorization
+- Owner review / merge gate / deployment separately authorized:
