@@ -2,10 +2,11 @@
 
 ## Ownership and deployment prerequisite
 
-Local Go limits fail fast for auth/IP/credentials, Argon2, import execution/fresh/heavy work,
+**Per-process safety limits** in Go fail fast for auth/IP/credentials, Argon2, import execution/fresh/heavy work,
 expensive portfolio reads, fresh dividends, Corporate Actions caller budgets/coalescing and provider work.
-They do not become deployment-global when replicas scale. Staging/production requires a verified
-shared edge/gateway for auth, imports, anonymous dividend calculations and expensive portfolio reads:
+These process-local maps/channels do not become global when replicas scale.
+**Deployment-global abuse limits** require a verified shared edge/gateway in staging/production
+for auth, imports, anonymous dividend calculations and expensive portfolio reads:
 
 ```text
 OPENINVEST_DEPLOYMENT_GLOBAL_ABUSE_CONTROL=verified-edge-v1
@@ -36,9 +37,11 @@ emergency limits for rotating identities. The edge need not parse passwords and 
 
 ## Shared Corporate Actions and provider budgets
 
+**Provider-global budget** is enforced by shared Redis, not local concurrency or an operator assertion.
+
 Corporate Actions additionally uses atomic, TTL-bounded Redis admission: ≤12/min per canonical client
 and ≤48/min across replicas. Redis outage fails closed, never reverting to process-local counters.
-The edge acknowledgment neither enforces this Redis boundary nor proves the edge is deployed.
+The edge acknowledgement is not enforcement for Redis and does not prove the external edge is deployed.
 T-Invest remains disabled unless explicitly enabled. Outside development/local mode, activation
 fails closed without reachable shared Redis and this separate operator acknowledgment:
 
@@ -47,7 +50,7 @@ OPENINVEST_TINVEST_GLOBAL_BUDGET_OWNER=verified-shared-provider-budget-v1
 OPENINVEST_SHARED_BUDGET_REDIS_URL=<operator-supplied-shared-security-budget-endpoint>
 ```
 
-The acknowledgment is not enforcement. Redis owns ≤60 provider requests in any rolling 60 seconds
+The acknowledgement is not enforcement. Redis owns ≤60 provider requests in any rolling 60 seconds
 across replicas and conservative `X-RateLimit-Remaining` / `X-RateLimit-Reset` observations.
 Endpoint/provider journals use atomic Redis-server-time sorted sets with bounded TTLs.
 A legacy string counter becomes a full-window reservation, potentially denying one transition window;
