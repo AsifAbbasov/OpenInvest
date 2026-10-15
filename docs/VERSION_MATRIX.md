@@ -1,5 +1,7 @@
 # Version Matrix
 
+Reading scope: preserve this full version/compatibility register and its dated evidence. Historical “current”/“next” labels describe the cited stage or review, not a fresh global status assessment. For later Module #1 integration use the [technical record](audit/MODULE1_TECHNICAL_CLOSURE.md); for documentation classifications use the [Phase 3 disposition](governance/DOCUMENTATION_PHASE3_DISPOSITION.md).
+
 | Field | Value |
 | --- | --- |
 | Document ID | REG-VER-001 |
@@ -85,7 +87,7 @@ Canonical record: commit(s) `9e6b8a753bf73ef020ce40461df25a5878344d92`.
 
 `Legacy normative` means applicable only when not superseded or contradicted by a higher-priority source.
 
-Stage 3.76 current implementation authority
+Stage 3.76 historical implementation authority
 
 | Scope | Authority | Evidence |
 | --- | --- | --- |

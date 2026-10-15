@@ -1,0 +1,10 @@
+# Documentation Phase 3 — purpose review and preservation
+**Problem / Root Cause:** Ten remaining A candidates mixed explanations with registers, approved product rules and provider evidence; directory/title-based classification was too broad.
+**Risk:** Forced ten-line replacements would discard lifecycle history, source rights, cost/access restrictions, unresolved evidence and normative acceptance criteria.
+**Alternatives:** Compress all ten or duplicate their full text; instead reclassify actual roles, preserve complete materials and clarify dated status language.
+**Decision:** BACKLOG_V2, OPEN_QUESTIONS, ROADMAP, VERSION_MATRIX and MVP_PRODUCT_RISK_REFINEMENT are B; all five research candidates are C with their normative restrictions retained; zero genuine standalone A explanations were found among the ten.
+**Rationale:** Registers need complete entries; approved product criteria remain binding in scope; provider correspondence/proposals are dated evidence, not unrestricted source-use or runtime approval.
+**Implementation:** [Per-file purposes and dispositions](DOCUMENTATION_MIGRATION_INVENTORY.csv); [complete ten source records at b50cae45175bb417fcc5466c6aedacf30f7b42d0](https://github.com/AsifAbbasov/OpenInvest/tree/b50cae45175bb417fcc5466c6aedacf30f7b42d0/docs) remain accessible; only register reading-scope labels, navigation, standard and inventory change.
+**Verification:** Check all ten original Git blobs, unchanged research/product/backlog bytes, retained register entries, links and ten-line summaries; exact-head normal CI is required for this candidate, without new security campaigns.
+**Limitations:** No new provider contact, legal validation or production-rights refresh; [Data Source Registry](../registries/DATA_SOURCE_REGISTRY.md) alone governs source use; historical blanks and unresolved research are not reconstructed or declared PASS.
+**Status:** All ten candidate purposes reviewed: 5 B / 5 C, no pending Phase 3 A candidates; classification/wording candidate awaits Main Chat Review; source activation, spending, deployment and new formal module closure are not authorized.

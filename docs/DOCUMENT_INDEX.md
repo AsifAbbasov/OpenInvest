@@ -8,6 +8,7 @@ This is a navigation map, not a contract, deployment approval or replacement for
 - [GitHub configuration and exact-head CI](../.github/README.md).
 - [Current navigation reconciliation](governance/DOCUMENTATION_NAVIGATION_RECONCILIATION.md).
 - [Documentation standard](governance/DOCUMENTATION_STANDARD.md) and [migration inventory](governance/DOCUMENTATION_MIGRATION_INVENTORY.csv): ten-line explanations, full normative contracts and preserved historical evidence.
+- [Phase 3 purpose review](governance/DOCUMENTATION_PHASE3_DISPOSITION.md): all ten remaining candidates are full registers/contracts or preserved research; dated provider proposals do not supersede the source registry.
 
 ## Module #1 — verified technical integration
 
