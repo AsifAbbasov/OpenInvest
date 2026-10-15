@@ -2,6 +2,8 @@
 
 Status: OWNER_DECISION_PACKAGE; MODULE1_CLOSED=NO. Prepared 2026-10-15.
 No production implementation, test or workflow change is made by this package.
+The original ADR010 is preserved byte-identically as migration 000015 authority;
+the approval-ready revision is a separate prospective addendum candidate.
 
 ## Frozen implementation and protection
 
@@ -19,7 +21,7 @@ an additional GitHub review event or repeat that accepted review.
 
 ## Documentation package and contract reconciliation
 
-- [ADR010 candidate](../ADR/ADR-010-email-ownership-before-account-activation.md):
+- [ADR010 candidate](../ADR/ADR-010-email-ownership-approval-candidate.md):
   Proposed, approval-ready; exact API, transaction, generation/lease, legacy and release boundaries.
 - [Approved JWT01 rule](../api/ACCESS_JWT_IDENTITY_POLICY_V1.md): owner-approved policy,
   without marking the broader email-ownership ADR accepted.
@@ -35,6 +37,7 @@ without rewriting old evidence or modifying accepted ADR006:
 
 | Prior ambiguity | Precise candidate meaning |
 | --- | --- |
+| Editing ADR010 would invalidate pinned migration authority | Preserve original bytes/manifest and propose a separate revision/addendum; first documentation CI 38718304601 correctly rejected the in-place edit with MIG016_AUTHORITY_REFERENCE |
 | Stage2/ADR006 registration session issuance vs branch OpenAPI 202 | Proposed ADR010 supersedes only new public registration issuance after owner acceptance; protected baseline remains historical |
 | Anonymous register taking password/preferences | Email-only intake; credentials/preferences selected during proof completion |
 | ACCOUNT_READY mistaken for login | No session/cookie; explicit later normal login |

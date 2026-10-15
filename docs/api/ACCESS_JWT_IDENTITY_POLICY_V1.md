@@ -58,5 +58,6 @@ Sources: [tokens.go](../../backend-go/internal/auth/tokens.go),
 ## Boundaries still requiring decisions
 
 See [JWT02/JWT03 decision record](../audit/MODULE1_JWT02_JWT03_POLICY_DECISION.md).
-Approval of this identity policy does not accept ADR-010, authorize merge/deploy,
+The prospective [ADR010 approval candidate](../ADR/ADR-010-email-ownership-approval-candidate.md)
+preserves the hash-pinned historical ADR file. Approval of this identity policy does not accept ADR-010, authorize merge/deploy,
 close Module #1, or approve the PR265 campaign's procedural provenance.
