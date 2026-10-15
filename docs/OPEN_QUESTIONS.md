@@ -1,26 +1,6 @@
 # Open Questions Register
-
-| Field | Value |
-| --- | --- |
-| Document ID | REG-OQ-001 |
-| Version | 1.0.9 |
-| Status | Decision-question register; no unresolved entries recorded in this register |
-| Supersedes | Informal TODOs for architecture decisions |
-| Dependencies | Document 43 |
-
-> **Document role — decision-question register**
->
-> This register preserves unresolved and resolved questions, ADR admission evidence, and historical decision context.
-> An open question is not current product state; a resolved question is not runtime authority; a proposal is not approval; closing a question does not itself implement runtime behavior.
-> Current human-readable product/runtime truth lives in [`SOURCE_OF_TRUTH.md`](SOURCE_OF_TRUTH.md).
-
-## Recorded unresolved questions
-
-No unresolved entries are recorded in this register at the Phase 3 baseline. This is not a fresh repository-wide security review, formal module closure or statement that every external/deployment question is resolved. See the [current documentation migration disposition](governance/DOCUMENTATION_PHASE3_DISPOSITION.md).
-
-Current product/runtime state is maintained in [`SOURCE_OF_TRUTH.md`](SOURCE_OF_TRUTH.md). Provider/source-use decisions are maintained in [`registries/DATA_SOURCE_REGISTRY.md`](registries/DATA_SOURCE_REGISTRY.md). Implementation chronology is maintained in [`IMPLEMENTATION_LOG.md`](IMPLEMENTATION_LOG.md), and future sequencing in [`ROADMAP.md`](ROADMAP.md).
-
-## Resolved architecture questions
+Document ID: REG-OQ-001; decision-question register under Document 43. No unresolved entries are recorded here; this is not global security clearance or formal module closure.
+A question/proposal is not approval; resolution does not implement runtime behavior. [Source of Truth](SOURCE_OF_TRUTH.md), [source registry](registries/DATA_SOURCE_REGISTRY.md), [Roadmap](ROADMAP.md) and [Implementation Log](IMPLEMENTATION_LOG.md) retain their separate authority.
 
 ### Issue #136 — deterministic same-BusinessDate portfolio ledger ordering
 

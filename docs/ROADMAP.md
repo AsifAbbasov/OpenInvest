@@ -1,12 +1,8 @@
 # Implementation Roadmap
+Document ID: ENG-ROADMAP-001; approved planning register under Architecture Freeze v1.2, not deployment or new runtime authorization.
 
-| Field | Value |
-| --- | --- |
-| Document ID | ENG-ROADMAP-001 |
-| Version | 1.1.98 |
-| Status | Approved |
-| Supersedes | Informal stage ordering |
-| Dependencies | Architecture Freeze v1.2 |
+[Source of Truth](SOURCE_OF_TRUTH.md) owns current product boundaries; [Implementation Log](IMPLEMENTATION_LOG.md) and [stage dossiers](stages/) retain full chronology, review outcomes and rationale. The stage registry below is preserved verbatim; historical scope restrictions apply to the cited stage, not a claim later separately approved work is absent.
+Numbered implementation frontier remains Stage 3.77; [Module #1 technical integration](audit/MODULE1_TECHNICAL_CLOSURE.md) and separately governed Feature 3D do not authorize Stage 3.78+, source activation, privacy lifecycle implementation or a new security campaign. Product additions require their own review/CI/approval gates; [backlog](BACKLOG_V2.md) is not implementation authority.
 
 | Stage | Outcome | State |
 | --- | --- | --- |
@@ -127,98 +123,46 @@ Canonical record: PR #155; commit(s) `e00699f8d455bcbaea0c1dc69ce534460fea6ff9`,
 Canonical record: PR #157; commit(s) `63d916b447e91c4de54efee5c66b27cf7727be92`, `b3bc17e710e306f9d1a4d7be95dfe56b3f7202ba`, `e91e28e96416d9510962a66c1399459844574bba`.
 | Feature 3D — Constrained T-Invest Corporate Actions Provider | Implement only registry mode `TINVEST_CORPORATE_ACTIONS_CONSTRAINED` behind the existing provider-neutral Corporate Actions boundary: static mapping, `GetDividends` → `DIVIDEND`, `GetBondCoupons` → `COUPON`, exact money, bounded REST, fail-closed lifecycle/errors, no persistence/polling/ledger mutation | Complete / canonical implementation through PR #164 squash merge `247081a95a7daf33c0077c88c5f41cb2e8161865` from final evidence head `ddc5b5be36f0b5ae127c6ee430918a9dba1b453e`, tree `ec7bc9152210913b1a6ef742bddd599abee50bc7`; implementation CI #499 / run `34353668492` and evidence CI #501 / run `34356672643` both 10/10 SUCCESS; Internal and fresh External reviews APPROVED; evidence/no-drift APPROVED; source/use remains exact-scope `CONDITIONAL-GO`; runtime activation NO; live token NOT USED; production provider traffic not authorized/claimed; Stage 3.78 NOT STARTED |
 
-The repository already exists because Stage 0 was executed before the refined roadmap. Stage 3
-therefore implements the first vertical slice incrementally instead of recreating the repository.
-
-Stages 3.27 through 3.56 are separately governed narrow repository-audit remediations and do not authorize product-scope expansion. Stage 3.25 privacy evidence planning remains separate. Stage 3.34
-closure is canonical through PR #82 at `ae5a152114cc163867a363953f8a3202396b1f6c`. Stage 3.35 P3-01
-runtime implementation is canonical through PR #84 at `a47df19ccc7edff73f39f4e76aec47580c168c46`
-and governance closure is canonical through PR #85. Stage 3.36 P3-03 planning is canonical through
-PR #87 at `251296e0831cbb0b81c7799cc82cbdf3b451ae6e`, its runtime implementation is canonical through
-PR #88 at `ebbc1c17b905e60d9e82337fc4a1ecd6cf9bccaa`, and closure governance is canonical through
-PR #89 at `9c83b68e28bbb8bc971620d3e00be5e177ce0820`. P3-03 is CLOSED. Stage 3.37 P3-02 planning is
-canonical through PR #90 at `46f74528dcc19424ad087d30d4f2f778e2079b87`, runtime implementation
-is canonical through PR #91 at `cb6d9b28cd47b1cd283b5861b916e0be627d0ac2`, and closure governance
-is canonical through PR #92 at `305a53bb07136b274717ff48778a5e93d7b1607c`. P3-02 is CLOSED.
+## Nonduplicated historical outcome wording
 
 Stage 3.38 planning is canonical through PR #93 at `a944f1e5d5ee7d84db5393e8760eda254d732edd`,
 runtime implementation is canonical through PR #94 at
 `2df9946d77ee044a191a0422c8cccbbfe02dc7c9`, and closure governance is canonical through the actual
 PR #95 squash merge at `c5962fa09b6d7d145dda203dbdf90069de7b1fcc` from final head
 `25eb3b9c3c153672f22a6718a7815a5d3c527f44` after exact-head CI #271 / run `32961508562`.
-P3-05 is CLOSED.
 
-Stage 3.39 P3-04 implementation is canonical through PR #97, and closure is canonical through
-PR #99 final head `4c2439f3fdc213fd38d2669233d993cc3dac043b`, squash-merged into `develop` at
-`41e35b672d166cf74c3f0c3ee248330193ae51c1`. P3-04 is CLOSED.
-
-Stage 3.40 P3-09 planning is canonical through PR #100 at
-`559b57d0951cdc67125c2f72fc1fcfb34399e90e`. Stage 3.41 implementation is canonical through
+Stage 3.41 implementation is canonical through
 PR #101 squash merge `a2cfeaa5ca68fdd951e2a99f69c96aec362fc416` from final evidence head
 `d88be3c90231f374d7e6b7d94f4cd89e6788f700` after CI #291 / run `33277717164` 10/10 and final
-External plus evidence-publication verification `APPROVED`. Stage 3.42 closure is canonical through
-PR #102 squash merge `8861d49580c92eabe5f859729b3777175134a4e2`. P3-09 is CLOSED.
+External plus evidence-publication verification `APPROVED`.
 
-Stage 3.43 P3-10 planning is canonical through PR #103 squash merge
-`eaac5a5deb64196b263464e0d85e622065520b0e`, with approved plan blob
-`37a32856692ac58f408f2dd50335bb65019d9983`. Stage 3.44 implementation is canonical through
+Stage 3.44 implementation is canonical through
 PR #104 squash merge `c980a21f16b30449ec7fb7b07decc386d77bc27d` from final evidence head
 `749446930a730c3f7c5b3402618577953d53d3f4` after CI #297 / run `33312723075` 10/10,
-final External `APPROVED`, and final evidence-publication verification `APPROVED`. Stage 3.45 closure
+final External `APPROVED`, and final evidence-publication verification `APPROVED`.
+
+Stage 3.45 closure
 is canonical through PR #105 final head `e91faace81b76b14a51de4dea3a4c18d697998af`, CI #298 / run
 `33315057112` 10/10, final exact-published-head closure `APPROVED`, and squash merge
-`c029cd62715b15614e82972309bdc53669ec02ee`. P3-10 is CLOSED.
+`c029cd62715b15614e82972309bdc53669ec02ee`.
 
-Stage 3.46 P3-06 planning is canonical through PR #106 squash merge
-`546f0406d1353c13673be4ab97c4a527a9b58116`, with approved plan blob
-`9e028f817220973458b28a2393ee61bdd2eb83a0`. Stage 3.47 implementation is canonical through
+Stage 3.47 implementation is canonical through
 PR #107 squash merge `332f7cd2ec40caf0760b97b806f637e4c89dbb96` from final evidence head
 `657afbde74b79db6966333e27d52f0320660d6b3` after CI #301 / run `33343890109` 10/10,
 final External `APPROVED`, and final evidence-publication verification `APPROVED`.
 
-Before Stage 3.48 protected activation, the original 32-finding repository-audit backlog was:
+Subsequent closure governance closed all three; the current canonical original-audit state is 32/32 CLOSED.
 
-- P0: 0
-- P1: 0
-- P2: 0
-- P3: 3
+Stage 3.55 implementation is canonical through PR #116 squash merge `6a443969aef944bde0946d36c79f67ddb87c28fe`, preserving approved published tree `6d894f710329332f2f64b7d280a9b27a94be86d9` after exact-head CI #315 / run `33799997370` 10/10 and published-head `APPROVED`.
 
-The remaining findings were P3-06, P3-07, and P3-08. Subsequent closure governance closed all three; the current canonical original-audit state is 32/32 CLOSED.
-
-Stage 3.52 is canonical through PR #111 at `93e59cbf4821fc51aba5bdb9815b52a73fbc67a0`, REVIEW_WORKFLOW v1.4.0 is canonical, and Stage 3.53 disposition is effective through PR #112 squash merge `ea1f204eab47bf16566096722d6390557b8141af`. Stage 3.51 is canonical through PR #113 squash merge `072350205b2746bdcd83f20718eb59efcd0478ef`; P3-07 is CLOSED.
-
-Stage 3.54 P3-08 planning is canonical through PR #115 squash merge `b79a9d3c43621e56e598901bdf472771e8b68ef8` with approved plan blob `90fa563b9256b19055e2c14e52909596b392f221`. Stage 3.55 implementation is canonical through PR #116 squash merge `6a443969aef944bde0946d36c79f67ddb87c28fe`, preserving approved published tree `6d894f710329332f2f64b7d280a9b27a94be86d9` after exact-head CI #315 / run `33799997370` 10/10 and published-head `APPROVED`.
-
-Canonical record: PR #117; commit(s) `02e9ef82ed087a892928dc643adccbdfa1ed9600`, `2840e55f7a62e2f64a148947fe7e22236228a9d5`, `983104267221706c3c2ebd8d9be358e3921334b5`.
-
-Stage 3.57 market-data provider-boundary planning is canonical through PR #119 squash merge
-`8316d404d057f0a895713bd1d496a342409903c4`. Feature 1 runtime implementation is canonical through
+Feature 1 runtime implementation is canonical through
 PR #120 squash merge `cd97f3217811bb123ad96d92b7d8a4be0e03c8bb`, preserving final authorized tree
 `0510971289c204e9b5226359f2efdd1941542309` after CI #321 / run `33861987999` 10/10 and approved
 Internal, External, and evidence-publication verification gates.
 
-Feature 1 establishes only the provider-neutral `QuoteProvider` / canonical `MarketQuote` boundary,
-minimal provenance, deterministic freshness, canonical validation, and internal service seam. Real
-MOEX ISS HTTP/parsing, production provider wiring, source activation, OpenAPI/DB/frontend changes,
-cache/workers, and production asset-search enrichment remain outside Feature 1.
+## Preserved historical activation snapshots
 
-
-Canonical record: PR #122, PR #123, PR #124; commit(s) `edf3ffc24c3813f884fd3a4f8a7e9630cb9b8322`, `f55ad38c1f5ea52ba4502904fefa51c164c45006`, `7c022e6de1ab0a86ebf96ede48fafabc15b9f71c`.
-
-Stage 3.61 Corporate Actions planning is canonical through PR #125 squash merge
-`0e449b4d729e4388081be4990c034c67c5e5019a`. Feature 3A is canonical through Stage 3.62 / PR #126
-squash merge `fbbca6aeee7c12300a37eb5748628275aac427e4`; Feature 3B is canonical through Stage 3.63 /
-PR #127 squash merge `a8f9e95c065ee708885461166e1e992d1f4aae22`; Feature 3C is canonical through Stage 3.64 /
-PR #128 squash merge `c204ee9eee320e6171b55983cfde5cf74a2008df`, whose protected merge tree
-`33dd90d3928286c7d2628dd56e7d9f55eece08b5` exactly matches the approved final evidence tree.
-Corporate Actions now has the provider-neutral event boundary, deterministic Calendar/Heatmap projection,
-Go HTTP/OpenAPI surface, typed Next.js client, and UI.
-
-Canonical record: PR #129, PR #130, PR #131, PR #133, PR #134, PR #164; commit(s) `1c30a4bf637c933e7c210cff6e26fabd91d8bab1`, `4ba610c1d20c95f10a5a16a6a0ece6caceb3236e`, `7564dbbda9133f0b8965f9e7d0a0c0b81b82e992`, `b525f0960cb2613f62eaa9583d6394759a1cdd3b`, `c885f6e57ea08e4583103fe2f22f142bf13a8560`, `53f823e92b02721211e1d89f8af6374fffc252ae`, `6fb395ffcef12840133dac27294f653276adcdf6`, `be09503ceaafb8781cc82829f98e37cda5c6be6b`, `fee7de358f0919802e16a398b19c8947bc852645`, `e7c9ddb96a5bf7add5204ccdf54aa20c190a0014`, `e98bad4b2431eb7f45a5bfff17c3601c49554b45`, `247081a95a7daf33c0077c88c5f41cb2e8161865`.
-
-
-No, Tax Export, email, mobile, premium, direct broker API synchronization, credential scraping, or
-unnecessary worker implementation enters these stages without separate approval.
+These blocks retain their exact original bytes and outcomes; they are not a fresh current-state assessment.
 
 <!-- OPENINVEST_HISTORICAL_ACTIVATION_TIME_SNAPSHOT_STAGE_03_52_BEGIN CURRENT_AUTHORITY=NO -->
 <!-- OPENINVEST_STAGE_03_52_WORKFLOW_AMENDMENT_STATE_V1_BEGIN -->
