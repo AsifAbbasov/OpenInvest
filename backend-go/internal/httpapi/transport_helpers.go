@@ -106,6 +106,10 @@ func writeMappedErrorWithMeta(c fiber.Ctx, meta metaDTO, err error) error {
 		return writeErrorWithMeta(c, meta, http.StatusServiceUnavailable, "READ_CAPACITY_EXHAUSTED", "Portfolio projection capacity is temporarily exhausted")
 	case errors.Is(err, auth.ErrInvalidInput):
 		return writeErrorWithMeta(c, meta, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
+	case errors.Is(err, auth.ErrInvalidVerification):
+		return writeErrorWithMeta(c, meta, 400, "INVALID_VERIFICATION", "Verification could not be completed. Request new instructions.")
+	case errors.Is(err, auth.ErrVerificationUnavailable):
+		return writeErrorWithMeta(c, meta, 503, "SERVICE_NOT_READY", "Email verification is unavailable")
 	case errors.Is(err, auth.ErrEmailAlreadyExists):
 		return writeErrorWithMeta(c, meta, http.StatusConflict, "CONFLICT", "Email is already registered")
 	case errors.Is(err, auth.ErrInvalidCredentials):

@@ -362,12 +362,52 @@ AuthSession:
 RegisterRequest:
   type: object
   additionalProperties: false
-  required: [email, password, language, theme, timezone]
+  required: [email]
   properties:
     email:
       type: string
       format: email
       maxLength: 254
+
+RegistrationAcknowledgment:
+  type: object
+  additionalProperties: false
+  required: [status, message]
+  properties:
+    status: { type: string, const: REQUEST_ACCEPTED }
+    message: { type: string, const: "If this address is eligible, instructions will be sent." }
+
+AccountReady:
+  type: object
+  additionalProperties: false
+  required: [status]
+  properties:
+    status: { type: string, const: ACCOUNT_READY }
+
+RegistrationAcknowledgmentResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data: { $ref: "#/RegistrationAcknowledgment" }
+
+AccountReadyResponse:
+  allOf:
+    - $ref: "#/BaseResponse"
+    - type: object
+      properties:
+        data: { $ref: "#/AccountReady" }
+
+VerifyEmailRequest:
+  type: object
+  additionalProperties: false
+  required: [token, password, language, theme, timezone]
+  properties:
+    token:
+      type: string
+      minLength: 43
+      maxLength: 43
+      writeOnly: true
     password:
       type: string
       format: password

@@ -25,8 +25,8 @@ func TestSensitiveResponseCachePolicyCoversAuthLifecycleAndErrors(t *testing.T) 
 		"timezone":"UTC"
 	}`
 
-	register := securityAuthRequest(t, app, http.MethodPost, "/api/v1/auth/register", registration, "", "")
-	assertNoStoreResponse(t, register, http.StatusCreated)
+	register := fixtureLegacyLogin(t, app, http.MethodPost, "/api/v1/auth/register", registration, "", "")
+	assertNoStoreResponse(t, register, http.StatusOK)
 	refreshCookie := requireCookie(t, register, auth.RefreshCookieName)
 	csrfToken := readCSRFToken(t, register)
 	register.Body.Close()
@@ -63,16 +63,19 @@ func TestSensitiveResponseCachePolicyCoversAuthenticatedPortfolioSuccessAndError
 		UpdatedAt:    time.Date(2026, 10, 4, 12, 0, 0, 0, time.UTC),
 	}}}
 	authStore := &httpAuthTestStore{}
+	authService := newHTTPAuthService(t, authStore)
 	app, err := New(
 		verticalslice.NewService(portfolioStore, fixedHTTPClock{}),
-		newHTTPAuthService(t, authStore),
+		authService,
 		[]byte("test-import-review-token-secret-32-bytes"),
 	)
 	if err != nil {
 		t.Fatalf("new HTTP app: %v", err)
 	}
 
-	register := securityAuthRequest(t, app, http.MethodPost, "/api/v1/auth/register", `{
+	fixtureServices.Store(app, authService)
+	t.Cleanup(func() { fixtureServices.Delete(app) })
+	register := fixtureLegacyLogin(t, app, http.MethodPost, "/api/v1/auth/register", `{
 		"email":"portfolio-cache-policy@example.com",
 		"password":"correct horse battery staple",
 		"language":"en",

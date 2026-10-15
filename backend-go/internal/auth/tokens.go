@@ -97,7 +97,7 @@ func verifyAccessToken(secret []byte, token string, now time.Time) (accessClaims
 	if err := json.Unmarshal(payload, &claims); err != nil {
 		return accessClaims{}, errInvalidToken
 	}
-	if claims.UserID == "" || claims.InvestmentSubjectID == "" || claims.ExpiresAt <= now.Unix() {
+	if claims.SubjectID == "" || claims.UserID == "" || claims.SubjectID != claims.UserID || claims.InvestmentSubjectID == "" || claims.ExpiresAt <= now.Unix() {
 		return accessClaims{}, errInvalidToken
 	}
 	return claims, nil

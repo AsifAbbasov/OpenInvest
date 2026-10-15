@@ -3,7 +3,7 @@
 import type { FormEvent } from "react";
 import { useState } from "react";
 
-import type { ApiResult, AuthData, LoginPayload, RegisterPayload } from "@/common/api/openinvest";
+import type { ApiResult, AuthData, RegistrationAcknowledgment, LoginPayload, RegisterPayload } from "@/common/api/openinvest";
 import { passwordValidationMessage } from "@/features/auth/passwordPolicy";
 
 type AuthMode = "login" | "register";
@@ -11,21 +11,20 @@ type AuthMode = "login" | "register";
 type AuthFormProps = {
   message: string | null;
   onLogin: (payload: LoginPayload) => Promise<ApiResult<AuthData>>;
-  onRegister: (payload: RegisterPayload) => Promise<ApiResult<AuthData>>;
+  onRegister: (payload: RegisterPayload) => Promise<ApiResult<RegistrationAcknowledgment>>;
 };
 
 export function AuthForm({ message, onLogin, onRegister }: AuthFormProps) {
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [timezone, setTimezone] = useState("UTC");
   const [status, setStatus] = useState<string | null>(message);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus(null);
-    const passwordError = passwordValidationMessage(password, mode);
+    const passwordError = mode === "login" ? passwordValidationMessage(password, mode) : null;
     if (passwordError !== null) {
       setStatus(passwordError);
       return;
@@ -33,12 +32,11 @@ export function AuthForm({ message, onLogin, onRegister }: AuthFormProps) {
     setIsSubmitting(true);
     const result =
       mode === "register"
-        ? await onRegister({ email, password, language: "en", theme: "system", timezone })
+        ? await onRegister({ email })
         : await onLogin({ email, password });
     setIsSubmitting(false);
-    if (!result.ok) {
-      setStatus(result.message);
-    }
+    if (!result.ok) setStatus(result.message);
+    else if (mode === "register") setStatus("If this address is eligible, instructions will be sent.");
   }
 
   return (
@@ -82,23 +80,16 @@ export function AuthForm({ message, onLogin, onRegister }: AuthFormProps) {
               onChange={(event) => setEmail(event.target.value)}
             />
           </label>
-          <label>
+          {mode === "login" && <label>
             Password
             <input
               type="password"
-              autoComplete={mode === "register" ? "new-password" : "current-password"}
+              autoComplete="current-password"
               value={password}
               required
               onChange={(event) => setPassword(event.target.value)}
             />
-          </label>
-          {mode === "register" ? (
-            <label className="span-2">
-              Timezone
-              <input value={timezone} required onChange={(event) => setTimezone(event.target.value)} />
-            </label>
-          ) : null}
-
+          </label>}
           <div className="privacy-defaults span-2" aria-label="Privacy defaults">
             <span>Privacy Mode ON</span>
             <span>Tax Profile OFF</span>
