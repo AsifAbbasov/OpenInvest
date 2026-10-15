@@ -1,5 +1,5 @@
 # Version Matrix
-Document ID: REG-VER-001; approved version/compatibility register under Documents 42–43. Review dates and stage-relative labels are historical metadata, not a fresh compatibility or deployment certification.
+Document ID: REG-VER-001; Version: 1.2.8; approved version/compatibility register under Documents 42–43. Review dates and stage-relative labels are historical metadata, not a fresh compatibility or deployment certification.
 [Source of Truth](SOURCE_OF_TRUTH.md) defines current boundaries; [Implementation Log](IMPLEMENTATION_LOG.md) and [stage dossiers](stages/) retain exact CI/commit chronology; [Module #1 technical record](audit/MODULE1_TECHNICAL_CLOSURE.md) records later integration. Registry priorities and review requirements below are unchanged.
 
 | Range | Version | Status under Freeze v1.2 | Priority | Owner | Review |
@@ -64,11 +64,8 @@ Document ID: REG-VER-001; approved version/compatibility register under Document
 
 `Legacy normative` means applicable only when not superseded or contradicted by a higher-priority source.
 
-Stage 3.76 historical implementation authority
+Historical Stage 3.74/3.75 implementation outcomes and exact CI evidence remain in [ledger-repair](stages/STAGE_03_74_TRANSACTION_CORRECTION_REVERSAL_IMPLEMENTATION.md) and [cash/income](stages/STAGE_03_75_PORTFOLIO_CASH_FLOW_INCOME_IMPLEMENTATION.md); version/priority/review rows above remain authoritative in their scope.
 
-| Scope | Authority | Evidence |
-| --- | --- | --- |
-| Stage 3.74 Transaction Correction & Reversal / Ledger Repair UX | COMPLETE / CANONICAL | PR #150; final head `ff6d3efb8bb0d63f8cab55ac82fdf1052946aa02`; CI #435 / run `34117662576` 10/10 SUCCESS; protected squash merge `0580bf7e98c532202f84bbf9ceacd97aedbe4140` |
-| Stage 3.75 Portfolio Cash Flow & Income Truth | COMPLETE / CANONICAL | PR #153; implementation head `f97f44016d22e783980c47bbde4799a3124623f4`; CI #459 / run `34155729975` 10/10 SUCCESS; External `APPROVED`; evidence head `fae674518e37d11cad0da28d91682c35bf8bf99a`; CI #460 / run `34156290105` 10/10 SUCCESS; no-drift verification `APPROVED`; protected squash merge `57faae841805a5ab11ac959018a315cbada69207` |
 Canonical record: PR #155; commit(s) `f89e1e793ef505c31bf76de7d43c4d40fdd9c38b`, `5971ae4bf5461dd562d7a73289b5942b02f962ba`, `e00699f8d455bcbaea0c1dc69ce534460fea6ff9`.
+
 Canonical record: PR #157; commit(s) `b3bc17e710e306f9d1a4d7be95dfe56b3f7202ba`, `e91e28e96416d9510962a66c1399459844574bba`, `63d916b447e91c4de54efee5c66b27cf7727be92`.

@@ -51,11 +51,8 @@ corepack pnpm install --frozen-lockfile
 cd ..
 ```
 
-The default local path uses PostgreSQL `openinvest/openinvest-local` on port `5432` and Redis on
-port `6379`. Both `pnpm run bootstrap` and the `dev:api` fallback derive the local PostgreSQL
-database identity from `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_PORT`;
-an explicit `DATABASE_URL` still overrides the API fallback. `.env.example` documents optional
-overrides and production security boundaries.
+Local PostgreSQL defaults to `openinvest/openinvest-local` on port `5432`, Redis to `6379`.
+`bootstrap` and `dev:api` derive database identity from `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` and `POSTGRES_PORT`; explicit `DATABASE_URL` overrides the API fallback. See [.env.example](.env.example) for overrides and production boundaries.
 
 Bootstrap infrastructure and the complete current PostgreSQL schema:
 
@@ -63,11 +60,8 @@ Bootstrap infrastructure and the complete current PostgreSQL schema:
 pnpm run bootstrap
 ```
 
-`bootstrap` validates the repository migration policy, starts PostgreSQL and Redis, discovers every
-canonical `infrastructure/postgres/migrations/*.up.sql` migration in deterministic filename order,
-and applies the complete set to a fresh database. Re-running it against a database whose schema
-already matches the canonical migration set is a safe no-op. A partially initialized or ambiguous
-database fails closed; the command never drops or recreates developer data automatically.
+`bootstrap` validates migration policy, starts PostgreSQL/Redis and applies every canonical `infrastructure/postgres/migrations/*.up.sql` in deterministic order.
+A matching schema is a safe no-op; partial/ambiguous initialization fails closed without automatically dropping or recreating developer data.
 
 Start the API:
 

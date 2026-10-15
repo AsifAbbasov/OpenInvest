@@ -1,5 +1,5 @@
 # OpenInvest documentation index
-Navigation only: active contracts remain in the current repository; historical records retain their original outcomes. Repository technical acceptance does not authorize deployment or newly establish formal module closure.
+Navigation only; current contracts and original historical outcomes remain in the repository. Technical acceptance is not deployment or new formal module closure.
 
 ## Start here
 
@@ -45,4 +45,4 @@ Navigation only: active contracts remain in the current repository; historical r
 - [Module #12 repository-side remediation/revalidation](audit/FINAL_PRODUCTION_FRONTEND_INFRA_HARDENING_ADVERSARIAL_AUDIT_CLOSURE.md); [P2 remediation](audit/FINAL_PRODUCTION_FRONTEND_INFRA_HARDENING_P2_REMEDIATION_V1.md).
 - [OI-NEW P2 technical closure](audit/OI_NEW_P2_REMEDIATION_CLOSURE.md).
 
-OpenAPI/accepted decisions and the source registry retain precedence; implementation does not activate a provider. Read dates and exact SHA/run evidence, preserve RED/FAIL outcomes, and keep SMTP/recovery/immediate JWT revocation/deployment separately gated.
+OpenAPI, accepted decisions and the source registry retain precedence. Read exact dates/SHA/run evidence; preserve RED/FAIL; SMTP, recovery, immediate JWT revocation and deployment remain separately gated.
