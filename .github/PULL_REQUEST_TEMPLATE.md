@@ -1,23 +1,20 @@
 # Pull Request
-## Context and decision
-- Problem / root cause / user value and timing:
-- Options considered / decision / rationale / consequences and trade-offs:
-- Changed files / scope / explicit exclusions:
-## Contracts and compatibility
-- Architecture / ADR / OpenAPI effects:
-- Database, migrations, dependencies and backward compatibility:
-- Rollback / revert plan:
-## Security and finance
-- Security, privacy, provider rights/budget, production activation:
-- Financial methodology, Decimal/rounding, ledger and snapshots:
+## Context / decision
+- Problem / root cause / user value:
+- Considered options / decision / rationale / trade-offs:
+- Changed files / out of scope / compatibility:
+## Contract impact
+- Architecture / ADR / OpenAPI / DB / migrations / dependencies:
+- Security / privacy / provider source-use:
+- Financial methodology / Decimal / ledger:
+- Rollback:
 ## Verification
-- Local commands and results / regression coverage / financial test vectors:
-- Exact published HEAD SHA / all required CI jobs and outcomes:
-- Independent audit or owner review where required / residual risks:
-## Documentation — ADR / MADR / Diátaxis / Docs-as-Code
-- Role: tutorial | how-to | reference | explanation | historical evidence:
-- Existing documents updated; reason for any new documentation file:
-- Compact A target 10, max 15 physical lines; B contracts and C evidence preserved:
-- Links/fragments, immutable SHAs and document versions; lines/bytes before → after:
+- Local tests / regressions / financial vectors:
+- Exact-head CI checks / independent review / residual risks:
+## Docs-as-Code (ADR / MADR / Diátaxis)
+- Type: tutorial | how-to | reference | explanation | evidence:
+- Existing docs edited; reason for new files:
+- Class A: target 10, max 15 lines; B/C contracts and evidence preserved:
+- Links / hashes / versions / line and byte deltas:
 ## Authorization
-- Review outcome / explicit owner merge authority / deployment approval separate:
+- Owner review / merge gate / deployment separately authorized:
