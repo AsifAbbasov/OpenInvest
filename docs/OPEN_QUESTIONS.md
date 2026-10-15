@@ -4,7 +4,7 @@
 | --- | --- |
 | Document ID | REG-OQ-001 |
 | Version | 1.0.9 |
-| Status | Active / no current questions |
+| Status | Decision-question register; no unresolved entries recorded in this register |
 | Supersedes | Informal TODOs for architecture decisions |
 | Dependencies | Document 43 |
 
@@ -14,9 +14,9 @@
 > An open question is not current product state; a resolved question is not runtime authority; a proposal is not approval; closing a question does not itself implement runtime behavior.
 > Current human-readable product/runtime truth lives in [`SOURCE_OF_TRUTH.md`](SOURCE_OF_TRUTH.md).
 
-## Current questions
+## Recorded unresolved questions
 
-None.
+No unresolved entries are recorded in this register at the Phase 3 baseline. This is not a fresh repository-wide security review, formal module closure or statement that every external/deployment question is resolved. See the [current documentation migration disposition](governance/DOCUMENTATION_PHASE3_DISPOSITION.md).
 
 Current product/runtime state is maintained in [`SOURCE_OF_TRUTH.md`](SOURCE_OF_TRUTH.md). Provider/source-use decisions are maintained in [`registries/DATA_SOURCE_REGISTRY.md`](registries/DATA_SOURCE_REGISTRY.md). Implementation chronology is maintained in [`IMPLEMENTATION_LOG.md`](IMPLEMENTATION_LOG.md), and future sequencing in [`ROADMAP.md`](ROADMAP.md).
 
@@ -31,6 +31,3 @@ Current product/runtime state is maintained in [`SOURCE_OF_TRUTH.md`](SOURCE_OF_
 - Lifecycle: `RESOLVED / CLOSED COMPLETED` — Stage 3.70 / ADR-009 became canonical through protected squash merge PR #137 at `b772e52221fbb694b3116bd1b579db99d4e56302`; GitHub Issue #136 is closed with `state_reason=completed`.
 - Follow-on runtime: Stage 3.71 was separately authorized and later completed through PR #138; resolution of Issue #136 does not retroactively claim that the Issue itself authorized runtime implementation.
 - GitHub: `https://github.com/AsifAbbasov/OpenInvest/issues/136`
-
-
-## Admission process

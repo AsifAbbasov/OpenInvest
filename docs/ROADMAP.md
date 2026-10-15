@@ -377,7 +377,9 @@ Documentation-cleanup baseline: PR #190 / squash merge `8bcb2d1bba3454de1262ddc4
 
 P3 and Stage 3.78+ remain separate future scope.
 
-## Current adversarial security audit campaign
+## Historical audit sequencing — pre-Module #12 snapshot
+
+The bullets below retain the earlier campaign sequencing; they are not current verification results or a new audit authorization. Later [Module #1 technical integration](audit/MODULE1_TECHNICAL_CLOSURE.md) and [Module #12 repository revalidation evidence](audit/FINAL_PRODUCTION_FRONTEND_INFRA_HARDENING_ADVERSARIAL_AUDIT_CLOSURE.md) are separate dated records; their embedded formal-closure flags are not rewritten here. Real production/shared-account budgets and deployed topology remain distinct from repository-side shared Redis enforcement.
 
 - Module #10 — **FORMALLY CLOSED** for repository-side Providers / External API / Budget Abuse / Resilience remediation.
 - Module #11 — **NEXT / NOT STARTED**.
