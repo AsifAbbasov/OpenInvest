@@ -155,3 +155,149 @@ The [Stage 3.21 delta](../stages/STAGE_03_21_PRIVACY_DATA_INVENTORY_PROPOSAL.md#
 adds registration, audit deduplication, replay/valuation, JWT, import-token and Redis surfaces.
 A key-erasure proof cannot sanitize old plaintext copies or establish anonymity of financial patterns;
 all current blockers require independent resolution under Documents 42–43 before approval.
+
+
+## Proposed implementation-ready amendment — 2026-10-16 (NOT ACCEPTED)
+
+**Decision authority:** This amendment specifies candidate contracts only. Documents 43 and 42,
+accepted ADR-005/ADR-006, and the Stage 2 migration strategy remain authoritative. Its purpose is
+to make [Stage 3.24's SR-01–SR-12 remediation design](../stages/STAGE_03_24_PRIVACY_SECURITY_REVIEW_READINESS.md#sr-01sr-12-implementation-design-and-threat-to-evidence-trace-2026-10-16)
+reviewable, not to approve deletion, providers, migrations, new public endpoints, or retrospective
+claims of anonymity. Actual implementation is **absent**.
+
+### Proposed trust boundaries and retained financial facts
+
+```text
+[Browser / user] --fresh-factor+CSRF--> [Go lifecycle coordinator, untrusted for release]
+                                            |
+                                            v
+                         [PG identity: private transition/fence + auth epoch]
+                                            |
+                   +------------------------+--------------------------+
+                   v                        v                          v
+       [KMS custody operator]    [Independent marker publisher]   [Financial plane]
+       no export/restore key     no marker-signing key             append-only facts
+                   |                        |                          |
+     [Independent verifier]    [Independent snapshot signer]       [derived views]
+                   +------------------------+
+                                            v
+                        [Sealed recovery/replay environment]
+                                            |
+                                  [Separate release quorum]
+                                            |
+                                       serving gate
+```
+
+**Non-equivalence:** encrypting an ordinary FK, destroying a wrapping key, marking a subject
+`anonymous`, and removing the email are distinct operations. Existing immutable transaction
+rows (amount, date, revision, reversal, asset and portfolio graph) must remain financially exact,
+yet their unusual patterns may identify a real person when joined against broker statements,
+public transactions, logs or exported files. **If a documented attacker can still correlate
+these facts, classification as Anonymous Financial History remains BLOCKED**; the approved
+retention contract cannot be silently weakened by reporting pseudonymization as anonymity.
+Any irreconcilable conflict requires a new higher-priority architectural decision.
+
+**Suggested future erasure envelope:** a separately encrypted identity↔investment link reference
+with a random subject-lifecycle handle and subject-scoped non-exportable erasure material.
+Plaintext `identity.user_investment_links`, JWT `uid`/`investmentSubjectId`, audit actor and
+target IDs, source-account labels, notes, traces, import fingerprints, and snapshots remain
+**unprotected historical paths** until individually inventoried and addressed. Current source
+evidence: migration 000001; migrations 000003–000004, 000006–000015; `auth/tokens.go`;
+`postgres/auth_store.go`, `postgres/email_ownership_store.go`, `postgres/retention.go`;
+`httpapi/import_security.go`. No runtime erasure fence exists.
+
+### Proposed deletion authorization and state transition protocol (SR-05, SR-11)
+
+Future state records are *candidate* migration objects, not present tables:
+
+| Phase | Atomic / independently witnessed invariant | Allowed response |
+| --- | --- | --- |
+| `active` | One current auth generation; no deletion fence. | Standard operations. |
+| `pending` | One stable intent for user+generation; fresh user proof; idempotency hash; approved grace deadline; **same SQL serialization authority** as login, refresh and financial subject ownership; revoke sessions and fence all protected reads/writes before acknowledging. | Generic receipt only; cancellation through a separately fresh proof. |
+| `completing` | Grace expired and cancellation loses compare-and-set; append independently witnessed erasure intent and freeze immutable generation; reject new sessions, proof issuance, imports, jobs, ledger, exports and authorization. | No completion claim. Retry reconciliation only. |
+| `custody_unavailable` / `proof_disputed` | Material destruction is unknown or verifier disagrees. | Non-serving, no cancellation/recreation; escalate. |
+| `destroyed_proven` | Non-exportable subject material terminally destroyed; independent verifier authenticates all versions/replicas; evidence tied to exact intent. | No rollback; continue forward. |
+| `unlinking` | Delete all live identity/correlation bridges and authorized sensitive projections; preserve immutable financial facts; check every copy and event/worker sink. | No completion claim. |
+| `verifying` | Positive custody proof, primary unlink proof, field/anonymity proof, independently signed active marker snapshot and copy inventory all reconcile to same generation. | Still fail closed until all gates prove. |
+| `completed` | All applicable proof clauses independently pass and are durably committed; restricted non-identifying receipt issued. | Completion status may be asserted **only to the authorized requester**. |
+| `cancelled` | Only `pending` and before deadline/destruction fence; fresh factor, exact generation lock; produce **new** auth epoch; never revive previously revoked sessions. | Generic cancellation receipt. |
+
+The 30-day grace mentioned in Stage 3.24 is a **design candidate, not an approved deadline**.
+Require a separate Principal Architect/privacy decision before writing policy defaults or API contracts.
+Grace cannot be restarted with a new idempotency key. Authentication on every protected route must
+validate both JWT signature **and** current subject-state / authorization generation. Ordinary JWT
+expiry (currently 15 minutes) and refresh-cookie revocation do **not** enforce immediate
+account-deletion fencing. Race resolution: lock lifecycle+identity ownership first, then scoped
+financial work; fail closed on stale epoch or state, including transaction commit-time validation.
+Enforce server-side fencing for outbox/inbox consumers, materializers, scheduled jobs, import and
+retry workers, not merely Fiber HTTP middleware or browser state. Document canonical lock
+ordering, timeout, deadlock retry budget and transaction uncertainty handling in the future migration.
+Before any irreversible custody action an independent durable marker **prepared** event and
+recovery checkpoint must exist; **active** markers require both custody and live-unlink proof.
+
+### Proposed restore and marker ordering (SR-03, SR-04, SR-06)
+
+A sealed restore receives a **signed complete checkpoint**, not an untrusted list of tombstones:
+`{schema_version, epoch, sequence_high, prior_root, canonical_merkle_root,
+source_log_roots, min_readable_generation, issued_at, valid_until,
+signer_id, signer_policy_version, signature}` (illustrative only). It must independently
+verify monotonic sequence continuity, proof of *no omissions*, anti-rollback monotonic witness
+outside the backup fault domain, signer-authority separation, quorum/split-view detection,
+freshness and retention scope. A signature over a filtered subset alone does not prove
+completeness. Where the publisher alone can determine the supposedly canonical high
+watermark, the signer must refuse to sign and restore must stay sealed.
+
+The replay service only obtains a **restricted restore-scoped binding** between independent
+random marker handles and protected recovered erasure artifacts; it cannot look up a marker by
+email, `user_id`, portfolio, financial subject, ordinary request ID or a deterministic hash.
+The temporary binding and credentials are confined to the sealed environment and destroyed
+before release, with independently verified evidence. A historic plaintext backup **cannot**
+be made anonymous by decrypting it in an operator-accessible staging environment and subsequently
+deleting a row: use isolated access, mandatory replay before serving, erase all transient plaintext,
+and prove all managed copies are within the 90-day retention boundary. Missing binding/marker,
+legacy unclassified copy, stale signer checkpoint, incomplete page, unsigned item, changed
+generation, offline custody or anti-rollback witness => **RELEASE DENIED**.
+
+No restored runtime may start user ingress, background jobs, CDN refresh, email/notifications,
+external webhooks or production credentials until a *separate* release authority validates the
+full predicate `complete_log && replay_proofs && custody_unrecoverable &&
+identity_unlinked && no_reidentification_path && backup_inventory && independent_approval`.
+Failing any conjunct means `sealed`, never a partial serving mode.
+
+### Migration and rollback barrier (SR-12)
+
+- **Expand:** proposed isolated lifecycle/fence tables, custody-handle references, proof registry,
+  restricted restore-only binding store, append-only marker feed and audit-minimum v2. No DDL here.
+  Database role privileges prohibit routine API deletion, marker signing, release and key recovery.
+- **Populate:** bounded, restartable **synthetic-first** mapping for old plaintext
+  `identity.user_investment_links`; enumerate every present token, audit join, imported free text,
+  historical backup, WAL, AOF, export and support copy. Legacy plaintext must not be copied into
+  attestation tags, logs or migration reports. Compare per-scope counts, missing bridge references,
+  generation races and financial projections without exposing identities to reviewers.
+- **Switch:** dual-read only inside restricted boundary with one unambiguous authority; fail closed
+  if a pre-fence process can still create plaintext FK/audit/user↔subject correlation.
+  Old app binaries, expired offline clients, workers, retries and restores must be fenced by
+  database/security policy before dropping the legacy path. No indefinite dual-write plaintext.
+- **Validate:** independent negative-linkage tests across all copies, denied stale JWT,
+  cancellation/destruction races, old-backup restore, signer split-view and custody failure;
+  reconcile immutable ledger count/Decimal string values, BusinessDate, revisions, reversals,
+  snapshot rebuilds, and replay idempotency.
+- **Contract:** only after approved reviewer proof and maximum recoverable copy expiry with
+  verified provider evidence may legacy reversible material be retired. **Rollback is possible
+  only before irreversible first destruction**, and only if it would not reintroduce a forbidden
+  bridge. After that point recover **forward**, never re-wrap, resurrect or serve old plaintext.
+
+### Explicit unresolved approval decisions
+
+`PA-01` independent custody provider/semantics, non-exportability and proof verifier;
+`PA-02` signing/root-of-trust and independent completeness/anti-rollback witness;
+`PA-03` policy on financial-pattern identifiability, audit immutable-event transformation
+and restricted evidence retention; `PA-04` fresh factor, grace deadline, cancellation and
+safe response contract; `PA-05` copy inventory, deletion SLA and residency; `PA-06`
+legal exceptions/retention/hold conflicts; `PA-07` dedicated production roles/approvers
+and restricted restore-release runbook; `PA-08` potential contract update for irreversible
+anonymization versus immutable uniquely identifying history. None is approved by this amendment.
+
+**Review status: Proposed / BLOCKED.** Section-specific controls and acceptance tests are
+tracked in the [SR matrix](../stages/STAGE_03_24_PRIVACY_SECURITY_REVIEW_READINESS.md#sr-01sr-12-implementation-design-and-threat-to-evidence-trace-2026-10-16)
+and [EC plan](../stages/STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md#sr-to-ec-execution-trace-and-independent-test-catalogue-2026-10-16).
