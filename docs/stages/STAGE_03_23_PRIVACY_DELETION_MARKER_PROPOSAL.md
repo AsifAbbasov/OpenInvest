@@ -22,6 +22,7 @@ hashes, and external persistence gaps identified by Stage 3.21 cannot be treated
 proof of anonymization. A later implementation must establish every field-level disposition and
 external evidence obligation before it may claim completion.
 
+This proposal does not accept ADR-008, perform Security Review, select a provider, establish a
 legal retention period, change OpenAPI or database contracts, alter backups, or authorize runtime
 work. Destruction of erasure material remains governed by Stage 3.22; a marker never substitutes
 for independently verifiable custody proof.
@@ -157,6 +158,7 @@ export, log, and CI evidence; retention/hold policy; monitoring and incident res
 rehearsed isolated restore with stale, missing, conflicting, forged, reordered, and unavailable
 marker states injected.
 
-Canonical record: PR #52.
+This proposal was strictly reviewed and squash-merged through PR #52 at
 `f7f23bce33038f259c976db6375079c68209a7aa`. Its successor, Stage 3.24, prepares the mandatory
+Security Review evidence and decision boundary. No field-level migration or runtime implementation
 is authorized by this historical closure.
