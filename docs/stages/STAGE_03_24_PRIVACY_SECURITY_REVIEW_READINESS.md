@@ -419,7 +419,7 @@ can be reviewed, **not** that its control exists or its acceptance gate passed.
 
 Each SR retains the status in the matrix above as **design progress only**. The required
 EC crosswalk, environment class, reproducible negative tests and independent proof gaps are
-detailed in [Stage 3.25](STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md#sr-to-ec-execution-trace-and-independent-test-catalogue-2026-10-16).
+detailed in [Stage 3.25](STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md).
 Independently verifiable source identity is **not** proof of deployed KMS, backups, legal
 holds or IAM. The Gatekeeper must reject any claim that a timestamp, code comment, synthetic
 sample, local Docker configuration, CI green badge or proposed state transition satisfies an
