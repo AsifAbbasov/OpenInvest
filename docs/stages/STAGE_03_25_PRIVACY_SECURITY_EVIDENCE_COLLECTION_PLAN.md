@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-25-PRIVACY-SECURITY-EVIDENCE-COLLECTION-PLAN |
-| Version | 0.1.0 |
+| Version | 0.2.0 |
 | Status | Active / proposal only |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.24 Security Review readiness dossier |
@@ -128,3 +128,155 @@ The immediate next action is mandatory strict review of this plan. Actual eviden
 only under an explicitly approved restricted-access process with accountable owners and independent
 verifiers. Privacy-lifecycle implementation remains prohibited until the formal Security Review and
 ADR-008 acceptance are recorded.
+
+## Architecture validation and traceability v1
+
+Prospective design validation authorized for synthetic, non-destructive local work only; source baseline
+`cffd2091168fa28817a49464438db01804b4ee48`. Stage 3.25 remains **Active / proposal only**. The original
+EC-01–EC-10 workstreams and independent-verifier clauses remain unchanged. No real evidence collection,
+provider access, migration application, backup restore or formal Security Review occurred.
+
+| Class | Evidence obtained / permissible next work | What is not established |
+| --- | --- | --- |
+| Repository | Protected baseline/merged PR #275; actual source/schema/role inventory R1–R8; original SR/EC clauses; current proposals; unchanged controlling contracts. | Deployed rows, IAM, backup inventory, deletion implementation or provider guarantees. |
+| Isolated validation | Bounded abstract lifecycle exploration and restore truth table below; source/hash/link/scope checks. | Real PostgreSQL locks/crash recovery, crypto/signature validation, HTTP auth, provider destruction or production restore isolation. |
+| External technical | Required EC-03/04/06/07/08 provider/custody, independent witness, actual backup/restore and operator evidence. None collected. | No external item is PASS by inference from a local model or ordinary CI. |
+| Human decisions | A1–A4 and EC-09/10; qualified legal/security/operations and Principal Architect decisions required. None fabricated. | A proposal/status table does not accept risk, change a frozen contract or authorize implementation. |
+
+### Tests mapped to threats, evidence and acceptance
+
+These future suites use only separately authorized synthetic environments. “Required” is not executed.
+
+| Test ID | Protocol/failure coverage | SR → EC / acceptance gate |
+| --- | --- | --- |
+| T1 | Field lineage, old user/locator/proof/marker joins, personal text/hashes, exact recovered-scope targeting, partitioned export and projection rebuild. | SR-01/04/08 → EC-02/04: no overlooked person lookup; A1/A2/A3 resolved. |
+| T2 | Fresh request/cancel, wrong factor/CSRF, stale generation, duplicate/different intent, fixed deadline, concurrent request/cancel/claim, old JWT, idempotent success and portfolio/import/valuation/outbox admission. | SR-05/11/12 → EC-01/05: current-state denial before protected work, one irreversible claim, no stale callback reactivation. |
+| T3 | Crash before/after intent commit/admission, custody call, terminal proof, unlink and marker publication; provider timeout/scheduled state, stale/revoked proof, all material versions and alternate wraps. | SR-02/05 → EC-03/05: no key recreation or false completion, durable forward recovery. |
+| T4 | Omitted/duplicate/reordered pages, valid signed prefix, conflicting roots, stale/revoked signer, epoch/schema mismatch, independent witness loss and proof-binding mismatch. | SR-03/04 → EC-04: complete admitted set and correct restricted replay; signature alone cannot pass. |
+| T5 | Synthetic restore from newest/oldest allowed image, prepared/disputed intent, new intent after checkpoint, copied certificate, changed instance/configuration, lost witness, ingress/job/credential attempts before release. | SR-03/06/12 → EC-04/06: sealed non-serving until independently fenced release; real infrastructure rehearsal still required later. |
+| T6 | Legacy plaintext copy, WAL/replica/export omission, failed expiry, copied backup whose retention clock was reset, missing provider evidence, legal-hold conflict. | SR-07/10 → EC-07/09: copy completeness and ≤90-day destruction; unknown/held copy never produces final completion. |
+| T7 | Non-identifying prospective audit/receipt fields, secret sentinels, timestamp joins, receipt substitution/replay, public response shape and bounded timing, retained browser/export identity bridge. | SR-01/08/10/11 → EC-01/02/09: no raw identity/secrets or false universal-erasure statement. |
+| T8 | Effective role combinations, shared administrator control, support exports, signing/custody break-glass, old worker/binary capability, least-privilege lifecycle role. | SR-09/12 → EC-05/08: no unilateral evidence fabrication/recovery/restore release; deployed IAM needs independent evidence. |
+| T9 | Expand/populate/shadow/switch/contract, interrupted backfill, lock-order checks and disposable PostgreSQL race tests; golden financial amounts/dates/ledger order/revisions/snapshots unchanged. | SR-12 → EC-05: financial accuracy and compatibility preserved; migration policy/manifest and rollback fence independently checked. |
+
+EC completeness: EC-01=T2/T7; EC-02=T1/T7; EC-03=T3; EC-04=T1/T4/T5;
+EC-05=T2/T3/T8/T9; EC-06=T5; EC-07=T6; EC-08=T8; EC-09=T6/T7;
+EC-10 indexes every SR minimum-proof clause, evidence freshness, accountable owner and independent
+verifier result. An SR-wide link alone cannot stand in for missing clause-level evidence. Until each
+original minimum-proof clause has real accepted evidence, final SR acceptance stays blocked_evidence.
+
+### Reproducible bounded abstract validation
+
+The Python model below has no I/O, database, network or cryptography. Run with Python 3 in an isolated
+scratch directory. It explores persistent phase states with two cancellation generations and at most
+two writes, plus crash/retry and stale-callback no-ops. A monitor rejects post-fence writes,
+destruction before durable intent, key recreation, premature markers and completion while identity,
+plaintext copy or indirect link survives. Three deliberately weakened transition guards must produce
+counterexamples; these are model sensitivity controls, not real product findings.
+The restore table enumerates seven two-intent leaf sets and nine evidence predicates (3,584 cases).
+It checks conjunction/completeness logic only: signatures, independence, trusted freshness, version,
+replay, actual isolation and a linearizable release barrier are assumed inputs, not implemented or proved.
+
+Executed 2026-10-16: lifecycle **72 states / 499 transitions**, three guard defects detected;
+restore **3,584 cases / two accepted canonicalizable A/B orderings**. A signed prefix missing a later
+accepted intent is rejected. These results validate bounded abstract consistency, not general safety,
+liveness under outages, completeness of the threat model or deployed guarantees.
+Script SHA-256: `98029cab20c58e80e223303088edab2e01caa839a5be61d8d7e447a8e77115b2`.
+
+```python
+from dataclasses import dataclass, replace
+from collections import deque
+from itertools import product
+
+@dataclass(frozen=True)
+class State:
+    phase: str = 'active'
+    generation: int = 0
+    key: bool = True
+    primary: bool = True
+    plaintext_copy: bool = True
+    indirect_link: bool = True
+    intent: bool = False
+    proof: bool = False
+    marker: bool = False
+    writes: int = 0
+
+def successors(s, mutant=''):
+    yield 'crash_retry', s
+    yield 'stale_generation_callback', s
+    yield 'invalid_factor_or_cross_subject', s
+    if (s.phase == 'active' or mutant == 'pending_write' and s.phase == 'pending') and s.writes < 2:
+        yield 'write', replace(s, writes=s.writes+1)
+    if s.phase == 'active':
+        yield 'fresh_request', replace(s, phase='pending')
+    if s.phase == 'pending':
+        if s.generation == 0:
+            yield 'fresh_cancel', replace(s, phase='active', generation=1)
+        yield 'claim_deadline', replace(s, phase='completing')
+    if s.phase == 'completing':
+        yield 'witness_intent', replace(s, intent=True)
+        if s.intent or mutant == 'unwitnessed_destroy':
+            yield 'destroy', replace(s, key=False)
+        if not s.key and s.intent:
+            yield 'verify_terminal_proof', replace(s, proof=True)
+        if s.proof:
+            yield 'unlink_primary', replace(s, primary=False)
+        if s.proof and not s.primary:
+            yield 'publish_marker', replace(s, marker=True)
+        if s.marker:
+            yield 'verify_copy_drain', replace(s, plaintext_copy=False)
+            yield 'verify_indirect_unlinking', replace(s, indirect_link=False)
+        if s.proof and s.marker and not s.primary and not s.indirect_link and (not s.plaintext_copy or mutant == 'ignore_copy'):
+            yield 'complete', replace(s, phase='completed')
+
+def monitor(old, new):
+    assert not (not old.key and new.key), 'key_recreation'
+    assert new.key or new.intent, 'destruction_without_durable_intent'
+    assert not new.proof or not new.key, 'proof_before_terminal'
+    assert not new.marker or new.proof and not new.primary, 'premature_marker'
+    assert new.writes == old.writes or old.phase == new.phase == 'active', 'write_after_fence'
+    if new.phase == 'completed':
+        assert not any((new.key, new.primary, new.plaintext_copy, new.indirect_link)), 'false_completion'
+        assert new.intent and new.proof and new.marker, 'missing_completion_evidence'
+
+def explore(mutant=''):
+    todo=deque([(State(), ())]); seen={State()}; edges=0
+    while todo:
+        s, trace=todo.popleft()
+        for event, n in successors(s, mutant):
+            edges+=1
+            try: monitor(s,n)
+            except AssertionError as err: return len(seen),edges,trace+(event,),str(err)
+            if n not in seen:
+                seen.add(n); todo.append((n,trace+(event,)))
+    assert any(s.phase == 'completed' for s in seen)
+    return len(seen),edges,None,None
+
+states,edges,witness,error=explore()
+assert witness is None
+print(f'LIFECYCLE_MODEL=PASS states={states} transitions={edges}')
+for mutant in ['pending_write','ignore_copy','unwitnessed_destroy']:
+    _,_,w,e=explore(mutant); assert w is not None
+    print(f'MODEL_SENSITIVITY={mutant} DETECTED={e} TRACE={",".join(w)}')
+
+# A/B represent two independently accepted destructive-intent receipts, not identities.
+# Enumerate omitted/substituted/duplicate snapshot leaves and all evidence flags.
+checked=accepted=0
+for leaves in [(), ('A',), ('B',), ('A','B'), ('B','A'), ('A','A'), ('A','C')]:
+    for flags in product([False,True], repeat=9):
+        signature, independent, consistent, fresh, compatible, isolated, proof, replay, fenced=flags
+        complete=len(leaves)==2 and set(leaves)=={'A','B'}
+        release=complete and all(flags)
+        checked+=1; accepted+=int(release)
+        if release: assert complete and signature and independent and consistent and fresh and compatible and isolated and proof and replay and fenced
+assert accepted==2  # both canonicalizable A/B orders; acceptance sorts by authoritative sequence.
+print(f'RESTORE_TRUTH_TABLE=PASS cases={checked} accepted={accepted}')
+# Race witness: a valid signed prefix is insufficient after a later accepted intent.
+assert set(('A',)) != {'A','B'}
+print('SIGNED_PREFIX_OMISSION_AND_NEW_INTENT_RELEASE_CUT=REJECTED')
+print('DATABASE_PROVIDER_RESTORE_IMPLEMENTATION=NOT_TESTED')
+```
+
+Normal exact-head CI checks unchanged source compatibility; it cannot test the future deletion, custody,
+marker or restore implementation. Future T1–T9 runtime suites and EC provider/human evidence remain
+NOT_EXECUTED / NOT_COLLECTED, separate from the bounded model and repository checks above.

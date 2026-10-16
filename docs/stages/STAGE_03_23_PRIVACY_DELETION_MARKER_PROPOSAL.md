@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-23-PRIVACY-DELETION-MARKER-PROPOSAL |
-| Version | 0.1.1 |
+| Version | 0.2.0 |
 | Status | Complete / merged through PR #52 at `f7f23bce33038f259c976db6375079c68209a7aa` |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.22 key-custody proposal |
@@ -169,3 +169,72 @@ This proposal was strictly reviewed and squash-merged through PR #52 at
 `f7f23bce33038f259c976db6375079c68209a7aa`. Its successor, Stage 3.24, prepares the mandatory
 Security Review evidence and decision boundary. No field-level migration or runtime implementation
 is authorized by this historical closure.
+
+## Target marker and restore protocol v1
+
+Candidate control plane only. Preserve the original separation rules and prohibited fields above.
+The log uses authenticated append-only ordering and independent checkpoints; [RFC 9162](https://www.rfc-editor.org/rfc/rfc9162.html)
+sections 2.1.3–2.1.4 inform inclusion/consistency checks. This is an adaptation of an Experimental
+certificate-transparency protocol, not adoption of a public log, a deletion standard or proof that
+all real-world deletions were submitted. Official source inspected 2026-10-16.
+
+| Record | Required binding / validation |
+| --- | --- |
+| Intent admission receipt | Random lifecycle ID, generation, policy version, domain-separated digest of minimized canonical intent, authoritative sequence/epoch and independent witness signature. No raw confirmation factor or identity map. |
+| Marker transition | Same lifecycle/generation/digest, random restore-only binding, phase, proof commitments, previous-transition commitment and schema version. Prepared cannot authorize deletion completion or serving. |
+| Checkpoint | Log identity/epoch/size/root, previous trusted checkpoint, policy/schema/signer versions, trusted observation time and independent witness endorsements. Completeness includes every admitted intent and its resolved or unresolved state. |
+| Restore release certificate | Restore instance/configuration digest, checkpoint/cut, replay result, custody/copy/evidence commitments, independent release signer and finite validity. A copied certificate for another instance/cut is invalid. |
+
+**Admission:** the coordinator first commits a pending-intent outbox record under the lifecycle lock.
+An independent witness durably admits that exact generation/digest and returns a sequence receipt.
+Destruction cannot start without its acknowledgement. A crash before acknowledgement retries the same
+intent; a crash after admission reconciles receipt and database checkpoint. Neither an omitted outbox
+row nor a forged local success can satisfy the independent witness. Unresolved prepared intents appear
+in every release decision; they are not filtered from a “successful deletions only” view.
+
+**Completeness:** verify every receipt through cut N against an independent admitted-intent register,
+canonical sequence/entry count/root, all pages, inclusion proofs and consistency with a previously
+pinned checkpoint. Reject duplicate sequences/generations, missing pages, mismatched intent digests,
+unknown schemas/epochs/signers, rollback and conflicting roots at the same size. Compare checkpoints
+across separately administered witnesses; one writer and its own signer are not independent. The
+witness register must itself have monitored replicated durability, retention and disaster recovery.
+Signatures prove authenticity of a view, not that unsubmitted or lost intents do not exist; unresolved
+journal/data reconciliation prevents release. No numeric quorum or provider is self-approved here.
+
+**Release cut:** block new admission to the recovered environment and establish a coordinated epoch
+barrier with the authoritative intent service; drain all pre-barrier admissions, obtain checkpoint N,
+reconcile recovery data and replay every required marker, then obtain independent release authority.
+Intent admission after N belongs to the next epoch and cannot use the recovered instance until its
+continuous lifecycle gate is synchronized. A standalone freshness timeout is insufficient. If a shared
+admission barrier cannot be established, keep recovery non-serving; do not globally pause an active
+production environment without separately approved operations authority.
+
+**Replay:** use only reviewed restore binding/protected scope membership (A3), not user-facing lookup.
+Apply idempotently by (restore instance, lifecycle generation, checkpoint); verify each affected record
+and independent destroyed-key unavailability. Missing primary record can be an idempotent outcome
+only after scope completeness is established; it does not prove the whole subject was erased.
+Resolve prepared/disputed states from durable intent and independent proof; never blindly delete from
+an unverified/prepared marker. Partial replay resumes from verified checkpoints, with release denied.
+
+**Sealed runbook:** restore operator creates an isolated instance with no public ingress, production
+signing keys, application credentials, mail/provider credentials, scheduled work or outbound exports.
+Use separate short-lived restore-verifier credentials; allow only assessed custody/journal evidence
+paths. Verify database image/schema and replay tools; load trusted checkpoint roots independently;
+replay/verify; reconcile copies and scopes; obtain a separate release certificate; enable ingress,
+credentials and jobs only for that exact instance/configuration. Restart/configuration change or
+expired/invalid certificate returns the candidate to non-serving. Platform enforcement is unverified.
+
+Backups/copy register: random copy ID, origin/lineage, creation time, expiry no later than creation +
+90 days, encryption/material class, replica/export/recovery locations, deletion operation, independent
+provider evidence and reconciliation result. Copying/rewrapping must not reset retention of the same
+recoverable data. Unknown locations or failed expiry trigger incident escalation and block final
+completion. Markers remain operational until all managed copies are replayed or destroyed; then keep
+only non-identifying ten-year evidence. Physical replicas and exports with other approved purposes
+need explicit disposition; they are not silently exempt recovery copies.
+
+Legacy plaintext backups, logical exports, WAL, diagnostic copies and lookup indexes are a mandatory
+separate barrier. A new subject key cannot sanitize them. Final completion waits for independently
+verified destruction/expiry and linkage resolution; “crypto-erased now, backups later” is not completed.
+Legal holds cannot silently extend the 90-day contract or reintroduce keys: unresolved conflict remains
+blocked for human decision. Actual provider inventory/destruction and restore-isolation evidence are
+not supplied by this candidate.

@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-24-PRIVACY-SECURITY-REVIEW-READINESS |
-| Version | 0.2.0 |
+| Version | 0.3.0 |
 | Status | Complete / merged through PR #53 at `544ad8cc7371caf93913ea7716f3feb68be0ea44` |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.23 deletion-marker control-plane proposal |
@@ -314,3 +314,155 @@ there is no authorized implementation to test. Existing normal CI checks compati
 for independent review of findings, not a formal Security Review verdict or Principal Architect decision.
 Repository-verifiable analysis is complete for this baseline; implementation-dependent tests, exact
 provider/custody proof, legal policy and real deployed-copy/restore evidence remain missing.
+
+## Architecture remediation candidate v1
+
+Scope: protected `develop@cffd2091168fa28817a49464438db01804b4ee48`, tree
+`c5ada81772bb6179931636a52f88b1ae43281b91`; PR #275 is merged. This prospective design adds no
+implementation or acceptance. Historical review dates above remain historically recorded / UNVERIFIED.
+Earlier SR acceptance blockers remain; the matrix below adds **design maturity**, not closed SRs.
+
+**Identifier reconciliation:** preserve the original SR table as authority. In the new task, “SR-04
+Restore Safety” expands original SR-04 replay targeting plus SR-06 isolation; “SR-11 Deletion
+Confirmation” includes a receipt but does not replace original SR-11 fresh-factor/cancellation authority.
+All original SR-01–SR-12 proof clauses and EC-01–EC-10 remain mandatory.
+
+### Reusable source mechanisms and current-state index
+
+All paths below are relative to the exact baseline above; code/schema inspection is repository evidence,
+not production discovery. Documents 42/43 and accepted ADR-005/006 remain byte-for-byte unchanged.
+
+| Ref | Exact repository source / mechanism | Safe reuse and limit |
+| --- | --- | --- |
+| R1 | `backend-go/internal/auth/{service,tokens,password}.go`; `backend-go/internal/httpapi/{auth_handlers,security_headers}.go` | Existing signature/identity/expiry, password verification, CSRF/cookie and no-store boundaries; access auth currently returns signed subject without database lifecycle check. Preserve JWT-01/02/03 policies; deletion adds an independent current-state gate. |
+| R2 | `backend-go/internal/postgres/auth_store.go`: lockUserRefreshes, lockRefreshSession, RotateSession, RevokeSession, recordAuthAudit | Reuse transaction/advisory locking, family revocation and deduplicated rejection evidence; lock order and raw audit user IDs need the new privacy boundary. |
+| R3 | `infrastructure/postgres/migrations/000001_stage_03_01_vertical_slice.up.sql`, 000002 auth/privacy, 000013 audit deduplication, 000015 email ownership | Actual user/subject/link/session/audit/registration rows and dependencies. No lifecycle request, key, independent marker or restore-release schema exists. |
+| R4 | `backend-go/internal/postgres/{store,stage_03_74_transactions,replay_store,replay_lookup,retention}.go` | Reuse portfolio owner checks, row locks, command reservation/replay and bounded cleanup; no common deletion fence currently covers every path. |
+| R5 | Migrations 000003–000004 provenance, 000006–000007 replay/retention, 000010–000012 valuation/replay | Field-level personal/correlation and derived-state scope; financial immutability/deduplication must survive any proposed projection change. |
+| R6 | `infrastructure/postgres/runtime/openinvest_runtime_role.sql`; migration `policy_manifest.json`; `docs/database/MIGRATION_STRATEGY_STAGE_02.md` | Reuse exact capability profiles and Expand→Populate→Switch→Validate→Contract; API role cannot delete identity/ledger/audit. New capability and manifest proposal require separate review. |
+| R7 | `backend-go/internal/httpapi/import_security.go`; `frontend-next/src/features/auth/session.ts`, `src/app/auth/verify/page.tsx`; `backend-go/internal/sharedbudget/redis.go` | Existing token expiry, generation-aware UI and Redis atomic budgets are reusable mechanisms, not account erasure. Browser/Redis persistence is separately inventoried. |
+| R8 | `docker-compose.yml`; `docs/database/ER_MODEL_STAGE_02.md`; Stage 3.21 external inventory | Local PostgreSQL/Redis volumes, canonical 30-day grace, backup/ledger constraints. No deployed backup/KMS inventory or sealed restore enforcement is proved. |
+
+### Lifecycle, authorization and receipt contract
+
+Candidate persisted `privacy_lifecycle` has random lifecycle ID, identity/subject links **only until
+approved unlinking**, generation, optimistic version, phase, fixed grace deadline, intent digest,
+external-operation reference/commitments and retry/checkpoint state. Identity-bearing fields must have
+an approved erasure disposition; no ten-year retained tombstone with raw user or subject IDs. Unique
+one non-final request per identity; immutable deadline; compare-and-set generation/version; phase/proof
+checks. Exact SQL types, constraints, role grants and OpenAPI are future proposals, not DDL here.
+
+| State | Admission / transition | Safety and failure result |
+| --- | --- | --- |
+| active | Freshly authorize REQUEST; commit one pending generation/deadline and revoke all sessions under the common fence. | Duplicate same intent replays; different idempotency body rejects. Unknown transaction result reconciles; never creates a second grace window. |
+| pending | Deny normal login/refresh/protected reads and writes; permit only scoped fresh cancellation/status ceremony before deadline. | Same lock serializes cancellation with completion claim. Cancellation increments authorization generation and requires a new normal login, not session resurrection. |
+| completing: claimed / witnessed | After deadline, CAS claim; durably publish intent and reconcile independent witness receipt before destruction. | Cancellation is permanently closed. Outbox/witness outage remains non-serving and non-complete; retries cannot change intent/generation. |
+| completing: key_proven / primary_unlinked / marker_active | Reconcile exact destruction operation/proof, remove approved live personal scope, then activate independently verified marker. | Crash at any boundary resumes forward; stale callback rejects; no compensating key creation or reactivation. |
+| completing: waiting_evidence | Await every copy/indirect-link/legal/proof obligation, including legacy plaintext copies. | Retry exhaustion escalates without dropping obligation. No completion receipt while any condition is unknown. |
+| completed | Independent conjunction: terminal key proof + live unlinking + authentic complete marker + reconciled copy scope + non-reidentification + allowed retention evidence. | Terminal; no cancellation/reactivation/rollback. Keep only approved non-identifying evidence. |
+
+**Fresh confirmation candidate:** reuse password verification in a purpose-restricted identity port,
+not regular Login (which must reject pending accounts). One-use challenge digest binds action,
+principal, current generation, nonce, CSRF context and expiry; proposed maximum five minutes,
+subject to security acceptance. REQUEST needs active authentication plus fresh password. CANCEL uses
+only the restricted pending-identity ceremony, fresh password and CSRF/challenge proof; it never issues
+normal bearer/refresh credentials. A stale/revoked session, request ID, receipt or ticket alone is not
+authority. Challenge responses for unknown/ineligible identities must have the same public shape and
+bounded work; re-use dummy password verification and existing IP/credential admission, with reviewed
+limits and failure semantics. No account recovery, email-based cancellation or new factor is assumed.
+Raw passwords/challenges never enter audit, logs, idempotency hashes or durable evidence.
+
+All protected data access must go through authoritative `AuthorizeSubjectOperation` inside the relevant
+transaction, **before** owner lookup, returning idempotent success or external side effects. Candidate
+lock order: subject lifecycle fence → identity refresh advisory lock → session/family → sorted portfolio
+IDs → command scope; ordinary operations take a shared fence and deletion/cancellation takes exclusive.
+Maintain one canonical lock key/row, not two independent user/subject locks that can diverge. Reads
+hold their fence through result authorization; writes hold it through commit. Re-check state/generation
+with the lock acquired on the primary before using a repeatable-read financial snapshot. A stale
+snapshot/cache cannot supply lifecycle authority. If this cannot be guaranteed in a transaction mode,
+redesign that path before rollout. Long-running streams need explicit revocation/termination and bounded
+admission; do not claim retracting already transmitted bytes. Worker/outbox admission uses the same
+scope/generation; an already submitted email/provider request cannot be unsent and stays inventoried.
+
+This adds a future lifecycle check without changing financial authorization's validated
+investmentSubjectId, token signature/claim policy or current refresh semantics. It requires separate
+approval for the new access-denial contract; no change to the accepted future-iat risk is implied.
+
+**User confirmation receipt:** acceptance returns non-final status only over authenticated TLS/no-store;
+completion can issue a signed statement with random receipt nonce, policy/schema, time and final
+non-identifying evidence commitment. No user/subject/portfolio/key/marker locator or public status
+lookup. A receipt proves only the attested scoped result under trusted issuer semantics, not universal
+erasure. Before identity deletion, optionally bind a user-held verifier capability whose hash is stored
+only in an approved restricted transition projection; possession permits receipt retrieval, never
+cancellation or financial access. Capability retention, loss and correlation require A3 review. If no
+safe retrieval binding is accepted, use a separately approved delivery mechanism or report receipt
+retrieval unsupported; never retain an identity map for convenience. No receipt is returned as final
+while completing. A replayed receipt is not evidence for another generation.
+
+### Required migration and operations proposal
+
+1. **Resolve A1/A2/A3/A4 first.** Inventory actual stored/copy fields; no schema change cures unknown
+   provenance, personal immutable text or missing provider proof by assertion.
+2. **Expand:** propose lifecycle/fence, protected identity-resolution, scoped material versions,
+   transactional intent outbox, proof/checkpoint projection and restore bindings with no public lookup.
+   Reuse explicit migration manifest, bounded locks/batches and owner/runtime separation. No generic
+   DELETE/UPDATE grant to API, no destructive DOWN that reconstructs erased material.
+3. **Populate and validate:** owner-only bounded migration inventories every active subject; protect
+   permitted identity/annotation mappings; compare decrypted resolution and all financial results in
+   shadow mode. Do not rewrite amounts/dates/rounding/ledger sequence/revisions/source identity or old
+   audit events. If A1/A2 need a contract amendment, stop that part until approved.
+4. **Switch atomically by compatibility generation:** reject any older binary/worker lacking the
+   fence; deploy read-compatible clients first, then enforce readiness on every API/job instance.
+   Dual-read plaintext fallback is forbidden after the switch/cut. Capabilities/grants follow exact
+   explicit profiles, never PUBLIC or schema-owner credentials in normal runtime.
+5. **Validate custody/journal/restore before destructive activation:** independently test synthetic
+   erasure, all versions and recovery paths, witness omission, release-cut races, role isolation and
+   copy expiry; establish provider/operations evidence and pause/escalation authority.
+6. **Contract only with authorization:** remove obsolete personal plaintext paths after validation,
+   reconcile all legacy plaintext backups/WAL/exports/indexes and applied copies; preserve financial
+   ledger/snapshot meaning. Unknown copies keep lifecycle completing. The 90-day bound is not reset
+   by copying a backup. Historical audit treatment follows A2, not a privilege shortcut.
+
+Before irreversible activity, rollback may stop rollout and leave additive structures unused under
+the approved protected state; it cannot silently re-enable plaintext access. After key destruction or
+personal erasure, only forward repair is permitted. Old database restore stays sealed and applies the
+independent markers; rolling back a binary cannot bypass the fence. Required operational handoffs:
+authorizer admits → independent witness acknowledges → custody authorizes/executes → verifier checks →
+lifecycle unlinks → marker authority publishes → backup owner reconciles → restore verifier rehearses →
+independent releaser signs. Each failed handoff has a durable non-identifying obligation and an assigned
+role, not an invented person/date. Provider outages, unknown clocks or split views stop progress.
+
+### SR remediation and acceptance matrix
+
+DESIGNED means a reviewable protocol is specified; it is not implemented, independently accepted or
+production-verified. PARTIALLY_DESIGNED exposes an unresolved technical binding. BLOCKED requires a
+higher-authority decision. Every row's final acceptance remains blocked until its original minimum
+proof clauses pass independent review.
+
+| SR / design status | Current source → control / threat | Alternatives, dependency and sequencing | Test → EC evidence → explicit acceptance / missing proof |
+| --- | --- | --- | --- |
+| SR-01 BLOCKED | R3/R5/R7 → field disposition + protected identity port + copy/indirect-link completion barrier; prevent a surviving note/hash/JWT/audit bridge. | Cascade/UUID insufficient; immutable personal-field rewrite/generalization needs A1/A2/A4 before population. | T1/T7 → EC-02/10: every field/copy and reasonable join resolved; no anonymity claim while personal immutable facts or external correlation remain. Real discovery/approval missing. |
+| SR-02 PARTIALLY_DESIGNED | R3/R6 → subject material isolation and independent terminal proof in Stage 3.22; prevent alternate-wrap/admin recovery. | Non-exportable provider vs independently operated hardware; A3 before selection/creation. | T3 → EC-03/10: all versions/copies/non-recreation and proof trust accepted; simulated negative decrypt does not establish provider destruction. |
+| SR-03 DESIGNED | R3/R8 → independent admitted-intent journal/checkpoints and receipt reconciliation in Stage 3.23; reject signed omissions/split views. | Single writer-signer rejected; independent witnesses/threshold needs A3; witness before destruction. | T4/T5 → EC-04/10: all admitted generations through release cut included, replay/rollback rejected; real independent durability/admin evidence absent. |
+| SR-04 PARTIALLY_DESIGNED | R3/R5 → restore-only binding + protected scope replay; prevent marker becoming a person lookup or skipping recovered material. | Raw user/subject IDs rejected; exact proof/lookup/retention join graph needs A3 before schema. | T1/T4 → EC-04/10: complete targeting without any usable residual map, including old locator/proof joins. Exact binding and provider fixtures missing. |
+| SR-05 DESIGNED | R1/R2/R4 → fenced lifecycle saga and generation-bound callbacks; prevent write/cancel/completion races and false success. | Long distributed transaction rejected; durable monotonic reconciliation after each external effect. | T2/T3 → EC-05/10: every crash cut/retry/race preserves denial and no false completion; PostgreSQL/coordinator implementation tests pending. |
+| SR-06 DESIGNED | R8 → sealed instance and independent release certificate tied to configuration/cut; prevent early ingress/jobs or copied release evidence. | Manual operator assertion rejected; platform-enforced deny before separately authorized release. | T5 → EC-06/10: rehearsal proves every serving/credential/job route denied before valid release; topology enforcement evidence missing. |
+| SR-07 DESIGNED | R8 → per-copy lineage/expiry/destruction reconciliation plus legacy-copy barrier; prevent hidden/re-aged recoverable copy. | Timer alone rejected; provider evidence and independent inventory; A4 for policy conflicts. | T6 → EC-07/10: all managed copies encrypted and destroyed within 90 days with proof; actual inventory/destruction missing. |
+| SR-08 BLOCKED | R2/R3 → minimized future privacy evidence with restricted commitments; prevent user/session/request/time joins over ten-year audit. | Appending a redacted projection leaves original IDs intact; historical mutation/encryption requires A2 and legal review first. | T1/T7 → EC-02/10: ten-year integrity/retention without prohibited map; original-row disposition and sampled linkage proof missing. |
+| SR-09 DESIGNED | R6 → role separation across application, lifecycle, custody authorizer/executor, marker writer/witness, restore/releaser and evidence verifier. | Shared-admin “separate credentials” insufficient; A3 organizational boundary before provider integration. | T8 → EC-08/10: no unilateral routine role combination can forge release/recover keys; actual IAM/support/access-review evidence missing. |
+| SR-10 BLOCKED | R8 + Documents 42/43 → explicit exception register and no false completion; prevent hidden hold/recovery path or extended backup retention. | No assumed regulatory retention right; qualified legal/privacy and Principal Architect resolve A4 before any conflicting operation. | T6/T7 → EC-09/10: signed policy decision reconciles duties without silent contract change; legal decisions absent. |
+| SR-11 PARTIALLY_DESIGNED | R1/R2/R7 → fresh purpose-bound password/challenge, restricted cancellation, non-oracular status and non-identifying receipt; prevent stolen-session/replayed receipt authority. | Opaque ID alone rejected; exact receipt capability/privacy binding and recovery/loss UX need A3/owner decision. | T2/T7 → EC-01/10: original fresh-factor/CSRF/abuse/cancellation requirements plus no final receipt before evidence; HTTP/UX/receipt implementation tests pending. |
+| SR-12 DESIGNED | R3/R4/R6 → staged rollout/compatibility fence, owner-only backfill, immutable ledger and forward-only irreversible cut; prevent old binaries/plaintext restore rollback. | Destructive one-shot migration rejected; A1–A4 resolve before activation. | T2/T5/T8/T9 → EC-05/10: full migration/data-state/runbook clauses independently verified, no lost financial facts, old copies drained; runnable migration/rehearsal missing. |
+
+### Approval register and next independent scope
+
+A1: Principal Architect/data/privacy decision for personal fields embedded in immutable financial facts,
+including deduplication/source-rights effects. A2: Principal Architect/security/legal decision for legacy
+audit IDs and ten-year evidence. A3: exact custody/proof/replay/receipt binding and independent control
+plane, provider/cost/operations selection and assurance. A4: qualified legal/privacy retention/hold and
+managed/external-copy threat scope. No current requirement is weakened or silently replaced.
+
+Independent Gatekeeper should review these four decisions and protocol counterexamples, original
+SR/EC clause coverage, code traceability and model limitations. Ask for specific implementation/provider
+rehearsals only in separately authorized phases. Documentation merge must not be read as ADR acceptance,
+legal approval, key provisioning, deletion API implementation or production readiness.

@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ADR-008 |
-| Version | 0.2.0 |
+| Version | 0.3.0 |
 | Status | Proposed |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -155,3 +155,40 @@ The [Stage 3.21 delta](../stages/STAGE_03_21_PRIVACY_DATA_INVENTORY_PROPOSAL.md#
 adds registration, audit deduplication, replay/valuation, JWT, import-token and Redis surfaces.
 A key-erasure proof cannot sanitize old plaintext copies or establish anonymity of financial patterns;
 all current blockers require independent resolution under Documents 42–43 before approval.
+
+## Target architecture candidate v1
+
+**Proposed, not accepted or implemented.** This amendment builds on merged PR #275 at protected
+`develop@cffd2091168fa28817a49464438db01804b4ee48`, tree
+`c5ada81772bb6179931636a52f88b1ae43281b91`. Documents 43/42 and accepted ADR-005/006 are unchanged.
+The seven original decision clauses remain mandatory. Design status is separate from SR acceptance.
+
+| Component / authority | Proposed responsibility and boundary |
+| --- | --- |
+| Identity authorization port | Resolve current principal to a scoped financial subject; check authoritative lifecycle state for every protected operation. A signed JWT alone is insufficient once deletion is pending. |
+| PostgreSQL lifecycle coordinator | Own generation/version, immutable grace deadline, intent and phase checkpoints; serialize account/session/financial admission. No key bytes or provider calls inside a database transaction. |
+| Independent custody plane | Non-exportable subject erasure material, immutable material versions, independent destruction authorization and terminal attestation. No replacement of destroyed handles. |
+| Independent deletion journal / witnesses | Durably order admitted intents and proof transitions; authenticate completeness independently of the writer, custody operator and restore releaser. |
+| Sealed restore verifier / separate release authority | Reconcile recovered rows and every admitted intent through a fenced release cut; verify key unavailability and copies before enabling traffic/jobs/credentials. |
+| Privacy/audit authority | Approve field dispositions and correlation evidence; retain ten-year minimum non-identifying verification without a person lookup. |
+
+Preferred candidate: subject-scoped encryption plus a durable intent/marker saga and authoritative
+read/write fences, with delayed final completion until all plaintext/correlation obligations resolve.
+Database-only cascade and shared backup encryption cannot provide this boundary. Per-subject physical
+segregation simplifies copy accounting but increases operations/cost and still cannot erase exported
+plaintext. Whole financial-history deletion/coarsening conflicts with current contracts and is not chosen.
+
+Four decisions remain explicitly open: **A1**, treatment of personal text/provenance already inside
+immutable financial facts; **A2**, treatment of user/session identifiers in append-only historical audit;
+**A3**, actual custody/replay-binding/copy guarantees; **A4**, legal holds and approved threat scope for
+external/previously exported linkage. A1/A2 require an explicit architecture decision before any
+historical rewrite; A3 requires provider/operations evidence; A4 requires qualified human decisions.
+No UUID, receipt, key destruction or local model permits an Anonymous Financial History claim alone.
+
+Detailed design ownership: [field dispositions](../stages/STAGE_03_21_PRIVACY_DATA_INVENTORY_PROPOSAL.md#target-field-disposition-v1),
+[key hierarchy and proof](../stages/STAGE_03_22_PRIVACY_KEY_CUSTODY_PROPOSAL.md#target-custody-protocol-v1),
+[journal and restore](../stages/STAGE_03_23_PRIVACY_DELETION_MARKER_PROPOSAL.md#target-marker-and-restore-protocol-v1),
+[lifecycle/migration/SR decisions](../stages/STAGE_03_24_PRIVACY_SECURITY_REVIEW_READINESS.md#architecture-remediation-candidate-v1),
+[tests and evidence](../stages/STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md#architecture-validation-and-traceability-v1).
+Acceptance remains BLOCKED; any future implementation needs separate authorization. No provider, API,
+schema, key, retention exception, operational grant, merge or deployment is approved by this amendment.
