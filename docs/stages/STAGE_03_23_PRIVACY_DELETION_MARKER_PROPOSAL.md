@@ -257,5 +257,5 @@ quantities/dates/revisions. Local mock verifier tests may establish parser logic
 do **not** prove deployed witness independence or historical backup safety.
 
 Map this design to EC-04/EC-06/EC-10 and TV-03/TV-04 from
-[Stage 3.25](STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md#sr-to-ec-execution-trace-and-independent-test-catalogue-2026-10-16).
+[Stage 3.25](STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md).
 **Current status: PARTIALLY_DESIGNED / implementation absent; restore-release BLOCKED.**
