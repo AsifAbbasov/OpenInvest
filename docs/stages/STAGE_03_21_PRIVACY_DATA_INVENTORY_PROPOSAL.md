@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-21-PRIVACY-DATA-INVENTORY-PROPOSAL |
-| Version | 0.3.0 |
+| Version | 0.4.0 |
 | Status | Complete / merged through PR #50 at `207325e0497cc2608b99366f7f840472d270b6ed` |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.20 privacy threat-model proposal |
@@ -263,3 +263,67 @@ no replay tag is added to ledger rows by this document.
 The conservative completion predicate is the intersection of live unlinking, terminal key proof,
 marker verification, copy reconciliation and non-reidentification evidence. When any existing plaintext
 copy or meaningful indirect join survives, state remains completing; no fallback label of anonymous.
+
+## A1/A2/A4 decision dossier — current source, proposed disposition
+
+Prospective investigation baseline `5a83503719e6756c57707afbcda309b1a83f1d67`, tree
+`85fcc4c0fd0074da19e98a1ac0238aac9423842e`; PR #277 merged. Recorded historical metadata is unchanged.
+This is a mixed technical decision register, not acceptance, real-data discovery or a new review event.
+Sources below are relative to this exact baseline; no deployed contents were accessed.
+
+### A1: field-level financial boundary and alternatives
+
+| Actual source / fields | Re-identification path and proposed disposition | Required compatibility proof / authority |
+| --- | --- | --- |
+| Migration 000001 `transaction_entries.note, correction_reason`; `portfolios.name`; `backend-go/internal/postgres/stage_03_74_transactions.go` | User text can contain names/account references; future entries separate personal annotations into per-subject encrypted projections. Do not persist personal text in new immutable fact bytes. Existing plaintext facts remain unresolved. | Canonical DTO meaning, explanation/reversal reason and export behavior must survive; Principal Architect must approve any frozen-contract change. |
+| Migrations 000003/000004 `source_file_hash, source_account_label, source_broker_operation_key, source_fingerprint, source_identity_version`; `stage_03_71_store.go` | Labels identify accounts; file/operation/fingerprint hashes permit cross-copy matching. Separate confidential import identity from economic facts; scope keyed deduplication to the active subject and version it. Unsalted hashes and encrypted labels alone are not anonymous. | Preserve strong-vs-fallback deduplication, manual/import distinction and concurrent uniqueness. Destroying dedup keys changes future replay behavior: permanently deny imports for erased scope; no recreated subject/key. |
+| Migration 000001 entry/transaction/portfolio IDs, prior/reversal graph, exact dates/amounts, request/trace IDs; later `ledger_sequence` and replay state | Unique holdings and timestamps can correlate with outside statements even after link-key destruction. Keep exact financial facts only if independent reasonable-linkage assessment passes; strip/separate non-economic request/trace links prospectively. | Preserve Decimal scale-8 Half-Even, business dates, ordering, revisions, XIRR/snapshot inputs and idempotent effects. Generalizing amounts/dates would change the frozen financial contract and is NOT selected. |
+| `command_deduplication` principal/path/key/request/response artifact; outbox/inbox aggregate/payload; snapshots/replay watermarks | Principal, cached financial response, event and watermark joins recreate a bridge. Inventory every current payload/version; expire/delete personal operational state, rebuild permitted derived state and fence stale messages. | Full consumer/cache/export inventory, retention tests and T1/T6/T7/T9; no claim that TTL alone removes copies. |
+
+| Alternative | Privacy effectiveness / financial compatibility | Migration and rollback / recommendation |
+| --- | --- | --- |
+| Separately encrypted personal projections | Removes future text/provenance from retained fact bytes; key destruction protects only covered material. Economic uniqueness remains. | Additive sidecar and dual-read version mapping feasible; old plaintext/backups are not fixed. Recommended together with structured segregation, subject to A1/A3 approval. |
+| Structured facts vs personal annotations | Explicit allowlisted fact schema, independently governed annotation/provenance port; prevents accidental free-text retention. | DTO and deduplication semantics must be versioned and tested; rejecting required current fields without approval is incompatible. Preferred prospective target. |
+| Versioned historical domain migration | New ledger generation can preserve exact economic/revision order while excluding personal columns; compare canonical financial projections, not raw-row equality. | Rewriting/dropping original immutable generation conflicts with accepted append-only contracts; requires explicit superseding decision and evidence. After erasure no rollback to plaintext; recover forward only. NOT AUTHORIZED. |
+| Keep original rows, encrypt whole disk, or append a redacted view | Old plaintext and decryption/backup keys still reconnect a person. A new view does not erase original rows. | Insufficient for current anonymity requirement; cannot close A1. Keeping a recoverable archive is not a solution by itself. |
+
+Preferred **DESIGN_ONLY**: segregate future annotations/provenance; design a separately approved historical
+migration with golden financial projection equality, per-generation completeness manifests, writer fencing,
+crash-safe resume and legacy-copy expiry. If retained exact economics remain reasonably re-identifiable,
+A1 stays BLOCKED; selecting a different retention/anonymity contract requires owner/Principal Architect
+and Privacy/Legal authorization. No data transformation or contract change occurs here.
+
+### A2: legacy audit disposition, not anonymous by relabeling
+
+| Current field/source | Threat / proposed disposition | Integrity and retention gate |
+| --- | --- | --- |
+| `audit.actors.id, actor_kind, created_at`; `auth_store.go:recordAuthAudit` inserts the actual user UUID | Direct user bridge survives identity cascade. Future event-specific random actor reference and protected temporary correlation projection; no retained raw user UUID after completion. | Original records are read/append-only under runtime role. Transforming original IDs requires A2 contract decision, never a runtime UPDATE grant. |
+| `audit.events.actor_id, target_kind, target_id` | Auth targets session UUID; financial targets can bridge to portfolio/history. Minimized semantic event category and opaque per-event reference, no recoverable identity map. | Preserve essential action/outcome/schema evidence and ten-year retention; establish whether transforming identifiers satisfies approved audit-integrity purpose. |
+| `request_id, trace_id, occurred_at`, actor timestamp | Cross-log/request/time joins; replacement UUID or hash may remain linkable. Remove unnecessary future correlations; approve time precision/minimization by event purpose. | Do not silently coarsen historical timestamps; exact external log matching and legal/security purpose require review. |
+| `audit.auth_security_event_deduplications(action_code, session_id, created_at)` migration 000013 | Stable rejected-session key; not an anonymous receipt. Future generation-bound keyed operational deduplication with bounded retention, separate from ten-year evidence. | Preserve rejection-event amplification control and revocation replay semantics; cleanup and backup lifecycle separately approved. |
+
+Compared alternatives: encrypted historical archives protect confidentiality but retain identifiers while
+keys/administrators can recover them; redacted projections preserve useful audit semantics but do not
+remove originals; a versioned audit-domain migration plus independent pre/post commitments permits
+reconciliation but changes original-byte retention and needs explicit approval. Restricted custody limits
+access, not re-identification capability. Recommended **DESIGN_ONLY**: minimize new events and propose
+an independently witnessed versioned audit migration; exact immutable originals cannot both remain
+recoverable and be claimed erased. A2 remains BLOCKED pending Principal Architect + Security + Legal
+retention/integrity decision. A commitment to an old row is not proof of its deletion; an identifying
+plaintext digest may itself correlate and needs field-level analysis. No archive is created here.
+
+### A4: decision-ready copy and exception register
+
+| Copy category / technical owner | Existing contract and feasible boundary | Missing decision/evidence; prohibited user claim |
+| --- | --- | --- |
+| OpenInvest primary DB, application memory, Redis, queues, derived state, exports under service control | Complete identity deletion and irreversible unlinking; fence writes/revoke sessions, inventory each store and key version before completion. | Application/Data/Security must approve field disposition and complete sink inventory; cannot claim all copies gone from source inspection. |
+| Infrastructure/processor backups, WAL, replicas, snapshots, logs, SMTP delivery records | Managed encrypted backups max 90 days; ten-year audit does not extend backup retention. Require processor deletion/expiry attestations, replica inventory, support/export access and subprocessor scope. | Operations/Privacy obtain provider-specific retention, immutable-copy, key recovery, logs/residency/exit evidence; no guarantee inferred from public API or console. |
+| User-exported statements, browser/device copies, independently retained third-party records | No technical power to revoke a genuinely independent copy; disclose limited service-controlled scope. | Privacy/Legal define processor vs independent recipient boundary and user-facing wording; cannot promise universal erasure or anonymous history while reasonable outside joins remain. |
+| Mandatory project audit-retention records | Ten years under Document 43; minimize and irreversibly sever identifiers while preserving accepted evidence purpose. | A2 and Legal/Security decide exact fields, clocks, retention start and integrity requirements; no invented statutory duty or automatic permission to retain identity. |
+| Possible legal preservation/incident holds | No approved exception permitting conflict with complete identity deletion or 90-day backup bound. Mark disputed processing/completion blocked. | Qualified Legal identifies jurisdiction, legal basis, exact scope/time and disclosure limits; Principal Architect/owner must approve any contract change. No hidden retained key, indefinite backup or false final receipt. |
+
+Specific decisions: Legal/Privacy must answer which jurisdictions and controller/processor relationships
+apply, whether any actual hold exists, and how a hold conflicts with deletion promises. Security must
+approve linkage threat thresholds, audit minimization and receipt claims. Operations must identify every
+managed copy, expiry clock, subcontractor and destruction verifier. Principal Architect must decide A1/A2
+compatibility and A3 binding; owner must authorize any new exception. None is approved by this dossier.

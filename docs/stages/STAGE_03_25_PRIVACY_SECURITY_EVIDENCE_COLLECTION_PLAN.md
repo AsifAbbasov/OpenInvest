@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-25-PRIVACY-SECURITY-EVIDENCE-COLLECTION-PLAN |
-| Version | 0.3.0 |
+| Version | 0.4.0 |
 | Status | Active / proposal only |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.24 Security Review readiness dossier |
@@ -494,3 +494,49 @@ cryptographic verifier, backup or infrastructure was operated in this remediatio
 before G1/G2 approval and deletion activation. T1/T6/T7 and A1–A4 remain unchanged. EC-10 must retain
 every original SR minimum-proof clause, these new failure cases and independently reviewed results;
 local model/ordinary CI cannot mark an external or implementation-dependent item PASS.
+
+## A1–A4 / G1–G2 reproducible feasibility evidence
+
+Baseline `5a83503719e6756c57707afbcda309b1a83f1d67`, tree `85fcc4c0fd0074da19e98a1ac0238aac9423842e`.
+Synthetic experiments only; Stage 3.25 remains Active/proposal only and the independent collection plan
+is not completed. Original EC clauses/T1–T9 are unchanged. All paths below are repository-relative.
+
+| Experiment | Exact command / environment / inputs | Expected invariant / observed result / limitation |
+| --- | --- | --- |
+| G1/A3 local prototype | `python experiments/privacy-feasibility/admission_test.py -v`; Python 3.12.14, SQLite 3.53.1, cryptography 50.0.2; temporary separate journal/primary and generated test signing key. To provision dependency in a disposable environment: `uv run --with cryptography==50.0.2 python experiments/privacy-feasibility/admission_test.py -v`. | 11 tests PASS locally: PREPARE-first, process exit after commit/lost ACK, 16 concurrent duplicates, conflicting digest, precommit failure, journal outage, primary rollback, old primary state, pinned-prefix rejection, grace/retry and binding negative controls. PROTOTYPE_VERIFIED; no network quorum, independent administration or actual key destruction. |
+| G2 local compilation | `cd backend-go && go test -v ./experiments/privacyfeasibility`; initial local assembler was truncated and exited with segmentation fault on `asm -V`; re-extraction of the existing Go 1.26.9 archive restored the tool. | Initial tool failure was not a product/test assertion failure; Re-extracted-tool compilation and `go vet ./experiments/privacyfeasibility` PASS; PostgreSQL test explicitly SKIP locally, not integration PASS. No local PostgreSQL installed; only UID 0 mapped in execution sandbox, so normal PostgreSQL non-root startup unavailable. Do not bypass that restriction. |
+| G2 disposable CI integration | Existing ordinary Go tests and Go race jobs set `OPENINVEST_DATABASE_TEST_URL` to their loopback PostgreSQL 18 service; `go test ./...` and `go test -race ./...` include `backend-go/experiments/privacyfeasibility`. Focused reproduction: `OPENINVEST_PRIVACY_FEASIBILITY_DISPOSABLE=1 go test -race -v ./experiments/privacyfeasibility -run TestG2SyntheticPostgresLifecyclePolicy -count=1` with an explicitly disposable localhost PostgreSQL owner URL. | Requires dedicated randomly named database and role; real pending SELECT/INSERT denial, append-only denial, shared-lock conflict 55P03, stale Repeatable Read 40001, unrelated subject preserved and epoch removal denies an established session. Exact execution result is recorded in the Draft PR/CI evidence; absent URL emits explicit SKIP, never counted as integration PASS. |
+
+The G1 journal is not a networked service; primary rollback is SQLite logical rollback, not PostgreSQL
+WAL recovery. Its checkpoint is independently supplied by the test harness, so loss/rollback of that
+trusted input is not solved. Signed-prefix detection does not implement Merkle consistency proofs or
+prove an independently complete history. The G2 fixture does not load application schema or execute
+old binaries/workers; it cannot establish complete production policy coverage, session enforcement or
+artifact identity. No adversarial access-control evasion campaign or external service was exercised.
+
+| Decision/gate | Current repository evidence → proposed control → threat | Test / observed evidence → prerequisite / approval |
+| --- | --- | --- |
+| A1 | Migrations 000001/3/4/6/10–12; transaction/import stores → split future personal projections + separately approved historical migration → text/hash/economic re-identification. | T1/T9 → EC-02/05/10; field dossier DESIGN_ONLY, no migrated data. Golden financial/dedup/replay equality, linkage analysis and Principal Architect/Privacy approval missing. |
+| A2 | `audit.actors/events`, migration 000013, auth audit insertion and runtime append-only grants → minimized new events/versioned history disposition → surviving user/session/time joins. | T1/T7 → EC-02/09/10; field register DESIGN_ONLY. Original integrity vs identity erasure requires Security/Legal/Principal Architect decision. |
+| A3 | Plain identity link/current key absence; Stage 3.22 profile → typed/domain-separated commitments, manifests, restricted locator/trust continuity → evidence substitution, hidden wrap, restored identity map. | G1 profile tests PROTOTYPE_VERIFIED only; T1/T3/T4/T7 → EC-02/03/04/10; full binding schema, provider proofs and independent privacy/crypto review missing. |
+| A4 | Documents 42–43; Stage 3.21 external inventory → copy-specific scope/claim/exception register → false universal erasure or hidden hold. | T6/T7 → EC-07/09/10; DESIGN_ONLY. Legal/Privacy/Operations facts and any contract-change authorization missing. |
+| G1 | PR #277 PREPARE-first contract → independent admitted-intent service/pinned complete frontier → lost pending, unknown reply, signed prefix/old image. | 11 synthetic tests PROTOTYPE_VERIFIED; T3/T4/T5 → EC-04/05/06/10. Independent quorum/admin/time/checkpoint/restore evidence missing; BLOCKED. |
+| G2 | Runtime capability profiles/startup validation, financial read+append protections → forced policy + invoker lock + sealed credential/workload cutover → stale SQL/session/worker authority. | Dedicated CI fixture provides only named policy feasibility when actually executed; T2/T5/T8/T9 → EC-01/05/06/08/10. Full schema/old binaries/worker/partition/prepared work/broker and rollout evidence missing; BLOCKED. |
+
+| EC | Incremental evidence status; all original minimum-proof clauses remain required |
+| --- | --- |
+| EC-01 | DESIGN_ONLY: existing auth mechanisms inspected; full deletion/cancellation authority tests absent. |
+| EC-02 | DESIGN_ONLY: A1/A2/A4 field and copy dispositions proposed; no production discovery/anonymity proof. |
+| EC-03 | EXTERNAL_EVIDENCE_REQUIRED: suite/manifest design only, no custody/provider attestation. |
+| EC-04 | PROTOTYPE_VERIFIED for local chain/signature/prefix/retry cases only; independent history/locator/restore proof BLOCKED. |
+| EC-05 | Partial prototype/isolated policy evidence only when named CI test executes; integrated lifecycle/migration/runbook BLOCKED. |
+| EC-06 | EXTERNAL_EVIDENCE_REQUIRED: actual sealed restore/release not exercised. |
+| EC-07 | EXTERNAL_EVIDENCE_REQUIRED: managed copy inventory/destruction unavailable. |
+| EC-08 | DESIGN_ONLY plus limited synthetic DB-role evidence; organizational/workload separation EXTERNAL_EVIDENCE_REQUIRED. |
+| EC-09 | BLOCKED: no qualified legal/privacy/exception decision. |
+| EC-10 | BLOCKED: exact baseline and evidence index available; independent Security Review and Principal Architect decision absent. |
+
+Failure interpretation: any violated prototype invariant is a counterexample requiring correction of
+this candidate, not automatic evidence of an external production incident. A skipped/incomplete job is
+not PASS. Exact-head normal CI verifies source compatibility and the explicitly named integration test
+only; it cannot accept ADR-008, close an SR, prove provider erasure or authorize implementation.
