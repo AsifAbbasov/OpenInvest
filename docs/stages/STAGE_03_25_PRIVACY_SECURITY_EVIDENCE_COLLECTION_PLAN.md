@@ -167,7 +167,7 @@ original minimum-proof clause has real accepted evidence, final SR acceptance st
 
 ### Reproducible bounded abstract validation
 
-The Python model below has no I/O, database, network or cryptography. Run with Python 3 in an isolated
+The Python model below has no file/service I/O, database, network or cryptography; it emits stdout. Run with Python 3 in an isolated
 scratch directory. It explores persistent phase states with two cancellation generations and at most
 two writes, plus crash/retry and stale-callback no-ops. A monitor rejects post-fence writes,
 destruction before durable intent, key recreation, premature markers and completion while identity,
