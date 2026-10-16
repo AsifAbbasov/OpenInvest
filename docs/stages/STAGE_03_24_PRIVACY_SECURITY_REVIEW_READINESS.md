@@ -314,3 +314,116 @@ there is no authorized implementation to test. Existing normal CI checks compati
 for independent review of findings, not a formal Security Review verdict or Principal Architect decision.
 Repository-verifiable analysis is complete for this baseline; implementation-dependent tests, exact
 provider/custody proof, legal policy and real deployed-copy/restore evidence remain missing.
+
+
+## SR-01–SR-12 implementation design and threat-to-evidence trace — 2026-10-16
+
+**Nature of this delta:** source-anchored **architecture proposal**, not another
+documentation restoration, production assessment, completed Security Review or permission to
+implement. Existing SR minimum-proof clauses above and [EC-01–EC-10](STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md#required-evidence-workstreams)
+are **not reduced** by the narrower test cases below. All SRs remain *acceptance BLOCKED*
+until the corresponding external and human evidence passes independently.
+
+Baseline: protected `develop@cffd2091168fa28817a49464438db01804b4ee48`;
+tree `c5ada81772bb6179931636a52f88b1ae43281b91`; PR #275 squash merged.
+Repository facts are identified by paths, not assumed production deployment. All dates here
+describe a candidate drafted on 2026-10-16; they do not represent a newly conducted review.
+
+### Concrete current-state findings that constrain every design
+
+1. Migration `000001_stage_03_01_vertical_slice.up.sql` has an ordinary
+   `identity.user_investment_links(user_id, investment_subject_id)` FK, `investment.subjects`,
+   immutable `investment.transaction_entries`, `investment.command_deduplication`,
+   `investment.outbox_events`, derived `analytics.*`, `audit.actors` and
+   `audit.events`. There is no approved lifecycle/erasure/marker table in migrations
+   `000001`–`000015`.
+2. `auth_store.go` writes audit actors using the actual user ID and targets using actual
+   user/session IDs. `000013_auth_adv_01_audit_deduplication.up.sql` additionally retains
+   `audit.auth_security_event_deduplications.session_id` without a FK to expiring sessions.
+   No existing audit operation proves minimally identifying ten-year storage.
+3. `auth/tokens.go` signs a bearer with `sub`, `uid`, `investmentSubjectId`,
+   `iat`, `exp`. `auth/service.go#AuthenticateAccessToken` returns the financial
+   subject from a valid signature rather than checking the *current* deletion generation in
+   PostgreSQL. `httpapi/auth_handlers.go#subjectID` calls it on protected HTTP routes.
+   Rotating an HttpOnly refresh cookie does not invalidate the already-issued bearer at the
+   instant of a deletion fence.
+4. `email_ownership_store.go` persists `registration_intents`,
+   `email_verification_tokens`, `email_delivery_jobs` and their generations/leases.
+   An identity deletion must also fence **in-flight email workers and delayed activation**.
+   `retention.go` removes some expired sessions and replay commands opportunistically;
+   that is neither exhaustive lifecycle deletion nor proof of an external-copy SLA.
+5. `import_security.go` signs readable review-token metadata (HMAC is not secrecy);
+   `transaction_entries` import labels/hashes, free-form notes, request/trace IDs,
+   replay rows, valuation projections, outbox, and Redis rate-limit state can create
+   second-order identity links. `docker-compose.yml` specifies local PostgreSQL volumes
+   and Redis AOF, not a verified production backup, PITR, legal-hold, provider or erasure policy.
+6. `docs/database/MIGRATION_STRATEGY_STAGE_02.md` governs
+   Expand → Populate → Switch → Validate → Contract; accepted ADR-006 forbids modifying
+   existing financial facts to simplify privacy processing. Deleting an immutable record's
+   source label in place **would change semantics** and requires a separate contract decision.
+
+### Requirement-specific design, failure, test and acceptance matrix
+
+Each row covers the mandatory current implementation, gap/security consequence, proposed
+control, alternatives/trade-offs, dependencies, recovery, change surface, independent test,
+external proof and acceptance criteria. “DESIGNED” means the *specified proposal*
+can be reviewed, **not** that its control exists or its acceptance gate passed.
+
+| SR / EC | Current evidence → exact risk | Proposed mechanism / alternative & dependency | Failure, required future changes, test oracle, external proof → acceptance | Design status |
+| --- | --- | --- | --- | --- |
+| **SR-01 / EC-02** | `000001` plaintext `user_investment_links`; `000003–000004` file hashes/labels; `000010–000012` portfolio projections; audit actor joins. Existing user cascade does not erase exported or statistically unique patterns. | Classify **each** identity-bearing edge and indirect quasi-identifier; use compartmented subject keys plus verified elimination of independent correlation copies. Keep exact monetary ledger and dates. Reject “UUID is anonymous”; if irreducible patterns remain, obtain a new authorized privacy/retention decision rather than misclassify. Depends on full Stage 3.21 inventory and legal/privacy threat model. | Future migration: encrypted linkage and conditional read paths; per-column approved sidecar disposition for user labels, provenance, events and derived tables (no silent ledger UPDATE). Failure: leaked old CSV/backup defeats key erasure; stay `verifying`. Test: synthetic pairwise linkage and unique-pattern attacks against primary/export/audit/restored copies; positive retained math. Evidence: independently sampled deployed stores, operator/third-party exports and privacy reviewer. **Accept only** when no reasonable link exists in *all* retained surfaces. | `PARTIALLY_DESIGNED` |
+| **SR-02 / EC-03** | No per-subject custody in migrations or Go; shared DB/volume encryption cannot revoke a person's recoverable bridge. | Provider-neutral Option A: HSM/KMS non-exportable per-subject key plus external attested terminal destruction; Option B: separated envelope DEK/wrap with proved no surviving parallel wrap, escrow or key backup. Option A reduces export surface but increases provider dependency; Option B offers portability but requires stronger key-version/copy evidence. Require independent issuer/verifier/custodian and no unilateral app recovery. | Future custody API/policy + restricted schema handle, rotate/revoke proof state; retries bind exact intent/generation/version. On outage or unknown replica keep `proof_disputed` and deny completion. Test destruction under duplicate calls, compromised app operator, cache/replica/escrow, later backup restore and attestation substitution. Evidence: evaluated provider contracts, terminal semantics, verifier keys, quorum, residency, cost/exit and access log. **Accept only** with trusted independently checked proof for all recoverable material; provider remains unchosen. | `PARTIALLY_DESIGNED` |
+| **SR-03 / EC-04** | No deletion feed; user state flags cannot establish marker completeness. | Append-only lifecycle log with monotonically numbered generations; writer restricted to prepare/activate, separate signer attests canonical sorted hash tree + externally anchored high watermark, independent witness detects equivocation. Simple DB tombstone insufficient; centralized unsigned ledger cheaper but vulnerable to admin rollback. Depends on custody proof and release verifier governance. | Future marker append table/independent store + signer/verifier roles; enforce uniqueness (`marker_random_id`, `generation`, `intent_digest`), idempotent same-digest retry, reject conflicting writes. Failure: truncation/split-view/missing page/unknown schema/stale witness locks restore. Test forged signature, omission, rollback, duplicate generation, out-of-order, stale valid root and partition. Evidence: signer separation, durable witness quorum, recovery drill. **Accept only** if verifier independently proves both authenticity **and completeness**, without identity lookup. | `PARTIALLY_DESIGNED` |
+| **SR-04 / EC-04 + EC-06** | No restore marker replay; old plaintext backups can resurrect `user_investment_links`. | Restore-scoped opaque reconciliation binding generated within sealed environment. Verify whole marker log from outside backup snapshot; reconcile recovered protected objects with custody proof and metadata without exposing ordinary user↔marker lookup. Alternative user_id-based tombstone is rejected because it reintroduces the identity map. | Future restore-only staging + wipe-on-release binding. Require all marker generations and the correct backup/PITR snapshot watermark before mutation. Failure: any unbound recovered row, absent marker or split-view blocks ingress. Test known-old-backup, marker omission, duplicates, reorders, replay twice, false-positive scope, no accidental financial rows modified. Evidence: sealed rehearsal with independent verifier and captured signed roots. **Accept only** with no reidentified row and no false deletion of another subject. | `PARTIALLY_DESIGNED` |
+| **SR-05 / EC-05** | `identity.users.account_state` flags present, but no deletion request schema/endpoint; active JWT checks signature only. | Lifecycle `active→pending→completing→destroyed_proven→unlinking→verifying→completed`, with `cancelled` only from pending. One generation/intent, DB-serialized authorization fence before acknowledgement, rotate generation and revoke all refresh sessions. Define 30-day grace only as **candidate**, not approved SLA. No multi-service transaction: use durable sagas + independently verified idempotent recovery. | Future request/fence table, transaction locks, auth API contract, job/import/export guards, outbox work suppression and per-request/commit fence. Failure: loss of custody or marker leaves non-serving stuck state; no rollback after destruction. Test refresh/financial-write/deletion triple race, worker resumes, failed key deletion, duplicate/unknown COMMIT, cancellation at boundary. Evidence: migration constraints, simulated fault injection, reviewed identity authority. **Accept only** if no auth/protected work succeeds after fenced transition and no partial path reports complete. | `PARTIALLY_DESIGNED` |
+| **SR-06 / EC-06** | `docker-compose.yml` local data volumes; no authenticated production restore-release gate or environment policy. | Sealed recovery network namespace/account with denied ingress/egress, distinct short-lived restoration credentials, paused workers, disabled SMTP/webhooks/analytics and independent release quorum; restore image immutable and version-pinned. A hidden route toggle or same production credentials are rejected. | Future platform policy, environment-as-code, two-party release controller; bootstrap with deny-all until marker and custody checks independently pass. Failure: broken service dependency / missing evidence leaves environment quarantined. Test attempt public access, outbound email, credential reuse and job scheduling before/after release; adversarial stale checkpoint. Evidence: actual cloud IAM/firewall config, attestations, independent rehearsal and release log. **Accept only** with provable zero serving before full predicate. | `DESIGNED` |
+| **SR-07 / EC-07** | Repo contains no complete production/PITR/replica/export backup inventory, nor provider-verified destruction; a volume is not evidence of a 90-day policy. | Managed-copy registry assigns random copy ID, origin, encryption, lineage, location, creation/expiry<=90 days, copy graph, custody scope, deletion attestations and reconciled terminal state. Preferred event-sourced reconciliation over provider console screenshots. Dependencies: backup owner, supplier APIs/contracts, legal. | Future inventory/reconciler and scheduled expiry policy. Missing copy, provider purge delay or unproven legal hold fails compliance; do not falsely complete. Test forged provider receipts, omitted replica/WAL, expiry boundary, copy-after-delete and delayed purge. Evidence: production provider per-copy inventory, immutable lifecycle attestations and periodic third-party reconciliation. **Accept only** when every managed recoverable copy has proven terminal destruction at bound; no silent exception. | `PARTIALLY_DESIGNED` |
+| **SR-08 / EC-02** | `audit.actors.id=user UUID`; `audit.events.actor_id/target_id/request_id/trace_id`; `auth_security_event_deduplications.session_id` survive ordinary session cleanup. Current audit is append-only. | For **future** events use minimized event taxonomy, privacy-safe independent event ID, action class, non-identifying outcome, UTC time and integrity proof. Protect/delete original actor and subject correlations under approved erasure boundary; preserve ten-year integrity without a decryptable identifier map. For existing immutable audit, propose separately approved append-only **redaction overlay/projection** or sealed segregated retirement, **not silent UPDATE/DELETE**. | Future event version, restricted overlay, retention read model and immutable verification chain. Failure: original base audit readable ⇒ anonymity not proven. Test both direct and join-based actor/session/request linkage with old partitions and backups; verify audit count/order/signature integrity. Evidence: legal field-minimum and retention sign-off, provider log sinks, independent privacy review. **Accept only** if ten-year evidence remains verifiable but non-reidentifying across all copies. | `PARTIALLY_DESIGNED` |
+| **SR-09 / EC-08** | Routine API/DB role currently cannot act as independent custody verifier, marker signer or restore-release authority; future operator permissions absent. | Capability segregation: lifecycle submitter (no key delete), custody quorum (no database identity query), marker publisher (no signer key), witness/signer (no publisher writes), restore replayer (no production credentials), release quorum (no evidence forgery), audit reviewer (no mapping). Strong authentication, time-bound break glass, separate admin domains. | Future IAM role boundaries, dual control, immutable access reviews/alerts and revocation; if signer and writer share an admin plane independent completeness is not proven. Red-team test privilege escalation, secret reuse, quorum bypass, support export and break-glass replay. Evidence: real IAM policies, personnel/contractor mapping, access review and provider capabilities. **Accept only** if no single operator can delete-and-certify, restore-and-release or reconstruct erased identity. | `DESIGNED` |
+| **SR-10 / EC-09** | Document 43 mandates identity deletion, anonymous financial history indefinitely, ten-year audit, max 90-day backups. No verified legal-hold/exception authorization. | Produce a written jurisdiction-specific decision matrix for holds, statutory preservation, incidents, taxes and user rights; evaluate whether any required retention conflicts with “no reasonable reidentification path.” No speculative lawful exception; if conflict, propose **new normative ADR/change** for human review. | No schema, endpoint or exception toggle before legal approval. Legal uncertainty or active hold must remain a clearly recorded blocking state; never mark deletion completed while recoverable identity is retained. Test truth table for hold states/status, copy retention and non-oracular response. Evidence: qualified legal/privacy opinions, policy owner signatures and independent Security Review. **Accept only** on approved reconciled policy without a hidden recovery path. | `BLOCKED` |
+| **SR-11 / EC-01** | Login/refresh/CSRF exist, but no approved deletion/cancellation route, fresh action factor or non-oracular status contract. | Proposed ceremony: existing authenticated active session **plus** fresh reauthentication/factor with bounded validity, one-use action-bound token, same-site CSRF, rate/attempt bounds, generation/intent scope; generic status, restricted authenticated receipt with evidence class. Opaque lifecycle ID or revoked refresh token alone cannot cancel. | Future OpenAPI/identity service and anti-enumeration policy; race cancel vs completing serialized under generation lock. Failure: lost client response retries one intent; cannot reset grace; post-destruction cancellation denied. Test replay, CSRF, stolen opaque request ID, stale factor, guessed account, equalized response/timing and multi-tab concurrent cancel. Evidence: factor approval, UX/security review, independent abusive-traffic tests. **Accept only** when request/cancel requires fresh authority and “completed” never precedes proof. | `PARTIALLY_DESIGNED` |
+| **SR-12 / EC-05 + EC-10** | Existing Stage 2 Expand→Populate→Switch→Validate→Contract; 15 applied-schema migration scripts in repo (deployment unknown); historical plaintext links and backups. No lifecycle migration or production runbook. | Proposed compatibility path: additive encrypted link + fenced generations; shadow backfill without exposing old keys; switch readers/old workers atomically; measure exact ledger, BusinessDate and snapshots; retire plaintext only after **all recoverable copies** and deployed binaries are reconciled. Rollback permitted only before irreversible key destruction. | Future versioned DDL/Go/Next.js/roles, isolated migration dry-run, forward-recovery runbook for authorization→custody→marker→backup expiry→sealed restore→independent release→incident/evidence. Test crash per transition, stale binary write, long-lived JWT, concurrency/old PITR, no ledger precision drift. Evidence: staging rehearsal, completed EC-01–EC-10 clauses, provider inventory and approvals. **Accept only** with reviewed executable runbook, exact cutover fence and no recovery route that resurrects deleted identities. | `PARTIALLY_DESIGNED` |
+
+### Cross-component execution invariants (future negative tests, NOT RUN HERE)
+
+- **INV-FENCE:** deletion fence transaction commits before user-visible pending ACK; all
+  authentication, every financial read/write, websocket, import, scheduled/outbox consumer and
+  cache authorization must validate current lifecycle generation. Recheck at financial commit.
+  This is **not** enforced today by JWT verification.
+- **INV-MONOTONIC:** completing decision and cancellation compare-and-set a single generation.
+  If cancellation wins, no destruction request can be accepted. If completing wins, cancellation
+  cannot revive sessions, repopulate plaintext or reset the grace period.
+- **INV-PROOF:** `completed` ⇒ terminal custody evidence and live-link deletion and independent
+  no-linkage evidence and active marker completeness and backup-copy reconciliation all verified.
+  A missing proof must never be replaced by a timeout-based success.
+- **INV-RESTORE:** `serving` ⇒ independently witnessed current complete snapshot and no
+  prepared/disputed/unavailable marker, every replay bound to correct sealed recovered artifact,
+  no effective destroyed key, no recovered identity bridge and separate release approval.
+- **INV-IMMUTABILITY:** retained financial transactions, reversals, decimal amounts/dates
+  and canonical snapshot rebuild remain unchanged; changing legacy personal audit/ledger fields
+  may **require a new accepted ADR** and cannot be slipped into an erasure migration.
+- **INV-90D-10Y:** managed encrypted backup copies destroyed by 90 days with evidence; minimal,
+  non-reversible audit proof retained for 10 years. Neither period silently extends the other.
+
+### Key design alternatives and limits of the repository-only assessment
+
+| Candidate | Cost / upside | Residual issue / human decision |
+| --- | --- | --- |
+| Plaintext FK delete and original backup restore | Low operational change | **Rejected:** backup, audit, exports, operator and pattern linkage persist. |
+| Shared disk encryption and shared backup KMS key | Easy to deploy | **Rejected as erasure proof:** one shared recovery key can restore any identity mapping. |
+| Subject-scoped custody + separated marker witness | Independent revocation, reviewable restore | Proposed preferred concept; signer quorum, provider terminal semantics, legacy copy inventory and cost remain externally unverified. |
+| Retain immutable financial history without replacing raw labels/notes | Maximum financial consistency | Cannot claim anonymity of rare patterns or identifiable free text; legal/architect review necessary before any transformation. |
+| Application-generated unexportable claim or mutable audit “proof” | Few dependencies | **Rejected:** app operator can fabricate, export, suppress, rewind or recreate proof. |
+
+### Gatekeeper entry criteria and handoff
+
+Each SR retains the status in the matrix above as **design progress only**. The required
+EC crosswalk, environment class, reproducible negative tests and independent proof gaps are
+detailed in [Stage 3.25](STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md#sr-to-ec-execution-trace-and-independent-test-catalogue-2026-10-16).
+Independently verifiable source identity is **not** proof of deployed KMS, backups, legal
+holds or IAM. The Gatekeeper must reject any claim that a timestamp, code comment, synthetic
+sample, local Docker configuration, CI green badge or proposed state transition satisfies an
+uncollected external EC clause.
+
+**ADR-008 acceptance: BLOCKED. SR-01–SR-12 implementation: NOT STARTED.
+Production deployment: NOT AUTHORIZED.**
