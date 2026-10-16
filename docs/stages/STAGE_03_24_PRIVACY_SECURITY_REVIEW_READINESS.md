@@ -371,6 +371,10 @@ authority. Challenge responses for unknown/ineligible identities must have the s
 bounded work; re-use dummy password verification and existing IP/credential admission, with reviewed
 limits and failure semantics. No account recovery, email-based cancellation or new factor is assumed.
 Raw passwords/challenges never enter audit, logs, idempotency hashes or durable evidence.
+Challenge consumption and intent reservation must commit atomically. After pending, a same-intent retry
+uses fresh purpose-restricted authorization to replay the existing receipt/state; it does not require
+or restore a normal active session. A consumed challenge never authorizes another effect. An ambiguous
+commit reconciles the same intent; failed authorization cannot inspect another principal's replay key.
 
 All protected data access must go through authoritative `AuthorizeSubjectOperation` inside the relevant
 transaction, **before** owner lookup, returning idempotent success or external side effects. Candidate
