@@ -161,7 +161,7 @@ all current blockers require independent resolution under Documents 42–43 befo
 
 **Decision authority:** This amendment specifies candidate contracts only. Documents 43 and 42,
 accepted ADR-005/ADR-006, and the Stage 2 migration strategy remain authoritative. Its purpose is
-to make [Stage 3.24's SR-01–SR-12 remediation design](../stages/STAGE_03_24_PRIVACY_SECURITY_REVIEW_READINESS.md#sr-01sr-12-implementation-design-and-threat-to-evidence-trace-2026-10-16)
+to make [Stage 3.24's SR-01–SR-12 remediation design](../stages/STAGE_03_24_PRIVACY_SECURITY_REVIEW_READINESS.md)
 reviewable, not to approve deletion, providers, migrations, new public endpoints, or retrospective
 claims of anonymity. Actual implementation is **absent**.
 
@@ -299,5 +299,5 @@ and restricted restore-release runbook; `PA-08` potential contract update for ir
 anonymization versus immutable uniquely identifying history. None is approved by this amendment.
 
 **Review status: Proposed / BLOCKED.** Section-specific controls and acceptance tests are
-tracked in the [SR matrix](../stages/STAGE_03_24_PRIVACY_SECURITY_REVIEW_READINESS.md#sr-01sr-12-implementation-design-and-threat-to-evidence-trace-2026-10-16)
-and [EC plan](../stages/STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md#sr-to-ec-execution-trace-and-independent-test-catalogue-2026-10-16).
+tracked in the [SR matrix](../stages/STAGE_03_24_PRIVACY_SECURITY_REVIEW_READINESS.md)
+and [EC plan](../stages/STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md).
