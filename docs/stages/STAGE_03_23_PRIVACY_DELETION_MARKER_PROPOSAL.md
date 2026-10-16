@@ -169,3 +169,93 @@ This proposal was strictly reviewed and squash-merged through PR #52 at
 `f7f23bce33038f259c976db6375079c68209a7aa`. Its successor, Stage 3.24, prepares the mandatory
 Security Review evidence and decision boundary. No field-level migration or runtime implementation
 is authorized by this historical closure.
+
+
+## Signed checkpoint, completeness and sealed replay protocol — 2026-10-16 (proposal)
+
+The existing marker security properties above are unchanged. The following is an
+**illustrative verifier interface**, not a provider, schema, signed production snapshot
+or implementation authorization.
+
+### Two independent journal witnesses and a concrete proof boundary
+
+The **lifecycle DB fence** durably increments an internal monotonically increasing
+`lifecycle_generation` and commits a witnessed intent commitment before custody
+destruction can start. A separate publisher appends a marker to a restricted independent
+journal. The signer's completeness witness observes **all intents** through a separately
+authenticated change feed/commit acknowledgement and tracks holes: simply signing
+the publisher's selected page of rows cannot detect an omitted deletion. The witness
+must support a durable prefix commitment that survives application and database restore
+and cannot be rolled back by the restoring administrator.
+
+Candidate canonical checkpoint fields:
+```text
+checkpoint_version, log_epoch, first_sequence, last_sequence,
+prior_checkpoint_digest, canonical_leaf_root, intent_witness_root,
+leaf_count, outstanding_prepared_count, signer_policy_version,
+issued_at, valid_until, anti_rollback_reference, signature
+```
+
+Canonical marker leaf commitment:
+```text
+marker_schema_version, random_marker_id, generation, randomized_replay_binding,
+non_personal_state, intent_digest, custody_proof_digest,
+primary_unlink_proof_digest, state_timestamp, previous_state_digest
+```
+
+**Sensitive design warning:** `randomized_replay_binding` is a restricted secret-adjacent
+handle; the public checkpoint should contain only its reviewed commitment. A restore-only
+mapping to recovered encrypted artifacts must reside in sealed privileged storage;
+including any raw `user_id`, `investment_subject_id`, source-account hash, request/trace
+ID or an unsalted predictable digest would recreate precisely the forbidden bridge.
+
+**Verifier decision algorithm** (candidate, not executed):
+
+1. Boot restored environment with production ingress, DNS egress, workers, job queues,
+   support tools, KMS destructive privileges and normal credentials **disabled**.
+2. Pin witness/signer trust roots out of the recovered database fault domain; check
+   key/version rotation continuity and compare at least two independently administered
+   witness views to detect split view.
+3. Fetch **every** bounded page from the canonical first sequence to the latest trusted
+   watermark, proving the `leaf_count`, consecutive sequence, previous-state digest,
+   complete Merkle root, pending/disputed leaves and absence of omission. Explicitly
+   prove the witness captured all committed lifecycle fences in the selected scope.
+4. If a leaf is `prepared`, `disputed`, unknown, stale, missing or incompatible, quarantine
+   the restored environment; do not fall back to older or smaller valid snapshots.
+5. Use ephemeral sealed binding to reconcile **each** recovered sensitive artifact with
+   the corresponding active marker, independently verify its terminal custody proof,
+   and eliminate the resurrected identity/link and all authorized sensitive projections.
+   Repeating the same marker must be idempotent; applying another marker's binding must
+   fail without destroying an unrelated subject.
+6. Scan/reconcile the protected SQL, WAL/PITR reference, retained audit joins, Redis
+   copies, pending jobs and replay/import state; independently record precise failures.
+   Destroy all transient plaintext and restore-only binding material.
+7. A distinct release quorum validates **all** proof results and the 90-day managed-copy
+   inventory, signs a one-use environment-specific permit, and only then allows the
+   ingress/credential/job activation sequence. No “emergency bypass” may override
+   an unverifiable deletion marker.
+
+### Failure and adversarial acceptance matrix
+
+| Fault injection / negative control | Mandatory behavior |
+| --- | --- |
+| Signed but old complete snapshot | Reject by external monotonic watermark/freshness. |
+| Publisher omits one prepared/deleted intent | Signer cannot attest complete prefix; block release. |
+| Two valid but conflicting signed roots | Independent witnesses detect split-view; quarantine. |
+| Valid proof with wrong intent/generation/version | Reject marker activation and replay. |
+| Valid marker but missing restricted restore binding | Remain sealed; never guess identity from UUID. |
+| Same marker replayed twice | Same final result; no extra financial event/reversal. |
+| Marker applied to another subject | Reject without foreign mutation. |
+| Missing custody attestation, weak purge semantics or rewrapped key | Reject release regardless of signed marker. |
+| Compromised app DB and signer still using same admin root | Trust separation failed; block decision. |
+| Legacy plaintext backup contains no compatible reconciliation metadata | Quarantine old copy; do not serve or silently discard financial history. |
+
+**Independent observation requirements:** authenticated checkpoint source, witness
+anti-rollback result, page count and hole search, Merkle verification, custody proof check,
+signed release decision, no hidden correlation path, and unchanged immutable ledger
+quantities/dates/revisions. Local mock verifier tests may establish parser logic but
+do **not** prove deployed witness independence or historical backup safety.
+
+Map this design to EC-04/EC-06/EC-10 and TV-03/TV-04 from
+[Stage 3.25](STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md#sr-to-ec-execution-trace-and-independent-test-catalogue-2026-10-16).
+**Current status: PARTIALLY_DESIGNED / implementation absent; restore-release BLOCKED.**
