@@ -264,3 +264,70 @@ This proposal was strictly reviewed and squash-merged through PR #51 at
 `5f42d32db1e045c23fb99a5af8f136b7a49e3bc2`. Its successor, Stage 3.23, designs only the
 non-identifying deletion-marker control plane and restore gate. No field-level migration or runtime
 implementation is authorized by this historical closure.
+
+
+## Cryptographic isolation options and destruction acceptance adapter — 2026-10-16 (proposal)
+
+This specifies **implementation-facing obligations, not provider selection or a claim of
+cryptographic erasure**. The already approved controls above remain controlling.
+
+### Proposed material model and custody API
+
+- `lifecycle_handle`: uniformly random 256-bit control-plane identifier, independently
+  generated from user ID, subject ID, email, portfolio, UUIDs, device and request IDs.
+  **Restricted** even though non-semantic; do not expose it in client receipts.
+- `erasure_material_version`: immutable version identity; version lists must be independently
+  complete. Rotation does **not** retire versions unless all wrappers/backups are covered.
+- `protected_link_envelope`: authenticated encryption of the identity↔subject binding and
+  *every* auxiliary reversible pointer under subject-isolated material. An app-visible
+  plaintext `identity.user_investment_links` or raw subject-bearing JWT/audit/export
+  defeats the boundary; encryption of only the link column is not an adequate migration.
+- `intent_commitment`: canonical digest of `action=destroy`, lifecycle generation,
+  randomly scoped material handle, material-version set, policy version and witnessed
+  deletion intent. The raw account/subject mapping is **not** copied to custody tags/logs.
+- `terminal_attestation`: verifier-readable signed statement that lists the affected
+  material version set, last-recoverable-copy status, trusted observed time, verified
+  irreversibility semantics, trusted signing key/policy revision and digest of the request.
+  A pending, disabled, alias-deleted or soft-purged state cannot be terminal.
+
+Logical interfaces, for future review only:
+
+```text
+ProvisionSubjectBoundary(random_handle, policy_version)
+  -> version_set_commitment, nonexportability_evidence
+AuthorizeDestruction(witnessed_intent_digest, handle, version_set, approval_quorum)
+  -> immutable_authorization_receipt
+RequestTerminalDestruction(authorization_receipt, exact_idempotency_scope)
+  -> pending | disputed | terminal_provider_proof
+IndependentlyVerifyTerminal(proof, pinned_trust_roots, version_set, scope)
+  -> VERIFIED_TERMINAL | INCOMPLETE | REJECTED | UNAVAILABLE
+```
+
+The normal Go HTTP service must never hold `AuthorizeDestruction` and never receive raw
+custody material. Custody and verifier administration must not share the ability to forge
+the independently witnessed marker watermark or restore-release permit. Retries must be
+idempotent at the exact intent/version scope; handle reuse or recovered old wrapping
+material is an irreversible-security failure and a stop condition.
+
+### Viable provider-neutral alternatives
+
+| Candidate | Assurance advantage | Residual risk / required approval |
+| --- | --- | --- |
+| Per-subject HSM-held non-exportable key that performs bounded operations | Prevents export through ordinary application interfaces; allows independent custody policy | Plaintext still appears where decrypt operations return it; HSM backups, failover replicas, escrow, policy/firmware and administrator recovery **must** be audited. |
+| Subject-encrypted link DEK wrapped by independent custody KEK | Portable and supports exact key-version inventory | If a DEK, KEK, plaintext link or earlier wrapper is ever cached, exported or independently backed up, shredding the active wrap proves **nothing** about that copy. Requires complete historical migration and controlled decrypt output. |
+| Software-only vault / application-owned key | Lower cost, easy to test | **Not acceptable without separately demonstrated equivalent independent trust boundary**, because app/DB and backups may preserve recoverable keys. |
+| Shared encryption key for the entire database/backup | Simple operations | **Rejected as subject erasure** while any other subject or managed restore still requires that key. |
+
+In a sandbox an implementation may simulate the API and verify reject/timeout/retry
+behavior, but a simulated provider cannot prove real-world irrecoverability. Before ADR
+approval the custody assessor must supply independent provider-native proof for export
+restrictions, backup/replica coverage, purge windows, at-rest retention, emergency recovery,
+regional copies, trust-root history, cost, availability, key custody transfers and provider
+exit. If any copy cannot be accounted for, `destroyed_proven` is forbidden.
+
+**Precise new negative checks:** alternative wrapped copy surviving; version N-1 still
+decryptable after N destroyed; delayed replica; restored HSM backup; key alias recreated;
+wrong generation/scope proof; replayed old signed proof; signer rotation without trusted
+continuity; shared admin able to delete and self-attest. All must reject completion.
+Map evidence to EC-03 and EC-10 in Stage 3.25. Status **PARTIALLY_DESIGNED;
+implementation NOT STARTED; provider decision BLOCKED**.
