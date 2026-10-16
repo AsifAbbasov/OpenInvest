@@ -302,6 +302,20 @@ G1 acceptance remain **EXTERNAL_EVIDENCE_REQUIRED / BLOCKED**.
 | DB loss / old image | Reconstruct pending restriction from complete independent PREPARE/activation history and approved restricted scope binding; replay forward while sealed. Missing WAL does not matter only when independent coverage/binding is complete. No evidence for legacy DB-only pending => no safe release. |
 | Release barrier | Establish a linearizable epoch barrier over new admissions and replayed frontier, then atomic matching release decision. New admission/configuration change invalidates stale certificate; service outage or split view denies. No timestamp-age-only release shortcut. |
 
+Concrete candidate for evaluation: three independently placed crash-fault consensus voters, at most
+one unavailable, majority two durable appends before commit; a separate administrative witness pins
+checkpoint continuity before PREPARE acknowledgement. Loss of majority or witness denies admission.
+This is a crash-fault trust model, not Byzantine consensus: a compromised signing quorum is outside
+its guarantee, so malicious-administrator resistance additionally needs independent witnesses and
+reviewed quorum assumptions. A single replicated transactional store is operationally simpler but
+does not satisfy independent rollback/admin separation by itself; an externally witnessed append-only
+service offers stronger separation at added availability/cost/operations complexity. No algorithm,
+replica placement, provider or durability SLA is selected/verified here. PREPARE-only orphans cannot
+auto-expire into active service or destruction; separately authorized reconciliation may retain a
+restriction indefinitely when non-commit cannot be proved. This is an explicit liveness cost.
+Primary design reference inspected 2026-10-16: [Raft extended paper](https://raft.github.io/raft.pdf);
+its crash-fault majority assumptions are not a proof of this unimplemented service.
+
 Prototype: [admission_test.py](../../experiments/privacy-feasibility/admission_test.py) uses separate
 SQLite journal and synthetic primary, FULL synchronous commits, ordered hash chain and generated
 Ed25519 test key. Process exits after journal commit before acknowledgement; reopening/retrying

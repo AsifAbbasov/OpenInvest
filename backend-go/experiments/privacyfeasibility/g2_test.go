@@ -21,6 +21,9 @@ import (
 func TestG2SyntheticPostgresLifecyclePolicy(t *testing.T) {
 	raw := os.Getenv("OPENINVEST_DATABASE_TEST_URL")
 	if raw == "" {
+		if os.Getenv("GITHUB_ACTIONS") == "true" {
+			t.Fatal("G2_POSTGRES=NOT_EXECUTED: CI must supply its disposable PostgreSQL service URL")
+		}
 		t.Skip("G2_POSTGRES=NOT_EXECUTED: no disposable CI PostgreSQL URL")
 	}
 	if os.Getenv("GITHUB_ACTIONS") != "true" && os.Getenv("OPENINVEST_PRIVACY_FEASIBILITY_DISPOSABLE") != "1" {

@@ -329,6 +329,9 @@ accepted. A3 remains BLOCKED. This is a proposed wire/trust contract, not a prod
 Serialization candidate: RFC 8785 canonical JSON over a deliberately restricted schema (ASCII protocol
 identifiers, lowercase fixed-length hex digests, integers within 2^53-1, UTC integer seconds, explicit
 field sets; no float, duplicate keys, implicit null/default or Unicode identifier normalization).
+Target commitments must use randomized ciphertext/high-entropy blinding in the restricted privacy
+domain, never an unsalted email/user/subject UUID hash exposed in a marker. Destroy or expire those
+blinding/linking values under the approved copy policy; they are not anonymous while recoverable.
 Domain-separated SHA-256 commitments and Ed25519 signatures are candidates, not accepted suite/provider
 choices. Signatures cover envelope + payload commitment; trusted key rotation requires independently
 signed continuity, revocation and freshness rules; compromise cannot be repaired by trusting a new
