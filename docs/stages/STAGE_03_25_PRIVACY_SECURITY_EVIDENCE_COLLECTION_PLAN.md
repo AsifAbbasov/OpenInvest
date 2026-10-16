@@ -128,3 +128,92 @@ The immediate next action is mandatory strict review of this plan. Actual eviden
 only under an explicitly approved restricted-access process with accountable owners and independent
 verifiers. Privacy-lifecycle implementation remains prohibited until the formal Security Review and
 ADR-008 acceptance are recorded.
+
+
+## SR-to-EC execution trace and independent test catalogue — 2026-10-16
+
+This is a **proposed evidence request**. No production evidence collection, provider access,
+data deletion, Security Review, legal opinion, hosted restore, or destructive test has occurred.
+The catalogue expands—not substitutes for—the complete EC-01–EC-10 minimum proof clauses
+above. Architecture owners must freeze the system/source version and appoint a distinct verifier
+before collecting each restricted item. Test IDs below are **NOT_EXECUTED**, except the
+read-only source inspection and baseline verification expressly called out as `REPO_OBSERVED`.
+
+### Threat → source → candidate control → test → external evidence → gate
+
+| Requirement → EC | Source anchor / threat | Candidate control | Independent test and evidence route | Non-waivable acceptance gate |
+| --- | --- | --- | --- | --- |
+| SR-01 → EC-02, EC-10 | migration 000001 link; 000003–000004 labels/hashes; audit/exports and rare holdings reconstruct identity | Per-subject protected join + field-level lineage, erase secondary correlations; restricted redaction/approval for immutable ledger/audit conflict | **TV-01** synthetic adversarial join against old/new SQL, unique holding patterns, exported CSV, raw notes, trace and broker-file hashes. Repo: columns observed. Isolated: synthetic fixtures. External: sampled provider/operator/export lineage and privacy review. | No reasonable reidentification path in any retained copy; indeterminate ⇒ BLOCKED. |
+| SR-02 → EC-03, EC-10 | No KMS boundary; alternative wrap, recovery or admin escrow defeats erasure | Non-exportable subject-scoped material, independent destruction proof and dual control | **TV-02** key-version/recovery/replica/alias/escrow challenge; duplicate delete; forged/scheduled-vs-terminal proof. Repo: absent. Isolated: simulated custody driver only. External: real provider attestation, IAM, deletion semantics and exit assessment. | Independent verifier authenticates terminal destruction of *all* effective versions/copies. |
+| SR-03 → EC-04, EC-10 | No append-only marker log; privileged writer can omit or reorder states | Externally witnessed sequence/watermark + independently signed canonical checkpoint | **TV-03** corrupt leaf, omit page, replay older signed root, split view across two restores, forge signer and conflicting generation. Repo: absent. Isolated: pure verifier model. External: signer/WORM/quorum topology and replay rehearsal. | Completeness and non-equivocation independently proven, not only signature validity. |
+| SR-04 → EC-04, EC-06 | Historic copy of plaintext user↔subject bridge | Restore-only random replay binding in sealed zone, reconcile before serving | **TV-04** real test fixture representing pre-migration backup, missing mapping, twice-replayed marker, wrong subject binding and stale checkpoint. External: actual backup media and credential/firewall test. | No resurrected mapping; no false foreign deletion; no serving until verified. |
+| SR-05 → EC-05 | Current user states, but no deletion API/transactions; stateless access JWT | Serialized lifecycle generation, revocation plus protected-path/commit fence, idempotent saga | **TV-05** 32 bounded simulated adversarial operations: login/refresh/financial write/deletion intent/cancel/worker, injected COMMIT ambiguity and custody outage. External: reviewer-approved grace, incident/repair on-call and IAM. | No post-fence authorized work, single irreversible winner, no false completion. |
+| SR-06 → EC-06, EC-10 | docker-compose local resources, absent production release IAM | Sealed subnet/account, disabled jobs/SMTP, restore-scoped credentials, independent release | **TV-06** deny ingress/egress, production credential use, background outbox execution, DNS/webhook and false release attempt in restore rehearsal. External: deployed rules and sealed release log. | No network/credential/job before every restore predicate passes. |
+| SR-07 → EC-07, EC-09 | Local volumes/AOF; no provider copy chain or verified 90-day destruction | Copy lineage register incl. WAL/replicas, encrypted copy TTL and destruction attestation | **TV-07** missing snapshot/export/replica, delayed provider purge, forged receipt, 90-day boundary, hold conflict. External: provider logs/copy inventory and independent reconciliation. | Each recoverable managed copy accounted/destroyed by contractual maximum; any unknown ⇒ BLOCKED. |
+| SR-08 → EC-02, EC-09 | audit actor=user UUID, target=session UUID, dedupe session_id, request/trace IDs | Minimally identifying event v2 + append-only integrity, separately approved redaction overlay | **TV-08** 10-year audit reconstructibility challenge from an old partition; prove event integrity and actor/target nonlinkability. External: legal field minima, operational logging inventory and privacy sample. | Audit proof remains complete while no identity reconstruction path survives. |
+| SR-09 → EC-08, EC-03 | No custody/marker/release IAM; support export potential | Role domains with distinct credentials, quorum, break-glass time limits and monitoring | **TV-09** malicious app/support/DB admin, signer impersonation, shared parent IAM, escrow recovery and release bypass. External: real IAM principals, reviews, incident workflow. | No single actor can both cause deletion and forge success/recover linkage. |
+| SR-10 → EC-09, EC-10 | Doc43 retention and deletion terms vs unknown jurisdiction/hold requirements | Signed legal conflict matrix and fail-closed state; no runtime exception until approved | **TV-10** approved legal-state decision-table walkthrough; retention boundary/resolution of contradictory obligation. External: counsel and privacy officer. | Written legally qualified non-conflicting decision; otherwise **BLOCKED**. |
+| SR-11 → EC-01, EC-05 | Current login and CSRF; no fresh delete/cancel authority | Reauth factor tied to one-use action, CSRF, generation and restricted status receipt | **TV-11** proof replay, CSRF swap, stolen lifecycle ID, cross-account cancellation, revoked token, clock/grace boundary, enumeration/timing oracle. External: product security and privacy decision. | Only fresh authorized subject can initiate/cancel and receipts do not misrepresent completion. |
+| SR-12 → EC-05, EC-10 | Stage2 migration lifecycle; old FK, older backups, old workers | Expand/Populate/Switch/Validate/Contract with pre-irreversibility rollback and post-irreversibility forward recovery | **TV-12** old binary writer, partial backfill, stale JWT, backup restore predating cutover, async workers; compare Decimal(28,8), BusinessDate, reversal history and snapshots. External: signed migration/runbook rehearsal, cutover/release decision. | No old bridge reconstructed and canonical immutable financial mathematics unchanged. |
+
+All twelve test IDs are **proposed test specifications**, not evidence of a run; a
+`TV-05` target of 32 is a bounded design suggestion, **not** an executed count or a guarantee.
+Every trace row retains original EC clause-level obligations.
+
+### Mandatory EC proof registry — explicit classifications
+
+| EC | Repository evidence now | Feasible isolated verification later | External/provider/production dependency | Legal/operations/Principal Architect dependency |
+| --- | --- | --- | --- | --- |
+| EC-01 | HTTP refresh/logout/CSRF code and lack of deletion contract **REPO_OBSERVED** | TV-11 synthetic HTTP, negative authorization | Real anti-abuse/observability configuration | Fresh-factor, grace, cancellation UX/contract decision **BLOCKED** |
+| EC-02 | Stage3.21 inventory + migration/audit fields **REPO_OBSERVED** | TV-01/08 synthetic join and audit transform | Primary/replica/log/export/CV/data-subject lineage **MISSING** | Independent privacy/anonymity/legal reviewer **MISSING** |
+| EC-03 | Key hierarchy not implemented **REPO_OBSERVED** | TV-02 mock-only semantic faults | Provider terminal destruction, non-export/copies/IAM **MISSING** | Custody policy, provider and approver decision **MISSING** |
+| EC-04 | No marker schema **REPO_OBSERVED** | TV-03/04 completeness+replay model | Durable signer/witness/quorum and checkpoint **MISSING** | Separate integrity authority/security review **MISSING** |
+| EC-05 | User states, migrations, retention source **REPO_OBSERVED** | TV-05/12 SQL fault injections in disposable PG | Operational runbook, real worker/copy integration **MISSING** | Lifecycle schema/locking, rollout/forward-recovery review **MISSING** |
+| EC-06 | Local Compose only **REPO_OBSERVED** | TV-06 staging ingress/job denial | Real sealed restore + credential test **MISSING** | Restore release owners/quorum **MISSING** |
+| EC-07 | No deployed managed-copy ledger **REPO_OBSERVED** | TV-07 synthetic retention copy graph | Provider backup/PITR/WAL/export expiry proof **MISSING** | Backup operator/legal retention review **MISSING** |
+| EC-08 | Current audit rows and code **REPO_OBSERVED** | TV-09 simulated IAM denial | Actual IAM/access/support exports **MISSING** | Named segregation and break-glass authority **MISSING** |
+| EC-09 | Document43 retention rules **REPO_OBSERVED** | TV-10 policy state-machine table | Applicable legal evidence **MISSING** | Qualified legal/privacy approval **MISSING** |
+| EC-10 | Frozen source/ADR/SR index **REPO_OBSERVED** | Cross-matrix/negative-test QA | Independent evidence-item provenance/review **MISSING** | Formal Security Review + Principal Architect acceptance **MISSING** |
+
+**Evidence labels:** `REPO_OBSERVED` = proof limited to repository source; `MISSING`
+= not supplied, not evidence of absence; `NOT_EXECUTED` = no test run; `BLOCKED` =
+no authority to implement/accept. Local design documentation cannot substitute for a provider
+destruction attestation or an independent human sign-off.
+
+### Evidence item integrity and minimal handoff record
+
+For every proposed test/proof, an accountable future owner must record:
+
+```text
+evidence_id; sr_id; ec_id; clause_id; source_commit_tree; component_schema_version;
+environment_class; scope_copy_ids_redacted; test_seed; test_case_hash;
+command_or_provider_operation_digest; expected_invariant; observed_status;
+artifact_digest_sha256; verifier_identity_role; reviewer_independence;
+collected_at_utc; valid_until_utc; redaction_scope; missing_external_dependency;
+decision=PASS|FAIL|BLOCKED_EVIDENCE
+```
+
+Never put email, UUID bridges, raw keys/proofs, import bodies, financial payloads,
+reversible marker lookups or real production identifiers in these unrestricted artifacts.
+A signature/HMAC alone does not prove the evidence source truthful; independent source,
+verifier and anti-rollback checks remain required. Evidence retention itself must be
+classified under the ten-year audit obligation and the distinct 90-day backup bound.
+
+### Review sequencing / decision points
+
+1. Principal Architect freezes SR/EC inventory, proposed custody/marker schema and source SHA;
+   names independent privacy, security, custody, DBA, restore, legal and release owners.
+2. Legal/privacy reviewer resolves SR-10 and financial-pattern vs immutable-ledger conflict;
+   if impossible under Document 43, open separate **superseding approval request**.
+3. Independently assess custody candidates, maker/checker separation, marker snapshot
+   completeness and a trusted anti-rollback witness. Do not procure a provider here.
+4. Approve field-level lineage disposition (identity, audit, imports, derived, logs, legacy
+   backups) before allowing backfill of any live user.
+5. Approve and run isolated test suite TV-01–TV-12, preserving RED evidence; then rehearse
+   complete sealed restore+release protocol against a known pre-erasure backup.
+6. Independent reviewers complete every EC clause; formal Security Review can commence
+   only if evidence index has zero missing/blocked clauses. Principal Architect separately
+   accepts or rejects ADR-008 and all future migrations/operations in a later authorized PR.
+
+**Current recommendation: EC-01–EC-10 have uncollected mandatory proof clauses;
+ADR-008 remains Proposed / BLOCKED. No test or production action is authorized by this plan.**
