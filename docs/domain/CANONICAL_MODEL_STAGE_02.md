@@ -5,21 +5,16 @@
 | Document ID | DOMAIN-STAGE-02 |
 | Version | 1.0.1 |
 | Status | Proposed / Awaiting Review |
+| Owner | Principal Architect |
 | Supersedes | Conflicting DTO shapes in legacy documents |
 | Dependencies | Documents 42–43; ADR-003; ADR-004; ADR-006 |
 
-> **Historical Stage 2 baseline / reference**
->
-> This document preserves the Stage 2 canonical-model design/review snapshot, including its historical `Proposed / Awaiting Review` wording.
-> It is historical/reference evidence, not the current product/runtime authority.
-> Current human-readable product/runtime status: [`../SOURCE_OF_TRUTH.md`](../SOURCE_OF_TRUTH.md).
-> Current executable HTTP contract: [`../../openapi/openapi.yaml`](../../openapi/openapi.yaml).
+> **Historical Stage 2 canonical model:** the metadata preserves its original proposal/authorization status.
+> Current runtime status: [Source of Truth](../SOURCE_OF_TRUTH.md); executable authority: [OpenAPI](../../openapi/openapi.yaml).
 
 ## Purpose
 
-Define one vocabulary shared by the API contract, future Go domain layer, Python analytics,
-PostgreSQL design, and clients. This is a semantic freeze, not generated code and not a promise
-that persistence rows will mirror public DTOs one-for-one.
+One semantic vocabulary for API, Go domain, Python analytics, PostgreSQL and clients; DTOs need not mirror persistence rows.
 
 ## Context boundaries
 
@@ -285,17 +280,13 @@ internal surrogate keys, encrypted columns, and projection tables. Future Go typ
 commands, entities, and responses. None may change the canonical meaning or wire representation
 without contract review and an ADR when breaking.
 
-## Assumptions resolved by this freeze
+## Resolved scope
 
-- MVP is web-first; refresh authentication uses an HttpOnly cookie and CSRF token.
-- Public assets use ticker lookup; internal provider IDs remain private.
-- Portfolio deletion means the portfolio is removed from active use while immutable financial
-  history is retained.
-- Transaction PATCH/DELETE are correction/reversal commands, not physical mutation.
-- Dividend calculator is gross and excludes tax behavior.
-- Dividend calendar contains official events only.
-- All successful/error bodies use the canonical envelope.
+Web-first cookie/CSRF authentication, private provider IDs, retained financial history and append-only
+correction/reversal follow the boundaries above. The dividend calculator excludes tax; the calendar
+contains official events only. Success/error bodies use the canonical [API envelope](../api/API_CONTRACT_STAGE_02.md#response-envelope).
 
 ## Open questions
 
-it cannot be left as a production TODO or silently decided during backend implementation.
+At this freeze, none. New uncertainty enters [Open Questions](../OPEN_QUESTIONS.md) through
+Issue → ADR → review → approval; no production TODO or silent implementation decision.

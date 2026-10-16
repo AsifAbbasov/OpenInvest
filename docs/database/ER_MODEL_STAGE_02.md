@@ -5,22 +5,17 @@
 | Document ID | DB-ER-STAGE-02 |
 | Version | 1.0.1 |
 | Status | Proposed Logical Model / No SQL Authorized |
+| Owner | Principal Architect |
 | Supersedes | Conflicting physical table drafts in legacy documents |
 | Dependencies | Documents 42–43; ADR-002; ADR-004; ADR-005; ADR-006 |
 
-> **Historical Stage 2 baseline / reference**
->
-> This document preserves the Stage 2 logical ER design/review snapshot, including its historical `Proposed Logical Model / No SQL Authorized` wording.
-> It is historical/reference evidence, not the current database/runtime authority.
-> Current human-readable product/runtime status: [`../SOURCE_OF_TRUTH.md`](../SOURCE_OF_TRUTH.md).
-> Current executable migration history: [`../../infrastructure/postgres/migrations/`](../../infrastructure/postgres/migrations/).
+> **Historical Stage 2 logical ER design:** the metadata preserves its original proposal/authorization status.
+> Current runtime status: [Source of Truth](../SOURCE_OF_TRUTH.md); executable authority: [migration history](../../infrastructure/postgres/migrations/).
 
 ## Scope and non-goal
 
-This is a logical ER model used to freeze ownership, relationships, invariants, and likely index
-access paths. It deliberately contains no DDL, column SQL types, partition syntax, migration, or
-ORM mapping. Stage 4 must convert it into reviewed PostgreSQL migrations without changing its
-meaning silently.
+Logical ownership, relationships, invariants and index access paths; no DDL, SQL types, partitions
+or ORM mapping. Physical migrations require review and must not silently change these semantics.
 
 ## Schema ownership
 
@@ -207,6 +202,7 @@ audit event, never an UPDATE.
 
 `tax` exists as an isolated namespace only. Stage 2 authorizes no tax profile, calculation,
 document, XML, PDF, or export tables. Tax Export remains disabled/experimental and requires its
+own feature approval, data classification, retention review, threat model, and migrations.
 
 ## Relationship invariants
 

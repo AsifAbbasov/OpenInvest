@@ -8,64 +8,36 @@
 | Supersedes | Unstructured PRD criticism outside the repository |
 | Dependencies | `SOURCE_OF_TRUTH.md`; Documents 42–43; ADR-003; ADR-006; ADR-007 |
 
-## Purpose
+## Context and decision
 
-This document converts hard product criticism into controlled MVP risk management. It does not
-change Architecture Freeze v1.2 and does not authorize new implementation by itself.
+OpenInvest is an independent, privacy-first Personal Capital Operating System. This approved risk
+refinement does not change Architecture Freeze v1.2 or authorize implementation.
+Target long-term, multi-account, dividend/FIRE investors whose accounting needs exceed broker badges
+and spreadsheets; emphasize real return after fees, taxes and inflation, auditability and export.
+Onboarding/examples should highlight multi-account tracking, real return, dividends and auditability.
 
-The goal is to strengthen OpenInvest's advantages while reducing the most credible delivery,
-adoption, legal, and UX risks.
-
-## Sharpened product thesis
-
-OpenInvest is a **Personal Capital Operating System** for private investors who need a reliable,
-independent view of their own capital.
-
-The first version must not try to serve every retail investor. The first version targets users whose
-pain is already strong enough to justify setup effort:
-
-- long-term investors with multiple brokers or accounts;
-- dividend and FIRE-oriented investors;
-- investors who care about real return after fees, taxes, and inflation;
-- users with enough transactions or capital that broker-app summaries and spreadsheets are no
-  longer trustworthy;
-- users who value privacy, auditability, export, and deterministic calculations.
-
-The first version is not optimized for casual users who only need a broker app's green/red return
-badge.
-
-## MVP value hierarchy
-
-The first-release product value order is:
+## Value hierarchy
 
 1. Correct capital ledger.
 2. Explainable portfolio summary.
 3. Real return after fees and inflation.
 4. Dividend/coupon visibility.
-5. Import and reconciliation to reduce manual entry.
-6. Purchasing-power insight as a secondary explanatory layer.
-7. Tax preparation data only after deterministic rules and privacy boundaries are ready.
+5. Import/reconciliation instead of repetitive manual entry.
+6. Purchasing Power as a secondary explanatory layer.
+7. Tax preparation only after deterministic rules and privacy boundaries are ready.
 
-Features that do not support this hierarchy move to `BACKLOG_V2.md`.
+Other ideas belong in [Backlog](../BACKLOG_V2.md), not automatic MVP scope.
 
-## Accepted criticism and mitigation
+## Accepted risks and decisions
 
-### Import cannot remain late
+### Import and broker integration
 
-Risk: manual entry is acceptable for engineering validation, but a public MVP that requires users to
-type hundreds of historical transactions will fail adoption.
-
-Decision:
-
-- keep Stage 3 manual append for the vertical slice;
-- add a near-term **Broker File Import and Reconciliation** candidate before public MVP;
-- start with file-based import, not broker API integrations:
-  - CSV/XLSX first where possible;
-  - PDF only after parser evidence exists;
-  - no credential scraping;
-  - no direct broker API unless licensed and registered.
-
-Import must follow the existing append-only reconciliation model:
+Manual entry is suitable for vertical-slice validation, not hundreds of public-MVP transactions.
+The approved recommendation moved file import/reconciliation earlier, while retaining manual append.
+Prefer CSV/XLSX; PDF needs parser evidence. Credential scraping is forbidden; direct broker APIs
+require licensing and registry approval. Broad synchronization remains later scope because its cost,
+legal exposure and source dependence are unsuitable for the early MVP.
+Use user-supplied files with explicit review and no credentials:
 
 ```text
 Import
@@ -79,109 +51,51 @@ Import
 
 No import may silently mutate historical records.
 
-### ICP must be narrower
+### Deterministic tax and privacy
 
-Risk: a generic "all investors" target produces weak messaging and weak product decisions.
+LLM-driven tax truth risks incorrect results, legal exposure and lost trust. Future tax calculations
+must use deterministic rules and test vectors; AI may explain, summarize, assist review or guide input,
+never supply tax truth. Tax XML/PDF export remains outside MVP behind a future feature flag.
+Personal tax input must support temporary in-memory entry or encrypted opt-in storage under Privacy by Design.
 
-Decision:
+### Bounded server-side analytics
 
-- public MVP messaging must target investors with portfolio-accounting pain, not casual brokerage
-  app users;
-- onboarding and examples should emphasize multi-account tracking, real return, dividends, and
-  auditability.
+Full-ledger recalculation on every request threatens SLOs. Keep the immutable ledger canonical;
+materialize expensive analytics through rebuildable snapshots, background jobs or controlled caches.
+Read precomputed/bounded-scope data synchronously; bypassing this strategy requires ADR review.
+This mitigates the risk without moving financial truth into clients.
 
-### Server-side calculations need snapshots, not request-time heroics
+### Purchasing Power — partially accepted criticism
 
-Risk: calculating all metrics from raw transactions on every request will violate SLOs as portfolios
-grow.
+Retain its explanatory value but place it below real/inflation-adjusted return, never as primary truth.
+Prioritize salary, food basket, rent, utilities and housing/square-meter affordability where data are reliable.
+Consumer electronics are optional examples, not primary analysis.
 
-Decision:
+## Rejected alternatives and rationale
 
-- raw immutable ledger remains canonical;
-- expensive analytics must be materialized through rebuildable snapshots, background jobs, or
-  controlled caches;
-- synchronous API responses should read precomputed or bounded-scope data where possible;
-- no new analytics feature may bypass the snapshot/caching strategy without ADR review.
-
-## Partially accepted criticism
-
-### Purchasing power can become noise
-
-Risk: "iPhone counts" and similar equivalents can feel unserious if placed above core financial
-truth.
-
-Decision:
-
-- keep Purchasing Power because it is a differentiator and explains inflation in human terms;
-- demote it from core dashboard truth to a secondary insight card;
-- always show real/inflation-adjusted return before consumer-good equivalents;
-- support sober categories first:
-  - average salary;
-  - food basket;
-  - rent;
-  - utilities;
-  - square meter / housing affordability where reliable data exists;
-- consumer-electronics equivalents are optional examples, not primary financial analysis.
-
-### Public MVP should not depend on broad broker integrations
-
-Risk: full broker API synchronization is expensive, legally sensitive, and source-dependent.
-
-Decision:
-
-
-## Rejected or already mitigated criticism
-
-### MongoDB / polyglot persistence
-
-Not applicable to the frozen architecture. OpenInvest uses PostgreSQL as the canonical database.
-Additional datastores require ADR approval.
-
-### "All server calculations make SLO impossible"
-
-Accepted as a risk, rejected as a conclusion. The current architecture already uses immutable
-transactions, rebuildable snapshots, Redis/RAM cache, and background-work boundaries to avoid
-unbounded request-time calculations.
-
-### "The product must become a broker-adjacent upsell to survive"
-
-Rejected for MVP. Independence is a core trust property. Monetization and pricing must be tested
-without compromising data ownership, calculation transparency, or product neutrality.
+- PostgreSQL remains canonical; polyglot persistence/MongoDB requires an ADR.
+- Server-side calculations do not inherently make SLOs impossible: use the bounded strategy above.
+- A broker-adjacent upsell is rejected for MVP; monetization must preserve independence, data ownership,
+  transparent calculations and neutrality.
 
 ## Product guardrails
 
-- Do not sell the product as a trading terminal.
-- Do not sell  as financial, investment, or tax truth.
-- Do not make Purchasing Power the primary dashboard metric.
-- Do not require passport, INN, phone, address, or stored tax profile for portfolio analytics.
-- Do not add external provider data without the Data Source Registry.
-- Do not add import behavior that mutates history automatically.
-- Do not add a feature unless it improves capital, return, dividends, taxes-as-data, or purchasing
-  power understanding.
+- No trading-terminal positioning or AI presented as financial, investment or tax truth.
+- No primary Purchasing Power dashboard metric.
+- No passport, INN, phone, address or stored tax profile required for portfolio analytics.
+- No external data without the [Data Source Registry](../registries/DATA_SOURCE_REGISTRY.md).
+- No automatic history mutation; features must improve capital, return, dividends, taxes-as-data or purchasing-power understanding.
 
-## Historical near-term roadmap adjustment
+## Historical sequencing and verification
 
-The sequence below records the near-term recommendation at the time this product-risk refinement
-was approved. At that time, the implementation order remained architecture-first while public-MVP
-readiness required import earlier than the legacy roadmap suggested. Stages 3.3–3.6 were
-subsequently completed; current stage status and sequencing are recorded in
-[ROADMAP.md](../ROADMAP.md).
+The recommendation was Stage 3.3 presentation → 3.4 end-to-end verification → 3.5 import design →
+3.6 file-import slice if separately approved → later WAC/XIRR/real-return algorithms with test vectors.
+Stages 3.3–3.6 subsequently completed through separate reviews; [Roadmap](../ROADMAP.md) owns current
+sequencing and [Implementation Log](../IMPLEMENTATION_LOG.md) the evidence. This was not runtime authority.
 
-Historical recommendation after the first vertical slice:
+## Public-MVP acceptance and residuals
 
-1. Stage 3.3 — Next.js presentation slice for the current Go API.
-2. Stage 3.4 — End-to-end verification and onboarding.
-3. Stage 3.5 — Broker file import and reconciliation design.
-5. Later — WAC/XIRR/real-return algorithms with financial test vectors.
-
-
-## Success criteria for public MVP
-
-Public MVP should not be declared ready until:
-
-- a user can create/import enough ledger data without unreasonable manual effort;
-- every visible number has an explanation path;
-- core financial calculations have deterministic test vectors;
-- Purchasing Power is clearly secondary to real return;
-- tax functionality is either absent or deterministic and privacy-scoped;
-- performance relies on snapshots/caches rather than full recalculation on every request.
+Do not declare readiness until users can create/import sufficient data without unreasonable effort,
+every visible number is explainable, core financial calculations have deterministic vectors,
+Purchasing Power is secondary, tax is absent or deterministic/privacy-scoped, and performance uses
+snapshots/caches rather than full recalculation per request. Licensing and future tax approvals remain separate.

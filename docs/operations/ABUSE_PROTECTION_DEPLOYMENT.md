@@ -1,33 +1,20 @@
 # Abuse Protection Deployment Ownership
 
-OpenInvest deliberately separates three security layers.
+## Ownership and deployment prerequisite
 
-1. **Per-process safety limits** stay inside the Go API and fail fast before expensive work. These
-   include auth/IP and credential buckets, Argon2 admission, import execution/fresh admission and
-   heavy-import capacity, expensive portfolio-read admission, the dividend fresh-command limiter,
-   the Corporate Actions public-endpoint caller budget/coalescing layer, and the T-Invest provider's
-   local concurrency/request budget.
-2. **Deployment-global abuse limits** are owned by the shared edge/gateway in staging and production.
-   The application does not claim that process-local maps/channels become global when replicas scale.
-3. **Provider-global budget** for T-Invest is enforced by the repository's shared Redis security-budget
-   authority. Provider activation outside explicit development/local mode fails closed unless that
-   shared backend is configured and reachable.
-
-Staging/production startup requires:
+**Per-process safety limits** in Go fail fast for auth/IP/credentials, Argon2, import execution/fresh/heavy work,
+expensive portfolio reads, fresh dividends, Corporate Actions caller budgets/coalescing and provider work.
+These process-local maps/channels do not become global when replicas scale.
+**Deployment-global abuse limits** require a verified shared edge/gateway in staging/production
+for auth, imports, anonymous dividend calculations and expensive portfolio reads:
 
 ```text
 OPENINVEST_DEPLOYMENT_GLOBAL_ABUSE_CONTROL=verified-edge-v1
 ```
 
-Set this value only after the serving edge/gateway has shared state across all API replicas and
-enforces deployment-level admission for auth, imports, anonymous dividend calculations and expensive
-portfolio reads. Local process limits remain defense in depth and must not be used as evidence that
-the deployment-global limit exists.
-
-The edge contract must preserve canonical client identity. It must not trust caller-supplied
-forwarding headers directly, and its client-IP policy must be consistent with the application's
-validated trusted-proxy boundary. At minimum the deployment control must be no weaker than these
-repository process ceilings for the corresponding traffic classes:
+Set this acknowledgment only after verifying shared admission across all API replicas.
+The edge must preserve canonical identity under the application's trusted-proxy policy; never trust
+caller forwarding headers directly. Minimum deployment ceilings:
 
 ```text
 auth aggregate attempts             <= 2000/min deployment-wide
@@ -40,49 +27,41 @@ heavy import work                   <= 2 concurrently deployment-wide
 anonymous fresh dividend commands   <= 20/min per canonical client IP and <= 1200/min deployment-wide
 corporate-actions projection         <= 12/min per canonical client IP and <= 48/min deployment-wide
 expensive portfolio reads           <= 8 concurrently deployment-wide
-
-The repository process-local expensive-read admission allows up to 5 concurrent reads for one
-subject because the current Portfolio detail UI has a verified automatic fan-out wave of five
-(summary + current positions + cash flow + historical positions + returns). The sixth concurrent
-same-subject expensive read fails fast locally. Repeated manual reload clicks are separate user
-actions and remain subject to the bounded admission policy.
 ```
 
-The external edge acknowledgement remains required for the wider deployment-global controls above,
-but it is not enforcement for Corporate Actions and does not prove the external edge is actually deployed. Corporate Actions endpoint admission is additionally
-owned by the shared Redis security-budget authority: <=12/min per canonical client and <=48/min
-globally across replicas. Redis admission is atomic and TTL-bounded. A Redis outage fails closed for
-that provider-backed path instead of falling back to process-local counters.
+Local expensive-read admission permits five concurrent reads per subject for the verified UI wave
+(summary, current positions, cash flow, historical positions, returns); the sixth fails fast.
+Manual reloads remain separate bounded user actions.
+Normalized-credential login/register buckets are independent of account existence and retain IP
+emergency limits for rotating identities. The edge need not parse passwords and must not log bodies/credentials.
 
-The Go layer additionally enforces a normalized-credential login/register bucket. The edge need not
-parse passwords and must never log request bodies or credentials; repository tests prove the local
-credential layer remains independent of account existence and that IP emergency protection still
-bounds rotating identities.
+## Shared Corporate Actions and provider budgets
 
-T-Invest Corporate Actions stays disabled unless explicitly enabled. The existing operator
-acknowledgement remains required:
+**Provider-global budget** is enforced by shared Redis, not local concurrency or an operator assertion.
+
+Corporate Actions additionally uses atomic, TTL-bounded Redis admission: ≤12/min per canonical client
+and ≤48/min across replicas. Redis outage fails closed, never reverting to process-local counters.
+The edge acknowledgement is not enforcement for Redis and does not prove the external edge is deployed.
+T-Invest remains disabled unless explicitly enabled. Outside development/local mode, activation
+fails closed without reachable shared Redis and this separate operator acknowledgment:
 
 ```text
 OPENINVEST_TINVEST_GLOBAL_BUDGET_OWNER=verified-shared-provider-budget-v1
+OPENINVEST_SHARED_BUDGET_REDIS_URL=<operator-supplied-shared-security-budget-endpoint>
 ```
 
-That acknowledgement is not enforcement. Outside explicit development/local mode, provider activation
-also requires a reachable `OPENINVEST_SHARED_BUDGET_REDIS_URL`. The shared Redis authority owns the
-aggregate <=60 provider requests in any rolling 60-second interval across replicas and shares conservative
-`X-RateLimit-Remaining` / `X-RateLimit-Reset` observations. The local provider concurrency bound of
-four remains process-local resource defense. Caller cancellation returns promptly, while the operation
-uses a separate context with its own five-second deadline and retains its slot until the locally owned
-HTTP operation and response-body closure complete. Caller cancellation does not cancel that operation.
-The independent deadline cancels the transport; elapsed time alone does not release the slot. This bounds
-local operation ownership, not arbitrary remote server-side computation after a connection closes.
-External-provider server-side termination remains NOT_VERIFIED.
+The acknowledgement is not enforcement. Redis owns ≤60 provider requests in any rolling 60 seconds
+across replicas and conservative `X-RateLimit-Remaining` / `X-RateLimit-Reset` observations.
+Endpoint/provider journals use atomic Redis-server-time sorted sets with bounded TTLs.
+A legacy string counter becomes a full-window reservation, potentially denying one transition window;
+no window resets early. Operators must verify clock integrity and shared namespace/topology.
 
-Development/local mode does not require these deployment ownership acknowledgements because it is
-not a horizontally scaled production security boundary. Production fail-closed configuration tests
-must remain green whenever these ownership gates change.
+## Local operation lifetime and residuals
 
-Shared endpoint and provider budgets use atomic Redis-time sorted-set rolling journals.
-An old string counter is conservatively converted to a full-window reservation,
-which can deny traffic for one window during a format transition. No window is
-reset early, and every journal has a bounded TTL. Production clock integrity and
-shared Redis namespace/topology must be verified by the deployment operator.
+Four local provider operations maximum remains process-local resource defense. Caller cancellation
+returns promptly without cancelling the independently owned HTTP operation. Its separate five-second
+deadline cancels the transport; the slot remains owned until operation/response-body closure completes,
+not until an elapsed timer. Arbitrary remote server computation may survive connection closure;
+external-provider server-side termination remains NOT_VERIFIED.
+Development/local mode does not require deployment acknowledgments; it is not a horizontally scaled
+production boundary. Keep production fail-closed configuration tests green when ownership gates change.

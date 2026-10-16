@@ -16,4 +16,4 @@ The normal schedule is `17 3 * * *` (03:17 UTC / 07:17 Asia/Baku) on the reposit
 
 - [Project onboarding](../README.md) and [documentation index](../docs/DOCUMENT_INDEX.md).
 - [Module #1 technical record](../docs/audit/MODULE1_TECHNICAL_CLOSURE.md), including exact post-merge CI evidence.
-- [Documentation standard](../docs/governance/DOCUMENTATION_STANDARD.md): ten lines for standalone explanatory summaries; navigation, onboarding and full technical contracts retain necessary detail.
+- [Documentation standard](../docs/governance/DOCUMENTATION_STANDARD.md): target ten, maximum fifteen lines for standalone explanatory summaries; navigation, onboarding and full technical contracts retain necessary detail.
