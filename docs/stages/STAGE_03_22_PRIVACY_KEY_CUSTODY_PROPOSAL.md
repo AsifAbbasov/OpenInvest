@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-22-PRIVACY-KEY-CUSTODY-PROPOSAL |
-| Version | 0.2.0 |
+| Version | 0.3.0 |
 | Status | Complete / merged through PR #51 at `5f42d32db1e045c23fb99a5af8f136b7a49e3bc2` |
 | Owner | Principal Architect |
 | Supersedes | None; follows the merged Stage 3.21 privacy data-inventory proposal |
@@ -281,8 +281,10 @@ it does not attest any OpenInvest provider or prove field-level anonymity. Verif
 | Verify(proof, trustedPolicy) | Independent verifier validates signature/root, exact intent/generation/material scope, terminal outcome, all versions/caches/replicas/recovery periods and signer history. Disable/scheduled deletion is non-terminal. |
 | Unavailability challenge | After proof, isolated restore attempts approved recovery/decrypt against synthetic protected fixture for every material version; any success blocks release. Negative API error alone does not prove irreversible physical destruction. |
 
-No PostgreSQL transaction spans a custody call. Persist claim and independently witnessed intent first;
-submit destruction; reconcile terminal state; persist proof commitment; then finish unlink/marker work.
+No PostgreSQL transaction spans a custody call. The Stage 3.23 v2 PREPARE-before-local-pending
+contract and witnessed activation establish durable admission first; only after the immutable 30-day
+deadline may an independently witnessed irreversible claim authorize destruction. A local outbox,
+unknown admission or scheduled key deletion cannot satisfy this guard. Submit destruction; reconcile terminal state; persist proof commitment; then finish unlink/marker work.
 If a crash follows provider destruction before acknowledgement, resume verification for that operation;
 do not issue a replacement key. Generation-fenced callbacks cannot alter a new lifecycle. Retry with
 bounded backoff, finite attempt windows and visible escalation; retry exhaustion leaves a durable

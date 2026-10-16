@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-24-PRIVACY-SECURITY-REVIEW-READINESS |
-| Version | 0.3.0 |
+| Version | 0.4.0 |
 | Status | Complete / merged through PR #53 at `544ad8cc7371caf93913ea7716f3feb68be0ea44` |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.23 deletion-marker control-plane proposal |
@@ -354,9 +354,10 @@ checks. Exact SQL types, constraints, role grants and OpenAPI are future proposa
 
 | State | Admission / transition | Safety and failure result |
 | --- | --- | --- |
-| active | Freshly authorize REQUEST; commit one pending generation/deadline and revoke all sessions under the common fence. | Duplicate same intent replays; different idempotency body rejects. Unknown transaction result reconciles; never creates a second grace window. |
+| active | Freshly authorize REQUEST; obtain G1 PREPARE receipt before local `admission_pending`; revoke all sessions under G2, then witness activation and persist its fixed deadline before acknowledgement. | Duplicate same intent replays; different idempotency body rejects. Unknown transaction result reconciles; never creates a second grace window. |
+| admission_pending | Independent PREPARE exists; local denied state committed but activation/deadline may be unknown. | No normal work, no acknowledgement of accepted deletion and no irreversible claim; reconcile same intent or witnessed abort. |
 | pending | Deny normal login/refresh/protected reads and writes; permit only scoped fresh cancellation/status ceremony before deadline. | Same lock serializes cancellation with completion claim. Cancellation increments authorization generation and requires a new normal login, not session resurrection. |
-| completing: claimed / witnessed | After deadline, CAS claim; durably publish intent and reconcile independent witness receipt before destruction. | Cancellation is permanently closed. Outbox/witness outage remains non-serving and non-complete; retries cannot change intent/generation. |
+| completing: claimed / witnessed | After deadline, independently witness the claim, then CAS its matching database receipt; an unknown service outcome cannot authorize destruction. | Cancellation is permanently closed. Outbox/witness outage remains non-serving and non-complete; retries cannot change intent/generation. |
 | completing: key_proven / primary_unlinked / marker_active | Reconcile exact destruction operation/proof, remove approved live personal scope, then activate independently verified marker. | Crash at any boundary resumes forward; stale callback rejects; no compensating key creation or reactivation. |
 | completing: waiting_evidence | Await every copy/indirect-link/legal/proof obligation, including legacy plaintext copies. | Retry exhaustion escalates without dropping obligation. No completion receipt while any condition is unknown. |
 | completed | Independent conjunction: terminal key proof + live unlinking + authentic complete marker + reconciled copy scope + non-reidentification + allowed retention evidence. | Terminal; no cancellation/reactivation/rollback. Keep only approved non-identifying evidence. |
@@ -376,7 +377,9 @@ uses fresh purpose-restricted authorization to replay the existing receipt/state
 or restore a normal active session. A consumed challenge never authorizes another effect. An ambiguous
 commit reconciles the same intent; failed authorization cannot inspect another principal's replay key.
 
-All protected data access must go through authoritative `AuthorizeSubjectOperation` inside the relevant
+Application `AuthorizeSubjectOperation` is defense in depth, not the compatibility boundary. G2 below
+must independently enforce denial even if that call is omitted. All compatible application access
+must also go through authoritative `AuthorizeSubjectOperation` inside the relevant
 transaction, **before** owner lookup, returning idempotent success or external side effects. Candidate
 lock order: subject lifecycle fence → identity refresh advisory lock → session/family → sorted portfolio
 IDs → command scope; ordinary operations take a shared fence and deletion/cancellation takes exclusive.
@@ -415,8 +418,9 @@ while completing. A replayed receipt is not evidence for another generation.
    permitted identity/annotation mappings; compare decrypted resolution and all financial results in
    shadow mode. Do not rewrite amounts/dates/rounding/ledger sequence/revisions/source identity or old
    audit events. If A1/A2 need a contract amendment, stop that part until approved.
-4. **Switch atomically by compatibility generation:** reject any older binary/worker lacking the
-   fence; deploy read-compatible clients first, then enforce readiness on every API/job instance.
+4. **Switch by the mandatory G2 cutover below:** no deletion operation is enabled until database
+   policies, credential/role revocation, connection/worker drain and independent artifact admission
+   are verified. A readiness claim or an application-only generation check is not enforcement.
    Dual-read plaintext fallback is forbidden after the switch/cut. Capabilities/grants follow exact
    explicit profiles, never PUBLIC or schema-owner credentials in normal runtime.
 5. **Validate custody/journal/restore before destructive activation:** independently test synthetic
@@ -438,25 +442,26 @@ role, not an invented person/date. Provider outages, unknown clocks or split vie
 
 ### SR remediation and acceptance matrix
 
-DESIGNED means a reviewable protocol is specified; it is not implemented, independently accepted or
-production-verified. PARTIALLY_DESIGNED exposes an unresolved technical binding. BLOCKED requires a
-higher-authority decision. Every row's final acceptance remains blocked until its original minimum
+DESIGN_CANDIDATE_DOCUMENTED means a proposal is written, not accepted, implemented or independently
+verified. PARTIALLY_DESIGNED means a technical binding is unresolved. EXTERNAL_DEPENDENCY identifies
+necessary provider/platform/organizational proof. BLOCKED means a mandatory prerequisite or decision
+is unresolved. These labels never mean production authorization. Every row's final acceptance remains blocked until its original minimum
 proof clauses pass independent review.
 
 | SR / design status | Current source → control / threat | Alternatives, dependency and sequencing | Test → EC evidence → explicit acceptance / missing proof |
 | --- | --- | --- | --- |
 | SR-01 BLOCKED | R3/R5/R7 → field disposition + protected identity port + copy/indirect-link completion barrier; prevent a surviving note/hash/JWT/audit bridge. | Cascade/UUID insufficient; immutable personal-field rewrite/generalization needs A1/A2/A4 before population. | T1/T7 → EC-02/10: every field/copy and reasonable join resolved; no anonymity claim while personal immutable facts or external correlation remain. Real discovery/approval missing. |
 | SR-02 PARTIALLY_DESIGNED | R3/R6 → subject material isolation and independent terminal proof in Stage 3.22; prevent alternate-wrap/admin recovery. | Non-exportable provider vs independently operated hardware; A3 before selection/creation. | T3 → EC-03/10: all versions/copies/non-recreation and proof trust accepted; simulated negative decrypt does not establish provider destruction. |
-| SR-03 DESIGNED | R3/R8 → independent admitted-intent journal/checkpoints and receipt reconciliation in Stage 3.23; reject signed omissions/split views. | Single writer-signer rejected; independent witnesses/threshold needs A3; witness before destruction. | T4/T5 → EC-04/10: all admitted generations through release cut included, replay/rollback rejected; real independent durability/admin evidence absent. |
+| SR-03 BLOCKED | R3/R8 → independent admitted-intent journal/checkpoints and receipt reconciliation in Stage 3.23; reject signed omissions/split views. | Single writer-signer rejected; independent witnesses/threshold needs A3/G1; PREPARE before local pending, complete admitted-intent coverage before release. | T4/T5 → EC-04/10: all admitted generations through release cut included, replay/rollback rejected; real independent durability/admin evidence absent. |
 | SR-04 PARTIALLY_DESIGNED | R3/R5 → restore-only binding + protected scope replay; prevent marker becoming a person lookup or skipping recovered material. | Raw user/subject IDs rejected; exact proof/lookup/retention join graph needs A3 before schema. | T1/T4 → EC-04/10: complete targeting without any usable residual map, including old locator/proof joins. Exact binding and provider fixtures missing. |
-| SR-05 DESIGNED | R1/R2/R4 → fenced lifecycle saga and generation-bound callbacks; prevent write/cancel/completion races and false success. | Long distributed transaction rejected; durable monotonic reconciliation after each external effect. | T2/T3 → EC-05/10: every crash cut/retry/race preserves denial and no false completion; PostgreSQL/coordinator implementation tests pending. |
-| SR-06 DESIGNED | R8 → sealed instance and independent release certificate tied to configuration/cut; prevent early ingress/jobs or copied release evidence. | Manual operator assertion rejected; platform-enforced deny before separately authorized release. | T5 → EC-06/10: rehearsal proves every serving/credential/job route denied before valid release; topology enforcement evidence missing. |
-| SR-07 DESIGNED | R8 → per-copy lineage/expiry/destruction reconciliation plus legacy-copy barrier; prevent hidden/re-aged recoverable copy. | Timer alone rejected; provider evidence and independent inventory; A4 for policy conflicts. | T6 → EC-07/10: all managed copies encrypted and destroyed within 90 days with proof; actual inventory/destruction missing. |
+| SR-05 BLOCKED | R1/R2/R4 → fenced lifecycle saga and generation-bound callbacks; prevent write/cancel/completion races and false success. | Long distributed transaction rejected; G1/G2 required before enabling the monotonic saga. | T2/T3 → EC-05/10: every crash cut/retry/race preserves denial and no false completion; PostgreSQL/coordinator implementation tests pending. |
+| SR-06 EXTERNAL_DEPENDENCY | R8 → sealed instance and independent release certificate tied to configuration/cut; prevent early ingress/jobs or copied release evidence. | Manual operator assertion rejected; platform-enforced deny before separately authorized release. | T5 → EC-06/10: rehearsal proves every serving/credential/job route denied before valid release; topology enforcement evidence missing. |
+| SR-07 EXTERNAL_DEPENDENCY | R8 → per-copy lineage/expiry/destruction reconciliation plus legacy-copy barrier; prevent hidden/re-aged recoverable copy. | Timer alone rejected; provider evidence and independent inventory; A4 for policy conflicts. | T6 → EC-07/10: all managed copies encrypted and destroyed within 90 days with proof; actual inventory/destruction missing. |
 | SR-08 BLOCKED | R2/R3 → minimized future privacy evidence with restricted commitments; prevent user/session/request/time joins over ten-year audit. | Appending a redacted projection leaves original IDs intact; historical mutation/encryption requires A2 and legal review first. | T1/T7 → EC-02/10: ten-year integrity/retention without prohibited map; original-row disposition and sampled linkage proof missing. |
-| SR-09 DESIGNED | R6 → role separation across application, lifecycle, custody authorizer/executor, marker writer/witness, restore/releaser and evidence verifier. | Shared-admin “separate credentials” insufficient; A3 organizational boundary before provider integration. | T8 → EC-08/10: no unilateral routine role combination can forge release/recover keys; actual IAM/support/access-review evidence missing. |
+| SR-09 EXTERNAL_DEPENDENCY | R6 → role separation across application, lifecycle, custody authorizer/executor, marker writer/witness, restore/releaser and evidence verifier. | Shared-admin “separate credentials” insufficient; A3 organizational boundary before provider integration. | T8 → EC-08/10: no unilateral routine role combination can forge release/recover keys; actual IAM/support/access-review evidence missing. |
 | SR-10 BLOCKED | R8 + Documents 42/43 → explicit exception register and no false completion; prevent hidden hold/recovery path or extended backup retention. | No assumed regulatory retention right; qualified legal/privacy and Principal Architect resolve A4 before any conflicting operation. | T6/T7 → EC-09/10: signed policy decision reconciles duties without silent contract change; legal decisions absent. |
 | SR-11 PARTIALLY_DESIGNED | R1/R2/R7 → fresh purpose-bound password/challenge, restricted cancellation, non-oracular status and non-identifying receipt; prevent stolen-session/replayed receipt authority. | Opaque ID alone rejected; exact receipt capability/privacy binding and recovery/loss UX need A3/owner decision. | T2/T7 → EC-01/10: original fresh-factor/CSRF/abuse/cancellation requirements plus no final receipt before evidence; HTTP/UX/receipt implementation tests pending. |
-| SR-12 DESIGNED | R3/R4/R6 → staged rollout/compatibility fence, owner-only backfill, immutable ledger and forward-only irreversible cut; prevent old binaries/plaintext restore rollback. | Destructive one-shot migration rejected; A1–A4 resolve before activation. | T2/T5/T8/T9 → EC-05/10: full migration/data-state/runbook clauses independently verified, no lost financial facts, old copies drained; runnable migration/rehearsal missing. |
+| SR-12 BLOCKED | R3/R4/R6 → staged rollout/compatibility fence, owner-only backfill, immutable ledger and forward-only irreversible cut; prevent old binaries/plaintext restore rollback. | Destructive one-shot migration rejected; A1–A4 plus G1/G2 resolve before activation. | T2/T5/T8/T9 → EC-05/10: full migration/data-state/runbook clauses independently verified, no lost financial facts, old copies drained; runnable migration/rehearsal missing. |
 
 ### Approval register and next independent scope
 
@@ -470,3 +475,79 @@ Independent Gatekeeper should review these four decisions and protocol counterex
 SR/EC clause coverage, code traceability and model limitations. Ask for specific implementation/provider
 rehearsals only in separately authorized phases. Documentation merge must not be read as ADR acceptance,
 legal approval, key provisioning, deletion API implementation or production readiness.
+
+### Mandatory compatibility enforcement G2
+
+**ARCH-277-02: design candidate only / enforcement gate BLOCKED.** The current runtime role grants
+raw SELECT/INSERT on financial tables and no privacy RLS/trigger gate. Old binaries retain that path
+unless privileges and running sessions are actually removed. A PostgreSQL login identifies credentials,
+not the executable holding them; a borrowed new credential cannot prove a new binary. G2 therefore
+requires both database policy and independently controlled workload/credential/ingress admission.
+
+| Required layer | Proposed mandatory contract / limitation |
+| --- | --- |
+| Trusted database epoch | Owner-controlled compatibility manifest binds database/cluster generation, admitted login roles, policy/schema hashes and enabled operation classes. Derive runtime identity from server-authenticated `session_user`, not headers, `application_name`, caller-set GUC or a submitted version string. Runtime cannot change this manifest or disable enforcement. |
+| Versioned credentials | Distinct short-lived LOGIN identities for API/worker deployment generations, no shared legacy login, no SET ROLE path to obsolete/bypass capabilities. A trusted workload broker admits only approved immutable artifact/configuration measurements and rotates/revokes identities. Artifact/attestation and broker enforcement need actual infrastructure evidence; database SQL alone cannot provide it. |
+| Database lifecycle fence | Future forced RLS USING/WITH CHECK plus mutation guards cover every subject-bearing base table/partition, owner lookup, auth/session issuance/rotation, replay/derived/worker path and identity resolution. Policies traverse portfolio/subject scope and reject absent/pending/completing/erased states even when old SQL omits the application helper. Shared reference tables have separately approved non-personal policy. |
+| Transaction serialization | A reviewed invoker gate takes a conflicting shared lifecycle-row lock and checks current state before SELECT visibility or mutation; completion takes exclusive lock. Repeatable-read conflict aborts/retries from fresh authority, never accepts an old active snapshot. Mere RLS snapshot lookup, advisory locks taken only by cooperative code, or a trigger covering only writes is insufficient. Exact SQL/function privileges and planner/snapshot behavior require disposable PostgreSQL proof before approval. |
+| Constrained capabilities | No owner, SUPERUSER, BYPASSRLS, TRUNCATE, policy/trigger disable, replication, SECURITY DEFINER escape, database/schema CREATE or session-authorization escalation for runtime. Preserve ledger/audit INSERT-only financial protections; do not grant UPDATE/DELETE on financial facts to implement a fence. Any lock-helper privilege is minimal and cannot update lifecycle authority; otherwise choose a separately approved trusted database mediation boundary. |
+| Egress and caches | Drain old API/worker processes, pools, queued messages and cached responses. An old process serving in-memory data or holding SMTP/provider credentials bypasses database policy; ingress and egress brokers must reject obsolete workloads and scope/generation leases. Already accepted remote work cannot be recalled and stays inventoried. Development auth bypass is disabled in admissible deployment configuration; its omission of API auth still cannot skip database subject denial. |
+
+A proposed invoker locking helper must be shown safe without exposing new SECURITY DEFINER paths,
+which current runtime readiness rejects. If safe column-level lock privileges, RLS table coverage or
+snapshot correctness cannot be demonstrated, G2 remains BLOCKED and deletion is not enabled. RLS is
+not superuser/owner protection: privileged maintenance stays separately authorized, isolated and
+independently audited, with no routine serving credentials. Colluding or compromised infrastructure
+administration is not solved by a PostgreSQL policy and remains A3/SR-09 evidence.
+
+**Safe cutover (future runbook, not executed):**
+1. Keep privacy admission/destruction disabled. Expand the policy/epoch structures and test compatible
+   binaries/workers, raw SQL, pools, replicas and direct paths under synthetic data; establish G1.
+2. Quarantine ingress and outbound work; drain every old worker/API, transaction and connection pool.
+   Deny old LOGIN/CONNECT, revoke old memberships/table/function paths and invalidate cached secrets.
+   NOLOGIN/CONNECT revocation alone does not end existing sessions: independently enumerate and
+   terminate old backends, confirm none remain, and resolve prepared transactions under owner review.
+   Do not assume prepared transactions are gone when their client connection closes.
+3. While traffic stays sealed, atomically commit the new database epoch/admitted-role manifest,
+   explicit grants and enforced policy set. Reconstruct maximum capabilities without broad defaults;
+   verify every base-table, partition, function and inherited/PUBLIC grant. Failure rolls back that
+   database transaction but leaves the environment sealed; no distributed atomic deployment is claimed.
+4. Admit only broker-verified compatible workloads with new identities; negative-test old credentials,
+   old binaries using old/new credential paths, old workers, direct SQL, stale access/refresh sessions,
+   development bypass and cached responses. A credential password change is not a completed cutover.
+5. Independently verify policy hashes, effective privileges, zero obsolete connections/prepared work,
+   witness coverage, worker/ingress/egress admission and denial for pending subjects. Only then may a
+   separately authorized release enable privacy admission. Unknown policy/broker/epoch state denies.
+
+Rollback can return to a tested compatible artifact at the same enforced policy/epoch; it cannot
+regrant the legacy role, disable RLS, reuse stale sessions or install an incompatible binary. After
+irreversible activity, forward-only reconciliation applies. At recovery, old credentials restored in
+a database image are not release evidence: G2 is re-established while sealed before serving anything.
+A1–A4 remain unresolved; this design creates no credential, policy, provider selection or migration.
+
+Primary references inspected 2026-10-16: PostgreSQL 18
+[row security](https://www.postgresql.org/docs/18/ddl-rowsecurity.html),
+[row locking](https://www.postgresql.org/docs/18/explicit-locking.html),
+[role changes](https://www.postgresql.org/docs/18/sql-alterrole.html),
+[backend termination](https://www.postgresql.org/docs/18/functions-admin.html) and
+[prepared transactions](https://www.postgresql.org/docs/18/view-pg-prepared-xacts.html).
+These references establish mechanisms/limitations, not that this repository implements G2.
+
+### Recovery invariants and targeted finding disposition
+
+G1 safety: no locally committed privacy pending state without independent PREPARE; no external
+pending acknowledgement without witnessed activation plus matching database checkpoint; one immutable
+30-day deadline per accepted generation; no irreversible claim before it; unknown outcome is not
+rejection; incomplete epoch coverage or unresolvable binding quarantines recovery; authenticated
+pending/claimed state cannot restore as unrestricted active. Only a witnessed, freshly authorized
+cancellation before the deadline can undo pending. No key or erased identity is recreated to reconcile.
+Conditional liveness requires service quorum, trusted time, complete replay binding and authorized
+operators; permanent partitions or missing evidence may block forever. Safety never assumes recovery
+of missing WAL or a vanished independent witness.
+
+| Finding | Targeted correction / evidence route | Remaining acceptance gate |
+| --- | --- | --- |
+| ARCH-277-01 | Stage 3.23 admission v2, G1 epoch coverage, explicit DB/witness/unknown recovery cases; v2 model and T3/T4/T5 → EC-04/05/06/10. | BLOCKED until independently durable admission/binding and recovery proof exist. |
+| ARCH-277-02 | G2 database + workload credential/ingress gate and sealed cutover; policy table and T2/T8/T9 → EC-01/05/08/10. | BLOCKED until actual PostgreSQL and stale-binary/worker/drain evidence exists. |
+| ARCH-277-03 | Matrix now uses candidate/partial/external/blocked terminology; SR-03/05/12 blocked, SR-06/07/09 external. | Classification correction is repository-verifiable; no SR accepted/implemented/production-authorized. |
+| ARCH-277-04 | Executable v2 covers timed grace, unknown admission, pending restore, missing WAL quarantine and compatibility/release predicates. | Abstract consistency only; T2/T3/T4/T5/T8/T9 still require real integration evidence. |

@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ADR-008 |
-| Version | 0.3.0 |
+| Version | 0.4.0 |
 | Status | Proposed |
 | Owner | Principal Architect |
 | Supersedes | None |
@@ -192,3 +192,20 @@ Detailed design ownership: [field dispositions](../stages/STAGE_03_21_PRIVACY_DA
 [tests and evidence](../stages/STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md#architecture-validation-and-traceability-v1).
 Acceptance remains BLOCKED; any future implementation needs separate authorization. No provider, API,
 schema, key, retention exception, operational grant, merge or deployment is approved by this amendment.
+
+## Targeted gate corrections — ARCH-277-01–04
+
+This prospective amendment supersedes database-first admission and voluntary compatibility assumptions
+in the v1 candidate; it does not change the seven original clauses or accept ADR-008. **G1** requires
+independent durable PREPARE before local pending, witnessed activation with one 30-day deadline, full
+epoch coverage and denied-state recovery before restore release. DB-only pending plus missing WAL and
+no independent witness is irreducible uncertainty: the affected environment remains quarantined.
+**G2** requires database-enforced lifecycle/role-epoch checks, revoked legacy capabilities and drained
+sessions/workers, plus an independently trusted workload/credential/ingress boundary. A feature flag,
+caller-set version, changed password or a binary claiming its own version cannot establish G2.
+[Stage 3.23](../stages/STAGE_03_23_PRIVACY_DELETION_MARKER_PROPOSAL.md#target-marker-and-restore-protocol-v1)
+owns recovery; [Stage 3.24](../stages/STAGE_03_24_PRIVACY_SECURITY_REVIEW_READINESS.md#mandatory-compatibility-enforcement-g2)
+owns enforcement; [Stage 3.25](../stages/STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md#targeted-model-v2-and-remaining-integration-evidence)
+owns model/evidence limits. G1/G2 and A1–A4 remain acceptance/implementation blockers.
+Design documentation, accepted design, implemented control, independently verified property and
+production authorization are separate states; none is inferred from the preceding one.

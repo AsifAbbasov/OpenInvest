@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-25-PRIVACY-SECURITY-EVIDENCE-COLLECTION-PLAN |
-| Version | 0.2.0 |
+| Version | 0.3.0 |
 | Status | Active / proposal only |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.24 Security Review readiness dossier |
@@ -165,9 +165,11 @@ EC-10 indexes every SR minimum-proof clause, evidence freshness, accountable own
 verifier result. An SR-wide link alone cannot stand in for missing clause-level evidence. Until each
 original minimum-proof clause has real accepted evidence, final SR acceptance stays blocked_evidence.
 
-### Reproducible bounded abstract validation
+### Historical bounded abstract validation v1
 
-The Python model below has no file/service I/O, database, network or cryptography; it emits stdout. Run with Python 3 in an isolated
+The historical v1 model below has no file/service I/O, database, network or cryptography; it emits stdout.
+Its missing deadline, admission-loss and old-binary coverage is superseded by targeted v2 below;
+the original source/results remain preserved, not promoted to stronger evidence. Run with Python 3 in an isolated
 scratch directory. It explores persistent phase states with two cancellation generations and at most
 two writes, plus crash/retry and stale-callback no-ops. A monitor rejects post-fence writes,
 destruction before durable intent, key recreation, premature markers and completion while identity,
@@ -280,3 +282,215 @@ print('DATABASE_PROVIDER_RESTORE_IMPLEMENTATION=NOT_TESTED')
 Normal exact-head CI checks unchanged source compatibility; it cannot test the future deletion, custody,
 marker or restore implementation. Future T1–T9 runtime suites and EC provider/human evidence remain
 NOT_EXECUTED / NOT_COLLECTED, separate from the bounded model and repository checks above.
+
+## Targeted model v2 and remaining integration evidence
+
+ARCH-277-04 supersedes v1 coverage, not its historical results. V2 uses seconds and the explicit
+candidate `30 * 86400 = 2592000` grace; deadlines are stored in independent witness state and never
+reset by retry, partition, database restore or WAL loss. Clock regressions/uncertainty are outside its
+trusted monotonic-clock assumption and require fail-closed integration tests. The model explores two
+activation instants (0 and one day), boundary times just before/at the relevant deadlines and a bounded
+32-day horizon. It has one intent/subject, no real clocks, signatures, consensus, PostgreSQL or network.
+A database rollback is modeled only before commit; restore may discard all local committed state, while
+the G1 witness remains durable. The separate legacy fixture demonstrates that lost unwitnessed pending
+is quarantined, not reconstructed. `ghost_pending` is an invariant observer, not available recovery data.
+The `coverage` premise represents externally verified epoch completeness, never a caller-set flag.
+
+Executed 2026-10-16: **4,668 states / 36,354 transitions**, early irreversible-claim defect detected;
+DB-committed/witness-absent/missing-WAL fixture quarantined; unknown/lost admission reply reconciles to
+the same deadline and pending state after restore. Compatibility table: **128 cases**, including old
+login, old worker and an old binary holding a new credential. The latter can still issue active-scope
+SQL under that identity: this deliberately exposes the missing binary attestation, requiring the
+external broker/ingress prerequisite, rather than claiming PostgreSQL recognizes executables.
+All pending scopes are denied under the assumed effective database fence. Release-cut table: **18 cases**;
+stale cut or absent barrier denies release. These tables check predicates, not real policy enforcement.
+Model has a hard 100,000-state cap; finite reachability and explicit retry/recovery witnesses do not
+prove liveness under arbitrary outages, indefinite delayed messages, multiple subjects or real WAL loss.
+Script SHA-256: `38f245cd0014eef1f8ca2b4e82aeb9d6602ea4e4bcb07ae60e03d5e36cd1dbb6`.
+
+Exact reproduction from repository root (both preserved v1 and targeted v2; prints results only):
+
+```sh
+python - <<'PYTHON'
+from pathlib import Path
+import re
+p = Path('docs/stages/STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md')
+for index, code in enumerate(re.findall(r'```python\n(.*?)```', p.read_text(), re.S), 1):
+    print('MODEL_BLOCK', index)
+    exec(compile(code, str(p) + ':model' + str(index), 'exec'), {})
+PYTHON
+```
+
+### Executable targeted model v2
+
+```python
+from dataclasses import dataclass, replace
+from collections import deque
+from itertools import product
+
+DAY = 86400
+GRACE = 30 * DAY
+CLOCKS = (0, DAY, 29*DAY, 30*DAY-1, 30*DAY, 31*DAY-1, 31*DAY, 32*DAY)
+
+@dataclass(frozen=True)
+class S:
+    now: int = 0
+    w: str = 'none'
+    db: str = 'active'
+    deadline: int = 0
+    db_deadline: int = 0
+    unknown: bool = False
+    network: bool = True
+    ack: bool = False
+    key: bool = True
+    restore: bool = False
+    checked: bool = False
+    serving: bool = True
+    coverage: bool = True
+    ghost_pending: bool = False
+    writes: int = 0
+
+
+def transitions(s, mutant=''):
+    yield 'crash_retry', s  # durable witness/clock state never rolls back
+    yield 'delayed_old_generation_reply', s
+    yield 'partition_toggle', replace(s, network=not s.network, checked=False)
+    for t in CLOCKS:
+        if t > s.now:
+            yield 'clock_forward', replace(s, now=t)
+    if s.w == 'none' and s.network and not s.restore:
+        for lost in (False, True):
+            yield 'prepare_reply_lost' if lost else 'prepare', replace(s, w='prepared', unknown=lost, checked=False)
+    if s.network and s.unknown:
+        yield 'query_same_intent', replace(s, unknown=False)
+    if s.w == 'prepared' and not s.unknown and not s.restore:
+        if s.db == 'active':
+            yield 'db_admission_commit', replace(s, db='admission_pending', ghost_pending=True)
+            yield 'db_rollback_before_commit', s  # witness remains; no committed pending row is rolled back
+        else:
+            yield 'db_commit_retry', s
+    if s.w == 'prepared' and s.db == 'admission_pending' and s.network and s.now in (0, DAY):
+        for lost in (False, True):
+            yield 'activate_reply_lost' if lost else 'activate', replace(s, w='pending', deadline=s.now+GRACE, unknown=lost, checked=False)
+    if s.w == 'pending' and not s.unknown and not s.restore:
+        yield 'db_checkpoint', replace(s, db='pending', db_deadline=s.deadline)
+        if s.db == 'pending' and s.db_deadline == s.deadline and s.network:
+            yield 'external_ack', replace(s, ack=True)
+    if s.w == 'pending' and s.network and not s.unknown:
+        if s.now < s.deadline:
+            yield 'fresh_cancel', replace(s, w='cancelled', checked=False)
+        if s.now >= s.deadline or mutant == 'early_claim':
+            yield 'deadline_claim', replace(s, w='claimed', checked=False)
+    if s.w == 'cancelled' and s.network and not s.unknown and not s.restore:
+        yield 'cancel_checkpoint', replace(s, db='active')
+    if s.w == 'claimed' and s.network and not s.unknown and not s.restore:
+        yield 'claim_checkpoint', replace(s, db='completing')
+        if s.db == 'completing':
+            yield 'destroy', replace(s, key=False)
+    if not s.restore and s.serving and s.db == 'active' and s.w in ('none','prepared','cancelled') and s.writes == 0:
+        yield 'current_write', replace(s, writes=1)
+    # Restore deliberately drops all local pending/checkpoint/WAL state.
+    yield 'restore_without_wal', replace(s, db='active', db_deadline=0, restore=True, serving=False, checked=False)
+    if s.restore and s.network and not s.unknown and s.coverage:
+        phase={'none':'active','prepared':'admission_pending','pending':'pending','claimed':'completing','cancelled':'active'}[s.w]
+        yield 'reconcile_witness', replace(s, db=phase, db_deadline=s.deadline if s.w=='pending' else 0, checked=True)
+    if s.restore and s.network and s.checked and s.coverage and not s.unknown and s.w != 'prepared':
+        yield 'release_atomic_cut', replace(s, restore=False, serving=True)
+
+
+def invariant(old, event, n):
+    assert n.now >= old.now, 'clock_rollback'
+    assert old.deadline == 0 or n.deadline == old.deadline, 'deadline_reset'
+    assert old.key or not n.key, 'key_recreation'
+    if event == 'activate' or event == 'activate_reply_lost':
+        assert n.deadline == n.now + GRACE, 'not_30_days'
+    if n.w == 'claimed' and old.w != 'claimed':
+        assert n.now >= n.deadline > 0, 'early_irreversible_claim'
+    if not n.key:
+        assert n.w == 'claimed' and n.now >= n.deadline, 'early_destruction'
+    if event == 'external_ack':
+        assert n.w == 'pending' and n.db == 'pending' and n.db_deadline == n.deadline and not n.unknown
+    if event == 'current_write':
+        assert old.db == 'active' and old.w in ('none','prepared','cancelled')
+    if n.serving:
+        assert not n.restore
+        if n.w == 'prepared' and n.ghost_pending:
+            assert n.db != 'active', 'committed_pending_unfenced'
+        if n.w in ('pending','claimed'):
+            assert n.db != 'active', 'pending_restored_active'
+    if event == 'release_atomic_cut':
+        assert n.coverage and n.network and n.checked and not n.unknown
+        assert n.w != 'prepared', 'unresolved_prepare_release'
+
+
+def explore(mutant=''):
+    seen={S()};todo=deque([(S(),())]);edges=0
+    while todo:
+        s,trace=todo.popleft()
+        for event,n in transitions(s,mutant):
+            edges+=1
+            try: invariant(s,event,n)
+            except AssertionError as e: return len(seen),edges,trace+(event,),str(e)
+            if n not in seen:
+                seen.add(n);todo.append((n,trace+(event,)))
+                assert len(seen) <= 100000, 'model_state_cap'
+    assert any(not s.key for s in seen), 'no_destruction_path'
+    assert any(s.w=='cancelled' and s.db=='active' and not s.restore for s in seen), 'no_cancel_path'
+    return len(seen),edges,None,None
+
+states,edges,w,e=explore();assert w is None,(w,e)
+print(f'ADMISSION_GRACE_RESTORE_MODEL=PASS states={states} transitions={edges} grace_seconds={GRACE}')
+_,_,w,e=explore('early_claim');assert e=='early_irreversible_claim'
+print('SENSITIVITY_EARLY_CLAIM=DETECTED trace='+','.join(w))
+
+# Historical DB-first, acknowledged-but-unwitnessed fixture: knowledge is unavailable.
+legacy=S(db='pending',ack=True,ghost_pending=True,coverage=False)
+restored=next(n for event,n in transitions(legacy) if event=='restore_without_wal')
+assert not restored.serving and not any(event=='release_atomic_cut' for event,n in transitions(restored))
+print('DB_COMMITTED_WITNESS_ABSENT_MISSING_WAL=QUARANTINED_NOT_RECONSTRUCTED')
+assert restored.db == 'active' and restored.ghost_pending and not restored.coverage
+print('SENSITIVITY_OLD_RELEASE_FROM_EMPTY_WITNESS=DETECTED_LOST_PENDING')
+# Conditional progress witnesses, not fairness/provider availability guarantees.
+s=S()
+for event in ['prepare_reply_lost','query_same_intent','db_admission_commit','activate_reply_lost','query_same_intent','db_checkpoint','external_ack']:
+    s=next(n for ev,n in transitions(s) if ev==event)
+assert s.ack and s.deadline==GRACE
+for event in ['restore_without_wal','reconcile_witness','release_atomic_cut']:
+    s=next(n for ev,n in transitions(s) if ev==event)
+assert s.db=='pending' and s.deadline==GRACE and s.serving
+print('DELAYED_UNKNOWN_ADMISSION_RETRY_AND_PENDING_RECOVERY=PASS')
+
+# Compatibility table assumes database policy and attested credential broker are effective.
+cases=allowed=0
+for epoch,admitted,subject_active,db_fence,drained in product([False,True],repeat=5):
+    for caller in ('old_login','old_binary_new_login','new_binary','old_worker'):
+        login_ok=caller in ('new_binary','old_binary_new_login')
+        permit=epoch and admitted and subject_active and db_fence and drained and login_ok
+        cases+=1;allowed+=int(permit)
+        if not subject_active or not epoch or not db_fence or not drained: assert not permit
+assert allowed==2
+print(f'COMPATIBILITY_POLICY_TABLE=PASS cases={cases} active_sql_permits={allowed}')
+print('BORROWED_NEW_CREDENTIAL_DOES_NOT_ATTEST_BINARY=EXTERNAL_BROKER_PREREQUISITE')
+# Release race: a checkpoint valid before the next receipt is stale afterwards.
+for latest,checkpoint,barrier in product(range(3),range(3),[False,True]):
+    release=barrier and checkpoint==latest
+    if checkpoint<latest or not barrier: assert not release
+print('RESTORE_RELEASE_CUT_CASES=18 PASS; PARTITION_OR_STALE_CUT=DENY')
+print('POSTGRES_OLD_BINARY_CRYPTO_PROVIDER_INFRASTRUCTURE=NOT_EXECUTED')
+```
+
+### Integration obligations not represented faithfully by v2
+
+| Existing test / evidence route | Required isolated future verification / acceptance |
+| --- | --- |
+| T2/T3 → EC-01/05 | Trusted-clock skew/regression, full 30-day deadline persistence without waiting a real month (injected clock), simultaneous cancel/claim, real transaction abort/commit-ack ambiguity, credential rotation and normal auth/session compatibility. No early claim or deadline extension. |
+| T3/T4/T5 → EC-04/05/06 | Durable independent PREPARE/admission service with partitions, delayed/duplicate messages, primary failure before/after each acknowledgement, restored backup with incomplete WAL, unknown outcome and service recovery. Every acknowledged/pending scope stays denied; uncovered v1 era remains quarantined. |
+| T4/T5 → EC-04/06 | Real signature/epoch-completeness/anti-rollback verification, lost witness replicas, stale checkpoint followed by a new intent and coordinated release fence. No empty-log or timed freshness shortcut. |
+| T2/T8/T9 → EC-01/05/08 | PostgreSQL 18 enforced policies/locks under Read Committed and Repeatable Read, all affected tables/partitions, direct SQL omitting the helper, old Go binary/worker under old and borrowed new credentials, caches, development bypass, prepared transactions and pool draining. Normal append-only ledger restrictions remain unchanged. |
+| T5/T8/T9 → EC-05/06/08 | Artifact/credential broker, ingress/egress isolation, obsolete executable admission, disabled-policy/revoked-role state, interrupted sealed cutover and incompatible rollback. Old credentials or an old restored role catalog cannot release traffic. |
+
+All rows above are NOT_EXECUTED; no PostgreSQL server, old executable, real worker, witness provider,
+cryptographic verifier, backup or infrastructure was operated in this remediation. They are mandatory
+before G1/G2 approval and deletion activation. T1/T6/T7 and A1–A4 remain unchanged. EC-10 must retain
+every original SR minimum-proof clause, these new failure cases and independently reviewed results;
+local model/ordinary CI cannot mark an external or implementation-dependent item PASS.
