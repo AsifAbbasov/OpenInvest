@@ -5,8 +5,15 @@
 | Document ID | STAGE-03-17-PRIVACY-LIFECYCLE-PLANNING |
 | Version | 0.1.1 |
 | Status | Complete / merged into `develop` through PR #46 at `1e8c240` |
+| Owner | Principal Architect |
 | Supersedes | Informal disposition of the Stage 3.16 privacy-lifecycle audit blocker |
 | Dependencies | `SOURCE_OF_TRUTH.md`; ADR-005; Documents 42-43; Stage 2 API contract and ER model; Stage 3.11 auth/privacy slice; Stage 3.16 audit report and audit fixes |
+| Last Review Date | 2026-08-09 (historically recorded; review event UNVERIFIED) |
+| Next Review Date | Historical record: Historical planning gate closed; successor proposal is Stage 3.18 |
+
+Metadata provenance: [original recorded values](https://github.com/AsifAbbasov/OpenInvest/blob/d9f6c263dd3ff4d22fc978372014381880104489/docs/stages/STAGE_03_17_PRIVACY_LIFECYCLE_PLANNING.md).
+Owner follows Documents 42–43; recorded dates/triggers do not independently prove a review occurred
+or establish a new review, approval, deadline or completed evidence collection.
 
 ## Purpose
 

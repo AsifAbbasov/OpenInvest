@@ -5,8 +5,15 @@
 | Document ID | STAGE-03-19-PRIVACY-SECURITY-ADR-PROPOSAL |
 | Version | 0.1.1 |
 | Status | Complete / merged through PR #48 at `fdf74c16446e7623f76882aa7add64554141abc6` |
+| Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.18 privacy contract/security proposal |
 | Dependencies | `SOURCE_OF_TRUTH.md`; Documents 42-43; ADR-005; ADR-006; proposed ADR-008; Stage 2 ER model and migration strategy; Stage 3.17-3.18 privacy proposals |
+| Last Review Date | 2026-08-09 (historically recorded; review event UNVERIFIED) |
+| Next Review Date | Historical record: Historical proposal closed; successor Stage 3.20 threat-model proposal |
+
+Metadata provenance: [original recorded values](https://github.com/AsifAbbasov/OpenInvest/blob/d9f6c263dd3ff4d22fc978372014381880104489/docs/stages/STAGE_03_19_PRIVACY_SECURITY_ADR_PROPOSAL.md).
+Owner follows Documents 42–43; recorded dates/triggers do not independently prove a review occurred
+or establish a new review, approval, deadline or completed evidence collection.
 
 ## Purpose
 

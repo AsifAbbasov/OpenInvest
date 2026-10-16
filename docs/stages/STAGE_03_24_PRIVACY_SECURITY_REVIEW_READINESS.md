@@ -5,8 +5,15 @@
 | Document ID | STAGE-03-24-PRIVACY-SECURITY-REVIEW-READINESS |
 | Version | 0.2.0 |
 | Status | Complete / merged through PR #53 at `544ad8cc7371caf93913ea7716f3feb68be0ea44` |
+| Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.23 deletion-marker control-plane proposal |
 | Dependencies | Documents 42-43; proposed ADR-008; Stage 3.20-3.23 privacy proposals; Stage 3.21 inventory |
+| Last Review Date | 2026-08-18 (historically recorded; review event UNVERIFIED) |
+| Next Review Date | Historical record: Historical dossier closed; successor Stage 3.25 evidence-collection plan |
+
+Metadata provenance: [original recorded values](https://github.com/AsifAbbasov/OpenInvest/blob/d9f6c263dd3ff4d22fc978372014381880104489/docs/stages/STAGE_03_24_PRIVACY_SECURITY_REVIEW_READINESS.md).
+Owner follows Documents 42–43; recorded dates/triggers do not independently prove a review occurred
+or establish a new review, approval, deadline or completed evidence collection.
 
 ## Purpose
 
@@ -140,15 +147,18 @@ implementation remains prohibited until formal Security Review and ADR-008 accep
 
 **Scope:** protected `develop@769d57ed73dece68b93622307aee61f06d2259d8`, tree
 `9cf2189b2508e7ca838509b523adcc27f590cada`; ten required contexts. Documents 43 → 42 → accepted
-ADR-005/006 remain controlling. ADR-008 is Proposed. Historical completion of Stages 3.17–3.25
-means documentation/planning only; it does not establish runtime controls or Security Review acceptance.
+ADR-005/006 remain controlling. ADR-008 is Proposed. Stages 3.17–3.24 historically completed their
+respective planning/documentation activities.
+Stage 3.25 remains `Active / proposal only`: publication of its evidence-collection plan does not
+prove completed evidence collection. Formal Security Review, ADR-008 acceptance and implementation
+remain blocked; no runtime control or Security Review acceptance is established.
 No deployed data, provider account, keys, backups or operator credentials were accessed.
 
 ### Integrity defects and exact restoration provenance
 
 Commit `8bcb2d1bba3454de1262ddc4e045fddf299a9564` removed substantive requirements from ADR-008
 and the nine Stage 3.17–3.25 records. Its parent retains their exact pre-loss text. This change restores
-that content in place, retaining existing merged-stage metadata and omitting historical owner/review-date
+that content in place, retaining existing statuses/versions and source-linked historical owner/review-date
 fields; it does not amend frozen commits, accepted ADRs, migrations or historical audit evidence.
 ADR-008's seven decision clauses, Stage 3.24 SR-08/SR-12 and readiness outcomes, Stage 3.21 audit
 inventory, Stage 3.22 evidence checklist, and the emptied Stage 3.25 collection plan are restored.

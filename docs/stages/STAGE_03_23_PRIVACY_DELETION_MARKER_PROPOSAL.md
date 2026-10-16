@@ -5,8 +5,15 @@
 | Document ID | STAGE-03-23-PRIVACY-DELETION-MARKER-PROPOSAL |
 | Version | 0.1.1 |
 | Status | Complete / merged through PR #52 at `f7f23bce33038f259c976db6375079c68209a7aa` |
+| Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.22 key-custody proposal |
 | Dependencies | Documents 42-43; proposed ADR-008; Stage 3.19-3.22 privacy proposals; Stage 3.21 inventory |
+| Last Review Date | 2026-08-18 (historically recorded; review event UNVERIFIED) |
+| Next Review Date | Historical record: Historical proposal closed; successor Stage 3.24 Security Review readiness dossier |
+
+Metadata provenance: [original recorded values](https://github.com/AsifAbbasov/OpenInvest/blob/d9f6c263dd3ff4d22fc978372014381880104489/docs/stages/STAGE_03_23_PRIVACY_DELETION_MARKER_PROPOSAL.md).
+Owner follows Documents 42–43; recorded dates/triggers do not independently prove a review occurred
+or establish a new review, approval, deadline or completed evidence collection.
 
 ## Purpose
 

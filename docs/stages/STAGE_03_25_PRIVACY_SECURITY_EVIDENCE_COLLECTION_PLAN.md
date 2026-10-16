@@ -5,8 +5,15 @@
 | Document ID | STAGE-03-25-PRIVACY-SECURITY-EVIDENCE-COLLECTION-PLAN |
 | Version | 0.1.0 |
 | Status | Active / proposal only |
+| Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.24 Security Review readiness dossier |
 | Dependencies | Documents 42-43; proposed ADR-008; Stage 3.20-3.24 privacy proposals |
+| Last Review Date | 2026-08-18 (historically recorded; review event UNVERIFIED) |
+| Next Review Date | Historical record: Before evidence collection, formal Security Review, ADR-008 acceptance, provider proposal, or privacy-lifecycle migration proposal |
+
+Metadata provenance: [original recorded values](https://github.com/AsifAbbasov/OpenInvest/blob/d9f6c263dd3ff4d22fc978372014381880104489/docs/stages/STAGE_03_25_PRIVACY_SECURITY_EVIDENCE_COLLECTION_PLAN.md).
+Owner follows Documents 42–43; recorded dates/triggers do not independently prove a review occurred
+or establish a new review, approval, deadline or completed evidence collection.
 
 ## Purpose
 

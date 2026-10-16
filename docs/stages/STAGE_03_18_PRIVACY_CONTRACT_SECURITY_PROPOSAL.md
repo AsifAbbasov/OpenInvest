@@ -5,8 +5,15 @@
 | Document ID | STAGE-03-18-PRIVACY-CONTRACT-SECURITY-PROPOSAL |
 | Version | 0.1.1 |
 | Status | Complete / merged into `develop` through PR #47 at `4680e9c1b7b916169972c84ad8c3879955c7f509` |
+| Owner | Principal Architect |
 | Supersedes | None; follows the Stage 3.17 privacy-lifecycle planning gate |
 | Dependencies | `SOURCE_OF_TRUTH.md`; Documents 42-43; ADR-005; ADR-006; Stage 2 API contract, ER model, and migration strategy; Stage 3.11 auth/privacy slice; Stage 3.17 privacy-lifecycle planning |
+| Last Review Date | 2026-08-09 (historically recorded; review event UNVERIFIED) |
+| Next Review Date | Historical record: Historical proposal closed; successor Stage 3.19 |
+
+Metadata provenance: [original recorded values](https://github.com/AsifAbbasov/OpenInvest/blob/d9f6c263dd3ff4d22fc978372014381880104489/docs/stages/STAGE_03_18_PRIVACY_CONTRACT_SECURITY_PROPOSAL.md).
+Owner follows Documents 42–43; recorded dates/triggers do not independently prove a review occurred
+or establish a new review, approval, deadline or completed evidence collection.
 
 ## Purpose and Authority
 

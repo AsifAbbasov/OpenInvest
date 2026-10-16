@@ -5,8 +5,15 @@
 | Document ID | STAGE-03-22-PRIVACY-KEY-CUSTODY-PROPOSAL |
 | Version | 0.1.2 |
 | Status | Complete / merged through PR #51 at `5f42d32db1e045c23fb99a5af8f136b7a49e3bc2` |
+| Owner | Principal Architect |
 | Supersedes | None; follows the merged Stage 3.21 privacy data-inventory proposal |
 | Dependencies | Documents 42-43; ADR-005; ADR-006; proposed ADR-008; Stage 2 ER model and migration strategy; Stage 3.17-3.21 privacy proposals |
+| Last Review Date | 2026-08-18 (historically recorded; review event UNVERIFIED) |
+| Next Review Date | Historical record: Historical proposal closed; successor Stage 3.23 deletion-marker control-plane proposal |
+
+Metadata provenance: [original recorded values](https://github.com/AsifAbbasov/OpenInvest/blob/d9f6c263dd3ff4d22fc978372014381880104489/docs/stages/STAGE_03_22_PRIVACY_KEY_CUSTODY_PROPOSAL.md).
+Owner follows Documents 42–43; recorded dates/triggers do not independently prove a review occurred
+or establish a new review, approval, deadline or completed evidence collection.
 
 ## Purpose
 
