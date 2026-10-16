@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-21-PRIVACY-DATA-INVENTORY-PROPOSAL |
-| Version | 0.2.0 |
+| Version | 0.3.0 |
 | Status | Complete / merged through PR #50 at `207325e0497cc2608b99366f7f840472d270b6ed` |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.20 privacy threat-model proposal |
@@ -234,3 +234,32 @@ none of the dispositions below is implemented by this documentation change.
 keeps all external copy, organizational linkage and legal-hold questions blocked. Current runtime-role
 SQL grants no identity deletion or ledger mutation authority; a future dedicated lifecycle capability
 must be reviewed instead of granting destructive permissions to the ordinary API.
+
+## Target field disposition v1
+
+Design-only delta at `cffd2091168fa28817a49464438db01804b4ee48`; the original inventory and dated
+observations remain intact. Values below are classifications, not permission to mutate existing rows.
+The exact current sources are indexed as R1–R8 in the Stage 3.24 remediation matrix.
+
+| Data class / actual fields | Proposed live-state disposition / copy boundary | Acceptance condition |
+| --- | --- | --- |
+| users: id/email/preferences/timestamps; credentials.password_hash; privacy_settings; verification evidence | Identity owner deletes after revocation; subject protection must cover personal attributes and every lookup index, materialized view, alternate wrap and recovery copy. | No identity-bearing lookup residue; no recoverable plaintext identity copy at final completion. Email hashes/blind indexes remain sensitive while a lookup key or dictionary can reconnect them. |
+| user_investment_links.user_id/investment_subject_id; JWT sub/uid/investmentSubjectId | Identity port replaces direct joins with protected resolution; account/subject fence rejects old signed claims. Old JWTs and exports already disclose both IDs. | Live unlinking plus legacy backup/log/client-copy scope analysis; key destruction cannot make a previously disclosed mapping secret again. |
+| sessions: user_id/family/id/refresh and CSRF digests; registration intents, proofs and delivery leases | Revoke all sessions, invalidate generation, stop delivery admission; delete identity-scoped records and secrets. Fence stale email-worker completion and already leased work. | Replay denied after limiter reset; every related intent/lease/copy accounted for. Seven-day opportunistic registration cleanup and expired-session cleanup are not erasure deadlines. |
+| portfolios.name; transaction_entries.note/correction_reason/source_account_label/source_file_hash/source_row_hash/import_fingerprint | Future personal annotations/provenance should be separately protected from immutable financial amounts/dates/revisions. Current plaintext fields cannot be retroactively declared anonymous. | A1 approved migration/disposition preserving financial meaning, deduplication and accepted immutability. Until then affected subjects cannot complete. A1 is not permission to drop labels or recompute fingerprints silently. |
+| transaction/portfolio/subject/asset IDs, exact dates/amounts/holdings; snapshots/manual valuations/replay projections | Preserve financial facts and algorithms; restrict derived/query access, remove approved personal projections and verify every rebuild path. | Independent linkage review against person-held statements, unique sequences and organizational knowledge. Quantification/generalization would require an accepted contract change; no anonymization claim while unresolved. |
+| command_deduplication principal/path/key/response and request hashes/response IDs; import-review payload | Erase scoped replay artifacts at fence; authorize before returning an old successful response. Import token remains readable despite signature and expires after 15 minutes. | No replay/worker restores access; all caches/AOF/backups and token copies classified. Neither expiration nor hashing deletes disclosed content. |
+| audit.actors.id, events.actor_id/target_id/request_id/trace_id/occurred_at; auth_security_event_deduplications.session_id | Prospective privacy events use no user/subject/portfolio/session/request/trace ID. New financial audit associations require separately protected, purpose-scoped linkage, not reused user UUIDs. | A2 independently approves treatment of existing append-only rows and ten-year retention. Metadata/timing/proof commitments are also subject to linkage analysis; no silent historical audit rewrite. |
+| outbox payload/error, inbox IDs/errors, logs/traces/support exports/CI | Versioned field allowlists, bounded retention, restricted evidence and sink inventory; remove or cryptographically sever personal joins. | Every consumer/DLQ/export/diagnostic covered; no real-data sampling authorized here. Empty local capture cannot establish deployed absence. |
+| Browser memory/cookies/history, SMTP, Redis hashes/counters/AOF, replicas/backups/PITR/WAL | Revoke use; clear controlled first-party state; classify recipient/extension/device/provider/operations copies separately. | Exact managed-copy register and approved external boundary. Current Compose is local-only evidence, not a production discovery. |
+
+**Candidate replay binding:** a random restore-only tag identifies a restricted erasure scope, not a
+person. Store membership needed for replay in a reviewed protected projection; never derive the tag
+from user/subject IDs or email. A plaintext chain user → custody locator → proof/tag → retained subject
+would defeat the design, even if every individual value were random. Review that entire join graph,
+including lookup indexes and provider labels. The exact schema remains PARTIALLY_DESIGNED pending A3;
+no replay tag is added to ledger rows by this document.
+
+The conservative completion predicate is the intersection of live unlinking, terminal key proof,
+marker verification, copy reconciliation and non-reidentification evidence. When any existing plaintext
+copy or meaningful indirect join survives, state remains completing; no fallback label of anonymous.

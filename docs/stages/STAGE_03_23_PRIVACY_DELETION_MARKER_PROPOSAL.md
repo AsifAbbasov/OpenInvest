@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-23-PRIVACY-DELETION-MARKER-PROPOSAL |
-| Version | 0.1.1 |
+| Version | 0.3.0 |
 | Status | Complete / merged through PR #52 at `f7f23bce33038f259c976db6375079c68209a7aa` |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.22 key-custody proposal |
@@ -169,3 +169,117 @@ This proposal was strictly reviewed and squash-merged through PR #52 at
 `f7f23bce33038f259c976db6375079c68209a7aa`. Its successor, Stage 3.24, prepares the mandatory
 Security Review evidence and decision boundary. No field-level migration or runtime implementation
 is authorized by this historical closure.
+
+## Target marker and restore protocol v1
+
+Candidate control plane only. Preserve the original separation rules and prohibited fields above.
+The log uses authenticated append-only ordering and independent checkpoints; [RFC 9162](https://www.rfc-editor.org/rfc/rfc9162.html)
+sections 2.1.3–2.1.4 inform inclusion/consistency checks. This is an adaptation of an Experimental
+certificate-transparency protocol, not adoption of a public log, a deletion standard or proof that
+all real-world deletions were submitted. Official source inspected 2026-10-16.
+
+| Record | Required binding / validation |
+| --- | --- |
+| Intent admission receipt | Random lifecycle ID, generation, policy version, domain-separated digest of minimized canonical intent, authoritative sequence/epoch and independent witness signature. No raw confirmation factor or identity map. |
+| Marker transition | Same lifecycle/generation/digest, random restore-only binding, phase, proof commitments, previous-transition commitment and schema version. Prepared cannot authorize deletion completion or serving. |
+| Checkpoint | Log identity/epoch/size/root, previous trusted checkpoint, policy/schema/signer versions, trusted observation time and independent witness endorsements. Completeness includes every admitted intent and its resolved or unresolved state. |
+| Restore release certificate | Restore instance/configuration digest, checkpoint/cut, replay result, custody/copy/evidence commitments, independent release signer and finite validity. A copied certificate for another instance/cut is invalid. |
+
+**Admission v2 — ARCH-277-01:** the earlier database-first candidate is superseded. Prerequisite
+**G1** is an independently administered, linearizable intent service whose acknowledged records survive
+the entire assessed PostgreSQL/backup failure domain. Its recovery point for acknowledged admissions is
+zero loss; a merely asynchronous outbox or periodically exported log is insufficient. Quorum, replica,
+anti-rollback trust and the privacy-safe restore binding remain A3 decisions, not available controls.
+If G1 or the ability to reconcile every subject is unproved, admission/restore-release stays BLOCKED.
+
+1. Freshly authorize and assign one immutable intent ID/digest/generation. Before any local pending
+   commit, independently persist **PREPARE** with a restricted restorable scope binding. A signed
+   durable receipt is required. Do not acknowledge pending from a local transaction alone.
+2. Under the database-enforced compatibility/lifecycle fence, commit `admission_pending`, revoke
+   normal sessions and deny normal work; bind the PREPARE receipt and transactional checkpoint. An
+   aborted transaction does not remove PREPARE; a committed pending state is never “rolled back”.
+3. Independently **ACTIVATE_PENDING** the same intent after verifying the database checkpoint.
+   The service fixes `accepted_at` and `deadline = accepted_at + 30 * 86400 seconds` using trusted UTC.
+   This is a proposed exact-duration interpretation of the canonical 30-day grace, requiring owner
+   confirmation before implementation; it does not invent a historical deadline. PREPARE has no
+   erasure deadline. Activation retries return the original times, never a new window.
+4. Persist the activation receipt/deadline locally, then return an externally acknowledged pending
+   response. A lost/delayed response does not move the durable acceptance time; restricted fresh
+   status/retry reports the existing state/deadline, not another accepted request. No irreversible
+   claim before that deadline; unknown/regressing/untrusted time freezes the claim.
+5. Cancellation and deadline claim serialize at the authoritative service as well as the database:
+   cancellation requires `now < deadline` and a fresh purpose-bound factor; claim requires
+   `now >= deadline`. Only a witnessed cancellation may restore active state. Once claimed, no
+   cancellation or key recreation is possible. No database transaction spans the service call.
+
+| Observed condition | Required recovery / acknowledgement / quarantine |
+| --- | --- |
+| DB committed, witness absent | Forbidden in v2. Treat legacy/inconsistent state as unresolved pending; no active fallback or external success. Recover only from independently authenticated intent/WAL evidence; absent evidence quarantines the entire affected restore scope. |
+| PREPARE/activation admitted, DB checkpoint absent | Recover the minimal denied state and original generation/deadline from authenticated service evidence and approved binding. Resume forward; no identity recreation. Unknown binding or unresolved PREPARE prevents release, not silent omission. |
+| Admission outcome unknown / acknowledgement lost | Query/retry the same immutable intent until a durable terminal admission result is verified. Timeout/partition/empty local cache is neither rejection nor success. No new generation or deadline. |
+| Primary loss before witness acknowledgement | Local pending commit is not permitted without PREPARE receipt. If a v1 DB-first operation might have existed, missing primary/WAL means absence cannot be proved; quarantine. No claim to reconstruct missing WAL. |
+| Backup lacks complete WAL | Independent admitted-intent coverage must account for PREPARE, pending, cancellation and irreversible claims, not only completed markers. Reapply denied states before access; unknown historical coverage blocks global release. |
+| Delayed/duplicate request, cancellation or receipt | Exact digest/generation/epoch must match. Authoritative aborted/cancelled outcomes stay durable; delayed PREPARE cannot reactivate a cancelled generation. Retry never compensates irreversible destruction. |
+| Independent service unavailable/lost/rolled back | Deny admission acknowledgement and restore release. A live denied scope remains denied. Loss outside the approved G1 failure model is an incident, never inferred safe from an empty marker snapshot. |
+
+Release therefore needs independently authenticated **epoch coverage** from the first possible local
+privacy admission through the release cut, including proof that a legacy DB-first era had no uncovered
+operations. With an older backup, missing WAL and no independent record, no algorithm can distinguish
+“no request” from “lost pending request”. There is no negative-evidence shortcut: keep the whole
+uncertain environment non-serving until independent evidence resolves it. A proposal/migration flag
+alone cannot prove zero historical operations. No current production deletion endpoint exists, but a
+future rollout must independently establish its own zero-operation boundary.
+
+PREPARE/unknown outcomes are visible denied obligations, never destructive replay instructions.
+An uncommitted attempt may be explicitly aborted only by an authorized, witnessed terminal transition
+that fences delayed messages; database rollback or lease timeout alone cannot erase it. Liveness is
+conditional on restored service quorum, trusted time, binding availability and authorized reconciliation;
+permanent partitions may prevent progress indefinitely without weakening safety.
+
+**Completeness:** verify every receipt through cut N against the G1 independent register including PREPARE/unknown outcomes,
+canonical sequence/entry count/root, all pages, inclusion proofs and consistency with a previously
+pinned checkpoint. Reject duplicate sequences/generations, missing pages, mismatched intent digests,
+unknown schemas/epochs/signers, rollback and conflicting roots at the same size. Compare checkpoints
+across separately administered witnesses; one writer and its own signer are not independent. The
+witness register must itself have monitored replicated durability, retention and disaster recovery.
+Signatures prove authenticity of a view, not that unsubmitted or lost intents do not exist; unresolved
+journal/data reconciliation prevents release. No numeric quorum or provider is self-approved here.
+
+**Release cut:** require G1 epoch coverage and the G2 database/credential cutover from Stage 3.24;
+block new admission to the recovered environment and establish a coordinated epoch
+barrier with the authoritative intent service; drain all pre-barrier admissions, obtain checkpoint N,
+reconcile recovery data and replay every required marker, then obtain independent release authority.
+Intent admission after N belongs to the next epoch and cannot use the recovered instance until its
+continuous lifecycle gate is synchronized. A standalone freshness timeout is insufficient. If a shared
+admission barrier cannot be established, keep recovery non-serving; do not globally pause an active
+production environment without separately approved operations authority.
+
+**Replay:** use only reviewed restore binding/protected scope membership (A3), not user-facing lookup.
+Apply idempotently by (restore instance, lifecycle generation, checkpoint); verify each affected record
+and independent destroyed-key unavailability. Missing primary record can be an idempotent outcome
+only after scope completeness is established; it does not prove the whole subject was erased.
+Resolve prepared/disputed states from durable intent and independent proof; never blindly delete from
+an unverified/prepared marker. Partial replay resumes from verified checkpoints, with release denied.
+
+**Sealed runbook:** restore operator creates an isolated instance with no public ingress, production
+signing keys, application credentials, mail/provider credentials, scheduled work or outbound exports.
+Use separate short-lived restore-verifier credentials; allow only assessed custody/journal evidence
+paths. Verify database image/schema and replay tools; load trusted checkpoint roots independently;
+replay/verify; reconcile copies and scopes; obtain a separate release certificate; enable ingress,
+credentials and jobs only for that exact instance/configuration. Restart/configuration change or
+expired/invalid certificate returns the candidate to non-serving. Platform enforcement is unverified.
+
+Backups/copy register: random copy ID, origin/lineage, creation time, expiry no later than creation +
+90 days, encryption/material class, replica/export/recovery locations, deletion operation, independent
+provider evidence and reconciliation result. Copying/rewrapping must not reset retention of the same
+recoverable data. Unknown locations or failed expiry trigger incident escalation and block final
+completion. Markers remain operational until all managed copies are replayed or destroyed; then keep
+only non-identifying ten-year evidence. Physical replicas and exports with other approved purposes
+need explicit disposition; they are not silently exempt recovery copies.
+
+Legacy plaintext backups, logical exports, WAL, diagnostic copies and lookup indexes are a mandatory
+separate barrier. A new subject key cannot sanitize them. Final completion waits for independently
+verified destruction/expiry and linkage resolution; “crypto-erased now, backups later” is not completed.
+Legal holds cannot silently extend the 90-day contract or reintroduce keys: unresolved conflict remains
+blocked for human decision. Actual provider inventory/destruction and restore-isolation evidence are
+not supplied by this candidate.

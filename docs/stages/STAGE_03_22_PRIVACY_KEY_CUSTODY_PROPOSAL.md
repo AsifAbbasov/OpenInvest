@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-22-PRIVACY-KEY-CUSTODY-PROPOSAL |
-| Version | 0.1.2 |
+| Version | 0.3.0 |
 | Status | Complete / merged through PR #51 at `5f42d32db1e045c23fb99a5af8f136b7a49e3bc2` |
 | Owner | Principal Architect |
 | Supersedes | None; follows the merged Stage 3.21 privacy data-inventory proposal |
@@ -264,3 +264,48 @@ This proposal was strictly reviewed and squash-merged through PR #51 at
 `5f42d32db1e045c23fb99a5af8f136b7a49e3bc2`. Its successor, Stage 3.23, designs only the
 non-identifying deletion-marker control plane and restore gate. No field-level migration or runtime
 implementation is authorized by this historical closure.
+
+## Target custody protocol v1
+
+This is a provider-neutral adapter/proof design, not a production key choice. Source basis:
+[NIST SP 800-88 Rev. 2](https://doi.org/10.6028/NIST.SP.800-88r2) is a sanitization-assurance reference;
+it does not attest any OpenInvest provider or prove field-level anonymity. Verification date 2026-10-16.
+
+| Layer / operation | Candidate contract |
+| --- | --- |
+| Administrative root | Independently controlled root protects subject material; application and restore credentials cannot export material or change destruction/recovery policy. Reusing a shared surviving wrap to recover a deleted subject is forbidden. |
+| Subject erasure key | One immutable random subject-scoped material identity, with all versions and recovery copies inventoried; never a person-derived alias. Rotation cannot leave another decryptable version. No root-derived deterministic recreation. |
+| Data key / protected record | Optional non-exported or transient data key wrapped only under the subject boundary; authenticated encryption binds schema/purpose/version. Nonce and format policy require cryptographic review; no new algorithm is approved here. |
+| Acquire/resolve | Active authorized lifecycle only; least-purpose operations through identity port, no bulk support decrypt/export capability. Financial code receives validated subject scope rather than custody credentials. |
+| Destroy(intentDigest, generation, materialVersion, policy) | Only independently authorized durable witnessed intent. Repeats return the same operation/proof; changed digest/version rejects. A timeout is unknown, never success; reconcile by immutable operation identity. |
+| Verify(proof, trustedPolicy) | Independent verifier validates signature/root, exact intent/generation/material scope, terminal outcome, all versions/caches/replicas/recovery periods and signer history. Disable/scheduled deletion is non-terminal. |
+| Unavailability challenge | After proof, isolated restore attempts approved recovery/decrypt against synthetic protected fixture for every material version; any success blocks release. Negative API error alone does not prove irreversible physical destruction. |
+
+No PostgreSQL transaction spans a custody call. The Stage 3.23 v2 PREPARE-before-local-pending
+contract and witnessed activation establish durable admission first; only after the immutable 30-day
+deadline may an independently witnessed irreversible claim authorize destruction. A local outbox,
+unknown admission or scheduled key deletion cannot satisfy this guard. Submit destruction; reconcile terminal state; persist proof commitment; then finish unlink/marker work.
+If a crash follows provider destruction before acknowledgement, resume verification for that operation;
+do not issue a replacement key. Generation-fenced callbacks cannot alter a new lifecycle. Retry with
+bounded backoff, finite attempt windows and visible escalation; retry exhaustion leaves a durable
+non-complete obligation. Attestation-key rotation retains historical verification chains, not destroyed
+subject keys; revoked/unknown signing roots stop verification until independently resolved.
+
+Destruction evidence is restricted, signed or independently externally auditable, and bound to exact
+canonical intent digest, policy and material scope. Marker entries contain only commitments, never raw
+custody handles. A restricted proof bundle can itself become a bridge through old user/locator records;
+its field/retention design must pass A3 linkage review before storage approval. Preserve enough signed
+non-identifying evidence for ten years without retaining a decryption/reidentification map.
+
+| Alternative | Financial / operational / security trade-off |
+| --- | --- |
+| Provider-native non-exportable subject material | Preferred capability target; possibly high per-subject cost/quotas and recovery latency. Provider evidence must establish terminal destruction and all copies. |
+| Independently operated hardware-backed custody | Greater control, but hardware backup, quorum, incident response, validation and staffing become project obligations; not inherently cheaper or independently proved. |
+| Exportable application-managed envelope keys | Operational convenience; exported/wrapped backups and administrator access can defeat erasure. Ineligible unless an independently reviewed boundary removes every recovery path. |
+| Physical subject segregation | Simplifies scope enumeration but increases storage/operations and does not erase prior plaintext exports. |
+
+**Trust assumptions requiring approval:** custody and attestation authorities actually enforce assessed
+policies; independent administrators do not collude outside the accepted threat scope; active plaintext
+is not secretly copied. Cryptography cannot erase what an earlier authorized reader already exported.
+No provider is selected; capability, trust, exact field binding, cost, jurisdiction, exit and disaster
+recovery evidence remain external. Design status is PARTIALLY_DESIGNED until A3 resolves these points.
