@@ -3,10 +3,17 @@
 | Field | Value |
 | --- | --- |
 | Document ID | ADR-008 |
-| Version | 0.1.0 |
+| Version | 0.2.0 |
 | Status | Proposed |
+| Owner | Principal Architect |
 | Supersedes | None |
 | Dependencies | Documents 42-43; ADR-005; ADR-006; Stage 2 ER model and migration strategy; Stage 3.17 and 3.18 privacy proposals |
+| Last Review Date | 2026-08-09 (historically recorded; review event UNVERIFIED) |
+| Next Review Date | Historical record: Security Review and explicit human decision before any privacy-lifecycle implementation |
+
+Metadata provenance: [original recorded values](https://github.com/AsifAbbasov/OpenInvest/blob/d9f6c263dd3ff4d22fc978372014381880104489/docs/ADR/ADR-008-privacy-lifecycle-erasure-and-restore.md).
+Owner follows Documents 42–43; recorded dates/triggers do not independently prove a review occurred
+or establish a new review, approval, deadline or completed evidence collection.
 
 ## Context
 
@@ -31,8 +38,34 @@ verifiable effects are complete.
 This ADR proposes the following provider-neutral control model. It is not accepted, implemented, or
 authorization to select a KMS, Vault, backup provider, database role model, API route, or migration.
 
+1. A future migration must replace the plain reversible identity-to-subject protection boundary with
+   a per-subject erasure boundary. All material that can reconnect an identity to retained financial
+   history must be protected by non-exportable, revocable per-subject key material. A raw surviving
+   foreign-key mapping is insufficient.
+2. Completion must create a durable, non-identifying deletion marker before any restored environment
+   can serve traffic. The marker contains only random lifecycle/erasure handles, irreversible key
+   destruction evidence, lifecycle timestamps, integrity/version metadata, and non-personal failure
+   codes. It contains no email, user ID, subject ID, password, session token, raw request body, or
+   usable identity map.
+3. The marker/control plane must survive every recoverable data backup. It must have independent
+   integrity protection and availability monitoring; losing, conflicting with, or failing to verify
+   it blocks restore serving rather than weakening deletion.
+4. Key custody must enforce separation of duties. The normal application path may request an
+   authorized lifecycle transition but cannot export, recreate, or unilaterally restore destroyed
+   subject key material. The exact roles, approval threshold, credential mechanism, and provider
+   controls remain Security Review decisions.
+5. Completion follows one-way, fail-closed progress: durable erasure intent, protected-write and
+   authentication block, key-destruction request/proof, deletion of live identity/link data,
+   anonymization of the retained financial subject, and verification. A request remains
+   `completing`, never `completed`, while any step is missing or unverifiable.
+6. Restore begins network-isolated and non-serving. It verifies the independent marker set, applies
+   markers idempotently to remove/revoke recovered reidentification material, proves destroyed keys
+   remain unavailable, records non-identifying evidence, and only then permits traffic.
+7. Backups must stay encrypted, expire no later than 90 days, and produce destruction evidence for
+   every managed copy. The final storage topology and proof source require provider-specific review.
 
 The future OpenAPI, PostgreSQL schema, operational runbook, and implementation tests must use this
+control model only after this ADR is accepted through the required review and human approval.
 
 ## Security Properties
 
@@ -101,10 +134,24 @@ non-serving restore procedure.
 ## Security and Privacy Impact
 
 The proposal strengthens the intended privacy model but creates no current data collection, key,
+backup, provider, or operational behavior. Security Review must validate threat assumptions, trust
 boundaries, key custody, marker integrity/availability, destruction proof, restore isolation,
 incident handling, and the data inventory before acceptance.
 
 ## Approval Outcome
 
+Proposed only. It has no authority until strict review, Security Review, and explicit Principal
 Architect acceptance. Stage 3.19 does not authorize an account-deletion API, schema migration,
 runtime job, provider integration, or production claim.
+
+## Revalidation candidate — 2026-10-16
+
+**Status remains Proposed / acceptance BLOCKED.** The original decision clauses were restored from
+pre-loss Git evidence; this is not acceptance or runtime implementation. The prospective
+[Stage 3.24 assessment](../stages/STAGE_03_24_PRIVACY_SECURITY_REVIEW_READINESS.md#repository-revalidation--2026-10-16-proposal-blocked_evidence)
+contains current-baseline SR-01–SR-12 findings, alternatives, lifecycle/authorization fencing,
+legacy-backup barriers, independent marker completeness/release protocol and future implementation tests.
+The [Stage 3.21 delta](../stages/STAGE_03_21_PRIVACY_DATA_INVENTORY_PROPOSAL.md#current-baseline-inventory-delta--2026-10-16-repository-only)
+adds registration, audit deduplication, replay/valuation, JWT, import-token and Redis surfaces.
+A key-erasure proof cannot sanitize old plaintext copies or establish anonymity of financial patterns;
+all current blockers require independent resolution under Documents 42–43 before approval.
