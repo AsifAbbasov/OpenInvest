@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-22-PRIVACY-KEY-CUSTODY-PROPOSAL |
-| Version | 0.3.0 |
+| Version | 0.4.0 |
 | Status | Complete / merged through PR #51 at `5f42d32db1e045c23fb99a5af8f136b7a49e3bc2` |
 | Owner | Principal Architect |
 | Supersedes | None; follows the merged Stage 3.21 privacy data-inventory proposal |
@@ -309,3 +309,49 @@ policies; independent administrators do not collude outside the accepted threat 
 is not secretly copied. Cryptography cannot erase what an earlier authorized reader already exported.
 No provider is selected; capability, trust, exact field binding, cost, jurisdiction, exit and disaster
 recovery evidence remain external. Design status is PARTIALLY_DESIGNED until A3 resolves these points.
+
+## A3 canonical evidence-binding profile — proposed v1
+
+Baseline `5a83503719e6756c57707afbcda309b1a83f1d67`; **DESIGN_ONLY**, no provider or algorithm suite
+accepted. A3 remains BLOCKED. This is a proposed wire/trust contract, not a production implementation.
+
+| Binding | Required identity / canonical content / verification rule |
+| --- | --- |
+| Common envelope | Schema/version, environment, service/cluster epoch, domain-separated object type, random intent ID, positive lifecycle generation, opaque random scope capability, issuer/key ID, monotonic sequence, prior commitment, payload digest. Reject unknown versions, duplicate fields, non-canonical encodings, wrong environment/domain and unknown/revoked trust roots. |
+| Intent and admission | Digest binds exact authenticated request purpose, generation and immutable target commitment; raw identity stays outside witness/public evidence. PREPARE receipt binds durable sequence/root; activation binds matching DB checkpoint plus accepted-at and fixed deadline. Idempotency uses intent+generation+domain and rejects any different digest. |
+| Material manifest | Immutable versioned manifest enumerates every subject material ID/version, wrapping hierarchy, replicas, alternate wraps and recovery copies; commitments bind ciphertext/suite/AAD and custody handle, not plaintext identity. Late-added wraps require a new manifest epoch before destruction; omitted/unknown versions deny completion. |
+| Destruction evidence / marker | Independent terminal proof binds intent, generation, full material-manifest root, operation ID and verifier trust state. Marker binds those commitments and exact witness sequence; scheduled deletion or decrypt-denied is not terminal proof. No raw user/subject UUID or credential appears in marker. |
+| Checkpoint and anti-rollback | Signed epoch, covered interval, total count, ordered log root, prior accepted checkpoint, trust-root version and complete-history frontier. A valid signature over a prefix is insufficient. Pin a high-water checkpoint outside the DB/backups; require consistency and independent witness/quorum evidence. |
+| Restore-only scope | Separate capability service maps opaque scope to exact recovered material inside sealed environment; capability binds recovery instance, image manifest, epoch, purpose, expiry and reviewer approval. No general identity search endpoint; no identity mapping in public markers. |
+| Restore-release certificate | Instance/configuration/image digests, replayed frontier, material-proof root, current epoch/barrier, policy/workload hashes and independent approver; one-time release CAS rejects new admission, expired cut, copied instance or changed config. Certificate cannot authorize a later restore by itself. |
+| User receipt | Separate random receipt capability, minimal phase and evidence commitment; no subject/key/restore locator, public identity hash or bearer authority for cancellation. Completion only after all copy/linkage/evidence gates; possession does not restore a session or authorize a lookup. |
+
+Serialization candidate: RFC 8785 canonical JSON over a deliberately restricted schema (ASCII protocol
+identifiers, lowercase fixed-length hex digests, integers within 2^53-1, UTC integer seconds, explicit
+field sets; no float, duplicate keys, implicit null/default or Unicode identifier normalization).
+Target commitments must use randomized ciphertext/high-entropy blinding in the restricted privacy
+domain, never an unsalted email/user/subject UUID hash exposed in a marker. Destroy or expire those
+blinding/linking values under the approved copy policy; they are not anonymous while recoverable.
+Domain-separated SHA-256 commitments and Ed25519 signatures are candidates, not accepted suite/provider
+choices. Signatures cover envelope + payload commitment; trusted key rotation requires independently
+signed continuity, revocation and freshness rules; compromise cannot be repaired by trusting a new
+self-signed root from the restored DB. Store key IDs and verification keys, never signing secrets, in
+public evidence. RFC 9162 is a transparency-log design reference, not a claim this journal implements it.
+
+Independently retain after erasure: complete ordered admission/marker history, manifests/terminal proofs,
+public verification keys and revocation/rotation history, epoch coverage and pinned frontiers, release
+approvals and receipt commitments for their approved retention. They must not contain a surviving
+identity lookup. Restricted restore locators are still sensitive/pseudonymous, not anonymous; availability
+for every recoverable image conflicts with premature final anonymity if they reconnect a person.
+Preferred candidate: segregated encrypted recovery projection under separate non-serving custody,
+limited to known image lineage and expiry (at most the managed 90-day bound); reconcile all copies
+before final completion. If a locator/key must survive longer or can reconnect retained facts, A3/A4
+remain BLOCKED. Per-subject erasure keys cannot be the only keys needed to locate old restored copies.
+
+Negative requirements: field substitution between intent/material/receipt, generation/epoch/environment
+swap, missing wrap, conflicting valid roots, stale/revoked signer, incomplete pages, unknown admission,
+restored old trust store and unauthenticated locator access must deny. The isolated Python prototype
+checks only its small ASCII profile, hash-chain/signature integrity and pinned-prefix rejection; it is
+not the complete binding schema, Merkle consistency protocol, custody service or erasure proof.
+Official references inspected 2026-10-16: [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785),
+[RFC 9162](https://www.rfc-editor.org/rfc/rfc9162), [RFC 8032](https://www.rfc-editor.org/rfc/rfc8032).

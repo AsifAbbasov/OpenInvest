@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-24-PRIVACY-SECURITY-REVIEW-READINESS |
-| Version | 0.4.0 |
+| Version | 0.5.1 |
 | Status | Complete / merged through PR #53 at `544ad8cc7371caf93913ea7716f3feb68be0ea44` |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.23 deletion-marker control-plane proposal |
@@ -551,3 +551,93 @@ of missing WAL or a vanished independent witness.
 | ARCH-277-02 | G2 database + workload credential/ingress gate and sealed cutover; policy table and T2/T8/T9 → EC-01/05/08/10. | BLOCKED until actual PostgreSQL and stale-binary/worker/drain evidence exists. |
 | ARCH-277-03 | Matrix now uses candidate/partial/external/blocked terminology; SR-03/05/12 blocked, SR-06/07/09 external. | Classification correction is repository-verifiable; no SR accepted/implemented/production-authorized. |
 | ARCH-277-04 | Executable v2 covers timed grace, unknown admission, pending restore, missing WAL quarantine and compatibility/release predicates. | Abstract consistency only; T2/T3/T4/T5/T8/T9 still require real integration evidence. |
+
+## A1–A4 / G1–G2 feasibility disposition — no acceptance
+
+Baseline `5a83503719e6756c57707afbcda309b1a83f1d67`, tree `85fcc4c0fd0074da19e98a1ac0238aac9423842e`;
+PR #277 is merged. Original SR clauses, historical provenance, A1–A4, Documents 42–43 and accepted
+ADRs remain authoritative. Date of source/prototype inspection: 2026-10-16 UTC, not a formal review date.
+
+Evidence vocabulary: **DESIGN_ONLY** = specified proposal; **PROTOTYPE_VERIFIED** = named synthetic
+invariant executed; **INTEGRATION_VERIFIED** = named integration and environment actually executed;
+**EXTERNAL_EVIDENCE_REQUIRED** = provider/deployed/operator proof absent; **BLOCKED** = prerequisite
+or authorization missing; **ACCEPTED** requires a separate authorized decision (none here).
+These evidence labels do not replace SR design-maturity classifications or grant production authority.
+
+### G2 tested mechanism and mandatory remaining boundary
+
+The isolated [Go experiment](../../backend-go/experiments/privacyfeasibility/g2_test.go) creates its own
+randomly named database and LOGIN role on loopback PostgreSQL 18, populates two synthetic subjects,
+and removes them on completion. It applies no application migration or policy. It uses a SECURITY
+INVOKER VOLATILE helper, server `session_user` epoch membership, forced row-level policy, SELECT FOR
+SHARE on a lifecycle row, and a constrained `UPDATE(lock_token)` grant (CHECK token=0) solely to allow
+row locks. Runtime cannot update lifecycle state or ledger facts. A completion state update conflicts
+with the shared row lock; a stale Repeatable Read snapshot must abort with SQLSTATE 40001.
+
+This candidate mechanism is useful only if complete table/function/query coverage, lock privileges,
+snapshot semantics, planner behavior, revocation and absence of owner/BYPASSRLS paths are proven.
+The experiment is not application coverage: only its one synthetic ledger is tested. The role can
+see synthetic lifecycle rows; production lifecycle metadata privacy remains an explicit minimization
+and policy design task. The helper does not attest executable identity, user principal or real session.
+A workload supplying allowed credentials is indistinguishable at SQL identity level; DB lifecycle denial
+can restrict pending subjects but independent credential/artifact/ingress/egress admission is still required.
+
+Current runtime sources `runtime_privileges.go` and `runtime/openinvest_runtime_role.sql` already reject
+privileged roles/SECURITY DEFINER paths and preserve financial/audit read+append permissions. Reuse
+that validation pattern; changing the exact capability profile or policy manifest needs separate review.
+An experiment with a synthetic role does not authorize broadening existing application capabilities.
+Do not generalize the successful lock privilege to every partition, auth/session, replay or worker path.
+
+Retain G2 sealed cutover: disable deletion; install/test candidate policy; isolate ingress/egress; drain
+old workers/pools/caches; revoke legacy LOGIN/CONNECT/memberships/grants, terminate existing backends,
+reconcile prepared transactions; commit epoch/policy/grant manifest; admit only independently verified
+artifacts; verify effective permissions and all negative paths before separate release. Restored old
+credentials are never current release evidence. Rollback stays in the compatible epoch or stays sealed.
+Superuser/BYPASSRLS, unforced owners, replication and external caches are outside the RLS guarantee;
+TRUNCATE/REFERENCES and privileged functions need explicit capability denial. No old Go binary/worker,
+development-auth execution path, artifact broker, prepared-transaction draining or real session-revocation
+campaign was run here; those stay required T2/T5/T8/T9 integration evidence, not PASS.
+
+### Revised SR maturity and evidence
+
+| SR | Design maturity | New evidence / unresolved gate |
+| --- | --- | --- |
+| SR-01 | BLOCKED | A1 field/alternative dossier DESIGN_ONLY; immutable personal fields and economic correlation still require approved disposition. |
+| SR-02 | PARTIALLY_DESIGNED | A3 suite/manifest candidate DESIGN_ONLY; no provider destruction/non-recreation evidence. |
+| SR-03 | BLOCKED | G1 local journal properties PROTOTYPE_VERIFIED; independent quorum, complete epoch and binding remain EXTERNAL_EVIDENCE_REQUIRED. |
+| SR-04 | PARTIALLY_DESIGNED | Restricted restore capability/locator lifetime proposed; real complete-scope mapping and privacy proof missing. |
+| SR-05 | BLOCKED | Synthetic PREPARE/grace/recovery and candidate SQL policy evidence only; full application lifecycle/auth/DB integration absent. |
+| SR-06 | EXTERNAL_DEPENDENCY | Release/barrier design exists; actual network, credential and workload isolation unverified. |
+| SR-07 | EXTERNAL_DEPENDENCY | A4 managed-copy boundary inventoried; no provider inventory or <=90-day destruction evidence. |
+| SR-08 | BLOCKED | A2 field disposition and migration alternatives DESIGN_ONLY; append-only historic identity conflicts unresolved. |
+| SR-09 | EXTERNAL_DEPENDENCY | Required role split specified; actual organizational separation, workload broker and provider access unverified. |
+| SR-10 | BLOCKED | A4 exact decision questions provided; no approved legal exceptions. |
+| SR-11 | PARTIALLY_DESIGNED | Receipt binding specified; full fresh-factor/cancel/CSRF/privacy and user-claim tests absent. |
+| SR-12 | BLOCKED | Isolated lock/privilege feasibility is not accepted rollout or app migration; A1–A4/G1/G2 must resolve first. |
+
+No SR is implemented, independently accepted or closed by these documents. Recommended focused
+Gatekeeper scope: audit source-field completeness and A1/A2 contract conflicts; challenge G1 durability,
+coverage/release assumptions; rerun G2 on PostgreSQL 18 and inspect invoker privilege/snapshot boundaries;
+validate A3 privacy/retention binding and A4 authority questions. Actual provider, Legal/Privacy,
+Operations/Security and Principal Architect decisions remain mandatory before implementation approval.
+
+### FEAS-278-02: scope of epoch revocation evidence
+
+The earlier pool-based observation did not prove that the same PostgreSQL backend survived
+revocation. Its existing-session claim is superseded by a pinned `*sql.Conn` with `pg_backend_pid()`
+recorded before/after authorized SELECT, privileged revocation, denied SELECT and denied INSERT.
+Only that autocommit assertion may emit `EPOCH_REVOCATION_EXISTING_SESSION=PASS`.
+
+Additional pinned-connection transactions establish an authorized snapshot before revocation at
+Read Committed, Repeatable Read and Serializable, then report SELECT rows, INSERT SQLSTATE, actual
+isolation level, unchanged backend PID and rollback. Read Committed must deny. Successful stale-snapshot
+access is reported as `BLOCKED_STALE_SNAPSHOT_ACCESS`, not a passing universal revocation property;
+serialization failure, blocking/timeout or aborted transaction is reported separately, not silently
+reclassified as policy denial. Exact observations are in the final-head CI/PR evidence.
+
+The candidate helper does not prove immediate epoch revocation for already-open snapshot transactions.
+G2 therefore remains BLOCKED: a sealed cutover must drain/terminate incompatible transactions and
+connections before release, or require a separately approved, independently enforced epoch mechanism
+with demonstrated snapshot/lock semantics. Credential revocation or application flags alone do not
+supply that proof. Full application coverage, old workloads, broker and external controls remain
+unverified; A1–A4 and all SR maturity classifications above remain unchanged.

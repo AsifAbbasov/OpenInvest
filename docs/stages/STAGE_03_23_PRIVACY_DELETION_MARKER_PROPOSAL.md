@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-23-PRIVACY-DELETION-MARKER-PROPOSAL |
-| Version | 0.3.0 |
+| Version | 0.4.1 |
 | Status | Complete / merged through PR #52 at `f7f23bce33038f259c976db6375079c68209a7aa` |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.22 key-custody proposal |
@@ -283,3 +283,70 @@ verified destruction/expiry and linkage resolution; “crypto-erased now, backup
 Legal holds cannot silently extend the 90-day contract or reintroduce keys: unresolved conflict remains
 blocked for human decision. Actual provider inventory/destruction and restore-isolation evidence are
 not supplied by this candidate.
+
+## G1 concrete feasibility boundary — independent durable admission
+
+Baseline `5a83503719e6756c57707afbcda309b1a83f1d67`. This extends admission v2; its PREPARE-first
+ordering, unknown-outcome quarantine, 30-day deadline and complete-epoch release barrier are unchanged.
+Status: **PROTOTYPE_VERIFIED** for local journal properties only; independent deployment durability and
+G1 acceptance remain **EXTERNAL_EVIDENCE_REQUIRED / BLOCKED**.
+
+| Component / operation | Required production contract; not established by a local prototype |
+| --- | --- |
+| Independent service | Separate account/admin/credentials/failure domain from application DB, backups and restore operator; authenticated purpose-bound clients, least-privilege reader/writer/witness, no shared root capable of silently resetting both stores. |
+| Durable PREPARE | Linearizable conditional append of immutable intent+generation+digest; acknowledge only after documented durable quorum commit and independent checkpoint inclusion. A single local fsync or replica response is not proof of independent quorum. Local PENDING cannot precede this receipt. |
+| Activation and outcomes | DB checkpoint then ACTIVATE_PENDING; signed accepted-at/deadline from monotonic trusted authority; caller acknowledgement only after both. Lost/unknown reply queries same immutable identity; timeout never creates a new generation/deadline or means rejection. PREPARE-only stays fenced and reconcilable. |
+| Ordering and partitions | Serialize request/cancel/claim per generation and cover global release cut; quorum unavailable means no new acknowledgement/release. Availability requires a specified surviving quorum and trusted time, not indefinite blind retry. Duplicate admission returns original receipt; conflicting digest is a permanent conflict. |
+| Complete journal | Append-only ordered records, manifest count/frontier, prior accepted checkpoint and independently pinned root. Pagination has interval proofs and end-of-history proof; retain history at least through every recoverable image and applicable approved evidence period. Marker-only log omitting pending intents is invalid. |
+| Recovery/replacement | Verify continuity from independently held checkpoint and quorum/witness recovery evidence before new epoch admission. Do not reset epoch or bootstrap empty history from a DB backup. Root replacement/revocation requires independent threshold approval and complete continuity; if unavailable, quarantine indefinitely. |
+| DB loss / old image | Reconstruct pending restriction from complete independent PREPARE/activation history and approved restricted scope binding; replay forward while sealed. Missing WAL does not matter only when independent coverage/binding is complete. No evidence for legacy DB-only pending => no safe release. |
+| Release barrier | Establish a linearizable epoch barrier over new admissions and replayed frontier, then atomic matching release decision. New admission/configuration change invalidates stale certificate; service outage or split view denies. No timestamp-age-only release shortcut. |
+
+Concrete candidate for evaluation: three independently placed crash-fault consensus voters, at most
+one unavailable, majority two durable appends before commit; a separate administrative witness pins
+checkpoint continuity before PREPARE acknowledgement. Loss of majority or witness denies admission.
+This is a crash-fault trust model, not Byzantine consensus: a compromised signing quorum is outside
+its guarantee, so malicious-administrator resistance additionally needs independent witnesses and
+reviewed quorum assumptions. A single replicated transactional store is operationally simpler but
+does not satisfy independent rollback/admin separation by itself; an externally witnessed append-only
+service offers stronger separation at added availability/cost/operations complexity. No algorithm,
+replica placement, provider or durability SLA is selected/verified here. PREPARE-only orphans cannot
+auto-expire into active service or destruction; separately authorized reconciliation may retain a
+restriction indefinitely when non-commit cannot be proved. This is an explicit liveness cost.
+Primary design reference inspected 2026-10-16: [Raft extended paper](https://raft.github.io/raft.pdf);
+its crash-fault majority assumptions are not a proof of this unimplemented service.
+
+Prototype: [admission_test.py](../../experiments/privacy-feasibility/admission_test.py) uses separate
+SQLite journal and a separate persistent synthetic checkpoint DB, FULL synchronous commits, ordered
+hash chain and generated Ed25519 test key. ACTIVE now requires an exact independently read committed
+checkpoint binding intent, lifecycle generation, PREPARE sequence/root and DB version; uncommitted,
+rolled-back, stale, missing or ambiguous evidence rejects, including after restart/retry. Process exits after journal commit before acknowledgement; reopening/retrying
+returns the original receipt. SQLite primary rollback and clearing primary state simulate only logical
+old-image recovery, not PostgreSQL physical recovery or fsync power-loss durability. The pinned high-water
+root is supplied by the test, not obtained from an independently operated witness. No network service,
+quorum, key custody, filesystem adversary or independent administrator exists in the prototype.
+
+Remaining prerequisites: independently audited service protocol/capability and failure-domain choice;
+A3 complete binding/retention; actual crash/power-loss/quorum/partition/checkpoint-consistency tests;
+sealed restore and admission-release integration; independent operations/key-root recovery evidence.
+If all independent history or its trust anchor is lost, safe liveness is impossible: remain non-serving.
+
+### FEAS-278-01/03/04 scope correction
+
+The original 11-test prototype accepted non-canonical JSON and ACTIVE without a committed DB
+checkpoint; its historical CI did not execute G1. Those feasibility claims were incomplete, not
+production evidence. The revised 22-test prototype compares exact input bytes to canonical re-encoding;
+the payload digest, hash chain, signing input and verifier bind the same canonical bytes. It remains
+an ASCII/string/integer subset, not independently verified full RFC 8785 conformance.
+
+Checkpoint authority is a separate committed-read SQLite connection/file controlled by the test;
+it is not a signature proving a real PostgreSQL commit or an independent consensus service. Historical
+verification validates the signed checkpoint binding without requiring the primary to still exist;
+a new ACTIVE call/retry requires current matching committed evidence. Unknown acknowledgement alone
+never supplies that evidence. This distinction permits recovery quarantine without inventing a DB.
+
+Responses separate `operation_receipt` from `authoritative_current_state`, including its validated
+frontier and generation. After PREPARE → ACTIVE → CANCEL, retrying ACTIVE returns its historical receipt
+and current CANCELLED, never a new PENDING transition; restart preserves that result. This current
+state is authoritative only for the validated local history/frontier, not a distributed freshness
+promise. Missing independent coverage or a newer unknown frontier still blocks production release.
