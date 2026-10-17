@@ -23,6 +23,13 @@ func FuzzDecimalFixedScaleAlgebra(f *testing.F) {
 			return
 		}
 
+		aBefore, bBefore := a.String(), b.String()
+		defer func() {
+			if a.String() != aBefore || b.String() != bBefore {
+				t.Error("arithmetic mutated an operand")
+			}
+		}()
+
 		// Addition/subtraction are exact in the fixed-scale representation even when
 		// the transient derived value grows beyond persistence precision.
 		if got := a.Add(b).Sub(b); !got.Equal(a) {
@@ -41,7 +48,6 @@ func FuzzDecimalFixedScaleAlgebra(f *testing.F) {
 		if _, err := a.Div(Zero()); err == nil {
 			t.Fatal("division by zero succeeded")
 		}
-		aBefore, bBefore := a.String(), b.String()
 		zero := Zero()
 		if !a.Add(zero).Equal(a) || !a.Sub(zero).Equal(a) {
 			t.Fatalf("zero identity drift: a=%s", a.String())
@@ -72,9 +78,6 @@ func FuzzDecimalFixedScaleAlgebra(f *testing.F) {
 			}
 		}
 
-		if a.String() != aBefore || b.String() != bBefore {
-			t.Fatal("arithmetic mutated an operand")
-		}
 		if !b.IsZero() {
 			q1, err1 := a.Div(b)
 			q2, err2 := a.Div(b)
