@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-24-PRIVACY-SECURITY-REVIEW-READINESS |
-| Version | 0.5.1 |
+| Version | 0.6.0 |
 | Status | Complete / merged through PR #53 at `544ad8cc7371caf93913ea7716f3feb68be0ea44` |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.23 deletion-marker control-plane proposal |
@@ -641,3 +641,82 @@ connections before release, or require a separately approved, independently enfo
 with demonstrated snapshot/lock semantics. Credential revocation or application flags alone do not
 supply that proof. Full application coverage, old workloads, broker and external controls remain
 unverified; A1–A4 and all SR maturity classifications above remain unchanged.
+
+## G2 transaction-safe feasibility candidate — 2026-10-17
+
+Investigation baseline: `develop@4d5ca26657cca798e70021c8ba3f15e074b83d7a`, tree
+`6890fb97a2deee8bc02736b07f14d75414429306` (merged PR #278). This is a proposed successor experiment,
+not acceptance, a new review event, a production control, or permission to implement ADR-008.
+The original G2 stale-snapshot counterexample and its assertions remain unchanged.
+
+### Current implementation and candidate comparison
+
+`backend-go/internal/postgres/store.go` uses a bounded SQL pool (10 open/5 idle, 30-minute lifetime).
+Auth and financial stores use default `BeginTx` isolation and local session/portfolio locks, not a common
+privacy admission gate. `stage03_74_store.go` reserves replay commands before the portfolio lock;
+future enforcement must cover replay results, derived reads, imports, snapshots and outbox paths before
+any early return, not merely ledger INSERT. Existing runtime role profiles and append-only financial/audit
+privileges remain authoritative. No current production helper is converted into a mandatory privacy fence.
+
+| Candidate | Preventive boundary and trust assumption | Failure/recovery and cost | Residual / evidence boundary |
+| --- | --- | --- | --- |
+| A — freeze/drain/terminate | Independent admission controller freezes every runtime/worker path, inventories all backend PIDs and prepared transactions, drains to deadline, then terminates remaining authorized targets and verifies rollback. | Cancellation alone is not drain; idle sessions remain. Backend termination does not remove prepared transactions. A missing PID inventory, failed termination, unresolved two-phase decision or controller failure keeps quarantine. Costs availability and interrupted work; never resolve production prepared work without its authorized coordinator. | Dedicated fixture tests only own synthetic sessions/transactions. Fleet, replicas, privileged sessions, network freeze and old executables remain unverified. Already delivered data cannot be withdrawn. |
+| B — mandatory database lifecycle locks | Forced RLS on the synthetic ledger invokes an invoker function taking epoch then subject `FOR SHARE`; transition uses conflicting UPDATE. Privileges permit only lock-token column update, not lifecycle state or financial modification. | A prior reader holds the lock to transaction end: revoke must wait/fail, never acknowledge early. A stale RR/Serializable snapshot that has not locked the changed epoch must serialize-fail; RC observes current denial. Consistent epoch→subject order, bounded waits and whole-transaction retry required. Costs lock contention and per-row policy work. | Full table/view/partition/function/read/export coverage and performance unproven; owners, superusers/BYPASSRLS, replication and copied data are outside the fixture. Direct SELECT/INSERT are covered without a voluntary Go helper. |
+| C — independent compatibility admission | Separate artifact/workload verifier issues epoch-scoped, revocable runtime capabilities only to approved immutable workloads; deny obsolete identities, fence pools and revoke old memberships/credentials. | NOLOGIN stops new login, not an already connected transaction. Fresh credentials alone also admit an old program capable of using them. Freeze must outlive credential rotation, drain and verification; incompatible rollback is prohibited. Costs broker/IAM operations and fail-closed outages. | SQL tests demonstrate credential limits, not genuine attestation. No actual old Go binary/worker or independently administered broker is executed; identity assurance remains EXTERNAL_EVIDENCE_REQUIRED. |
+
+Recommended design for independent review: B as mandatory data-plane serialization, A as bounded cutover
+and stuck-transaction recovery, C as independent workload admission. None alone establishes complete
+production G2. A shared credential, `application_name`, process label or feature flag is not attestation.
+New runtime capabilities must not include owner/BYPASSRLS, lifecycle-state mutation, policy disabling,
+role escalation or ledger UPDATE/DELETE. The experiment's synthetic lock-token grant is not a proposed
+change to existing production capability profiles; its compatibility/security review remains required.
+
+### Proposed release barrier (not a runnable production runbook)
+
+Bind every durable phase to target epoch, exact DB/restore instance, schema/policy manifest, artifact
+allow-list, controller generation and G1 complete frontier. Use serialized compare-and-set transitions;
+only the separate releaser may authorize RELEASE, never the runtime or restore operator alone.
+
+| Phase | Preconditions, ordered effects and evidence required before next transition |
+| --- | --- |
+| FREEZE | Independently block ingress, jobs, credential issuance, pool reconnect and direct runtime admission for old and new epochs. Persist freeze receipt outside the restored DB. Existing requests are not yet declared revoked. Unknown freeze outcome or an unenumerated route denies progress. |
+| DRAIN | Enumerate all relevant databases, backends, workers, replicas and prepared transactions using separately privileged control connections. Allow a bounded drain interval; cancel active work, then terminate remaining scoped backends. Re-enumerate until exit/rollback verified. Resolve prepared work via authoritative coordinator; unknown outcome blocks. Never infer drain from a cancellation signal or closed pool alone. |
+| VERIFY | In a fresh Read Committed control transaction, prove zero dangerous old sessions/transactions/prepared work, freeze still effective, least-privilege role graph/policies complete, and privileged/replication paths independently sealed. Bind evidence to the same instance/epoch. An old MVCC snapshot or stale cached inventory is insufficient. |
+| ROTATE/FENCE | Under maintained independent freeze, atomically lock epoch then subjects, advance/revoke old epoch, revoke old role memberships/privileges and persist checkpoint. Confirm commit from a fresh connection; reconcile ambiguous ACK by querying the same generation. Only then acknowledge the local revocation cut. Lock timeout or rollback keeps freeze and provides no success receipt. |
+| RECONCILE | Revalidate G1 independent admitted intents, complete frontier/restore checkpoint, pending subject denial, irreversibility/deadlines, cache invalidation and every serving/job route. Verify allowed workload identities and no restored legacy grants/credentials. Recheck no admission appeared since VERIFY; any changed frontier, instance, policy or credentials invalidates prior evidence. |
+| RELEASE | Separate authority verifies the complete bound evidence, serializes against new intents/cutovers and issues short-lived epoch/instance-bound admission. Reconnect only compatible workloads. Missing G1, prepared decision, workload proof, privileged-path control or authorization means no RELEASE. An elapsed timer is never release evidence. |
+
+Operational timeout values require workload measurements and approval; they are finite fail-closed
+abort/escalation deadlines, never automatic reopening. The experiment uses 150ms lock timeout, 1s
+statement timeout, 3s polling, 20s fixture context and a 120s suite bound; these are test settings only.
+After crash/partition/retry, resume from durable phase and independently revalidate freeze/evidence;
+a restored phase row is not external admission authority. Do not roll back to a compatible-looking old
+epoch or reactivate pending subjects. Primary/WAL loss and unknown witness outcomes stay under G1
+quarantine rules. No already read bytes, exports or caches can be retroactively revoked by SQL rollback.
+
+### Safety claims, maturity and approval limits
+
+Safety invariants to review: no revocation acknowledgement while an admitted reader holds the gate;
+no post-cut protected access from an unadmitted snapshot; zero dangerous prepared work before release;
+no phase skip or uncertain commit treated as success; no incompatible credential/workload reopening;
+no restored pending subject returned active; immutable financial values/append-only grants preserved.
+Conditional liveness requires available authorized controller, known prepared decisions and complete G1/
+workload evidence; otherwise the safe result is continued quarantine, not guaranteed progress.
+The executable fixture checks the persisted prefix through RECONCILE and rejects RELEASE for missing
+external evidence. It does not implement a trusted evidence adapter or prove a successful production
+release, race-free distributed admission, power-loss recovery, old-binary identity or full schema coverage.
+
+SR-01/02/03/04/06/07/08/09/10/11/12 remain blocked at their original approval gates; SR-05 gains a
+DESIGN_CANDIDATE_DOCUMENTED serialization proposal, not implementation acceptance. In particular,
+SR-03/06/07/09/12 still require independent/external evidence. SR and EC clauses above are unchanged.
+A1/A2 financial and audit dispositions, A3 custody/trust roots, A4 legal/external copies, independent G1
+quorum/completeness and production G2 coverage remain open. ADR-008 remains Proposed / BLOCKED.
+
+Primary references inspected 2026-10-17 (not a formal review/approval date): PostgreSQL 18
+[locks](https://www.postgresql.org/docs/18/explicit-locking.html),
+[isolation](https://www.postgresql.org/docs/18/transaction-iso.html),
+[signals](https://www.postgresql.org/docs/18/functions-admin.html),
+[prepared transactions](https://www.postgresql.org/docs/18/sql-prepare-transaction.html),
+[prepared inventory](https://www.postgresql.org/docs/18/view-pg-prepared-xacts.html),
+[NOLOGIN](https://www.postgresql.org/docs/18/sql-alterrole.html), and
+[RLS scope](https://www.postgresql.org/docs/18/ddl-rowsecurity.html).

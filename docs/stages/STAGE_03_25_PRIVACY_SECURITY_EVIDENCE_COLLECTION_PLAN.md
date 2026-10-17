@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-25-PRIVACY-SECURITY-EVIDENCE-COLLECTION-PLAN |
-| Version | 0.4.1 |
+| Version | 0.5.0 |
 | Status | Active / proposal only |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.24 Security Review readiness dossier |
@@ -570,3 +570,66 @@ job logs are recorded in PR #278. No unexecuted transaction scenario is counted 
 EC-01–10 and SR-01–12 status boundaries above are unchanged. A1/A2 contract decisions, A3 trust/custody,
 A4 legal/provider decisions, independent G1 quorum/power-loss, and full-schema/workload G2 remain open.
 ADR-008 stays Proposed/BLOCKED; no production implementation, migration or release is authorized.
+
+## G2 transaction-gate experiment and collection delta — 2026-10-17
+
+Baseline `4d5ca26657cca798e70021c8ba3f15e074b83d7a`, tree `6890fb97a2deee8bc02736b07f14d75414429306`.
+See the candidate comparison and six-phase release contract in [Stage 3.24](STAGE_03_24_PRIVACY_SECURITY_REVIEW_READINESS.md#g2-transaction-safe-feasibility-candidate--2026-10-17).
+Historical evidence, metadata, original EC-01–10/T1–T9, and the old G2 counterexample remain unchanged.
+This collection delta is not a completed evidence plan or acceptance record.
+
+Reproduce from repository root with Docker and repository Go available:
+`bash experiments/privacy-feasibility/run_g2_matrix.sh normal`, then the same command with `race`.
+The runner creates and removes its own resource-limited PostgreSQL 18 container, binds only localhost,
+uses synthetic credentials and sets `max_prepared_transactions=8`. It consumes no existing DB URL.
+Each case creates its own database/roles and records PostgreSQL version/backend PIDs. No application
+schema, real account, external service, keys or backup is loaded. Direct reproduction inside that
+explicit disposable environment is `OPENINVEST_G2_TRANSACTION_MATRIX=1 go test -race -v
+./experiments/privacyfeasibility -run '^TestG2TransactionGates$' -count=1 -timeout=120s` in `backend-go`
+with the disposable loopback owner URL. Without opt-in the dedicated suite explicitly SKIPs.
+
+| Case group / expected assertion | Evidence marker and scope |
+| --- | --- |
+| Original counterexample, unchanged `TestG2SyntheticPostgresLifecyclePolicy` | Existing normal/race verbose CI step must still record RC denial versus RR/Serializable stale SELECT and successful INSERT; later rollback is not read-confidentiality proof. |
+| B held-reader × RC/RR/Serializable | `B_HELD_READER`: competing epoch update 55P03; prior reader may read before cut acknowledgement; after rollback, cut succeeds and fresh SELECT=0/INSERT=42501. |
+| B snapshot without prior gate × RC/RR/Serializable | `B_STALE_UNUSED_GATE`: anchor establishes snapshot; epoch cut commits; RC protected read returns zero, RR/Serializable returns 40001. |
+| B autocommit/reused pool backend | `B_AUTOCOMMIT_POOL`: identical PID before/after; protected post-cut SELECT=0 and INSERT=42501. |
+| A uncommitted INSERT × RC/RR/Serializable | `A_INSERT`: incomplete drain blocks cut, targeted termination rolls back row, original connection cannot be reused. Already read data is outside this proof. |
+| A long SELECT, autocommit and explicit transaction | `A_LONG_SELECT`: observe PgSleep on own PID, cut blocked, cancel interrupts statement but session remains, terminate and verify subsequent cut/denial. |
+| A idle-in-transaction | `A_IDLE`: cancellation signal is insufficient; cut remains lock-blocked until verified termination. |
+| A prepared transaction | `A_PREPARED`: prepared work survives backend termination and blocks cut; explicit rollback removes prepared record/uncommitted row. This is not authorization to discard real coordinated work. |
+| C login and workload distinction | `C_WORKLOAD_IDENTITY`: old login denied after NOLOGIN, existing backend persists until terminated; fresh credential permits ordinary SQL regardless of application label. Actual old binary/worker and attestation NOT_EXECUTED. |
+| C existing transaction × RC/RR/Serializable | `C_VERSIONED_CREDENTIAL`: backend PID unchanged and transaction survives login revocation; termination ends old access. |
+| Durable release prefix and missing evidence | `RELEASE_BARRIER_PREFIX`: phase skip/incomplete drain/unfrozen role reject; independent connection reads persisted phase; retry idempotent; injected DB rollback preserves epoch; RELEASE remains BLOCKED without genuine G1/workload/privileged-path evidence. Controller reconnection is not power-loss simulation. |
+
+There are 19 independent subcases. Assertions failing in one subtest do not skip later independent
+subtests. No successful SQL statement later rolled back is labeled confidentiality preservation.
+Go vet/compilation are feasible locally; local integration execution is unavailable without Docker/
+PostgreSQL (only UID 0 mapped in this executor). Local SKIP is not PASS. Existing normal CI's ten jobs
+are retained; two focused normal/race invocations in its Go jobs run the dedicated disposable matrix
+and expose verbose evidence. Dedicated runner requires prepared support and fails rather than silently
+skipping it. Exact-head CI logs/PR record actual execution counts, version, failures and skips.
+A green job is insufficient unless the named subcases and original counterexample actually executed.
+
+| SR trace | Current code/control → threat → test → evidence/gate delta |
+| --- | --- |
+| SR-01/04/08 → EC-02/04/09 → T1/T7 | Existing identity/audit/replay mappings → retained/cached reads → field/copy lineage and privacy tests remain required; no anonymity or audit-erasure claim from gate SQL. |
+| SR-02 → EC-03/05 → T3 | No production custody boundary → recoverable key → provider destruction/recovery tests remain external; no new proof. |
+| SR-03 → EC-04/06 → T4/T5 | G1 synthetic journal only → lost/unknown/stale frontier → full PREPARE/checkpoint/restore proof still required; G2 release intentionally blocked without it. |
+| SR-05/11 → EC-01/05 → T2/T3 | Default Go transactions/session authorization → stale lifecycle authority → B/A isolation/lock/termination cases plus future real request, 30-day deadline, cancellation and session tests. No auth or grace acceptance. |
+| SR-06 → EC-06/08 → T5/T8 | No deployed release authority → premature reopened workload → persisted prefix/missing-proof rejection only; network, restore-instance binding and concurrent frontier release still external/integration requirements. |
+| SR-07/10 → EC-07/09 → T6 | No complete deployed copy/legal register → surviving plaintext/hold → backup expiry/legal evidence unchanged, not exercised. |
+| SR-09 → EC-08/05 → T8 | Existing runtime role profiles → surviving sessions/borrowed credentials/privileged paths → C pinned sessions and prepared work demonstrate limits; genuine artifact identity, organizational separation and full role graph remain missing. |
+| SR-12 → EC-05/06/08/10 → T5/T8/T9 | Production stores and append-only contracts → incomplete coverage/mixed versions/rollback → synthetic ledger gates and persisted cutover prefix only; full schema, replay returns, old workers/binaries, workload broker and migration rehearsal remain mandatory. |
+
+Every EC-01–10 retains its original minimum proof. Incremental EC-05/08 SQL evidence is
+INTEGRATION_VERIFIED only for the named cases after actual PostgreSQL CI execution; the release
+prefix is PROTOTYPE_VERIFIED in that synthetic scope only. EC-04/06 distributed G1/restore evidence
+remains EXTERNAL_EVIDENCE_REQUIRED/BLOCKED. EC-02/03/07/09/10 receive no new acceptance proof.
+T1/T6/T7 are not newly executed; T2/T3/T4/T5/T8/T9 receive only the scoped cases above, never full PASS.
+
+Next independent review must reproduce both old counterexample and new normal/race cases, inspect
+lock-order/privilege coverage and prepared-work ownership, challenge TOCTOU between inventory and
+release, and review G1/workload/privileged-path prerequisites. No full-schema, actual old-binary,
+attestation, restore, power-loss or production security claim is made. A1–A4/G1 remain open; G2 remains
+BLOCKED pending accepted full-coverage design and independent operational evidence. No SR/EC is closed.

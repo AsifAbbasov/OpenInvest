@@ -93,6 +93,11 @@ jobs:
           OPENINVEST_PRIVACY_FEASIBILITY_DISPOSABLE: "1"
         run: go test -v ./experiments/privacyfeasibility -run TestG2SyntheticPostgresLifecyclePolicy -count=1 -timeout=60s
 
+      - name: Test transaction-safe G2 gates in disposable PostgreSQL
+        working-directory: .
+        timeout-minutes: 4
+        run: bash experiments/privacy-feasibility/run_g2_matrix.sh normal
+
       - name: Emit Module 12 shared-budget and cancellation evidence
         env:
           OPENINVEST_SHARED_BUDGET_TEST_REDIS_URL: redis://127.0.0.1:6379/0
@@ -505,6 +510,11 @@ jobs:
           OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
           OPENINVEST_PRIVACY_FEASIBILITY_DISPOSABLE: "1"
         run: go test -race -v ./experiments/privacyfeasibility -run TestG2SyntheticPostgresLifecyclePolicy -count=1 -timeout=60s
+
+      - name: Test transaction-safe G2 gates with race detection
+        working-directory: .
+        timeout-minutes: 4
+        run: bash experiments/privacy-feasibility/run_g2_matrix.sh race
 
       - name: Configure OI-NEW-04 active R2 runtime role
         working-directory: .
