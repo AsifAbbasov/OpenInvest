@@ -87,6 +87,12 @@ jobs:
           OPENINVEST_SHARED_BUDGET_TEST_REDIS_URL: redis://127.0.0.1:6379/0
         run: go test ./...
 
+      - name: Emit privacy feasibility PostgreSQL evidence
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+          OPENINVEST_PRIVACY_FEASIBILITY_DISPOSABLE: "1"
+        run: go test -v ./experiments/privacyfeasibility -run TestG2SyntheticPostgresLifecyclePolicy -count=1 -timeout=60s
+
       - name: Emit Module 12 shared-budget and cancellation evidence
         env:
           OPENINVEST_SHARED_BUDGET_TEST_REDIS_URL: redis://127.0.0.1:6379/0
@@ -171,6 +177,10 @@ jobs:
         run: uv sync --extra dev --locked
       - name: Run tests
         run: uv run pytest
+      - name: Run standalone G1 privacy feasibility tests
+        working-directory: .
+        timeout-minutes: 3
+        run: uv run --no-project --with cryptography==50.0.2 python experiments/privacy-feasibility/admission_test.py -v
 
   frontend:
     name: Frontend build and typecheck
@@ -489,6 +499,12 @@ jobs:
           OPENINVEST_DATABASE_RUNTIME_TEST_URL: postgres://openinvest_runtime_ci:openinvest-runtime-ci@127.0.0.1:5432/openinvest?sslmode=disable
           OPENINVEST_SHARED_BUDGET_TEST_REDIS_URL: redis://127.0.0.1:6379/0
         run: go test -race ./...
+
+      - name: Emit privacy feasibility PostgreSQL race evidence
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:openinvest-ci@127.0.0.1:5432/openinvest?sslmode=disable
+          OPENINVEST_PRIVACY_FEASIBILITY_DISPOSABLE: "1"
+        run: go test -race -v ./experiments/privacyfeasibility -run TestG2SyntheticPostgresLifecyclePolicy -count=1 -timeout=60s
 
       - name: Configure OI-NEW-04 active R2 runtime role
         working-directory: .

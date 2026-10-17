@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-24-PRIVACY-SECURITY-REVIEW-READINESS |
-| Version | 0.5.0 |
+| Version | 0.5.1 |
 | Status | Complete / merged through PR #53 at `544ad8cc7371caf93913ea7716f3feb68be0ea44` |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.23 deletion-marker control-plane proposal |
@@ -620,3 +620,24 @@ Gatekeeper scope: audit source-field completeness and A1/A2 contract conflicts; 
 coverage/release assumptions; rerun G2 on PostgreSQL 18 and inspect invoker privilege/snapshot boundaries;
 validate A3 privacy/retention binding and A4 authority questions. Actual provider, Legal/Privacy,
 Operations/Security and Principal Architect decisions remain mandatory before implementation approval.
+
+### FEAS-278-02: scope of epoch revocation evidence
+
+The earlier pool-based observation did not prove that the same PostgreSQL backend survived
+revocation. Its existing-session claim is superseded by a pinned `*sql.Conn` with `pg_backend_pid()`
+recorded before/after authorized SELECT, privileged revocation, denied SELECT and denied INSERT.
+Only that autocommit assertion may emit `EPOCH_REVOCATION_EXISTING_SESSION=PASS`.
+
+Additional pinned-connection transactions establish an authorized snapshot before revocation at
+Read Committed, Repeatable Read and Serializable, then report SELECT rows, INSERT SQLSTATE, actual
+isolation level, unchanged backend PID and rollback. Read Committed must deny. Successful stale-snapshot
+access is reported as `BLOCKED_STALE_SNAPSHOT_ACCESS`, not a passing universal revocation property;
+serialization failure, blocking/timeout or aborted transaction is reported separately, not silently
+reclassified as policy denial. Exact observations are in the final-head CI/PR evidence.
+
+The candidate helper does not prove immediate epoch revocation for already-open snapshot transactions.
+G2 therefore remains BLOCKED: a sealed cutover must drain/terminate incompatible transactions and
+connections before release, or require a separately approved, independently enforced epoch mechanism
+with demonstrated snapshot/lock semantics. Credential revocation or application flags alone do not
+supply that proof. Full application coverage, old workloads, broker and external controls remain
+unverified; A1–A4 and all SR maturity classifications above remain unchanged.

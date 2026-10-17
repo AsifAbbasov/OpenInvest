@@ -5,6 +5,7 @@ package privacyfeasibility
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -12,7 +13,6 @@ import (
 	"testing"
 	"time"
 
-	"errors"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -69,6 +69,11 @@ func TestG2SyntheticPostgresLifecyclePolicy(t *testing.T) {
 	if !strings.HasPrefix(version, "18") {
 		t.Fatalf("PostgreSQL 18 required, got %s", version)
 	}
+	var fullVersion string
+	if err = owner.QueryRowContext(ctx, `SELECT version()`).Scan(&fullVersion); err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("G2_ENVIRONMENT=DISPOSABLE_DATABASE version_num=%s version=%s", version, fullVersion)
 	_, err = owner.ExecContext(ctx, fmt.Sprintf(`
 CREATE ROLE %s LOGIN PASSWORD 'synthetic-local-only' NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION;
 REVOKE CREATE ON SCHEMA public FROM PUBLIC;
@@ -178,16 +183,152 @@ GRANT SELECT,INSERT ON pf.ledger TO %s;
 		t.Fatal("unrelated active subject: ", e)
 	}
 	count(1)
-	// Removing epoch admission denies an already-established session as well.
-	if _, e = owner.ExecContext(ctx, `DELETE FROM pf.manifest`); e != nil {
+	// A pool is insufficient evidence of revocation on one backend: pin it explicitly.
+	pinned, e := runtime.Conn(ctx)
+	if e != nil {
 		t.Fatal(e)
 	}
-	count(0)
-	denied(`INSERT INTO pf.ledger VALUES(4,2,1.00000000)`, "42501")
+	defer pinned.Close()
+	pid := func(q interface {
+		QueryRowContext(context.Context, string, ...any) *sql.Row
+	}) int {
+		t.Helper()
+		var value int
+		if e := q.QueryRowContext(ctx, `SELECT pg_backend_pid()`).Scan(&value); e != nil {
+			t.Fatal(e)
+		}
+		return value
+	}
+	revoker, e := owner.Conn(ctx)
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer revoker.Close()
+	beforePID := pid(pinned)
+	var ownerPID int
+	if e = revoker.QueryRowContext(ctx, `SELECT pg_backend_pid()`).Scan(&ownerPID); e != nil {
+		t.Fatal(e)
+	}
+	if ownerPID == beforePID {
+		t.Fatal("revocation must use a different privileged backend")
+	}
+	var n int
+	if e = pinned.QueryRowContext(ctx, `SELECT count(*) FROM pf.ledger WHERE subject=2`).Scan(&n); e != nil || n != 1 {
+		t.Fatalf("pinned authorized read rows=%d err=%v", n, e)
+	}
+	if pid(pinned) != beforePID {
+		t.Fatal("backend changed before revocation")
+	}
+	if _, e = revoker.ExecContext(ctx, `DELETE FROM pf.manifest`); e != nil {
+		t.Fatal(e)
+	}
+	if e = pinned.QueryRowContext(ctx, `SELECT count(*) FROM pf.ledger WHERE subject=2`).Scan(&n); e != nil || n != 0 {
+		t.Fatalf("pinned revoked read rows=%d err=%v", n, e)
+	}
+	if pid(pinned) != beforePID {
+		t.Fatal("backend changed after revoked SELECT")
+	}
+	_, e = pinned.ExecContext(ctx, `INSERT INTO pf.ledger VALUES(4,2,1.00000000)`)
+	if !errors.As(e, &pe) || pe.Code != "42501" {
+		t.Fatalf("pinned revoked INSERT: %v", e)
+	}
+	if pid(pinned) != beforePID {
+		t.Fatal("backend changed after revoked INSERT")
+	}
+	t.Logf("EPOCH_REVOCATION_EXISTING_SESSION=PASS SCOPE=AUTOCOMMIT PINNED_PID_BEFORE=%d PINNED_PID_AFTER=%d PRIVILEGED_PID=%d SELECT_ROWS=0 INSERT_SQLSTATE=42501", beforePID, pid(pinned), ownerPID)
+
+	// This is an observation of snapshot semantics, not a weakened universal-revocation oracle.
+	// Successful stale-epoch access is an explicit unresolved architecture counterexample.
+	for index, scenario := range []struct {
+		name      string
+		isolation sql.IsolationLevel
+	}{
+		{"READ_COMMITTED", sql.LevelReadCommitted},
+		{"REPEATABLE_READ", sql.LevelRepeatableRead},
+		{"SERIALIZABLE", sql.LevelSerializable},
+	} {
+		t.Run("epoch_transaction_"+scenario.name, func(t *testing.T) {
+			if _, e := revoker.ExecContext(ctx, `INSERT INTO pf.manifest VALUES($1,2)`, role); e != nil {
+				t.Fatal(e)
+			}
+			defer func() {
+				if _, e := revoker.ExecContext(ctx, `DELETE FROM pf.manifest`); e != nil {
+					t.Error(e)
+				}
+			}()
+			tx, e := pinned.BeginTx(ctx, &sql.TxOptions{Isolation: scenario.isolation})
+			if e != nil {
+				t.Fatal(e)
+			}
+			defer tx.Rollback()
+			if _, e = tx.ExecContext(ctx, `SET LOCAL lock_timeout='250ms'; SET LOCAL statement_timeout='3000ms'`); e != nil {
+				t.Fatal(e)
+			}
+			var actualIsolation string
+			if e = tx.QueryRowContext(ctx, `SHOW transaction_isolation`).Scan(&actualIsolation); e != nil {
+				t.Fatal(e)
+			}
+			if pid(tx) != beforePID {
+				t.Fatal("transaction backend changed")
+			}
+			var count int
+			if e = tx.QueryRowContext(ctx, `SELECT count(*) FROM pf.ledger WHERE subject=2`).Scan(&count); e != nil || count != 1 {
+				t.Fatalf("pre-revocation rows=%d err=%v", count, e)
+			}
+			if _, e = revoker.ExecContext(ctx, `DELETE FROM pf.manifest`); e != nil {
+				t.Fatal(e)
+			}
+			selectErr := tx.QueryRowContext(ctx, `SELECT count(*) FROM pf.ledger WHERE subject=2`).Scan(&count)
+			selectState, insertState := "00000", "NOT_ATTEMPTED_AFTER_TRANSACTION_ABORT"
+			if selectErr != nil {
+				count = -1 // no post-revocation row observation when the statement failed
+				var pgerr *pgconn.PgError
+				if !errors.As(selectErr, &pgerr) {
+					t.Fatal(selectErr)
+				}
+				selectState = pgerr.Code
+				if selectState != "40001" && selectState != "55P03" && selectState != "57014" {
+					t.Fatal(selectErr)
+				}
+			} else {
+				if count != 0 && count != 1 {
+					t.Fatalf("unexpected row count %d", count)
+				}
+				_, insertErr := tx.ExecContext(ctx, `INSERT INTO pf.ledger VALUES($1,2,1.00000000)`, 10+index)
+				insertState = "00000"
+				if insertErr != nil {
+					var pgerr *pgconn.PgError
+					if !errors.As(insertErr, &pgerr) {
+						t.Fatal(insertErr)
+					}
+					insertState = pgerr.Code
+					if insertState != "42501" && insertState != "40001" && insertState != "55P03" && insertState != "57014" {
+						t.Fatal(insertErr)
+					}
+				}
+			}
+			if scenario.isolation == sql.LevelReadCommitted && (selectErr != nil || count != 0 || insertState != "42501") {
+				t.Fatalf("Read Committed must deny after revoke: rows=%d SELECT=%s INSERT=%s", count, selectState, insertState)
+			}
+			property := "NOT_PROVEN"
+			if selectErr == nil && count == 0 && insertState == "42501" {
+				property = "PASS_TESTED_TRANSACTION"
+			}
+			if (selectErr == nil && count == 1) || insertState == "00000" {
+				property = "BLOCKED_STALE_SNAPSHOT_ACCESS"
+			}
+			// Roll back all synthetic writes; success here is still access admitted before rollback.
+			tx.Rollback()
+			if pid(pinned) != beforePID {
+				t.Fatal("backend changed after transaction")
+			}
+			t.Logf("EPOCH_TRANSACTION isolation=%s pid=%d SELECT_ROWS=%d SELECT_SQLSTATE=%s INSERT_SQLSTATE=%s PROPERTY=%s INSERTS_ROLLED_BACK=YES", actualIsolation, beforePID, count, selectState, insertState, property)
+		})
+	}
 	var secdef bool
 	if e = owner.QueryRowContext(ctx, `SELECT prosecdef FROM pg_proc WHERE oid='pf.permit(integer)'::regprocedure`).Scan(&secdef); e != nil || secdef {
 		t.Fatal("helper must be invoker", e)
 	}
-	t.Logf("G2_SYNTHETIC_POSTGRES=PASS version=%s LOCK_CONFLICT=55P03 STALE_SNAPSHOT=40001 APPEND_ONLY=PASS EPOCH_REVOCATION_EXISTING_SESSION=PASS", version)
+	t.Logf("G2_SYNTHETIC_POSTGRES=PASS version=%s LOCK_CONFLICT=55P03 STALE_SNAPSHOT=40001 APPEND_ONLY=PASS UNIVERSAL_TRANSACTION_EPOCH_REVOCATION=NOT_PROVEN", version)
 	t.Log("G2_SCOPE=ONE_SYNTHETIC_LEDGER_ONLY ACTUAL_APPLICATION_OLD_BINARY_WORKER_PROVIDER=NOT_EXECUTED")
 }

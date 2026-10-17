@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Document ID | STAGE-03-23-PRIVACY-DELETION-MARKER-PROPOSAL |
-| Version | 0.4.0 |
+| Version | 0.4.1 |
 | Status | Complete / merged through PR #52 at `f7f23bce33038f259c976db6375079c68209a7aa` |
 | Owner | Principal Architect |
 | Supersedes | None; follows merged Stage 3.22 key-custody proposal |
@@ -317,8 +317,10 @@ Primary design reference inspected 2026-10-16: [Raft extended paper](https://raf
 its crash-fault majority assumptions are not a proof of this unimplemented service.
 
 Prototype: [admission_test.py](../../experiments/privacy-feasibility/admission_test.py) uses separate
-SQLite journal and synthetic primary, FULL synchronous commits, ordered hash chain and generated
-Ed25519 test key. Process exits after journal commit before acknowledgement; reopening/retrying
+SQLite journal and a separate persistent synthetic checkpoint DB, FULL synchronous commits, ordered
+hash chain and generated Ed25519 test key. ACTIVE now requires an exact independently read committed
+checkpoint binding intent, lifecycle generation, PREPARE sequence/root and DB version; uncommitted,
+rolled-back, stale, missing or ambiguous evidence rejects, including after restart/retry. Process exits after journal commit before acknowledgement; reopening/retrying
 returns the original receipt. SQLite primary rollback and clearing primary state simulate only logical
 old-image recovery, not PostgreSQL physical recovery or fsync power-loss durability. The pinned high-water
 root is supplied by the test, not obtained from an independently operated witness. No network service,
@@ -328,3 +330,23 @@ Remaining prerequisites: independently audited service protocol/capability and f
 A3 complete binding/retention; actual crash/power-loss/quorum/partition/checkpoint-consistency tests;
 sealed restore and admission-release integration; independent operations/key-root recovery evidence.
 If all independent history or its trust anchor is lost, safe liveness is impossible: remain non-serving.
+
+### FEAS-278-01/03/04 scope correction
+
+The original 11-test prototype accepted non-canonical JSON and ACTIVE without a committed DB
+checkpoint; its historical CI did not execute G1. Those feasibility claims were incomplete, not
+production evidence. The revised 22-test prototype compares exact input bytes to canonical re-encoding;
+the payload digest, hash chain, signing input and verifier bind the same canonical bytes. It remains
+an ASCII/string/integer subset, not independently verified full RFC 8785 conformance.
+
+Checkpoint authority is a separate committed-read SQLite connection/file controlled by the test;
+it is not a signature proving a real PostgreSQL commit or an independent consensus service. Historical
+verification validates the signed checkpoint binding without requiring the primary to still exist;
+a new ACTIVE call/retry requires current matching committed evidence. Unknown acknowledgement alone
+never supplies that evidence. This distinction permits recovery quarantine without inventing a DB.
+
+Responses separate `operation_receipt` from `authoritative_current_state`, including its validated
+frontier and generation. After PREPARE → ACTIVE → CANCEL, retrying ACTIVE returns its historical receipt
+and current CANCELLED, never a new PENDING transition; restart preserves that result. This current
+state is authoritative only for the validated local history/frontier, not a distributed freshness
+promise. Missing independent coverage or a newer unknown frontier still blocks production release.
