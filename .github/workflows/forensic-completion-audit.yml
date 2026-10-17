@@ -1,0 +1,423 @@
+name: Forensic Completion Audit
+
+on:
+  push:
+    branches:
+      - chore/native-go-fuzz-targets
+    paths:
+      - ".github/workflows/forensic-completion-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: forensic-completion-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  breaker-matrix:
+    name: "Forensic breaker - ${{ matrix.scenario }}"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario:
+          - auth-rate-two-instance
+          - auth-rate-scale-eight
+          - auth-rate-concurrent
+          - auth-rate-header-spoof
+          - auth-rate-window-boundary
+          - jwt-tamper-algorithm
+          - jwt-canonicalization
+          - jwt-semantic-fuzz
+          - provider-deadline-storm
+          - provider-capacity-saturation
+          - browser-security-headers
+          - browser-typecheck
+          - browser-build
+          - http-session-theft
+          - postgres-session-theft
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: forensic-audit
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - name: Set up Go
+        if: ${{ !startsWith(matrix.scenario, 'browser-') }}
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+
+      - name: Set up Node
+        if: ${{ startsWith(matrix.scenario, 'browser-') }}
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.22.2"
+
+      - name: Install frontend dependencies
+        if: ${{ startsWith(matrix.scenario, 'browser-') }}
+        working-directory: frontend-next
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare pnpm@11.8.0 --activate
+          pnpm install --frozen-lockfile
+
+      - name: Apply PostgreSQL migrations for DB theft scenario
+        if: ${{ matrix.scenario == 'postgres-session-theft' }}
+        run: |
+          set -euo pipefail
+          for migration in infrastructure/postgres/migrations/*.up.sql; do
+            psql "postgres://openinvest:forensic-audit@127.0.0.1:5432/openinvest?sslmode=disable" -v ON_ERROR_STOP=1 < "$migration"
+          done
+
+      - name: Execute scenario independently
+        env:
+          OPENINVEST_SECURITY_BREAKER_TESTS: "1"
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:forensic-audit@127.0.0.1:5432/openinvest?sslmode=disable
+        run: |
+          set -uo pipefail
+          mkdir -p forensic-logs
+          log="forensic-logs/${{ matrix.scenario }}.log"
+          status=0
+          case "${{ matrix.scenario }}" in
+            auth-rate-two-instance)
+              (cd backend-go && go test -race ./internal/httpapi -run='^TestSecurityBreakerAuthRateLimitMustBeSharedAcrossInstances$' -count=100 -v) 2>&1 | tee "$log" || status=$?
+              ;;
+            auth-rate-scale-eight)
+              (cd backend-go && go test -race ./internal/httpapi -run='^TestSecurityBreakerAuthRateLimitAmplificationDoesNotScaleWithInstanceCount$' -count=100 -v) 2>&1 | tee "$log" || status=$?
+              ;;
+            auth-rate-concurrent)
+              (cd backend-go && go test -race ./internal/httpapi -run='^TestSecurityBreakerAuthRateLimitConcurrentCrossInstanceBurstCannotMultiplyBudget$' -count=100 -v) 2>&1 | tee "$log" || status=$?
+              ;;
+            auth-rate-header-spoof)
+              (cd backend-go && go test -race ./internal/httpapi -run='^TestSecurityBreakerAuthRateLimitHeaderRotationCannotCreateFreshBudget$' -count=100 -v) 2>&1 | tee "$log" || status=$?
+              ;;
+            auth-rate-window-boundary)
+              (cd backend-go && go test -race ./internal/httpapi -run='^TestSecurityBreakerAuthRateLimiterWindowBoundaryDoesNotDoubleSpend$' -count=100 -v) 2>&1 | tee "$log" || status=$?
+              ;;
+            jwt-tamper-algorithm)
+              (cd backend-go && go test -race ./internal/auth -run='^TestAuthTheftAccessTokenTamperingAndAlgorithmConfusionRejected$' -count=500 -v) 2>&1 | tee "$log" || status=$?
+              ;;
+            jwt-canonicalization)
+              (cd backend-go && go test -race ./internal/auth -run='^TestSecurityBreakerJWTRejectsNonCanonicalBase64Aliases$' -count=500 -v) 2>&1 | tee "$log" || status=$?
+              ;;
+            jwt-semantic-fuzz)
+              (cd backend-go && go test ./internal/auth -run='^$' -fuzz='^FuzzAuthTheftMutatedSignedBearerNeverAuthenticates$' -fuzztime=5h -timeout=5h10m) 2>&1 | tee "$log" || status=$?
+              ;;
+            provider-deadline-storm)
+              (cd backend-go && go test -race ./internal/provider/tinvest -run='^TestProviderResilienceRepeatedDeadlineStormDrainsAllCapacityAndRecovers$' -count=100 -timeout=45m -v) 2>&1 | tee "$log" || status=$?
+              ;;
+            provider-capacity-saturation)
+              (cd backend-go && go test -race ./internal/provider/tinvest -run='^TestProviderResilienceConcurrencyAdmissionIsFailFastUnderSaturation$' -count=500 -timeout=45m -v) 2>&1 | tee "$log" || status=$?
+              ;;
+            browser-security-headers)
+              (cd frontend-next && node --test tests/security-headers.test.mjs) 2>&1 | tee "$log" || status=$?
+              ;;
+            browser-typecheck)
+              (cd frontend-next && pnpm run typecheck) 2>&1 | tee "$log" || status=$?
+              ;;
+            browser-build)
+              (cd frontend-next && pnpm run build) 2>&1 | tee "$log" || status=$?
+              ;;
+            http-session-theft)
+              (cd backend-go && go test -race ./internal/httpapi -run='^TestAuthTheft' -count=500 -timeout=90m -v) 2>&1 | tee "$log" || status=$?
+              ;;
+            postgres-session-theft)
+              (cd backend-go && go test -race ./internal/postgres -run='^TestAuthTheftPostgres' -count=100 -timeout=90m -v) 2>&1 | tee "$log" || status=$?
+              ;;
+          esac
+          echo "SCENARIO_STATUS=$status" | tee -a "$log"
+          exit "$status"
+
+      - name: Archive scenario evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: forensic-${{ matrix.scenario }}-${{ github.run_id }}
+          path: forensic-logs/**
+          if-no-files-found: warn
+
+      - name: Archive fuzz corpus
+        if: ${{ always() && matrix.scenario == 'jwt-semantic-fuzz' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: forensic-jwt-fuzz-corpus-${{ github.run_id }}
+          path: backend-go/internal/auth/testdata/fuzz/**
+          if-no-files-found: ignore
+
+  process-kill:
+    name: "Forensic chaos - process kill before COMMIT"
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: forensic-audit
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Prepare witness
+        run: |
+          set -euo pipefail
+          mkdir -p forensic-logs
+          psql "postgres://openinvest:forensic-audit@127.0.0.1:5432/openinvest?sslmode=disable" -v ON_ERROR_STOP=1 -c             "CREATE TABLE public.chaos_commit_witness(id bigserial PRIMARY KEY, marker text NOT NULL UNIQUE);"
+
+      - name: Run two-hour kill campaign and collect every failure
+        id: kill
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          url="postgres://openinvest:forensic-audit@127.0.0.1:5432/openinvest?sslmode=disable"
+          log="forensic-logs/process-kill.log"
+          end=$((SECONDS + 7200))
+          failures=0
+          i=0
+          while (( SECONDS < end )); do
+            i=$((i+1))
+            marker="kill-$i"
+            PGAPPNAME="forensic-kill-$i" psql "$url" -v ON_ERROR_STOP=1 -c               "BEGIN; INSERT INTO public.chaos_commit_witness(marker) VALUES ('$marker'); SELECT pg_sleep(30); COMMIT;" >>"$log" 2>&1 &
+            client=$!
+            sleep 0.25
+            kill -9 "$client" 2>/dev/null || true
+            wait "$client" 2>/dev/null || true
+
+            count="$(psql "$url" -At -c "SELECT count(*) FROM public.chaos_commit_witness WHERE marker='$marker';" 2>/dev/null || echo error)"
+            active="$(psql "$url" -At -c "SELECT count(*) FROM pg_stat_activity WHERE application_name='forensic-kill-$i';" 2>/dev/null || echo error)"
+            if [[ "$count" != "0" || "$active" != "0" ]]; then
+              failures=$((failures+1))
+              echo "FAIL iteration=$i count=$count active=$active" | tee -a "$log"
+            fi
+          done
+          echo "ITERATIONS=$i FAILURES=$failures" | tee -a "$log"
+          test "$failures" -eq 0
+
+      - name: Post-kill database integrity
+        id: integrity
+        if: always()
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          url="postgres://openinvest:forensic-audit@127.0.0.1:5432/openinvest?sslmode=disable"
+          log="forensic-logs/process-kill-integrity.log"
+          psql "$url" -v ON_ERROR_STOP=1 -c "CHECKPOINT; SELECT count(*) FROM public.chaos_commit_witness;" 2>&1 | tee "$log"
+
+      - name: Archive process-kill evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: forensic-process-kill-${{ github.run_id }}
+          path: forensic-logs/**
+          if-no-files-found: warn
+
+      - name: Enforce process-kill result
+        if: always()
+        run: |
+          test "${{ steps.kill.outcome }}" = "success"
+          test "${{ steps.integrity.outcome }}" = "success"
+
+  network-partition:
+    name: "Forensic chaos - Docker network partition"
+    runs-on: ubuntu-latest
+    timeout-minutes: 210
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: forensic-audit
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Prepare witness
+        run: |
+          set -euo pipefail
+          mkdir -p forensic-logs
+          psql "postgres://openinvest:forensic-audit@127.0.0.1:5432/openinvest?sslmode=disable" -v ON_ERROR_STOP=1 -c             "CREATE TABLE public.network_witness(id bigserial PRIMARY KEY, marker text NOT NULL UNIQUE);"
+
+      - name: Run three-hour independent partition campaign
+        id: partition
+        continue-on-error: true
+        env:
+          DB_CONTAINER: ${{ job.services.postgres.id }}
+        run: |
+          set -uo pipefail
+          url="postgres://openinvest:forensic-audit@127.0.0.1:5432/openinvest?sslmode=disable"
+          log="forensic-logs/network-partition.log"
+          network="$(docker inspect -f '{{range $name, $_ := .NetworkSettings.Networks}}{{$name}}{{"\n"}}{{end}}' "$DB_CONTAINER" | head -n1)"
+          if [[ -z "$network" ]]; then echo "NO_NETWORK_DISCOVERED" | tee -a "$log"; exit 1; fi
+          end=$((SECONDS + 10800))
+          failures=0
+          i=0
+          while (( SECONDS < end )); do
+            i=$((i+1))
+            docker network disconnect "$network" "$DB_CONTAINER" >>"$log" 2>&1 || failures=$((failures+1))
+            sleep 2
+            if psql "$url" -At -c 'SELECT 1' >/dev/null 2>&1; then
+              echo "FAIL partition ineffective iteration=$i" | tee -a "$log"
+              failures=$((failures+1))
+            fi
+            docker network connect "$network" "$DB_CONTAINER" >>"$log" 2>&1 || failures=$((failures+1))
+            recovered=0
+            for n in {1..90}; do
+              [[ "$(psql "$url" -At -c 'SELECT 1' 2>/dev/null || true)" == "1" ]] && { recovered=1; break; }
+              sleep 1
+            done
+            if (( recovered == 0 )); then
+              echo "FAIL recovery timeout iteration=$i" | tee -a "$log"
+              failures=$((failures+1))
+              continue
+            fi
+            psql "$url" -v ON_ERROR_STOP=1 -c "INSERT INTO public.network_witness(marker) VALUES ('recovered-$i');" >>"$log" 2>&1 || failures=$((failures+1))
+          done
+          echo "ITERATIONS=$i FAILURES=$failures" | tee -a "$log"
+          test "$failures" -eq 0
+
+      - name: Archive network evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: forensic-network-partition-${{ github.run_id }}
+          path: forensic-logs/**
+          if-no-files-found: warn
+
+      - name: Enforce network result
+        if: always()
+        run: test "${{ steps.partition.outcome }}" = "success"
+
+  enospc:
+    name: "Forensic chaos - PostgreSQL ENOSPC full lifecycle"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Run five-hour ENOSPC fault/restart/recovery campaign
+        id: enospc
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          mkdir -p forensic-logs
+          log="forensic-logs/enospc.log"
+          end=$((SECONDS + 18000))
+          cycles=0
+          failures=0
+          while (( SECONDS < end )); do
+            cycles=$((cycles+1))
+            name="forensic-enospc-$cycles"
+            docker rm -f "$name" >/dev/null 2>&1 || true
+            docker run -d --name "$name"               --tmpfs /var/lib/postgresql/data:rw,size=512m               -e POSTGRES_DB=openinvest -e POSTGRES_USER=openinvest -e POSTGRES_PASSWORD=forensic               postgres:18 >>"$log" 2>&1
+            for n in {1..90}; do
+              docker exec "$name" pg_isready -U openinvest -d openinvest >/dev/null 2>&1 && break
+              sleep 1
+            done
+            docker exec "$name" psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 -c               "CREATE EXTENSION IF NOT EXISTS pgcrypto; CREATE TABLE pressure(id bigserial PRIMARY KEY, marker text UNIQUE, payload bytea NOT NULL); INSERT INTO pressure(marker,payload) VALUES ('baseline','baseline'::bytea);" >>"$log" 2>&1 || failures=$((failures+1))
+
+            available_kb="$(docker exec "$name" df -Pk /var/lib/postgresql/data | awk 'NR==2 {print $4}' 2>/dev/null || echo 0)"
+            fill_kb=$((available_kb - 65536))
+            if (( fill_kb <= 0 )); then
+              echo "FAIL insufficient tmpfs space cycle=$cycles" | tee -a "$log"
+              failures=$((failures+1))
+              docker rm -f "$name" >/dev/null 2>&1 || true
+              continue
+            fi
+            docker exec -u 0 "$name" sh -c "dd if=/dev/zero of=/var/lib/postgresql/data/chaos.fill bs=1024 count=$fill_kb status=none" >>"$log" 2>&1 || true
+
+            docker exec "$name" psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 -c               "INSERT INTO pressure(marker,payload) SELECT 'fault-'||g, gen_random_bytes(1024) FROM generate_series(1,120000) g;" >>"$log" 2>&1
+            write_status=$?
+            running="$(docker inspect -f '{{.State.Running}}' "$name" 2>/dev/null || echo false)"
+            echo "cycle=$cycles write_status=$write_status running_after_fault=$running" | tee -a "$log"
+
+            if [[ "$write_status" == "0" ]]; then
+              echo "FAIL ENOSPC write unexpectedly succeeded cycle=$cycles" | tee -a "$log"
+              failures=$((failures+1))
+            fi
+
+            if [[ "$running" == "true" ]]; then
+              docker exec -u 0 "$name" rm -f /var/lib/postgresql/data/chaos.fill >>"$log" 2>&1 || failures=$((failures+1))
+            else
+              echo "DATABASE_STOPPED_UNDER_ENOSPC cycle=$cycles" | tee -a "$log"
+              failures=$((failures+1))
+              docker start "$name" >>"$log" 2>&1 || true
+            fi
+
+            recovered=0
+            for n in {1..90}; do
+              docker exec "$name" pg_isready -U openinvest -d openinvest >/dev/null 2>&1 && { recovered=1; break; }
+              sleep 1
+            done
+            if (( recovered == 0 )); then
+              echo "FAIL database did not recover cycle=$cycles" | tee -a "$log"
+              failures=$((failures+1))
+              docker logs "$name" >>"$log" 2>&1 || true
+              docker rm -f "$name" >/dev/null 2>&1 || true
+              continue
+            fi
+
+            baseline="$(docker exec "$name" psql -U openinvest -d openinvest -At -c "SELECT count(*) FROM pressure WHERE marker='baseline';" 2>/dev/null || echo error)"
+            if [[ "$baseline" != "1" ]]; then
+              echo "FAIL baseline lost cycle=$cycles baseline=$baseline" | tee -a "$log"
+              failures=$((failures+1))
+            fi
+            docker exec "$name" psql -U openinvest -d openinvest -v ON_ERROR_STOP=1 -c               "CHECKPOINT; INSERT INTO pressure(marker,payload) VALUES ('recovered','ok'::bytea) ON CONFLICT DO NOTHING; SELECT count(*) FROM pressure;" >>"$log" 2>&1 || failures=$((failures+1))
+            docker rm -f "$name" >/dev/null 2>&1 || true
+          done
+          echo "CYCLES=$cycles FAILURES=$failures" | tee -a "$log"
+          test "$failures" -eq 0
+
+      - name: Archive ENOSPC evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: forensic-enospc-${{ github.run_id }}
+          path: forensic-logs/**
+          if-no-files-found: warn
+
+      - name: Enforce ENOSPC result
+        if: always()
+        run: test "${{ steps.enospc.outcome }}" = "success"
+
+  summary:
+    name: "Forensic audit final gate"
+    if: always()
+    needs:
+      - breaker-matrix
+      - process-kill
+      - network-partition
+      - enospc
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail only after all independent scenarios completed
+        run: |
+          echo "breaker-matrix=${{ needs.breaker-matrix.result }}"
+          echo "process-kill=${{ needs.process-kill.result }}"
+          echo "network-partition=${{ needs.network-partition.result }}"
+          echo "enospc=${{ needs.enospc.result }}"
+          test "${{ needs.breaker-matrix.result }}" = "success"
+          test "${{ needs.process-kill.result }}" = "success"
+          test "${{ needs.network-partition.result }}" = "success"
+          test "${{ needs.enospc.result }}" = "success"

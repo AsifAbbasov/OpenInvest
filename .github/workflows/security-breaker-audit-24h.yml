@@ -1,0 +1,188 @@
+name: Security Breaker Audit 24h
+# launch-group: simultaneous-2026-10-06T17:35Z
+# launch: maximum-pressure-v3
+
+on:
+  push:
+    branches:
+      - chore/native-go-fuzz-targets
+    paths:
+      - ".github/workflows/security-breaker-audit-24h.yml"
+      - "backend-go/internal/httpapi/auth_rate_limit_breaker_test.go"
+      - "backend-go/internal/httpapi/auth_theft_adversarial_test.go"
+      - "backend-go/internal/auth/auth_theft_adversarial_test.go"
+      - "backend-go/internal/postgres/auth_theft_adversarial_integration_test.go"
+      - "backend-go/internal/provider/tinvest/provider_resilience_adversarial_test.go"
+      - "frontend-next/tests/security-headers.test.mjs"
+      - "frontend-next/next.config.ts"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  distributed-auth-rate-limit-breaker:
+    name: "Breaker 1 - Distributed auth rate-limit bypass"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Cross-instance, concurrency, window and spoof breaker matrix
+        env:
+          OPENINVEST_SECURITY_BREAKER_TESTS: "1"
+        run: |
+          set -euo pipefail
+          go test -race ./internal/httpapi -run='^TestSecurityBreakerAuthRate' -count=100 -v
+
+  jwt-bearer-breaker:
+    name: "Breaker 2 - JWT canonicalization and semantic mutation"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Deterministic JWT theft matrix
+        env:
+          OPENINVEST_SECURITY_BREAKER_TESTS: "1"
+        run: |
+          set -euo pipefail
+          go test -race ./internal/auth -run='^(TestAuthTheftAccessToken|TestSecurityBreakerJWT)' -count=100 -v
+      - name: Five-hour semantic JWT mutation fuzz
+        run: |
+          set -euo pipefail
+          go test ./internal/auth -run='^$' -fuzz='^FuzzAuthTheftMutatedSignedBearerNeverAuthenticates$' -fuzztime=5h -timeout=5h10m
+      - name: Archive JWT fuzz findings
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: security-breaker-jwt-fuzz-corpus
+          path: backend-go/internal/auth/testdata/fuzz/**
+          if-no-files-found: ignore
+
+  http-session-replay-breaker:
+    name: "Breaker 3 - Cookie, CSRF, replay and limiter interaction"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Five-hour HTTP stolen-session regression soak
+        run: |
+          set -euo pipefail
+          end=$((SECONDS + 18000))
+          iteration=0
+          while (( SECONDS < end )); do
+            iteration=$((iteration + 1))
+            echo "HTTP_SESSION_REPLAY_ITERATION=$iteration"
+            go test -race ./internal/httpapi -run='^TestAuthTheft' -count=20
+          done
+
+  postgres-session-theft-breaker:
+    name: "Breaker 4 - PostgreSQL multi-instance stolen-session containment"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: openinvest
+          POSTGRES_USER: openinvest
+          POSTGRES_PASSWORD: breaker-audit
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U openinvest -d openinvest"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Apply migrations
+        working-directory: .
+        run: |
+          set -euo pipefail
+          for migration in infrastructure/postgres/migrations/*.up.sql; do
+            psql "postgres://openinvest:breaker-audit@127.0.0.1:5432/openinvest?sslmode=disable" -v ON_ERROR_STOP=1 < "$migration"
+          done
+      - name: Five-hour stolen-session PostgreSQL race soak
+        env:
+          OPENINVEST_DATABASE_TEST_URL: postgres://openinvest:breaker-audit@127.0.0.1:5432/openinvest?sslmode=disable
+        run: |
+          set -euo pipefail
+          end=$((SECONDS + 18000))
+          iteration=0
+          while (( SECONDS < end )); do
+            iteration=$((iteration + 1))
+            echo "POSTGRES_SESSION_THEFT_ITERATION=$iteration"
+            go test -race ./internal/postgres -run='^TestAuthTheftPostgres' -count=10
+          done
+
+  provider-exhaustion-breaker:
+    name: "Breaker 5 - Provider deadline and capacity exhaustion"
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Five-hour provider deadline and saturation soak
+        run: |
+          set -euo pipefail
+          end=$((SECONDS + 18000))
+          iteration=0
+          while (( SECONDS < end )); do
+            iteration=$((iteration + 1))
+            echo "PROVIDER_RESILIENCE_ITERATION=$iteration"
+            timeout 60s go test -race ./internal/provider/tinvest -run='^TestProviderResilience' -count=1 -timeout=55s
+          done
+
+  browser-hardening-breaker:
+    name: "Breaker 6 - Browser hardening regression"
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.22.2"
+      - name: Install frontend dependencies
+        working-directory: frontend-next
+        run: corepack enable && corepack prepare pnpm@11.8.0 --activate && pnpm install --frozen-lockfile
+      - name: Enforce security headers as executable configuration
+        working-directory: frontend-next
+        run: |
+          set -euo pipefail
+          node --test tests/security-headers.test.mjs
+          pnpm run typecheck
+          pnpm run build

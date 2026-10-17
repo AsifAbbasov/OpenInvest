@@ -163,6 +163,7 @@ func cleanupPortfolioRows(t *testing.T, ctx context.Context, db *sql.DB, portfol
 		},
 		{name: "portfolio snapshots", query: `DELETE FROM analytics.portfolio_snapshots WHERE portfolio_id = $1`},
 		{name: "calculation runs", query: `DELETE FROM analytics.calculation_runs WHERE portfolio_id = $1`},
+		{name: "manual valuations", query: `DELETE FROM investment.portfolio_manual_valuations WHERE portfolio_id = $1`},
 		{name: "transaction entries", query: `DELETE FROM investment.transaction_entries WHERE portfolio_id = $1`},
 		{name: "portfolio", query: `DELETE FROM investment.portfolios WHERE id = $1`},
 	}
