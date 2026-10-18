@@ -248,15 +248,30 @@ func exactAnnualTwoFlowRate(flows []PortfolioReturnCashFlow) (decimal.Decimal, b
 	}
 
 	principal := decimal.Zero().Sub(flows[0].Amount)
-	rate, err := flows[1].Amount.Sub(principal).Div(principal)
+	change := flows[1].Amount.Sub(principal)
+	rate, err := change.Div(principal)
 	if err != nil || !rate.FitsStorage() || !rate.Add(decimal.Must("1.00000000")).IsPositive() {
 		return decimal.Zero(), true, errors.New("one-year XIRR is outside canonical Decimal or rate domain")
 	}
 
-	// Preserve the pre-existing public float-resolution boundary even though
-	// the arithmetic above is exact. Relaxing that policy is a separate decision.
-	approximation, err := strconv.ParseFloat(rate.String(), 64)
-	if err != nil || math.IsNaN(approximation) || math.IsInf(approximation, 0) {
+	// The legacy numerical-resolution guard applies to the unquantized root,
+	// NOT to the already scale-8 rounded public Decimal. At a binary exponent
+	// boundary, rounding may increase the float64 ULP and falsely turn an
+	// otherwise supported rate into NUMERICAL_SOLUTION_FAILED.
+	//
+	// Both operands are bounded canonical Decimals. Convert their *exact*
+	// ratio to the nearest float64 only to enforce the existing ULP limit;
+	// the published Half-Even Decimal rate above never depends on this float.
+	numerator, ok := new(big.Rat).SetString(change.String())
+	if !ok {
+		return decimal.Zero(), true, errors.New("invalid one-year XIRR numerator")
+	}
+	denominator, ok := new(big.Rat).SetString(principal.String())
+	if !ok {
+		return decimal.Zero(), true, errors.New("invalid one-year XIRR denominator")
+	}
+	approximation, _ := new(big.Rat).Quo(numerator, denominator).Float64()
+	if math.IsNaN(approximation) || math.IsInf(approximation, 0) {
 		return decimal.Zero(), true, errors.New("one-year XIRR is not finite")
 	}
 	nextGap := math.Abs(math.Nextafter(approximation, math.Inf(1)) - approximation)
