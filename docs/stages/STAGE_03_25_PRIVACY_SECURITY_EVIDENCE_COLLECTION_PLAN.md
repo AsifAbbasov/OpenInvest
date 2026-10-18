@@ -15,6 +15,14 @@ Metadata provenance: [original recorded values](https://github.com/AsifAbbasov/O
 Owner follows Documents 42–43; recorded dates/triggers do not independently prove a review occurred
 or establish a new review, approval, deadline or completed evidence collection.
 
+## Navigation (non-normative)
+
+- [EC-01–EC-10 evidence workstreams](#required-evidence-workstreams) define the original minimum requirements, alongside [evidence-handling rules](#evidence-handling-rules).
+- [Historical bounded model v1](#historical-bounded-abstract-validation-v1) retains its original evidence and limits.
+- [Executable targeted model v2](#executable-targeted-model-v2) remains synthetic, with [unrepresented integration obligations](#integration-obligations-not-represented-faithfully-by-v2).
+- [G2 transaction-gate feasibility evidence](#g2-transaction-gate-experiment-and-collection-delta-2026-10-17) records scoped experiments, not production approval.
+- [Remaining verification requirements](#integration-obligations-not-represented-faithfully-by-v2) and [collection sequence](#collection-sequence) remain prerequisites for independent Security Review.
+
 ## Purpose
 
 Stage 3.24 establishes that formal Security Review remains blocked until independently assembled

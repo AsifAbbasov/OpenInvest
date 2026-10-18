@@ -15,6 +15,13 @@ Metadata provenance: [original recorded values](https://github.com/AsifAbbasov/O
 Owner follows Documents 42–43; recorded dates/triggers do not independently prove a review occurred
 or establish a new review, approval, deadline or completed evidence collection.
 
+## Navigation (non-normative)
+
+- [Original SR-01–SR-12 review questions](#required-security-review-questions) define minimum proof; [readiness outcomes](#readiness-outcomes) retain the original decision boundary.
+- [Architecture remediation candidate](#architecture-remediation-candidate-v1) and [mandatory G2 compatibility enforcement](#mandatory-compatibility-enforcement-g2) describe proposals, not deployed controls.
+- [Bounded G1/G2 feasibility evidence](#g2-tested-mechanism-and-mandatory-remaining-boundary) and [transaction-safe G2 candidate](#g2-transaction-safe-feasibility-candidate-2026-10-17) preserve experiments and counterexamples.
+- [Revised SR maturity](#revised-sr-maturity-and-evidence) and [approval limits](#safety-claims-maturity-and-approval-limits) locate dated findings and still-unresolved obligations; no Security Review or ADR-008 approval is implied.
+
 ## Purpose
 
 Documents 42-43 and proposed ADR-008 require an explicit Security Review and Principal Architect
