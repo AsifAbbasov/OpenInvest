@@ -4,6 +4,7 @@ package verticalslice
 import (
 	"fmt"
 	"math"
+	"math/big"
 	"strconv"
 	"testing"
 	"time"
@@ -17,6 +18,12 @@ func FuzzXIRRTwoTermProjection(f *testing.F) {
 	f.Add(uint64(1), uint64(1), uint16(1))
 	f.Add(uint64(1_000_000), uint64(2_000_000), uint16(730))
 
+	// 365-day positive/negative and exact Half-Even tie controls (raw values increment by one).
+	f.Add(uint64(99), uint64(109), uint16(364))
+	f.Add(uint64(99), uint64(79), uint16(364))
+	f.Add(uint64(199999999), uint64(200000000), uint16(364))
+	f.Add(uint64(199999999), uint64(200000002), uint16(364))
+	f.Add(uint64(199999999), uint64(199999998), uint16(364))
 	f.Fuzz(func(t *testing.T, principalRaw uint64, terminalRaw uint64, daysRaw uint16) {
 		principal := principalRaw%1_000_000_000 + 1
 		terminal := terminalRaw%1_000_000_000 + 1
@@ -43,6 +50,14 @@ func FuzzXIRRTwoTermProjection(f *testing.F) {
 		if err != nil {
 			t.Fatalf("valid two-term XIRR input returned error: %v", err)
 		}
+		if days == 365 {
+			// Closed-form one-year reference using exact integer arithmetic,
+			// independent of the production XIRR solver and Decimal rounding.
+			want := nativeOneYearRate(principal, terminal)
+			if first.Status != PortfolioReturnAvailableStatus || first.XIRR == nil || first.XIRR.String() != want {
+				t.Fatalf("one-year financial oracle: projection=%+v want=%s", first, want)
+			}
+		}
 		second, err := BuildPortfolioReturnProjection("fuzz-portfolio", asOf, flows, &terminalMoney, true)
 		if err != nil {
 			t.Fatalf("identical two-term XIRR input returned error on second run: %v", err)
@@ -67,4 +82,25 @@ func FuzzXIRRTwoTermProjection(f *testing.F) {
 			}
 		}
 	})
+}
+
+// nativeOneYearRate quantizes (terminal-principal)/principal to scale 8, Half-Even.
+func nativeOneYearRate(principal, terminal uint64) string {
+	n := new(big.Int).Sub(new(big.Int).SetUint64(terminal), new(big.Int).SetUint64(principal))
+	negative := n.Sign() < 0
+	n.Abs(n).Mul(n, big.NewInt(100000000))
+	denominator := new(big.Int).SetUint64(principal)
+	q, rem := new(big.Int), new(big.Int)
+	q.QuoRem(n, denominator, rem)
+	cmp := new(big.Int).Lsh(rem, 1).Cmp(denominator)
+	if cmp > 0 || (cmp == 0 && q.Bit(0) == 1) {
+		q.Add(q, big.NewInt(1))
+	}
+	whole, fraction := new(big.Int), new(big.Int)
+	whole.QuoRem(q, big.NewInt(100000000), fraction)
+	sign := ""
+	if negative && q.Sign() != 0 {
+		sign = "-"
+	}
+	return fmt.Sprintf("%s%s.%08d", sign, whole.String(), fraction.Int64())
 }
