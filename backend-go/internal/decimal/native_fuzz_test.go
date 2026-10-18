@@ -46,6 +46,12 @@ func FuzzFromString(f *testing.F) {
 		if err != nil {
 			t.Fatalf("canonical Decimal failed to parse: input=%q canonical=%q err=%v", input, canonical, err)
 		}
+		if canonical != value.String() || canonical != roundTrip.String() {
+			t.Fatal("canonical formatting is not stable/idempotent")
+		}
+		if len(canonical) > maxLexicalBytes {
+			t.Fatalf("canonical lexical length %d exceeds %d", len(canonical), maxLexicalBytes)
+		}
 		if !value.Equal(roundTrip) {
 			t.Fatalf("Decimal round trip changed value: input=%q canonical=%q", input, canonical)
 		}
