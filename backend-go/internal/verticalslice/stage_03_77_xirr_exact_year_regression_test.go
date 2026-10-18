@@ -1,6 +1,7 @@
 package verticalslice
 
 import (
+	"math"
 	"testing"
 
 	"github.com/openinvest/openinvest/backend-go/internal/decimal"
@@ -74,6 +75,12 @@ func TestXIRRExactYearPublicNumericalRange(t *testing.T) {
 		{"near minus one quantizes outside domain", "100000000.00000000", "0.00000001", "", PortfolioReturnUnavailableStatus, PortfolioReturnReasonNumericalSolutionFailed},
 		{"high reliable rate", "100.00000000", "10000100.00000000", "100000.00000000", PortfolioReturnAvailableStatus, ""},
 		{"existing float resolution boundary", "100.00000000", "9000000100.00000000", "", PortfolioReturnUnavailableStatus, PortfolioReturnReasonNumericalSolutionFailed},
+		// XIRR-284-01: the exact rate lies below 2^19 while its Half-Even
+		// quantization lies on 2^19, whose upper float64 ULP is larger.
+		{"just below float exponent boundary by 2 nanos", "10.00000000", "5242889.99999998", "524288.00000000", PortfolioReturnAvailableStatus, ""},
+		{"Gatekeeper float exponent boundary original", "10.00000000", "5242889.99999999", "524288.00000000", PortfolioReturnAvailableStatus, ""},
+		{"exact float exponent boundary rejected by legacy policy", "10.00000000", "5242890.00000000", "", PortfolioReturnUnavailableStatus, PortfolioReturnReasonNumericalSolutionFailed},
+		{"just above float exponent boundary rejected by legacy policy", "10.00000000", "5242890.00000001", "", PortfolioReturnUnavailableStatus, PortfolioReturnReasonNumericalSolutionFailed},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			got, err := BuildPortfolioReturnProjection(
@@ -125,5 +132,35 @@ func TestXIRRAdjacentDayCountRetainsACT365Solver(t *testing.T) {
 					tc.days, got.Status, got.Reason, got.XIRR, tc.want)
 			}
 		})
+	}
+}
+
+// TestXIRRExactYearLegacyNumericalBoundaryParity verifies the pre-fix
+// production call path actually accepts the exact Gatekeeper counterexample.
+// The main projection must keep that public status while using a rational
+// quotient for Half-Even formatting.
+func TestXIRRExactYearLegacyNumericalBoundaryParity(t *testing.T) {
+	combined := []PortfolioReturnCashFlow{
+		{Date: "2000-01-01", Amount: decimal.Must("-10.00000000")},
+		{Date: "2000-12-31", Amount: decimal.Must("5242889.99999999")},
+	}
+	terms, err := xirrTerms(combined)
+	if err != nil {
+		t.Fatal(err)
+	}
+	roots, err := isolateExponentialRoots(terms)
+	if err != nil || len(roots) != 1 {
+		t.Fatalf("legacy two-term root: roots=%v err=%v", roots, err)
+	}
+	legacy, err := quantizeXIRR(math.Expm1(roots[0]), terms, combined)
+	if err != nil || legacy.String() != "524288.00000000" {
+		t.Fatalf("pre-fix public numerical path was not AVAILABLE: legacy=%v err=%v", legacy, err)
+	}
+	got, err := BuildPortfolioReturnProjection(
+		"p", "2000-12-31", combined[:1], stage377Money("5242889.99999999"), true,
+	)
+	if err != nil || got.Status != PortfolioReturnAvailableStatus ||
+		got.XIRR == nil || got.XIRR.String() != legacy.String() {
+		t.Fatalf("public boundary drifted from historical AVAILABLE: projection=%+v err=%v", got, err)
 	}
 }
