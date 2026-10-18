@@ -51,11 +51,27 @@ func FuzzXIRRTwoTermProjection(f *testing.F) {
 			t.Fatalf("valid two-term XIRR input returned error: %v", err)
 		}
 		if days == 365 {
-			// Closed-form one-year reference using exact integer arithmetic,
-			// independent of the production XIRR solver and Decimal rounding.
+			// The independent rational oracle is binding whenever the public
+			// scale-8 result is within the supported numerical resolution domain.
+			// An input that rounds to -1 or exceeds the established float64
+			// resolution guard must fail closed, never return a fabricated rate.
 			want := nativeOneYearRate(principal, terminal)
-			if first.Status != PortfolioReturnAvailableStatus || first.XIRR == nil || first.XIRR.String() != want {
-				t.Fatalf("one-year financial oracle: projection=%+v want=%s", first, want)
+			oracleRate, parseErr := strconv.ParseFloat(want, 64)
+			if parseErr != nil {
+				t.Fatalf("invalid rational financial oracle %q: %v", want, parseErr)
+			}
+			nextGap := math.Abs(math.Nextafter(oracleRate, math.Inf(1)) - oracleRate)
+			previousGap := math.Abs(oracleRate - math.Nextafter(oracleRate, math.Inf(-1)))
+			representable := want != "-1.00000000" &&
+				math.Max(nextGap, previousGap) < 1e-8/128 &&
+				math.Abs(oracleRate*1e8) < 1<<53
+			if representable {
+				if first.Status != PortfolioReturnAvailableStatus || first.XIRR == nil || first.XIRR.String() != want {
+					t.Fatalf("one-year financial oracle: projection=%+v want=%s", first, want)
+				}
+			} else if first.Status != PortfolioReturnUnavailableStatus ||
+				first.Reason != PortfolioReturnReasonNumericalSolutionFailed || first.XIRR != nil {
+				t.Fatalf("out-of-domain one-year rate must fail closed: projection=%+v exact-oracle=%s", first, want)
 			}
 		}
 		second, err := BuildPortfolioReturnProjection("fuzz-portfolio", asOf, flows, &terminalMoney, true)
