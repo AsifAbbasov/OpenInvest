@@ -165,6 +165,20 @@ func BuildPortfolioReturnProjection(
 		return projection, nil
 	}
 
+	// An exact ACT/365 year has a closed-form two-flow rate. The logarithmic
+	// float64 solver can land on the wrong side of a scale-8 Half-Even tie.
+	// Keep the existing public numerical resolution limits for this narrow path.
+	if rate, applicable, err := exactAnnualTwoFlowRate(combined); applicable {
+		if err != nil {
+			projection.Reason = PortfolioReturnReasonNumericalSolutionFailed
+			return projection, nil
+		}
+		projection.Status = PortfolioReturnAvailableStatus
+		projection.Reason = ""
+		projection.XIRR = &rate
+		return projection, nil
+	}
+
 	terms, err := xirrTerms(combined)
 	if err != nil {
 		return PortfolioReturnProjection{}, err
@@ -210,6 +224,63 @@ func BuildPortfolioReturnProjection(
 	projection.Reason = ""
 	projection.XIRR = &quantized
 	return projection, nil
+}
+
+// exactAnnualTwoFlowRate avoids binary floating-point arithmetic for the
+// closed-form return on a single 365-day interval. It applies only after
+// canonical same-day cash-flow aggregation and existing input validation.
+// Cases outside the established public resolution domain fail closed instead
+// of silently expanding the financial output contract.
+func exactAnnualTwoFlowRate(flows []PortfolioReturnCashFlow) (decimal.Decimal, bool, error) {
+	if len(flows) != 2 || !flows[0].Amount.IsNegative() || !flows[1].Amount.IsPositive() {
+		return decimal.Zero(), false, nil
+	}
+	first, err := parseBusinessDate(flows[0].Date)
+	if err != nil {
+		return decimal.Zero(), true, err
+	}
+	last, err := parseBusinessDate(flows[1].Date)
+	if err != nil {
+		return decimal.Zero(), true, err
+	}
+	if last.Unix()/86400-first.Unix()/86400 != 365 {
+		return decimal.Zero(), false, nil
+	}
+
+	principal := decimal.Zero().Sub(flows[0].Amount)
+	change := flows[1].Amount.Sub(principal)
+	rate, err := change.Div(principal)
+	if err != nil || !rate.FitsStorage() || !rate.Add(decimal.Must("1.00000000")).IsPositive() {
+		return decimal.Zero(), true, errors.New("one-year XIRR is outside canonical Decimal or rate domain")
+	}
+
+	// The legacy numerical-resolution guard applies to the unquantized root,
+	// NOT to the already scale-8 rounded public Decimal. At a binary exponent
+	// boundary, rounding may increase the float64 ULP and falsely turn an
+	// otherwise supported rate into NUMERICAL_SOLUTION_FAILED.
+	//
+	// Both operands are bounded canonical Decimals. Convert their *exact*
+	// ratio to the nearest float64 only to enforce the existing ULP limit;
+	// the published Half-Even Decimal rate above never depends on this float.
+	numerator, ok := new(big.Rat).SetString(change.String())
+	if !ok {
+		return decimal.Zero(), true, errors.New("invalid one-year XIRR numerator")
+	}
+	denominator, ok := new(big.Rat).SetString(principal.String())
+	if !ok {
+		return decimal.Zero(), true, errors.New("invalid one-year XIRR denominator")
+	}
+	approximation, _ := new(big.Rat).Quo(numerator, denominator).Float64()
+	if math.IsNaN(approximation) || math.IsInf(approximation, 0) {
+		return decimal.Zero(), true, errors.New("one-year XIRR is not finite")
+	}
+	nextGap := math.Abs(math.Nextafter(approximation, math.Inf(1)) - approximation)
+	previousGap := math.Abs(approximation - math.Nextafter(approximation, math.Inf(-1)))
+	if math.Max(nextGap, previousGap) >= 1e-8/128 ||
+		math.Abs(approximation*1e8) >= 1<<53 {
+		return decimal.Zero(), true, errors.New("one-year XIRR exceeds established public numerical resolution")
+	}
+	return rate, true, nil
 }
 
 func sortedNonZeroReturnFlows(values map[string]decimal.Decimal) []PortfolioReturnCashFlow {
