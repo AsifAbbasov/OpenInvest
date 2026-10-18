@@ -30,9 +30,6 @@
 | Pull Request / Ready / merge permitted here | No |
 | Runtime/database schema change permitted here | No |
 
-**Navigation — historical baseline only:** The `P3-08 OPEN` and `31/32` entries below describe the Stage 3.54 planning state, not the later closure.
-[Stage 3.56 — P3-08 closure and forensic record](STAGE_03_56_P3_08_MIGRATION_VALIDATOR_CLOSURE.md) records the subsequent protected closure (`32/32`). Original planning evidence and statuses remain unchanged.
-
 ## 1. Objective
 
 Close original audit finding P3-08 by making repository migration validation materially match the
