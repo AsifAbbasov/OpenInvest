@@ -30,5 +30,6 @@ done <<'TARGETS'
 ./internal/verticalslice FuzzParseBusinessDate
 ./internal/verticalslice FuzzBuildPortfolioReturnProjection
 ./internal/verticalslice FuzzXIRRTwoTermProjection
+./internal/verticalslice FuzzXIRRThreeFlowTerms
 TARGETS
 exit "$failed"

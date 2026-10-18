@@ -37,8 +37,18 @@ func FuzzParseBusinessDate(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, input string) {
 		value, err := parseBusinessDate(input)
+		repeated, repeatedErr := parseBusinessDate(input)
+		if (err == nil) != (repeatedErr == nil) {
+			t.Fatal("BusinessDate success/error nondeterminism")
+		}
 		if err != nil {
+			if err.Error() != repeatedErr.Error() {
+				t.Fatal("BusinessDate error nondeterminism")
+			}
 			return
+		}
+		if !value.Equal(repeated) || value.Format("2006-01-02") != repeated.Format("2006-01-02") || repeated.Location() != time.UTC {
+			t.Fatal("BusinessDate repeated value/format/location drift")
 		}
 		if got := value.Format("2006-01-02"); got != input {
 			t.Fatalf("BusinessDate normalization drift: input=%q got=%q", input, got)
@@ -46,7 +56,7 @@ func FuzzParseBusinessDate(f *testing.F) {
 		if value.Location() != time.UTC {
 			t.Fatal("BusinessDate is not UTC")
 		}
-		if _, err := time.Parse("2006-01-02", input); err != nil {
+		if standard, err := time.Parse("2006-01-02", input); err != nil || !standard.Equal(value) {
 			t.Fatalf("parseBusinessDate accepted value rejected by time.Parse: %q: %v", input, err)
 		}
 	})
