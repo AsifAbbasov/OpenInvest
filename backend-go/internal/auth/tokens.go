@@ -68,6 +68,16 @@ func verifyAccessToken(secret []byte, token string, now time.Time) (accessClaims
 	if len(parts) != 3 {
 		return accessClaims{}, errInvalidToken
 	}
+	// RawURLEncoding accepts some non-canonical spellings whose unused trailing
+	// bits decode to the same bytes. A JWT is a signed wire format: accepting
+	// more than one spelling for the same signed token makes token identity and
+	// audit evidence ambiguous. Require the exact canonical encoding before
+	// checking the MAC.
+	for _, part := range parts {
+		if !isCanonicalRawURLBase64(part) {
+			return accessClaims{}, errInvalidToken
+		}
+	}
 	unsigned := parts[0] + "." + parts[1]
 	signature, err := base64.RawURLEncoding.DecodeString(parts[2])
 	if err != nil {
@@ -101,4 +111,12 @@ func verifyAccessToken(secret []byte, token string, now time.Time) (accessClaims
 		return accessClaims{}, errInvalidToken
 	}
 	return claims, nil
+}
+
+func isCanonicalRawURLBase64(value string) bool {
+	decoded, err := base64.RawURLEncoding.DecodeString(value)
+	if err != nil {
+		return false
+	}
+	return base64.RawURLEncoding.EncodeToString(decoded) == value
 }
