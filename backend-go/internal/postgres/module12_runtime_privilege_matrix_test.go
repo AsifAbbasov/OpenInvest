@@ -51,8 +51,6 @@ func TestModule12RuntimeRoleCannotModifySchemaOrGrantPrivileges(t *testing.T) {
 		{"alter_table", "ALTER TABLE investment.transaction_entries ADD COLUMN module12_runtime_escape integer"},
 		{"drop_table", "DROP TABLE investment.transaction_entries"},
 		{"create_schema", "CREATE SCHEMA module12_runtime_escape"},
-		{"grant", "GRANT SELECT ON investment.transaction_entries TO PUBLIC"},
-		{"revoke", "REVOKE SELECT ON investment.transaction_entries FROM PUBLIC"},
 		{"set_role_owner", fmt.Sprintf("SET ROLE %q", ownerRole)},
 		{"set_session_authorization_owner", fmt.Sprintf("SET SESSION AUTHORIZATION %q", ownerRole)},
 	}
@@ -70,6 +68,43 @@ func TestModule12RuntimeRoleCannotModifySchemaOrGrantPrivileges(t *testing.T) {
 			var pgState interface{ SQLState() string }
 			if !errors.As(err, &pgState) || pgState.SQLState() != "42501" {
 				t.Fatalf("expected insufficient_privilege (42501), got %v", err)
+			}
+		})
+	}
+	// PostgreSQL may report an ineffective GRANT/REVOKE as a successful
+	// statement with a warning. Compare the actual ACL within the same
+	// transaction, before rollback, instead of assuming SQLSTATE 42501.
+	for _, operation := range []struct {
+		name  string
+		query string
+	}{
+		{"grant", "GRANT SELECT ON investment.transaction_entries TO PUBLIC"},
+		{"revoke", "REVOKE SELECT ON investment.transaction_entries FROM PUBLIC"},
+	} {
+		t.Run(operation.name+"_cannot_change_acl", func(t *testing.T) {
+			tx, err := runtimeDB.BeginTx(ctx, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer tx.Rollback()
+			const aclQuery = "SELECT COALESCE(relacl::text, '<NULL>') FROM pg_class WHERE oid = 'investment.transaction_entries'::regclass"
+			var before string
+			if err := tx.QueryRowContext(ctx, aclQuery).Scan(&before); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := tx.ExecContext(ctx, operation.query); err != nil {
+				var pgState interface{ SQLState() string }
+				if !errors.As(err, &pgState) || pgState.SQLState() != "42501" {
+					t.Fatalf("unexpected privilege command error: %v", err)
+				}
+				return
+			}
+			var after string
+			if err := tx.QueryRowContext(ctx, aclQuery).Scan(&after); err != nil {
+				t.Fatal(err)
+			}
+			if before != after {
+				t.Fatalf("runtime login %q changed table ACL via %s", runtimeRole, operation.name)
 			}
 		})
 	}
