@@ -4,6 +4,8 @@
 // provision two verified accounts in a disposable local stack, then run it.
 const assert = require("node:assert/strict");
 const { randomUUID } = require("node:crypto");
+const { readFileSync } = require("node:fs");
+const http = require("node:http");
 const FRONTEND = process.env.M12_FRONTEND_URL || "http://localhost:3000";
 const ALT = process.env.M12_FRONTEND_ALT_URL || "http://127.0.0.1:3000";
 const BACKEND = process.env.M12_BACKEND_URL || "http://localhost:18080";
@@ -24,6 +26,92 @@ function requireFixture() {
     }
   }
   if (FRONTEND === ALT) throw Error("EXTERNAL_EVIDENCE_REQUIRED: separate disallowed origin required");
+  // Operator-supplied evidence is a prerequisite, not proof created by this harness.
+  // The operator must independently verify the database identities before execution.
+  let proof;
+  try { proof = JSON.parse(readFileSync(process.env.M12_DISPOSABLE_INFRA_PROOF_PATH, "utf8")); }
+  catch { throw Error("EXTERNAL_EVIDENCE_REQUIRED: verified disposable infrastructure attestation missing"); }
+  const db = proof?.postgres;
+  if (proof?.purpose !== "OPENINVEST_P11_DISPOSABLE" ||
+      proof.backendUrl !== BACKEND || proof.frontendUrl !== FRONTEND ||
+      proof.approvedAlternateOrigin !== ALT || proof.playwrightVerified !== true ||
+      !proof.operatorVerifiedAt || !proof.operatorIdentity ||
+      db?.isolated !== true || db?.sourceClusterExcluded !== true ||
+      !db?.clusterId || !db?.database || !db?.host || !db?.role ||
+      proof.accounts?.a?.email !== accounts[0].email ||
+      proof.accounts?.b?.email !== accounts[1].email ||
+      !proof.accounts.a.id || !proof.accounts.b.id ||
+      proof.accounts.a.id === proof.accounts.b.id) {
+    throw Error("EXTERNAL_EVIDENCE_REQUIRED: incomplete independently verified fixture identities");
+  }
+}
+
+function requireDelivery(probe) {
+  assert.equal(probe?.delivery?.inContext, true, "copied cookie absent from destination context");
+  assert.equal(probe?.delivery?.requestObserved, true, "no outgoing auth request witnessed");
+  assert.equal(probe?.delivery?.cookieMatched, true, "original cookie not attached to outgoing request");
+  assert.equal(probe?.response?.transport, true, "browser request failed before HTTP response");
+}
+
+function requireRefreshRace(pair) {
+  assert.equal(pair.length, 2);
+  pair.forEach(requireDelivery);
+  assert.deepEqual(pair.map((p) => p.response.status).sort(), [200, 401],
+    "exactly one rotation must commit and the replay must be rejected");
+  const winner = pair.find((p) => p.response.status === 200);
+  assert.ok(winner.response.body?.data?.csrfToken && winner.replacementCookie?.value,
+    "successful rotation must return replacement session credentials");
+  return winner;
+}
+
+function requireLogoutRace(logoutProbe, refreshProbe) {
+  requireDelivery(logoutProbe); requireDelivery(refreshProbe);
+  const logoutStatus = logoutProbe.response.status;
+  const refreshStatus = refreshProbe.response.status;
+  assert.ok([200, 401].includes(logoutStatus) && [200, 401].includes(refreshStatus));
+  assert.ok(logoutStatus === 200 || refreshStatus === 200,
+    "401 + 401 cannot establish a successful logout");
+  if (logoutStatus === 200) assert.equal(logoutProbe.response.body?.data?.revoked, true);
+  if (refreshStatus === 200) {
+    assert.ok(refreshProbe.response.body?.data?.csrfToken && refreshProbe.replacementCookie?.value);
+  }
+  return logoutStatus === 200 ? "logout_committed" : "requires_replacement_logout";
+}
+
+function requireCorsPolicyProof({ control, result, origin, hits, diagnostic, cspViolation }) {
+  assert.equal(control?.reachable, true, "allowed-Origin browser/backend control failed");
+  assert.equal(result?.transport, false, "disallowed Origin could read an API response");
+  assert.equal(cspViolation, false, "browser CSP, not CORS, blocked the request");
+  assert.equal(diagnostic, true, "Chromium did not diagnose an Origin/CORS policy rejection");
+  assert.ok(hits.some((h) => h.origin === origin && h.method === "OPTIONS" &&
+    h.upstreamReached && h.status >= 100 && h.status < 600 &&
+    h.acao !== origin), "no backend preflight witness with denied Origin");
+  assert.ok(hits.every((h) => !h.networkError && h.acao !== origin),
+    "upstream network error or permissive CORS response");
+}
+
+function mustFailControl(name, fn) {
+  assert.throws(fn, assert.AssertionError);
+  process.stdout.write(JSON.stringify({ negativeControl: name, result: "REJECTED_AS_REQUIRED" }) + "\n");
+}
+
+function runNegativeControls() {
+  const delivered = { delivery: { inContext: true, requestObserved: true, cookieMatched: true }, response: { transport: true, status: 401 } };
+  mustFailControl("B01_refresh_401_401", () => requireRefreshRace([delivered, delivered]));
+  mustFailControl("B02_logout_refresh_401_401", () => requireLogoutRace(delivered, delivered));
+  const goodControl = { reachable: true };
+  const missing = { transport: false };
+  mustFailControl("B03_unreachable_backend", () => requireCorsPolicyProof({
+    control: { reachable: false }, result: missing, origin: "null", hits: [], diagnostic: false, cspViolation: false,
+  }));
+  mustFailControl("B03_generic_fetch_exception", () => requireCorsPolicyProof({
+    control: goodControl, result: missing, origin: "null", hits: [], diagnostic: false, cspViolation: false,
+  }));
+  mustFailControl("B04_cookie_not_sent", () => requireDelivery({
+    delivery: { inContext: true, requestObserved: true, cookieMatched: false },
+    response: { transport: true, status: 401 },
+  }));
+  process.stdout.write("NEGATIVE_CONTROLS=5/5_PASS\n");
 }
 
 function record(name, ok) {
@@ -34,7 +122,7 @@ function record(name, ok) {
 async function check(name, fn) {
   try { await fn(); record(name, true); } catch { record(name, false); }
 }
-async function request(page, path, init = {}) {
+async function request(page, path, init = {}, base = BACKEND) {
   return page.evaluate(async ({ url, init }) => {
     try {
       const response = await fetch(url, { credentials: "include", ...init });
@@ -43,7 +131,7 @@ async function request(page, path, init = {}) {
       try { body = JSON.parse(bodyText); } catch { /* body is not JSON */ }
       return { transport: true, status: response.status, body };
     } catch { return { transport: false, status: 0, body: null }; }
-  }, { url: BACKEND + path, init });
+  }, { url: base + path, init });
 }
 const post = (page, path, body, headers = {}) => request(page, path, {
   method: "POST", headers: { "Content-Type": "application/json", ...headers },
@@ -58,14 +146,86 @@ const create = (page, token, name) => post(page, "/api/v1/portfolios", { name, b
 const state = (result) => result.body?.data?.session;
 const cookie = async (context) => (await context.cookies(BACKEND + "/api/v1/auth/refresh")).find((c) => c.name === "oi_refresh");
 
-async function probeCopiedCookie(browser, stale, csrf) {
+async function probeCopiedCookie(browser, stale, csrf, action = "refresh") {
+  assert.ok(stale?.value, "source cookie is missing");
   const context = await browser.newContext();
   try {
     await context.addCookies([stale]);
+    const inContext = (await cookie(context))?.value === stale.value;
+    let requestObserved = false;
+    let cookieMatched = false;
+    await context.route("**/api/v1/auth/*", async (route) => {
+      const outgoing = route.request();
+      const expectedPath = action === "logout" ? "/api/v1/auth/logout" : "/api/v1/auth/refresh";
+      if (outgoing.url() === BACKEND + expectedPath && outgoing.method() === "POST") {
+        requestObserved = true;
+        const headers = await outgoing.allHeaders();
+        // Secret comparison stays in memory; never print Cookie or credentials.
+        cookieMatched = String(headers.cookie || "").split(";")
+          .some((part) => part.trim() === "oi_refresh=" + stale.value);
+      }
+      await route.continue();
+    });
     const page = await context.newPage();
     await page.goto(FRONTEND);
-    return refresh(page, csrf);
+    const response = action === "logout" ? await logout(page, csrf) : await refresh(page, csrf);
+    return { response, replacementCookie: await cookie(context),
+      delivery: { inContext, requestObserved, cookieMatched } };
   } finally { await context.close(); }
+}
+
+async function startWitnessProxy() {
+  const hits = [];
+  const server = http.createServer((incoming, outgoing) => {
+    const destination = new URL(incoming.url, BACKEND);
+    const upstream = http.request(destination, {
+      method: incoming.method, headers: { ...incoming.headers, host: destination.host },
+    }, (response) => {
+      hits.push({
+        method: incoming.method, path: destination.pathname,
+        origin: incoming.headers.origin || "", status: response.statusCode,
+        acao: response.headers["access-control-allow-origin"] || "",
+        upstreamReached: true, networkError: false,
+      });
+      outgoing.writeHead(response.statusCode, response.headers);
+      response.pipe(outgoing);
+    });
+    upstream.on("error", () => {
+      hits.push({ origin: incoming.headers.origin || "", method: incoming.method,
+        path: destination.pathname, upstreamReached: false, networkError: true });
+      if (!outgoing.headersSent) outgoing.writeHead(502);
+      outgoing.end();
+    });
+    incoming.pipe(upstream);
+  });
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  return {
+    url: "http://127.0.0.1:" + server.address().port, hits,
+    close: () => new Promise((resolve, reject) => server.close((err) => err ? reject(err) : resolve())),
+  };
+}
+
+async function observeCorsRejection(page, probe) {
+  let corsDiagnostic = false;
+  await page.evaluate(() => {
+    window.__m12CspViolation = false;
+    document.addEventListener("securitypolicyviolation", () => { window.__m12CspViolation = true; }, { once: true });
+  });
+  const listener = (message) => {
+    // Only a boolean reaches the evidence; console text may contain URLs.
+    if (message.type() === "error" && /CORS policy|CORS header|cross-origin resource sharing/i.test(message.text())) {
+      corsDiagnostic = true;
+    }
+  };
+  page.on("console", listener);
+  try {
+    const result = await probe();
+    return { result, diagnostic: corsDiagnostic,
+      cspViolation: await page.evaluate(() => window.__m12CspViolation === true) };
+  } finally { page.off("console", listener); }
 }
 
 async function main() {
@@ -130,8 +290,10 @@ async function main() {
       assert.equal((await refresh(pages[0], state(logins[1]).csrfToken)).status, 401);
     });
     await check("mixed_cookie_and_other_principal_csrf_rejected", async () => {
-      assert.equal((await probeCopiedCookie(browser, cookies[0], state(logins[1]).csrfToken)).status, 401);
-      assert.equal((await probeCopiedCookie(browser, cookies[1], state(logins[0]).csrfToken)).status, 401);
+      const a = await probeCopiedCookie(browser, cookies[0], state(logins[1]).csrfToken);
+      const b = await probeCopiedCookie(browser, cookies[1], state(logins[0]).csrfToken);
+      requireDelivery(a); requireDelivery(b);
+      assert.equal(a.response.status, 401); assert.equal(b.response.status, 401);
     });
     await check("parallel_refresh_preserves_isolated_principals", async () => {
       const rotated = await Promise.all(pages.map((p, i) => refresh(p, state(logins[i]).csrfToken)));
@@ -147,27 +309,59 @@ async function main() {
     await check("logout_invalidates_stale_browser_cookie", async () => {
       const stale = await cookie(ctx[1]); const csrf = state(logins[1]).csrfToken;
       assert.equal((await logout(pages[1], csrf)).status, 200);
-      assert.equal((await probeCopiedCookie(browser, stale, csrf)).status, 401);
+      const replay = await probeCopiedCookie(browser, stale, csrf);
+      requireDelivery(replay); assert.equal(replay.response.status, 401);
       assert.equal(await cookie(ctx[1]), undefined);
     });
     await check("rotated_cookie_replay_rejected", async () => {
       const stale = await cookie(ctx[0]); const csrf = state(logins[0]).csrfToken;
       assert.equal((await refresh(pages[0], csrf)).status, 200);
-      assert.equal((await probeCopiedCookie(browser, stale, csrf)).status, 401);
+      const replay = await probeCopiedCookie(browser, stale, csrf);
+      requireDelivery(replay); assert.equal(replay.response.status, 401);
     });
-    await check("concurrent_refresh_single_session_at_most_one_success", async () => {
+    await check("concurrent_refresh_same_original_cookie_one_success_family_revoked", async () => {
       const again = await post(pages[0], "/api/v1/auth/login", accounts[0]);
       assert.equal(again.status, 200);
-      const pair = await Promise.all([refresh(pages[0], state(again).csrfToken), refresh(pages[0], state(again).csrfToken)]);
-      assert.ok(pair.filter((r) => r.status === 200).length <= 1);
+      const original = await cookie(ctx[0]);
+      assert.ok(original?.value);
+      // Separate cookie jars freeze the same original token for BOTH requests.
+      const pair = await Promise.all([
+        probeCopiedCookie(browser, original, state(again).csrfToken),
+        probeCopiedCookie(browser, original, state(again).csrfToken),
+      ]);
+      const winner = requireRefreshRace(pair);
+      assert.notEqual(winner.replacementCookie.value, original.value);
+      // A replay of the revoked original revokes the entire active family.
+      const replacement = await probeCopiedCookie(browser, winner.replacementCookie, winner.response.body.data.csrfToken);
+      requireDelivery(replacement);
+      assert.equal(replacement.response.status, 401, "replayed family descendant remained usable");
     });
-    await check("logout_racing_refresh_cannot_restore_stale_session", async () => {
+    await check("logout_refresh_race_explicitly_terminates_entire_session_family", async () => {
       const again = await post(pages[1], "/api/v1/auth/login", accounts[1]);
       assert.equal(again.status, 200);
-      const stale = await cookie(ctx[1]); const csrf = state(again).csrfToken;
-      const pair = await Promise.all([logout(pages[1], csrf), refresh(pages[1], csrf)]);
-      assert.ok(pair.every((r) => r.transport && r.status >= 200 && r.status < 500));
-      assert.equal((await probeCopiedCookie(browser, stale, csrf)).status, 401);
+      const original = await cookie(ctx[1]); const csrf = state(again).csrfToken;
+      assert.ok(original?.value);
+      const [logoutProbe, refreshProbe] = await Promise.all([
+        probeCopiedCookie(browser, original, csrf, "logout"),
+        probeCopiedCookie(browser, original, csrf),
+      ]);
+      const outcome = requireLogoutRace(logoutProbe, refreshProbe);
+      if (outcome === "requires_replacement_logout") {
+        const termination = await probeCopiedCookie(browser, refreshProbe.replacementCookie,
+          refreshProbe.response.body.data.csrfToken, "logout");
+        requireDelivery(termination);
+        assert.equal(termination.response.status, 200, "fallback logout did not commit");
+        assert.equal(termination.response.body?.data?.revoked, true);
+      }
+      const originalReplay = await probeCopiedCookie(browser, original, csrf);
+      requireDelivery(originalReplay);
+      assert.equal(originalReplay.response.status, 401);
+      if (refreshProbe.response.status === 200) {
+        const descendant = await probeCopiedCookie(browser, refreshProbe.replacementCookie,
+          refreshProbe.response.body.data.csrfToken);
+        requireDelivery(descendant);
+        assert.equal(descendant.response.status, 401, "logout failed to revoke rotated descendant");
+      }
     });
     await check("mutation_without_bearer_denied_for_four_content_types", async () => {
       for (const [type, body] of [
@@ -178,20 +372,51 @@ async function main() {
         assert.equal((await request(pages[0], "/api/v1/portfolios", { method: "POST", headers: { "Content-Type": type }, body })).status, 401);
       }
     });
-    const denied = await browser.newContext();
+    const witness = await startWitnessProxy();
     try {
-      const page = await denied.newPage(); await page.goto(ALT);
-      await check("disallowed_origin_cannot_read_registration", async () => {
-        const r = await post(page, "/api/v1/auth/register", { email: `p11-alt-${marker}@example.test` });
-        assert.equal(r.transport, false);
+      const allowedOrigin = new URL(FRONTEND).origin;
+      const control = { reachable: false };
+      await check("allowed_origin_browser_api_and_backend_witness_control", async () => {
+        const r = await request(pages[0], "/api/v1/auth/register", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: `p11-allowed-${marker}@example.test` }),
+        }, witness.url);
+        assert.equal(r.transport, true); assert.equal(r.status, 202);
+        assert.ok(witness.hits.some((h) => h.origin === allowedOrigin &&
+          h.method === "POST" && h.upstreamReached && h.status === 202 && h.acao === allowedOrigin));
+        control.reachable = true;
       });
-    } finally { await denied.close(); }
-    const nullPage = await ctx[0].newPage();
-    await nullPage.goto("data:text/html,<title>P11</title>");
-    await check("null_origin_cannot_read_registration", async () => {
-      const r = await post(nullPage, "/api/v1/auth/register", { email: `p11-null-${marker}@example.test` });
-      assert.equal(r.transport, false);
-    });
+      if (!control.reachable) throw Error("EXTERNAL_EVIDENCE_REQUIRED: allowed-Origin positive control failed");
+      const denied = await browser.newContext();
+      try {
+        const page = await denied.newPage();
+        const navigation = await page.goto(ALT);
+        assert.equal(navigation?.ok(), true);
+        assert.equal(Boolean((await navigation.allHeaders())["content-security-policy"]), false,
+          "alternate Origin has CSP; provision a CSP-free approved witness page");
+        await check("disallowed_origin_rejected_by_cors_with_backend_witness", async () => {
+          const origin = new URL(ALT).origin;
+          const from = witness.hits.length;
+          const observation = await observeCorsRejection(page, () => request(page, "/api/v1/auth/register", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: `p11-alt-${marker}@example.test` }),
+          }, witness.url));
+          requireCorsPolicyProof({ control, ...observation, origin,
+            hits: witness.hits.slice(from).filter((h) => h.path === "/api/v1/auth/register") });
+        });
+      } finally { await denied.close(); }
+      const nullPage = await ctx[0].newPage();
+      await nullPage.goto("data:text/html,<title>P11</title>");
+      await check("null_origin_rejected_by_cors_with_backend_witness", async () => {
+        const from = witness.hits.length;
+        const observation = await observeCorsRejection(nullPage, () => request(nullPage, "/api/v1/auth/register", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: `p11-null-${marker}@example.test` }),
+        }, witness.url));
+        requireCorsPolicyProof({ control, ...observation, origin: "null",
+          hits: witness.hits.slice(from).filter((h) => h.path === "/api/v1/auth/register") });
+      });
+    } finally { await witness.close(); }
     await Promise.all(ctx.map((c) => c.close()));
   } finally { await browser.close(); }
   const failed = results.filter((r) => !r.ok).length;
@@ -199,7 +424,11 @@ async function main() {
   if (failed) process.exitCode = 1;
 }
 
-main().catch((error) => {
-  console.error(error.message.startsWith("EXTERNAL_EVIDENCE_REQUIRED:") ? error.message : "P11_BROWSER_HARNESS_FAILED");
-  process.exitCode = 2;
-});
+if (process.argv.length === 3 && process.argv[2] === "--negative-controls") {
+  runNegativeControls();
+} else {
+  main().catch((error) => {
+    console.error(error.message.startsWith("EXTERNAL_EVIDENCE_REQUIRED:") ? error.message : "P11_BROWSER_HARNESS_FAILED");
+    process.exitCode = 2;
+  });
+}
