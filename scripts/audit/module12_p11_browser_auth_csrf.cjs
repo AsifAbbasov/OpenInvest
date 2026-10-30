@@ -118,7 +118,7 @@ async function main() {
       const r = await Promise.all(pages.map((p, i) => create(p, state(logins[i]).accessToken, names[i])));
       assert.ok(r.every((x) => x.status === 201));
     });
-    await check("bearer_across_other_browser_cookie_keeps_principal", async () => {
+    await check("bearer_cross_browser_context_keeps_principal", async () => {
       const a = await list(pages[1], state(logins[0]).accessToken);
       const b = await list(pages[0], state(logins[1]).accessToken);
       assert.equal(a.status, 200); assert.equal(b.status, 200);
