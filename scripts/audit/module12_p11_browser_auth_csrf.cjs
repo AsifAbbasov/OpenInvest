@@ -26,6 +26,10 @@ function requireFixture() {
     }
   }
   if (FRONTEND === ALT) throw Error("EXTERNAL_EVIDENCE_REQUIRED: separate disallowed origin required");
+  if (new URL(FRONTEND).origin === new URL(BACKEND).origin ||
+      new URL(ALT).origin === new URL(BACKEND).origin) {
+    throw Error("EXTERNAL_EVIDENCE_REQUIRED: API and browser test origins must differ");
+  }
   // Operator-supplied evidence is a prerequisite, not proof created by this harness.
   // The operator must independently verify the database identities before execution.
   let proof;
@@ -154,6 +158,23 @@ const create = (page, token, name) => post(page, "/api/v1/portfolios", { name, b
 const state = (result) => result.body?.data?.session;
 const cookie = async (context) => (await context.cookies(BACKEND + "/api/v1/auth/refresh")).find((c) => c.name === "oi_refresh");
 
+async function openNeutralOriginPage(context, origin) {
+  const page = await context.newPage();
+  // Suppress application boot: navigation owns the frontend Origin but does not
+  // run its auth-refresh effect or emit unrelated CORS/CSP console errors.
+  await page.route(new URL(origin).origin + "/**", async (route) => {
+    if (route.request().isNavigationRequest()) {
+      await route.fulfill({ status: 200, contentType: "text/html",
+        body: "<!doctype html><title>P11 isolated browser probe</title>" });
+    } else {
+      await route.continue();
+    }
+  });
+  const navigation = await page.goto(new URL("/", origin).href);
+  assert.equal(navigation?.ok(), true, "isolated Origin test navigation failed");
+  return page;
+}
+
 async function probeCopiedCookie(browser, stale, csrf, action = "refresh") {
   assert.ok(stale?.value, "source cookie is missing");
   const context = await browser.newContext();
@@ -174,8 +195,7 @@ async function probeCopiedCookie(browser, stale, csrf, action = "refresh") {
       }
       await route.continue();
     });
-    const page = await context.newPage();
-    await page.goto(FRONTEND);
+    const page = await openNeutralOriginPage(context, FRONTEND);
     const response = action === "logout" ? await logout(page, csrf) : await refresh(page, csrf);
     return { response, replacementCookie: await cookie(context),
       delivery: { inContext, requestObserved, cookieMatched } };
@@ -386,8 +406,10 @@ async function main() {
     try {
       const allowedOrigin = new URL(FRONTEND).origin;
       const control = { reachable: false };
+      const allowedContext = await browser.newContext();
       await check("allowed_origin_browser_api_and_backend_witness_control", async () => {
-        const r = await request(pages[0], "/api/v1/auth/register", {
+        const allowedPage = await openNeutralOriginPage(allowedContext, FRONTEND);
+        const r = await request(allowedPage, "/api/v1/auth/register", {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: `p11-allowed-${marker}@example.test` }),
         }, witness.url);
@@ -396,14 +418,11 @@ async function main() {
           h.method === "POST" && h.upstreamReached && h.status === 202 && h.acao === allowedOrigin));
         control.reachable = true;
       });
+      await allowedContext.close();
       if (!control.reachable) throw Error("EXTERNAL_EVIDENCE_REQUIRED: allowed-Origin positive control failed");
       const denied = await browser.newContext();
       try {
-        const page = await denied.newPage();
-        const navigation = await page.goto(ALT);
-        assert.equal(navigation?.ok(), true);
-        assert.equal(Boolean((await navigation.allHeaders())["content-security-policy"]), false,
-          "alternate Origin has CSP; provision a CSP-free approved witness page");
+        const page = await openNeutralOriginPage(denied, ALT);
         await check("disallowed_origin_rejected_by_cors_with_backend_witness", async () => {
           const origin = new URL(ALT).origin;
           const from = witness.hits.length;
