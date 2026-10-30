@@ -78,6 +78,11 @@ function requireLogoutRace(logoutProbe, refreshProbe) {
   return logoutStatus === 200 ? "logout_committed" : "requires_replacement_logout";
 }
 
+function requireCommittedLogout(probe) {
+  assert.equal(probe.response.status, 200, "original logout failed its committed-revocation contract");
+  assert.equal(probe.response.body?.data?.revoked, true);
+}
+
 function requireCorsPolicyProof({ control, result, origin, hits, diagnostic, cspViolation }) {
   assert.equal(control?.reachable, true, "allowed-Origin browser/backend control failed");
   assert.equal(result?.transport, false, "disallowed Origin could read an API response");
@@ -99,6 +104,9 @@ function runNegativeControls() {
   const delivered = { delivery: { inContext: true, requestObserved: true, cookieMatched: true }, response: { transport: true, status: 401 } };
   mustFailControl("B01_refresh_401_401", () => requireRefreshRace([delivered, delivered]));
   mustFailControl("B02_logout_refresh_401_401", () => requireLogoutRace(delivered, delivered));
+  mustFailControl("B02_failed_original_logout_not_success", () => requireCommittedLogout({
+    response: { status: 401, body: { data: { revoked: false } } },
+  }));
   const goodControl = { reachable: true };
   const missing = { transport: false };
   mustFailControl("B03_unreachable_backend", () => requireCorsPolicyProof({
@@ -111,7 +119,7 @@ function runNegativeControls() {
     delivery: { inContext: true, requestObserved: true, cookieMatched: false },
     response: { transport: true, status: 401 },
   }));
-  process.stdout.write("NEGATIVE_CONTROLS=5/5_PASS\n");
+  process.stdout.write("NEGATIVE_CONTROLS=6/6_PASS\n");
 }
 
 function record(name, ok) {
@@ -362,6 +370,8 @@ async function main() {
         requireDelivery(descendant);
         assert.equal(descendant.response.status, 401, "logout failed to revoke rotated descendant");
       }
+      // Cleanup above is mandatory, but never turns a failed original logout into PASS.
+      requireCommittedLogout(logoutProbe);
     });
     await check("mutation_without_bearer_denied_for_four_content_types", async () => {
       for (const [type, body] of [
