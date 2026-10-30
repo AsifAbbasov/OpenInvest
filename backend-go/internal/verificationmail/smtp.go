@@ -4,6 +4,7 @@ package verificationmail
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"net"
@@ -16,7 +17,11 @@ import (
 
 var ErrDelivery = errors.New("verification delivery failed")
 
-type SMTP struct{ Host, Port, Username, Password, From, VerificationURL string }
+type SMTP struct {
+	Host, Port, Username, Password, From, VerificationURL string
+
+	rootCAs *x509.CertPool // Test-only trust injection; nil uses the host system roots.
+}
 
 func (s SMTP) SendVerification(ctx context.Context, email, token string) error {
 	from, err := mail.ParseAddress(s.From)
@@ -52,7 +57,7 @@ func (s SMTP) SendVerification(ctx context.Context, email, token string) error {
 		return ErrDelivery
 	}
 	defer client.Close()
-	if err = client.StartTLS(&tls.Config{ServerName: s.Host, MinVersion: tls.VersionTLS12}); err != nil {
+	if err = client.StartTLS(&tls.Config{ServerName: s.Host, MinVersion: tls.VersionTLS12, RootCAs: s.rootCAs}); err != nil {
 		return ErrDelivery
 	}
 	if s.Username != "" {
