@@ -290,16 +290,7 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
         </section>
       ) : null}
 
-      {summary && positionViewMode === "current" ? (
-        <section className="metric-grid" aria-label="Current portfolio summary">
-          <Metric label="Total capital" value={formatMoney(summary.totalValue)} />
-          <Metric label="Cash" value={formatMoney(summary.cashValue)} />
-          <Metric label="Stocks" value={formatMoney(summary.stockValue)} />
-          <Metric label="Invested capital" value={formatMoney(summary.investedCapital)} />
-          <Metric label="Gross dividends recorded" value={formatMoney(summary.dividendsReceived)} />
-          <Metric label="Gross coupons recorded" value={formatMoney(summary.couponsReceived)} />
-        </section>
-      ) : null}
+      {summary && positionViewMode === "current" ? <CapitalSummary summary={summary} /> : null}
 
       {positionViewMode === "historical" ? (
         <section className="panel" aria-label="Historical positions scope">
@@ -422,5 +413,37 @@ function Metric({ label, value }: { label: string; value: string }) {
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
+  );
+}
+
+export function CapitalSummary({ summary }: { summary: PortfolioSummary }) {
+  return (
+    <section className="panel capital-summary" aria-label="Current portfolio summary">
+      <div className="section-heading capital-summary-heading">
+        <div>
+          <p className="eyebrow">Portfolio capital</p>
+          <h2>Capital summary</h2>
+        </div>
+        <p className="muted capital-summary-date">As of <time dateTime={summary.asOfDate}>{summary.asOfDate}</time></p>
+      </div>
+      <p className="muted capital-summary-explainer">
+        Total capital is cash plus the remaining acquisition-cost basis of open positions, not a current market valuation.
+      </p>
+      <div className="metric-grid capital-summary-grid" role="group" aria-label="Capital components">
+        <Metric label="Total capital (cost basis)" value={formatMoney(summary.totalValue)} />
+        <Metric label="Cash" value={formatMoney(summary.cashValue)} />
+        <Metric label="Stocks (cost basis)" value={formatMoney(summary.stockValue)} />
+        <Metric label="Bonds (cost basis)" value={formatMoney(summary.bondValue)} />
+      </div>
+      <p className="muted capital-summary-explainer">
+        Invested capital is cumulative BUY acquisition outflow, not external contributions.
+        Recorded gross dividends and coupons are before fees and taxes.
+      </p>
+      <div className="metric-grid capital-income-grid" role="group" aria-label="Invested capital and recorded gross income">
+        <Metric label="Invested capital" value={formatMoney(summary.investedCapital)} />
+        <Metric label="Gross dividends recorded" value={formatMoney(summary.dividendsReceived)} />
+        <Metric label="Gross coupons recorded" value={formatMoney(summary.couponsReceived)} />
+      </div>
+    </section>
   );
 }
