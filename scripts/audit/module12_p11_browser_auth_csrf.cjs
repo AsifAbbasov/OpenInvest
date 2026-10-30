@@ -48,6 +48,7 @@ function requireFixture() {
       proof.accounts.a.id === proof.accounts.b.id) {
     throw Error("EXTERNAL_EVIDENCE_REQUIRED: incomplete independently verified fixture identities");
   }
+  return proof;
 }
 
 function requireDelivery(probe) {
@@ -257,7 +258,7 @@ async function observeCorsRejection(page, probe) {
 }
 
 async function main() {
-  requireFixture();
+  const fixtureProof = requireFixture();
   let chromium;
   try { ({ chromium } = require("playwright")); }
   catch { throw Error("EXTERNAL_EVIDENCE_REQUIRED: Playwright must be provisioned outside the repository"); }
@@ -290,6 +291,10 @@ async function main() {
     await check("verified_logins_have_distinct_principals", async () => {
       assert.ok(logins.every((r) => r.status === 200 && state(r)?.accessToken && state(r)?.csrfToken));
       assert.notEqual(logins[0].body.data.user.id, logins[1].body.data.user.id);
+      assert.equal(logins[0].body.data.user.id, fixtureProof.accounts.a.id,
+        "verified A principal differs from isolated database attestation");
+      assert.equal(logins[1].body.data.user.id, fixtureProof.accounts.b.id,
+        "verified B principal differs from isolated database attestation");
     });
     if (!results.at(-1).ok) throw Error("EXTERNAL_EVIDENCE_REQUIRED: verified fixture logins failed");
     const cookies = await Promise.all(ctx.map(cookie));
