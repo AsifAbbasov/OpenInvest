@@ -540,6 +540,82 @@ th {
   font-size: 0.78rem;
 }
 
+.acquisition-allocation {
+  min-width: 0;
+  margin: 20px 0;
+  border: 1px solid #dbe6df;
+  border-radius: 16px;
+  padding: 18px;
+  background: #fbfdfb;
+}
+
+.acquisition-allocation h3 {
+  margin: 0 0 8px;
+}
+
+.acquisition-allocation > p {
+  line-height: 1.5;
+}
+
+.acquisition-allocation-total,
+.acquisition-allocation-values {
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+.acquisition-allocation-list {
+  display: grid;
+  gap: 16px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.acquisition-allocation-item,
+.acquisition-allocation-labels {
+  min-width: 0;
+}
+
+.acquisition-allocation-labels {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin-bottom: 8px;
+}
+
+.acquisition-allocation-ticker {
+  overflow-wrap: anywhere;
+}
+
+.acquisition-allocation-track {
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2eae5;
+}
+
+.acquisition-allocation-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.acquisition-allocation-stock {
+  background: #27774c;
+}
+
+.acquisition-allocation-bond {
+  background: #426e9b;
+}
+
+.manual-valuation-allocation-source {
+  display: block;
+  margin-bottom: 8px;
+  color: #62776b;
+  overflow-wrap: anywhere;
+}
+
 .position-asset-type {
   display: block;
   margin-top: 4px;
@@ -588,6 +664,8 @@ th {
 
 .position-card-title strong {
   font-size: 1.1rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .position-card-row span {
