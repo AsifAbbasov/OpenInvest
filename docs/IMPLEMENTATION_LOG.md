@@ -3,11 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Document ID | REG-IMP-001 |
-| Version | 1.2.6 |
+| Version | 1.2.7 |
 | Status | Current |
 | Supersedes | Informal stage-status notes |
 
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
+Experimental portfolio presentation (not numbered Stage 3.78): [Phase C SSR review](audit/PHASE_C_PORTFOLIO_SSR_REVIEW_2026-11-09.md) accepted in isolated scope; integration and merge remain pending.
 
 | Stage | Purpose | Status | Report |
 | --- | --- | --- | --- |
