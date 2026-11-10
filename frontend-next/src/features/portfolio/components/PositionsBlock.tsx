@@ -1,6 +1,8 @@
 import type { ApiResult, PortfolioPositionsProjection } from "@/common/api/openinvest";
 import { formatMoney, formatQuantityForDisplay, formatRatioAsPercent } from "@/common/presentation/format";
+import { AcquisitionBasisAllocation } from "@/features/portfolio/components/AcquisitionBasisAllocation";
 import { ManualValuationCell } from "@/features/portfolio/components/ManualValuationCell";
+import { ManualValuationAllocation } from "@/features/portfolio/components/ManualValuationAllocation";
 
 type PositionsBlockProps = {
   result: ApiResult<PortfolioPositionsProjection> | null;
@@ -72,6 +74,9 @@ export function PositionsBlock({
             ? "Choose a historical date to reconstruct your positions."
             : `Viewing portfolio as of ${historicalDate}. Manual prices are shown only when their price date matches the selected date.`}
       </p>
+
+      <AcquisitionBasisAllocation result={result} viewMode={viewMode} />
+      <ManualValuationAllocation result={result} viewMode={viewMode} />
 
       {result?.ok && viewMode === "current" ? (
         <div className="panel" aria-label="Manual valuation coverage">
