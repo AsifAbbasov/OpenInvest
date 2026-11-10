@@ -183,6 +183,44 @@ h2 {
   font-weight: 650;
 }
 
+.capital-summary-heading {
+  align-items: baseline;
+}
+
+.capital-summary-date {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.capital-summary-explainer {
+  max-width: 76ch;
+  line-height: 1.5;
+}
+
+.capital-summary-grid,
+.capital-income-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.capital-summary .metric-card {
+  border-radius: 14px;
+  box-shadow: none;
+  min-width: 0;
+}
+
+.capital-summary-grid .metric-card:first-child {
+  border-color: #96c5a7;
+  background: #f0fbf4;
+}
+
+.capital-summary .metric-card strong {
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
 .section-heading {
   display: flex;
   gap: 16px;
