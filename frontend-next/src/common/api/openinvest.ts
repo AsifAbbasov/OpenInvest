@@ -549,9 +549,33 @@ type ApiErrorResponse = {
   };
 };
 
+export type ApiFailureKind =
+  | "NETWORK"
+  | "CANCELLED"
+  | "TIMEOUT"
+  | "INVALID_RESPONSE"
+  | "REQUEST_SETUP"
+  | "AUTHENTICATION"
+  | "AUTHORIZATION"
+  | "VALIDATION"
+  | "CONFLICT"
+  | "RATE_LIMITED"
+  | "SERVER"
+  | "HTTP";
+
 export type ApiResult<T> =
-  | { ok: true; data: T; requestId: string }
-  | { ok: false; message: string; status?: number };
+  | { ok: true; data: T; requestId: string; traceId?: string }
+  | {
+      ok: false;
+      message: string;
+      status?: number;
+      code?: string;
+      requestId?: string;
+      traceId?: string;
+      retryAfterSeconds?: number;
+      failureKind?: ApiFailureKind;
+      completion?: "REJECTED" | "UNKNOWN";
+    };
 
 export type AuthenticatedRequest = {
   accessToken: string;
@@ -617,6 +641,8 @@ export async function createPortfolio(
   payload: CreatePortfolioPayload,
   auth: IdempotentAuthenticatedRequest,
 ): Promise<ApiResult<Portfolio>> {
+  const invalidKey = missingIdempotencyKey<Portfolio>(auth.idempotencyKey);
+  if (invalidKey) return invalidKey;
   return request<Portfolio>("/api/v1/portfolios", {
     method: "POST",
     headers: { ...idempotentHeaders(auth.idempotencyKey), ...bearerHeaders(auth.accessToken) },
@@ -732,6 +758,8 @@ export async function appendTransaction(
   payload: CreateTransactionPayload,
   auth: IdempotentAuthenticatedRequest,
 ): Promise<ApiResult<Transaction>> {
+  const invalidKey = missingIdempotencyKey<Transaction>(auth.idempotencyKey);
+  if (invalidKey) return invalidKey;
   return request<Transaction>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/transactions`, {
     method: "POST",
     headers: { ...idempotentHeaders(auth.idempotencyKey), ...bearerHeaders(auth.accessToken) },
@@ -745,6 +773,8 @@ export async function correctTransaction(
   payload: CorrectTransactionPayload,
   auth: IdempotentAuthenticatedRequest,
 ): Promise<ApiResult<Transaction>> {
+  const invalidKey = missingIdempotencyKey<Transaction>(auth.idempotencyKey);
+  if (invalidKey) return invalidKey;
   return request<Transaction>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/transactions/${encodeURIComponent(transactionId)}`, {
     method: "PATCH",
     headers: { ...idempotentHeaders(auth.idempotencyKey), ...bearerHeaders(auth.accessToken) },
@@ -758,6 +788,8 @@ export async function reverseTransaction(
   payload: ReverseTransactionPayload,
   auth: IdempotentAuthenticatedRequest,
 ): Promise<ApiResult<TransactionReversal>> {
+  const invalidKey = missingIdempotencyKey<TransactionReversal>(auth.idempotencyKey);
+  if (invalidKey) return invalidKey;
   return request<TransactionReversal>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/transactions/${encodeURIComponent(transactionId)}`, {
     method: "DELETE",
     headers: { ...idempotentHeaders(auth.idempotencyKey), ...bearerHeaders(auth.accessToken) },
@@ -782,6 +814,8 @@ export async function appendReviewedPortfolioImport(
   payload: ImportAppendPayload,
   auth: IdempotentAuthenticatedRequest,
 ): Promise<ApiResult<ImportAppendResult>> {
+  const invalidKey = missingIdempotencyKey<ImportAppendResult>(auth.idempotencyKey);
+  if (invalidKey) return invalidKey;
   return request<ImportAppendResult>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/imports/append`, {
     method: "POST",
     headers: { ...idempotentHeaders(auth.idempotencyKey), ...bearerHeaders(auth.accessToken) },
@@ -830,6 +864,8 @@ export async function calculateDividend(
   payload: DividendCalculationPayload,
   options: DividendCalculationRequestOptions,
 ): Promise<ApiResult<DividendCalculation>> {
+  const invalidKey = missingIdempotencyKey<DividendCalculation>(options.idempotencyKey);
+  if (invalidKey) return invalidKey;
   return request<DividendCalculation>("/api/v1/dividends/calculate", {
     method: "POST",
     headers: idempotentHeaders(options.idempotencyKey),
@@ -840,8 +876,10 @@ export async function calculateDividend(
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<ApiResult<T>> {
+  const mutation = init.method !== undefined && !["GET", "HEAD", "OPTIONS"].includes(init.method.toUpperCase());
+  let response: Response;
   try {
-    const response = await fetch(`${openInvestApiBaseUrl()}${path}`, {
+    response = await fetch(`${openInvestApiBaseUrl()}${path}`, {
       ...init,
       headers: {
         Accept: "application/json",
@@ -850,30 +888,144 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<ApiResu
       },
       cache: "no-store",
     });
-    const payload = (await response.json()) as BaseResponse<T> | ApiErrorResponse;
-    if (!response.ok) {
-      return {
-        ok: false,
-        status: response.status,
-        message: "error" in payload ? payload.error?.message ?? "The request could not be completed." : "The request could not be completed.",
-      };
-    }
-    if (!("data" in payload)) {
-      return { ok: false, status: response.status, message: "OpenInvest returned an unexpected response. Please try again." };
+  } catch (error) {
+    const failureKind = transportFailureKind(error, init.signal);
+    return {
+      ok: false,
+      failureKind,
+      completion: mutation ? "UNKNOWN" : undefined,
+      message: failureKind === "CANCELLED" ? "The request was cancelled."
+        : failureKind === "TIMEOUT" ? "The request timed out. Its outcome could not be confirmed."
+        : "OpenInvest is temporarily unavailable. Please try again.",
+    };
+  }
+
+  const status = response.status;
+  const retryAfterSeconds = parseRetryAfterSeconds(response.headers.get("Retry-After"));
+  const headerRequestId = response.headers.get("X-Request-ID") ?? undefined;
+  const headerTraceId = response.headers.get("X-Trace-ID") ?? undefined;
+  const incomplete = (message = "OpenInvest returned an unexpected response. Please try again."): ApiResult<T> => ({
+    ok: false,
+    message,
+    status,
+    failureKind: "INVALID_RESPONSE",
+    completion: mutation ? "UNKNOWN" : undefined,
+    requestId: headerRequestId,
+    traceId: headerTraceId,
+    retryAfterSeconds,
+  });
+
+  const contentType = response.headers.get("Content-Type") ?? "";
+  if (!/^application\/(?:[a-zA-Z0-9.-]+\+)?json(?:\s*;|\s*$)/i.test(contentType)) {
+    return incomplete();
+  }
+
+  let responseText: string;
+  try {
+    responseText = await response.text();
+  } catch (error) {
+    const failureKind = transportFailureKind(error, init.signal);
+    return {
+      ok: false,
+      message: failureKind === "CANCELLED" ? "The request was cancelled."
+        : failureKind === "TIMEOUT" ? "The request timed out. Its outcome could not be confirmed."
+        : "The response was interrupted. The request outcome could not be confirmed.",
+      status, requestId: headerRequestId, traceId: headerTraceId, retryAfterSeconds,
+      failureKind,
+      completion: mutation ? "UNKNOWN" : undefined,
+    };
+  }
+  let payload: unknown;
+  try {
+    payload = JSON.parse(responseText) as unknown;
+  } catch {
+    return incomplete();
+  }
+
+  if (!isResponseRecord(payload) || !isResponseMeta(payload.meta)) {
+    return incomplete();
+  }
+  const requestId = payload.meta.requestId;
+  const traceId = payload.meta.traceId;
+  if (!response.ok) {
+    if (!isResponseRecord(payload.error)
+      || typeof payload.error.code !== "string"
+      || !/^[A-Z][A-Z0-9_]*$/.test(payload.error.code)
+      || typeof payload.error.message !== "string"
+      || !Array.isArray(payload.error.details)) {
+      return incomplete();
     }
     return {
-      ok: true,
-      data: payload.data,
-      requestId: payload.meta.requestId,
+      ok: false,
+      status,
+      code: payload.error.code,
+      requestId,
+      traceId,
+      retryAfterSeconds,
+      failureKind: httpFailureKind(status),
+      completion: mutation ? (status >= 500 || payload.error.code === "IDEMPOTENCY_IN_FLIGHT" ? "UNKNOWN" : "REJECTED") : undefined,
+      message: payload.error.message,
     };
-  } catch {
-    return { ok: false, message: "OpenInvest is temporarily unavailable. Please try again." };
   }
+  if (!("data" in payload) || payload.data === undefined) {
+    return incomplete();
+  }
+  return { ok: true, data: payload.data as T, requestId, traceId };
 }
 
-function idempotentHeaders(idempotencyKey: string = crypto.randomUUID()) {
+function isResponseRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isResponseMeta(value: unknown): value is { requestId: string; traceId: string; generatedAt: string } {
+  return isResponseRecord(value)
+    && typeof value.requestId === "string"
+    && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value.requestId)
+    && typeof value.traceId === "string"
+    && /^[a-f0-9]{32}$/.test(value.traceId)
+    && typeof value.generatedAt === "string"
+    && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(value.generatedAt)
+    && Number.isFinite(Date.parse(value.generatedAt));
+}
+
+function parseRetryAfterSeconds(value: string | null): number | undefined {
+  if (value === null || !/^[1-9][0-9]*$/.test(value)) return undefined;
+  const seconds = Number(value);
+  return Number.isSafeInteger(seconds) ? seconds : undefined;
+}
+
+function transportFailureKind(error: unknown, signal: AbortSignal | null | undefined): ApiFailureKind {
+  const name = isResponseRecord(error) && typeof error.name === "string" ? error.name : "";
+  const abortReason = signal?.reason;
+  const reasonName = isResponseRecord(abortReason) && typeof abortReason.name === "string" ? abortReason.name : "";
+  if (name === "TimeoutError" || (signal?.aborted && reasonName === "TimeoutError")) return "TIMEOUT";
+  if (name === "AbortError" || signal?.aborted) return "CANCELLED";
+  return "NETWORK";
+}
+
+function httpFailureKind(status: number): ApiFailureKind {
+  if (status === 401) return "AUTHENTICATION";
+  if (status === 403) return "AUTHORIZATION";
+  if (status === 400 || status === 422) return "VALIDATION";
+  if (status === 409) return "CONFLICT";
+  if (status === 429) return "RATE_LIMITED";
+  if (status >= 500) return "SERVER";
+  return "HTTP";
+}
+
+function idempotentHeaders(idempotencyKey: string | undefined) {
+  // Never mint an identity here: retry ownership belongs to the caller's intent journal.
+  return { "Idempotency-Key": idempotencyKey ?? "" };
+}
+
+function missingIdempotencyKey<T>(key: string | undefined): ApiResult<T> | null {
+  if (typeof key === "string" && /^[A-Za-z0-9._:-]{16,128}$/.test(key)) return null;
   return {
-    "Idempotency-Key": idempotencyKey,
+    ok: false,
+    code: "CLIENT_IDEMPOTENCY_KEY_REQUIRED",
+    failureKind: "REQUEST_SETUP",
+    completion: "REJECTED",
+    message: "A valid request identity is required before submitting this operation.",
   };
 }
 
