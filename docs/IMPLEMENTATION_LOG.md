@@ -10,10 +10,10 @@
 This log is the index of implementation stages. Every stage must document its purpose, scope, decisions, completed work, verification, known risks, and recommended next step. At the end of each stage, implementation stops for a user-facing report and confirmation before any push.
 Experimental portfolio presentation (not numbered Stage 3.78): [Phase C SSR review](audit/PHASE_C_PORTFOLIO_SSR_REVIEW_2026-11-09.md) accepted in isolated scope; integration and merge remain pending.
 
-## 2026-11-13 — HTTP Boundary V2 (PR #300; pending merge)
+## 2026-11-13 — HTTP Boundary V2 (PR #300; MERGED / CLOSED)
 - Scope: keep native fetch; classify network, timeout, cancellation and malformed responses; preserve error codes and request/trace metadata.
 - Financial repair/reversal: retain intent-bound Idempotency-Key for 409 IDEMPOTENCY_IN_FLIGHT and other unknown outcomes.
-- Evidence: local pnpm test 168/168, typecheck/build PASS; GitHub Actions and independent PR review pending; PostgreSQL integration NOT_RUN.
+- Evidence: local pnpm test 168/168, typecheck/build PASS; independent review ACCEPT; GitHub Actions run 43613704280 10/10 PASS; PR #300 squash-merged at c62252b71c569e19d291d11414520dfae2e216c1. PostgreSQL integration NOT_RUN locally.
 
 | Stage | Purpose | Status | Report |
 | --- | --- | --- | --- |
