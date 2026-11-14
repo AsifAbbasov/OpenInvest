@@ -14,6 +14,10 @@
 > It does not define current runtime truth, future sequencing, executable HTTP authority, provider/source-use rights, or architectural decision authority.
 > Use [`SOURCE_OF_TRUTH.md`](SOURCE_OF_TRUTH.md), [`ROADMAP.md`](ROADMAP.md), [`../openapi/openapi.yaml`](../openapi/openapi.yaml), [`registries/DATA_SOURCE_REGISTRY.md`](registries/DATA_SOURCE_REGISTRY.md), and accepted [`ADR/`](ADR/) for those respective roles.
 
+## 2026-11-13 — HTTP Boundary V2 (PR #300; pending merge)
+- Proposed frontend HTTP error classification, response validation/tracing, and stable Idempotency-Key handling for 409 IDEMPOTENCY_IN_FLIGHT.
+- Two React behavior tests in pnpm test; 168/168 local PASS, typecheck/build PASS; CI and merge pending.
+
 ## 2026-10-08 — Module #10 provider resilience audit formally closed
 
 - PR #236 remediation merged at `a602cc39b4c5e916838b6900a1256183d038adef`; repository-side M10-P2-01 is remediated.

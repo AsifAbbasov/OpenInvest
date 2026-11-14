@@ -52,6 +52,12 @@ function apiError(message: string, status = 500) {
     error: {
       code: "TEST_ERROR",
       message,
+      details: [],
+    },
+    meta: {
+      requestId: "11111111-1111-4111-8111-111111111111",
+      traceId: "22222222222222222222222222222222",
+      generatedAt: "2026-11-11T00:00:00Z",
     },
   }), { status, headers: { "Content-Type": "application/json" } });
 }

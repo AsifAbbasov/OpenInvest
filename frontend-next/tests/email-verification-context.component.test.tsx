@@ -14,8 +14,8 @@ const {createRoot}=await import("react-dom/client");
 const {default:VerifyEmailPage}=await import("../src/app/auth/verify/page.tsx");
 const originalFetch=globalThis.fetch;
 const defer=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve}};
-const ok=()=>new Response(JSON.stringify({data:{status:"ACCOUNT_READY"},meta:{requestId:"synthetic-local",traceId:"synthetic-local",generatedAt:"2026-10-14T00:00:00Z"}}),{status:200,headers:{"Content-Type":"application/json"}});
-const denied=()=>new Response(JSON.stringify({error:{code:"INVALID_VERIFICATION",message:"Verification could not be completed. Request new instructions."}}),{status:400,headers:{"Content-Type":"application/json"}});
+const ok=()=>new Response(JSON.stringify({data:{status:"ACCOUNT_READY"},meta:{requestId:"11111111-1111-4111-8111-111111111111",traceId:"22222222222222222222222222222222",generatedAt:"2026-10-14T00:00:00Z"}}),{status:200,headers:{"Content-Type":"application/json"}});
+const denied=()=>new Response(JSON.stringify({error:{code:"INVALID_VERIFICATION",message:"Verification could not be completed. Request new instructions.",details:[]},meta:{requestId:"11111111-1111-4111-8111-111111111111",traceId:"22222222222222222222222222222222",generatedAt:"2026-11-11T00:00:00Z"}}),{status:400,headers:{"Content-Type":"application/json"}});
 const token=(letter)=>letter.repeat(43);
 async function mount(tok,root){
  dom.window.history.replaceState(null,"","/auth/verify#"+tok);

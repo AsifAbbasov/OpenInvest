@@ -76,7 +76,7 @@ export function TransactionRepairControls({ accessToken, portfolioId, transactio
     });
     setBusy(false);
     if (!result.ok) {
-      if (result.status !== undefined && result.status < 500) {
+      if (result.status === 409 && result.code === "IDEMPOTENCY_CONFLICT") {
         await clearBrowserIdempotencyIntent(correctionRetryScope);
         correctionIntentRef.current = emptyIdempotencyIntent;
       }
@@ -114,7 +114,7 @@ export function TransactionRepairControls({ accessToken, portfolioId, transactio
     });
     setBusy(false);
     if (!result.ok) {
-      if (result.status !== undefined && result.status < 500) {
+      if (result.status === 409 && result.code === "IDEMPOTENCY_CONFLICT") {
         await clearBrowserIdempotencyIntent(reversalRetryScope);
         reversalIntentRef.current = emptyIdempotencyIntent;
       }
