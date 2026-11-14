@@ -392,7 +392,12 @@ func authRequest(t *testing.T, app *fiber.App, method string, path string, body 
 	if csrfToken != "" {
 		request.Header.Set("X-CSRF-Token", csrfToken)
 	}
-	response, err := app.Test(request)
+	started := time.Now()
+	response, err := app.Test(request, fiber.TestConfig{
+		Timeout:       10 * time.Second,
+		FailOnTimeout: true,
+	})
+	t.Logf("HTTP_TEST_REQUEST method=%s path=%s elapsed=%s", method, path, time.Since(started))
 	if err != nil {
 		t.Fatalf("request %s %s: %v", method, path, err)
 	}

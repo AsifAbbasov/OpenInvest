@@ -188,7 +188,12 @@ func TestCORSOriginCompatibility(t *testing.T) {
 			if variant.forwarded != "" {
 				request.Header.Set("Forwarded", variant.forwarded)
 			}
-			response, err := app.Test(request)
+			started := time.Now()
+			response, err := app.Test(request, fiber.TestConfig{
+				Timeout:       10 * time.Second,
+				FailOnTimeout: true,
+			})
+			t.Logf("HTTP_TEST_REQUEST method=%s path=%s elapsed=%s", request.Method, request.URL.Path, time.Since(started))
 			if err != nil {
 				t.Fatal(err)
 			}
