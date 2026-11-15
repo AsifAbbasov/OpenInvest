@@ -36,7 +36,7 @@
   text-decoration: none;
   font-size: 1.4rem;
   font-weight: 800;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.045em;
 }
 .sidebarCaption {
   margin: 4px 0 32px;
@@ -54,10 +54,10 @@
   font-weight: 650;
   white-space: nowrap;
 }
-.navLink:hover { background: #f0f6f1; }
+.navLink:hover { background: var(--oi-color-primary-soft); }
 .active {
   color: var(--oi-color-primary);
-  background: #e8f3eb;
+  background: var(--oi-color-primary-soft);
   box-shadow: inset 3px 0 var(--oi-color-primary);
 }
 .navLink:focus-visible, .actionButton:focus-visible, .brand:focus-visible {
@@ -125,3 +125,13 @@
 @media (prefers-reduced-motion: reduce) {
   .mobileNav { scroll-behavior: auto; }
 }
+
+/* Phase 2.1 visual polish: no changes to navigation behavior. */
+.navLink { font-size: 0.91rem; font-weight: 600; transition: background-color 120ms ease, color 120ms ease; }
+.navLink:hover { color: var(--oi-color-primary); }
+.active { font-weight: 750; }
+.brand { line-height: 1.2; }
+.headerTitle strong { letter-spacing: -0.02em; }
+.accountEmail { color: var(--oi-color-muted); }
+.actionButton:hover:not(:disabled) { border-color: var(--oi-color-primary); background: var(--oi-color-primary-soft); }
+@media (prefers-reduced-motion: reduce) { .navLink { transition: none; } }

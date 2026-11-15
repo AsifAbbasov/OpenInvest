@@ -2,6 +2,7 @@
 
 import type { FormEvent } from "react";
 import { useState } from "react";
+import styles from "./AuthForm.module.css";
 
 import type { ApiResult, AuthData, RegistrationAcknowledgment, LoginPayload, RegisterPayload } from "@/common/api/openinvest";
 import { passwordValidationMessage } from "@/features/auth/passwordPolicy";
@@ -40,20 +41,20 @@ export function AuthForm({ message, onLogin, onRegister }: AuthFormProps) {
   }
 
   return (
-    <main className="page-shell auth-shell">
-      <section className="hero compact">
-        <p className="eyebrow">OpenInvest account</p>
-        <h1>Sign in to your private capital workspace.</h1>
-        <p className="summary">
+    <main className={styles.shell}>
+      <section className={styles.intro}>
+        <p className={styles.eyebrow}>OpenInvest account</p>
+        <h1 className={styles.title}>Sign in to your private capital workspace.</h1>
+        <p className={styles.description}>
           Sign in or create an account to access your private portfolios. Your session is protected with secure cookies.
         </p>
       </section>
 
-      <section className="panel auth-panel">
-        <div className="segmented-control" role="tablist" aria-label="Authentication mode">
+      <section className={styles.card}>
+        <div className={styles.tabs} role="tablist" aria-label="Authentication mode">
           <button
             type="button"
-            className={mode === "login" ? "active" : ""}
+            className={mode === "login" ? `${styles.tab} ${styles.tabActive}` : styles.tab}
             aria-pressed={mode === "login"}
             onClick={() => setMode("login")}
           >
@@ -61,7 +62,7 @@ export function AuthForm({ message, onLogin, onRegister }: AuthFormProps) {
           </button>
           <button
             type="button"
-            className={mode === "register" ? "active" : ""}
+            className={mode === "register" ? `${styles.tab} ${styles.tabActive}` : styles.tab}
             aria-pressed={mode === "register"}
             onClick={() => setMode("register")}
           >
@@ -69,21 +70,23 @@ export function AuthForm({ message, onLogin, onRegister }: AuthFormProps) {
           </button>
         </div>
 
-        <form className="form-grid auth-form" onSubmit={submit}>
-          <label>
+        <form className={styles.form} onSubmit={submit}>
+          <label className={styles.label}>
             Email
             <input
               type="email"
+              className={styles.input}
               autoComplete="email"
               value={email}
               required
               onChange={(event) => setEmail(event.target.value)}
             />
           </label>
-          {mode === "login" && <label>
+          {mode === "login" && <label className={styles.label}>
             Password
             <input
               type="password"
+              className={styles.input}
               autoComplete="current-password"
               value={password}
               required
@@ -91,10 +94,10 @@ export function AuthForm({ message, onLogin, onRegister }: AuthFormProps) {
             />
           </label>}
 
-          <button type="submit" disabled={isSubmitting}>
+          <button className={styles.submit} type="submit" disabled={isSubmitting}>
             {isSubmitting ? "Sending..." : mode === "register" ? "Create account" : "Login"}
           </button>
-          {status ?? message ? <p className="form-status">{status ?? message}</p> : null}
+          {status ?? message ? <p className={styles.status} role="status">{status ?? message}</p> : null}
         </form>
       </section>
     </main>

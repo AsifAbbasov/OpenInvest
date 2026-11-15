@@ -1,13 +1,18 @@
-/* Phase 1: additive design tokens; existing feature styles retain their current values. */
+/* Phase 2.1: presentation-only blue and white visual foundation. */
 :root {
-  --oi-color-canvas: #f4f7f5;
+  color-scheme: light;
+  --oi-color-canvas: #f5f7fa;
   --oi-color-surface: #ffffff;
-  --oi-color-primary: #17492f;
-  --oi-color-primary-hover: #25734a;
-  --oi-color-text: #10251a;
-  --oi-color-muted: #62776b;
-  --oi-color-border: #cddbd3;
-  --oi-color-focus: #25734a;
+  --oi-color-primary: #005ed4;
+  --oi-color-primary-hover: #004bad;
+  --oi-color-primary-soft: #eaf3ff;
+  --oi-color-text: #17212f;
+  --oi-color-muted: #586779;
+  --oi-color-border: #dce4ee;
+  --oi-color-control-border: #8190a3;
+  --oi-color-focus: #005ed4;
+  --oi-color-success: #146c37;
+  --oi-color-warning: #9a4b00;
   --oi-font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --oi-space-1: 4px;
   --oi-space-2: 8px;
@@ -18,7 +23,7 @@
   --oi-radius-sm: 8px;
   --oi-radius-md: 12px;
   --oi-radius-lg: 18px;
-  --oi-shadow-panel: 0 12px 32px rgb(16 37 26 / 0.07);
-  --oi-sidebar-width: 236px;
+  --oi-shadow-panel: 0 12px 36px rgb(17 43 78 / 0.06);
+  --oi-sidebar-width: 248px;
   --oi-header-height: 76px;
 }
