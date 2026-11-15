@@ -128,3 +128,7 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* UI Polish V1 — compact calculator heading. */
+.page { padding-top: 26px; }
+.hero h1 { font-size: clamp(2rem, 3.4vw, 3rem); line-height: 1.13; letter-spacing: -0.04em; }

@@ -1,3 +1,6 @@
+"use client";
+
+import { useLocale } from "@/features/locale/LocaleProvider";
 import type { ApiResult, PortfolioPositionsProjection } from "@/common/api/openinvest";
 import { formatMoney, formatQuantityForDisplay, formatRatioAsPercent } from "@/common/presentation/format";
 import { AcquisitionBasisAllocation } from "@/features/portfolio/components/AcquisitionBasisAllocation";
@@ -27,19 +30,20 @@ export function PositionsBlock({
   onHistoricalDateChange,
   onValuationChanged,
 }: PositionsBlockProps) {
+  const { t } = useLocale();
   const historicalSelectionPending = viewMode === "historical" && historicalDate === "";
-  const heading = viewMode === "historical" && historicalDate !== "" ? `Portfolio on ${historicalDate}` : "Positions";
+  const heading = viewMode === "historical" && historicalDate !== "" ? `${t("Portfolio on")} ${historicalDate}` : t("Positions");
 
   return (
     <section className="panel" aria-label="Portfolio positions">
       <div className="section-heading positions-heading">
         <div>
-          <p className="eyebrow">{viewMode === "historical" ? "Portfolio time machine" : "Cost basis and manual valuation"}</p>
+          <p className="eyebrow">{t(viewMode === "historical" ? "Portfolio time machine" : "Cost basis and manual valuation")}</p>
           <h2>{heading}</h2>
         </div>
         {result?.ok ? (
           <div className="positions-meta">
-            <span>Total acquisition basis</span>
+            <span>{t("Total acquisition basis")}</span>
             <strong>{formatMoney(result.data.totalAcquisitionBasis)}</strong>
             {result.data.calculation.inputsAsOf ? <small>Inputs through {result.data.calculation.inputsAsOf}</small> : null}
           </div>
@@ -48,16 +52,16 @@ export function PositionsBlock({
 
       <div className="segmented-control" aria-label="Portfolio position date mode">
         <button type="button" className={viewMode === "current" ? "active" : undefined} onClick={onShowCurrent}>
-          Current
+          {t("Current")}
         </button>
         <button type="button" className={viewMode === "historical" ? "active" : undefined} onClick={onShowHistorical}>
-          Historical
+          {t("Historical")}
         </button>
       </div>
 
       {viewMode === "historical" ? (
         <label>
-          Historical date
+          {t("Historical date")}
           <input
             type="date"
             value={historicalDate}
@@ -69,9 +73,9 @@ export function PositionsBlock({
 
       <p id="portfolio-time-machine-status" className="muted">
         {viewMode === "current"
-          ? "Viewing current positions. Manual prices are user-supplied inputs, not live quotes."
+          ? t("Viewing current positions. Manual prices are user-supplied inputs, not live quotes.")
           : historicalDate === ""
-            ? "Choose a historical date to reconstruct your positions."
+            ? t("Choose a historical date to reconstruct your positions.")
             : `Viewing portfolio as of ${historicalDate}. Manual prices are shown only when their price date matches the selected date.`}
       </p>
 
@@ -80,7 +84,7 @@ export function PositionsBlock({
 
       {result?.ok && viewMode === "current" ? (
         <div className="panel" aria-label="Manual valuation coverage">
-          <p className="eyebrow">Manual valuation coverage</p>
+          <p className="eyebrow">{t("Manual valuation coverage")}</p>
           <strong>
             {result.data.valuationSummary.valuedPositions} / {result.data.valuationSummary.totalOpenPositions} positions valued · {result.data.valuationSummary.status}
           </strong>
@@ -103,9 +107,9 @@ export function PositionsBlock({
 
       {result?.ok === false ? (
         <div className="warning position-warning" role="status">
-          <strong>Positions unavailable</strong>
+          <strong>{t("Positions unavailable")}</strong>
           <p>{result.message}</p>
-          <p>Unavailable values are left unavailable rather than estimated.</p>
+          <p>{t("Unavailable values are left unavailable rather than estimated.")}</p>
         </div>
       ) : null}
 
@@ -123,12 +127,12 @@ export function PositionsBlock({
             <table>
               <thead>
                 <tr>
-                  <th>Asset</th>
-                  <th>Quantity</th>
-                  <th>Average acquisition price</th>
-                  <th>Acquisition basis</th>
-                  <th>Acquisition-basis weight</th>
-                  <th>Market valuation</th>
+                  <th>{t("Asset")}</th>
+                  <th>{t("Quantity")}</th>
+                  <th>{t("Average acquisition price")}</th>
+                  <th>{t("Acquisition basis")}</th>
+                  <th>{t("Acquisition-basis weight")}</th>
+                  <th>{t("Market valuation")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -144,7 +148,7 @@ export function PositionsBlock({
                     <td>{formatRatioAsPercent(item.acquisitionBasisWeight)}</td>
                     <td>
                       {viewMode === "historical" && item.marketValuation.status === "UNAVAILABLE" ? (
-                        <span className="market-unavailable">Market valuation unavailable</span>
+                        <span className="market-unavailable">{t("Market valuation unavailable")}</span>
                       ) : (
                         <ManualValuationCell
                           accessToken={accessToken}
@@ -168,12 +172,12 @@ export function PositionsBlock({
                   <strong>{item.ticker}</strong>
                   <span>{item.assetType}</span>
                 </div>
-                <PositionCardRow label="Quantity" value={formatQuantityForDisplay(item.quantity)} />
-                <PositionCardRow label="Average acquisition price" value={formatMoney(item.weightedAverageCost)} />
-                <PositionCardRow label="Acquisition basis" value={formatMoney(item.acquisitionBasis)} />
-                <PositionCardRow label="Acquisition-basis weight" value={formatRatioAsPercent(item.acquisitionBasisWeight)} />
+                <PositionCardRow label={t("Quantity")} value={formatQuantityForDisplay(item.quantity)} />
+                <PositionCardRow label={t("Average acquisition price")} value={formatMoney(item.weightedAverageCost)} />
+                <PositionCardRow label={t("Acquisition basis")} value={formatMoney(item.acquisitionBasis)} />
+                <PositionCardRow label={t("Acquisition-basis weight")} value={formatRatioAsPercent(item.acquisitionBasisWeight)} />
                 {viewMode === "historical" && item.marketValuation.status === "UNAVAILABLE" ? (
-                  <span className="market-unavailable">Market valuation unavailable</span>
+                  <span className="market-unavailable">{t("Market valuation unavailable")}</span>
                 ) : (
                   <ManualValuationCell
                     accessToken={accessToken}

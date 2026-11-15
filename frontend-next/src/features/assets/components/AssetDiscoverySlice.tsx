@@ -13,6 +13,7 @@ import {
   type ListData,
 } from "@/common/api/openinvest";
 import { unicodeTextValidationError } from "@/common/presentation/unicode";
+import { useLocale } from "@/features/locale/LocaleProvider";
 import {
   assetDetailStatusMessage,
   assetDetailFocusRestoreTarget,
@@ -43,6 +44,7 @@ type DetailState =
 const SEARCH_LIMIT = 20;
 
 export function AssetDiscoverySlice() {
+  const { t } = useLocale();
   const [query, setQuery] = useState("");
   const [assetType, setAssetType] = useState<AssetType | "">("");
   const [searchState, setSearchState] = useState(() => initialAssetSearchState());
@@ -236,18 +238,18 @@ export function AssetDiscoverySlice() {
   return (
     <main className="page-shell">
       <section className="hero compact">
-        <p className="eyebrow">Asset discovery</p>
-        <h1>Find supported stocks and bonds.</h1>
+        <p className="eyebrow">{t("Asset discovery")}</p>
+        <h1>{t("Find supported stocks and bonds.")}</h1>
         <p className="summary">
-          Search supported assets by ticker or name. Missing market data is left unavailable rather than estimated.
+          {t("Search supported assets by ticker or name. Missing market data is left unavailable rather than estimated.")}
         </p>
-        <Link href="/" className="back-link">Back to portfolios</Link>
+        <Link href="/" className="back-link">{t("Back to portfolios")}</Link>
       </section>
 
       <section className="panel asset-discovery-panel">
         <form className="asset-search-form" onSubmit={handleSubmit}>
           <label>
-            Search by ticker or name
+            {t("Search by ticker or name")}
             <input
               ref={searchInputRef}
               value={query}
@@ -256,15 +258,15 @@ export function AssetDiscoverySlice() {
             />
           </label>
           <label>
-            Asset type
+            {t("Asset type")}
             <select value={assetType} onChange={(event) => setAssetType(event.target.value as AssetType | "")}>
-              <option value="">All supported types</option>
-              <option value="STOCK">Stocks</option>
-              <option value="BOND">Bonds</option>
+              <option value="">{t("All supported types")}</option>
+              <option value="STOCK">{t("Stocks")}</option>
+              <option value="BOND">{t("Bonds")}</option>
             </select>
           </label>
           <button type="submit" disabled={status === "loading"}>
-            {status === "loading" ? "Searching..." : "Search"}
+            {t(status === "loading" ? "Searching..." : "Search")}
           </button>
         </form>
 
@@ -274,8 +276,8 @@ export function AssetDiscoverySlice() {
         {status === "error" ? <p role="alert" className="form-status">{errorMessage}</p> : null}
         {errorMessage && status === "idle" ? <p className="form-status">{errorMessage}</p> : null}
 
-        {status === "loading" ? <div className="skeleton asset-state">Loading supported assets...</div> : null}
-        {status === "empty" ? <div className="asset-state">No supported assets matched this search.</div> : null}
+        {status === "loading" ? <div className="skeleton asset-state">{t("Loading supported assets...")}</div> : null}
+        {status === "empty" ? <div className="asset-state">{t("No supported assets matched this search.")}</div> : null}
 
         {searchState.items.length > 0 ? (
           <div className="asset-results" aria-label="Asset search results">
@@ -299,7 +301,7 @@ export function AssetDiscoverySlice() {
                   <small>{asset.name}</small>
                 </span>
                 <span className="status-pill">{asset.assetType}</span>
-                <span className="muted">Last price unavailable</span>
+                <span className="muted">{t("Last price unavailable")}</span>
               </button>
             ))}
           </div>
@@ -312,7 +314,7 @@ export function AssetDiscoverySlice() {
             disabled={status === "loadingMore"}
             onClick={() => void runSearch(searchState.pagination.nextCursor)}
           >
-            {status === "loadingMore" ? "Loading more..." : "Load more"}
+            {t(status === "loadingMore" ? "Loading more..." : "Load more")}
           </button>
         ) : null}
       </section>
@@ -330,7 +332,7 @@ export function AssetDiscoverySlice() {
               <p className="eyebrow">{detail.status === "deferred" ? "More details unavailable" : "Asset detail"}</p>
               <h2 id="asset-detail-heading">{detail.ticker}</h2>
             </div>
-            <button type="button" className="secondary-button" onClick={closeDetail}>Close</button>
+            <button type="button" className="secondary-button" onClick={closeDetail}>{t("Close")}</button>
           </div>
           {detail.status === "loading" ? <p className="skeleton">Loading asset details...</p> : null}
           {detail.status === "deferred" ? (

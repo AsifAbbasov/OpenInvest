@@ -17,6 +17,7 @@ type NavigationProps = {
   linkClassName: string;
   activeClassName: string;
   LinkComponent: ComponentType<NavigationLinkProps>;
+  translate?: (english: string) => string;
 };
 
 export const sections = [
@@ -45,6 +46,7 @@ export function ApplicationNavigation({
   linkClassName,
   activeClassName,
   LinkComponent,
+  translate = (english) => english,
 }: NavigationProps) {
   const selected = selectedSection(pathname, hash);
   return (
@@ -58,7 +60,7 @@ export function ApplicationNavigation({
             className={`${linkClassName} ${active ? activeClassName : ""}`}
             aria-current={active ? (section.key === "portfolios" ? "location" : "page") : undefined}
           >
-            {section.label}
+            {translate(section.label)}
           </LinkComponent>
         );
       })}

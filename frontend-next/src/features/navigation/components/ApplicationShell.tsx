@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import styles from "./ApplicationShell.module.css";
+import { LanguageSwitch, useLocale } from "@/features/locale/LocaleProvider";
 import { ApplicationNavigation, sections, selectedSection } from "./ApplicationNavigation";
 
 type ApplicationShellProps = {
@@ -24,6 +25,7 @@ export function ApplicationShell({
   refresh,
   signOut,
 }: ApplicationShellProps) {
+  const { t } = useLocale();
   const pathname = usePathname();
   const [hash, setHash] = useState("");
   const mobileNavRef = useRef<HTMLDivElement | null>(null);
@@ -55,36 +57,38 @@ export function ApplicationShell({
         linkClassName={styles.navLink}
         activeClassName={styles.active}
         LinkComponent={Link}
+        translate={t}
       />
     );
   }
 
   return (
     <div className={styles.shell}>
-      <a href="#oi-page-content" className={styles.skipLink}>Skip to main content</a>
+      <a href="#oi-page-content" className={styles.skipLink}>{t("Skip to main content")}</a>
       <aside className={styles.sidebar} aria-label="Application sidebar">
         <Link className={styles.brand} href="/" aria-label="OpenInvest dashboard">OpenInvest</Link>
-        <span className={styles.sidebarCaption}>Personal capital</span>
-        {navigation(styles.sidebarNav, "Primary navigation")}
+        <span className={styles.sidebarCaption}>{t("Personal capital")}</span>
+        {navigation(styles.sidebarNav, t("Primary navigation"))}
       </aside>
       <div className={styles.workspace}>
         <header className={styles.header}>
           <div className={styles.headerTitle}>
-            <span className={styles.headerEyebrow}>OpenInvest workspace</span>
-            <strong>{sections.find((item) => item.key === selected)?.label ?? "Portfolio"}</strong>
+            <span className={styles.headerEyebrow}>{t("OpenInvest workspace")}</span>
+            <strong>{t(sections.find((item) => item.key === selected)?.label ?? "Portfolio")}</strong>
           </div>
           <div className={styles.accountActions}>
+            <LanguageSwitch />
             <span className={styles.accountEmail} title={accountEmail}>{accountEmail}</span>
             <button type="button" className={styles.actionButton} disabled={pendingOperation !== null} onClick={() => void refresh()}>
-              {pendingOperation === "refresh" ? "Refreshing…" : "Refresh"}
+              {t(pendingOperation === "refresh" ? "Refreshing…" : "Refresh")}
             </button>
             <button type="button" className={styles.actionButton} disabled={pendingOperation !== null} onClick={() => void signOut()}>
-              {pendingOperation === "logout" ? "Signing out…" : "Sign out"}
+              {t(pendingOperation === "logout" ? "Signing out…" : "Sign out")}
             </button>
           </div>
         </header>
         <div ref={mobileNavRef} className={styles.mobileNavViewport}>
-          {navigation(styles.mobileNav, "Mobile navigation")}
+          {navigation(styles.mobileNav, t("Mobile navigation"))}
         </div>
         {sessionMessage ? <p className={styles.sessionMessage} role="status">{sessionMessage}</p> : null}
         <div id="oi-page-content" tabIndex={-1} className={styles.content}>{children}</div>

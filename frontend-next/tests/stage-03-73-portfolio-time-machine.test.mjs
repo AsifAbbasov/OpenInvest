@@ -21,8 +21,8 @@ test("Stage 3.73 reuses the Stage 3.72 positions endpoint instead of creating fr
 });
 
 test("Stage 3.73 exposes explicit Current and Historical states without calling Current Today", () => {
-  assert.match(positions, />\s*Current\s*</);
-  assert.match(positions, />\s*Historical\s*</);
+  assert.match(positions, />\s*(?:Current|\{t\("Current"\)\})\s*</);
+  assert.match(positions, />\s*(?:Historical|\{t\("Historical"\)\})\s*</);
   assert.match(positions, /type="date"/);
   assert.match(positions, /Viewing current positions/);
   assert.match(positions, /Manual prices are user-supplied inputs, not live quotes/);
