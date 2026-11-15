@@ -65,8 +65,8 @@ export function ApplicationShell({
   return (
     <div className={styles.shell}>
       <a href="#oi-page-content" className={styles.skipLink}>{t("Skip to main content")}</a>
-      <aside className={styles.sidebar} aria-label="Application sidebar">
-        <Link className={styles.brand} href="/" aria-label="OpenInvest dashboard">OpenInvest</Link>
+      <aside className={styles.sidebar} aria-label={t("Application sidebar")}>
+        <Link className={styles.brand} href="/" aria-label={t("OpenInvest dashboard")}>OpenInvest</Link>
         <span className={styles.sidebarCaption}>{t("Personal capital")}</span>
         {navigation(styles.sidebarNav, t("Primary navigation"))}
       </aside>

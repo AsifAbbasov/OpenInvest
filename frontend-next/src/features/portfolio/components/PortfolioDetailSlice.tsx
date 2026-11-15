@@ -286,8 +286,7 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
           <p className="eyebrow">{t("Portfolio detail")}</p>
           <h1>{portfolio.name}</h1>
           <p className="summary">
-            Review portfolio value, income, positions and money-weighted return. Time-weighted, nominal,
-            real and inflation-adjusted return views are not available yet.
+            {t("Review portfolio value, income, positions and money-weighted return. Time-weighted, nominal, real and inflation-adjusted return views are not available yet.")}
           </p>
         </section>
       ) : null}
@@ -295,11 +294,10 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
       {summary && positionViewMode === "current" ? <CapitalSummary summary={summary} /> : null}
 
       {positionViewMode === "historical" ? (
-        <section className="panel" aria-label="Historical positions scope">
+        <section className="panel" aria-label={t("Historical positions scope")}>
           <p className="eyebrow">{t("Historical positions only")}</p>
           <p className="muted">
-            Time Machine reconstructs positions for the selected date. Historical market value, cash and
-            performance are not shown when the required data is unavailable.
+            {t("Time Machine reconstructs positions for the selected date. Historical market value, cash and performance are not shown when the required data is unavailable.")}
           </p>
         </section>
       ) : null}
@@ -421,28 +419,27 @@ function Metric({ label, value }: { label: string; value: string }) {
 export function CapitalSummary({ summary }: { summary: PortfolioSummary }) {
   const { t } = useLocale();
   return (
-    <section className="panel capital-summary" aria-label="Current portfolio summary">
+    <section className="panel capital-summary" aria-label={t("Current portfolio summary")}>
       <div className="section-heading capital-summary-heading">
         <div>
           <p className="eyebrow">{t("Portfolio capital")}</p>
           <h2>{t("Capital summary")}</h2>
         </div>
-        <p className="muted capital-summary-date">As of <time dateTime={summary.asOfDate}>{summary.asOfDate}</time></p>
+        <p className="muted capital-summary-date">{t("As of")} <time dateTime={summary.asOfDate}>{summary.asOfDate}</time></p>
       </div>
       <p className="muted capital-summary-explainer">
-        Total capital is cash plus the remaining acquisition-cost basis of open positions, not a current market valuation.
+        {t("Total capital is cash plus the remaining acquisition-cost basis of open positions, not a current market valuation.")}
       </p>
-      <div className="metric-grid capital-summary-grid" role="group" aria-label="Capital components">
+      <div className="metric-grid capital-summary-grid" role="group" aria-label={t("Capital components")}>
         <Metric label={t("Total capital (cost basis)")} value={formatMoney(summary.totalValue)} />
         <Metric label={t("Cash")} value={formatMoney(summary.cashValue)} />
         <Metric label={t("Stocks (cost basis)")} value={formatMoney(summary.stockValue)} />
         <Metric label={t("Bonds (cost basis)")} value={formatMoney(summary.bondValue)} />
       </div>
       <p className="muted capital-summary-explainer">
-        Invested capital is cumulative BUY acquisition outflow, not external contributions.
-        Recorded gross dividends and coupons are before fees and taxes.
+        {t("Invested capital is cumulative BUY acquisition outflow, not external contributions. Recorded gross dividends and coupons are before fees and taxes.")}
       </p>
-      <div className="metric-grid capital-income-grid" role="group" aria-label="Invested capital and recorded gross income">
+      <div className="metric-grid capital-income-grid" role="group" aria-label={t("Invested capital and recorded gross income")}>
         <Metric label={t("Invested capital")} value={formatMoney(summary.investedCapital)} />
         <Metric label={t("Gross dividends recorded")} value={formatMoney(summary.dividendsReceived)} />
         <Metric label={t("Gross coupons recorded")} value={formatMoney(summary.couponsReceived)} />

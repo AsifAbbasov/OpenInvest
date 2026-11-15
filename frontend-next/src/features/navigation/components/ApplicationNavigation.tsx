@@ -1,6 +1,7 @@
 "use client";
 
 import type { ComponentType, ReactNode } from "react";
+import type { TranslationKey } from "@/features/locale/LocaleProvider";
 
 type NavigationLinkProps = {
   href: string;
@@ -17,7 +18,7 @@ type NavigationProps = {
   linkClassName: string;
   activeClassName: string;
   LinkComponent: ComponentType<NavigationLinkProps>;
-  translate?: (english: string) => string;
+  translate?: (english: TranslationKey) => string;
 };
 
 export const sections = [

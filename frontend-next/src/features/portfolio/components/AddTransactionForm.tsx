@@ -108,8 +108,7 @@ export function AddTransactionForm({ accessToken, principalId, portfolioId, onSa
         <p className="eyebrow">{t("Portfolio activity")}</p>
         <h2>{t("Add transaction")}</h2>
         <p className="muted">
-          Add trades, income, expenses, deposits and withdrawals. OpenInvest validates each entry and preserves
-          transaction history when you edit or reverse a transaction. Broker-imported SELL transactions are not available yet.
+          {t("Add trades, income, expenses, deposits and withdrawals. OpenInvest validates each entry and preserves transaction history when you edit or reverse a transaction. Broker-imported SELL transactions are not available yet.")}
         </p>
       </div>
 

@@ -1,11 +1,11 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from "react";
 
 type Language = "ru" | "en";
 const STORAGE_KEY = "openinvest.ui.language";
 
-const translations: Record<string, string> = {
+export const translations = {
   "Dashboard": "Обзор",
   "Portfolios": "Портфели",
   "Assets": "Активы",
@@ -166,32 +166,83 @@ const translations: Record<string, string> = {
   "TAX": "Налог",
   "DEPOSIT": "Пополнение",
   "WITHDRAWAL": "Вывод средств",
-};
+  "Portfolio": "Портфель",
+  "As of": "По состоянию на",
+  "Viewing portfolio as of": "Позиции портфеля на",
+  "Manual prices are shown only when their price date matches the selected date.": "Ручные цены показываются только при совпадении даты цены с выбранной датой.",
+  "positions valued": "позиций оценено",
+  "COMPLETE": "ПОЛНАЯ",
+  "PARTIAL": "ЧАСТИЧНАЯ",
+  "Total capital is cash plus the remaining acquisition-cost basis of open positions, not a current market valuation.": "Общий капитал — это денежные средства и оставшаяся стоимость приобретения открытых позиций, а не текущая рыночная оценка.",
+  "Invested capital is cumulative BUY acquisition outflow, not external contributions. Recorded gross dividends and coupons are before fees and taxes.": "Инвестированный капитал отражает совокупные затраты на покупки, а не внешние пополнения. Дивиденды и купоны указаны до вычета комиссий и налогов.",
+  "Add trades, income, expenses, deposits and withdrawals. OpenInvest validates each entry and preserves transaction history when you edit or reverse a transaction. Broker-imported SELL transactions are not available yet.": "Добавляйте покупки, продажи, доходы, расходы, пополнения и выводы. OpenInvest проверяет записи и сохраняет историю при исправлении и сторнировании операций. Импорт продаж из брокерских отчётов пока недоступен.",
+  "Current portfolio summary": "Сводка текущего портфеля",
+  "Capital components": "Состав капитала",
+  "Invested capital and recorded gross income": "Инвестированный капитал и учтённые доходы до удержаний",
+  "Application sidebar": "Боковая панель приложения",
+  "OpenInvest dashboard": "Обзор OpenInvest",
+  "Manual market valuation": "Ручная рыночная оценка",
+  "Market valuation coverage": "Полнота рыночной оценки",
+  "Heatmap counts events, not cash amounts.": "Тепловая карта показывает количество событий, а не суммы выплат.",
+  "The heatmap shows event counts, not monetary values.": "Тепловая карта показывает количество событий, а не денежные значения.",
+  "Portfolio positions": "Позиции портфеля",
+  "Portfolio position date mode": "Режим даты позиций",
+  "Portfolio positions mobile view": "Позиции портфеля для мобильных устройств",
+  "Inputs through": "Данные по",
+  "Current portfolio value": "Текущая стоимость портфеля",
+  "Unavailable until every open position has a manual valuation": "Недоступно, пока не оценена каждая открытая позиция",
+  "Loading portfolio as of": "Загрузка портфеля на",
+  "Loading positions…": "Загрузка позиций…",
+  "No open stock or bond positions on": "Нет открытых позиций по акциям и облигациям на",
+  "Review portfolio value, income, positions and money-weighted return. Time-weighted, nominal, real and inflation-adjusted return views are not available yet.": "Просматривайте стоимость портфеля, доходы, позиции и денежно-взвешенную доходность. Расчёты доходности, взвешенной по времени, номинальной, реальной и скорректированной на инфляцию, пока недоступны.",
+  "Historical positions scope": "Область исторических позиций",
+  "Time Machine reconstructs positions for the selected date. Historical market value, cash and performance are not shown when the required data is unavailable.": "Машина времени восстанавливает позиции на выбранную дату. Историческая рыночная стоимость, денежные средства и показатели доходности не отображаются, если необходимые данные недоступны.",
+} as const;
+
+export type TranslationKey = keyof typeof translations;
 
 type LocaleContextValue = {
   language: Language;
   setLanguage: (value: Language) => void;
-  t: (english: string) => string;
+  t: (english: TranslationKey) => string;
 };
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 const isolatedComponentFallback: LocaleContextValue = { language: "en", setLanguage: () => {}, t: (english) => english };
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
+  // Server markup and the first hydration render both use Russian.
+  // Read the stored preference before the browser paints; do not overwrite it
+  // with the default before restoration has completed.
   const [language, setLanguage] = useState<Language>("ru");
-  useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (saved === "ru" || saved === "en") setLanguage(saved);
-    } catch { /* Storage can be blocked by browser settings. */ }
+  const [restored, setRestored] = useState(false);
+
+  useLayoutEffect(() => {
+    let saved: string | null = null;
+    try { saved = window.localStorage.getItem(STORAGE_KEY); }
+    catch { /* Private browsing and restricted storage. */ }
+    if (saved === "ru" || saved === "en") {
+      setLanguage(saved);
+      document.documentElement.lang = saved;
+    } else {
+      document.documentElement.lang = "ru";
+    }
+    setRestored(true);
   }, []);
+
+  useLayoutEffect(() => {
+    if (restored) document.documentElement.lang = language;
+  }, [language, restored]);
+
   useEffect(() => {
-    document.documentElement.lang = language;
-    try { window.localStorage.setItem(STORAGE_KEY, language); } catch { /* Browsers may block storage. */ }
-  }, [language]);
+    if (!restored) return;
+    try { window.localStorage.setItem(STORAGE_KEY, language); }
+    catch { /* The page remains usable when storage is unavailable. */ }
+  }, [language, restored]);
+
   const value = useMemo<LocaleContextValue>(() => ({
     language,
     setLanguage,
-    t: (english) => language === "ru" ? translations[english] ?? english : english,
+    t: (english) => language === "ru" ? translations[english] : english,
   }), [language]);
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
 }

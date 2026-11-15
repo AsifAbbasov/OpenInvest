@@ -35,7 +35,7 @@ export function PositionsBlock({
   const heading = viewMode === "historical" && historicalDate !== "" ? `${t("Portfolio on")} ${historicalDate}` : t("Positions");
 
   return (
-    <section className="panel" aria-label="Portfolio positions">
+    <section className="panel" aria-label={t("Portfolio positions")}>
       <div className="section-heading positions-heading">
         <div>
           <p className="eyebrow">{t(viewMode === "historical" ? "Portfolio time machine" : "Cost basis and manual valuation")}</p>
@@ -45,12 +45,12 @@ export function PositionsBlock({
           <div className="positions-meta">
             <span>{t("Total acquisition basis")}</span>
             <strong>{formatMoney(result.data.totalAcquisitionBasis)}</strong>
-            {result.data.calculation.inputsAsOf ? <small>Inputs through {result.data.calculation.inputsAsOf}</small> : null}
+            {result.data.calculation.inputsAsOf ? <small>{t("Inputs through")} {result.data.calculation.inputsAsOf}</small> : null}
           </div>
         ) : null}
       </div>
 
-      <div className="segmented-control" aria-label="Portfolio position date mode">
+      <div className="segmented-control" aria-label={t("Portfolio position date mode")}>
         <button type="button" className={viewMode === "current" ? "active" : undefined} onClick={onShowCurrent}>
           {t("Current")}
         </button>
@@ -76,23 +76,23 @@ export function PositionsBlock({
           ? t("Viewing current positions. Manual prices are user-supplied inputs, not live quotes.")
           : historicalDate === ""
             ? t("Choose a historical date to reconstruct your positions.")
-            : `Viewing portfolio as of ${historicalDate}. Manual prices are shown only when their price date matches the selected date.`}
+            : `${t("Viewing portfolio as of")} ${historicalDate}. ${t("Manual prices are shown only when their price date matches the selected date.")}`}
       </p>
 
       <AcquisitionBasisAllocation result={result} viewMode={viewMode} />
       <ManualValuationAllocation result={result} viewMode={viewMode} />
 
       {result?.ok && viewMode === "current" ? (
-        <div className="panel" aria-label="Manual valuation coverage">
+        <div className="panel" aria-label={t("Manual valuation coverage")}>
           <p className="eyebrow">{t("Manual valuation coverage")}</p>
           <strong>
-            {result.data.valuationSummary.valuedPositions} / {result.data.valuationSummary.totalOpenPositions} positions valued · {result.data.valuationSummary.status}
+            {result.data.valuationSummary.valuedPositions} / {result.data.valuationSummary.totalOpenPositions} {t("positions valued")} · {t(result.data.valuationSummary.status)}
           </strong>
-          <p>Cash: {formatMoney(result.data.valuationSummary.cashValue)}</p>
+          <p>{t("Cash")}: {formatMoney(result.data.valuationSummary.cashValue)}</p>
           <p>
-            Current portfolio value: {result.data.valuationSummary.currentPortfolioValue
+            {t("Current portfolio value")}: {result.data.valuationSummary.currentPortfolioValue
               ? formatMoney(result.data.valuationSummary.currentPortfolioValue)
-              : "Unavailable until every open position has a manual valuation"}
+              : t("Unavailable until every open position has a manual valuation")}
           </p>
         </div>
       ) : null}
@@ -100,8 +100,8 @@ export function PositionsBlock({
       {result === null && !historicalSelectionPending ? (
         <p className="muted">
           {viewMode === "historical"
-            ? `Loading portfolio as of ${historicalDate}…`
-            : "Loading positions…"}
+            ? `${t("Loading portfolio as of")} ${historicalDate}…`
+            : t("Loading positions…")}
         </p>
       ) : null}
 
@@ -116,8 +116,8 @@ export function PositionsBlock({
       {result?.ok && result.data.items.length === 0 ? (
         <p className="muted">
           {viewMode === "historical" && historicalDate !== ""
-            ? `No open stock or bond positions on ${historicalDate}.`
-            : "No open stock or bond positions."}
+            ? `${t("No open stock or bond positions on")} ${historicalDate}.`
+            : t("No open stock or bond positions.")}
         </p>
       ) : null}
 
@@ -165,7 +165,7 @@ export function PositionsBlock({
             </table>
           </div>
 
-          <div className="position-cards" aria-label="Portfolio positions mobile view">
+          <div className="position-cards" aria-label={t("Portfolio positions mobile view")}>
             {result.data.items.map((item) => (
               <article className="position-card" key={item.ticker}>
                 <div className="position-card-title">
