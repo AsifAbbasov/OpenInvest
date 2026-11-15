@@ -60,6 +60,8 @@ export function DashboardSlice() {
         </Link>
       </section>
 
+      <div id="portfolios" tabIndex={-1} aria-label="Portfolios" />
+
       {result === null ? <section className="panel skeleton">Loading portfolios…</section> : null}
 
       {result?.ok === false ? (

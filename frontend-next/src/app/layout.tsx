@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { AuthShell } from "@/features/auth/components/AuthShell";
 
+import "@/styles/tokens.css";
 import "./styles.css";
 
 export const metadata: Metadata = {

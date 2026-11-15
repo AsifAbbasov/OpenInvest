@@ -15,6 +15,7 @@ import {
   type RegisterPayload,
 } from "@/common/api/openinvest";
 import { AuthForm } from "@/features/auth/components/AuthForm";
+import { ApplicationShell } from "@/features/navigation/components/ApplicationShell";
 import {
   anonymousState,
   applyAuthResult,
@@ -102,23 +103,15 @@ export function AuthShell({ children }: Readonly<{ children: ReactNode }>) {
 
   return (
     <AuthContext.Provider value={value}>
-      <div className="auth-bar">
-        <div>
-          <p className="eyebrow">Signed in</p>
-          <strong>{state.user.email}</strong>
-          <span>Privacy mode on · Tax profile off · Notifications off · Anonymous analytics</span>
-        </div>
-        <div className="auth-actions">
-          <button type="button" className="secondary-button" disabled={pendingOperation !== null} onClick={() => void refresh()}>
-            {pendingOperation === "refresh" ? "Refreshing..." : "Refresh session"}
-          </button>
-          <button type="button" disabled={pendingOperation !== null} onClick={() => void signOut(false)}>
-            {pendingOperation === "logout" ? "Signing out..." : "Sign out"}
-          </button>
-        </div>
-      </div>
-      {state.message ? <p className="auth-message">{state.message}</p> : null}
-      {children}
+      <ApplicationShell
+        accountEmail={state.user.email}
+        sessionMessage={state.message}
+        pendingOperation={pendingOperation}
+        refresh={refresh}
+        signOut={() => signOut(false)}
+      >
+        {children}
+      </ApplicationShell>
     </AuthContext.Provider>
   );
 }

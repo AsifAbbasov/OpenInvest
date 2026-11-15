@@ -90,12 +90,6 @@ export function AuthForm({ message, onLogin, onRegister }: AuthFormProps) {
               onChange={(event) => setPassword(event.target.value)}
             />
           </label>}
-          <div className="privacy-defaults span-2" aria-label="Privacy defaults">
-            <span>Privacy Mode ON</span>
-            <span>Tax Profile OFF</span>
-            <span>Notifications OFF</span>
-            <span>Anonymous analytics</span>
-          </div>
 
           <button type="submit" disabled={isSubmitting}>
             {isSubmitting ? "Sending..." : mode === "register" ? "Create account" : "Login"}
