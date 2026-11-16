@@ -10,6 +10,7 @@ import {
   principalScopedIdempotencyScope,
 } from "@/common/api/idempotency";
 import { unicodeTextValidationError } from "@/common/presentation/unicode";
+import { useLocale } from "@/features/locale/LocaleProvider";
 
 type AddTransactionFormProps = {
   accessToken: string;
@@ -22,6 +23,7 @@ const transactionTypes: TransactionType[] = ["BUY", "SELL", "DIVIDEND", "COUPON"
 const idempotencyConflictMessage = "Idempotency-Key is already bound to another request";
 
 export function AddTransactionForm({ accessToken, principalId, portfolioId, onSaved }: AddTransactionFormProps) {
+  const { t } = useLocale();
   const idempotencyIntentRef = useRef(emptyIdempotencyIntent);
   const [transactionType, setTransactionType] = useState<TransactionType>("BUY");
   const [ticker, setTicker] = useState("");
@@ -103,20 +105,19 @@ export function AddTransactionForm({ accessToken, principalId, portfolioId, onSa
   return (
     <form className="panel form-grid" onSubmit={submit}>
       <div>
-        <p className="eyebrow">Portfolio activity</p>
-        <h2>Add transaction</h2>
+        <p className="eyebrow">{t("Portfolio activity")}</p>
+        <h2>{t("Add transaction")}</h2>
         <p className="muted">
-          Add trades, income, expenses, deposits and withdrawals. OpenInvest validates each entry and preserves
-          transaction history when you edit or reverse a transaction. Broker-imported SELL transactions are not available yet.
+          {t("Add trades, income, expenses, deposits and withdrawals. OpenInvest validates each entry and preserves transaction history when you edit or reverse a transaction. Broker-imported SELL transactions are not available yet.")}
         </p>
       </div>
 
       <label>
-        Transaction type
+        {t("Transaction type")}
         <select value={transactionType} onChange={(event) => setTransactionType(event.target.value as TransactionType)}>
           {transactionTypes.map((type) => (
             <option key={type} value={type}>
-              {type}
+              {t(type)}
             </option>
           ))}
         </select>
@@ -124,26 +125,26 @@ export function AddTransactionForm({ accessToken, principalId, portfolioId, onSa
 
       {isTrade || isAssetIncome ? (
         <label>
-          Ticker
+          {t("Ticker")}
           <input value={ticker} required pattern="[A-Za-z0-9]{1,32}" onChange={(event) => setTicker(event.target.value)} />
         </label>
       ) : null}
 
       {isTrade || isAssetIncome ? (
         <label>
-          Quantity
+          {t("Quantity")}
           <input value={quantity} required={isTrade} inputMode="decimal" onChange={(event) => setQuantity(event.target.value)} />
         </label>
       ) : null}
 
       {isTrade ? (
         <label>
-          Unit price
+          {t("Unit price")}
           <input value={unitPrice} required inputMode="decimal" onChange={(event) => setUnitPrice(event.target.value)} />
         </label>
       ) : (
         <label>
-          Gross amount
+          {t("Gross amount")}
           <input value={grossAmount} required inputMode="decimal" onChange={(event) => setGrossAmount(event.target.value)} />
         </label>
       )}
@@ -151,34 +152,34 @@ export function AddTransactionForm({ accessToken, principalId, portfolioId, onSa
       {!isExpense && !isCashFlow ? (
         <>
           <label>
-            Commission
+            {t("Commission")}
             <input value={commission} required inputMode="decimal" onChange={(event) => setCommission(event.target.value)} />
           </label>
 
           <label>
-            Tax
+            {t("Tax")}
             <input value={tax} required inputMode="decimal" onChange={(event) => setTax(event.target.value)} />
           </label>
         </>
       ) : null}
 
       <label>
-        Trade date
+        {t("Trade date")}
         <input type="date" value={tradeDate} required onChange={(event) => setTradeDate(event.target.value)} />
       </label>
 
       <label>
-        Settlement date
+        {t("Settlement date")}
         <input type="date" value={settlementDate} onChange={(event) => setSettlementDate(event.target.value)} />
       </label>
 
       <label className="span-2">
-        Note
+        {t("Note")}
         <textarea value={note} onChange={(event) => setNote(event.target.value)} />
       </label>
 
       <button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Saving…" : "Add transaction"}
+        {t(isSubmitting ? "Saving…" : "Add transaction")}
       </button>
       {status ? <p className="form-status">{status}</p> : null}
     </form>

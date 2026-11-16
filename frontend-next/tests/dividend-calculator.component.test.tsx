@@ -83,6 +83,15 @@ test("calculator renders backend result and never computes gross/yield locally",
   });
 
   await act(async () => root.render(<DividendCalculator />));
+  const inputs = [...container.querySelectorAll("input")] as HTMLInputElement[];
+  assert.equal(inputs.length, 4);
+  assert.deepEqual(inputs.map((input) => input.value), ["", "", "", ""]);
+  await act(async () => {
+    setInput(inputs[0], "SBER");
+    setInput(inputs[1], "1000.00000000");
+    setInput(inputs[2], "34.84000000");
+    setInput(inputs[3], "280000.00000000");
+  });
   await submit(container);
 
   assert.deepEqual(requestBody, {

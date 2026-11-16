@@ -21,6 +21,7 @@ import {
 } from "@/common/api/openinvest";
 import { formatMoney } from "@/common/presentation/format";
 import { useAuth } from "@/features/auth/components/AuthShell";
+import { useLocale } from "@/features/locale/LocaleProvider";
 import { AddTransactionForm } from "@/features/portfolio/components/AddTransactionForm";
 import { CashFlowIncomeBlock } from "@/features/portfolio/components/CashFlowIncomeBlock";
 import { ImportUploadReviewPanel } from "@/features/portfolio/components/ImportUploadReviewPanel";
@@ -45,6 +46,7 @@ type PositionViewMode = "current" | "historical";
 
 export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps) {
   const { accessToken, principalId } = useAuth();
+  const { t } = useLocale();
   const [state, setState] = useState<PortfolioDetailState | null>(null);
   const [positionViewMode, setPositionViewMode] = useState<PositionViewMode>("current");
   const [historicalDate, setHistoricalDate] = useState("");
@@ -267,25 +269,24 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
   return (
     <main className="page-shell">
       <Link className="back-link" href="/">
-        ← Dashboard
+        ← {t("Dashboard")}
       </Link>
 
-      {state === null ? <section className="panel skeleton">Loading portfolio…</section> : null}
+      {state === null ? <section className="panel skeleton">{t("Loading portfolio…")}</section> : null}
 
       {state?.portfolio.ok === false ? (
         <section className="panel warning">
-          <h1>Portfolio unavailable</h1>
+          <h1>{t("Portfolio unavailable")}</h1>
           <p>{state.portfolio.message}</p>
         </section>
       ) : null}
 
       {portfolio ? (
         <section className="hero compact">
-          <p className="eyebrow">Portfolio detail</p>
+          <p className="eyebrow">{t("Portfolio detail")}</p>
           <h1>{portfolio.name}</h1>
           <p className="summary">
-            Review portfolio value, income, positions and money-weighted return. Time-weighted, nominal,
-            real and inflation-adjusted return views are not available yet.
+            {t("Review portfolio value, income, positions and money-weighted return. Time-weighted, nominal, real and inflation-adjusted return views are not available yet.")}
           </p>
         </section>
       ) : null}
@@ -293,18 +294,17 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
       {summary && positionViewMode === "current" ? <CapitalSummary summary={summary} /> : null}
 
       {positionViewMode === "historical" ? (
-        <section className="panel" aria-label="Historical positions scope">
-          <p className="eyebrow">Historical positions only</p>
+        <section className="panel" aria-label={t("Historical positions scope")}>
+          <p className="eyebrow">{t("Historical positions only")}</p>
           <p className="muted">
-            Time Machine reconstructs positions for the selected date. Historical market value, cash and
-            performance are not shown when the required data is unavailable.
+            {t("Time Machine reconstructs positions for the selected date. Historical market value, cash and performance are not shown when the required data is unavailable.")}
           </p>
         </section>
       ) : null}
 
       {state?.summary.ok === false && positionViewMode === "current" ? (
         <section className="panel warning">
-          <h2>Summary not available</h2>
+          <h2>{t("Summary not available")}</h2>
           <p>{state.summary.message}</p>
         </section>
       ) : null}
@@ -346,27 +346,27 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
       <section className="panel">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">Transaction history</p>
-            <h2>Transactions</h2>
+            <p className="eyebrow">{t("Transaction history")}</p>
+            <h2>{t("Transactions")}</h2>
           </div>
           <button type="button" className="secondary-button" onClick={() => void load()}>
-            Reload
+            {t("Reload")}
           </button>
         </div>
         {state?.transactions.ok === false ? <p className="warning-text">{state.transactions.message}</p> : null}
         {transactions.length === 0 ? (
-          <p className="muted">No transactions yet. Add the first transaction above.</p>
+          <p className="muted">{t("No transactions yet. Add the first transaction above.")}</p>
         ) : (
           <div className="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Type</th>
-                  <th>Ticker</th>
-                  <th>Trade date</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Actions</th>
+                  <th>{t("Type")}</th>
+                  <th>{t("Ticker")}</th>
+                  <th>{t("Trade date")}</th>
+                  <th>{t("Amount")}</th>
+                  <th>{t("Status")}</th>
+                  <th>{t("Actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -398,7 +398,7 @@ export function PortfolioDetailSlice({ portfolioId }: PortfolioDetailSliceProps)
             disabled={isLoadingMoreTransactions}
             onClick={() => void loadMoreTransactions()}
           >
-            {isLoadingMoreTransactions ? "Loading transactions…" : "Load more transactions"}
+            {t(isLoadingMoreTransactions ? "Loading transactions…" : "Load more transactions")}
           </button>
         ) : null}
         {moreTransactionsError ? <p className="warning-text">{moreTransactionsError}</p> : null}
@@ -417,32 +417,32 @@ function Metric({ label, value }: { label: string; value: string }) {
 }
 
 export function CapitalSummary({ summary }: { summary: PortfolioSummary }) {
+  const { t } = useLocale();
   return (
-    <section className="panel capital-summary" aria-label="Current portfolio summary">
+    <section className="panel capital-summary" aria-label={t("Current portfolio summary")}>
       <div className="section-heading capital-summary-heading">
         <div>
-          <p className="eyebrow">Portfolio capital</p>
-          <h2>Capital summary</h2>
+          <p className="eyebrow">{t("Portfolio capital")}</p>
+          <h2>{t("Capital summary")}</h2>
         </div>
-        <p className="muted capital-summary-date">As of <time dateTime={summary.asOfDate}>{summary.asOfDate}</time></p>
+        <p className="muted capital-summary-date">{t("As of")} <time dateTime={summary.asOfDate}>{summary.asOfDate}</time></p>
       </div>
       <p className="muted capital-summary-explainer">
-        Total capital is cash plus the remaining acquisition-cost basis of open positions, not a current market valuation.
+        {t("Total capital is cash plus the remaining acquisition-cost basis of open positions, not a current market valuation.")}
       </p>
-      <div className="metric-grid capital-summary-grid" role="group" aria-label="Capital components">
-        <Metric label="Total capital (cost basis)" value={formatMoney(summary.totalValue)} />
-        <Metric label="Cash" value={formatMoney(summary.cashValue)} />
-        <Metric label="Stocks (cost basis)" value={formatMoney(summary.stockValue)} />
-        <Metric label="Bonds (cost basis)" value={formatMoney(summary.bondValue)} />
+      <div className="metric-grid capital-summary-grid" role="group" aria-label={t("Capital components")}>
+        <Metric label={t("Total capital (cost basis)")} value={formatMoney(summary.totalValue)} />
+        <Metric label={t("Cash")} value={formatMoney(summary.cashValue)} />
+        <Metric label={t("Stocks (cost basis)")} value={formatMoney(summary.stockValue)} />
+        <Metric label={t("Bonds (cost basis)")} value={formatMoney(summary.bondValue)} />
       </div>
       <p className="muted capital-summary-explainer">
-        Invested capital is cumulative BUY acquisition outflow, not external contributions.
-        Recorded gross dividends and coupons are before fees and taxes.
+        {t("Invested capital is cumulative BUY acquisition outflow, not external contributions. Recorded gross dividends and coupons are before fees and taxes.")}
       </p>
-      <div className="metric-grid capital-income-grid" role="group" aria-label="Invested capital and recorded gross income">
-        <Metric label="Invested capital" value={formatMoney(summary.investedCapital)} />
-        <Metric label="Gross dividends recorded" value={formatMoney(summary.dividendsReceived)} />
-        <Metric label="Gross coupons recorded" value={formatMoney(summary.couponsReceived)} />
+      <div className="metric-grid capital-income-grid" role="group" aria-label={t("Invested capital and recorded gross income")}>
+        <Metric label={t("Invested capital")} value={formatMoney(summary.investedCapital)} />
+        <Metric label={t("Gross dividends recorded")} value={formatMoney(summary.dividendsReceived)} />
+        <Metric label={t("Gross coupons recorded")} value={formatMoney(summary.couponsReceived)} />
       </div>
     </section>
   );

@@ -2,6 +2,8 @@
 
 import type { FormEvent } from "react";
 import { useState } from "react";
+import styles from "./AuthForm.module.css";
+import { LanguageSwitch, useLocale } from "@/features/locale/LocaleProvider";
 
 import type { ApiResult, AuthData, RegistrationAcknowledgment, LoginPayload, RegisterPayload } from "@/common/api/openinvest";
 import { passwordValidationMessage } from "@/features/auth/passwordPolicy";
@@ -15,6 +17,7 @@ type AuthFormProps = {
 };
 
 export function AuthForm({ message, onLogin, onRegister }: AuthFormProps) {
+  const { t } = useLocale();
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,50 +43,53 @@ export function AuthForm({ message, onLogin, onRegister }: AuthFormProps) {
   }
 
   return (
-    <main className="page-shell auth-shell">
-      <section className="hero compact">
-        <p className="eyebrow">OpenInvest account</p>
-        <h1>Sign in to your private capital workspace.</h1>
-        <p className="summary">
-          Sign in or create an account to access your private portfolios. Your session is protected with secure cookies.
+    <main className={styles.shell}>
+      <LanguageSwitch />
+      <section className={styles.intro}>
+        <p className={styles.eyebrow}>{t("OpenInvest account")}</p>
+        <h1 className={styles.title}>{t("Sign in to your private capital workspace.")}</h1>
+        <p className={styles.description}>
+          {t("Sign in or create an account to access your private portfolios. Your session is protected with secure cookies.")}
         </p>
       </section>
 
-      <section className="panel auth-panel">
-        <div className="segmented-control" role="tablist" aria-label="Authentication mode">
+      <section className={styles.card}>
+        <div className={styles.tabs} role="tablist" aria-label={t("Authentication mode")}>
           <button
             type="button"
-            className={mode === "login" ? "active" : ""}
+            className={mode === "login" ? `${styles.tab} ${styles.tabActive}` : styles.tab}
             aria-pressed={mode === "login"}
             onClick={() => setMode("login")}
           >
-            Login
+            {t("Login")}
           </button>
           <button
             type="button"
-            className={mode === "register" ? "active" : ""}
+            className={mode === "register" ? `${styles.tab} ${styles.tabActive}` : styles.tab}
             aria-pressed={mode === "register"}
             onClick={() => setMode("register")}
           >
-            Register
+            {t("Register")}
           </button>
         </div>
 
-        <form className="form-grid auth-form" onSubmit={submit}>
-          <label>
-            Email
+        <form className={styles.form} onSubmit={submit}>
+          <label className={styles.label}>
+            {t("Email")}
             <input
               type="email"
+              className={styles.input}
               autoComplete="email"
               value={email}
               required
               onChange={(event) => setEmail(event.target.value)}
             />
           </label>
-          {mode === "login" && <label>
-            Password
+          {mode === "login" && <label className={styles.label}>
+            {t("Password")}
             <input
               type="password"
+              className={styles.input}
               autoComplete="current-password"
               value={password}
               required
@@ -91,10 +97,10 @@ export function AuthForm({ message, onLogin, onRegister }: AuthFormProps) {
             />
           </label>}
 
-          <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Sending..." : mode === "register" ? "Create account" : "Login"}
+          <button className={styles.submit} type="submit" disabled={isSubmitting}>
+            {t(isSubmitting ? "Sending..." : mode === "register" ? "Create account" : "Login")}
           </button>
-          {status ?? message ? <p className="form-status">{status ?? message}</p> : null}
+          {status ?? message ? <p className={styles.status} role="status">{status ?? message}</p> : null}
         </form>
       </section>
     </main>

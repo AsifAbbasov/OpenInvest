@@ -3,6 +3,7 @@
   gap: 1rem;
   grid-template-columns: minmax(0, 2fr) repeat(2, minmax(10rem, 1fr)) auto;
   align-items: end;
+  min-width: 0;
 }
 
 .form label {
@@ -99,3 +100,10 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Align labels and controls independently of auxiliary help text. */
+.form > label { min-width: 0; align-self: end; }
+.form input { min-height: 44px; }
+.form > button { min-height: 44px; align-self: end; border-radius: 12px; }
+.instrumentHint { color: var(--oi-color-muted); font-size: 0.8rem; line-height: 1.45; margin: 8px 0 0; }
+@media (max-width: 900px) { .form > button { justify-self: start; } }

@@ -21,12 +21,14 @@ test("Stage 3.73 reuses the Stage 3.72 positions endpoint instead of creating fr
 });
 
 test("Stage 3.73 exposes explicit Current and Historical states without calling Current Today", () => {
-  assert.match(positions, />\s*Current\s*</);
-  assert.match(positions, />\s*Historical\s*</);
+  assert.match(positions, />\s*(?:Current|\{t\("Current"\)\})\s*</);
+  assert.match(positions, />\s*(?:Historical|\{t\("Historical"\)\})\s*</);
   assert.match(positions, /type="date"/);
   assert.match(positions, /Viewing current positions/);
   assert.match(positions, /Manual prices are user-supplied inputs, not live quotes/);
-  assert.match(positions, /Viewing portfolio as of \$\{historicalDate\}/);
+  // The visible prefix is translated while the requested historical date stays explicit.
+  assert.match(positions, /t\("Viewing portfolio as of"\)[\s\S]{0,90}\$\{historicalDate\}/);
+  assert.match(positions, /t\("Manual prices are shown only when their price date matches the selected date\."\)/);
   assert.doesNotMatch(positions, />\s*Today\s*</);
   assert.doesNotMatch(positions, /max=\{/);
 });
@@ -47,8 +49,8 @@ test("Stage 3.73 guards rapid historical switching by generation, principal, por
 
 test("Stage 3.73 has honest loading, date-selection, empty and error states", () => {
   assert.match(positions, /Choose a historical date to reconstruct your positions/);
-  assert.match(positions, /Loading portfolio as of \$\{historicalDate\}/);
-  assert.match(positions, /No open stock or bond positions on \$\{historicalDate\}/);
+  assert.match(positions, /t\("Loading portfolio as of"\)[\s\S]{0,50}\$\{historicalDate\}/);
+  assert.match(positions, /t\("No open stock or bond positions on"\)[\s\S]{0,50}\$\{historicalDate\}/);
   assert.match(positions, /Positions unavailable/);
   assert.match(positions, /Unavailable values are left unavailable rather than estimated/);
 });

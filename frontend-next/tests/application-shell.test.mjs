@@ -8,8 +8,8 @@ const dashboard = await readFile(new URL("../src/features/portfolio/components/D
 const nav = await readFile(new URL("../src/features/navigation/components/ApplicationNavigation.tsx", import.meta.url), "utf8");
 const css = await readFile(new URL("../src/features/navigation/components/ApplicationShell.module.css", import.meta.url), "utf8");
 
-test("shell contains only existing navigation targets and a portfolio anchor", () => {
-  for (const target of ['"/"', '"/#portfolios"', '"/assets"', '"/dividends/calculator"', '"/corporate-actions"']) {
+test("shell contains independent Dashboard and Portfolios navigation targets", () => {
+  for (const target of ['"/"', '"/portfolios"', '"/assets"', '"/dividends/calculator"', '"/corporate-actions"']) {
     assert.ok(nav.includes(target), `missing ${target}`);
   }
   assert.match(dashboard, /id="portfolios"/);

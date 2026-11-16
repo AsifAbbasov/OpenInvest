@@ -1,6 +1,7 @@
 "use client";
 
 import type { ComponentType, ReactNode } from "react";
+import type { TranslationKey } from "@/features/locale/LocaleProvider";
 
 type NavigationLinkProps = {
   href: string;
@@ -17,19 +18,19 @@ type NavigationProps = {
   linkClassName: string;
   activeClassName: string;
   LinkComponent: ComponentType<NavigationLinkProps>;
+  translate?: (english: TranslationKey) => string;
 };
 
 export const sections = [
   { label: "Dashboard", href: "/", key: "dashboard" },
-  { label: "Portfolios", href: "/#portfolios", key: "portfolios" },
+  { label: "Portfolios", href: "/portfolios", key: "portfolios" },
   { label: "Assets", href: "/assets", key: "assets" },
   { label: "Dividend calculator", href: "/dividends/calculator", key: "dividends" },
   { label: "Corporate actions", href: "/corporate-actions", key: "corporate" },
 ] as const;
 
-export function selectedSection(pathname: string, hash: string) {
-  if (pathname.startsWith("/portfolios/")) return "portfolios";
-  if (pathname === "/" && hash === "#portfolios") return "portfolios";
+export function selectedSection(pathname: string, _hash: string) {
+  if (pathname === "/portfolios" || pathname.startsWith("/portfolios/")) return "portfolios";
   if (pathname === "/") return "dashboard";
   if (pathname === "/assets") return "assets";
   if (pathname === "/dividends/calculator") return "dividends";
@@ -45,6 +46,7 @@ export function ApplicationNavigation({
   linkClassName,
   activeClassName,
   LinkComponent,
+  translate = (english) => english,
 }: NavigationProps) {
   const selected = selectedSection(pathname, hash);
   return (
@@ -56,9 +58,9 @@ export function ApplicationNavigation({
             key={section.key}
             href={section.href}
             className={`${linkClassName} ${active ? activeClassName : ""}`}
-            aria-current={active ? (section.key === "portfolios" ? "location" : "page") : undefined}
+            aria-current={active ? (section.key === "portfolios" && pathname !== "/portfolios" ? "location" : "page") : undefined}
           >
-            {section.label}
+            {translate(section.label)}
           </LinkComponent>
         );
       })}
