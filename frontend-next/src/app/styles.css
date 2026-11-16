@@ -1,8 +1,8 @@
 :root {
   color-scheme: light;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #f4f7f5;
-  color: #10251a;
+  background: var(--oi-color-canvas);
+  color: var(--oi-color-text);
 }
 
 * {
@@ -20,58 +20,15 @@ body {
   padding: 40px 0 80px;
 }
 
-.auth-shell {
-  min-height: 100vh;
-}
 
-.auth-panel {
-  max-width: 760px;
-}
 
-.auth-bar {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid #d9e5dd;
-  background: #ffffff;
-  padding: 16px clamp(16px, 4vw, 40px);
-}
-
-.auth-bar p,
-.auth-bar strong,
-.auth-bar span {
-  display: block;
-}
-
-.auth-bar .eyebrow {
-  margin-bottom: 4px;
-}
-
-.auth-bar span,
-.auth-message {
-  color: #62776b;
-  font-size: 0.9rem;
-}
-
-.auth-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-.auth-message {
-  margin: 12px auto 0;
-  width: min(1180px, calc(100% - 32px));
-}
 
 .segmented-control {
   display: inline-flex;
   gap: 4px;
-  border: 1px solid #cddbd3;
+  border: 1px solid var(--oi-color-border);
   border-radius: 999px;
-  background: #f8fbf9;
+  background: var(--oi-color-primary-soft);
   padding: 4px;
   margin-bottom: 22px;
 }
@@ -79,29 +36,15 @@ body {
 .segmented-control button {
   border-radius: 999px;
   background: transparent;
-  color: #17492f;
+  color: var(--oi-color-primary);
 }
 
 .segmented-control button.active {
-  background: #17492f;
+  background: var(--oi-color-primary);
   color: #ffffff;
 }
 
-.privacy-defaults {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
 
-.privacy-defaults span {
-  border: 1px solid #cddbd3;
-  border-radius: 999px;
-  background: #f8fbf9;
-  padding: 8px 10px;
-  color: #40594c;
-  font-size: 0.82rem;
-  font-weight: 700;
-}
 
 .hero {
   padding: 56px 0 36px;
@@ -113,7 +56,7 @@ body {
 
 .eyebrow {
   margin: 0 0 12px;
-  color: #25734a;
+  color: var(--oi-color-primary);
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -137,7 +80,7 @@ h2 {
 .summary {
   max-width: 620px;
   margin: 24px 0 40px;
-  color: #40594c;
+  color: var(--oi-color-muted);
   font-size: 1.1rem;
   line-height: 1.7;
 }
@@ -145,10 +88,10 @@ h2 {
 .panel,
 .metric-card,
 .portfolio-card {
-  border: 1px solid #cddbd3;
+  border: 1px solid var(--oi-color-border);
   border-radius: 22px;
   background: #ffffff;
-  box-shadow: 0 18px 50px rgb(16 37 26 / 0.06);
+  box-shadow: var(--oi-shadow-panel);
 }
 
 .panel {
@@ -169,7 +112,7 @@ h2 {
 
 .metric-card span,
 .muted {
-  color: #62776b;
+  color: var(--oi-color-muted);
 }
 
 .metric-card span {
@@ -212,8 +155,8 @@ h2 {
 }
 
 .capital-summary-grid .metric-card:first-child {
-  border-color: #96c5a7;
-  background: #f0fbf4;
+  border-color: var(--oi-color-border);
+  background: var(--oi-color-canvas);
 }
 
 .capital-summary .metric-card strong {
@@ -251,7 +194,7 @@ h2 {
 }
 
 .portfolio-card:hover {
-  border-color: #25734a;
+  border-color: var(--oi-color-primary);
 }
 
 .portfolio-card span {
@@ -259,7 +202,7 @@ h2 {
 }
 
 .portfolio-card small {
-  color: #62776b;
+  color: var(--oi-color-muted);
 }
 
 .form-grid {
@@ -277,7 +220,7 @@ h2 {
 label {
   display: grid;
   gap: 8px;
-  color: #40594c;
+  color: var(--oi-color-muted);
   font-size: 0.9rem;
   font-weight: 650;
 }
@@ -286,11 +229,11 @@ input,
 select,
 textarea {
   width: 100%;
-  border: 1px solid #b9cbbf;
+  border: 1px solid var(--oi-color-control-border);
   border-radius: 12px;
   padding: 12px 14px;
-  background: #fbfdfb;
-  color: #10251a;
+  background: var(--oi-color-surface);
+  color: var(--oi-color-text);
   font: inherit;
 }
 
@@ -301,7 +244,7 @@ textarea {
 
 input[type="checkbox"] {
   width: auto;
-  accent-color: #17492f;
+  accent-color: var(--oi-color-primary);
 }
 
 button,
@@ -313,7 +256,7 @@ button,
   border: 0;
   border-radius: 999px;
   padding: 12px 18px;
-  background: #17492f;
+  background: var(--oi-color-primary);
   color: #ffffff;
   font: inherit;
   font-weight: 750;
@@ -327,9 +270,9 @@ button:disabled {
 }
 
 .secondary-button {
-  border: 1px solid #cddbd3;
-  background: #f8fbf9;
-  color: #17492f;
+  border: 1px solid var(--oi-color-border);
+  background: var(--oi-color-primary-soft);
+  color: var(--oi-color-primary);
 }
 
 .form-status,
@@ -356,13 +299,13 @@ button:disabled {
 }
 
 .skeleton {
-  color: #62776b;
+  color: var(--oi-color-muted);
 }
 
 .back-link {
   display: inline-flex;
   margin-top: 24px;
-  color: #25734a;
+  color: var(--oi-color-primary);
   font-weight: 700;
   text-decoration: none;
 }
@@ -384,7 +327,7 @@ td {
 }
 
 th {
-  color: #62776b;
+  color: var(--oi-color-muted);
   font-size: 0.8rem;
 }
 
@@ -402,7 +345,7 @@ th {
   border-radius: 999px;
   padding: 5px 10px;
   background: #e8efe9;
-  color: #40594c;
+  color: var(--oi-color-muted);
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -421,7 +364,7 @@ th {
 }
 
 .asset-state {
-  border: 1px dashed #b9cbbf;
+  border: 1px dashed var(--oi-color-control-border);
   border-radius: 16px;
   padding: 18px;
 }
@@ -437,18 +380,18 @@ th {
   gap: 14px;
   align-items: center;
   width: 100%;
-  border: 1px solid #dbe6df;
+  border: 1px solid var(--oi-color-border);
   border-radius: 14px;
   padding: 16px;
-  background: #fbfdfb;
-  color: #10251a;
+  background: var(--oi-color-surface);
+  color: var(--oi-color-text);
   text-align: left;
 }
 
 .asset-result[aria-pressed="true"],
 .asset-result:hover {
-  border-color: #25734a;
-  background: #f2faf5;
+  border-color: var(--oi-color-primary);
+  background: var(--oi-color-primary-soft);
 }
 
 .asset-result span:first-child {
@@ -457,12 +400,12 @@ th {
 }
 
 .asset-result small {
-  color: #62776b;
+  color: var(--oi-color-muted);
   font-weight: 600;
 }
 
 .asset-detail:focus {
-  outline: 3px solid #79b68f;
+  outline: 3px solid var(--oi-color-focus);
   outline-offset: 4px;
 }
 
@@ -491,14 +434,9 @@ th {
 }
 
 @media (max-width: 720px) {
-  .auth-bar {
-    align-items: flex-start;
-    flex-direction: column;
-  }
 
-  .auth-actions {
-    justify-content: flex-start;
-  }
+
+
 
   .form-grid {
     grid-template-columns: 1fr;
@@ -536,17 +474,17 @@ th {
 .positions-meta small,
 .position-asset-type,
 .position-card-title span {
-  color: #62776b;
+  color: var(--oi-color-muted);
   font-size: 0.78rem;
 }
 
 .acquisition-allocation {
   min-width: 0;
   margin: 20px 0;
-  border: 1px solid #dbe6df;
+  border: 1px solid var(--oi-color-border);
   border-radius: 16px;
   padding: 18px;
-  background: #fbfdfb;
+  background: var(--oi-color-surface);
 }
 
 .acquisition-allocation h3 {
@@ -612,7 +550,7 @@ th {
 .manual-valuation-allocation-source {
   display: block;
   margin-bottom: 8px;
-  color: #62776b;
+  color: var(--oi-color-muted);
   overflow-wrap: anywhere;
 }
 
@@ -626,7 +564,7 @@ th {
   border-radius: 999px;
   padding: 6px 10px;
   background: #eef2ef;
-  color: #62776b;
+  color: var(--oi-color-muted);
   font-size: 0.76rem;
   font-weight: 700;
 }
@@ -648,10 +586,10 @@ th {
 .position-card {
   display: grid;
   gap: 12px;
-  border: 1px solid #dbe6df;
+  border: 1px solid var(--oi-color-border);
   border-radius: 16px;
   padding: 18px;
-  background: #fbfdfb;
+  background: var(--oi-color-surface);
 }
 
 .position-card-title,
@@ -669,7 +607,7 @@ th {
 }
 
 .position-card-row span {
-  color: #62776b;
+  color: var(--oi-color-muted);
   font-size: 0.82rem;
 }
 
@@ -692,3 +630,35 @@ th {
     gap: 12px;
   }
 }
+
+/* Phase 2.1: visual states only; financial semantic colors remain independently owned. */
+.page-shell { max-width: 1180px; }
+.panel, .metric-card, .portfolio-card { border-radius: var(--oi-radius-lg); }
+.secondary-button:hover { background-color: var(--oi-color-primary-soft); color: var(--oi-color-primary-hover); }
+.segmented-control button:not(.active):hover { background-color: var(--oi-color-primary-soft); color: var(--oi-color-primary-hover); }
+.segmented-control button:focus-visible, .secondary-button:focus-visible,
+.page-shell a:focus-visible, .page-shell input:focus-visible, .page-shell select:focus-visible,
+.page-shell textarea:focus-visible { outline: 3px solid var(--oi-color-focus); outline-offset: 3px; }
+.metric-card strong, .portfolio-card small, td { font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) {
+  .segmented-control button, .secondary-button { transition: none; }
+}
+
+/* UI Polish V1 — compact financial workspace, scoped primary action. */
+.page-shell { padding-top: 24px; padding-bottom: 64px; }
+.hero { padding: 24px 0 20px; }
+.hero.compact { padding-top: 12px; }
+.page-shell h1 { max-width: 820px; font-size: clamp(2rem, 3.4vw, 3rem); line-height: 1.12; letter-spacing: -0.045em; }
+.page-shell .summary { margin: 14px 0 22px; line-height: 1.55; }
+.form-grid > .portfolio-create-button {
+  justify-self: start; align-self: end; min-height: 44px;
+  width: auto; max-width: 100%; padding: 10px 18px;
+  border-radius: 12px; font-size: 0.92rem; font-weight: 700;
+}
+.form-grid > .portfolio-create-button:hover:not(:disabled) { background: var(--oi-color-primary-hover); }
+.form-grid > .portfolio-create-button:focus-visible { outline: 3px solid var(--oi-color-focus); outline-offset: 3px; }
+.oi-language-switch { display: inline-flex; flex: none; align-items: center; gap: 2px; padding: 3px; border: 1px solid var(--oi-color-border); border-radius: 12px; background: var(--oi-color-surface); }
+.oi-language-switch button { min-width: 36px; min-height: 34px; border-radius: 9px; padding: 5px 7px; font-size: 0.78rem; font-weight: 750; color: var(--oi-color-muted); background: transparent; }
+.oi-language-switch button[aria-pressed="true"] { color: #fff; background: var(--oi-color-primary); }
+.oi-language-switch button:focus-visible { outline: 3px solid var(--oi-color-focus); outline-offset: 3px; }
+@media (max-width: 720px) { .form-grid > .portfolio-create-button { width: 100%; justify-content: center; } .page-shell h1 { font-size: clamp(1.9rem, 6vw, 2.5rem); } }

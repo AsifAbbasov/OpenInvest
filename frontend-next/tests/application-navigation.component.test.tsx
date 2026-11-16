@@ -42,7 +42,8 @@ test("real React navigation updates current route and removes stale aria-current
     ["/assets", "", "Assets"],
     ["/dividends/calculator", "", "Dividend calculator"],
     ["/corporate-actions", "", "Corporate actions"],
-    ["/", "#portfolios", "Portfolios"],
+    ["/portfolios", "", "Portfolios"],
+    ["/", "#portfolios", "Dashboard"],
     ["/portfolios/11111111", "", "Portfolios"],
     ["/", "", "Dashboard"],
   ]) {
@@ -51,17 +52,17 @@ test("real React navigation updates current route and removes stale aria-current
     assert.equal(current.length, 1, `exactly one current item for ${path}${hash}`);
     assert.equal(current[0].textContent, expected);
     assert.ok(current[0].classList.contains("active"));
-    assert.equal(current[0].getAttribute("aria-current"), expected === "Portfolios" ? "location" : "page");
+    assert.equal(current[0].getAttribute("aria-current"), expected === "Portfolios" && path.startsWith("/portfolios/") ? "location" : "page");
   }
   assert.equal(selectedSection("/unknown", ""), null);
   assert.equal(selected(await render("/unknown", "")).length, 0);
 });
 
-test("portfolio fragment is keyboard reachable in both navigation variants", async () => {
+test("portfolios route is keyboard reachable in both navigation variants", async () => {
   for (const label of ["Primary navigation", "Mobile navigation"]) {
-    const nav = await render("/", "#portfolios", label);
+    const nav = await render("/portfolios", "", label);
     const anchor = [...nav.querySelectorAll("a")].find(a => a.textContent === "Portfolios");
-    assert.equal(anchor?.getAttribute("href"), "/#portfolios");
+    assert.equal(anchor?.getAttribute("href"), "/portfolios");
     assert.equal(nav.getAttribute("aria-label"), label);
     anchor.focus();
     assert.equal(dom.window.document.activeElement, anchor);
@@ -69,15 +70,14 @@ test("portfolio fragment is keyboard reachable in both navigation variants", asy
   }
 });
 
-test("portfolio anchor is in unconditional Dashboard markup", async () => {
+test("Dashboard links to independent Portfolios route", async () => {
   const fs = await import("node:fs/promises");
   const url = new URL("../src/features/portfolio/components/DashboardSlice.tsx", import.meta.url);
   const source = await fs.readFile(url, "utf8");
-  assert.equal((source.match(/id="portfolios"/g) ?? []).length, 1);
-  assert.match(source, /<div id="portfolios" tabIndex=\{-1\}/);
-  assert.ok(source.indexOf('id="portfolios"') < source.indexOf('result === null ?'),
-    "anchor must exist in loading, empty and populated states");
-  assert.doesNotMatch(source, /<section className="panel" id="portfolios">/);
+  assert.match(source, /href="\/portfolios"/);
+  assert.doesNotMatch(source, /listPortfolios\(/, "Dashboard must not fetch portfolio list");
+  const portfoliosRoute = await fs.readFile(new URL("../src/app/portfolios/page.tsx", import.meta.url), "utf8");
+  assert.match(portfoliosRoute, /PortfolioListSlice/);
 });
 
 test.after(async () => { await React.act(async () => root.unmount()); dom.window.close(); });

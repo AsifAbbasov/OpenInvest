@@ -1,5 +1,5 @@
 // @ts-nocheck
-// Behavioral test mounts the real DashboardSlice. Only API/auth/dependencies are test doubles.
+// Behavioral test mounts the real PortfolioListSlice. Only API/auth/dependencies are test doubles.
 import assert from "node:assert/strict";
 import test from "node:test";
 import { JSDOM } from "jsdom";
@@ -15,14 +15,14 @@ Object.defineProperty(globalThis, "IS_REACT_ACT_ENVIRONMENT", { configurable: tr
 
 const React = await import("react");
 const { createRoot } = await import("react-dom/client");
-const { DashboardSlice } = await import("../src/features/portfolio/components/DashboardSlice.tsx");
+const { PortfolioListSlice } = await import("../src/features/portfolio/components/PortfolioListSlice.tsx");
 
 test("empty portfolio response retains a focusable #portfolios target", async () => {
   const container = dom.window.document.getElementById("root");
   const root = createRoot(container);
   try {
     await React.act(async () => {
-      root.render(React.createElement(DashboardSlice));
+      root.render(React.createElement(PortfolioListSlice));
       await Promise.resolve();
     });
     await React.act(async () => { await Promise.resolve(); });

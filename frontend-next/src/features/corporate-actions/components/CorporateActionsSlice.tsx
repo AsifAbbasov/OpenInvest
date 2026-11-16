@@ -18,6 +18,7 @@ import {
 } from "@/features/corporate-actions/corporateActionsModel";
 
 import styles from "./CorporateActionsSlice.module.css";
+import { useLocale } from "@/features/locale/LocaleProvider";
 
 type ViewState =
   | { status: "idle" }
@@ -28,6 +29,7 @@ type ViewState =
   | { status: "error"; message: string };
 
 export function CorporateActionsSlice() {
+  const { t } = useLocale();
   const [instrumentInput, setInstrumentInput] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -90,56 +92,55 @@ export function CorporateActionsSlice() {
   return (
     <main className="page-shell">
       <section className="hero compact">
-        <p className="eyebrow">Corporate actions</p>
-        <h1>Dividend and coupon calendar with an event activity heatmap.</h1>
+        <p className="eyebrow">{t("Corporate actions")}</p>
+        <h1>{t("Dividend and coupon calendar with an event activity heatmap.")}</h1>
         <p className="summary">
-          If corporate-action data is unavailable, OpenInvest says so instead of showing an empty calendar.
-          Dates and amounts are shown only when supplied by the data source.
+          {t("If corporate-action data is unavailable, OpenInvest says so instead of showing an empty calendar. Dates and amounts are shown only when supplied by the data source.")}
         </p>
-        <Link href="/" className="back-link">Back to portfolios</Link>
+        <Link href="/" className="back-link">{t("Back to portfolios")}</Link>
       </section>
 
       <section className="panel">
         <form className={styles.form} onSubmit={handleSubmit}>
           <label>
-            Instruments
+            {t("Instruments")}
             <input
               value={instrumentInput}
               placeholder="SBER, GAZP"
               onChange={(event) => setInstrumentInput(event.target.value)}
               aria-describedby="corporate-actions-instruments-hint"
             />
-            <small id="corporate-actions-instruments-hint" className="muted">Enter one or more instrument identifiers, separated by commas or spaces.</small>
           </label>
           <label>
-            From
+            {t("From")}
             <input type="date" value={from} onChange={(event) => setFrom(event.target.value)} />
           </label>
           <label>
-            To
+            {t("To")}
             <input type="date" value={to} onChange={(event) => setTo(event.target.value)} />
           </label>
           <button type="submit" disabled={state.status === "loading"}>
-            {state.status === "loading" ? "Loading..." : "Load calendar"}
+            {t(state.status === "loading" ? "Loading..." : "Load calendar")}
           </button>
         </form>
+        <p id="corporate-actions-instruments-hint" className={styles.instrumentHint}>{t("Enter one or more instrument identifiers, separated by commas or spaces.")}</p>
 
         <div className={styles.status} aria-live="polite">
-          {state.status === "idle" ? <p className="muted">Choose an instrument set and date window.</p> : null}
-          {state.status === "loading" ? <p className="skeleton">Loading corporate actions...</p> : null}
+          {state.status === "idle" ? <p className="muted">{t("Choose an instrument set and date window.")}</p> : null}
+          {state.status === "loading" ? <p className="skeleton">{t("Loading corporate actions...")}</p> : null}
           {state.status === "unavailable" ? (
             <div role="status" className="asset-state">
-              <strong>Corporate actions source unavailable.</strong>
+              <strong>{t("Corporate actions source unavailable.")}</strong>
               <p className="muted">
-                Corporate-action data is temporarily unavailable. No events are shown until a data source responds.
+                {t("Corporate-action data is temporarily unavailable. No events are shown until a data source responds.")}
               </p>
             </div>
           ) : null}
           {state.status === "error" ? <p role="alert" className="form-status">{state.message}</p> : null}
           {state.status === "empty" ? (
             <div className="asset-state">
-              <strong>No dated events found for this selection.</strong>
-              <p className="muted">The data source responded successfully and returned no events.</p>
+              <strong>{t("No dated events found for this selection.")}</strong>
+              <p className="muted">{t("The data source responded successfully and returned no events.")}</p>
             </div>
           ) : null}
         </div>
@@ -160,12 +161,13 @@ export function CorporateActionProjectionView({ projection }: { projection: Corp
 }
 
 function CorporateActionCalendar({ entries }: { entries: CorporateActionCalendarEntry[] }) {
+  const { t } = useLocale();
   return (
     <section className="panel">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Calendar</p>
-          <h2>Current dated events</h2>
+          <p className="eyebrow">{t("Calendar")}</p>
+          <h2>{t("Current dated events")}</h2>
         </div>
       </div>
       <ul className={styles.calendarList}>
@@ -202,13 +204,14 @@ function CorporateActionCalendar({ entries }: { entries: CorporateActionCalendar
 }
 
 function CorporateActionHeatmap({ buckets }: { buckets: CorporateActionHeatmapBucket[] }) {
+  const { t } = useLocale();
   const maximum = corporateActionHeatmapMaximum(buckets);
   return (
     <section className="panel">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Heatmap</p>
-          <h2>Event density</h2>
+          <p className="eyebrow">{t("Heatmap")}</p>
+          <h2>{t("Event density")}</h2>
         </div>
       </div>
       <p className="muted">Shows event counts only; it does not estimate income, yield, tax or currency effects.</p>

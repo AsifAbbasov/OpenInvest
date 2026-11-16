@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 
 import { createPortfolio } from "@/common/api/openinvest";
+import { useLocale } from "@/features/locale/LocaleProvider";
 import {
   clearBrowserIdempotencyIntent,
   emptyIdempotencyIntent,
@@ -20,6 +21,7 @@ type CreatePortfolioFormProps = {
 const idempotencyConflictMessage = "Idempotency-Key is already bound to another request";
 
 export function CreatePortfolioForm({ accessToken, principalId, onCreated }: CreatePortfolioFormProps) {
+  const { t } = useLocale();
   const idempotencyIntentRef = useRef(emptyIdempotencyIntent);
   const [name, setName] = useState("Long-term RUB portfolio");
   const [status, setStatus] = useState<string | null>(null);
@@ -78,18 +80,18 @@ export function CreatePortfolioForm({ accessToken, principalId, onCreated }: Cre
   return (
     <form className="panel form-grid" onSubmit={submit}>
       <div>
-        <p className="eyebrow">First portfolio</p>
-        <h2>Create a RUB portfolio</h2>
+        <p className="eyebrow">{t("First portfolio")}</p>
+        <h2>{t("Create a RUB portfolio")}</h2>
         <p className="muted">
-          Create a RUB portfolio to record transactions, track positions and review performance.
+          {t("Create a RUB portfolio to record transactions, track positions and review performance.")}
         </p>
       </div>
       <label>
-        Portfolio name
+        {t("Portfolio name")}
         <input value={name} required onChange={(event) => setName(event.target.value)} />
       </label>
-      <button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Creating…" : "Create portfolio"}
+      <button className="portfolio-create-button" type="submit" disabled={isSubmitting}>
+        {t(isSubmitting ? "Creating…" : "Create portfolio")}
       </button>
       {status ? <p className="form-status">{status}</p> : null}
     </form>

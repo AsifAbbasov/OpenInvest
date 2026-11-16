@@ -10,6 +10,7 @@ import {
 } from "@/common/api/openinvest";
 import { formatDividendMoney, formatGrossYield } from "@/features/dividends/presentation";
 import styles from "./DividendCalculator.module.css";
+import { useLocale } from "@/features/locale/LocaleProvider";
 
 type RetryIdentity = {
   fingerprint: string;
@@ -17,10 +18,11 @@ type RetryIdentity = {
 };
 
 export function DividendCalculator() {
-  const [ticker, setTicker] = useState("SBER");
-  const [quantity, setQuantity] = useState("1000.00000000");
-  const [dividendPerUnit, setDividendPerUnit] = useState("34.84000000");
-  const [positionCost, setPositionCost] = useState("280000.00000000");
+  const { t } = useLocale();
+  const [ticker, setTicker] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [dividendPerUnit, setDividendPerUnit] = useState("");
+  const [positionCost, setPositionCost] = useState("");
   const [result, setResult] = useState<ApiResult<DividendCalculation> | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const generation = useRef(0);
@@ -113,34 +115,34 @@ export function DividendCalculator() {
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
-        <p className={styles.eyebrow}>Dividend calculator</p>
-        <h1>Calculate gross dividend income from your inputs.</h1>
+        <p className={styles.eyebrow}>{t("Dividend calculator")}</p>
+        <h1>{t("Calculate gross dividend income from your inputs.")}</h1>
         <p>
-          Enter your position and dividend inputs. OpenInvest calculates gross dividend income and, when
-          position cost is provided, gross yield. Tax is not included.
+          {t("Enter your position and dividend inputs. OpenInvest calculates gross dividend income and, when position cost is provided, gross yield. Tax is not included.")}
         </p>
       </section>
 
       <section className={styles.grid}>
         <form className={styles.panel} onSubmit={submit}>
           <label>
-            Ticker
-            <input value={ticker} maxLength={32} onChange={(event) => updateTicker(event.target.value)} />
+            {t("Ticker")}
+            <input required value={ticker} maxLength={32} onChange={(event) => updateTicker(event.target.value)} />
           </label>
           <label>
-            Quantity
-            <input inputMode="decimal" value={quantity} onChange={(event) => updateQuantity(event.target.value)} />
+            {t("Quantity")}
+            <input required inputMode="decimal" value={quantity} onChange={(event) => updateQuantity(event.target.value)} />
           </label>
           <label>
-            Dividend per share, ₽
+            {t("Dividend per share, ₽")}
             <input
+              required
               inputMode="decimal"
               value={dividendPerUnit}
               onChange={(event) => updateDividendPerUnit(event.target.value)}
             />
           </label>
           <label>
-            Position cost, ₽ <span className={styles.optional}>(optional)</span>
+            {t("Position cost, ₽")} <span className={styles.optional}>{t("(optional)")}</span>
             <input
               inputMode="decimal"
               value={positionCost}
@@ -148,16 +150,16 @@ export function DividendCalculator() {
             />
           </label>
           <button type="submit" disabled={submitting}>
-            {submitting ? "Calculating…" : "Calculate"}
+            {t(submitting ? "Calculating…" : "Calculate")}
           </button>
         </form>
 
         <section className={styles.panel} aria-live="polite">
-          <p className={styles.eyebrow}>Result</p>
-          {result === null ? <p className={styles.muted}>Enter values and calculate.</p> : null}
+          <p className={styles.eyebrow}>{t("Result")}</p>
+          {result === null ? <p className={styles.muted}>{t("Enter values and calculate.")}</p> : null}
           {result?.ok === false ? (
             <div className={styles.error} role="alert">
-              <strong>Calculation rejected</strong>
+              <strong>{t("Calculation rejected")}</strong>
               <p>{result.message}</p>
             </div>
           ) : null}
@@ -169,39 +171,40 @@ export function DividendCalculator() {
 }
 
 function DividendResult({ calculation }: { calculation: DividendCalculation }) {
+  const { t } = useLocale();
   return (
     <>
       <dl className={styles.result}>
         <div>
-          <dt>Ticker</dt>
+          <dt>{t("Ticker")}</dt>
           <dd>{calculation.ticker}</dd>
         </div>
         <div>
-          <dt>Dividend per share</dt>
+          <dt>{t("Dividend per share")}</dt>
           <dd>{formatDividendMoney(calculation.dividendPerUnit.amount)}</dd>
         </div>
         <div>
-          <dt>Quantity</dt>
+          <dt>{t("Quantity")}</dt>
           <dd>{calculation.quantity}</dd>
         </div>
         <div className={styles.primaryResult}>
-          <dt>Gross dividend</dt>
+          <dt>{t("Gross dividend")}</dt>
           <dd>{formatDividendMoney(calculation.grossDividend.amount)}</dd>
         </div>
         <div>
-          <dt>Position cost</dt>
+          <dt>{t("Position cost")}</dt>
           <dd>{calculation.positionCost ? formatDividendMoney(calculation.positionCost.amount) : "—"}</dd>
         </div>
         <div>
-          <dt>Gross dividend yield</dt>
+          <dt>{t("Gross dividend yield")}</dt>
           <dd>{formatGrossYield(calculation.grossYield)}</dd>
         </div>
         <div>
-          <dt>Methodology</dt>
+          <dt>{t("Methodology")}</dt>
           <dd>{calculation.methodologyVersion}</dd>
         </div>
       </dl>
-      <p className={styles.disclaimer}>{calculation.taxIncluded ? "Tax included" : "Gross · tax not included"}</p>
+      <p className={styles.disclaimer}>{t(calculation.taxIncluded ? "Tax included" : "Gross · tax not included")}</p>
     </>
   );
 }
