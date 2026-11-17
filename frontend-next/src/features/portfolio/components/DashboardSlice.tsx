@@ -20,7 +20,7 @@ export function DashboardSlice() {
       </section>
       <section className="panel" id="portfolios">
         <p className="eyebrow">{t("Portfolio list")}</p>
-        <Link href="/portfolios">{t("Your portfolios")}</Link>
+        <Link href="/portfolios" className="secondary-button">{t("Your portfolios")}</Link>
       </section>
     </main>
   );
