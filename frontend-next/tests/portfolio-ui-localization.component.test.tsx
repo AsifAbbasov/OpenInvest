@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-import { translations } from "../src/features/locale/LocaleProvider.tsx";
+import { translations } from "../src/features/locale/LocaleProvider";
 
 const list = await readFile(
   new URL("../src/features/portfolio/components/PortfolioListSlice.tsx", import.meta.url),
@@ -18,7 +18,7 @@ test("portfolio errors have distinct non-English Russian translations", () => {
     "Your access has expired. Refresh your session or sign in again.",
     "You do not have permission to view these portfolios.",
     "Connection to OpenInvest failed. Try again.",
-  ];
+  ] as const;
   for (const english of cases) {
     const russian = translations[english];
     assert.equal(typeof russian, "string", `missing Russian message for ${english}`);
