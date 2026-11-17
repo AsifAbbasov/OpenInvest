@@ -63,8 +63,13 @@ export function PortfolioListSlice() {
       {result?.ok === false ? (
         <section className="panel warning">
           <h2>{t("Portfolio data unavailable")}</h2>
-          <p>{result.message}</p>
-          <p className="muted">{t("We could not load your portfolios right now. Try again in a moment.")}</p>
+          <p>{result.status === 401
+            ? t("Your access has expired. Refresh your session or sign in again.")
+            : result.status === 403
+              ? t("You do not have permission to view these portfolios.")
+              : result.failureKind === "NETWORK" || result.failureKind === "TIMEOUT"
+                ? t("Connection to OpenInvest failed. Try again.")
+                : t("We could not load your portfolios right now. Try again in a moment.")}</p>
         </section>
       ) : null}
 
@@ -95,7 +100,7 @@ export function PortfolioListSlice() {
             {result.data.items.map((portfolio) => (
               <Link key={portfolio.id} href={`/portfolios/${portfolio.id}`} className="portfolio-card">
                 <span>{portfolio.name}</span>
-                <small>{portfolio.baseCurrency} · version {portfolio.version}</small>
+                <small>{portfolio.baseCurrency} · {t("Version")} {portfolio.version}</small>
               </Link>
             ))}
           </div>
