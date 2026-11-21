@@ -25,6 +25,7 @@ var requiredOperations = map[string]string{
 	"POST /api/v1/auth/email/verify":                                       "verifyEmailRegistration",
 	"POST /api/v1/auth/register":                                           "register",
 	"POST /api/v1/auth/login":                                              "login",
+	"POST /api/v1/auth/bootstrap":                                          "bootstrapSession",
 	"POST /api/v1/auth/refresh":                                            "refreshSession",
 	"POST /api/v1/auth/logout":                                             "logout",
 	"GET /api/v1/assets/search":                                            "searchAssets",
@@ -51,7 +52,7 @@ var requiredOperations = map[string]string{
 }
 
 var publicOperations = stringSet("getHealth", "getReadiness", "register", "resendEmailVerification", "verifyEmailRegistration", "login", "searchAssets", "getAsset", "getCorporateActionProjection", "calculateDividend")
-var refreshOperations = stringSet("refreshSession", "logout")
+var cookieAuthenticatedOperations = stringSet("bootstrapSession", "refreshSession", "logout")
 var idempotentOperations = stringSet("createPortfolio", "deletePortfolio", "createTransaction", "correctTransaction", "reverseTransaction", "appendReviewedPortfolioImport", "calculateDividend")
 
 var requiredSchemas = []string{
@@ -248,7 +249,7 @@ func (v *validator) validateSecurity(path string, method string, operation map[s
 	switch {
 	case publicOperations[operationID]:
 		expected = []any{}
-	case refreshOperations[operationID]:
+	case cookieAuthenticatedOperations[operationID]:
 		expected = []any{map[string]any{"refreshCookie": []any{}}}
 	default:
 		expected = []any{map[string]any{"bearerAuth": []any{}}}

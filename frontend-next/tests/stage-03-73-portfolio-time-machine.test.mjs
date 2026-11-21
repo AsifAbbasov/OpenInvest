@@ -15,7 +15,12 @@ const api = await readFile(new URL("../src/common/api/openinvest.ts", import.met
 test("Stage 3.73 reuses the Stage 3.72 positions endpoint instead of creating frontend financial state", () => {
   assert.match(detail, /getPortfolioPositions\([\s\S]*\{ asOfDate: historicalDate \}/);
   assert.match(api, /export type PortfolioPositionsRequestOptions = \{[\s\S]*asOfDate\?: string/);
-  assert.match(api, /\/positions\$\{query === "" \? "" : `\?\$\{query\}`\}/);
+  const positionsClient = api.match(
+    /export async function getPortfolioPositions\([\s\S]*?\n\}/,
+  )?.[0] ?? "";
+  assert.match(positionsClient, /\/positions/);
+  assert.match(positionsClient, /asOfDate/);
+  assert.match(positionsClient, /bearerHeaders\(auth\.accessToken\)/);
   assert.doesNotMatch(detail, /fetch\(|axios|\/time-machine|\/historical-positions/);
   assert.doesNotMatch(detail, /weightedAverageCost\s*[+*\/-]|acquisitionBasis\s*[+*\/-]|reduce\(/);
 });

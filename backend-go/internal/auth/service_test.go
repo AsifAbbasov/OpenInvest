@@ -363,3 +363,20 @@ func (store *memoryStore) RevokeSession(_ context.Context, refreshTokenHash stri
 	}
 	return true, nil
 }
+
+// BootstrapSession updates only the CSRF hash in the existing test session.
+func (store *memoryStore) BootstrapSession(
+	ctx context.Context,
+	refreshTokenHash string,
+	nextCSRFTokenHash string,
+) (StoredUser, error) {
+	current, ok := store.sessions[refreshTokenHash]
+	if !ok {
+		return StoredUser{}, ErrInvalidSession
+	}
+
+	current.CSRFTokenHash = nextCSRFTokenHash
+	store.sessions[refreshTokenHash] = current
+
+	return store.user, nil
+}

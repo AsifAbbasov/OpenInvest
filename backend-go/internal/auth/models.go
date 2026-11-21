@@ -32,6 +32,13 @@ type Store interface {
 	RegisterUser(ctx context.Context, record RegistrationRecord) (StoredUser, error)
 	FindUserByEmail(ctx context.Context, normalizedEmail string) (StoredUser, string, error)
 	CreateSession(ctx context.Context, record SessionRecord) error
+
+	BootstrapSession(
+		ctx context.Context,
+		refreshTokenHash string,
+		nextCSRFTokenHash string,
+	) (StoredUser, error)
+
 	RotateSession(ctx context.Context, currentRefreshTokenHash string, currentCSRFTokenHash string, next SessionRecord, now time.Time) (StoredUser, error)
 	RevokeSession(ctx context.Context, refreshTokenHash string, csrfTokenHash string, allSessions bool, now time.Time) (bool, error)
 }

@@ -112,6 +112,41 @@ func (s *Service) Login(ctx context.Context, request LoginRequest) (AuthResult, 
 	return s.result(user, refreshToken, csrfToken)
 }
 
+// Bootstrap restores authentication from the existing refresh cookie.
+//
+// It replaces only the CSRF token hash in the current active session.
+// It does not rotate the refresh token, create another session,
+// extend the refresh expiry, or issue a replacement refresh cookie.
+func (s *Service) Bootstrap(
+	ctx context.Context,
+	refreshToken string,
+) (AuthResult, error) {
+	if strings.TrimSpace(refreshToken) == "" {
+		return AuthResult{}, ErrInvalidSession
+	}
+
+	csrfToken, err := randomToken(32)
+	if err != nil {
+		return AuthResult{}, err
+	}
+
+	user, err := s.store.BootstrapSession(
+		ctx,
+		tokenHash(refreshToken),
+		tokenHash(csrfToken),
+	)
+	if err != nil {
+		if errors.Is(err, ErrInvalidSession) {
+			return AuthResult{}, ErrInvalidSession
+		}
+		return AuthResult{}, err
+	}
+
+	// An empty RefreshToken ensures that bootstrap does not
+	// return a new refresh credential to the HTTP layer.
+	return s.result(user, "", csrfToken)
+}
+
 func (s *Service) Refresh(ctx context.Context, refreshToken string, csrfToken string) (AuthResult, error) {
 	if strings.TrimSpace(refreshToken) == "" {
 		return AuthResult{}, ErrInvalidSession

@@ -34,8 +34,17 @@ export type AuthData = {
 };
 
 export type RegisterPayload = { email: string };
-export type RegistrationAcknowledgment = { status: "REQUEST_ACCEPTED"; message: string };
-export type VerifyEmailPayload = { token: string; password: string; language: "en" | "ru"; theme: "system" | "light" | "dark"; timezone: string };
+export type RegistrationAcknowledgment = {
+  status: "REQUEST_ACCEPTED";
+  message: string;
+};
+export type VerifyEmailPayload = {
+  token: string;
+  password: string;
+  language: "en" | "ru";
+  theme: "system" | "light" | "dark";
+  timezone: string;
+};
 
 export type LoginPayload = {
   email: string;
@@ -147,7 +156,11 @@ export type CreateTransactionPayload = {
   note?: string | null;
 };
 
-export type ImportReviewStatus = "APPENDABLE" | "DUPLICATE" | "CONFLICT" | "INVALID";
+export type ImportReviewStatus =
+  | "APPENDABLE"
+  | "DUPLICATE"
+  | "CONFLICT"
+  | "INVALID";
 
 export type ImportDecisionAction = "APPROVE" | "IGNORE" | "REJECT";
 
@@ -253,7 +266,9 @@ export type MarketValuationAvailable = {
   asOf: string;
 };
 
-export type MarketValuation = MarketValuationUnavailable | MarketValuationAvailable;
+export type MarketValuation =
+  | MarketValuationUnavailable
+  | MarketValuationAvailable;
 
 export type PortfolioPositionProjection = {
   ticker: string;
@@ -376,7 +391,9 @@ export type PortfolioReturnUnavailable = PortfolioReturnBase & {
   terminalPortfolioValue: Money | null;
 };
 
-export type PortfolioReturnProjection = PortfolioReturnAvailable | PortfolioReturnUnavailable;
+export type PortfolioReturnProjection =
+  | PortfolioReturnAvailable
+  | PortfolioReturnUnavailable;
 
 export type PortfolioReturnRequestOptions = {
   asOfDate: string;
@@ -429,7 +446,11 @@ export type Asset = StockAsset | BondAsset;
 
 export type CorporateActionKind = "DIVIDEND" | "COUPON";
 
-export type CorporateActionStatus = "ANNOUNCED" | "CONFIRMED" | "PAID" | "CANCELLED";
+export type CorporateActionStatus =
+  | "ANNOUNCED"
+  | "CONFIRMED"
+  | "PAID"
+  | "CANCELLED";
 
 export type CorporateActionMoney = {
   amount: string;
@@ -592,10 +613,14 @@ export type CSRFAuthenticatedRequest = AuthenticatedRequest & {
 const DEFAULT_API_BASE_URL = "http://localhost:8080";
 
 export function openInvestApiBaseUrl() {
-  return (process.env.NEXT_PUBLIC_OPENINVEST_API_BASE_URL ?? DEFAULT_API_BASE_URL).replace(/\/$/, "");
+  return (
+    process.env.NEXT_PUBLIC_OPENINVEST_API_BASE_URL ?? DEFAULT_API_BASE_URL
+  ).replace(/\/$/, "");
 }
 
-export async function register(payload: RegisterPayload): Promise<ApiResult<RegistrationAcknowledgment>> {
+export async function register(
+  payload: RegisterPayload
+): Promise<ApiResult<RegistrationAcknowledgment>> {
   return request<RegistrationAcknowledgment>("/api/v1/auth/register", {
     method: "POST",
     body: JSON.stringify(payload),
@@ -603,7 +628,9 @@ export async function register(payload: RegisterPayload): Promise<ApiResult<Regi
   });
 }
 
-export async function login(payload: LoginPayload): Promise<ApiResult<AuthData>> {
+export async function login(
+  payload: LoginPayload
+): Promise<ApiResult<AuthData>> {
   return request<AuthData>("/api/v1/auth/login", {
     method: "POST",
     body: JSON.stringify(payload),
@@ -611,7 +638,19 @@ export async function login(payload: LoginPayload): Promise<ApiResult<AuthData>>
   });
 }
 
-export async function refreshSession(csrfToken: string): Promise<ApiResult<AuthSession>> {
+export async function bootstrapSession(): Promise<ApiResult<AuthData>> {
+  return request<AuthData>("/api/v1/auth/bootstrap", {
+    method: "POST",
+    headers: {
+      "X-OpenInvest-Bootstrap": "1",
+    },
+    credentials: "include",
+  });
+}
+
+export async function refreshSession(
+  csrfToken: string
+): Promise<ApiResult<AuthSession>> {
   return request<AuthSession>("/api/v1/auth/refresh", {
     method: "POST",
     headers: csrfHeaders(csrfToken),
@@ -619,7 +658,10 @@ export async function refreshSession(csrfToken: string): Promise<ApiResult<AuthS
   });
 }
 
-export async function logout(payload: LogoutPayload, csrfToken: string): Promise<ApiResult<{ revoked: boolean }>> {
+export async function logout(
+  payload: LogoutPayload,
+  csrfToken: string
+): Promise<ApiResult<{ revoked: boolean }>> {
   return request<{ revoked: boolean }>("/api/v1/auth/logout", {
     method: "POST",
     headers: csrfHeaders(csrfToken),
@@ -630,45 +672,60 @@ export async function logout(payload: LogoutPayload, csrfToken: string): Promise
 
 export async function listPortfolios(
   auth: AuthenticatedRequest,
-  page: ListPageRequest = {},
+  page: ListPageRequest = {}
 ): Promise<ApiResult<ListData<Portfolio>>> {
-  return request<ListData<Portfolio>>(`/api/v1/portfolios${listPageQuery(page)}`, {
-    headers: bearerHeaders(auth.accessToken),
-  });
+  return request<ListData<Portfolio>>(
+    `/api/v1/portfolios${listPageQuery(page)}`,
+    {
+      headers: bearerHeaders(auth.accessToken),
+    }
+  );
 }
 
 export async function createPortfolio(
   payload: CreatePortfolioPayload,
-  auth: IdempotentAuthenticatedRequest,
+  auth: IdempotentAuthenticatedRequest
 ): Promise<ApiResult<Portfolio>> {
   const invalidKey = missingIdempotencyKey<Portfolio>(auth.idempotencyKey);
   if (invalidKey) return invalidKey;
   return request<Portfolio>("/api/v1/portfolios", {
     method: "POST",
-    headers: { ...idempotentHeaders(auth.idempotencyKey), ...bearerHeaders(auth.accessToken) },
+    headers: {
+      ...idempotentHeaders(auth.idempotencyKey),
+      ...bearerHeaders(auth.accessToken),
+    },
     body: JSON.stringify(payload),
   });
 }
 
-export async function getPortfolio(portfolioId: string, auth: AuthenticatedRequest): Promise<ApiResult<Portfolio>> {
-  return request<Portfolio>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}`, {
-    headers: bearerHeaders(auth.accessToken),
-  });
+export async function getPortfolio(
+  portfolioId: string,
+  auth: AuthenticatedRequest
+): Promise<ApiResult<Portfolio>> {
+  return request<Portfolio>(
+    `/api/v1/portfolios/${encodeURIComponent(portfolioId)}`,
+    {
+      headers: bearerHeaders(auth.accessToken),
+    }
+  );
 }
 
 export async function getPortfolioSummary(
   portfolioId: string,
-  auth: AuthenticatedRequest,
+  auth: AuthenticatedRequest
 ): Promise<ApiResult<PortfolioSummary>> {
-  return request<PortfolioSummary>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/summary`, {
-    headers: bearerHeaders(auth.accessToken),
-  });
+  return request<PortfolioSummary>(
+    `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/summary`,
+    {
+      headers: bearerHeaders(auth.accessToken),
+    }
+  );
 }
 
 export async function getPortfolioPositions(
   portfolioId: string,
   auth: AuthenticatedRequest,
-  options: PortfolioPositionsRequestOptions = {},
+  options: PortfolioPositionsRequestOptions = {}
 ): Promise<ApiResult<PortfolioPositionsProjection>> {
   const searchParams = new URLSearchParams();
   if (options.asOfDate) {
@@ -676,20 +733,24 @@ export async function getPortfolioPositions(
   }
   const query = searchParams.toString();
   return request<PortfolioPositionsProjection>(
-    `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/positions${query === "" ? "" : `?${query}`}`,
-    { headers: bearerHeaders(auth.accessToken), signal: options.signal },
+    `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/positions${
+      query === "" ? "" : `?${query}`
+    }`,
+    { headers: bearerHeaders(auth.accessToken), signal: options.signal }
   );
 }
 
 export async function getPortfolioReturns(
   portfolioId: string,
   auth: AuthenticatedRequest,
-  options: PortfolioReturnRequestOptions,
+  options: PortfolioReturnRequestOptions
 ): Promise<ApiResult<PortfolioReturnProjection>> {
   const searchParams = new URLSearchParams({ asOfDate: options.asOfDate });
   return request<PortfolioReturnProjection>(
-    `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/returns?${searchParams.toString()}`,
-    { headers: bearerHeaders(auth.accessToken), signal: options.signal },
+    `/api/v1/portfolios/${encodeURIComponent(
+      portfolioId
+    )}/returns?${searchParams.toString()}`,
+    { headers: bearerHeaders(auth.accessToken), signal: options.signal }
   );
 }
 
@@ -698,16 +759,18 @@ export async function upsertManualValuation(
   ticker: string,
   payload: ManualValuationPayload,
   auth: AuthenticatedRequest,
-  options: ManualValuationRequestOptions = {},
+  options: ManualValuationRequestOptions = {}
 ): Promise<ApiResult<PortfolioPositionsProjection>> {
   return request<PortfolioPositionsProjection>(
-    `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/valuations/${encodeURIComponent(ticker)}`,
+    `/api/v1/portfolios/${encodeURIComponent(
+      portfolioId
+    )}/valuations/${encodeURIComponent(ticker)}`,
     {
       method: "PUT",
       headers: bearerHeaders(auth.accessToken),
       body: JSON.stringify(payload),
       signal: options.signal,
-    },
+    }
   );
 }
 
@@ -715,115 +778,158 @@ export async function clearManualValuation(
   portfolioId: string,
   ticker: string,
   auth: AuthenticatedRequest,
-  options: ManualValuationRequestOptions = {},
+  options: ManualValuationRequestOptions = {}
 ): Promise<ApiResult<PortfolioPositionsProjection>> {
   return request<PortfolioPositionsProjection>(
-    `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/valuations/${encodeURIComponent(ticker)}`,
+    `/api/v1/portfolios/${encodeURIComponent(
+      portfolioId
+    )}/valuations/${encodeURIComponent(ticker)}`,
     {
       method: "DELETE",
       headers: bearerHeaders(auth.accessToken),
       signal: options.signal,
-    },
+    }
   );
 }
 
 export async function getPortfolioCashFlow(
   portfolioId: string,
   auth: AuthenticatedRequest,
-  options: PortfolioCashFlowRequestOptions = {},
+  options: PortfolioCashFlowRequestOptions = {}
 ): Promise<ApiResult<PortfolioCashFlowProjection>> {
   const searchParams = new URLSearchParams();
   if (options.fromDate) searchParams.set("fromDate", options.fromDate);
   if (options.toDate) searchParams.set("toDate", options.toDate);
   const query = searchParams.toString();
   return request<PortfolioCashFlowProjection>(
-    `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/cash-flow${query === "" ? "" : `?${query}`}`,
-    { headers: bearerHeaders(auth.accessToken), signal: options.signal },
+    `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/cash-flow${
+      query === "" ? "" : `?${query}`
+    }`,
+    { headers: bearerHeaders(auth.accessToken), signal: options.signal }
   );
 }
 
 export async function listTransactions(
   portfolioId: string,
   auth: AuthenticatedRequest,
-  page: ListPageRequest = {},
+  page: ListPageRequest = {}
 ): Promise<ApiResult<ListData<Transaction>>> {
   return request<ListData<Transaction>>(
-    `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/transactions${listPageQuery(page)}`,
-    { headers: bearerHeaders(auth.accessToken) },
+    `/api/v1/portfolios/${encodeURIComponent(
+      portfolioId
+    )}/transactions${listPageQuery(page)}`,
+    { headers: bearerHeaders(auth.accessToken) }
   );
 }
 
 export async function appendTransaction(
   portfolioId: string,
   payload: CreateTransactionPayload,
-  auth: IdempotentAuthenticatedRequest,
+  auth: IdempotentAuthenticatedRequest
 ): Promise<ApiResult<Transaction>> {
   const invalidKey = missingIdempotencyKey<Transaction>(auth.idempotencyKey);
   if (invalidKey) return invalidKey;
-  return request<Transaction>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/transactions`, {
-    method: "POST",
-    headers: { ...idempotentHeaders(auth.idempotencyKey), ...bearerHeaders(auth.accessToken) },
-    body: JSON.stringify(payload),
-  });
+  return request<Transaction>(
+    `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/transactions`,
+    {
+      method: "POST",
+      headers: {
+        ...idempotentHeaders(auth.idempotencyKey),
+        ...bearerHeaders(auth.accessToken),
+      },
+      body: JSON.stringify(payload),
+    }
+  );
 }
 
 export async function correctTransaction(
   portfolioId: string,
   transactionId: string,
   payload: CorrectTransactionPayload,
-  auth: IdempotentAuthenticatedRequest,
+  auth: IdempotentAuthenticatedRequest
 ): Promise<ApiResult<Transaction>> {
   const invalidKey = missingIdempotencyKey<Transaction>(auth.idempotencyKey);
   if (invalidKey) return invalidKey;
-  return request<Transaction>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/transactions/${encodeURIComponent(transactionId)}`, {
-    method: "PATCH",
-    headers: { ...idempotentHeaders(auth.idempotencyKey), ...bearerHeaders(auth.accessToken) },
-    body: JSON.stringify(payload),
-  });
+  return request<Transaction>(
+    `/api/v1/portfolios/${encodeURIComponent(
+      portfolioId
+    )}/transactions/${encodeURIComponent(transactionId)}`,
+    {
+      method: "PATCH",
+      headers: {
+        ...idempotentHeaders(auth.idempotencyKey),
+        ...bearerHeaders(auth.accessToken),
+      },
+      body: JSON.stringify(payload),
+    }
+  );
 }
 
 export async function reverseTransaction(
   portfolioId: string,
   transactionId: string,
   payload: ReverseTransactionPayload,
-  auth: IdempotentAuthenticatedRequest,
+  auth: IdempotentAuthenticatedRequest
 ): Promise<ApiResult<TransactionReversal>> {
-  const invalidKey = missingIdempotencyKey<TransactionReversal>(auth.idempotencyKey);
+  const invalidKey = missingIdempotencyKey<TransactionReversal>(
+    auth.idempotencyKey
+  );
   if (invalidKey) return invalidKey;
-  return request<TransactionReversal>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/transactions/${encodeURIComponent(transactionId)}`, {
-    method: "DELETE",
-    headers: { ...idempotentHeaders(auth.idempotencyKey), ...bearerHeaders(auth.accessToken) },
-    body: JSON.stringify(payload),
-  });
+  return request<TransactionReversal>(
+    `/api/v1/portfolios/${encodeURIComponent(
+      portfolioId
+    )}/transactions/${encodeURIComponent(transactionId)}`,
+    {
+      method: "DELETE",
+      headers: {
+        ...idempotentHeaders(auth.idempotencyKey),
+        ...bearerHeaders(auth.accessToken),
+      },
+      body: JSON.stringify(payload),
+    }
+  );
 }
 
 export async function reviewPortfolioImport(
   portfolioId: string,
   payload: ImportReviewPayload,
-  auth: AuthenticatedRequest,
+  auth: AuthenticatedRequest
 ): Promise<ApiResult<ImportReviewResult>> {
-  return request<ImportReviewResult>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/imports/review`, {
-    method: "POST",
-    headers: bearerHeaders(auth.accessToken),
-    body: JSON.stringify(payload),
-  });
+  return request<ImportReviewResult>(
+    `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/imports/review`,
+    {
+      method: "POST",
+      headers: bearerHeaders(auth.accessToken),
+      body: JSON.stringify(payload),
+    }
+  );
 }
 
 export async function appendReviewedPortfolioImport(
   portfolioId: string,
   payload: ImportAppendPayload,
-  auth: IdempotentAuthenticatedRequest,
+  auth: IdempotentAuthenticatedRequest
 ): Promise<ApiResult<ImportAppendResult>> {
-  const invalidKey = missingIdempotencyKey<ImportAppendResult>(auth.idempotencyKey);
+  const invalidKey = missingIdempotencyKey<ImportAppendResult>(
+    auth.idempotencyKey
+  );
   if (invalidKey) return invalidKey;
-  return request<ImportAppendResult>(`/api/v1/portfolios/${encodeURIComponent(portfolioId)}/imports/append`, {
-    method: "POST",
-    headers: { ...idempotentHeaders(auth.idempotencyKey), ...bearerHeaders(auth.accessToken) },
-    body: JSON.stringify(payload),
-  });
+  return request<ImportAppendResult>(
+    `/api/v1/portfolios/${encodeURIComponent(portfolioId)}/imports/append`,
+    {
+      method: "POST",
+      headers: {
+        ...idempotentHeaders(auth.idempotencyKey),
+        ...bearerHeaders(auth.accessToken),
+      },
+      body: JSON.stringify(payload),
+    }
+  );
 }
 
-export async function searchAssets(params: AssetSearchParams): Promise<ApiResult<ListData<AssetSummary>>> {
+export async function searchAssets(
+  params: AssetSearchParams
+): Promise<ApiResult<ListData<AssetSummary>>> {
   const searchParams = new URLSearchParams({ query: params.query });
   if (params.assetType) {
     searchParams.set("assetType", params.assetType);
@@ -834,13 +940,19 @@ export async function searchAssets(params: AssetSearchParams): Promise<ApiResult
   if (params.limit) {
     searchParams.set("limit", String(params.limit));
   }
-  return request<ListData<AssetSummary>>(`/api/v1/assets/search?${searchParams.toString()}`, {
-    credentials: "omit",
-    signal: params.signal,
-  });
+  return request<ListData<AssetSummary>>(
+    `/api/v1/assets/search?${searchParams.toString()}`,
+    {
+      credentials: "omit",
+      signal: params.signal,
+    }
+  );
 }
 
-export async function getAsset(ticker: string, signal?: AbortSignal): Promise<ApiResult<Asset>> {
+export async function getAsset(
+  ticker: string,
+  signal?: AbortSignal
+): Promise<ApiResult<Asset>> {
   return request<Asset>(`/api/v1/assets/${encodeURIComponent(ticker)}`, {
     credentials: "omit",
     signal,
@@ -848,23 +960,28 @@ export async function getAsset(ticker: string, signal?: AbortSignal): Promise<Ap
 }
 
 export async function getCorporateActionProjection(
-  params: CorporateActionProjectionParams,
+  params: CorporateActionProjectionParams
 ): Promise<ApiResult<CorporateActionProjection>> {
   const searchParams = new URLSearchParams();
   searchParams.set("instrumentId", params.instrumentIds.join(","));
   searchParams.set("from", params.from);
   searchParams.set("to", params.to);
-  return request<CorporateActionProjection>(`/api/v1/corporate-actions/projection?${searchParams.toString()}`, {
-    credentials: "omit",
-    signal: params.signal,
-  });
+  return request<CorporateActionProjection>(
+    `/api/v1/corporate-actions/projection?${searchParams.toString()}`,
+    {
+      credentials: "omit",
+      signal: params.signal,
+    }
+  );
 }
 
 export async function calculateDividend(
   payload: DividendCalculationPayload,
-  options: DividendCalculationRequestOptions,
+  options: DividendCalculationRequestOptions
 ): Promise<ApiResult<DividendCalculation>> {
-  const invalidKey = missingIdempotencyKey<DividendCalculation>(options.idempotencyKey);
+  const invalidKey = missingIdempotencyKey<DividendCalculation>(
+    options.idempotencyKey
+  );
   if (invalidKey) return invalidKey;
   return request<DividendCalculation>("/api/v1/dividends/calculate", {
     method: "POST",
@@ -875,8 +992,13 @@ export async function calculateDividend(
   });
 }
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<ApiResult<T>> {
-  const mutation = init.method !== undefined && !["GET", "HEAD", "OPTIONS"].includes(init.method.toUpperCase());
+async function request<T>(
+  path: string,
+  init: RequestInit = {}
+): Promise<ApiResult<T>> {
+  const mutation =
+    init.method !== undefined &&
+    !["GET", "HEAD", "OPTIONS"].includes(init.method.toUpperCase());
   let response: Response;
   try {
     response = await fetch(`${openInvestApiBaseUrl()}${path}`, {
@@ -894,17 +1016,24 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<ApiResu
       ok: false,
       failureKind,
       completion: mutation ? "UNKNOWN" : undefined,
-      message: failureKind === "CANCELLED" ? "The request was cancelled."
-        : failureKind === "TIMEOUT" ? "The request timed out. Its outcome could not be confirmed."
-        : "OpenInvest is temporarily unavailable. Please try again.",
+      message:
+        failureKind === "CANCELLED"
+          ? "The request was cancelled."
+          : failureKind === "TIMEOUT"
+          ? "The request timed out. Its outcome could not be confirmed."
+          : "OpenInvest is temporarily unavailable. Please try again.",
     };
   }
 
   const status = response.status;
-  const retryAfterSeconds = parseRetryAfterSeconds(response.headers.get("Retry-After"));
+  const retryAfterSeconds = parseRetryAfterSeconds(
+    response.headers.get("Retry-After")
+  );
   const headerRequestId = response.headers.get("X-Request-ID") ?? undefined;
   const headerTraceId = response.headers.get("X-Trace-ID") ?? undefined;
-  const incomplete = (message = "OpenInvest returned an unexpected response. Please try again."): ApiResult<T> => ({
+  const incomplete = (
+    message = "OpenInvest returned an unexpected response. Please try again."
+  ): ApiResult<T> => ({
     ok: false,
     message,
     status,
@@ -916,7 +1045,9 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<ApiResu
   });
 
   const contentType = response.headers.get("Content-Type") ?? "";
-  if (!/^application\/(?:[a-zA-Z0-9.-]+\+)?json(?:\s*;|\s*$)/i.test(contentType)) {
+  if (
+    !/^application\/(?:[a-zA-Z0-9.-]+\+)?json(?:\s*;|\s*$)/i.test(contentType)
+  ) {
     return incomplete();
   }
 
@@ -927,10 +1058,16 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<ApiResu
     const failureKind = transportFailureKind(error, init.signal);
     return {
       ok: false,
-      message: failureKind === "CANCELLED" ? "The request was cancelled."
-        : failureKind === "TIMEOUT" ? "The request timed out. Its outcome could not be confirmed."
-        : "The response was interrupted. The request outcome could not be confirmed.",
-      status, requestId: headerRequestId, traceId: headerTraceId, retryAfterSeconds,
+      message:
+        failureKind === "CANCELLED"
+          ? "The request was cancelled."
+          : failureKind === "TIMEOUT"
+          ? "The request timed out. Its outcome could not be confirmed."
+          : "The response was interrupted. The request outcome could not be confirmed.",
+      status,
+      requestId: headerRequestId,
+      traceId: headerTraceId,
+      retryAfterSeconds,
       failureKind,
       completion: mutation ? "UNKNOWN" : undefined,
     };
@@ -948,11 +1085,13 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<ApiResu
   const requestId = payload.meta.requestId;
   const traceId = payload.meta.traceId;
   if (!response.ok) {
-    if (!isResponseRecord(payload.error)
-      || typeof payload.error.code !== "string"
-      || !/^[A-Z][A-Z0-9_]*$/.test(payload.error.code)
-      || typeof payload.error.message !== "string"
-      || !Array.isArray(payload.error.details)) {
+    if (
+      !isResponseRecord(payload.error) ||
+      typeof payload.error.code !== "string" ||
+      !/^[A-Z][A-Z0-9_]*$/.test(payload.error.code) ||
+      typeof payload.error.message !== "string" ||
+      !Array.isArray(payload.error.details)
+    ) {
       return incomplete();
     }
     return {
@@ -963,7 +1102,11 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<ApiResu
       traceId,
       retryAfterSeconds,
       failureKind: httpFailureKind(status),
-      completion: mutation ? (status >= 500 || payload.error.code === "IDEMPOTENCY_IN_FLIGHT" ? "UNKNOWN" : "REJECTED") : undefined,
+      completion: mutation
+        ? status >= 500 || payload.error.code === "IDEMPOTENCY_IN_FLIGHT"
+          ? "UNKNOWN"
+          : "REJECTED"
+        : undefined,
       message: payload.error.message,
     };
   }
@@ -977,15 +1120,23 @@ function isResponseRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function isResponseMeta(value: unknown): value is { requestId: string; traceId: string; generatedAt: string } {
-  return isResponseRecord(value)
-    && typeof value.requestId === "string"
-    && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value.requestId)
-    && typeof value.traceId === "string"
-    && /^[a-f0-9]{32}$/.test(value.traceId)
-    && typeof value.generatedAt === "string"
-    && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(value.generatedAt)
-    && Number.isFinite(Date.parse(value.generatedAt));
+function isResponseMeta(
+  value: unknown
+): value is { requestId: string; traceId: string; generatedAt: string } {
+  return (
+    isResponseRecord(value) &&
+    typeof value.requestId === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      value.requestId
+    ) &&
+    typeof value.traceId === "string" &&
+    /^[a-f0-9]{32}$/.test(value.traceId) &&
+    typeof value.generatedAt === "string" &&
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(
+      value.generatedAt
+    ) &&
+    Number.isFinite(Date.parse(value.generatedAt))
+  );
 }
 
 function parseRetryAfterSeconds(value: string | null): number | undefined {
@@ -994,11 +1145,22 @@ function parseRetryAfterSeconds(value: string | null): number | undefined {
   return Number.isSafeInteger(seconds) ? seconds : undefined;
 }
 
-function transportFailureKind(error: unknown, signal: AbortSignal | null | undefined): ApiFailureKind {
-  const name = isResponseRecord(error) && typeof error.name === "string" ? error.name : "";
+function transportFailureKind(
+  error: unknown,
+  signal: AbortSignal | null | undefined
+): ApiFailureKind {
+  const name =
+    isResponseRecord(error) && typeof error.name === "string" ? error.name : "";
   const abortReason = signal?.reason;
-  const reasonName = isResponseRecord(abortReason) && typeof abortReason.name === "string" ? abortReason.name : "";
-  if (name === "TimeoutError" || (signal?.aborted && reasonName === "TimeoutError")) return "TIMEOUT";
+  const reasonName =
+    isResponseRecord(abortReason) && typeof abortReason.name === "string"
+      ? abortReason.name
+      : "";
+  if (
+    name === "TimeoutError" ||
+    (signal?.aborted && reasonName === "TimeoutError")
+  )
+    return "TIMEOUT";
   if (name === "AbortError" || signal?.aborted) return "CANCELLED";
   return "NETWORK";
 }
@@ -1018,14 +1180,18 @@ function idempotentHeaders(idempotencyKey: string | undefined) {
   return { "Idempotency-Key": idempotencyKey ?? "" };
 }
 
-function missingIdempotencyKey<T>(key: string | undefined): ApiResult<T> | null {
-  if (typeof key === "string" && /^[A-Za-z0-9._:-]{16,128}$/.test(key)) return null;
+function missingIdempotencyKey<T>(
+  key: string | undefined
+): ApiResult<T> | null {
+  if (typeof key === "string" && /^[A-Za-z0-9._:-]{16,128}$/.test(key))
+    return null;
   return {
     ok: false,
     code: "CLIENT_IDEMPOTENCY_KEY_REQUIRED",
     failureKind: "REQUEST_SETUP",
     completion: "REJECTED",
-    message: "A valid request identity is required before submitting this operation.",
+    message:
+      "A valid request identity is required before submitting this operation.",
   };
 }
 
@@ -1053,9 +1219,21 @@ function csrfHeaders(csrfToken: string) {
   };
 }
 
-export async function resendVerification(email: string): Promise<ApiResult<RegistrationAcknowledgment>> {
- return request<RegistrationAcknowledgment>("/api/v1/auth/email/resend",{method:"POST",body:JSON.stringify({email}),credentials:"omit"});
+export async function resendVerification(
+  email: string
+): Promise<ApiResult<RegistrationAcknowledgment>> {
+  return request<RegistrationAcknowledgment>("/api/v1/auth/email/resend", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+    credentials: "omit",
+  });
 }
-export async function verifyEmailRegistration(payload: VerifyEmailPayload): Promise<ApiResult<{status:"ACCOUNT_READY"}>> {
- return request<{status:"ACCOUNT_READY"}>("/api/v1/auth/email/verify",{method:"POST",body:JSON.stringify(payload),credentials:"omit"});
+export async function verifyEmailRegistration(
+  payload: VerifyEmailPayload
+): Promise<ApiResult<{ status: "ACCOUNT_READY" }>> {
+  return request<{ status: "ACCOUNT_READY" }>("/api/v1/auth/email/verify", {
+    method: "POST",
+    body: JSON.stringify(payload),
+    credentials: "omit",
+  });
 }

@@ -11,6 +11,7 @@ func registerRoutes(app *fiber.App, api *API) {
 	app.Post("/api/v1/auth/email/resend", api.register)
 	app.Post("/api/v1/auth/email/verify", api.verifyEmail)
 	app.Post("/api/v1/auth/login", api.login)
+	app.Post("/api/v1/auth/bootstrap", api.bootstrap)
 	app.Post("/api/v1/auth/refresh", api.refresh)
 	app.Post("/api/v1/auth/logout", api.logout)
 	app.Get("/api/v1/assets/search", api.searchAssets)

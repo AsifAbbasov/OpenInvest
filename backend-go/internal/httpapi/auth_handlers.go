@@ -2,12 +2,14 @@ package httpapi
 
 import (
 	"bytes"
-	"github.com/gofiber/fiber/v3"
-	"github.com/openinvest/openinvest/backend-go/internal/auth"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/gofiber/fiber/v3"
+	"github.com/openinvest/openinvest/backend-go/internal/auth"
 )
 
 func (api *API) register(c fiber.Ctx) error {
@@ -75,6 +77,170 @@ func (api *API) login(c fiber.Ctx) error {
 	}
 	api.setRefreshCookie(c, result.RefreshToken)
 	return writeStatusWithMeta(c, meta, http.StatusOK, mapAuthData(result))
+}
+
+// bootstrap restores authentication using the existing refresh cookie.
+// It does not rotate the refresh token or issue a replacement cookie.
+func (api *API) bootstrap(c fiber.Ctx) error {
+	meta := requestMeta(c)
+
+	if err := validateBootstrapOrigin(c); err != nil {
+		return writeErrorWithMeta(
+			c,
+			meta,
+			http.StatusForbidden,
+			"BOOTSTRAP_ORIGIN_DENIED",
+			"Bootstrap request origin is not permitted",
+		)
+	}
+
+	if !validBootstrapRequest(c) {
+		return writeErrorWithMeta(
+			c,
+			meta,
+			http.StatusBadRequest,
+			"BOOTSTRAP_INVALID_REQUEST",
+			"Invalid bootstrap request",
+		)
+	}
+
+	if err := api.checkAuthRateLimit(c); err != nil {
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
+
+	if api.auth == nil {
+		return writeErrorWithMeta(
+			c,
+			meta,
+			http.StatusServiceUnavailable,
+			"SERVICE_NOT_READY",
+			"Authentication service is not ready",
+		)
+	}
+
+	refreshToken := c.Cookies(auth.RefreshCookieName)
+	if strings.TrimSpace(refreshToken) == "" {
+		return writeErrorWithMeta(
+			c,
+			meta,
+			http.StatusUnauthorized,
+			"SESSION_INVALID",
+			"Authentication session is invalid",
+		)
+	}
+
+	result, err := api.auth.Bootstrap(c.Context(), refreshToken)
+	if err != nil {
+		if err == auth.ErrInvalidSession {
+			return writeErrorWithMeta(
+				c,
+				meta,
+				http.StatusUnauthorized,
+				"SESSION_INVALID",
+				"Authentication session is invalid",
+			)
+		}
+		return writeMappedErrorWithMeta(c, meta, err)
+	}
+
+	// Bootstrap must never invoke setRefreshCookie.
+	// The original HttpOnly refresh cookie remains unchanged.
+	return writeStatusWithMeta(c, meta, http.StatusOK, mapAuthData(result))
+}
+
+func validateBootstrapOrigin(c fiber.Ctx) error {
+	origins := c.Request().Header.PeekAll("Origin")
+	if len(origins) != 1 {
+		return auth.ErrInvalidInput
+	}
+
+	origin := string(origins[0])
+	if origin == "" || origin != strings.TrimSpace(origin) {
+		return auth.ErrInvalidInput
+	}
+
+	if origin == "null" || strings.ContainsAny(origin, ",\r\n\t ") {
+		return auth.ErrInvalidInput
+	}
+
+	parsed, err := url.Parse(origin)
+	if err != nil {
+		return auth.ErrInvalidInput
+	}
+
+	if parsed.Scheme != "http" && parsed.Scheme != "https" {
+		return auth.ErrInvalidInput
+	}
+
+	if parsed.Host == "" ||
+		parsed.User != nil ||
+		parsed.Path != "" ||
+		parsed.RawQuery != "" ||
+		parsed.Fragment != "" ||
+		parsed.Opaque != "" {
+		return auth.ErrInvalidInput
+	}
+
+	if parsed.String() != origin {
+		return auth.ErrInvalidInput
+	}
+
+	if !allowedWebOrigin(origin) {
+		return auth.ErrInvalidInput
+	}
+
+	fetchSite := c.Request().Header.PeekAll("Sec-Fetch-Site")
+	if len(fetchSite) > 1 {
+		return auth.ErrInvalidInput
+	}
+	if len(fetchSite) == 1 {
+		switch string(fetchSite[0]) {
+		case "same-origin", "same-site":
+		default:
+			return auth.ErrInvalidInput
+		}
+	}
+
+	fetchMode := c.Request().Header.PeekAll("Sec-Fetch-Mode")
+	if len(fetchMode) > 1 {
+		return auth.ErrInvalidInput
+	}
+	if len(fetchMode) == 1 && string(fetchMode[0]) != "cors" {
+		return auth.ErrInvalidInput
+	}
+
+	fetchDest := c.Request().Header.PeekAll("Sec-Fetch-Dest")
+	if len(fetchDest) > 1 {
+		return auth.ErrInvalidInput
+	}
+	if len(fetchDest) == 1 && string(fetchDest[0]) != "empty" {
+		return auth.ErrInvalidInput
+	}
+
+	return nil
+}
+
+func validBootstrapRequest(c fiber.Ctx) bool {
+	if c.Method() != http.MethodPost {
+		return false
+	}
+
+	if len(c.Request().Body()) != 0 {
+		return false
+	}
+
+	headers := c.Request().Header.PeekAll("X-OpenInvest-Bootstrap")
+	if len(headers) != 1 || string(headers[0]) != "1" {
+		return false
+	}
+
+	acceptHeaders := c.Request().Header.PeekAll("Accept")
+	if len(acceptHeaders) != 1 {
+		return false
+	}
+
+	accept := strings.TrimSpace(string(acceptHeaders[0]))
+	return accept == "application/json"
 }
 
 func (api *API) refresh(c fiber.Ctx) error {

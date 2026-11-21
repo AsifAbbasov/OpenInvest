@@ -582,7 +582,8 @@ func authAdv01ExpireSession(t *testing.T, ctx context.Context, db *sql.DB, sessi
 	t.Helper()
 	result, err := db.ExecContext(ctx, `
 		UPDATE identity.sessions
-		SET expires_at = created_at + interval '1 microsecond'
+		SET created_at = clock_timestamp() - interval '2 minutes',
+            expires_at = clock_timestamp() - interval '1 minute'
 		WHERE id = $1
 	`, sessionID)
 	if err != nil {

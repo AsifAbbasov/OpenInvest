@@ -17,8 +17,10 @@ test("shell contains independent Dashboard and Portfolios navigation targets", (
 });
 
 test("shell preserves AuthShell session ownership and excludes anonymous login", () => {
-  assert.match(auth, /if \(state\.status !== "authenticated"\)/);
-  assert.match(auth, /return <AuthForm/);
+  assert.match(auth, /state\.status === "initializing"/);
+  assert.match(auth, /state\.status === "temporarily_unavailable"/);
+  assert.match(auth, /state\.status === "anonymous"/);
+  assert.match(auth, /<AuthForm/);
   assert.match(auth, /<ApplicationShell/);
   assert.match(shell, /Skip to main content/);
   assert.match(shell, /aria-label="Mobile navigation"|"Mobile navigation"/);
