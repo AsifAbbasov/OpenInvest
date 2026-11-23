@@ -71,6 +71,22 @@ responses:
         examples:
           default: { $ref: "../examples/auth.json#/loginResponse" }
 
+  Bootstrap:
+    description: >-
+      Existing refresh cookie validated; the CSRF proof rotated atomically.
+      No refresh cookie is issued or rotated by this endpoint.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+      Cache-Control:
+        description: Response must not be cached.
+        schema: { type: string, enum: ["no-store"] }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/AuthResponse" }
+        examples:
+          default: { $ref: "../examples/auth.json#/bootstrapResponse" }
+
   Refresh:
     description: Refresh cookie and access session rotated.
     headers:
@@ -327,6 +343,29 @@ responses:
         schema: { $ref: "./schemas.yaml#/ErrorResponse" }
         examples:
           default: { $ref: "../examples/errors.json#/validationError" }
+
+  Forbidden:
+    description: >-
+      Request Origin or browser request context was rejected. No authenticated
+      response is disclosed.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+      Cache-Control:
+        description: Session bootstrap error response must not be cached.
+        schema: { type: string, enum: ["no-store"] }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/ErrorResponse" }
+
+  InternalError:
+    description: An unexpected server-side error prevented session restoration.
+    headers:
+      X-Request-ID: { $ref: "#/headers/RequestId" }
+      X-Trace-ID: { $ref: "#/headers/TraceId" }
+    content:
+      application/json:
+        schema: { $ref: "./schemas.yaml#/ErrorResponse" }
 
   Unauthorized:
     description: Authentication failed or is required.

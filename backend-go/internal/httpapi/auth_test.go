@@ -511,3 +511,20 @@ func (store *httpAuthTestStore) RevokeSession(_ context.Context, refreshTokenHas
 	}
 	return true, nil
 }
+
+// BootstrapSession replaces the CSRF hash without rotating the refresh token.
+func (store *httpAuthTestStore) BootstrapSession(
+	ctx context.Context,
+	refreshTokenHash string,
+	nextCSRFTokenHash string,
+) (auth.StoredUser, error) {
+	current, ok := store.sessions[refreshTokenHash]
+	if !ok {
+		return auth.StoredUser{}, auth.ErrInvalidSession
+	}
+
+	current.CSRFTokenHash = nextCSRFTokenHash
+	store.sessions[refreshTokenHash] = current
+
+	return store.user, nil
+}

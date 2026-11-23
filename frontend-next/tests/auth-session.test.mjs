@@ -25,17 +25,28 @@ const rotatedSession = {
   csrfToken: "rotated-csrf-token",
 };
 
-function makeRuntime(initialState = session.authenticatedState({ user, session: firstSession })) {
+function makeRuntime(
+  initialState = session.authenticatedState({ user, session: firstSession })
+) {
   return {
     state: initialState,
     operation: { generation: 0, pending: null },
     pending: null,
-    getState() { return this.state; },
-    getOperation() { return this.operation; },
-    setOperation(operation) { this.operation = operation; },
-    setPendingOperation(operation) { this.pending = operation; },
+    getState() {
+      return this.state;
+    },
+    getOperation() {
+      return this.operation;
+    },
+    setOperation(operation) {
+      this.operation = operation;
+    },
+    setPendingOperation(operation) {
+      this.pending = operation;
+    },
     setState(nextState) {
-      this.state = typeof nextState === "function" ? nextState(this.state) : nextState;
+      this.state =
+        typeof nextState === "function" ? nextState(this.state) : nextState;
     },
   };
 }
@@ -77,8 +88,17 @@ test("refresh 401 clears authenticated state as a true auth rejection", () => {
 for (const [label, failure] of [
   ["500", { ok: false, status: 500, message: "Internal server error" }],
   ["503", { ok: false, status: 503, message: "Service unavailable" }],
-  ["429", { ok: false, status: 429, message: "Too many authentication attempts" }],
-  ["network failure", { ok: false, message: "OpenInvest is temporarily unavailable. Please try again." }],
+  [
+    "429",
+    { ok: false, status: 429, message: "Too many authentication attempts" },
+  ],
+  [
+    "network failure",
+    {
+      ok: false,
+      message: "OpenInvest is temporarily unavailable. Please try again.",
+    },
+  ],
 ]) {
   test(`refresh ${label} preserves authenticated state and current tokens`, () => {
     const state = session.authenticatedState({ user, session: firstSession });
@@ -98,7 +118,8 @@ test("refresh can be retried after a transient failure", async () => {
     async refreshSession(csrfToken) {
       calls += 1;
       assert.equal(csrfToken, firstSession.csrfToken);
-      if (calls === 1) return { ok: false, status: 503, message: "Service unavailable" };
+      if (calls === 1)
+        return { ok: false, status: 503, message: "Service unavailable" };
       return { ok: true, requestId: "request-id", data: rotatedSession };
     },
   };
@@ -131,9 +152,18 @@ test("logout success clears authenticated state", async () => {
 
 for (const [label, failure] of [
   ["401", { ok: false, status: 401, message: "Invalid or expired session" }],
-  ["429", { ok: false, status: 429, message: "Too many authentication attempts" }],
+  [
+    "429",
+    { ok: false, status: 429, message: "Too many authentication attempts" },
+  ],
   ["500", { ok: false, status: 500, message: "Internal server error" }],
-  ["network failure", { ok: false, message: "OpenInvest is temporarily unavailable. Please try again." }],
+  [
+    "network failure",
+    {
+      ok: false,
+      message: "OpenInvest is temporarily unavailable. Please try again.",
+    },
+  ],
 ]) {
   test(`logout ${label} preserves authenticated state and does not claim sign-out`, async () => {
     const runtime = makeRuntime();
@@ -157,15 +187,30 @@ for (const [label, failure] of [
 test("logout generation supersedes older refresh responses", () => {
   const initial = { generation: 0, pending: null };
   const refreshOperation = session.startSessionOperation(initial, "refresh");
-  const logoutOperation = session.startSessionOperation(refreshOperation, "logout");
-  assert.equal(session.isCurrentOperation(logoutOperation, refreshOperation.generation), false);
-  assert.equal(session.isCurrentOperation(logoutOperation, logoutOperation.generation), true);
-  const afterOldRefresh = session.finishSessionOperation(logoutOperation, refreshOperation.generation);
+  const logoutOperation = session.startSessionOperation(
+    refreshOperation,
+    "logout"
+  );
+  assert.equal(
+    session.isCurrentOperation(logoutOperation, refreshOperation.generation),
+    false
+  );
+  assert.equal(
+    session.isCurrentOperation(logoutOperation, logoutOperation.generation),
+    true
+  );
+  const afterOldRefresh = session.finishSessionOperation(
+    logoutOperation,
+    refreshOperation.generation
+  );
   assert.deepEqual(afterOldRefresh, logoutOperation);
 });
 
 test("current operation completion clears pending state", () => {
-  const current = session.startSessionOperation({ generation: 4, pending: null }, "logout");
+  const current = session.startSessionOperation(
+    { generation: 4, pending: null },
+    "logout"
+  );
   const completed = session.finishSessionOperation(current, current.generation);
   assert.equal(completed.generation, current.generation);
   assert.equal(completed.pending, null);
@@ -179,16 +224,21 @@ test("auth shell session controller does not restore auth when refresh resolves 
     async refreshSession(csrfToken) {
       clientCalls.push({ operation: "refresh", csrfToken });
       return await new Promise((resolve) => {
-        resolveRefresh = () => resolve({
-          ok: true,
-          requestId: "11111111-1111-4111-8111-111111111111",
-          data: rotatedSession,
-        });
+        resolveRefresh = () =>
+          resolve({
+            ok: true,
+            requestId: "11111111-1111-4111-8111-111111111111",
+            data: rotatedSession,
+          });
       });
     },
     async logout(payload, csrfToken) {
       clientCalls.push({ operation: "logout", payload, csrfToken });
-      return { ok: true, requestId: "33333333-3333-4333-8333-333333333333", data: { revoked: true } };
+      return {
+        ok: true,
+        requestId: "33333333-3333-4333-8333-333333333333",
+        data: { revoked: true },
+      };
     },
   };
 
@@ -208,6 +258,88 @@ test("auth shell session controller does not restore auth when refresh resolves 
   assert.equal(runtime.operation.generation, 2);
   assert.deepEqual(clientCalls, [
     { operation: "refresh", csrfToken: "first-csrf-token" },
-    { operation: "logout", payload: { allSessions: false }, csrfToken: "first-csrf-token" },
+    {
+      operation: "logout",
+      payload: { allSessions: false },
+      csrfToken: "first-csrf-token",
+    },
   ]);
+});
+
+test("bootstrap initializes authentication state", () => {
+  const state = session.initializingState();
+
+  assert.deepEqual(state, {
+    status: "initializing",
+    message: null,
+  });
+});
+
+test("bootstrap restores authenticated session", () => {
+  const result = session.applyBootstrapResult({
+    ok: true,
+    requestId: "bootstrap-request",
+    data: {
+      user,
+      session: firstSession,
+    },
+  });
+
+  assert.equal(result.status, "authenticated");
+  assert.equal(result.user.id, user.id);
+  assert.equal(result.session.accessToken, firstSession.accessToken);
+  assert.equal(result.session.csrfToken, firstSession.csrfToken);
+});
+
+test("bootstrap 401 returns anonymous state", () => {
+  const result = session.applyBootstrapResult({
+    ok: false,
+    status: 401,
+    message: "Invalid or expired session",
+  });
+
+  assert.equal(result.status, "anonymous");
+});
+
+test("bootstrap transient failure preserves uncertainty", () => {
+  const result = session.applyBootstrapResult({
+    ok: false,
+    status: 503,
+    message: "Service unavailable",
+  });
+
+  assert.equal(result.status, "temporarily_unavailable");
+  assert.equal(result.message, "Service unavailable");
+});
+
+test("bootstrap rejects malformed authentication data", () => {
+  const result = session.applyBootstrapResult({
+    ok: true,
+    requestId: "bootstrap-request",
+    data: {
+      user,
+      session: {
+        ...firstSession,
+        csrfToken: "",
+      },
+    },
+  });
+
+  assert.equal(result.status, "temporarily_unavailable");
+});
+
+test("bootstrap rejects response containing refresh token", () => {
+  const result = session.applyBootstrapResult({
+    ok: true,
+    requestId: "bootstrap-request",
+    data: {
+      user,
+      session: {
+        ...firstSession,
+        refreshToken: "must-not-be-exposed",
+      },
+    },
+  });
+
+  assert.equal(result.status, "temporarily_unavailable");
 });

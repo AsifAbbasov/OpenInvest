@@ -82,7 +82,7 @@ func TestLocalDevelopmentCORSPreflight(t *testing.T) {
 			if got := response.Header.Get("Access-Control-Allow-Credentials"); got != "true" {
 				t.Fatalf("expected credentialed local auth CORS, got %q", got)
 			}
-			if got := response.Header.Get("Access-Control-Allow-Headers"); got != "Accept, Authorization, Content-Type, Idempotency-Key, X-CSRF-Token, X-Request-ID, traceparent" {
+			if got := response.Header.Get("Access-Control-Allow-Headers"); got != "Accept, Authorization, Content-Type, Idempotency-Key, X-CSRF-Token, X-OpenInvest-Bootstrap, X-Request-ID, traceparent" {
 				t.Fatalf("expected OpenAPI headers, got %q", got)
 			}
 		})

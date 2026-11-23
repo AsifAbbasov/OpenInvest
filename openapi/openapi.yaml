@@ -161,6 +161,42 @@ paths:
         "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
         "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
 
+  /api/v1/auth/bootstrap:
+    parameters:
+      - $ref: "#/components/parameters/RequestId"
+      - $ref: "#/components/parameters/Traceparent"
+    post:
+      operationId: bootstrapSession
+      summary: Restore an authenticated browser session from the refresh cookie
+      description: >-
+        Accepts an empty POST request, requires an existing HttpOnly refresh
+        cookie and the exact X-OpenInvest-Bootstrap header value 1. Returns
+        authenticated identity, a short-lived access token, and a newly rotated
+        CSRF token without rotating or returning the refresh token. The response
+        is never cached. Browser clients must use credentials: include.
+        Bootstrap does not require an existing CSRF header. Refresh and Logout
+        still require CSRF and rotate or revoke the refresh session respectively.
+      tags: [Auth]
+      security:
+        - refreshCookie: []
+      parameters:
+        - name: X-OpenInvest-Bootstrap
+          in: header
+          required: true
+          schema: { type: string, enum: ["1"] }
+        - name: Accept
+          in: header
+          required: true
+          schema: { type: string, enum: ["application/json"] }
+      responses:
+        "200": { $ref: "./components/responses.yaml#/responses/Bootstrap" }
+        "400": { $ref: "./components/responses.yaml#/responses/BadRequest" }
+        "401": { $ref: "./components/responses.yaml#/responses/Unauthorized" }
+        "403": { $ref: "./components/responses.yaml#/responses/Forbidden" }
+        "429": { $ref: "./components/responses.yaml#/responses/RateLimited" }
+        "500": { $ref: "./components/responses.yaml#/responses/InternalError" }
+        "503": { $ref: "./components/responses.yaml#/responses/ServiceUnavailable" }
+
   /api/v1/auth/refresh:
     parameters:
       - $ref: "#/components/parameters/RequestId"

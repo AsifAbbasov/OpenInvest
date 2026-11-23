@@ -13,7 +13,7 @@ function jsonResponse(data, status = 200) {
         generatedAt: "2026-07-11T00:00:00Z",
       },
     }),
-    { status, headers: { "Content-Type": "application/json" } },
+    { status, headers: { "Content-Type": "application/json" } }
   );
 }
 
@@ -133,7 +133,9 @@ test("business API requests include bearer access token without browser storage"
   Object.defineProperty(globalThis, "document", {
     configurable: true,
     get() {
-      throw new Error("document.cookie must not be used by the auth API client");
+      throw new Error(
+        "document.cookie must not be used by the auth API client"
+      );
     },
   });
 
@@ -176,10 +178,19 @@ test("business API requests include bearer access token without browser storage"
           },
         });
       }
-      if (String(url).endsWith("/portfolios/portfolio-id/transactions") && init.method !== "POST") {
-        return jsonResponse({ items: [], pagination: { nextCursor: null, hasMore: false, limit: 20 } });
+      if (
+        String(url).endsWith("/portfolios/portfolio-id/transactions") &&
+        init.method !== "POST"
+      ) {
+        return jsonResponse({
+          items: [],
+          pagination: { nextCursor: null, hasMore: false, limit: 20 },
+        });
       }
-      if (String(url).endsWith("/portfolios/portfolio-id") && init.method !== "POST") {
+      if (
+        String(url).endsWith("/portfolios/portfolio-id") &&
+        init.method !== "POST"
+      ) {
         return jsonResponse({
           id: "portfolio-id",
           name: "Long-term RUB portfolio",
@@ -190,58 +201,76 @@ test("business API requests include bearer access token without browser storage"
         });
       }
       if (String(url).endsWith("/portfolios") && init.method === "POST") {
-        return jsonResponse({
-          id: "portfolio-id",
-          name: "Long-term RUB portfolio",
-          baseCurrency: "RUB",
-          version: 1,
-          createdAt: "2026-07-11T00:00:00Z",
-          updatedAt: "2026-07-11T00:00:00Z",
-        }, 201);
+        return jsonResponse(
+          {
+            id: "portfolio-id",
+            name: "Long-term RUB portfolio",
+            baseCurrency: "RUB",
+            version: 1,
+            createdAt: "2026-07-11T00:00:00Z",
+            updatedAt: "2026-07-11T00:00:00Z",
+          },
+          201
+        );
       }
       if (String(url).endsWith("/transactions")) {
-        return jsonResponse({
-          id: "transaction-id",
-          portfolioId: "portfolio-id",
-          transactionType: "DEPOSIT",
-          status: "ACTIVE",
-          ticker: null,
-          quantity: null,
-          unitPrice: null,
-          grossAmount: { amount: "100.00000000", currency: "RUB" },
-          commission: { amount: "0.00000000", currency: "RUB" },
-          tax: { amount: "0.00000000", currency: "RUB" },
-          tradeDate: "2026-07-11",
-          settlementDate: null,
-          revision: 1,
-          createdAt: "2026-07-11T00:00:00Z",
-          updatedAt: "2026-07-11T00:00:00Z",
-        }, 201);
+        return jsonResponse(
+          {
+            id: "transaction-id",
+            portfolioId: "portfolio-id",
+            transactionType: "DEPOSIT",
+            status: "ACTIVE",
+            ticker: null,
+            quantity: null,
+            unitPrice: null,
+            grossAmount: { amount: "100.00000000", currency: "RUB" },
+            commission: { amount: "0.00000000", currency: "RUB" },
+            tax: { amount: "0.00000000", currency: "RUB" },
+            tradeDate: "2026-07-11",
+            settlementDate: null,
+            revision: 1,
+            createdAt: "2026-07-11T00:00:00Z",
+            updatedAt: "2026-07-11T00:00:00Z",
+          },
+          201
+        );
       }
       if (String(url).endsWith("/imports/review")) {
         return jsonResponse({
           portfolioId: "portfolio-id",
           sourceKind: "USER_UPLOADED_FILE",
           sourceAccountLabel: "Manual CSV import",
-          sourceFileHash: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          sourceFileHash:
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           reviewToken: "signed-review-token",
           retentionPolicy: "TRANSIENT_NOT_STORED",
-          reviewGuarantee: "SIGNED_REVIEW_TOKEN_APPEND_RERUNS_REVIEW_AND_STORE_CHECKS",
-          summary: { totalRows: 1, appendableRows: 1, duplicateRows: 0, conflictRows: 0, invalidRows: 0 },
-          rows: [{
-            rowNumber: 1,
-            rowHash: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-            status: "APPENDABLE",
-            reasonCodes: [],
-            transaction: null,
-          }],
+          reviewGuarantee:
+            "SIGNED_REVIEW_TOKEN_APPEND_RERUNS_REVIEW_AND_STORE_CHECKS",
+          summary: {
+            totalRows: 1,
+            appendableRows: 1,
+            duplicateRows: 0,
+            conflictRows: 0,
+            invalidRows: 0,
+          },
+          rows: [
+            {
+              rowNumber: 1,
+              rowHash:
+                "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              status: "APPENDABLE",
+              reasonCodes: [],
+              transaction: null,
+            },
+          ],
         });
       }
       if (String(url).endsWith("/imports/append")) {
         return jsonResponse({
           portfolioId: "portfolio-id",
           sourceKind: "USER_UPLOADED_FILE",
-          sourceFileHash: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          sourceFileHash:
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           parsedRowCount: 1,
           acceptedRowCount: 1,
           nonAppendedRowCount: 0,
@@ -253,55 +282,94 @@ test("business API requests include bearer access token without browser storage"
           rawPayloadRetentionRule: "RAW_CSV_NOT_STORED",
         });
       }
-      return jsonResponse({ items: [], pagination: { nextCursor: null, hasMore: false, limit: 20 } });
+      return jsonResponse({
+        items: [],
+        pagination: { nextCursor: null, hasMore: false, limit: 20 },
+      });
     };
 
     await api.listPortfolios({ accessToken: "access-token" });
     await api.createPortfolio(
       { name: "Long-term RUB portfolio", baseCurrency: "RUB" },
-      { accessToken: "access-token", idempotencyKey: "portfolio-intent-key" },
+      { accessToken: "access-token", idempotencyKey: "portfolio-intent-key" }
     );
     await api.getPortfolio("portfolio-id", { accessToken: "access-token" });
-    await api.getPortfolioSummary("portfolio-id", { accessToken: "access-token" });
+    await api.getPortfolioSummary("portfolio-id", {
+      accessToken: "access-token",
+    });
     await api.listTransactions("portfolio-id", { accessToken: "access-token" });
-    await api.appendTransaction("portfolio-id", {
-      transactionType: "DEPOSIT",
-      ticker: null,
-      quantity: null,
-      unitPrice: null,
-      grossAmount: { amount: "100.00000000", currency: "RUB" },
-      commission: { amount: "0.00000000", currency: "RUB" },
-      tax: { amount: "0.00000000", currency: "RUB" },
-      tradeDate: "2026-07-11",
-      settlementDate: null,
-    }, { accessToken: "access-token", idempotencyKey: "transaction-intent-key" });
-    await api.reviewPortfolioImport("portfolio-id", { csvPayload: "type,amount\n" }, { accessToken: "access-token" });
-    await api.appendReviewedPortfolioImport("portfolio-id", {
-      sourceFileHash: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      reviewToken: "signed-review-token",
-      csvPayload: "type,amount\n",
-      decisions: [{
-        rowNumber: 1,
-        rowHash: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        action: "APPROVE",
-      }],
-    }, { accessToken: "access-token", idempotencyKey: "import-append-intent-key" });
+    await api.appendTransaction(
+      "portfolio-id",
+      {
+        transactionType: "DEPOSIT",
+        ticker: null,
+        quantity: null,
+        unitPrice: null,
+        grossAmount: { amount: "100.00000000", currency: "RUB" },
+        commission: { amount: "0.00000000", currency: "RUB" },
+        tax: { amount: "0.00000000", currency: "RUB" },
+        tradeDate: "2026-07-11",
+        settlementDate: null,
+      },
+      { accessToken: "access-token", idempotencyKey: "transaction-intent-key" }
+    );
+    await api.reviewPortfolioImport(
+      "portfolio-id",
+      { csvPayload: "type,amount\n" },
+      { accessToken: "access-token" }
+    );
+    await api.appendReviewedPortfolioImport(
+      "portfolio-id",
+      {
+        sourceFileHash:
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        reviewToken: "signed-review-token",
+        csvPayload: "type,amount\n",
+        decisions: [
+          {
+            rowNumber: 1,
+            rowHash:
+              "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            action: "APPROVE",
+          },
+        ],
+      },
+      {
+        accessToken: "access-token",
+        idempotencyKey: "import-append-intent-key",
+      }
+    );
 
     assert.equal(calls.length, 8);
     for (const call of calls) {
       assert.equal(call.init.headers.Authorization, "Bearer access-token");
       assert.equal(call.init.credentials, undefined);
     }
-    assert.deepEqual(calls.map((call) => [call.init.method ?? "GET", call.url]), [
-      ["GET", "http://localhost:8080/api/v1/portfolios"],
-      ["POST", "http://localhost:8080/api/v1/portfolios"],
-      ["GET", "http://localhost:8080/api/v1/portfolios/portfolio-id"],
-      ["GET", "http://localhost:8080/api/v1/portfolios/portfolio-id/summary"],
-      ["GET", "http://localhost:8080/api/v1/portfolios/portfolio-id/transactions"],
-      ["POST", "http://localhost:8080/api/v1/portfolios/portfolio-id/transactions"],
-      ["POST", "http://localhost:8080/api/v1/portfolios/portfolio-id/imports/review"],
-      ["POST", "http://localhost:8080/api/v1/portfolios/portfolio-id/imports/append"],
-    ]);
+    assert.deepEqual(
+      calls.map((call) => [call.init.method ?? "GET", call.url]),
+      [
+        ["GET", "http://localhost:8080/api/v1/portfolios"],
+        ["POST", "http://localhost:8080/api/v1/portfolios"],
+        ["GET", "http://localhost:8080/api/v1/portfolios/portfolio-id"],
+        ["GET", "http://localhost:8080/api/v1/portfolios/portfolio-id/summary"],
+        [
+          "GET",
+          "http://localhost:8080/api/v1/portfolios/portfolio-id/transactions",
+        ],
+        [
+          "POST",
+          "http://localhost:8080/api/v1/portfolios/portfolio-id/transactions",
+        ],
+        [
+          "POST",
+          "http://localhost:8080/api/v1/portfolios/portfolio-id/imports/review",
+        ],
+        [
+          "POST",
+          "http://localhost:8080/api/v1/portfolios/portfolio-id/imports/append",
+        ],
+      ]
+    );
     assert.deepEqual(JSON.parse(calls[1].init.body), {
       name: "Long-term RUB portfolio",
       baseCurrency: "RUB",
@@ -317,33 +385,62 @@ test("business API requests include bearer access token without browser storage"
       tradeDate: "2026-07-11",
       settlementDate: null,
     });
-    assert.deepEqual(JSON.parse(calls[6].init.body), { csvPayload: "type,amount\n" });
+    assert.deepEqual(JSON.parse(calls[6].init.body), {
+      csvPayload: "type,amount\n",
+    });
     assert.deepEqual(JSON.parse(calls[7].init.body), {
-      sourceFileHash: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      sourceFileHash:
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       reviewToken: "signed-review-token",
       csvPayload: "type,amount\n",
-      decisions: [{
-        rowNumber: 1,
-        rowHash: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        action: "APPROVE",
-      }],
+      decisions: [
+        {
+          rowNumber: 1,
+          rowHash:
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          action: "APPROVE",
+        },
+      ],
     });
-    assert.equal(calls[1].init.headers["Idempotency-Key"], "portfolio-intent-key");
-    assert.equal(calls[5].init.headers["Idempotency-Key"], "transaction-intent-key");
-    assert.equal(calls[7].init.headers["Idempotency-Key"], "import-append-intent-key");
+    assert.equal(
+      calls[1].init.headers["Idempotency-Key"],
+      "portfolio-intent-key"
+    );
+    assert.equal(
+      calls[5].init.headers["Idempotency-Key"],
+      "transaction-intent-key"
+    );
+    assert.equal(
+      calls[7].init.headers["Idempotency-Key"],
+      "import-append-intent-key"
+    );
   } finally {
-    Object.defineProperty(globalThis, "localStorage", { configurable: true, value: originalLocalStorage });
-    Object.defineProperty(globalThis, "sessionStorage", { configurable: true, value: originalSessionStorage });
-    Object.defineProperty(globalThis, "indexedDB", { configurable: true, value: originalIndexedDB });
-    Object.defineProperty(globalThis, "document", { configurable: true, value: originalDocument });
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      value: originalLocalStorage,
+    });
+    Object.defineProperty(globalThis, "sessionStorage", {
+      configurable: true,
+      value: originalSessionStorage,
+    });
+    Object.defineProperty(globalThis, "indexedDB", {
+      configurable: true,
+      value: originalIndexedDB,
+    });
+    Object.defineProperty(globalThis, "document", {
+      configurable: true,
+      value: originalDocument,
+    });
   }
 });
 
 test("portfolio list APIs preserve pagination and forward opaque cursors", async () => {
-	const portfolioCursor = "eyJ2IjoxLCJyZXNvdXJjZSI6InBvcnRmb2xpb3MifQ.signed-cursor";
-	const transactionCursor = "eyJ2IjoxLCJyZXNvdXJjZSI6InRyYW5zYWN0aW9ucyJ9.signed-cursor";
-	const nextCursor = "eyJ2IjoxLCJyZXNvdXJjZSI6Im5leHQifQ.signed-cursor";
-	const calls = [];
+  const portfolioCursor =
+    "eyJ2IjoxLCJyZXNvdXJjZSI6InBvcnRmb2xpb3MifQ.signed-cursor";
+  const transactionCursor =
+    "eyJ2IjoxLCJyZXNvdXJjZSI6InRyYW5zYWN0aW9ucyJ9.signed-cursor";
+  const nextCursor = "eyJ2IjoxLCJyZXNvdXJjZSI6Im5leHQifQ.signed-cursor";
+  const calls = [];
   globalThis.fetch = async (url, init) => {
     calls.push({ url, init });
     return jsonResponse({
@@ -354,24 +451,38 @@ test("portfolio list APIs preserve pagination and forward opaque cursors", async
 
   const portfolios = await api.listPortfolios(
     { accessToken: "access-token" },
-    { cursor: portfolioCursor, limit: 20 },
+    { cursor: portfolioCursor, limit: 20 }
   );
   const transactions = await api.listTransactions(
     "portfolio-id",
     { accessToken: "access-token" },
-    { cursor: transactionCursor, limit: 50 },
+    { cursor: transactionCursor, limit: 50 }
   );
 
   assert.equal(portfolios.ok, true);
   assert.equal(transactions.ok, true);
   if (portfolios.ok) {
-    assert.deepEqual(portfolios.data.pagination, { nextCursor, hasMore: true, limit: 20 });
+    assert.deepEqual(portfolios.data.pagination, {
+      nextCursor,
+      hasMore: true,
+      limit: 20,
+    });
   }
   if (transactions.ok) {
-    assert.deepEqual(transactions.data.pagination, { nextCursor, hasMore: true, limit: 20 });
+    assert.deepEqual(transactions.data.pagination, {
+      nextCursor,
+      hasMore: true,
+      limit: 20,
+    });
   }
-  assert.equal(calls[0].url, `http://localhost:8080/api/v1/portfolios?cursor=${portfolioCursor}&limit=20`);
-  assert.equal(calls[1].url, `http://localhost:8080/api/v1/portfolios/portfolio-id/transactions?cursor=${transactionCursor}&limit=50`);
+  assert.equal(
+    calls[0].url,
+    `http://localhost:8080/api/v1/portfolios?cursor=${portfolioCursor}&limit=20`
+  );
+  assert.equal(
+    calls[1].url,
+    `http://localhost:8080/api/v1/portfolios/portfolio-id/transactions?cursor=${transactionCursor}&limit=50`
+  );
 });
 
 test("public asset API requests omit credentials and browser storage", async () => {
@@ -390,7 +501,9 @@ test("public asset API requests omit credentials and browser storage", async () 
   Object.defineProperty(globalThis, "sessionStorage", {
     configurable: true,
     get() {
-      throw new Error("sessionStorage must not be used by public asset requests");
+      throw new Error(
+        "sessionStorage must not be used by public asset requests"
+      );
     },
   });
   Object.defineProperty(globalThis, "indexedDB", {
@@ -402,7 +515,9 @@ test("public asset API requests omit credentials and browser storage", async () 
   Object.defineProperty(globalThis, "document", {
     configurable: true,
     get() {
-      throw new Error("document.cookie must not be used by public asset requests");
+      throw new Error(
+        "document.cookie must not be used by public asset requests"
+      );
     },
   });
 
@@ -411,30 +526,41 @@ test("public asset API requests omit credentials and browser storage", async () 
       calls.push({ url, init });
       if (String(url).includes("/assets/search")) {
         return jsonResponse({
-          items: [{
-            ticker: "SBER",
-            name: "Sberbank ordinary shares",
-            assetType: "STOCK",
-            currency: "RUB",
-            lotSize: "10.00000000",
-            lastPrice: null,
-          }],
+          items: [
+            {
+              ticker: "SBER",
+              name: "Sberbank ordinary shares",
+              assetType: "STOCK",
+              currency: "RUB",
+              lotSize: "10.00000000",
+              lastPrice: null,
+            },
+          ],
           pagination: { nextCursor: null, hasMore: false, limit: 20 },
         });
       }
       return new Response(
-        JSON.stringify({ error: { code: "NOT_FOUND", message: "Asset not found" } }),
-        { status: 404, headers: { "Content-Type": "application/json" } },
+        JSON.stringify({
+          error: { code: "NOT_FOUND", message: "Asset not found" },
+        }),
+        { status: 404, headers: { "Content-Type": "application/json" } }
       );
     };
 
-    const searchResult = await api.searchAssets({ query: "SBER", assetType: "STOCK", limit: 20 });
+    const searchResult = await api.searchAssets({
+      query: "SBER",
+      assetType: "STOCK",
+      limit: 20,
+    });
     const detailResult = await api.getAsset("SBER");
 
     assert.equal(searchResult.ok, true);
     assert.equal(detailResult.ok, false);
     assert.equal(detailResult.status, 404);
-    assert.equal(calls[0].url, "http://localhost:8080/api/v1/assets/search?query=SBER&assetType=STOCK&limit=20");
+    assert.equal(
+      calls[0].url,
+      "http://localhost:8080/api/v1/assets/search?query=SBER&assetType=STOCK&limit=20"
+    );
     assert.equal(calls[1].url, "http://localhost:8080/api/v1/assets/SBER");
     for (const call of calls) {
       assert.equal(call.init.credentials, "omit");
@@ -443,9 +569,67 @@ test("public asset API requests omit credentials and browser storage", async () 
       assert.equal(call.init.body, undefined);
     }
   } finally {
-    Object.defineProperty(globalThis, "localStorage", { configurable: true, value: originalLocalStorage });
-    Object.defineProperty(globalThis, "sessionStorage", { configurable: true, value: originalSessionStorage });
-    Object.defineProperty(globalThis, "indexedDB", { configurable: true, value: originalIndexedDB });
-    Object.defineProperty(globalThis, "document", { configurable: true, value: originalDocument });
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      value: originalLocalStorage,
+    });
+    Object.defineProperty(globalThis, "sessionStorage", {
+      configurable: true,
+      value: originalSessionStorage,
+    });
+    Object.defineProperty(globalThis, "indexedDB", {
+      configurable: true,
+      value: originalIndexedDB,
+    });
+    Object.defineProperty(globalThis, "document", {
+      configurable: true,
+      value: originalDocument,
+    });
   }
+});
+
+test("bootstrap restores session using refresh cookie", async () => {
+  const calls = [];
+
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url, init });
+
+    return jsonResponse({
+      user: {
+        id: "user-id",
+        email: "investor@example.com",
+        language: "en",
+        theme: "system",
+        timezone: "UTC",
+        privacyMode: true,
+        createdAt: "2026-07-11T00:00:00Z",
+      },
+      session: {
+        accessToken: "bootstrap-access-token",
+        accessTokenExpiresAt: "2026-07-11T00:15:00Z",
+        csrfToken: "bootstrap-csrf-token",
+      },
+    });
+  };
+
+  const result = await api.bootstrapSession();
+
+  assert.equal(result.ok, true);
+  assert.equal(calls.length, 1);
+
+  const { url, init } = calls[0];
+
+  assert.equal(url, "http://localhost:8080/api/v1/auth/bootstrap");
+
+  assert.equal(init.method, "POST");
+  assert.equal(init.credentials, "include");
+  assert.equal(init.cache, "no-store");
+
+  assert.equal(init.headers["X-OpenInvest-Bootstrap"], "1");
+
+  assert.equal(init.headers.Accept, "application/json");
+
+  assert.equal(init.body, undefined);
+  assert.equal(init.headers.Authorization, undefined);
+  assert.equal(init.headers["X-CSRF-Token"], undefined);
 });
